@@ -6,7 +6,7 @@
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    using (Html.BeginForm("Create", "Supplier", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    using (Html.BeginForm("Create", "ProformaInvoice", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
         <div class="app-content content">
@@ -22,14 +22,14 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Supplier/Index">Ta'minotchilar</a>
+                                            <a href="~/ProformaInvoice/Index">Proforma invoyslar</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi ta'minotchi qo'shish
+                                            Yangi proforma invoys qo'shish
                                         </li>
                                     </ol>
                                     <div class="invoice-create-btn mb-1">
-                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Supplier/UploadWithExcel'">
+                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/ProformaInvoice/UploadWithExcel'">
                                             <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali ta'minotchilarni qo'shish</span>
                                         </button>
 
@@ -54,30 +54,30 @@
                                                     <hr>
                                                     <h6 class="invoice-to">Proforma invoys raqami</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.PrInvoiceNo, new { @class = "form-control round", @placeholder = "Nomi", @required = "required" })
+                                                        @Html.TextBoxFor(model => model.PrInvoiceNo, new { @class = "form-control round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.PrInvoiceNo, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Invoys</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.invoices as SelectList, new { @class = "form-control round", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.PInvoices as SelectList, new { @class = "form-control round select2", @required = "required" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Ta'minotchi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.suppliers as SelectList, new { @class = "form-control round", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.Supplier as SelectList, new { @class = "form-control round select2", @required = "required" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Miqdori</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control round", @placeholder = "DUNS", @required = "required", @type = "number" })
+                                                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control round", @required = "required", @type = "number" })
                                                         @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @placeholder = "Mamlakat" })
+                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round" })
                                                         @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                        <label>Tugaydigan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.InvoiceDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Tugaydigan sanasi" })
+                                                        <label>Proforma Invoys sanasi</label>
+                                                        @Html.TextBoxFor(model => model.InvoiceDate, new { @class = "form-control pickadate-months-year round"})
                                                         @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>

@@ -25,6 +25,7 @@ namespace tahsinERP.Controllers
                 var list = await db.P_PROFORMA_INVOICES
                     .Where(x => x.IsDeleted == false)
                     .Include(x => x.P_INVOICES)
+                    .Include(x => x.SUPPLIER)
                     .ToListAsync();
 
                 return View(list);
@@ -45,26 +46,35 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                P_PROFORMA_INVOICES invoice = new P_PROFORMA_INVOICES()
+                try
                 {
-                    InvoiceID = model.InvoiceID,
-                    SupplierID = model.SupplierID,
-                    Amount = model.Amount,
-                    Currency = model.Currency,
-                    InvoiceDate = model.InvoiceDate,
-                    CompanyID = 1,
-                    IsDeleted = false
-                };
+                    P_PROFORMA_INVOICES invoice = new P_PROFORMA_INVOICES()
+                    {
+                        PrInvoiceNo = model.PrInvoiceNo,
+                        InvoiceID = model.InvoiceID,
+                        SupplierID = model.SupplierID,
+                        Amount = model.Amount,
+                        Currency = model.Currency,
+                        InvoiceDate = model.InvoiceDate,
+                        CompanyID = 1,
+                        IsDeleted = false
+                    };
 
-                db.P_PROFORMA_INVOICES.Add(invoice);
-                await db.SaveChangesAsync();
+                    db.P_PROFORMA_INVOICES.Add(invoice);
+                    await db.SaveChangesAsync();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{model.ID} ID ga ega PProformaInvoiceni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{model.ID} ID ga ega PProformaInvoiceni yaratdi");
 
-                ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name");
-                ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo");
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(ex.Message, "Ma'lumotlarni kiritishda xatolik yuz berdi.");
+                    ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name");
+                    ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo");
 
-                return RedirectToAction("Index");
+                    return View(model);
+                }
             }
         }
         public async Task<ActionResult> Details(int? id)
