@@ -55,112 +55,87 @@
                             </div>
                         </div>
                     }
-                    <div class="users-list-filter px-1">
-                        <form>
-                            <div class="row border rounded py-2 mb-2">
-                                <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="users-list-role">Turi</label>
-                                    <fieldset class="form-group">
-                                        @Html.DropDownList("SourceID", ViewBag.SourceList as SelectList, new { @class = "form-control", onchange = "refreshDataTable()" })
-                                    </fieldset>
-                                </div>
-
-                                <div class="col-12 col-sm-12 col-lg-4">
-                                    <label>Ta'minotchisi</label>
-                                    <fieldset class="form-group">
-                                        @Html.DropDownList("SupplierID", ViewBag.SupplierList as SelectList, "", new { @class = "form-control", onchange = "refreshdatatablesupplier()" })
-                                    </fieldset>
-                                </div>
-                                <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
-                                    <a href="~/PContract" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
-                                        Ro'yxatni yangilash
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="col-md-12 col-sm-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <!-- datatable start -->
-                                    <div class="table-responsive table-responsivetable-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>Raqami</th>
-                                                    <th>Ta'minotchi nomi</th>
-                                                    <th>Turi</th>
-                                                    <th>Tuzilgan sanasi</th>
-                                                    <th>Tugashi sanasi</th>
-                                                    <th>Incoterms</th>
-                                                    <th>To'lov sharti</th>
-                                                    @if (changePermit)
-                                                    {
-                                                        <th>amallar</th>
-                                                    }
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var item in ViewBag.partList)
+                </section>
+            </div>
+            <div class="col-md-12 col-sm-12">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <!-- datatable start -->
+                            <div class="table-responsive table-responsivetable-responsive">
+                                <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th></th>
+                                            <th>Raqami</th>
+                                            <th>Ta'minotchi nomi</th>
+                                            <th>Turi</th>
+                                            <th>Tuzilgan sanasi</th>
+                                            <th>Tugashi sanasi</th>
+                                            <th>Incoterms</th>
+                                            <th>To'lov sharti</th>
+                                            @if (changePermit)
+                                            {
+                                                <th>amallar</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in ViewBag.partList)
+                                        {
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td>
+                                                    <a href="~/PContract/Details/@item.ID">@item.ContractNo</a>
+                                                </td>
+                                                <td>
+                                                    <a href="~/Supplier/Details/@item.SupplierID">@item.SUPPLIER.Name</a>
+                                                </td>
+                                                <td>@item.SUPPLIER.Type</td>
+                                                <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                <td>@item.DueDate.ToString("dd.MM.yyyy")</td>
+                                                <td>@item.Incoterms</td>
+                                                <td>@item.PaymentTerms</td>
+                                                @if (changePermit)
                                                 {
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td>
-                                                            <a href="~/PContract/Details/@item.ID">@item.ContractNo</a>
-                                                        </td>
-                                                        <td>
-                                                            <a href="~/Supplier/Details/@item.SupplierID">@item.SUPPLIER.Name</a>
-                                                        </td>
-                                                        <td>@item.SUPPLIER.Type</td>
-                                                        <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
-                                                        <td>@item.DueDate.ToString("dd.MM.yyyy")</td>
-                                                        <td>@item.Incoterms</td>
-                                                        <td>@item.PaymentTerms</td>
-                                                        @if (changePermit)
-                                                        {
-                                                            <td>
-                                                                <div>
-                                                                    <a href="@Url.Action("Edit", "PContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "PContract", new { id = item.ID})"><i class="bx bx-trash"></i></a>
-                                                                </div>
-                                                            </td>
-                                                        }
-                                                    </tr>
+                                                    <td>
+                                                        <div>
+                                                            <a href="@Url.Action("Edit", "PContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
+                                                            <a href="@Url.Action("Delete", "PContract", new { id = item.ID})"><i class="bx bx-trash"></i></a>
+                                                        </div>
+                                                    </td>
                                                 }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- datatable ends -->
-                                </div>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
+                            <!-- datatable ends -->
                         </div>
                     </div>
-                </section>
-                <!-- users list ends -->
+                </div>
             </div>
         </div>
     </div>
 
-    <script type="text/javascript">
-    function refreshDataTable() {
-        var source = document.getElementById("SourceID").value;
-        const supplierID = document.getElementById("SupplierID").value;
-        window.location.href = '@Url.Action("Index", "PContract")?type=' + source;
-        ////window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
-
-        };
-      function refreshdatatablesupplier() {
-          var source = document.getElementById("SourceID").value;
-            const supplierID = document.getElementById("SupplierID").value;
-            window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
-        }
-    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script type="text/javascript">
+   function refreshDataTable() {
+       var source = document.getElementById("SourceID").value;
+       const supplierID = document.getElementById("SupplierID").value;
+       window.location.href = '@Url.Action("Index", "PContract")?type=' + source;
+       ////window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
+
+       };
+     function refreshdatatablesupplier() {
+         var source = document.getElementById("SourceID").value;
+           const supplierID = document.getElementById("SupplierID").value;
+           window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
+       }
+</script>

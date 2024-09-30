@@ -433,6 +433,34 @@
                             </ul>
                         </li>
                     }
+
+                    <li class=" navigation-header">
+                        <span>Purchasing</span>
+                    </li>
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingItem"))
+                    {
+                        <li class=" nav-item">
+                            <a href="/PurchasingItem/Index">
+                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingItem</span>
+                            </a>
+                        </li>
+                    }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingContract"))
+                    {
+                        <li class=" nav-item">
+                            <a href="/PurchasingContract/Index">
+                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingContract</span>
+                            </a>
+                        </li>
+                    }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingOrder"))
+                    {
+                        <li class=" nav-item">
+                            <a href="/PurchasingOrder/Index">
+                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingOrder</span>
+                            </a>
+                        </li>
+                    }
                     <li class=" navigation-header">
                         <span>Engineering</span>
                     </li>

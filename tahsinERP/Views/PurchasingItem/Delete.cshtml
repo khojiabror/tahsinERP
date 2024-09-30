@@ -1,5 +1,5 @@
 ﻿
-@model  tahsinERP.ViewModels.PurchasingItemViewModel
+@model  tahsinERP.Models.PURCHASING_ITEMS
 @{
     ViewBag.Title = "Delete";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item ">
-                                        <a href="~/PurchosingItem/Index">PurchosingItem</a>
+                                        <a href="~/PurchasingItem/Index">PurchasingItem</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        PurchosingItem o'chirish
+                                        PurchasingItem o'chirish
                                     </li>
                                 </ol>
                             </div>
@@ -45,16 +45,16 @@
                                             <hr />
                                             <span><b>Item Name</b>: @Html.DisplayFor(model => model.ItemName, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Batafsil ma`lumot</b>: @Html.DisplayFor(model => model.Desciption, new { @class = "form-control" })</span>
+                                            <span><b>Batafsil ma`lumot</b>: @Html.DisplayFor(model => model.Description, new { @class = "form-control" })</span>
                                             <hr />
                                         </div>
                                     </div>
                                     <ul class="list-group list-group-flush">
                                         <li class="list-group-item border-0 pb-0">
-                                            @using (Html.BeginForm("Delete", "PurchosingItem", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                            @using (Html.BeginForm("Delete", "PurchasingItem", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu PurchosingItem ochirib yuborishga ishonchingiz komilmi?')">
+                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu PurchasingItem ochirib yuborishga ishonchingiz komilmi?')">
                                                     <i class='bx bx-trash'></i>
                                                     O'chirish
                                                 </button>
