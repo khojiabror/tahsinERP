@@ -51,13 +51,13 @@
                                                         @Html.TextBoxFor(model => model.PrInvoiceNo, new { @class = "form-control round", @placeholder = "Nomi", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.PrInvoiceNo, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Invoys</h6>
-                                                    <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.invoices as SelectList, new { @class = "form-control round", @required = "required" })
-                                                    </fieldset>
                                                     <h6 class="invoice-to">Ta'minotchi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.suppliers as SelectList, new { @class = "form-control round", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.Supplier as SelectList, new { @class = "form-control round select2", @required = "required" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Invoys</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.PInvoices as SelectList, new { @class = "form-control round select2", @required = "required" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Miqdori</h6>
                                                     <fieldset class="invoice-address form-group">

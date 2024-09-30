@@ -37,6 +37,7 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name");
                 ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo");
+                //ViewBag.PInvoices = new SelectList(Enumerable.Empty<SelectListItem>());
             }
             return View();
         }
@@ -161,9 +162,9 @@ namespace tahsinERP.Controllers
                 if (invoice == null)
                     return HttpNotFound();
 
-                ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name", invoice.SupplierID); 
-                ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "OrderNo", invoice.InvoiceID);
-
+                ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name", invoice.SupplierID);
+                //ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo", invoice.InvoiceID);
+                ViewBag.PInvoices = new SelectList(Enumerable.Empty<SelectListItem>());
                 return View(invoice);
             }
         }
@@ -230,6 +231,18 @@ namespace tahsinERP.Controllers
                 ViewBag.PInvoices = new SelectList(await db.P_INVOICES.ToListAsync(), "ID", "InvoiceNo", invoice.InvoiceID);
 
                 return View(invoice);
+            }
+        }
+        public ActionResult GetContractsBySupplier(int supplierID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var invoices = db.P_INVOICES
+                    .Where(x => x.IsDeleted == false && x.SupplierID == supplierID)
+                    .Select(x => new { x.ID, x.InvoiceNo })
+                    .ToList();
+
+                return Json(invoices.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.InvoiceNo }), JsonRequestBehavior.AllowGet);
             }
         }
     }
