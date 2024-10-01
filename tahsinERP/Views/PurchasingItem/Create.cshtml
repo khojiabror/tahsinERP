@@ -22,10 +22,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/PurchasingItem/Index">Purchasing Item lar</a>
+                                            <a href="~/PurchasingItem/Index">Xarid</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi purchasingItem qo'shish
+                                            Yangi xarid qilish buyumini qo'shish
                                         </li>
                                     </ol>
                                 </div>
@@ -45,14 +45,14 @@
                                                     @Html.AntiForgeryToken()
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Item kodi</h6>
+                                                    <h6 class="invoice-to">Predmet kodi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.ItemCode, new { @class = "form-control round" })
+                                                        @Html.TextBoxFor(model => model.ItemCode, new { @class = "form-control round", @placeholder = "predmet kodini kiriting" })
                                                         @Html.ValidationMessageFor(model => model.ItemCode, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Item nomi</h6>
+                                                    <h6 class="invoice-to">Predmet nomi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round" })
+                                                        @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round", @placeholder = "predmet nomini kiriting" })
                                                         @Html.ValidationMessageFor(model => model.ItemName, "", new { @class = "text-danger" })
                                                     </fieldset>
 

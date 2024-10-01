@@ -24,7 +24,7 @@ namespace tahsinERP.Controllers
         }
         public ActionResult Create()
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                 return View();
@@ -33,7 +33,7 @@ namespace tahsinERP.Controllers
         [HttpPost]
         public ActionResult Create(PURCHASING_ITEMS model)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 try
                 {
@@ -42,7 +42,7 @@ namespace tahsinERP.Controllers
                         db.PURCHASING_ITEMS.Add(model);
                         LogHelper.LogToDatabase(User.Identity.Name, "PurchasingItemController", $"{model.ItemName} - yaratdi");
                         db.SaveChanges();
-                        
+
                         return RedirectToAction("Index");
                     }
                     else
@@ -55,7 +55,7 @@ namespace tahsinERP.Controllers
                 catch (Exception ex)
                 {
                     ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ModelState.AddModelError( ex.Message, "Ma'lumotlarni saqlashni iloji bo'lmadi. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                    ModelState.AddModelError(ex.Message, "Ma'lumotlarni saqlashni iloji bo'lmadi. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
                     return View(model);
                 }
             }
@@ -180,6 +180,10 @@ namespace tahsinERP.Controllers
 
                 return View(model);
             }
+        }
+        public ActionResult UploadWithExcel()
+        {
+            return View();
         }
     }
 }

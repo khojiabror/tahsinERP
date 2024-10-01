@@ -291,11 +291,12 @@
                             </ul>
                         </li>
                     }
-                    <li class=" navigation-header">
-                        <span>SRM</span>
-                    </li>
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
                     {
+                        <li class=" navigation-header">
+                            <span>SRM</span>
+                        </li>
+
                         <li class=" nav-item">
                             <a href="#"><i class="bx bxs-factory"></i><span class="menu-title" data-i18n="Content">Ta'minotchilar</span></a>
                             <ul class="menu-content">
@@ -433,40 +434,37 @@
                             </ul>
                         </li>
                     }
-
-                    <li class=" navigation-header">
-                        <span>Purchasing</span>
-                    </li>
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingItem"))
-                    {
-                        <li class=" nav-item">
-                            <a href="/PurchasingItem/Index">
-                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingItem</span>
-                            </a>
-                        </li>
-                    }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingOrder"))
                     {
-                        <li class=" nav-item">
-                            <a href="/PurchasingOrder/Index">
-                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingOrder</span>
-                            </a>
+                        <li class=" navigation-header">
+                            <span>Xarid</span>
                         </li>
-                    }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingContract"))
-                    {
+                        <li class=" nav-item">
+                            <a href="#"><i class="bx bxs-home"></i><span class="menu-title" data-i18n="Card">Buyurtmalar</span></a>
+                            <ul class="menu-content">
+                                <li class=" nav-item">
+                                    <a href="/PurchasingOrder/Index">
+                                        <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">Buyurtmalar</span>
+                                    </a>
+                                </li>
+                                <li class=" nav-item">
+                                    <a href="/PurchasingItem/Index">
+                                        <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">Maxsulotlar bazasi</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class=" nav-item">
                             <a href="/PurchasingContract/Index">
-                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingContract</span>
+                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">Shartnomalar</span>
                             </a>
                         </li>
                     }
-                    <li class=" navigation-header">
-                        <span>Engineering</span>
-                    </li>
-
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
                     {
+                        <li class=" navigation-header">
+                            <span>Engineering</span>
+                        </li>
                         <li class=" nav-item">
                             <a href="#">
                                 <i class="bx bx-git-compare"></i><span class="menu-title" data-i18n="Form Elements">BOM</span>
@@ -519,14 +517,12 @@
                         </li>
                     }
 
-
-                    <li class=" navigation-header">
-                        <span>MES</span>
-                    </li>
-
-
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlanIndex"))
                     {
+                        <li class=" navigation-header">
+                            <span>MES</span>
+                        </li>
+
                         <li class=" nav-item">
                             <a href="~/ProductPlan/Index">
                                 <i class="bx bx-line-chart"></i><span class="menu-title" data-i18n="File Manager">Rejalashtirish</span>
@@ -597,12 +593,11 @@
                             </ul>
                         </li>
                     }
-                    <li class=" navigation-header">
-                        <span>CRM</span>
-                    </li>
-
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SContract"))
                     {
+                        <li class=" navigation-header">
+                            <span>CRM</span>
+                        </li>
                         <li class=" nav-item">
                             <a href="#"><i class="bx bxs-smiley-happy"></i><span class="menu-title" data-i18n="Sweet Alert">Xaridorlar</span></a>
                             <ul class="menu-content">

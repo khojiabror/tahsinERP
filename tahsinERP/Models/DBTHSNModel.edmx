@@ -234,12 +234,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.BOMS_AND_NORMS' does not have a pr
           <Property Name="Doc" Type="varbinary(max)" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6013: The table/view 'DBTHSN-TEST.dbo.GTD_INVOICES' does not have a primary key defined and no valid primary key could be inferred. This table/view has been excluded. To use the entity, you will need to review your schema, add the correct keys, and uncomment it.
-        <EntityType Name="GTD_INVOICES">
-          <Property Name="InvoiceID" Type="int" />
-          <Property Name="GtdID" Type="int" />
-        </EntityType>-->
         <EntityType Name="GTDS">
           <Key>
             <PropertyRef Name="ID" />
@@ -952,6 +946,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ContractID" Type="int" Nullable="false" />
           <Property Name="Doc" Type="varbinary(max)" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_CONTRACT_ITEMS">
           <Key>
@@ -966,6 +961,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="MOQ" Type="float" />
           <Property Name="ActivePart" Type="bit" />
           <Property Name="UnitID" Type="int" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_CONTRACTS">
           <Key>
@@ -982,6 +978,8 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="PaymentTerms" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="DueDT" Type="date" Nullable="false" />
           <Property Name="Comment" Type="text" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="OrderID" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ITEMS">
           <Key>
@@ -992,6 +990,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="ItemName" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="Description" Type="text" />
           <Property Name="UnitID" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDER_DOCS">
           <Key>
@@ -1000,6 +999,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="OrderID" Type="int" Nullable="false" />
           <Property Name="Doc" Type="varbinary(max)" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDER_ITEMS">
           <Key>
@@ -1012,6 +1012,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="Amount" Type="float" Nullable="false" />
           <Property Name="Currency" Type="varchar" MaxLength="30" Nullable="false" />
           <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDERS">
           <Key>
@@ -1026,6 +1027,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="Comment" Type="text" />
           <Property Name="Status" Type="varchar" MaxLength="15" Nullable="false" />
           <Property Name="BuyerUserID" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="ROLES">
           <Key>
@@ -1345,6 +1347,18 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <Property Name="PartNo" Type="varchar" MaxLength="20" Nullable="false" />
           <Property Name="TotalConsumption" Type="float" />
         </EntityType>
+        <Association Name="FK__PURCHASIN__Order__216BEC9A">
+          <End Role="PURCHASING_ORDERS" Type="Self.PURCHASING_ORDERS" Multiplicity="1" />
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_BLANKING_NORMS_PARTS">
           <End Role="PARTS" Type="Self.PARTS" Multiplicity="1" />
           <End Role="BLANKING_NORMS" Type="Self.BLANKING_NORMS" Multiplicity="*" />
@@ -1597,12 +1611,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <!--Errors Found During Generation:
-error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relationship, but cannot be found.
-        <Association Name="FK_GTD_INVOICES_GTDS" />-->
-        <!--Errors Found During Generation:
-error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relationship, but cannot be found.
-        <Association Name="FK_GTD_INVOICES_P_INVOICES" />-->
         <Association Name="FK_P_CONTRACT_DOCS_P_CONTRACTS">
           <End Role="P_CONTRACTS" Type="Self.P_CONTRACTS" Multiplicity="1" />
           <End Role="P_CONTRACT_DOCS" Type="Self.P_CONTRACT_DOCS" Multiplicity="*" />
@@ -3500,6 +3508,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
     [MaterialRequirement].[TotalConsumption] AS [TotalConsumption]
     FROM [dbo].[MaterialRequirement] AS [MaterialRequirement]</DefiningQuery>
           </EntitySet>
+          <AssociationSet Name="FK__PURCHASIN__Order__216BEC9A" Association="Self.FK__PURCHASIN__Order__216BEC9A">
+            <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_BLANKING_NORMS_PARTS" Association="Self.FK_BLANKING_NORMS_PARTS">
             <End Role="PARTS" EntitySet="PARTS" />
             <End Role="BLANKING_NORMS" EntitySet="BLANKING_NORMS" />
@@ -5222,6 +5234,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="ContractID" Type="Int32" Nullable="false" />
           <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
           <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK_PURCHASING_CONTRACT_DOCS_CONTRACTS" FromRole="PURCHASING_CONTRACT_DOCS" ToRole="PURCHASING_CONTRACTS" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_CONTRACT_ITEMS">
           <Key>
@@ -5239,6 +5252,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_CONTRACTS" FromRole="PURCHASING_CONTRACT_ITEMS" ToRole="PURCHASING_CONTRACTS" />
           <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_ITEMS" FromRole="PURCHASING_CONTRACT_ITEMS" ToRole="PURCHASING_ITEMS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_UNITS" FromRole="PURCHASING_CONTRACT_ITEMS" ToRole="UNITS" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_CONTRACTS">
           <Key>
@@ -5258,6 +5272,9 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_PURCHASING_CONTRACTS_COMPANIES" FromRole="PURCHASING_CONTRACTS" ToRole="COMPANIES" />
           <NavigationProperty Name="PURCHASING_CONTRACT_DOCS" Relationship="Self.FK_PURCHASING_CONTRACT_DOCS_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_CONTRACT_DOCS" />
           <NavigationProperty Name="PURCHASING_CONTRACT_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_CONTRACT_ITEMS" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="PURCHASING_ORDERS" Relationship="DBTHSNModel.FK__PURCHASIN__Order__216BEC9A" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_ORDERS" />
         </EntityType>
         <EntityType Name="PURCHASING_ITEMS">
           <Key>
@@ -5271,6 +5288,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PURCHASING_CONTRACT_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_CONTRACT_ITEMS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PURCHASING_ITEMS_UNITS" FromRole="PURCHASING_ITEMS" ToRole="UNITS" />
           <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_ORDER_ITEMS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDER_DOCS">
           <Key>
@@ -5280,6 +5298,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="OrderID" Type="Int32" Nullable="false" />
           <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
           <NavigationProperty Name="PURCHASING_ORDERS" Relationship="Self.FK_PURCHASING_ORDER_DOCS_P_ORDERS" FromRole="PURCHASING_ORDER_DOCS" ToRole="PURCHASING_ORDERS" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDER_ITEMS">
           <Key>
@@ -5294,6 +5313,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ORDER_ITEMS" ToRole="PURCHASING_ITEMS" />
           <NavigationProperty Name="PURCHASING_ORDERS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDER_ITEMS" ToRole="PURCHASING_ORDERS" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDERS">
           <Key>
@@ -5312,6 +5332,8 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_ORDER_ITEMS" />
           <NavigationProperty Name="USER" Relationship="Self.FK_PURCHASING_ORDERS_USERS" FromRole="PURCHASING_ORDERS" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_PURCHASING_ORDERS_USERS1" FromRole="PURCHASING_ORDERS" ToRole="USERS" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="DBTHSNModel.FK__PURCHASIN__Order__216BEC9A" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_CONTRACTS" />
         </EntityType>
         <EntityType Name="ROLE">
           <Key>
@@ -8374,6 +8396,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="P_PROFORMA_INVOICES" EntitySet="P_PROFORMA_INVOICES" />
             <End Role="P_PROFORMA_INVOICE_DOCS" EntitySet="P_PROFORMA_INVOICE_DOCS" />
           </AssociationSet>
+          <AssociationSet Name="FK__PURCHASIN__Order__216BEC9A" Association="DBTHSNModel.FK__PURCHASIN__Order__216BEC9A">
+            <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetCarPlanRequirements_Result">
           <Property Type="String" Name="PNo" Nullable="false" MaxLength="15" />
@@ -8579,6 +8605,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="P_PROFORMA_INVOICE_DOCS">
               <PropertyRef Name="ProformaID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__PURCHASIN__Order__216BEC9A">
+          <End Type="DBTHSNModel.PURCHASING_ORDERS" Role="PURCHASING_ORDERS" Multiplicity="1" />
+          <End Type="DBTHSNModel.PURCHASING_CONTRACTS" Role="PURCHASING_CONTRACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="OrderID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -9489,6 +9527,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_CONTRACT_DOCS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_CONTRACT_DOCS">
               <MappingFragment StoreEntitySet="PURCHASING_CONTRACT_DOCS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
                 <ScalarProperty Name="Doc" ColumnName="Doc" />
@@ -9498,6 +9537,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_CONTRACT_ITEMS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_CONTRACT_ITEMS">
               <MappingFragment StoreEntitySet="PURCHASING_CONTRACT_ITEMS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
                 <ScalarProperty Name="ItemID" ColumnName="ItemID" />
@@ -9513,6 +9553,8 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_CONTRACTS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_CONTRACTS">
               <MappingFragment StoreEntitySet="PURCHASING_CONTRACTS">
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ContractNo" ColumnName="ContractNo" />
                 <ScalarProperty Name="IssueDT" ColumnName="IssueDT" />
@@ -9530,6 +9572,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_ITEMS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ITEMS">
               <MappingFragment StoreEntitySet="PURCHASING_ITEMS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ItemCode" ColumnName="ItemCode" />
                 <ScalarProperty Name="ItemName" ColumnName="ItemName" />
@@ -9541,6 +9584,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_ORDER_DOCS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ORDER_DOCS">
               <MappingFragment StoreEntitySet="PURCHASING_ORDER_DOCS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="OrderID" ColumnName="OrderID" />
                 <ScalarProperty Name="Doc" ColumnName="Doc" />
@@ -9550,6 +9594,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_ORDER_ITEMS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ORDER_ITEMS">
               <MappingFragment StoreEntitySet="PURCHASING_ORDER_ITEMS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="OrderID" ColumnName="OrderID" />
                 <ScalarProperty Name="ItemID" ColumnName="ItemID" />
@@ -9563,6 +9608,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySetMapping Name="PURCHASING_ORDERS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ORDERS">
               <MappingFragment StoreEntitySet="PURCHASING_ORDERS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="OrderCode" ColumnName="OrderCode" />
                 <ScalarProperty Name="OrderCodeEDO" ColumnName="OrderCodeEDO" />
