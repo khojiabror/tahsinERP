@@ -47,12 +47,12 @@
                                                     <hr>
                                                     <h6 class="invoice-to">Item kodi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.ItemCode, new { @class = "form-control round", @placeholder = "hozirgi manzili" })
+                                                        @Html.TextBoxFor(model => model.ItemCode, new { @class = "form-control round" })
                                                         @Html.ValidationMessageFor(model => model.ItemCode, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Item nomi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round", type = "number", @placeholder = "Manzilgacha bo'lgan masofa" })
+                                                        @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round" })
                                                         @Html.ValidationMessageFor(model => model.ItemName, "", new { @class = "text-danger" })
                                                     </fieldset>
 
@@ -64,7 +64,7 @@
 
                                                     <h6>Batafsil ma'lumot</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = "Izohlar bo'lsa yozib qolding" })
+                                                        @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = "Izohlar uchun" })
                                                         @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
