@@ -52,12 +52,15 @@ namespace tahsinERP.Controllers
                             OrderCodeEDO = model.OrderCodeEDO,
                             Comment = model.Comment,
                             Status = model.Status,
-                            CreatedByUserID = GetUserID(User.Identity.Name)
+                            CreatedByUserID = GetUserID(User.Identity.Name),
+                            BuyerUserID = model.BuyerUserID,
+                            CreatedDT = model.CreatedDT,
+                            ApprovedDTEDO = model.ApprovedDTEDO
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - PurchasingOrder ni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmani kiritdi");
 
 
                         List<PURCHASING_ORDER_ITEMS> purchasingOrderParts = db.PURCHASING_ORDER_ITEMS.Where(pci => pci.OrderID == model.ID).ToList();
@@ -74,7 +77,7 @@ namespace tahsinERP.Controllers
 
                             db.PURCHASING_ORDER_ITEMS.Add(newPart);
                             var logItem = db.PURCHASING_ITEMS.Find(newPart.ItemID);
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{logItem.ItemName} - PurchasingOrderPartni yaratdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmasiga {logItem.ItemName} - predmetni biriktirdi.");
 
                         }
                         db.SaveChanges();
@@ -95,7 +98,7 @@ namespace tahsinERP.Controllers
                                         db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
                                         db.SaveChanges();
 
-                                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $" kodi {newOrder.OrderCode} - uchun PurchasingOrderDoc yaratdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $" kodi {newOrder.OrderCode} - uchun fayl yukladi");
                                     }
                                     else
                                     {
