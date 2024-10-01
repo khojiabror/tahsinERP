@@ -74,7 +74,7 @@ namespace tahsinERP.Controllers
                                 ItemID = part.ItemID,
                                 Price = part.Price,
                                 Amount = part.Amount,
-                                TotalPrice = part.TotalPrice,
+                                TotalPrice = part.Price * part.Amount,
                                 Currency = part.Currency
                             };
 
@@ -143,7 +143,30 @@ namespace tahsinERP.Controllers
             }
 
         }
+        public ActionResult DownloadDoc(int? purchasingOrderID)
+        {
+            if (purchasingOrderID == null)
+            {
+                return Json(new { success = false, message = "PurchasingOrder ID ko'rsatilmagan." }, JsonRequestBehavior.AllowGet);
+            }
 
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var purchasingOrderDoc = db.PURCHASING_ORDER_DOCS
+                                .Include(x => x.PURCHASING_ORDERS)
+                                .FirstOrDefault(pi => pi.OrderID == purchasingOrderID);
+                if (purchasingOrderDoc != null)
+                {
+                    var contractNo = purchasingOrderDoc.PURCHASING_ORDERS.OrderCode;
+                    // Returning the file for download via AJAX can be handled differently, so return success here
+                    return File(purchasingOrderDoc.Doc, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", contractNo + "_ContractDoc.pdf");
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Fayl yuklanmagan." }, JsonRequestBehavior.AllowGet);
+                }
+            }
+        }
         public ActionResult Details(int? ID)
         {
             if (ID == null)

@@ -78,6 +78,14 @@
                                             <hr />
                                             <span><b>Kim tomonidan yuklandi</b>: @Html.DisplayFor(model => model.USER.FullName, new { @class = "form-control" })</span>
                                             <hr />
+
+                                            <button id="downloadFileBtn" class="btn btn-outline-warning" onclick="downloadFile()">
+                                                <i class='bx bx-save'></i> Original fayl yuklash
+                                            </button>
+
+                                            <div id="errorMessage" class="alert alert-danger" style="display: none;">
+                                                Fayl yuklanmagan.
+                                            </div>
                                         </div>
                                     </div>
                                     <section id="column-selectors">
@@ -135,3 +143,49 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+    function downloadFile() {
+        var PurchasingOrderID = @Model.ID; // Assuming Model.ID is the contract ID
+
+        $.ajax({
+            url: '@Url.Action("DownloadDoc", "PurchasingOrder")',
+            type: 'GET',
+            data: { PurchasingOrderID: PurchasingOrderID },
+            success: function (response) {
+                if (response.success === false) {
+                    $('#errorMessage').text(response.message).show();
+                } else {
+                    window.location.href = '@Url.Action("DownloadDoc", "PurchasingOrder")' + "?PurchasingOrderID=" + PurchasingOrderID;
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#errorMessage').text("Xatolik yuz berdi, fayl yuklanmadi.").show();
+            }
+        });
+    }
+    $(document).ready(function() {
+        $('#downloadFileBtn').click(function(e) {
+            e.preventDefault(); // Prevent default behavior
+
+            var PurchasingOrderID = @Model.ID; // Get the contract ID dynamically
+
+            $.ajax({
+                url: '@Url.Action("DownloadDoc", "PurchasingOrder")',
+                type: 'GET',
+                data: { PurchasingOrderID: PurchasingOrderID },
+                success: function(response) {
+                    if (response.success === false) {
+                        showAlert(response.message); // Show the alert if the file is not found
+                    } else {
+                        $('#alertMessage').hide(); // Hide the alert if the file exists
+                        window.location.href = '@Url.Action("DownloadDoc", "PurchasingOrder")' + "?PurchasingOrderID=" + PurchasingOrderID;
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showAlert("Xatolik yuz berdi, fayl yuklanmadi.");
+                }
+            });
+        });
+    });
+</script>
