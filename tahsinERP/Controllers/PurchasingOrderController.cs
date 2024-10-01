@@ -9,6 +9,8 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels.POrder;
 using System.IO;
 using tahsinERP.ViewModels.PurchasingOrder;
+using System.Net;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace tahsinERP.Controllers
 {
@@ -127,18 +129,121 @@ namespace tahsinERP.Controllers
             }
             return View(model);
         }
+        public ActionResult Details(int? ID)
+        {
+            if (ID == null)
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
 
-        public ActionResult Edit(int? id)
+            PURCHASING_ORDERS purchasingOrder;
+            List<PURCHASING_ORDER_ITEMS> partList;
+            using (DBTHSNEntities db1 = new DBTHSNEntities())
+            {
+                purchasingOrder = db1.PURCHASING_ORDERS.Find(ID);
+                if (purchasingOrder == null)
+                    return HttpNotFound();
+
+                db1.Entry(purchasingOrder).Reference(o => o.USER).Load();
+                db1.Entry(purchasingOrder).Reference(o => o.USER1).Load();
+
+                partList = db1.PURCHASING_ORDER_ITEMS
+                    .Include(x => x.PURCHASING_ITEMS)           
+                    .Where(pc => pc.OrderID == ID).ToList();
+            }
+
+            ViewBag.partList = partList;
+            return View(purchasingOrder);
+        }
+        public ActionResult Delete(int? ID)
         {
+            if (ID == null)
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+
+            PURCHASING_ORDERS purchasingOrder;
+            List<PURCHASING_ORDER_ITEMS> partList;
+            using (DBTHSNEntities db1 = new DBTHSNEntities())
+            {
+                purchasingOrder = db1.PURCHASING_ORDERS.Find(ID);
+                if (purchasingOrder == null)
+                    return HttpNotFound();
+
+                db1.Entry(purchasingOrder).Reference(o => o.USER).Load();
+                db1.Entry(purchasingOrder).Reference(o => o.USER1).Load();
+
+                partList = db1.PURCHASING_ORDER_ITEMS
+                            .Include(x => x.PURCHASING_ITEMS)
+                            .Where(pc => pc.OrderID == ID).ToList();
+            }
+
+            ViewBag.partList = partList;
+            return View(purchasingOrder);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int? ID, FormCollection gfs)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    PURCHASING_ORDERS purchasingorderToDelete = db.PURCHASING_ORDERS.Find(ID);
+                    if (purchasingorderToDelete != null)
+                    {
+                        purchasingorderToDelete.IsDeleted = true;
+                        try
+                        {
+                            db.Entry(purchasingorderToDelete).State = EntityState.Modified;
+
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingorderToDelete.OrderCode} - PurchasingOrderni o'chirdi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Bunday sotuv buyurtma topilmadi.");
+                    }
+                }
+            }
             return View();
         }
-        public ActionResult Delete(int? id)
+        public ActionResult DeletePart(int? id)
         {
-            return View();
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                PURCHASING_ORDER_ITEMS purchasingOrderItemToDelete = db.PURCHASING_ORDER_ITEMS.Find(id);
+                if (ModelState.IsValid)
+                {
+                    if (purchasingOrderItemToDelete != null)
+                    {
+                        try
+                        {
+                            db.PURCHASING_ORDER_ITEMS.Remove(purchasingOrderItemToDelete);
+                            db.SaveChanges();
+                            var orderItem = db.PURCHASING_ORDER_ITEMS.Include(x => x.PURCHASING_ITEMS).Where(x => x.ID == id).FirstOrDefault();
+                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderItem.PURCHASING_ITEMS.ItemName}  - PurchasingOrderni o'chirdii");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "OrderPart not found.");
+                    }
+                }
+                return View(purchasingOrderItemToDelete);
+            }
         }
-        public ActionResult Details(int? id)
-        {
-            return View();
-        }
+
+
     }
 }
