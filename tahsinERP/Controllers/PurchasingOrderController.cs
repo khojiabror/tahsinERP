@@ -25,10 +25,10 @@ namespace tahsinERP.Controllers
                 return View(list);
             }
         }
-       
+
         public ActionResult Create()
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.userList = new SelectList(
                                     db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
@@ -47,7 +47,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    
+
                     if (ModelState.IsValid)
                     {
                         var newOrder = new PURCHASING_ORDERS()
@@ -56,8 +56,7 @@ namespace tahsinERP.Controllers
                             OrderCodeEDO = model.OrderCodeEDO,
                             Comment = model.Comment,
                             Status = model.Status,
-                            CreatedByUserID = model.CreatedByUserID,
-                            BuyerUserID = model.BuyerUserID,
+                            CreatedByUserID = GetUserID(User.Identity.Name)
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
@@ -66,7 +65,7 @@ namespace tahsinERP.Controllers
 
 
                         List<PURCHASING_ORDER_ITEMS> purchasingOrderParts = db.PURCHASING_ORDER_ITEMS.Where(pci => pci.OrderID == model.ID).ToList();
-                       
+
                         foreach (var part in model.Parts)
                         {
                             var newPart = new PURCHASING_ORDER_ITEMS
@@ -80,7 +79,7 @@ namespace tahsinERP.Controllers
                             db.PURCHASING_ORDER_ITEMS.Add(newPart);
                             var logItem = db.PURCHASING_ITEMS.Find(newPart.ItemID);
                             LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{logItem.ItemName} - PurchasingOrderPartni yaratdi");
-                            
+
                         }
                         db.SaveChanges();
                         if (model.File != null)
@@ -133,6 +132,17 @@ namespace tahsinERP.Controllers
             }
             return View(model);
         }
+
+        private int GetUserID(string email)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                int userID = db.USERS.Where(u => u.Email.CompareTo(email) == 0 && u.IsDeleted == false && u.IsActive == true).Select(u => u.ID).FirstOrDefault();
+                return userID;
+            }
+
+        }
+
         public ActionResult Details(int? ID)
         {
             if (ID == null)
@@ -150,7 +160,7 @@ namespace tahsinERP.Controllers
                 db1.Entry(purchasingOrder).Reference(o => o.USER1).Load();
 
                 partList = db1.PURCHASING_ORDER_ITEMS
-                    .Include(x => x.PURCHASING_ITEMS)           
+                    .Include(x => x.PURCHASING_ITEMS)
                     .Where(pc => pc.OrderID == ID).ToList();
             }
 
@@ -284,9 +294,9 @@ namespace tahsinERP.Controllers
                         purchasingOrdetItemToUpdate.Price = purchasingOrderItem.Price;
                         purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Amount;
                         purchasingOrdetItemToUpdate.TotalPrice = purchasingOrderItem.TotalPrice;
-                        
+
                         //purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Quantity * purchasingOrderItem.Price; SQL o'zi chiqarib beradi
-                       
+
                         try
                         {
                             db.SaveChanges();
