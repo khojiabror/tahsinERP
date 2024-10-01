@@ -643,7 +643,7 @@ namespace tahsinERP.Controllers
                         UnitID = (int)p.UnitID,
                         Amount = (double)p.Amount,
                         MOQ = (double)p.MOQ,
-                        Price = (float)p.Price,
+                        Price = (double)p.Price,
                     }).ToList()
                 };
 

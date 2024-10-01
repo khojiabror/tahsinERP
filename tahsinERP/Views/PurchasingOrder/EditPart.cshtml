@@ -5,9 +5,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    using (Html.BeginForm("EditPart", "PurchasingOrder", FormMethod.Post, new { enctype = "multipart/form-data" }))
+@*@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{*@
+    @using (Html.BeginForm("EditPart", "PurchasingOrder", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
 
         @Html.AntiForgeryToken()

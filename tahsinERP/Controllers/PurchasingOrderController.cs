@@ -59,7 +59,7 @@ namespace tahsinERP.Controllers
                             CreatedByUserID = GetUserID(User.Identity.Name),
                             BuyerUserID = model.BuyerUserID,
                             CreatedDT = model.CreatedDT,
-                            ApprovedDTEDO = model.ApprovedDTEDO,
+                            ApprovedDTEDO = model.ApprovedDTEDO
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
@@ -281,7 +281,81 @@ namespace tahsinERP.Controllers
                 return View(purchasingOrderItemToDelete);
             }
         }
+        public ActionResult Edit(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
 
+            PURCHASING_ORDERS purchasingOrder;
+            List<PURCHASING_ORDER_ITEMS> partList;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                purchasingOrder = db.PURCHASING_ORDERS
+                    .Include(x => x.USER1)
+                    .Include(x => x.USER)
+                    .FirstOrDefault(c => c.ID == ID && c.IsDeleted == false);
+
+                if (purchasingOrder == null)
+                {
+                    return HttpNotFound();
+                }
+
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+
+                partList = db.PURCHASING_ORDER_ITEMS
+                                .Include(x => x.PURCHASING_ITEMS)
+                                .Where(x => x.IsDeleted == false)
+                                .ToList();
+                ViewBag.userList = new SelectList(
+                                    db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
+                                    .ToList(), "ID", "Fullname");
+            }
+
+            ViewBag.partList = partList;
+            return View(purchasingOrder);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(PURCHASING_ORDERS purchasingOrder)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    PURCHASING_ORDERS purchasingOrderToUpdate = db.PURCHASING_ORDERS.Find(purchasingOrder.ID);
+                    if (purchasingOrderToUpdate != null)
+                    {
+                        purchasingOrderToUpdate.OrderCode = purchasingOrder.OrderCode;
+                        purchasingOrderToUpdate.OrderCodeEDO = purchasingOrder.OrderCodeEDO;
+                        purchasingOrderToUpdate.BuyerUserID = purchasingOrder.BuyerUserID;
+                        purchasingOrderToUpdate.Comment = purchasingOrder.Comment;
+                        purchasingOrderToUpdate.Status = purchasingOrder.Status;
+                        purchasingOrderToUpdate.ApprovedDTEDO = purchasingOrder.ApprovedDTEDO;
+
+                        try
+                        {
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingOrderToUpdate.OrderCode} - kodli tahrirladi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    return View(purchasingOrderToUpdate);
+                }
+            }
+            var userEmail = User.Identity.Name;
+            LogHelper.LogToDatabase(userEmail, "PurchasingOrderController", "Edit[Post]");
+            return View(purchasingOrder);
+        }
         public ActionResult EditPart(int? ID)
         {
             if (ID == null)
@@ -296,6 +370,7 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
+                db.Entry(purchasingOrderItem).Reference(x => x.PURCHASING_ORDERS).Load();
                 var allParts = db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList();
 
                 ViewBag.partList = new SelectList(allParts, "ID", "ItemName");
