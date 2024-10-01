@@ -27,7 +27,7 @@ namespace tahsinERP.Models
         public string OrderCodeEDO { get; set; }
         public System.DateTime CreatedDT { get; set; }
         public int CreatedByUserID { get; set; }
-        public Nullable<System.DateTime> ApprovedDTEDO { get; set; }
+        public System.DateTime ApprovedDTEDO { get; set; }
         public string Comment { get; set; }
         public string Status { get; set; }
         public int BuyerUserID { get; set; }
