@@ -244,6 +244,62 @@ namespace tahsinERP.Controllers
             }
         }
 
+        public ActionResult EditPart(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
 
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var purchasingOrderItem = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                if (purchasingOrderItem == null)
+                {
+                    return HttpNotFound();
+                }
+                var allParts = db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList();
+
+                ViewBag.partList = new SelectList(allParts, "ID", "ItemName");
+
+                return View(purchasingOrderItem);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditPart(PURCHASING_ORDER_ITEMS purchasingOrderItem)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    PURCHASING_ORDER_ITEMS purchasingOrdetItemToUpdate = db.PURCHASING_ORDER_ITEMS.Find(purchasingOrderItem.ID);
+                    if (purchasingOrdetItemToUpdate != null)
+                    {
+                        purchasingOrdetItemToUpdate.Price = purchasingOrderItem.Price;
+                        purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Amount;
+                        purchasingOrdetItemToUpdate.TotalPrice = purchasingOrderItem.TotalPrice;
+                        
+                        //purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Quantity * purchasingOrderItem.Price; SQL o'zi chiqarib beradi
+                       
+                        try
+                        {
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{purchasingOrdetItemToUpdate.ItemID} - li POrderPartni tahrirladi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    return View(purchasingOrdetItemToUpdate);
+                }
+            }
+            return View();
+        }
     }
 }

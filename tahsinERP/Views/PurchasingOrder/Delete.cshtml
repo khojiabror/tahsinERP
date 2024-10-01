@@ -74,13 +74,11 @@
                                                                 <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Detal raqami</th>
-                                                                            <th>Detal nomi</th>
+                                                                            <th>Item nomi</th>
                                                                             <th>Birlik narxi</th>
-                                                                            <th>O'lchov birligi</th>
+                                                                            <th>Narxi</th>
                                                                             <th>Miqdori</th>
-                                                                            <th>MOQ</th>
-                                                                            <th>Faolligi</th>
+                                                                            <th>Umumiy narx</th>
                                                                             <th>amallar</th>
                                                                         </tr>
                                                                     </thead>
@@ -89,24 +87,14 @@
                                                                         {
                                                                             <tr>
                                                                                 <td>
-                                                                                    <a href="~/PurchasingItem/Details/@item.ItemID">@item.PART.PNo</a>
+                                                                                    <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemName</a>
                                                                                 </td>
-                                                                                <td>@item.PART.PName</td>
                                                                                 <td>@item.Price</td>
-                                                                                <td>@item.UNIT.UnitName</td>
                                                                                 <td>@item.Amount</td>
-                                                                                <td>@item.MOQ</td>
-                                                                                @if (item.ActivePart)
-                                                                                {
-                                                                                    <td><span class="badge badge-light-success">Faol</span></td>
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    <td><span class="badge badge-light-danger">Nofaol</span></td>
-                                                                                }
+                                                                                <td>@item.TotalPrice @item.Currency</td>
                                                                                 <td>
                                                                                     <!-- Delete button -->
-                                                                                    <a href="~/PurchasingOrder/DeletePart/@item.ID" onclick="return confirm('Ushbu shartnomani ochirib yuborishga ishonchingiz komilmi?')">
+                                                                                    <a href="~/PurchasingOrder/DeletePart/@item.ID" onclick="return confirm('Ushbu sotuv buyurtmani o`chirib yuborishga ishonchingiz komilmi?')">
                                                                                         <i class="bx bx-trash"></i>
                                                                                     </a>
                                                                                 </td>
