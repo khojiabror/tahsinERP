@@ -52,7 +52,27 @@
                                             <hr />
                                             <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" }) </span>
                                             <hr />
-                                            <span><b>Status</b>: @Html.DisplayFor(model => model.Status, new { @class = "form-control" })</span>
+                                            <span>
+                                                <b>Status</b>:
+                                                @if (Model.Status == "Jarayonda")
+                                                {
+                                                    <span class="form-control" style="background-color: yellow; color: black;">
+                                                        @Html.DisplayFor(model => model.Status)
+                                                    </span>
+                                                }
+                                                else if (Model.Status == "Yakunlandi")
+                                                {
+                                                    <span class="form-control" style="background-color: green; color: white;">
+                                                        @Html.DisplayFor(model => model.Status)
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="form-control" style="background-color: green; color: white;">
+                                                        @Html.DisplayFor(model => model.Status)
+                                                    </span>
+                                                }
+                                            </span>
                                             <hr />
                                             <span><b>Ijroga ma'sul xarid xodimi </b>: @Html.DisplayFor(model => model.USER1.FullName, new { @class = "form-control" })</span>
                                             <hr />
