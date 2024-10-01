@@ -32,10 +32,10 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.userList = new SelectList(
                                     db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
-                                    .ToList(), "ID", "Uname");
+                                    .ToList(), "ID", "Fullname");
 
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-                ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
+                ViewBag.itemList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
             }
             return View();
         }
@@ -55,16 +55,16 @@ namespace tahsinERP.Controllers
                             OrderCode = model.OrderCode,
                             OrderCodeEDO = model.OrderCodeEDO,
                             Comment = model.Comment,
-                            Status = model.Status,
-                            CreatedByUserID = GetUserID(User.Identity.Name)
+                            Status = "Jarayonda",
+                            CreatedByUserID = GetUserID(User.Identity.Name),
+                            BuyerUserID = model.BuyerUserID,
+                            CreatedDT = model.CreatedDT,
+                            ApprovedDTEDO = model.ApprovedDTEDO,
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - PurchasingOrder ni yaratdi");
-
-
-                        List<PURCHASING_ORDER_ITEMS> purchasingOrderParts = db.PURCHASING_ORDER_ITEMS.Where(pci => pci.OrderID == model.ID).ToList();
+                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmani kiritdi");
 
                         foreach (var part in model.Parts)
                         {
@@ -73,45 +73,46 @@ namespace tahsinERP.Controllers
                                 OrderID = newOrder.ID,
                                 ItemID = part.ItemID,
                                 Price = part.Price,
+                                Amount = part.Amount,
+                                TotalPrice = part.TotalPrice,
                                 Currency = part.Currency
                             };
 
                             db.PURCHASING_ORDER_ITEMS.Add(newPart);
-                            var logItem = db.PURCHASING_ITEMS.Find(newPart.ItemID);
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{logItem.ItemName} - PurchasingOrderPartni yaratdi");
+                            PURCHASING_ITEMS pItem = db.PURCHASING_ITEMS.Where(pi => pi.ID == newPart.ItemID).FirstOrDefault();
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
 
                         }
                         db.SaveChanges();
                         if (model.File != null)
                         {
-                            if (Request.Files["docUpload"].ContentLength > 0)
+                            if (model.File.ContentLength < 5242880)
                             {
-                                if (Request.Files["docUpload"].InputStream.Length < 5242880)
+                                if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
                                 {
-                                    if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
-                                    {
-                                        PURCHASING_ORDER_DOCS purchasingOrderDoc = new PURCHASING_ORDER_DOCS();
-                                        byte[] avatar = new byte[Request.Files["docUpload"].InputStream.Length];
-                                        Request.Files["docUpload"].InputStream.Read(avatar, 0, avatar.Length);
-                                        purchasingOrderDoc.OrderID = newOrder.ID;
-                                        purchasingOrderDoc.Doc = avatar;
+                                    PURCHASING_ORDER_DOCS purchasingOrderDoc = new PURCHASING_ORDER_DOCS();
+                                    byte[] fileData = new byte[model.File.InputStream.Length];
+                                    model.File.InputStream.Read(fileData, 0, fileData.Length);
 
-                                        db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
-                                        db.SaveChanges();
+                                    purchasingOrderDoc.OrderID = newOrder.ID;
+                                    purchasingOrderDoc.Doc = fileData;
 
-                                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $" kodi {newOrder.OrderCode} - uchun PurchasingOrderDoc yaratdi");
-                                    }
-                                    else
-                                    {
-                                        ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
-                                    }
+                                    db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"Buyurtma: {newOrder.OrderCode} uchun fayl yukladi");
                                 }
                                 else
                                 {
-                                    ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 2MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
-                                    throw new RetryLimitExceededException();
+                                    ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
                                 }
                             }
+                            else
+                            {
+                                ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 5MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                                throw new RetryLimitExceededException();
+                            }
+
                         }
 
                         return RedirectToAction("Index");

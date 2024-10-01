@@ -97,7 +97,7 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Ma'sul xarid agenti:</label>
-                                                            @Html.DropDownList("UserID", (SelectList)ViewBag.userList, new { @class = "form-control select", id = "PartID" })
+                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
@@ -122,10 +122,9 @@
                                             <div class="col-md-6 col-12 form-group">
                                                 <hr />
                                                 <label>Buyurtma faylini yuklang</label>
-                                                <!-- Hidden file input -->
-                                                <input type="file" id="partPhotoUpload" name="partPhotoUpload" class="custom-file-input" />
-                                                <!-- Custom button -->
-                                                <label for="partPhotoUpload" class="custom-file-button">Yuklash fayli</label>
+                                                <input type="file" id="docUpload" name="File" class="custom-file-input" />
+
+                                                <label for="docUpload" class="custom-file-button">Yuklash fayli</label>
                                                 @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 <hr />
                                             </div>
@@ -138,7 +137,7 @@
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-10 form-group">
                                                             <label for="Part_PartID">Predmetni tanlang:</label>
-                                                            @Html.DropDownList("PartID", (SelectList)ViewBag.partList, new { @class = "form-control select", id = "PartID" })
+                                                            @Html.DropDownList("ItemID", (SelectList)ViewBag.itemList, new { @class = "form-control select", id = "ItemID" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
@@ -153,13 +152,13 @@
                                                         </div>
                                                         <div class="col-md-2 col-sm-10 form-group">
                                                             <label for="Part_Currency">Valyutani kiriting:</label>
-                                                            <input type="number" name="Price" step="0.01" class="form-control" id="Part_Currency" />
+                                                            <input name="Currency" class="form-control" id="Part_Currency" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Currency, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_TotalPrice">Umumiy Narx:</label>
                                                             <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger", @type = "number" })
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger", @type = "number" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>

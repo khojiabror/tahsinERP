@@ -1,6 +1,4 @@
-﻿
-
-@model  tahsinERP.Models.PURCHASING_ORDERS
+﻿@model  tahsinERP.Models.PURCHASING_ORDERS
 @{
     ViewBag.Title = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -24,7 +22,7 @@
                                         <a href="~/PurchasingOrder">Shartnomalar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @Model.OrderCode kodli sotuv buyurtma haqida batafsil ma'lumot
+                                        @Model.OrderCode buyurtma haqida batafsil ma'lumot
                                     </li>
                                 </ol>
                             </div>
@@ -42,23 +40,23 @@
                                         <div class="col-lg-12 col-md-6 mt-25">
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <h4 class="text-primary">Sotuv buyurtma  ma'lumotlari</h4>
+                                            <h4 class="text-primary">Buyurtma  ma'lumotlari</h4>
                                             <hr />
                                             <span><b>Buyurtma raqami</b>: @Html.DisplayFor(model => model.OrderCode, new { @class = "form-control" })</span>
                                             <hr />
                                             <span><b>Buyurtma raqami EDO</b>: @Html.DisplayFor(model => model.OrderCodeEDO, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Yaratilgan sanasi</b>: @Html.DisplayFor(model => model.CreatedDT, new { @class = "form-control" })</span>
+                                            <span><b>Yaratilgan sanasi</b>: @Html.DisplayFor(model => model.CreatedDT.Date.Date, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Tasdiqlangan (EDO) sanasi</b>: @Html.DisplayFor(model => model.ApprovedDTEDO, new { @class = "form-control" })</span>
+                                            <span><b>Tasdiqlangan (EDO) sanasi</b>: @Html.DisplayFor(model => model.ApprovedDTEDO.Date.Date, new { @class = "form-control" })</span>
                                             <hr />
                                             <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" }) </span>
                                             <hr />
                                             <span><b>Status</b>: @Html.DisplayFor(model => model.Status, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Buyer </b>: @Html.DisplayFor(model => model.USER1.FullName, new { @class = "form-control" })</span>
+                                            <span><b>Ijroga ma'sul xarid xodimi </b>: @Html.DisplayFor(model => model.USER1.FullName, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>qaysi Buyer tomonidan</b>: @Html.DisplayFor(model => model.USER.FullName, new { @class = "form-control" })</span>
+                                            <span><b>Kim tomonidan yuklandi</b>: @Html.DisplayFor(model => model.USER.FullName, new { @class = "form-control" })</span>
                                             <hr />
                                         </div>
                                     </div>
@@ -67,7 +65,7 @@
                                             <div class="col-12">
                                                 <div class="card">
                                                     <div class="card-header">
-                                                        <h4 class="card-title">Shartnoma predmeti</h4>
+                                                        <h4 class="card-title">Buyurtma predmeti</h4>
                                                     </div>
                                                     <div class="card-content">
                                                         <div class="card-body card-dashboard">
@@ -75,11 +73,10 @@
                                                                 <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Item nomi</th>
+                                                                            <th>Predmet nomi</th>
                                                                             <th>Birlik narxi</th>
-                                                                            <th>Narxi</th>
                                                                             <th>Miqdori</th>
-                                                                            <th>Umumiy narx</th> 
+                                                                            <th>Umumiy narx</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -89,7 +86,7 @@
                                                                                 <td>
                                                                                     <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemName</a>
                                                                                 </td>
-                                                                                <td>@item.Price</td>
+                                                                                <td>@item.Price @item.Currency</td>
                                                                                 <td>@item.Amount</td>
                                                                                 <td>@item.TotalPrice @item.Currency</td>
                                                                             </tr>
