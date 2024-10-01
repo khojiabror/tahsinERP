@@ -197,16 +197,15 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                SAMPLE_FILES detal = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("detallar.xlsx") == 0).FirstOrDefault();
-                if (detal != null)
-                    return File(detal.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                SAMPLE_FILES zakup_detal = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("zakup_detallar.xlsx") == 0).FirstOrDefault();
+                if (zakup_detal != null)
+                    return File(zakup_detal.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 return View();
             }
         }
         [HttpPost]
         public ActionResult UploadWithExcel(HttpPostedFileBase file)
         {
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (file != null && file.ContentLength > 0)
@@ -237,7 +236,7 @@ namespace tahsinERP.Controllers
                                         var cellText = worksheet.Cells[row, col].Text;
 
                                         // Assuming 'PartName' is the name of the column that may contain en-dashes or em-dashes
-                                        if (dataTable.Columns[col - 1].ColumnName == "PartName")
+                                        if (dataTable.Columns[col - 1].ColumnName == "Itemname")
                                         {
                                             // Replace en-dash and em-dash with a standard hyphen
                                             cellText = cellText.Replace('–', '-').Replace('—', '-');
@@ -257,10 +256,10 @@ namespace tahsinERP.Controllers
 
                             foreach (DataRow row in dataTable.Rows)
                             {
-                                partNo = row["Partnumber"].ToString();
+                                var itemCode = row["Itemcode"].ToString();
 
-                                PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
-                                if (part != null)
+                                PURCHASING_ITEMS item = db.PURCHASING_ITEMS.Where(p => p.ItemCode.CompareTo(itemCode) == 0 && p.IsDeleted == false).FirstOrDefault();
+                                if (item != null)
                                 {
                                     ViewBag.ExistingRecordsCount = 1;
                                 }
@@ -309,39 +308,31 @@ namespace tahsinERP.Controllers
                     {
                         foreach (DataRow row in tableModel.Rows)
                         {
-                            partNo = row["Partnumber"].ToString();
+                            var itemCode = row["Itemcode"].ToString();
+                            var itemName = row["Itemname"].ToString();
+                            var description = row["Description"].ToString();
+                            string unitName = row["Unit"].ToString();
 
-                            PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                            PURCHASING_ITEMS item = db.PURCHASING_ITEMS.Where(p => p.ItemCode.CompareTo(itemCode) == 0 && p.IsDeleted == false).FirstOrDefault();
 
-                            if (part == null)
+                            if (item == null)
                             {
-                                PART newPart = new PART();
-                                newPart.PNo = row["Partnumber"].ToString();
-                                newPart.PName = row["PartName"].ToString();
-                                newPart.PWeight = Double.Parse(row["Weight"].ToString());
-                                newPart.PLength = Double.Parse(row["Length"].ToString());
-                                newPart.PWidth = Double.Parse(row["Width"].ToString());
-                                newPart.PHeight = Double.Parse(row["Height"].ToString());
-                                newPart.Grade = row["Grade"].ToString();
-                                newPart.Gauge = Double.Parse(row["Gauge"].ToString());
-                                newPart.Pitch = Double.Parse(row["Pitch"].ToString());
-                                newPart.Coating = row["Coating"].ToString();
-                                newPart.Marka = row["Standart"].ToString();
-                                newPart.Standart = row["Standart"].ToString();
-                                var unit = row["Unit"].ToString();
-                                newPart.UNIT = db.UNITS.Where(u => u.ShortName.Equals(unit)).FirstOrDefault();
-                                if (row["InHouse?"].ToString().CompareTo("Yes") == 0)
-                                    newPart.IsInHouse = true;
+                                PURCHASING_ITEMS newItem = new PURCHASING_ITEMS();
+                                
+                                newItem.ItemCode = itemCode;
+                                newItem.IsDeleted = false;
+                                newItem.ItemName = itemName;
+                                UNIT unit = db.UNITS.Where(u => u.ShortName.CompareTo(unitName) == 0).FirstOrDefault();
+                                if (unit != null)
+                                    newItem.UnitID = unit.ID;
                                 else
-                                    newPart.IsInHouse = false;
-                                newPart.HSCodeID = 1;
-                                newPart.IsDeleted = false;
+                                    newItem.UnitID = 1;
 
-                                db.PARTS.Add(newPart);
+                                db.PURCHASING_ITEMS.Add(newItem);
                                 db.SaveChanges();
 
                                 var userEmail = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail, "PartController", $"{newPart.PNo} - Partni Excell orqali yaratdi");
+                                LogHelper.LogToDatabase(userEmail, "PurchasingItemController", $"{newItem.ItemCode} - predemetni Excell orqali yaratdi");
                             }
                             else
                             {
@@ -362,7 +353,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                return RedirectToAction("GetAllParts");
+                return RedirectToAction("Index");
             }
         }
     }

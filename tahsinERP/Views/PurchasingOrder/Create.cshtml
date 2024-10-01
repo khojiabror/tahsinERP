@@ -104,17 +104,13 @@
                                                             <label>Buyurtma berilgan sanasi</label>
                                                             @Html.TextBoxFor(model => model.CreatedDT, new { @class = "form-control pickadate-months-year round" })
                                                             @Html.ValidationMessageFor(model => model.CreatedDT, "", new { @class = "text-danger" })
-                                                            <div class="form-control-position mt-2">
-                                                                <i class='bx bx-calendar'></i>
-                                                            </div>
+
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Buyurtma tasdiqlangan (EDO) sanasi</label>
                                                             @Html.TextBoxFor(model => model.ApprovedDTEDO, new { @class = "form-control pickadate-months-year round" })
                                                             @Html.ValidationMessageFor(model => model.ApprovedDTEDO, "", new { @class = "text-danger" })
-                                                            <div class="form-control-position mt-2">
-                                                                <i class='bx bx-calendar'></i>
-                                                            </div>
+
                                                         </div>
                                                     </div>
                                                 </div>

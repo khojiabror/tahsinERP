@@ -2939,6 +2939,7 @@
     <Content Include="Views\GTD\Index.cshtml" />
     <Content Include="Views\PurchasingOrder\Create.cshtml" />
     <Content Include="Views\PurchasingOrder\EditPart.cshtml" />
+    <Content Include="Views\PurchasingItem\UploadWithExcel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
