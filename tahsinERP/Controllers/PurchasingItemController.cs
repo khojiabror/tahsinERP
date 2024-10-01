@@ -1,12 +1,17 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Newtonsoft.Json;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI.WebControls.WebParts;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
@@ -181,9 +186,184 @@ namespace tahsinERP.Controllers
                 return View(model);
             }
         }
+
+        //upload with excel
         public ActionResult UploadWithExcel()
         {
+            ViewBag.IsFileUploaded = false;
             return View();
+        }
+        public ActionResult Download()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                SAMPLE_FILES detal = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("detallar.xlsx") == 0).FirstOrDefault();
+                if (detal != null)
+                    return File(detal.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return View();
+            }
+        }
+        [HttpPost]
+        public ActionResult UploadWithExcel(HttpPostedFileBase file)
+        {
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                if (file != null && file.ContentLength > 0)
+                {
+                    if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
+                    {
+                        try
+                        {
+                            var dataTable = new DataTable();
+                            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                            using (var package = new ExcelPackage(file.InputStream))
+                            {
+                                var worksheet = package.Workbook.Worksheets[0];
+                                var rowCount = worksheet.Dimension.Rows;
+                                var colCount = worksheet.Dimension.Columns;
+
+                                for (int col = 1; col <= colCount; col++)
+                                {
+                                    dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                                }
+
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var dataRow = dataTable.NewRow();
+                                    for (int col = 1; col <= colCount; col++)
+                                    {
+                                        var cellText = worksheet.Cells[row, col].Text;
+
+                                        // Assuming 'PartName' is the name of the column that may contain en-dashes or em-dashes
+                                        if (dataTable.Columns[col - 1].ColumnName == "PartName")
+                                        {
+                                            // Replace en-dash and em-dash with a standard hyphen
+                                            cellText = cellText.Replace('–', '-').Replace('—', '-');
+                                        }
+                                        cellText = new string(cellText.Where(c => !char.IsControl(c)).ToArray()).Trim();
+
+                                        dataRow[col - 1] = cellText;
+                                    }
+                                    dataTable.Rows.Add(dataRow);
+                                }
+                            }
+
+                            ViewBag.DataTable = dataTable;
+                            ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
+                            ViewBag.IsFileUploaded = true;
+
+
+                            foreach (DataRow row in dataTable.Rows)
+                            {
+                                partNo = row["Partnumber"].ToString();
+
+                                PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                                if (part != null)
+                                {
+                                    ViewBag.ExistingRecordsCount = 1;
+                                }
+
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                            return View("UploadWithExcel");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
+                        return View("UploadWithExcel");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
+                    return View("UploadWithExcel");
+                }
+                return View("UploadWithExcel");
+            }
+        }
+        public ActionResult ClearDataTable()
+        {
+            // Clear the DataTable and related ViewBag properties
+            ViewBag.DataTable = null;
+            ViewBag.DataTableModel = null;
+            ViewBag.IsFileUploaded = false;
+            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
+            // Return the UploadWithExcel view
+            return View("UploadWithExcel");
+        }
+        [HttpPost]
+        public ActionResult Save(string dataTableModel)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                if (!string.IsNullOrEmpty(dataTableModel))
+                {
+                    var tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
+                    try
+                    {
+                        foreach (DataRow row in tableModel.Rows)
+                        {
+                            partNo = row["Partnumber"].ToString();
+
+                            PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+
+                            if (part == null)
+                            {
+                                PART newPart = new PART();
+                                newPart.PNo = row["Partnumber"].ToString();
+                                newPart.PName = row["PartName"].ToString();
+                                newPart.PWeight = Double.Parse(row["Weight"].ToString());
+                                newPart.PLength = Double.Parse(row["Length"].ToString());
+                                newPart.PWidth = Double.Parse(row["Width"].ToString());
+                                newPart.PHeight = Double.Parse(row["Height"].ToString());
+                                newPart.Grade = row["Grade"].ToString();
+                                newPart.Gauge = Double.Parse(row["Gauge"].ToString());
+                                newPart.Pitch = Double.Parse(row["Pitch"].ToString());
+                                newPart.Coating = row["Coating"].ToString();
+                                newPart.Marka = row["Standart"].ToString();
+                                newPart.Standart = row["Standart"].ToString();
+                                var unit = row["Unit"].ToString();
+                                newPart.UNIT = db.UNITS.Where(u => u.ShortName.Equals(unit)).FirstOrDefault();
+                                if (row["InHouse?"].ToString().CompareTo("Yes") == 0)
+                                    newPart.IsInHouse = true;
+                                else
+                                    newPart.IsInHouse = false;
+                                newPart.HSCodeID = 1;
+                                newPart.IsDeleted = false;
+
+                                db.PARTS.Add(newPart);
+                                db.SaveChanges();
+
+                                var userEmail = User.Identity.Name;
+                                LogHelper.LogToDatabase(userEmail, "PartController", $"{newPart.PNo} - Partni Excell orqali yaratdi");
+                            }
+                            else
+                            {
+                                ViewBag.Message = "Muammo!. Yuklangan faylda ayni vaqtda ma'lumotlar bazasida bor ma'lumot kiritilishga harakat bo'lmoqda.";
+                            }
+                        }
+                    }
+                    catch (JsonReaderException jex)
+                    {
+                        // Log the detailed exception message and stack trace
+                        Console.WriteLine("JSON Reader Exception: " + jex.Message);
+                        Console.WriteLine(jex.StackTrace);
+                        // Handle the exception
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", ex.Message);
+                    }
+                }
+
+                return RedirectToAction("GetAllParts");
+            }
         }
     }
 }
