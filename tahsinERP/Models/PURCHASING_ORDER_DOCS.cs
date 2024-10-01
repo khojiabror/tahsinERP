@@ -17,6 +17,7 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int OrderID { get; set; }
         public byte[] Doc { get; set; }
+        public bool IsDeleted { get; set; }
     
         public virtual PURCHASING_ORDERS PURCHASING_ORDERS { get; set; }
     }

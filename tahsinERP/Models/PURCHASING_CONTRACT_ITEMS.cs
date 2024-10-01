@@ -23,6 +23,7 @@ namespace tahsinERP.Models
         public Nullable<double> MOQ { get; set; }
         public Nullable<bool> ActivePart { get; set; }
         public Nullable<int> UnitID { get; set; }
+        public bool IsDeleted { get; set; }
     
         public virtual PURCHASING_CONTRACTS PURCHASING_CONTRACTS { get; set; }
         public virtual PURCHASING_ITEMS PURCHASING_ITEMS { get; set; }

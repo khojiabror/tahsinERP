@@ -32,11 +32,14 @@ namespace tahsinERP.Models
         public string PaymentTerms { get; set; }
         public System.DateTime DueDT { get; set; }
         public string Comment { get; set; }
+        public bool IsDeleted { get; set; }
+        public int OrderID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACT_DOCS> PURCHASING_CONTRACT_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
+        public virtual PURCHASING_ORDERS PURCHASING_ORDERS { get; set; }
     }
 }

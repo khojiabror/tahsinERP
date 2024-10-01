@@ -270,6 +270,7 @@
         <EntityTypeShape EntityType="DBTHSNModel.P_PROFORMA_INVOICE_DOCS" Width="1.5" PointX="22.375" PointY="64.75" />
         <AssociationConnector Association="DBTHSNModel.FK_GTD_DOCS_GTDS" />
         <AssociationConnector Association="DBTHSNModel.FK_P_PROFORMA_INVOICE_DOCS_P_PROFORMA_INVOICES" />
+        <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Order__216BEC9A" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
