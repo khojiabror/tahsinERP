@@ -445,19 +445,19 @@
                             </a>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingContract"))
-                    {
-                        <li class=" nav-item">
-                            <a href="/PurchasingContract/Index">
-                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingContract</span>
-                            </a>
-                        </li>
-                    }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingOrder"))
                     {
                         <li class=" nav-item">
                             <a href="/PurchasingOrder/Index">
                                 <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingOrder</span>
+                            </a>
+                        </li>
+                    }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingContract"))
+                    {
+                        <li class=" nav-item">
+                            <a href="/PurchasingContract/Index">
+                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">PurchasingContract</span>
                             </a>
                         </li>
                     }

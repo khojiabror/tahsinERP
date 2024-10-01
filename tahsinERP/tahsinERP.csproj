@@ -887,6 +887,7 @@
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
+    <Compile Include="ViewModels\PurchasingOrder\PurchasingOrderViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
@@ -2918,7 +2919,6 @@
     <Content Include="Views\PurchasingItem\Delete.cshtml" />
     <Content Include="Views\PurchasingItem\Details.cshtml" />
     <Content Include="Views\PurchasingOrder\Index.cshtml" />
-    <Content Include="Views\PurchasingOrder\Create.cshtml" />
     <Content Include="Views\PurchasingOrder\Edit.cshtml" />
     <Content Include="Views\PurchasingOrder\Delete.cshtml" />
     <Content Include="Views\PurchasingOrder\Details.cshtml" />
@@ -2936,6 +2936,7 @@
     <Content Include="Views\WhIncome\UploadWithExcel.cshtml" />
     <Content Include="Views\WhExpense\UploadWithExcel.cshtml" />
     <Content Include="Views\GTD\Index.cshtml" />
+    <Content Include="Views\PurchasingOrder\Create.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
