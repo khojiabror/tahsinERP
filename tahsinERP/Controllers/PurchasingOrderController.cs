@@ -30,6 +30,10 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                ViewBag.userList = new SelectList(
+                                    db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
+                                    .ToList(), "ID", "UserName");
+
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
             }
