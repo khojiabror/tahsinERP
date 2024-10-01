@@ -32,7 +32,7 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.userList = new SelectList(
                                     db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
-                                    .ToList(), "ID", "UserName");
+                                    .ToList(), "ID", "Uname");
 
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");

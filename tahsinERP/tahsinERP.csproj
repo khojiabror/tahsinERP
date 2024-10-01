@@ -887,6 +887,7 @@
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
+    <Compile Include="ViewModels\PurchasingContractViewModel.cs" />
     <Compile Include="ViewModels\PurchasingOrder\PurchasingOrderViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
