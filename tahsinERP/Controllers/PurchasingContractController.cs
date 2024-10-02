@@ -15,7 +15,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.PURCHASING_CONTRACTS.Include(x => x.COMPANy).Where(x => x.IsDeleted == false).ToList();
+                var list = db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
