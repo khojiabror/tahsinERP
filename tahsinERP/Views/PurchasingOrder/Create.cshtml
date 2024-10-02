@@ -97,7 +97,7 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Ma'sul xarid agenti:</label>
-                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, new { @class = "form-control select" })
+                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList,"Buyerni tanlang:", new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">

@@ -105,7 +105,24 @@
                                                         </td>
                                                         <td>@item.OrderCodeEDO</td>
                                                         <td>@item.Comment</td>
-                                                        <td>@item.Status</td>
+                                                        @if (@item.Status == "Jarayonda")
+                                                        {
+                                                            <td  style="background-color: yellow; color: black;">
+                                                                @item.Status
+                                                            </td>
+                                                        }
+                                                        else if (@item.Status == "Yakunlandi")
+                                                        {
+                                                            <td  style="background-color: green; color: white;">
+                                                                @item.Status
+                                                            </td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td  style="background-color: gray; color: white;">
+                                                                @item.Status
+                                                            </td>
+                                                        }
                                                         @if (changePermit)
                                                         {
                                                             <td>
