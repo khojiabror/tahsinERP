@@ -7,11 +7,12 @@
 	position: absolute;
 	top: 100%;
 	margin-top: -1px;
-	z-index: 990;
+	z-index: 999;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	max-width: 280px; /* Set this to control the width */
 }
 .picker__input {
 	cursor: default;
@@ -26,7 +27,7 @@
 	border-top-width: 0;
 	border-bottom-width: 0;
 	max-width: 280px;
-	max-height: 0;
+	max-height: 480px;
 	-webkit-overflow-scrolling: touch;
 }
 .picker--opened .picker__holder {
@@ -64,7 +65,7 @@
 .picker__select--year {
 	border-color: #ddd;
 	height: 32px;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.6666667;
 	margin-left: 5px;
 	margin-right: 5px;
@@ -79,7 +80,7 @@
 .picker__nav--prev,
 .picker__nav--next {
 	position: absolute;
-	padding: 8px;
+	padding: 10px;
 	top: 50%;
 	margin-top: -16px;
 	border-radius: 2px;
@@ -130,10 +131,10 @@
 	width: 100%;
 	margin-bottom: 10px;
 }
-.picker__table td {
-	margin: 0;
-	padding: 0;
-}
+	.picker__table td {
+		margin: 0;
+		padding: 5px;
+	}
 .picker__weekday {
 	width: 14.285714286%;
 	font-size: 12px;
