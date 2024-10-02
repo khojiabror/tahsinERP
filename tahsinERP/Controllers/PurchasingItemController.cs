@@ -253,7 +253,6 @@ namespace tahsinERP.Controllers
                             ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
                             ViewBag.IsFileUploaded = true;
 
-
                             foreach (DataRow row in dataTable.Rows)
                             {
                                 var itemCode = row["Itemcode"].ToString();

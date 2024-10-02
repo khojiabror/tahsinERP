@@ -1,4 +1,4 @@
-﻿
+﻿@model List<tahsinERP.Models.PURCHASING_CONTRACTS>
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -43,13 +43,13 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <div class="invoice-create-btn mb-1">
-                                <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/PContract/Create';">
+                                <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/PurchasingContract/Create';">
                                     <span class="align-middle ml-25">Shartnoma qo'shish</span>
                                 </button>@*
                                     <a href="@Url.Action("UploadWithExcel", "PContract")" class="btn btn-outline-success mr-1 mb-1" role="button" aria-pressed="true">
                                         <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali yangi shartnoma qo'shish</span>
                                     </a>*@
-                                <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/PContract/UploadWithExcel'">
+                                <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/PurchasingContract/UploadWithExcel'">
                                     <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali shartnoma qo'shish</span>
                                 </button>
                             </div>
@@ -68,11 +68,11 @@
                                         <tr>
                                             <th></th>
                                             <th></th>
-                                            <th>Raqami</th>
-                                            <th>Ta'minotchi nomi</th>
-                                            <th>Turi</th>
-                                            <th>Tuzilgan sanasi</th>
-                                            <th>Tugashi sanasi</th>
+                                            <th>Shartnoma raqami</th>
+                                            <th>Korxona</th>
+                                            <th>Taminotchi</th>
+                                          @*  <th>Miqdori</th>
+                                            <th>Sanasi</th>*@
                                             <th>Incoterms</th>
                                             <th>To'lov sharti</th>
                                             @if (changePermit)
@@ -82,28 +82,26 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in ViewBag.partList)
+                                        @foreach (var item in Model)
                                         {
                                             <tr>
                                                 <td></td>
                                                 <td></td>
                                                 <td>
-                                                    <a href="~/PContract/Details/@item.ID">@item.ContractNo</a>
+                                                    <a href="~/PurchasingContract/Details/@item.ID">@item.ContractNo</a>
                                                 </td>
-                                                <td>
-                                                    <a href="~/Supplier/Details/@item.SupplierID">@item.SUPPLIER.Name</a>
-                                                </td>
-                                                <td>@item.SUPPLIER.Type</td>
-                                                <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
-                                                <td>@item.DueDate.ToString("dd.MM.yyyy")</td>
+                                                <td>@item.COMPANy.Name</td>
+                                                @*<td>@item.Supplier</td>
+                                                <td>@item.Amount</td>*@
+                                                <td>@item.IssueDT.ToString("dd.MM.yyyy")</td>
                                                 <td>@item.Incoterms</td>
                                                 <td>@item.PaymentTerms</td>
                                                 @if (changePermit)
                                                 {
                                                     <td>
                                                         <div>
-                                                            <a href="@Url.Action("Edit", "PContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                            <a href="@Url.Action("Delete", "PContract", new { id = item.ID})"><i class="bx bx-trash"></i></a>
+                                                            <a href="@Url.Action("Edit", "PurchasingContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
+                                                            <a href="@Url.Action("Delete", "PurchasingContract", new { id = item.ID})"><i class="bx bx-trash"></i></a>
                                                         </div>
                                                     </td>
                                                 }
@@ -125,17 +123,3 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-<script type="text/javascript">
-   function refreshDataTable() {
-       var source = document.getElementById("SourceID").value;
-       const supplierID = document.getElementById("SupplierID").value;
-       window.location.href = '@Url.Action("Index", "PContract")?type=' + source;
-       ////window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
-
-       };
-     function refreshdatatablesupplier() {
-         var source = document.getElementById("SourceID").value;
-           const supplierID = document.getElementById("SupplierID").value;
-           window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
-       }
-</script>

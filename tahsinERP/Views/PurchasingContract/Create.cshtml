@@ -27,8 +27,16 @@
         .custom-file-button:hover {
             background-color: #0056b3;
         }
+    #file-upload-div {
+        transition: background-color 1s ease;
+    }
+
+    .file-upload-success {
+        background-color: lightgreen; /* or lightblue */
+    }
+
 </style>
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContract"))
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PurchasingContract"))
 {
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -73,8 +81,8 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Shartnoma raqami</h6>
-                                                            @Html.TextBoxFor(model => model.ContactNo, new { @type = "text", @class = "form-control" , @required = "required"})
-                                                            @Html.ValidationMessageFor(model => model.ContactNo , "", new { @class = "text-danger" })
+                                                            @Html.TextBoxFor(model => model.ContractNo, new { @type = "text", @class = "form-control", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Ta'minotchi</h6>
@@ -94,8 +102,8 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Incoterms</h6>
-                                                            @Html.TextBoxFor(model => model.Incoterm, new { @type = "text", @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Incoterm, "", new { @class = "text-danger" })
+                                                            @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control" })
+                                                            @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">To'lov sharti</h6>
@@ -121,20 +129,30 @@
                                                     </div>
                                                 </div>
                                                 <br />
-                                                <div class="col-md-6 col-12 form-group">
-                                                    <hr />
-                                                    <label>Buyurtma faylini yuklang</label>
-                                                    <!-- Hidden file input -->
-                                                    <input type="file" id="partPhotoUpload" name="partPhotoUpload" class="custom-file-input" />
-                                                    <!-- Custom button -->
-                                                    <label for="partPhotoUpload" class="custom-file-button">Yuklash fayli</label>
-                                                    @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
-                                                    <hr />
-                                                </div>
-
                                             </div>
 
-                                            // WRHS_InCome_Parts
+                                            <div class="col-md-6 col-12 form-group" id="file-upload-div">
+                                                <hr />
+                                                <label for="file-upload" class="form-label">Buyurtma faylini yuklang</label>
+
+                                                <!-- File input with label -->
+                                                <div class="custom-file">
+                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control-file", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                    <span id="file-name" class="file-name-placeholder">Fayl tanlanmagan</span>
+                                                </div>
+
+                                                <!-- Validation message -->
+                                                @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
+
+                                                <!-- Progress bar for larger files (optional) -->
+                                                <div class="progress mt-3 d-none" id="upload-progress">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
+                                                </div>
+
+                                                <hr />
+                                            </div>
+
+
                                             <br />
                                             <h4>
                                                 Ehtiyot qismlar
@@ -202,27 +220,11 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function () {
-        $('#supplierDropdown').change(function () {
-            var supplierId = $(this).val();
-            $.ajax({
-                url: '@Url.Action("GetPartsBySupplier", "PContract")',
-                type: 'GET',
-                data: { supplierId: supplierId },
-                success: function (data) {
-                    var partDropdown = $('#partDropdown');
-                    partDropdown.empty();
-                    $.each(data, function (index, part) {
-                        partDropdown.append($('<option/>', {
-                            value: part.ID,
-                            text: part.PNo
-                        }));
-                    });
-                }
-            });
-        });
+    document.getElementById('file-upload').addEventListener('change', function () {
+        if (this.files && this.files.length > 0) {
+            document.getElementById('file-upload-div').classList.add('file-upload-success');
+        }
     });
+
 </script>
