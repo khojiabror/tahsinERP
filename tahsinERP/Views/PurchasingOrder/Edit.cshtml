@@ -137,9 +137,8 @@
                                                                     <thead>
                                                                         <tr>
                                                                             <th>Item nomi</th>
-                                                                            <th>Birlik narxi</th>
-                                                                            <th>Narxi</th>
                                                                             <th>Miqdori</th>
+                                                                            <th>Birlik narxi</th>
                                                                             <th>Umumiy narx</th>
                                                                             <th>amallar</th>
                                                                         </tr>
@@ -153,7 +152,7 @@
                                                                                 </td>
                                                                                 <td>@item.Price</td>
                                                                                 <td>@item.Amount</td>
-                                                                                <td>@item.TotalPrice @item.Currency</td>
+                                                                                <td>@item.TotalPrice @item.Currency</td>    
                                                                                 <td>
                                                                                     <a href="@Url.Action("EditPart", "PurchasingOrder", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
                                                                                     <!-- Delete button -->

@@ -2940,6 +2940,7 @@
     <Content Include="Views\PurchasingOrder\Create.cshtml" />
     <Content Include="Views\PurchasingOrder\EditPart.cshtml" />
     <Content Include="Views\PurchasingItem\UploadWithExcel.cshtml" />
+    <Content Include="Views\PurchasingContract\EditPart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
