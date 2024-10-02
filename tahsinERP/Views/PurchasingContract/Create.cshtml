@@ -51,7 +51,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/PContract/Index">Shartnomalar</a>
+                                        <a href="~/PurchasingContract/Index">Shartnomalar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
                                         Shartnoma yaratish
@@ -69,7 +69,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "PContract", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default" }))
+                                        @using (Html.BeginForm("Create", "PurchasingContract", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -134,21 +134,14 @@
                                             <div class="col-md-6 col-12 form-group" id="file-upload-div">
                                                 <hr />
                                                 <label for="file-upload" class="form-label">Buyurtma faylini yuklang</label>
-
-                                                <!-- File input with label -->
                                                 <div class="custom-file">
                                                     @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control-file", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
                                                     <span id="file-name" class="file-name-placeholder">Fayl tanlanmagan</span>
                                                 </div>
-
-                                                <!-- Validation message -->
                                                 @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
-
-                                                <!-- Progress bar for larger files (optional) -->
                                                 <div class="progress mt-3 d-none" id="upload-progress">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
                                                 </div>
-
                                                 <hr />
                                             </div>
 
