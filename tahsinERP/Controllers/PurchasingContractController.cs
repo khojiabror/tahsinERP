@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -41,9 +42,38 @@ namespace tahsinERP.Controllers
         {
             return View();
         }
-        public ActionResult Details(int? id)
+        public ActionResult Details(int? ID)
         {
-            return View();
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var purchasingContract = db.PURCHASING_CONTRACTS
+                                  .Include(p => p.PURCHASING_ORDERS)
+                                  .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
+
+                if (purchasingContract == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var partList = db.PURCHASING_CONTRACT_ITEMS
+                                  .Include(pc => pc.PURCHASING_ITEMS)
+                                  .Include(pc => pc.UNIT)
+                                  .Where(pc => pc.ContractID == purchasingContract.ID)
+                                  .ToList();
+
+                ViewBag.PartList = partList;
+                var Doc = db.PURCHASING_CONTRACT_DOCS.FirstOrDefault(pi => pi.ContractID == ID);
+                if (Doc != null)
+                {
+                    ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(Doc.Doc);
+                }
+                return View(purchasingContract);
+            }
         }
     }
 }
