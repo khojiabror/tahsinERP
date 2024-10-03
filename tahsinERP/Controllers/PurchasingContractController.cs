@@ -3,11 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
+using tahsinERP.ViewModels.POrder;
 
 namespace tahsinERP.Controllers
 {
@@ -22,6 +25,70 @@ namespace tahsinERP.Controllers
                 return View(list);
             }
         }
+        public JsonResult GetContractDetails(int orderID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var order = db.PURCHASING_ORDERS
+                                 .Where(c => c.ID == orderID && c.IsDeleted == false)
+                                 .Select(c => new
+                                 {
+                                     c.ID
+                                 })
+                                 .FirstOrDefault();
+
+                if (order != null)
+                {
+                    return Json(new { success = true, data = order }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Contract not found." }, JsonRequestBehavior.AllowGet);
+                }
+            }
+        }
+        public JsonResult GetPriceAndMOQ(int itemID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var itemDetails = db.PURCHASING_ORDER_ITEMS
+                    .Where(i => i.ID == itemID && i.IsDeleted == false)
+                    .Select(i => new
+                    {
+                        i.Price,
+                        i.Amount
+                    })
+                    .FirstOrDefault();
+
+                if (itemDetails != null)
+                {
+                    return Json(new { success = true, data = itemDetails }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Item not found." }, JsonRequestBehavior.AllowGet);
+                }
+            }
+        }
+
+        public JsonResult GetPartList(int orderID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var partList = db.PURCHASING_ORDER_ITEMS
+                    .Include(x => x.PURCHASING_ITEMS)
+                    .Where(p => p.OrderID == orderID && p.IsDeleted == false)
+                    .Select(p => new
+                    {
+                        p.ItemID,
+                        p.PURCHASING_ITEMS.ItemName
+                    })
+                    .ToList();
+
+                return Json(new { success = true, data = partList }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -29,14 +96,174 @@ namespace tahsinERP.Controllers
                 ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
                 ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-
+    
                 PURCHASING_CONTRACTS newPurchasingContract = new PURCHASING_CONTRACTS();
                 PURCHASING_CONTRACT_ITEMS contractItem = new PURCHASING_CONTRACT_ITEMS();
             }
             return View();
+        }/*
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(PurchasingContractViewModel model)
+        {
+            try
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    foreach (var part in model.Parts)
+                    {
+                        if (part.MOQ > part.Amount)
+                        {
+                            ModelState.AddModelError("", db.PURCHASING_ITEMS.Where(p => p.ID == part.ItemID).Select(p => p.ItemName) + " uchun kiritilgan miqdor MOQ dan kichik");
+                        }
+                    }
+                    if (checkForContractPartsAmount(model))
+                    {
+                        var message = "";
+                        foreach (var word in contractExceedingParts)
+                        {
+                            message += word + " ,";
+                        }
+                        ModelState.AddModelError("", "Ushbu xarid qismlarda " + message + " buyurtnadan ortiqcha hajmni shartnoma qilmoqchisiz, bunday qilib bo'lmaydi!");
+
+                    }
+                    if (ModelState.IsValid)
+                    {
+                        var newOrder = new P_ORDERS()
+                        {
+                            OrderNo = model.OrderNo,
+                            IssuedDate = model.IssuedDate,
+                            CompanyID = 1,
+                            SupplierID = model.SupplierID,
+                            ContractID = model.ContractID,
+                            Currency = model.Currency,
+                            Description = model.Description,
+                            IsDeleted = false
+                        };
+
+                        db.P_ORDERS.Add(newOrder);
+                        db.SaveChanges();
+                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - POrderni yaratdi");
+
+
+                        List<P_CONTRACT_PARTS> contractParts = db.P_CONTRACT_PARTS.Where(pcp => pcp.ContractID == model.ContractID).ToList();
+                        List<string> notInContractParts = new List<string>();
+
+                        foreach (var part in model.Parts)
+                        {
+                            var contractPart = contractParts.Where(p => p.PartID == part.PartID).FirstOrDefault();
+                            if (contractParts.Where(cp => cp.PartID == part.PartID).Any())
+                            {
+                                var newPart = new P_ORDER_PARTS
+                                {
+                                    OrderID = newOrder.ID,
+                                    PartID = part.PartID,
+                                    UnitID = part.UnitID,
+                                    Amount = part.Amount
+                                };
+
+                                newPart.MOQ = contractPart.MOQ;
+                                newPart.Price = contractPart.Price;
+
+                                db.P_ORDER_PARTS.Add(newPart);
+                                var logPart = db.PARTS.Find(newPart.PartID);
+                                LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{logPart.PNo} - POrderPartni yaratdi");
+                            }
+                            else
+                            {
+                                PART paart = db.PARTS.Where(p => p.ID == part.PartID).FirstOrDefault();
+                                notInContractParts.Add(paart.PNo);
+                            }
+                        }
+                        if (notInContractParts.Count > 0)
+                        {
+                            var message = "";
+                            foreach (var word in notInContractParts)
+                            {
+                                message += word + " ,";
+                            }
+                            ModelState.AddModelError("", "Ushbu ehtiyot qism(lar): " + message + " shartnomadan topilmadi, shartnomada yo'q narsaga buyurtma qilib bo'lmaydi! Qaytadan urinib ko'ring!");
+                            db.Entry(newOrder).State = EntityState.Deleted;
+                            db.SaveChanges();
+                            return View(model);
+                        }
+                        db.SaveChanges();
+                        if (model.File != null)
+                        {
+                            if (Request.Files["docUpload"].ContentLength > 0)
+                            {
+                                if (Request.Files["docUpload"].InputStream.Length < 5242880)
+                                {
+                                    if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
+                                    {
+                                        P_ORDER_DOCS orderDoc = new P_ORDER_DOCS();
+                                        byte[] avatar = new byte[Request.Files["docUpload"].InputStream.Length];
+                                        Request.Files["docUpload"].InputStream.Read(avatar, 0, avatar.Length);
+                                        orderDoc.OrderID = newOrder.ID;
+                                        orderDoc.Doc = avatar;
+
+                                        db.P_ORDER_DOCS.Add(orderDoc);
+                                        db.SaveChanges();
+
+                                        LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{orderDoc.P_ORDERS.OrderNo} - uchun POrderDocni yaratdi");
+                                    }
+                                    else
+                                    {
+                                        ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
+                                    }
+                                }
+                                else
+                                {
+                                    ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 2MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                                    throw new RetryLimitExceededException();
+                                }
+                            }
+                        }
+
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                        ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                        ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                        //ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
+                        ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>());
+
+                        return View(model);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+            return View(model);
+        }
+        */
+        private List<string> contractExceedingParts = new List<string>();
+        private bool checkForContractPartsAmount(PurchasingContractViewModel model)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                List<PURCHASING_CONTRACT_ITEMS> contractParts = db.PURCHASING_CONTRACT_ITEMS.Where(pcp => pcp.ContractID == model.ID).ToList();
+
+                foreach (var orderPart in model.Parts)
+                {
+                    for (int i = 0; i < contractParts.Count; i++)
+                    {
+                        if (contractParts[i].ItemID == orderPart.ItemID)
+                            if (orderPart.Amount > contractParts[i].Amount)
+                                contractExceedingParts.Add(contractParts[i].PURCHASING_ITEMS.ItemName);
+                    }
+                }
+                if (contractExceedingParts.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
         }
 
-        
         public ActionResult Delete(int? ID)
         {
             if (ID == null)
