@@ -43,7 +43,7 @@
                         @if (changePermit)
                         {
                             <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/PurchasingItem/Create';">
-                                <span class="align-middle ml-25">Ehtiyot qismni qo'shish</span>
+                                <span class="align-middle ml-25">Xarid qilish buyumini qo'shish</span>
                             </button>
                             <a href="@Url.Action("UploadWithExcel", "PurchasingItem")" class="btn btn-outline-primary mr-1 mb-1" role="button" aria-pressed="true">
                                 Xarid qilish buyumlarini excel orqali qo'shish
@@ -87,7 +87,6 @@
                                                     <th>Kodi</th>
                                                     <th>Nomi</th>
                                                     <th>Birligi</th>
-                                                    <th>Tavsifi</th>
                                                     @if (changePermit)
                                                     {
                                                         <th>amallar</th>
@@ -105,7 +104,6 @@
                                                         </td>
                                                         <td>@item.ItemName</td>
                                                         <td>@item.UNIT.ShortName</td>
-                                                        <td>@item.Description</td>
                                                         @if (changePermit)
                                                         {
                                                             <td>
