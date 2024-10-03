@@ -12,13 +12,12 @@ namespace tahsinERP.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class GTD_DOCS
+    public partial class sysdiagram
     {
-        public int ID { get; set; }
-        public int GtdID { get; set; }
-        public byte[] Doc { get; set; }
-        public bool IsDeleted { get; set; }
-    
-        public virtual GTD GTD { get; set; }
+        public string name { get; set; }
+        public int principal_id { get; set; }
+        public int diagram_id { get; set; }
+        public Nullable<int> version { get; set; }
+        public byte[] definition { get; set; }
     }
 }

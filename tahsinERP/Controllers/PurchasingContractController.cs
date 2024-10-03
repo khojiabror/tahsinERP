@@ -263,6 +263,29 @@ namespace tahsinERP.Controllers
                     return false;
             }
         }
+        public ActionResult GetOrderItems(int orderId)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Assuming you have a service or context to fetch order items from the database
+                var orderItems = db.PURCHASING_ORDER_ITEMS
+                    .Include(o => o.PURCHASING_ITEMS)
+                    .Include(o => o.PURCHASING_ITEMS.UNIT)
+                                     .Where(o => o.OrderID == orderId)
+                                     .Select(o => new
+                                     {
+                                         o.ID,
+                                         o.ItemID,
+                                         o.PURCHASING_ITEMS.ItemName,
+                                         o.Amount,
+                                         o.PURCHASING_ITEMS.UNIT.ShortName,
+                                         o.Price,
+                                         o.TotalPrice
+                                     }).ToList();
+
+                return Json(orderItems, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         public ActionResult Delete(int? ID)
         {
@@ -289,7 +312,7 @@ namespace tahsinERP.Controllers
                                   .ToList();
 
                 ViewBag.PartList = partList;
-                
+
                 return View(purchasingContract);
             }
         }

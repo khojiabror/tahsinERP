@@ -7,7 +7,7 @@
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    using (Html.BeginForm("Edit", "PurchosingItem", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    using (Html.BeginForm("Edit", "PurchasingItem", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
 <div class="app-content content">
@@ -23,10 +23,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/PurchasingItem/Index">Purchasing Item</a>
+                                    <a href="~/PurchasingItem/Index">Xarid qilish buyumlari</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    PurchasingItem ni tahrirlash
+                                    Xarid qilish buyumini tahrirlash
                                 </li>
                             </ol>
                         </div>
@@ -56,7 +56,7 @@
                                                 </fieldset>
                                                 <h6 class="invoice-to">Item nomi</h6>
                                                 <fieldset class="form-group">
-                                                    @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round", type = "number", @placeholder = "Manzilgacha bo'lgan masofa" })
+                                                    @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round" })
                                                     @Html.ValidationMessageFor(model => model.ItemName, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <h6 class="invoice-to">Birligini tanlang</h6>

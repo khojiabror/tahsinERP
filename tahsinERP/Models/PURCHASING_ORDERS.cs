@@ -17,9 +17,9 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PURCHASING_ORDERS()
         {
+            this.PURCHASING_CONTRACTS = new HashSet<PURCHASING_CONTRACTS>();
             this.PURCHASING_ORDER_DOCS = new HashSet<PURCHASING_ORDER_DOCS>();
             this.PURCHASING_ORDER_ITEMS = new HashSet<PURCHASING_ORDER_ITEMS>();
-            this.PURCHASING_CONTRACTS = new HashSet<PURCHASING_CONTRACTS>();
         }
     
         public int ID { get; set; }
@@ -27,19 +27,21 @@ namespace tahsinERP.Models
         public string OrderCodeEDO { get; set; }
         public System.DateTime CreatedDT { get; set; }
         public int CreatedByUserID { get; set; }
-        public System.DateTime ApprovedDTEDO { get; set; }
+        public Nullable<System.DateTime> ApprovedDTEDO { get; set; }
         public string Comment { get; set; }
         public string Status { get; set; }
         public int BuyerUserID { get; set; }
         public bool IsDeleted { get; set; }
+        public string OrderedByUser { get; set; }
+        public string OrderedByDept { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
         public virtual USER USER { get; set; }
         public virtual USER USER1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
     }
 }

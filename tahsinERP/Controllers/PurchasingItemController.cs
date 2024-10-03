@@ -44,6 +44,7 @@ namespace tahsinERP.Controllers
                 {
                     if (ModelState.IsValid)
                     {
+                        model.IsDeleted = false;
                         db.PURCHASING_ITEMS.Add(model);
                         LogHelper.LogToDatabase(User.Identity.Name, "PurchasingItemController", $"{model.ItemName} - yaratdi");
                         db.SaveChanges();
@@ -91,29 +92,26 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                try
+
+                if (TryUpdateModel(model, "", new string[] { "ItemCode", "ItemName", "Description", "UnitID" }))
                 {
-                    var purchasingItemToUpdate = db.PURCHASING_ITEMS.Find(model.ID);
-                    if (purchasingItemToUpdate == null)
+                    try
                     {
-                        return HttpNotFound();
+                        db.Entry(model).State = EntityState.Modified;
+                        db.SaveChanges();
+
+                        var userEmail = User.Identity.Name;
+                        LogHelper.LogToDatabase(userEmail, "PurchasingItemController", $"{model.ItemName} - buyumini tahrirladi");
+
+                        // Update the many-to-many table Prod_Shop_Parts
+
+                        return RedirectToAction("Index");
                     }
-
-                    db.Entry(purchasingItemToUpdate).State = EntityState.Modified;
-                    db.SaveChanges();
-
-                    var userEmail = User.Identity.Name;
-                    LogHelper.LogToDatabase(userEmail, "PurchasingItemController", $"{model.ItemName} - Purchasing tahrirladi");
-
-                    // Update the many-to-many table Prod_Shop_Parts
-
-                    return RedirectToAction("Index");
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError(ex.Message, "Ma'lumotlarni saqlashni iloji bo'lmadi. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(ex.Message, "Ma'lumotlarni saqlashni iloji bo'lmadi. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
-                }
-
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
 
                 return View(model);
@@ -317,7 +315,7 @@ namespace tahsinERP.Controllers
                             if (item == null)
                             {
                                 PURCHASING_ITEMS newItem = new PURCHASING_ITEMS();
-                                
+
                                 newItem.ItemCode = itemCode;
                                 newItem.IsDeleted = false;
                                 newItem.ItemName = itemName;

@@ -26,6 +26,7 @@
         .custom-file-button:hover {
             background-color: #0056b3;
         }
+
     #file-upload-div {
         transition: background-color 1s ease;
     }
@@ -33,7 +34,6 @@
     .file-upload-success {
         background-color: lightgreen; /* or lightblue */
     }
-
 </style>
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PurchasingContract"))
 {
@@ -85,7 +85,7 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Buyurtmani tanlang</h6>
-                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, new { @class = "form-control select2"})
+                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, "bir ba'loni tanlang", new { @class = "form-control select2", @id = "order-dropdown" })
                                                             @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
@@ -149,8 +149,6 @@
                                                 </div>
                                                 <hr />
                                             </div>
-
-
                                             <br />
                                             <h4>
                                                 Predmeti
@@ -173,6 +171,11 @@
                                                             <label for="Part_Quantity">Miqdori</label>
                                                             <input type="number" name="Quantity" class="form-control" id="Part_Quantity" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_Price">Umumiy narx</label>
+                                                            <input type="number" name="Price" step="0.01" class="form-control" id="Part_Price" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Price">Umumiy narx</label>
@@ -218,6 +221,72 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Trigger event when OrderID is changed
+        $('#order-dropdown').on('change', function () {
+            console.log("Ishlopti")
+            var orderId = $(this).val();
+            if (orderId) {
+                // Make an AJAX request to load items based on selected OrderID
+                $.ajax({
+                    url: '@Url.Action("GetOrderItems", "PurchasingContract")', // Ensure this action is in your controller
+                    type: 'GET',
+                    data: { orderId: orderId },
+                    success: function (response) {
+                        // Clear existing repeater items
+                        $('[data-repeater-list="Parts"]').empty();
+
+                        // Populate the repeater with new items from response
+                        response.forEach(function (item) {
+                            // Append a new repeater item with the fetched data
+                            var newItem = `
+                                <div data-repeater-item id="repeaterItem">
+                                    <div class="row justify-content-between">
+                                        <input type="hidden" name="ID" value="${item.ID}" />
+                                        <div class="col-md-2 col-sm-12 form-group">
+                                            <label for="Part_PartID">Predmetni tanlang</label>
+                                            <input type="text" name="ItemID" value="${item.ItemName}" class="form-control" />
+                                        </div>
+                                        <div class="col-md-2 col-sm-12 form-group">
+                                            <label for="Part_Unit">Birligi</label>
+                                            <input type="text" name="UnitID" value="${item.ShortName}" class="form-control" />
+                                        </div>
+                                        <div class="col-md-2 col-sm-12 form-group">
+                                            <label for="Part_Quantity">Miqdori</label>
+                                            <input type="number" name="Quantity" value="${item.Amount}" class="form-control" />
+                                        </div>
+                                        <div class="col-md-2 col-sm-12 form-group">
+                                            <label for="Part_Price">Dona narx</label>
+                                            <input type="number" name="Price" value="${item.Price}" class="form-control" step="0.01" />
+                                        </div>
+                                        <div class="col-md-2 col-sm-12 form-group">
+    <label for="Part_Price">Umumiy narx</label>
+    <input type="number" name="Price" value="${item.TotalPrice}" class="form-control" step="0.01" />
+</div>
+                                        <div class="col-md-2 col-sm-12 form-group">
+                                            <label for="Part_MOQ">MOQ</label>
+                                            <input type="text" name="MOQ" value="${item.MOQ}" class="form-control" />
+                                        </div>
+                                        <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                                            <button data-repeater-delete type="button" class="btn btn-danger">Ochirish</button>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`;
+                            $('[data-repeater-list="Parts"]').append(newItem);
+                        });
+                    },
+                    error: function () {
+                        alert('Error loading order items.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+
 <script>
     document.getElementById('file-upload').addEventListener('change', function () {
         if (this.files && this.files.length > 0) {

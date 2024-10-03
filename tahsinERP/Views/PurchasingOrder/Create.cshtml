@@ -97,7 +97,7 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Ma'sul xarid agenti:</label>
-                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList,"Buyerni tanlang:", new { @class = "form-control select" })
+                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, "Buyerni tanlang:", new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
@@ -120,9 +120,23 @@
                                                 <label>Buyurtma faylini yuklang</label>
                                                 <input type="file" id="docUpload" name="File" class="custom-file-input" />
 
-                                                <label for="docUpload" class="custom-file-button">Yuklash fayli</label>
+                                                <label for="docUpload" class="custom-file-button">Faylni Yuklash</label>
                                                 @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 <hr />
+                                            </div>
+                                            <div class="users-list-filter px-1">
+                                                    <div class="row border rounded py-2 mb-2">
+                                                        <div class="col-12 col-sm-12 col-lg-4">
+                                                            <label >Buyurtma beruvchi bo'lim</label>
+                                                            @Html.TextBoxFor(model => model.OrderByDept, new { @type = "text", @class = "form-control" })
+                                                            @Html.ValidationMessageFor(model => model.OrderByDept, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="col-12 col-sm-12 col-lg-4">
+                                                            <label>Buyurtma beruvchi xodim</label>
+                                                            @Html.TextBoxFor(model => model.OrderByUser, new { @type = "text", @class = "form-control" })
+                                                            @Html.ValidationMessageFor(model => model.OrderByUser, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
                                             </div>
 
                                             <br />
@@ -150,11 +164,6 @@
                                                             <label for="Part_Currency">Valyutani kiriting:</label>
                                                             <input name="Currency" class="form-control" id="Part_Currency" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Currency, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_TotalPrice">Umumiy Narx:</label>
-                                                            <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger", @type = "number" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>

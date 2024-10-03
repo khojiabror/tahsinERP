@@ -17,6 +17,7 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PART_WRHS()
         {
+            this.PART_STOCKS = new HashSet<PART_STOCKS>();
             this.PART_WASTE_WRHS_EXPENSES = new HashSet<PART_WASTE_WRHS_EXPENSES>();
             this.PART_WASTE_WRHS_EXPENSES1 = new HashSet<PART_WASTE_WRHS_EXPENSES>();
             this.PART_WASTE_WRHS_INCOMES = new HashSet<PART_WASTE_WRHS_INCOMES>();
@@ -26,7 +27,6 @@ namespace tahsinERP.Models
             this.PART_WRHS_INCOMES = new HashSet<PART_WRHS_INCOMES>();
             this.PART_WRHS_INCOMES1 = new HashSet<PART_WRHS_INCOMES>();
             this.WASTE_STOCKS = new HashSet<WASTE_STOCKS>();
-            this.PART_STOCKS = new HashSet<PART_STOCKS>();
         }
     
         public int ID { get; set; }
@@ -37,6 +37,8 @@ namespace tahsinERP.Models
         public int ShopID { get; set; }
         public Nullable<int> Account { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PART_STOCKS> PART_STOCKS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART_WASTE_WRHS_EXPENSES> PART_WASTE_WRHS_EXPENSES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -57,7 +59,5 @@ namespace tahsinERP.Models
         public virtual USER USER { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<WASTE_STOCKS> WASTE_STOCKS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PART_STOCKS> PART_STOCKS { get; set; }
     }
 }
