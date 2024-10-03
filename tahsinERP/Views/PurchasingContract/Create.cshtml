@@ -117,7 +117,7 @@
                                                         </div>
                                                         <div class="form-group position-relative has-icon-left">
                                                             <label>Tuzilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi" })
+                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round" })
                                                             @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -125,7 +125,7 @@
                                                         </div>
                                                         <div class="form-group position-relative has-icon-left">
                                                             <label>Tugaydigan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi" })
+                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round" })
                                                             @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -262,9 +262,9 @@ else
                                             <input type="number" name="Price" value="${item.Price}" class="form-control" step="0.01" />
                                         </div>
                                         <div class="col-md-2 col-sm-12 form-group">
-    <label for="Part_Price">Umumiy narx</label>
-    <input type="number" name="Price" value="${item.TotalPrice}" class="form-control" step="0.01" />
-</div>
+                                            <label for="Part_Price">Umumiy narx</label>
+                                            <input type="number" name="Price" value="${item.TotalPrice}" class="form-control" step="0.01" />
+                                        </div>
                                         <div class="col-md-2 col-sm-12 form-group">
                                             <label for="Part_MOQ">MOQ</label>
                                             <input type="text" name="MOQ" value="${item.MOQ}" class="form-control" />
