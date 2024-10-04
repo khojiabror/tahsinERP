@@ -31,12 +31,14 @@ namespace tahsinERP.ViewModels
     public class PurchasingContractItem
     {
         public int ID { get; set; }
-        public int ContractID { get; set; }
         public int ItemID { get; set; }
+        public int UnitID { get; set; }
+        public int ContractID { get; set; }
+        public string ItemName { get; set; }
         public double Price { get; set; }
         public double Amount { get; set; }
         public double TotalPrice { get; set; }
         public double MOQ { get; set; }
-        public int UnitID { get; set; }
+        public string UnitName { get; set; }
     }
 }

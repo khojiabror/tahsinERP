@@ -88,13 +88,11 @@
                                                                 <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Detal raqami</th>
-                                                                            <th>Detal nomi</th>
+                                                                            <th>Item nomi</th>
                                                                             <th>Miqdori</th>
                                                                             <th>Birlik narxi</th>
                                                                             <th>Umumiy narxi</th>
                                                                             <th>MOQ</th>
-                                                                            <th>Faolligi</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -102,21 +100,12 @@
                                                                         {
                                                                             <tr>
                                                                                 <td>
-                                                                                    <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEM.ItemName</a>
+                                                                                    <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemName</a>
                                                                                 </td>
-                                                                                <td>@item.PART.PName</td>
                                                                                 <td>@item.Amount @item.UNIT.UnitName</td>
                                                                                 <td>@item.Price</td>
                                                                                 <td>@item.TotalPrice</td>
                                                                                 <td>@item.MOQ</td>
-                                                                                @if (item.ActivePart)
-                                                                                {
-                                                                                    <td><span class="badge badge-light-success">Faol</span></td>
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    <td><span class="badge badge-light-danger">Nofaol</span></td>
-                                                                                }
                                                                             </tr>
                                                                         }
                                                                     </tbody>

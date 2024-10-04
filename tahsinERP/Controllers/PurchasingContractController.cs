@@ -98,7 +98,7 @@ namespace tahsinERP.Controllers
                 ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
     
                 /*PURCHASING_CONTRACTS newPurchasingContract = new PURCHASING_CONTRACTS();
-                PURCHASING_CONTRACT_ITEMS contractItem = new PURCHASING_CONTRACT_ITEMS();*/
+                PURCHASING_CONTRACT_ITEMS orderItem = new PURCHASING_CONTRACT_ITEMS();*/
             }
             return View();
         }
@@ -139,40 +139,48 @@ namespace tahsinERP.Controllers
                             ModelState.AddModelError("", ex.Message);
                         }
 
-                        List<PURCHASING_CONTRACT_ITEMS> contractItems = db.PURCHASING_CONTRACT_ITEMS.Where(pcp => pcp.ContractID == model.OrderID).ToList();
-                        List<string> notInContractParts = new List<string>();
+                        List<PURCHASING_ORDER_ITEMS> orderItems = db.PURCHASING_ORDER_ITEMS.Where(pcp => pcp.OrderID == model.OrderID).ToList();
+                        List<string> notInOrderParts = new List<string>();
                         try
                         {
                             foreach (var part in model.Parts)
                             {
-                                var contractItem = contractItems.Where(p => p.ItemID == part.ItemID).FirstOrDefault();
-                                if (contractItems.Where(cp => cp.ItemID == part.ItemID).Any())
-                                {
+                                var orderItem = orderItems.Where(p => p.ItemID == part.ID).FirstOrDefault();
+
+                                var orderItemName = db.PURCHASING_ORDER_ITEMS
+                                    .Include(p => p.PURCHASING_ITEMS)
+                                    .Where(x => x.PURCHASING_ITEMS.ItemName.CompareTo(part.ItemName)==0)
+                                    .FirstOrDefault();
+                                var unt = db.UNITS.Where(x => x.UnitName.CompareTo(part.UnitName)==0).FirstOrDefault();
+                              /*  if (orderItems.Where(cp => cp.ItemID == part.ItemID).Any())
+                                {*/
                                     var newPart = new PURCHASING_CONTRACT_ITEMS
                                     {
                                         ContractID = newPurchasingContract.ID,
-                                        ItemID = part.ItemID,
-                                        UnitID = part.UnitID,
+                                        ItemID = orderItemName.ItemID,
+                                        UnitID = unt.ID,
                                         Amount = part.Amount
                                     };
-
-                                    newPart.MOQ = contractItem.MOQ;
-                                    newPart.Price = contractItem.Price;
+                                    if (part.MOQ == null)
+                                        newPart.MOQ = 0;
+                                    else
+                                        newPart.MOQ = part.MOQ;
+                                    newPart.Price = orderItem.Price;
 
                                     db.PURCHASING_CONTRACT_ITEMS.Add(newPart);
-                                    var logPart = db.PARTS.Find(newPart.ItemID);
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{logPart.PNo} - PurchasingItem ni yaratdi");
-                                }
+                                    var logPart = db.PURCHASING_ITEMS.Find(newPart.ItemID);
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{logPart.ItemName} - PurchasingItem ni yaratdi");
+                               /* }
                                 else
                                 {
                                     PURCHASING_ITEMS paart = db.PURCHASING_ITEMS.Where(p => p.ID == part.ItemID).FirstOrDefault();
-                                    notInContractParts.Add(paart.ItemName);
-                                }
+                                    notInOrderParts.Add(paart.ItemName);
+                                }*/
                             }
-                            if (notInContractParts.Count > 0)
+                            if (notInOrderParts.Count > 0)
                             {
                                 var message = "";
-                                foreach (var word in notInContractParts)
+                                foreach (var word in notInOrderParts)
                                 {
                                     message += word + " ,";
                                 }
@@ -255,10 +263,11 @@ namespace tahsinERP.Controllers
                                      .Where(o => o.OrderID == orderId)
                                      .Select(o => new
                                      {
-                                         o.ID,
+                                         o.PURCHASING_ITEMS.ID,
                                          o.ItemID,
                                          o.PURCHASING_ITEMS.ItemName,
                                          o.Amount,
+                                         o.PURCHASING_ITEMS.UnitID,
                                          o.PURCHASING_ITEMS.UNIT.ShortName,
                                          o.Price,
                                          o.TotalPrice
@@ -292,7 +301,7 @@ namespace tahsinERP.Controllers
                                   .Where(pc => pc.ContractID == purchasingContract.ID)
                                   .ToList();
 
-                ViewBag.PartList = partList;
+                ViewBag.partList = partList;
 
                 return View(purchasingContract);
             }
@@ -316,9 +325,9 @@ namespace tahsinERP.Controllers
                             db.Entry(purchasingContractToDelete).State = EntityState.Modified;
                             var purchasingContractItems = db.PURCHASING_CONTRACT_ITEMS.Where(pc => pc.ContractID == purchasingContractToDelete.ID).ToList();
 
-                            foreach (var contractItem in purchasingContractItems)
+                            foreach (var orderItem in purchasingContractItems)
                             {
-                                contractItem.IsDeleted = true;
+                                orderItem.IsDeleted = true;
                             }
                             db.SaveChanges();
                             return RedirectToAction("Index");
@@ -357,7 +366,7 @@ namespace tahsinERP.Controllers
                                   .Where(pc => pc.ContractID == purchasingContract.ID && pc.IsDeleted == false)
                                   .ToList();
 
-                ViewBag.PartList = partList;
+                ViewBag.partList = partList;
                 var Doc = db.PURCHASING_CONTRACT_DOCS.FirstOrDefault(pi => pi.ContractID == ID);
                 if (Doc != null)
                 {
@@ -473,11 +482,11 @@ namespace tahsinERP.Controllers
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contractItem = db.PURCHASING_CONTRACT_ITEMS
+                var orderItem = db.PURCHASING_CONTRACT_ITEMS
                                     .Include(p => p.PURCHASING_ITEMS)
                                     .Include(p => p.PURCHASING_CONTRACTS)
                                     .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
-                if (contractItem == null)
+                if (orderItem == null)
                 {
                     return HttpNotFound();
                 }
@@ -490,28 +499,28 @@ namespace tahsinERP.Controllers
                 ViewBag.PartList = new SelectList(allParts, "ID", "ItemCode");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
 
-                return View(contractItem);
+                return View(orderItem);
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult EditPart(PURCHASING_CONTRACT_ITEMS contractItem)
+        public ActionResult EditPart(PURCHASING_CONTRACT_ITEMS orderItem)
         {
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    PURCHASING_CONTRACT_ITEMS contractPartToUpdate = db.PURCHASING_CONTRACT_ITEMS.Find(contractItem.ID);
+                    PURCHASING_CONTRACT_ITEMS contractPartToUpdate = db.PURCHASING_CONTRACT_ITEMS.Find(orderItem.ID);
                     if (contractPartToUpdate != null)
                     {
-                        contractPartToUpdate.ItemID = contractItem.ItemID;
-                        contractPartToUpdate.Price = contractItem.Price;
-                        contractPartToUpdate.Amount = contractItem.Amount;
-                        contractPartToUpdate.UnitID = contractItem.UnitID;
-                        contractPartToUpdate.MOQ = contractItem.MOQ;
-                        contractPartToUpdate.ActivePart = contractItem.ActivePart;
-                        contractPartToUpdate.TotalPrice = contractItem.Amount * contractItem.Price;
+                        contractPartToUpdate.ItemID = orderItem.ItemID;
+                        contractPartToUpdate.Price = orderItem.Price;
+                        contractPartToUpdate.Amount = orderItem.Amount;
+                        contractPartToUpdate.UnitID = orderItem.UnitID;
+                        contractPartToUpdate.MOQ = orderItem.MOQ;
+                        contractPartToUpdate.ActivePart = orderItem.ActivePart;
+                        contractPartToUpdate.TotalPrice = orderItem.Amount * orderItem.Price;
                         try
                         {
                             db.SaveChanges();

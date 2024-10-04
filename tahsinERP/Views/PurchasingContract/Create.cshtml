@@ -157,7 +157,7 @@
                                                 <div data-repeater-item id="repeaterItem">
                                                     <div class="row justify-content-between">
                                                         <input type="hidden" name="ID" />
-                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                       @* <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_PartID">Predmetni tanlang</label>
                                                             @Html.DropDownList("ItemID", (SelectList)ViewBag.items, new { @class = "form-control select", @id = "select2" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
@@ -166,19 +166,33 @@
                                                             <label for="Part_Unit">Birligi</label>
                                                             @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
+                                                        </div>*@
+    
+                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_PartID">Predmetni tanlang</label>
+                                                            <input type="text" name="Part_PartID" class="form-control" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].ItemName, "", new { @class = "text-danger" })
+
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Quantity">Miqdori</label>
+                                                            <label for="Part_Unit">Birligi</label>
+                                                            <input type="text" name="Part_Unit" class="form-control" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].UnitName, "", new { @class = "text-danger" })
+
+                                                        </div>
+
+                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_Amount">Miqdori</label>
                                                             <input type="number" name="Amount" class="form-control" id="Part_Amount" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Price">Dona narx</label>
                                                             <input type="number" name="Price" step="0.01" class="form-control" id="Part_Price" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Price">Umumiy narx</label>
+                                                            <label for="Part_TotalPrice">Umumiy narx</label>
                                                             <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
@@ -245,25 +259,27 @@ else
             <div data-repeater-item id="repeaterItem">
                 <div class="row justify-content-between">
                     <input type="hidden" name="Parts[${index}].ID" value="${item.ID}" />
+                    <input type="hidden" name="Parts[${index}].ID" value="${item.ItemID}" />
                     <div class="col-md-2 col-sm-12 form-group">
                         <label for="Part_PartID">Predmetni tanlang</label>
-                        <input type="text" name="Parts[${index}].ItemID" value="${item.ItemName}" class="form-control" />
+                        <input type="text" name="Parts[${index}].ItemName" value="${item.ItemName}" class="form-control" />
                     </div>
+                    <input type="hidden" name="Parts[${index}].ID" value="${item.UnitID}" />
                     <div class="col-md-2 col-sm-12 form-group">
                         <label for="Part_Unit">Birligi</label>
-                        <input type="text" name="Parts[${index}].UnitID" value="${item.ShortName}" class="form-control" />
+                        <input type="text" name="Parts[${index}].UnitName" value="${item.ShortName}" class="form-control" />
                     </div>
                     <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_Quantity">Miqdori</label>
-                        <input type="number" name="Parts[${index}].Quantity" value="${item.Quantity}" class="form-control" />
+                        <label for="Part_Amount">Miqdori</label>
+                        <input type="number" name="Parts[${index}].Amount" value="${item.Amount}" class="form-control" />
                     </div>
                     <div class="col-md-2 col-sm-12 form-group">
                         <label for="Part_Price">Dona narxi</label>
                         <input type="number" name="Parts[${index}].Price" value="${item.Price}" class="form-control" step="0.01" />
                     </div>
                     <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_Price">Umumiy narxi</label>
-                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.Price}" class="form-control" step="0.01" />
+                        <label for="Part_TotalPrice">Umumiy narxi</label>
+                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" />
                     </div>
                     <div class="col-md-2 col-sm-12 form-group">
                         <label for="Part_MOQ">MOQ</label>
