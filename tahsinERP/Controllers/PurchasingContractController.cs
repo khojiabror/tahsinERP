@@ -194,15 +194,16 @@ namespace tahsinERP.Controllers
                         }
                         if (model.File != null)
                         {
-                            if (Request.Files["docUpload"].ContentLength > 0)
+                            if (model.File.ContentLength > 0)
                             {
-                                if (Request.Files["docUpload"].InputStream.Length < 5242880)
+                                if (model.File.InputStream.Length < 5242880)
                                 {
                                     if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
                                     {
                                         PURCHASING_CONTRACT_DOCS orderDoc = new PURCHASING_CONTRACT_DOCS();
-                                        byte[] avatar = new byte[Request.Files["docUpload"].InputStream.Length];
-                                        Request.Files["docUpload"].InputStream.Read(avatar, 0, avatar.Length);
+                                        byte[] avatar = new byte[model.File.InputStream.Length];
+                                        model.File.InputStream.Read(avatar, 0, avatar.Length);
+
                                         orderDoc.ContractID = newPurchasingContract.ID;
                                         orderDoc.Doc = avatar;
 
@@ -228,11 +229,9 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
-                        ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                        ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-                        //ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
-                        ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>());
+                        ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
 
                         return View(model);
                     }
