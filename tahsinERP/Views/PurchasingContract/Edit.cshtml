@@ -87,7 +87,7 @@
                                                         </div>
                                                         <div class="form-group position-relative has-icon-left">
                                                             <label>Tuzilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi" })
+                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round" })
                                                             @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -95,7 +95,7 @@
                                                         </div>
                                                         <div class="form-group position-relative has-icon-left">
                                                             <label>Tugaydigan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi" })
+                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round"})
                                                             @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -118,13 +118,12 @@
                                                                     <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th>Detal raqami</th>
-                                                                                <th>Detal nomi</th>
+                                                                                <th>Item raqami</th>
+                                                                                <th>Item nomi</th>
                                                                                 <th>Miqdori</th>
                                                                                 <th>Birlik narxi</th>
                                                                                 <th>Umumiy narxi</th>
                                                                                 <th>MOQ</th>
-                                                                                <th>Faolligi</th>
                                                                                 <th>Amallar</th>
                                                                             </tr>
                                                                         </thead>
@@ -133,21 +132,13 @@
                                                                             {
                                                                                 <tr>
                                                                                     <td>
-                                                                                        <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEM.ItemName</a>
+                                                                                        <a href="~/Part/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemCode</a>
                                                                                     </td>
-                                                                                    <td>@item.PART.PName</td>
+                                                                                    <td><a href="~/Part/Details/@item.ItemID"> @item.PURCHASING_ITEMS.ItemName</a></td>
                                                                                     <td>@item.Amount @item.UNIT.UnitName</td>
                                                                                     <td>@item.Price</td>
                                                                                     <td>@item.TotalPrice</td>
                                                                                     <td>@item.MOQ</td>
-                                                                                    @if (item.ActivePart)
-                                                                                    {
-                                                                                        <td><span class="badge badge-light-success">Faol</span></td>
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                        <td><span class="badge badge-light-danger">Nofaol</span></td>
-                                                                                    }
                                                                                     <td>
                                                                                         <div>
                                                                                             <a href="@Url.Action("EditPart", "PurchasingContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>

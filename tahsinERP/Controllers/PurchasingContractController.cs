@@ -151,7 +151,7 @@ namespace tahsinERP.Controllers
                                     .Include(p => p.PURCHASING_ITEMS)
                                     .Where(x => x.PURCHASING_ITEMS.ItemName.CompareTo(part.ItemName)==0)
                                     .FirstOrDefault();
-                                var unt = db.UNITS.Where(x => x.UnitName.CompareTo(part.UnitName)==0).FirstOrDefault();
+                                var unt = db.UNITS.Where(x => x.UnitName.CompareTo(part.UnitName)==0 || x.ShortName.CompareTo(part.UnitName)==0).FirstOrDefault();
                               /*  if (orderItems.Where(cp => cp.ItemID == part.ItemID).Any())
                                 {*/
                                     var newPart = new PURCHASING_CONTRACT_ITEMS
@@ -423,12 +423,15 @@ namespace tahsinERP.Controllers
                                   .Where(pc => pc.ContractID == purchasingContract.ID && pc.IsDeleted == false)
                                   .ToList();
 
-                ViewBag.PartList = partList;
+                ViewBag.partList = partList;
                 /*var Doc = db.PURCHASING_CONTRACT_DOCS.FirstOrDefault(pi => pi.ContractID == ID);
                 if (Doc != null)
                 {
                     ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(Doc.Doc);
                 }*/
+                ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
                 return View(purchasingContract);
             }
         }
@@ -496,7 +499,7 @@ namespace tahsinERP.Controllers
                                 .Where(p => p.IsDeleted == false)
                                 .ToList();
 
-                ViewBag.PartList = new SelectList(allParts, "ID", "ItemCode");
+                ViewBag.partList = new SelectList(allParts, "ID", "ItemCode");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
 
                 return View(orderItem);
