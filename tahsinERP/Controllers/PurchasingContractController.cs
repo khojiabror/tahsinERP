@@ -225,7 +225,7 @@ namespace tahsinERP.Controllers
                                         db.PURCHASING_CONTRACT_DOCS.Add(orderDoc);
                                         db.SaveChanges();
 
-                                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{newPurchasingContract.ContractNo} - uchun PurchasingContractDocni yaratdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{newPurchasingContract.ContractNo} - uchun buyurtma faylni yaratdi");
                                     }
                                     else
                                     {
