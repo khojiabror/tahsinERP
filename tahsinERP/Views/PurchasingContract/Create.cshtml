@@ -85,7 +85,7 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Buyurtmani tanlang</h6>
-                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, "bir ba'loni tanlang", new { @class = "form-control select2", @id = "order-dropdown" })
+                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, "Buyurtmani tanlang", new { @class = "form-control select2", @id = "order-dropdown" })
                                                             @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
@@ -157,7 +157,7 @@
                                                 <div data-repeater-item id="repeaterItem">
                                                     <div class="row justify-content-between">
                                                         <input type="hidden" name="ID" />
-                                                       @* <div class="col-md-2 col-sm-12 form-group">
+                                                        <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_PartID">Predmetni tanlang</label>
                                                             @Html.DropDownList("ItemID", (SelectList)ViewBag.items, new { @class = "form-control select", @id = "select2" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
@@ -166,9 +166,9 @@
                                                             <label for="Part_Unit">Birligi</label>
                                                             @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
-                                                        </div>*@
+                                                        </div>
     
-                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                        @*<div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_PartID">Predmetni tanlang</label>
                                                             <input type="text" name="Part_PartID" class="form-control" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemName, "", new { @class = "text-danger" })
@@ -178,8 +178,7 @@
                                                             <label for="Part_Unit">Birligi</label>
                                                             <input type="text" name="Part_Unit" class="form-control" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitName, "", new { @class = "text-danger" })
-
-                                                        </div>
+                                                        </div>*@
 
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Amount">Miqdori</label>
@@ -199,7 +198,7 @@
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_MOQ">MOQ</label>
                                                             <input type="number" name="MOQ" class="form-control" id="Part_MOQ" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger" })
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger", @required = "required" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O`chirish</button>

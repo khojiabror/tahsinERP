@@ -38,7 +38,7 @@ namespace tahsinERP.ViewModels
         public double Price { get; set; }
         public double Amount { get; set; }
         public double TotalPrice { get; set; }
-        public double MOQ { get; set; }
+        public double MOQ { get; set; } = 0;
         public string UnitName { get; set; }
     }
 }

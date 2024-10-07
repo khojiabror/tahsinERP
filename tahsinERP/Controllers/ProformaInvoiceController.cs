@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(P_PROFORMA_INVOICES model)
+        public async Task<ActionResult> Create(ProformaInvoiceViewModel model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -63,8 +64,41 @@ namespace tahsinERP.Controllers
 
                     db.P_PROFORMA_INVOICES.Add(invoice);
                     await db.SaveChangesAsync();
-
                     LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{model.ID} ID ga ega PProformaInvoiceni yaratdi");
+                    
+                    // proformanvoice fayl upload, hozircha models ichida yoq shunga comment ga olib qo'yildi
+                   /* if (model.File != null)
+                    {
+                        if (model.File.ContentLength > 0)
+                        {
+                            if (model.File.InputStream.Length < 5242880)
+                            {
+                                if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
+                                {
+                                    P_PROFORMA_INVOICE_DOCS proformaDoc = new P_PROFORMA_INVOICE_DOCS();
+                                    byte[] avatar = new byte[model.File.InputStream.Length];
+                                    model.File.InputStream.Read(avatar, 0, avatar.Length);
+
+                                    proformaDoc.ProformaID = invoice.ID;
+                                    proformaDoc.Doc = avatar;
+
+                                    db.P_PROFORMA_INVOICE_DOCS.Add(proformaDoc);
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{invoice.PrInvoiceNo} - uchun ProformaInvoiceDocni yaratdi");
+                                }
+                                else
+                                {
+                                    ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
+                                }
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 2MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                                throw new RetryLimitExceededException();
+                            }
+                        }
+                    }*/
 
                     return RedirectToAction("Index");
                 }

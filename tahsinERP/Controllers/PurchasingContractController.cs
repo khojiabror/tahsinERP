@@ -147,17 +147,22 @@ namespace tahsinERP.Controllers
                             {
                                 var orderItem = orderItems.Where(p => p.ItemID == part.ID).FirstOrDefault();
 
-                                var orderItemName = db.PURCHASING_ORDER_ITEMS
+                                var existOrderItem = db.PURCHASING_ORDER_ITEMS
                                     .Include(p => p.PURCHASING_ITEMS)
                                     .Where(x => x.PURCHASING_ITEMS.ItemName.CompareTo(part.ItemName)==0)
                                     .FirstOrDefault();
+
                                 var unt = db.UNITS.Where(x => x.UnitName.CompareTo(part.UnitName)==0 || x.ShortName.CompareTo(part.UnitName)==0).FirstOrDefault();
+                                if (true)
+                                {
+
+                                }
                               /*  if (orderItems.Where(cp => cp.ItemID == part.ItemID).Any())
                                 {*/
                                     var newPart = new PURCHASING_CONTRACT_ITEMS
                                     {
                                         ContractID = newPurchasingContract.ID,
-                                        ItemID = orderItemName.ItemID,
+                                        ItemID = existOrderItem.ItemID,
                                         UnitID = unt.ID,
                                         Amount = part.Amount,
                                         ActivePart = true,
