@@ -394,6 +394,7 @@ namespace tahsinERP.Controllers
                         purchasingOrdetItemToUpdate.Price = purchasingOrderItem.Price;
                         purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Amount;
                         purchasingOrdetItemToUpdate.TotalPrice = purchasingOrderItem.TotalPrice;
+                        purchasingOrdetItemToUpdate.Currency = purchasingOrderItem.Currency;
 
                         //purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Quantity * purchasingOrderItem.Price; SQL o'zi chiqarib beradi
 

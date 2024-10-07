@@ -44,67 +44,69 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body pb-0 mx-25">
-                                        <div class="row">
-                                            <div class="col-lg-12 col-md-6 mt-25">
-                                                <div class="col-lg-6 col-sm-12">
-                                                    <div class="row">
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Shartnoma raqami</h6>
-                                                            @Html.TextBoxFor(model => model.ContractNo, new { @type = "text", @class = "form-control", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Buyurtmani tanlang</h6>
-                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, new { @class = "form-control select2" })
-                                                            @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Ta'minotchi</h6>
-                                                            @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Supplier, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Valyuta</h6>
-                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
-                                                        </div>
+                                        <div class="row justify-content-around d-flex align-items-start">
 
+
+                                            <div class="col-lg-6 col-sm-12">
+                                                <div class="row">
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Shartnoma raqami</h6>
+                                                        @Html.TextBoxFor(model => model.ContractNo, new { @type = "text", @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
                                                     </div>
-                                                </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Buyurtmani tanlang</h6>@*
+                                                        @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, new { @class = "form-control select2", @disabled = "disabled" })*@
+                                                        @Html.TextBoxFor(model => model.PURCHASING_ORDERS.OrderCode, new { @type = "text", @class = "form-control", @disabled = "disabled" })
+                                                        @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Ta'minotchi</h6>
+                                                        @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.Supplier, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Valyuta</h6>
+                                                        @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                    </div>
 
-                                                @*Right Part*@
-                                                <div class="col-lg-6 col-sm-12">
-                                                    <div class="row">
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Incoterms</h6>
-                                                            @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            @*Right Part*@
+                                            <div class="col-lg-6 col-sm-12">
+                                                <div class="row">
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Incoterms</h6>
+                                                        @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">To'lov sharti</h6>
+                                                        @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="form-group position-relative has-icon-left">
+                                                        <label>Tuzilgan sanasi</label>
+                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round" })
+                                                        @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
+                                                        <div class="form-control-position mt-2">
+                                                            <i class='bx bx-calendar'></i>
                                                         </div>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">To'lov sharti</h6>
-                                                            @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="form-group position-relative has-icon-left">
-                                                            <label>Tuzilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round" })
-                                                            @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
-                                                            <div class="form-control-position mt-2">
-                                                                <i class='bx bx-calendar'></i>
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group position-relative has-icon-left">
-                                                            <label>Tugaydigan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round"})
-                                                            @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
-                                                            <div class="form-control-position mt-2">
-                                                                <i class='bx bx-calendar'></i>
-                                                            </div>
+                                                    </div>
+                                                    <div class="form-group position-relative has-icon-left">
+                                                        <label>Tugaydigan sanasi</label>
+                                                        @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round" })
+                                                        @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
+                                                        <div class="form-control-position mt-2">
+                                                            <i class='bx bx-calendar'></i>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                         <section id="column-selectors">
                                             <div class="row">
                                                 <div class="col-12">
@@ -174,7 +176,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     }
 }
 else

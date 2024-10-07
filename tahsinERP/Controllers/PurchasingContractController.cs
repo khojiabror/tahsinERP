@@ -159,7 +159,9 @@ namespace tahsinERP.Controllers
                                         ContractID = newPurchasingContract.ID,
                                         ItemID = orderItemName.ItemID,
                                         UnitID = unt.ID,
-                                        Amount = part.Amount
+                                        Amount = part.Amount,
+                                        ActivePart = true,
+                                        IsDeleted = false
                                     };
                                     if (part.MOQ == null)
                                         newPart.MOQ = 0;
@@ -298,7 +300,7 @@ namespace tahsinERP.Controllers
                 var partList = db.PURCHASING_CONTRACT_ITEMS
                                   .Include(pc => pc.PURCHASING_ITEMS)
                                   .Include(pc => pc.UNIT)
-                                  .Where(pc => pc.ContractID == purchasingContract.ID)
+                                  .Where(pc => pc.ContractID == purchasingContract.ID && pc.IsDeleted == false)
                                   .ToList();
 
                 ViewBag.partList = partList;
@@ -341,6 +343,38 @@ namespace tahsinERP.Controllers
                 }
             }
             return View();
+        }
+        public ActionResult DeletePart(int? id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                PURCHASING_CONTRACT_ITEMS contractPartToDelete = db.PURCHASING_CONTRACT_ITEMS.Find(id);
+                if (ModelState.IsValid)
+                {
+                    if (contractPartToDelete != null)
+                    {
+                        try
+                        {
+                            //db.PURCHASING_CONTRACT_ITEMS.Remove(contractPartToDelete);
+                            contractPartToDelete.IsDeleted = true;
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPartToDelete.ItemID} - li PurchasingContractItemni o'chirdi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "PurchasingContractitem not found.");
+                    }
+                }
+                return View(contractPartToDelete);
+            }
         }
         public ActionResult Details(int? ID)
         {
@@ -542,38 +576,6 @@ namespace tahsinERP.Controllers
                 }
             }
             return View();
-        }
-        public ActionResult DeletePart(int? id)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PURCHASING_CONTRACT_ITEMS contractPartToDelete = db.PURCHASING_CONTRACT_ITEMS.Find(id);
-                if (ModelState.IsValid)
-                {
-                    if (contractPartToDelete != null)
-                    {
-                        try
-                        {
-                            //db.PURCHASING_CONTRACT_ITEMS.Remove(contractPartToDelete);
-                            contractPartToDelete.IsDeleted = true;
-                            db.SaveChanges();
-
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPartToDelete.ItemID} - li PurchasingContractItemni o'chirdi");
-
-                            return RedirectToAction("Index");
-                        }
-                        catch (RetryLimitExceededException)
-                        {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "PurchasingContractitem not found.");
-                    }
-                }
-                return View(contractPartToDelete);
-            }
         }
     }
 }
