@@ -62,12 +62,12 @@
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group">
                                                         <h6 class="invoice-to">Ta'minotchi</h6>
-                                                        @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control" })
+                                                        @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Supplier, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group">
                                                         <h6 class="invoice-to">Valyuta</h6>
-                                                        @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control" })
+                                                        @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
                                                     </div>
 
@@ -79,17 +79,17 @@
                                                 <div class="row">
                                                     <div class="col-md-6 col-12 form-group">
                                                         <h6 class="invoice-to">Incoterms</h6>
-                                                        @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control" })
+                                                        @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group">
                                                         <h6 class="invoice-to">To'lov sharti</h6>
-                                                        @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control" })
+                                                        @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="form-group position-relative has-icon-left">
                                                         <label>Tuzilgan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round" })
+                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>
@@ -97,7 +97,7 @@
                                                     </div>
                                                     <div class="form-group position-relative has-icon-left">
                                                         <label>Tugaydigan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round" })
+                                                        @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>

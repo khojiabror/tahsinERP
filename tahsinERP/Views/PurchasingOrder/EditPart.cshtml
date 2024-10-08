@@ -56,19 +56,19 @@
 
                                                     <h6 class="invoice-to">item nomi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ItemID, ViewBag.partList as SelectList, new { @class = "form-control select2" })
+                                                        @Html.DropDownListFor(model => model.ItemID, ViewBag.partList as SelectList, new { @class = "form-control select2", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ItemID, "", new { @class = "text-danger" })
                                                     </fieldset>
 
                                                     <h6 class="invoice-to">Narxi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Price, new { @class = "form-control round", @placeholder = "Narxi" })
+                                                        @Html.TextBoxFor(model => model.Price, new { @class = "form-control round", @placeholder = "Narxi", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Price, "", new { @class = "text-danger" })
                                                     </fieldset>
 
                                                     <h6 class="invoice-to">Miqdori</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control round", @placeholder = "Miqdori" })
+                                                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control round", @placeholder = "Miqdori", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
                                                     </fieldset>
 
@@ -79,7 +79,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round" })
+                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
                                                     </fieldset>
 

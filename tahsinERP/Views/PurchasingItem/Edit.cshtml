@@ -51,17 +51,17 @@
                                                 <hr>
                                                 <h6 class="invoice-to">Item Kodi</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.ItemCode, new { @class = "form-control round"})
+                                                    @Html.TextBoxFor(model => model.ItemCode, new { @class = "form-control round", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.ItemCode, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <h6 class="invoice-to">Item nomi</h6>
                                                 <fieldset class="form-group">
-                                                    @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round" })
+                                                    @Html.TextBoxFor(model => model.ItemName, new { @class = "form-control round", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.ItemName, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <h6 class="invoice-to">Birligini tanlang</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.UnitID, ViewBag.units as SelectList, "birligini tanlang: ", new { @class = "form-control select2" })
+                                                    @Html.DropDownListFor(model => model.UnitID, ViewBag.units as SelectList, "birligini tanlang: ", new { @class = "form-control select2", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
                                                 </fieldset>
 
