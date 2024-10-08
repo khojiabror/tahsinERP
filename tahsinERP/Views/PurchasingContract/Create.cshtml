@@ -4,29 +4,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    /* Hide the default file input */
-    .custom-file-input {
-        display: none;
-    }
-
-    /* Style the custom button */
-    .custom-file-button {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-align: center;
-    }
-
-        /* Optional: Change button color on hover */
-        .custom-file-button:hover {
-            background-color: #0056b3;
-        }
-
     #file-upload-div {
         transition: background-color 1s ease;
     }
@@ -140,10 +117,9 @@
                                                 <hr />
                                                 <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
                                                 <div class="custom-file">
-                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control-file", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
-                                                    <span id="file-name" class="file-name-placeholder">Fayl tanlanmagan</span>
+                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                    @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 </div>
-                                                @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 <div class="progress mt-3 d-none" id="upload-progress">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
                                                 </div>
