@@ -13,7 +13,14 @@ namespace tahsinERP.Controllers
 {
     public class GTDController : Controller
     {
-        
+        public ActionResult Create()
+        {
+            using ( DBTHSNEntities db = new DBTHSNEntities())
+            {
+                
+            }
+            return View();
+        }
     
     }
 }
