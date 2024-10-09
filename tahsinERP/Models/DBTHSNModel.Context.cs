@@ -44,6 +44,8 @@ namespace tahsinERP.Models
         public virtual DbSet<F_WAYBILL_DOCS> F_WAYBILL_DOCS { get; set; }
         public virtual DbSet<F_WAYBILLS> F_WAYBILLS { get; set; }
         public virtual DbSet<FORWARDER> FORWARDERS { get; set; }
+        public virtual DbSet<GTD_DOCS> GTD_DOCS { get; set; }
+        public virtual DbSet<GTD> GTDS { get; set; }
         public virtual DbSet<HSCODE> HSCODES { get; set; }
         public virtual DbSet<P_CONTRACT_DOCS> P_CONTRACT_DOCS { get; set; }
         public virtual DbSet<P_CONTRACT_PARTS> P_CONTRACT_PARTS { get; set; }
@@ -56,6 +58,7 @@ namespace tahsinERP.Models
         public virtual DbSet<P_ORDER_PARTS> P_ORDER_PARTS { get; set; }
         public virtual DbSet<P_ORDERS> P_ORDERS { get; set; }
         public virtual DbSet<P_PACKINGLIST_PARTS> P_PACKINGLIST_PARTS { get; set; }
+        public virtual DbSet<P_PROFORMA_INVOICE_DOCS> P_PROFORMA_INVOICE_DOCS { get; set; }
         public virtual DbSet<P_PROFORMA_INVOICES> P_PROFORMA_INVOICES { get; set; }
         public virtual DbSet<PART_PRODUCTION> PART_PRODUCTION { get; set; }
         public virtual DbSet<PART_STOCKS> PART_STOCKS { get; set; }
@@ -112,7 +115,6 @@ namespace tahsinERP.Models
         public virtual DbSet<STAMPING_NORMS> STAMPING_NORMS { get; set; }
         public virtual DbSet<STEEL_COILS> STEEL_COILS { get; set; }
         public virtual DbSet<SUPPLIER> SUPPLIERS { get; set; }
-        public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
         public virtual DbSet<TEMPORARY_BOMS> TEMPORARY_BOMS { get; set; }
         public virtual DbSet<TRACING> TRACINGS { get; set; }
         public virtual DbSet<UNIT> UNITS { get; set; }
