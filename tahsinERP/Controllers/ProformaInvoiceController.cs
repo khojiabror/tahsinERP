@@ -121,6 +121,7 @@ namespace tahsinERP.Controllers
             {
                 var  invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
+                    .Include(x => x.SUPPLIER)
                     .Where(x => x.ID == id)
                     .FirstOrDefaultAsync();
 
@@ -139,6 +140,7 @@ namespace tahsinERP.Controllers
             {
                 var invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
+                    .Include(x => x.SUPPLIER)
                     .Where(x => x.ID == id)
                     .FirstOrDefaultAsync();
 
@@ -181,6 +183,18 @@ namespace tahsinERP.Controllers
             }
             return View();
         }
+        public ActionResult GetInvoicesBySupplier(int supplierID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var invoices = db.P_INVOICES
+                    .Where(x => x.IsDeleted == false && x.SupplierID == supplierID)
+                    .Select(x => new { x.ID, x.InvoiceNo })
+                    .ToList();
+
+                return Json(invoices.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.InvoiceNo }), JsonRequestBehavior.AllowGet);
+            }
+        }
         public async Task<ActionResult> Edit(int? ID)
         {
             if (ID == null)
@@ -190,11 +204,12 @@ namespace tahsinERP.Controllers
             {
                 var invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
-                    .Where(x => x.ID == ID)
+                    .Where(x => x.ID == ID && x.IsDeleted == false)
                     .FirstOrDefaultAsync();
 
                 if (invoice == null)
-                    return HttpNotFound();
+                    return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+                    //return HttpNotFound();
 
                 ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name", invoice.SupplierID);
                 //ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo", invoice.InvoiceID);
@@ -219,7 +234,6 @@ namespace tahsinERP.Controllers
                         invoiceToUpdate.InvoiceDate = invoice.InvoiceDate;
                         invoiceToUpdate.Currency = invoice.Currency;
                         invoiceToUpdate.Amount = invoice.Amount;
-                        invoiceToUpdate.IsDeleted = false;
 
                         db.Entry(invoiceToUpdate).State = EntityState.Modified;
 

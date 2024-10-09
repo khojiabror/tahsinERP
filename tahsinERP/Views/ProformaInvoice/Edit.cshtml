@@ -53,11 +53,12 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Ta'minotchi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.Supplier as SelectList, new { @class = "form-control round select2", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.Supplier as SelectList, new { @class = "form-control round select2", @required = "required", @id = "SupplierID", @onchange = "refreshdatatablesupplier()" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Invoys</h6>
                                                     <fieldset class="form-group">
                                                         @Html.DropDownListFor(model => model.InvoiceID, ViewBag.PInvoices as SelectList, new { @class = "form-control round select2", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Miqdori</h6>
                                                     <fieldset class="invoice-address form-group">
@@ -103,3 +104,41 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize select2 if needed
+        $("#SupplierID, #InvoiceID").select2(); // Select2 kutubxonasini yuklaymiz
+
+        // Supplier dropdown o'zgarganida event qo'shamiz
+        $("#SupplierID").on("change", function() {
+            refreshdatatablesupplier();
+        });
+    });
+
+    // Supplier o'zgarganda contractlar dropdownni yangilaymiz
+    function refreshdatatablesupplier() {
+        const supplierID = $("#SupplierID").val(); // SupplierIDni olamiz
+        $.ajax({
+            url: '@Url.Action("GetInvoicesBySupplier", "ProformaInvoice")', // AJAX URL to'g'ri
+            type: 'GET',
+            data: { supplierID: supplierID }, // SupplierID ni yuboramiz
+            success: function (data) {
+                var invoiceDropdown = $("#InvoiceID");
+                invoiceDropdown.empty(); // Contractlarni tozalaymiz
+
+                $.each(data, function (index, item) {
+                    invoiceDropdown.append(new Option(item.Text, item.Value)); // Yangi variantlarni qo'shamiz
+                });
+
+                // Agar ma'lumot bo'lsa birinchi contractni tanlaymiz
+                if (data.length > 0) {
+                    invoiceDropdown.val(data[0].Value).trigger('change');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching invoices:", error); // Xatolikni konsolda ko'rsatamiz
+            }
+        });
+    }
+</script>

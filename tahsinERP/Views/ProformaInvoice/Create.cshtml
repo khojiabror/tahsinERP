@@ -1,9 +1,18 @@
 ﻿
-@model tahsinERP.Models.P_PROFORMA_INVOICES
+@model tahsinERP.ViewModels.ProformaInvoiceViewModel
 @{
     ViewBag.Title = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    #file-upload-div {
+        transition: background-color 1s ease;
+    }
+
+    .file-upload-success {
+        background-color: lightgreen; /* or lightblue */
+    }
+</style>
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     using (Html.BeginForm("Create", "ProformaInvoice", FormMethod.Post, new { enctype = "multipart/form-data" }))
@@ -63,7 +72,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Invoys</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.PInvoices as SelectList, new { @class = "form-control round select2 InvoiceID", id= "InvoiceID", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.PInvoices as SelectList, new { @class = "form-control round select2 InvoiceID", id = "InvoiceID", @required = "required" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Miqdori</h6>
                                                     <fieldset class="invoice-address form-group">
@@ -82,6 +91,18 @@
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>
                                                         </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group" id="file-upload-div">
+                                                        <hr />
+                                                        <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
+                                                        <div class="custom-file">
+                                                            @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                            @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="progress mt-3 d-none" id="upload-progress">
+                                                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
+                                                        </div>
+                                                        <hr />
                                                     </div>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
@@ -148,3 +169,11 @@ else
     }
 </script>
 
+<script>
+    document.getElementById('file-upload').addEventListener('change', function () {
+        if (this.files && this.files.length > 0) {
+            document.getElementById('file-upload-div').classList.add('file-upload-success');
+        }
+    });
+
+</script>
