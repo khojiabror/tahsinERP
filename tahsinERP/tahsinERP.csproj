@@ -877,6 +877,7 @@
     <Compile Include="ViewModels\BOM\StampingNormViewModel.cs" />
     <Compile Include="ViewModels\CreateAvtoViewModel.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
+    <Compile Include="ViewModels\GTDViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
@@ -2936,6 +2937,10 @@
     <Content Include="Views\PurchasingOrder\EditPart.cshtml" />
     <Content Include="Views\PurchasingItem\UploadWithExcel.cshtml" />
     <Content Include="Views\PurchasingContract\EditPart.cshtml" />
+    <Content Include="Views\GTD\Create.cshtml" />
+    <Content Include="Views\GTD\Delete.cshtml" />
+    <Content Include="Views\GTD\Details.cshtml" />
+    <Content Include="Views\GTD\Edit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
