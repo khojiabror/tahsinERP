@@ -1,0 +1,165 @@
+﻿
+@model tahsinERP.ViewModels.GTDViewModel
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    #file-upload-div {
+        transition: background-color 1s ease;
+    }
+
+    .file-upload-success {
+        background-color: lightgreen; /* or lightblue */
+    }
+</style>
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Create", "GTD", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/GTD/Index">GTD invoyslar</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Yangi proforma invoys qo'shish
+                                        </li>
+                                    </ol>
+                                    <div class="invoice-create-btn mb-1">
+                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/GTD/UploadWithExcel'">
+                                            <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali ta'minotchilarni qo'shish</span>
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <!-- app invoice View Page -->
+                    <section class="basic-select2">
+                        <div class="row">
+                            <!-- invoice view page -->
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                    <hr>
+                                                    <h6 class="invoice-to">GTD  raqami</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.GTDNo, new { @class = "form-control round", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.GTDNo, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Invoys</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.ListBoxFor(model => model.InvoiceID, ViewBag.PInvoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID",multiple = "multiple", id = "InvoiceID", @required = "required" })
+                                                    </fieldset>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.ListBox("RoleID", ViewBag.Roles as MultiSelectList, new { @class = "select2 form-control", multiple = "multiple" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Summa</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.Sum, new { @class = "form-control round", id = "InvoiceID", @required = "required", @type = "number" })
+                                                        @Html.ValidationMessageFor(model => model.Sum, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <div class="col-md-6 col-12 form-group" id="file-upload-div">
+                                                        <hr />
+                                                        <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
+                                                        <div class="custom-file">
+                                                            @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                            @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="progress mt-3 d-none" id="upload-progress">
+                                                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
+                                                        </div>
+                                                        <hr />
+                                                    </div>
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item border-0 pb-0">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
+                                                                <i class='bx bx-save'></i>
+                                                                Saqlash
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize select2 if needed
+        $("#SupplierID, #InvoiceID").select2(); // Select2 kutubxonasini yuklaymiz
+
+        // Supplier dropdown o'zgarganida event qo'shamiz
+        $("#SupplierID").on("change", function() {
+            refreshdatatablesupplier();
+        });
+    });
+
+    // Supplier o'zgarganda contractlar dropdownni yangilaymiz
+    function refreshdatatablesupplier() {
+        const supplierID = $("#SupplierID").val(); // SupplierIDni olamiz
+        $.ajax({
+            url: '@Url.Action("GetInvoicesBySupplier", "GTD")', // AJAX URL to'g'ri
+            type: 'GET',
+            data: { supplierID: supplierID }, // SupplierID ni yuboramiz
+            success: function (data) {
+                var invoiceDropdown = $("#InvoiceID");
+                invoiceDropdown.empty(); // Contractlarni tozalaymiz
+
+                $.each(data, function (index, item) {
+                    invoiceDropdown.append(new Option(item.Text, item.Value)); // Yangi variantlarni qo'shamiz
+                });
+
+                // Agar ma'lumot bo'lsa birinchi contractni tanlaymiz
+                if (data.length > 0) {
+                    invoiceDropdown.val(data[0].Value).trigger('change');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching invoices:", error); // Xatolikni konsolda ko'rsatamiz
+            }
+        });
+    }
+</script>
+
+<script>
+    document.getElementById('file-upload').addEventListener('change', function () {
+        if (this.files && this.files.length > 0) {
+            document.getElementById('file-upload-div').classList.add('file-upload-success');
+        }
+    });
+
+</script>
