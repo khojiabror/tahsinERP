@@ -713,8 +713,6 @@ namespace tahsinERP.Controllers
                 return View(contract);
             }
         }
-
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int? ID, FormCollection gfs)
@@ -725,7 +723,6 @@ namespace tahsinERP.Controllers
                 {
                     P_CONTRACTS contractToDelete = db.P_CONTRACTS.Find(ID);
                     if (contractToDelete != null)
-                    {
                         try
                         {
                             contractToDelete.IsDeleted = true;
@@ -740,20 +737,15 @@ namespace tahsinERP.Controllers
                                 db.P_CONTRACT_PARTS.Remove(contractPart);
                                 //LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPart.PART.PNo} - PContractPartni o'chirdi");
                             }
-
                             db.SaveChanges();
-
                             return RedirectToAction("Index");
                         }
                         catch (RetryLimitExceededException)
                         {
                             ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
                         }
-                    }
                     else
-                    {
                         ModelState.AddModelError("", "Bunday shartnoma topilmadi.");
-                    }
                 }
             }
             return View();

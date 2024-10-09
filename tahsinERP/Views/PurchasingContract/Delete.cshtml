@@ -80,33 +80,24 @@
                                                                             <th>O'lchov birligi</th>
                                                                             <th>Miqdori</th>
                                                                             <th>MOQ</th>
-                                                                            <th>Faolligi</th>
                                                                             <th>amallar</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        @foreach (var item in Model.PURCHASING_CONTRACT_ITEMS)
+                                                                        @foreach (var item in ViewBag.partList)
                                                                         {
                                                                             <tr>
                                                                                 <td>
                                                                                     <a href="~/Part/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemCode</a>
                                                                                 </td>
-                                                                                <td>@item.PURCHASING_ITEMS.ItemName</td>
+                                                                                <td><a href="~/Part/Details/@item.ItemID"> @item.PURCHASING_ITEMS.ItemName</a></td>
                                                                                 <td>@item.Price</td>
                                                                                 <td>@item.UNIT.UnitName</td>
                                                                                 <td>@item.Amount</td>
                                                                                 <td>@item.MOQ</td>
-                                                                                @if (item.ActivePart is null)
-                                                                                {
-                                                                                    <td><span class="badge badge-light-success">Faol</span></td>
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    <td><span class="badge badge-light-danger">Nofaol</span></td>
-                                                                                }
                                                                                 <td>
                                                                                     <!-- Delete button -->
-                                                                                    <a href="~/PContract/DeletePart/@item.ID" onclick="return confirm('Ushbu shartnomani ochirib yuborishga ishonchingiz komilmi?')">
+                                                                                    <a href="~/PurchasingContract/DeletePart/@item.ID" onclick="return confirm('Ushbu shartnomani ochirib yuborishga ishonchingiz komilmi?')">
                                                                                         <i class="bx bx-trash"></i>
                                                                                     </a>
                                                                                 </td>
@@ -123,7 +114,7 @@
                                     </section>
                                     <ul class="list-group list-group-flush">
                                         <li class="list-group-item border-0 pb-0">
-                                            @using (Html.BeginForm("Delete", "PContract", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                            @using (Html.BeginForm("Delete", "PurchasingContract", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
                                                 <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu shartnomani ochirib yuborishga ishonchingiz komilmi?')">

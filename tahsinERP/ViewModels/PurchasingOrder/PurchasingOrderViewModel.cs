@@ -15,6 +15,8 @@ namespace tahsinERP.ViewModels.PurchasingOrder
         public int CreatedByUserID { get; set; }
         public System.DateTime ApprovedDTEDO { get; set; }
         public string Comment { get; set; }
+        public string OrderByUser { get; set; }
+        public string OrderByDept { get; set; }
         public string Status { get; set; }
         public int BuyerUserID { get; set; }
         [DataType(DataType.Upload)]

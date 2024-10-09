@@ -59,7 +59,9 @@ namespace tahsinERP.Controllers
                             CreatedByUserID = GetUserID(User.Identity.Name),
                             BuyerUserID = model.BuyerUserID,
                             CreatedDT = model.CreatedDT,
-                            ApprovedDTEDO = model.ApprovedDTEDO
+                            ApprovedDTEDO = model.ApprovedDTEDO,
+                            OrderedByUser = model.OrderByUser,
+                            OrderedByDept = model.OrderByDept
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
@@ -74,7 +76,6 @@ namespace tahsinERP.Controllers
                                 ItemID = part.ItemID,
                                 Price = part.Price,
                                 Amount = part.Amount,
-                                TotalPrice = part.Price * part.Amount,
                                 Currency = part.Currency
                             };
 
@@ -393,6 +394,7 @@ namespace tahsinERP.Controllers
                         purchasingOrdetItemToUpdate.Price = purchasingOrderItem.Price;
                         purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Amount;
                         purchasingOrdetItemToUpdate.TotalPrice = purchasingOrderItem.TotalPrice;
+                        purchasingOrdetItemToUpdate.Currency = purchasingOrderItem.Currency;
 
                         //purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Quantity * purchasingOrderItem.Price; SQL o'zi chiqarib beradi
 

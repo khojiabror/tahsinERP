@@ -86,7 +86,7 @@
                                                     <th></th>
                                                     <th>Buyurtma raqami</th>
                                                     <th>Buyurtma raqami(EDO)</th>
-                                                    <th>Izoh</th>
+                                                    <th>Заявитель</th>
                                                     <th>Status</th>
                                                     @if (changePermit)
                                                     {
@@ -104,7 +104,7 @@
                                                             <a href="~/PurchasingOrder/Details/@item.ID">@item.OrderCode</a>
                                                         </td>
                                                         <td>@item.OrderCodeEDO</td>
-                                                        <td>@item.Comment</td>
+                                                        <td>@item.OrderedByDept</td>
                                                         @if (@item.Status == "Jarayonda")
                                                         {
                                                             <td  style="background-color: yellow; color: black;">

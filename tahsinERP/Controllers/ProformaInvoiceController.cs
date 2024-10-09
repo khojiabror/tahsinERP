@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(P_PROFORMA_INVOICES model)
+        public async Task<ActionResult> Create(ProformaInvoiceViewModel model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -63,8 +64,41 @@ namespace tahsinERP.Controllers
 
                     db.P_PROFORMA_INVOICES.Add(invoice);
                     await db.SaveChangesAsync();
-
                     LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{model.ID} ID ga ega PProformaInvoiceni yaratdi");
+                    
+                    // proformanvoice fayl upload, hozircha models ichida yoq shunga comment ga olib qo'yildi
+                   /* if (model.File != null)
+                    {
+                        if (model.File.ContentLength > 0)
+                        {
+                            if (model.File.InputStream.Length < 5242880)
+                            {
+                                if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
+                                {
+                                    P_PROFORMA_INVOICE_DOCS proformaDoc = new P_PROFORMA_INVOICE_DOCS();
+                                    byte[] avatar = new byte[model.File.InputStream.Length];
+                                    model.File.InputStream.Read(avatar, 0, avatar.Length);
+
+                                    proformaDoc.ProformaID = invoice.ID;
+                                    proformaDoc.Doc = avatar;
+
+                                    db.P_PROFORMA_INVOICE_DOCS.Add(proformaDoc);
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{invoice.PrInvoiceNo} - uchun ProformaInvoiceDocni yaratdi");
+                                }
+                                else
+                                {
+                                    ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
+                                }
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 2MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                                throw new RetryLimitExceededException();
+                            }
+                        }
+                    }*/
 
                     return RedirectToAction("Index");
                 }
@@ -87,6 +121,7 @@ namespace tahsinERP.Controllers
             {
                 var  invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
+                    .Include(x => x.SUPPLIER)
                     .Where(x => x.ID == id)
                     .FirstOrDefaultAsync();
 
@@ -105,6 +140,7 @@ namespace tahsinERP.Controllers
             {
                 var invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
+                    .Include(x => x.SUPPLIER)
                     .Where(x => x.ID == id)
                     .FirstOrDefaultAsync();
 
@@ -147,6 +183,18 @@ namespace tahsinERP.Controllers
             }
             return View();
         }
+        public ActionResult GetInvoicesBySupplier(int supplierID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var invoices = db.P_INVOICES
+                    .Where(x => x.IsDeleted == false && x.SupplierID == supplierID)
+                    .Select(x => new { x.ID, x.InvoiceNo })
+                    .ToList();
+
+                return Json(invoices.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.InvoiceNo }), JsonRequestBehavior.AllowGet);
+            }
+        }
         public async Task<ActionResult> Edit(int? ID)
         {
             if (ID == null)
@@ -156,11 +204,12 @@ namespace tahsinERP.Controllers
             {
                 var invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
-                    .Where(x => x.ID == ID)
+                    .Where(x => x.ID == ID && x.IsDeleted == false)
                     .FirstOrDefaultAsync();
 
                 if (invoice == null)
-                    return HttpNotFound();
+                    return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+                    //return HttpNotFound();
 
                 ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name", invoice.SupplierID);
                 //ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo", invoice.InvoiceID);
@@ -185,7 +234,6 @@ namespace tahsinERP.Controllers
                         invoiceToUpdate.InvoiceDate = invoice.InvoiceDate;
                         invoiceToUpdate.Currency = invoice.Currency;
                         invoiceToUpdate.Amount = invoice.Amount;
-                        invoiceToUpdate.IsDeleted = false;
 
                         db.Entry(invoiceToUpdate).State = EntityState.Modified;
 

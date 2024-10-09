@@ -617,12 +617,6 @@
     <Compile Include="Models\GetSupplierParts_Result.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\GTD.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GTD_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\HSCODE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -794,9 +788,6 @@
     <Compile Include="Models\P_PROFORMA_INVOICES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\P_PROFORMA_INVOICE_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\ROLE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -822,6 +813,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\SUPPLIER.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\sysdiagram.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\S_CONTRACTS.cs">
@@ -887,6 +881,7 @@
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
+    <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\PurchasingContractViewModel.cs" />
     <Compile Include="ViewModels\PurchasingOrder\PurchasingOrderViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
@@ -2664,6 +2659,7 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include="app-assets\js\scripts\pdfMake\html2pdf.bundle.min.js" />
+    <Content Include="assets\manual\images\.DS_Store" />
     <EntityDeploy Include="Models\DBTHSNModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>DBTHSNModel.Designer.cs</LastGenOutput>
@@ -2671,7 +2667,6 @@
     <Content Include="Models\DBTHSNModel.edmx.diagram">
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Content>
-    <Content Include="assets\manual\images\.DS_Store" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
     <Content Include="Scripts\jquery-3.7.1.min.js" />
@@ -2940,6 +2935,7 @@
     <Content Include="Views\PurchasingOrder\Create.cshtml" />
     <Content Include="Views\PurchasingOrder\EditPart.cshtml" />
     <Content Include="Views\PurchasingItem\UploadWithExcel.cshtml" />
+    <Content Include="Views\PurchasingContract\EditPart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

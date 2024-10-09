@@ -4,28 +4,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    /* Hide the default file input */
-    .custom-file-input {
-        display: none;
-    }
-
-    /* Style the custom button */
-    .custom-file-button {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-align: center;
-    }
-
-        /* Optional: Change button color on hover */
-        .custom-file-button:hover {
-            background-color: #0056b3;
-        }
     #file-upload-div {
         transition: background-color 1s ease;
     }
@@ -33,9 +11,8 @@
     .file-upload-success {
         background-color: lightgreen; /* or lightblue */
     }
-
 </style>
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PurchasingContract"))
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -85,17 +62,17 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Buyurtmani tanlang</h6>
-                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, new { @class = "form-control select2"})
+                                                            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, "Buyurtmani tanlang", new { @class = "form-control select2", @id = "order-dropdown" })
                                                             @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Ta'minotchi</h6>
-                                                            @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control" })
+                                                            @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Supplier, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Valyuta</h6>
-                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control" })
+                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
                                                         </div>
 
@@ -107,17 +84,17 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Incoterms</h6>
-                                                            @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control" })
+                                                            @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">To'lov sharti</h6>
-                                                            @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control" })
+                                                            @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="form-group position-relative has-icon-left">
                                                             <label>Tuzilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi" })
+                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -125,7 +102,7 @@
                                                         </div>
                                                         <div class="form-group position-relative has-icon-left">
                                                             <label>Tugaydigan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi" })
+                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -140,17 +117,14 @@
                                                 <hr />
                                                 <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
                                                 <div class="custom-file">
-                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control-file", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
-                                                    <span id="file-name" class="file-name-placeholder">Fayl tanlanmagan</span>
+                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                    @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 </div>
-                                                @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 <div class="progress mt-3 d-none" id="upload-progress">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
                                                 </div>
                                                 <hr />
                                             </div>
-
-
                                             <br />
                                             <h4>
                                                 Predmeti
@@ -161,28 +135,46 @@
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_PartID">Predmetni tanlang</label>
-                                                            @Html.DropDownList("ItemID", (SelectList)ViewBag.items, new { @class = "form-control select", @id = "select2" })
+                                                            @Html.DropDownList("ItemID", (SelectList)ViewBag.items, new { @class = "form-control select", @id = "select2", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Unit">Birligi</label>
-                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
+                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
+    
+                                                        @*<div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_PartID">Predmetni tanlang</label>
+                                                            <input type="text" name="Part_PartID" class="form-control" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].ItemName, "", new { @class = "text-danger" })
+
+                                                        </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Quantity">Miqdori</label>
-                                                            <input type="number" name="Quantity" class="form-control" id="Part_Quantity" />
+                                                            <label for="Part_Unit">Birligi</label>
+                                                            <input type="text" name="Part_Unit" class="form-control" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].UnitName, "", new { @class = "text-danger" })
+                                                        </div>*@
+
+                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_Amount">Miqdori</label>
+                                                            <input type="number" name="Amount" class="form-control" id="Part_Amount" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Price">Umumiy narx</label>
+                                                            <label for="Part_Price">Dona narx</label>
                                                             <input type="number" name="Price" step="0.01" class="form-control" id="Part_Price" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_TotalPrice">Umumiy narx</label>
+                                                            <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_MOQ">MOQ</label>
-                                                            <input type="text" name="MOQ" class="form-control" id="Part_MOQ" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger" })
+                                                            <input type="number" name="MOQ" class="form-control" id="Part_MOQ" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger", @required = "required" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O`chirish</button>
@@ -218,6 +210,75 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Trigger event when OrderID is changed
+        $('#order-dropdown').on('change', function () {
+            console.log("Ishlopti")
+            var orderId = $(this).val();
+            if (orderId) {
+                // Make an AJAX request to load items based on selected OrderID
+                $.ajax({
+                    url: '@Url.Action("GetOrderItems", "PurchasingContract")', // Ensure this action is in your controller
+                    type: 'GET',
+                    data: { orderId: orderId },
+                    success: function (response) {
+                        // Clear existing repeater items
+                        $('[data-repeater-list="Parts"]').empty();
+
+                        // Populate the repeater with new items from response
+                        response.forEach(function (item, index) {
+                            // Append a new repeater item with the fetched data
+                            var newItem = `
+            <div data-repeater-item id="repeaterItem">
+                <div class="row justify-content-between">
+                    <input type="hidden" name="Parts[${index}].ID" value="${item.ID}" />
+                    <input type="hidden" name="Parts[${index}].ID" value="${item.ItemID}" />
+                    <div class="col-md-2 col-sm-12 form-group">
+                        <label for="Part_PartID">Predmetni tanlang</label>
+                        <input type="text" name="Parts[${index}].ItemName" value="${item.ItemName}" class="form-control" />
+                    </div>
+                    <input type="hidden" name="Parts[${index}].ID" value="${item.UnitID}" />
+                    <div class="col-md-2 col-sm-12 form-group">
+                        <label for="Part_Unit">Birligi</label>
+                        <input type="text" name="Parts[${index}].UnitName" value="${item.ShortName}" class="form-control" />
+                    </div>
+                    <div class="col-md-2 col-sm-12 form-group">
+                        <label for="Part_Amount">Miqdori</label>
+                        <input type="number" name="Parts[${index}].Amount" value="${item.Amount}" class="form-control" />
+                    </div>
+                    <div class="col-md-2 col-sm-12 form-group">
+                        <label for="Part_Price">Dona narxi</label>
+                        <input type="number" name="Parts[${index}].Price" value="${item.Price}" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-2 col-sm-12 form-group">
+                        <label for="Part_TotalPrice">Umumiy narxi</label>
+                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-2 col-sm-12 form-group">
+                        <label for="Part_MOQ">MOQ</label>
+                        <input type="text" name="Parts[${index}].MOQ" class="form-control" />
+                    </div>
+                    <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                        <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
+                    </div>
+                </div>
+                <hr>
+            </div>`;
+                            $('[data-repeater-list="Parts"]').append(newItem);
+                        });
+
+                    },
+                    error: function () {
+                        alert('Error loading order items.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+
 <script>
     document.getElementById('file-upload').addEventListener('change', function () {
         if (this.files && this.files.length > 0) {
