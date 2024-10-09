@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class P_PROFORMA_INVOICES
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public P_PROFORMA_INVOICES()
+        {
+            this.P_PROFORMA_INVOICE_DOCS = new HashSet<P_PROFORMA_INVOICE_DOCS>();
+        }
+    
         public int ID { get; set; }
         public string PrInvoiceNo { get; set; }
         public int InvoiceID { get; set; }
@@ -26,6 +32,8 @@ namespace tahsinERP.Models
     
         public virtual COMPANy COMPANy { get; set; }
         public virtual P_INVOICES P_INVOICES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<P_PROFORMA_INVOICE_DOCS> P_PROFORMA_INVOICE_DOCS { get; set; }
         public virtual SUPPLIER SUPPLIER { get; set; }
     }
 }
