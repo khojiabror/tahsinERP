@@ -43,11 +43,7 @@
 
                                             <h4 class="text-primary">Sotuv buyurtma  ma'lumotlari</h4>
                                             <hr />
-                                            <span><b>Buyurtma raqami</b>: @Html.DisplayFor(model => model.OrderCode, new { @class = "form-control" })</span>
-                                            <hr />
                                             <span><b>Buyurtma raqami EDO</b>: @Html.DisplayFor(model => model.OrderCodeEDO, new { @class = "form-control" })</span>
-                                            <hr />
-                                            <span><b>Yaratilgan sanasi</b>: @Model.CreatedDT.ToString("dd.MM.yyyy")</span>
                                             <hr />
                                             <span><b>Tasdiqlangan (EDO) sanasi</b>: @Model.ApprovedDTEDO.Value.ToString("dd.MM.yyyy")</span>
                                             <hr />
