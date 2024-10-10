@@ -127,14 +127,14 @@
                                             </div>
                                             <br />
                                             <h4>
-                                                Predmeti
+                                                Maxsulotlar
                                             </h4>
                                             <div data-repeater-list="Parts">
                                                 <div data-repeater-item id="repeaterItem">
                                                     <div class="row justify-content-between">
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_PartID">Predmetni tanlang</label>
+                                                            <label for="Part_PartID">Maxsulotni tanlang</label>
                                                             @Html.DropDownList("ItemID", (SelectList)ViewBag.items, new { @class = "form-control select", @id = "select2", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
                                                         </div>
@@ -184,7 +184,7 @@
                                                 </div>
                                             </div>
 
-                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi item qo`shish</button>
+                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi maxsulot qo`shish</button>
 
                                             // Save button
                                             <ul class="list-group list-group-flush">
