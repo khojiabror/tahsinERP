@@ -25,6 +25,39 @@ namespace tahsinERP.Controllers
                 return View(list);
             }
         }
+        public ActionResult GetProgressPercentage(int ID)
+        {
+            using(DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var order = db.PURCHASING_ORDERS.Find(ID);
+                if (order == null)
+                {
+                    return Json(0, JsonRequestBehavior.AllowGet); // Return 0 if order not found
+                }
+
+                // Assuming you calculate progress based on some logic
+                var progress = CalculateOrderProgress(order); // Implement your logic here
+
+                return Json(progress, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        private int CalculateOrderProgress(PURCHASING_ORDERS order)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+                // Example logic to calculate progress
+                var existContract = db.PURCHASING_CONTRACTS.Find(order.ID);
+                if (existContract != null)
+                {
+                    return 100;
+                }
+                /*if (order.Status == "Completed") return 100;
+                if (order.Status == "In Progress") return 50;*/
+                return 0; // Default
+            }
+        }
 
         public ActionResult Create()
         {
