@@ -24,7 +24,11 @@ namespace tahsinERP.Controllers
         public ActionResult Index(string type, int? supplierID)
         {
             this.warehouse = GetWarehouseOfMRP(User.Identity.Name);
-
+            warehouse = GetWarehouseOfMRP(User.Identity.Name);
+            if (warehouse is null)
+                ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+            else
+                ViewBag.WHName = warehouse.WHName;
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (warehouse == null)
@@ -188,7 +192,7 @@ namespace tahsinERP.Controllers
         }
       
         public ActionResult Create()
-            {
+        {
             string month = "";
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -349,6 +353,12 @@ namespace tahsinERP.Controllers
 
         public ActionResult UploadWithExcel()
         {
+            warehouse = GetWarehouseOfMRP(User.Identity.Name);
+            if (warehouse is null)
+                ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+            else
+                ViewBag.WHName = warehouse.WHName;
+
             ViewBag.IsFileUploaded = false;
             return View();
         }
@@ -395,6 +405,13 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PartList = partList;
 
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
+
+
                 return View(wrhsIncome);
             }
         }
@@ -432,6 +449,12 @@ namespace tahsinERP.Controllers
                 ViewBag.Invoices = new SelectList(db1.P_INVOICES.Where(i => i.IsDeleted == false).ToList(), "ID", "InvoiceNo");
                 ViewBag.Waybills = new SelectList(db1.F_WAYBILLS.Where(w => w.IsDeleted == false).ToList(), "ID", "WaybillNo");
                 ViewBag.units = new SelectList(db1.UNITS.ToList(), "ID", "UnitName");
+
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
             }
 
             // ViewBag.Supplier = suppliers;
@@ -510,6 +533,12 @@ namespace tahsinERP.Controllers
                 ViewBag.PartList = allParts;
                 ViewBag.units = new SelectList( db.UNITS.ToList(), "ID", "UnitName");
 
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
+
                 return View(whIncomePart);
             }
         }
@@ -571,6 +600,12 @@ namespace tahsinERP.Controllers
 
                 db.Entry(whrsIncome).Reference(i => i.P_INVOICES).Load();
                 db.Entry(whrsIncome).Reference(i => i.F_WAYBILLS).Load();
+
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
                 return View(whrsIncome);
             }
         }

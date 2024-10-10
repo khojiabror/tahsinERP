@@ -14,7 +14,7 @@
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
@@ -23,6 +23,9 @@
                                     </li>
                                     <li class="breadcrumb-item active">
                                         @Model.DocNo raqamli kirim o'chirish
+                                    </li>
+                                    <li class="col-md-6 col-12 form-group ms-auto">
+                                        <br /> Ombor :  <b>@ViewBag.WHName</b>
                                     </li>
                                 </ol>
                             </div>
