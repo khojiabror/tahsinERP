@@ -17,10 +17,9 @@ namespace tahsinERP.Controllers
         {
             using ( DBTHSNEntities db = new DBTHSNEntities())
             {
-                /*var list = db.GTDs.Where(x => x.IsDeleted == false).ToList();
-                return View(list);*/
+                var list = db.GTDS.Where(x => x.IsDeleted == false).ToList();
+                return View(list);
             }
-            return View();
         }
         public ActionResult Create()
         {
