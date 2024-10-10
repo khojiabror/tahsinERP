@@ -165,9 +165,12 @@ namespace tahsinERP.Controllers
                                         ItemID = existOrderItem.ItemID,
                                         UnitID = unt.ID,
                                         Amount = part.Amount,
+                                        Price = part.Price,
                                         ActivePart = true,
-                                        IsDeleted = false
+                                        IsDeleted = false, 
+                                        TotalPrice = part.TotalPrice,
                                     };
+                                    newPart.TotalPrice = part.Price*part.Amount;
                                     if (part.MOQ == null)
                                         newPart.MOQ = 0;
                                     else
@@ -197,7 +200,7 @@ namespace tahsinERP.Controllers
                                 return View(model);
                             }
                             db.SaveChanges();
-
+                            newPurchasingContract.Amount = model.Parts.Sum(x => x.TotalPrice);
                             PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
                             purchasingOrder = db.PURCHASING_ORDERS.Find(model.OrderID);
                             purchasingOrder.Status = "Yakunlandi";
@@ -363,8 +366,15 @@ namespace tahsinERP.Controllers
                             //db.PURCHASING_CONTRACT_ITEMS.Remove(contractPartToDelete);
                             contractPartToDelete.IsDeleted = true;
                             db.SaveChanges();
+                            var purchasingContractTotalPrice = db.PURCHASING_CONTRACT_ITEMS.Where(x => x.IsDeleted == false && x.ContractID == contractPartToDelete.ContractID).Sum(x => x.TotalPrice);
+                            PURCHASING_CONTRACTS purchasingContract = db.PURCHASING_CONTRACTS.Find(contractPartToDelete.ContractID);
+                            if (purchasingContract != null)
+                            {
+                                purchasingContract.Amount = purchasingContractTotalPrice;
+                            }
+                            db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPartToDelete.ItemID} - li PurchasingContractItemni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{contractPartToDelete.ItemID} - li PurchasingContractItemni o'chirdi");
 
                             return RedirectToAction("Index");
                         }
@@ -567,6 +577,13 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
+                            var purchasingContractTotalPrice = db.PURCHASING_CONTRACT_ITEMS.Where(x => x.IsDeleted == false && x.ContractID == contractPartToUpdate.ContractID).Sum(x => x.TotalPrice);
+                            PURCHASING_CONTRACTS purchasingContract = db.PURCHASING_CONTRACTS.Find(contractPartToUpdate.ContractID);
+                            if (purchasingContract != null)
+                            {
+                                purchasingContract.Amount = purchasingContractTotalPrice;
+                            }
+                            db.SaveChanges();
                             LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{contractPartToUpdate.ItemID} -  li PurchasingItemni tahrirladi");
 
                             return RedirectToAction("Index");
