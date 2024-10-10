@@ -84,7 +84,6 @@
                                                 <tr>
                                                     <th></th>
                                                     <th></th>
-                                                    <th>Buyurtma raqami</th>
                                                     <th>Buyurtma raqami(EDO)</th>
                                                     <th>Заявитель</th>
                                                     <th>Status</th>
@@ -101,9 +100,8 @@
                                                         <td></td>
                                                         <td></td>
                                                         <td>
-                                                            <a href="~/PurchasingOrder/Details/@item.ID">@item.OrderCode</a>
+                                                            <a href="~/PurchasingOrder/Details/@item.ID">@item.OrderCodeEDO</a>
                                                         </td>
-                                                        <td>@item.OrderCodeEDO</td>
                                                         <td>@item.OrderedByDept</td>
                                                         @if (@item.Status == "Jarayonda")
                                                         {

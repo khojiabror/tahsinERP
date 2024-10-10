@@ -47,9 +47,9 @@
                                             <hr />
                                             <span><b>Buyurtma raqami EDO</b>: @Html.DisplayFor(model => model.OrderCodeEDO, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Yaratilgan sanasi</b>: @Html.DisplayFor(model => model.CreatedDT, new { @class = "form-control" })</span>
+                                            <span><b>Yaratilgan sanasi</b>: @Model.CreatedDT.ToString("dd.MM.yyyy")</span>
                                             <hr />
-                                            <span><b>Tasdiqlangan (EDO) sanasi</b>: @Html.DisplayFor(model => model.ApprovedDTEDO, new { @class = "form-control" })</span>
+                                            <span><b>Tasdiqlangan (EDO) sanasi</b>: @Model.ApprovedDTEDO.Value.ToString("dd.MM.yyyy")</span>
                                             <hr />
                                             <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" }) </span>
                                             <hr />

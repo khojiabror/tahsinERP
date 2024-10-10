@@ -6,28 +6,13 @@
 }
 
 <style>
-    /* Hide the default file input */
-    .custom-file-input {
-        display: none;
+    #file-upload-div {
+        transition: background-color 1s ease;
     }
 
-    /* Style the custom button */
-    .custom-file-button {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-align: center;
+    .file-upload-success {
+        background-color: lightgreen; /* or lightblue */
     }
-
-        /* Optional: Change button color on hover */
-        .custom-file-button:hover {
-            background-color: #0056b3;
-        }
 </style>
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -72,21 +57,25 @@
                                                 @* Left Part *@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <label for="OrderNo">Buyurtma raqami</label>
-                                                            @Html.TextBoxFor(model => model.OrderCode, new { @type = "text", @class = "form-control", id = "OrderNo", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
-                                                        </div>
-
+                                                        @*<label for="OrderNo">Buyurtma raqami</label>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        @Html.TextBoxFor(model => model.OrderCode, new { @type = "text", @class = "form-control", id = "OrderNo", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
+                                                    </div>*@
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Buyurtma raqami(EDO)</label>
                                                             @Html.TextBoxFor(model => model.OrderCodeEDO, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.OrderCodeEDO, "", new { @class = "text-danger" })
                                                         </div>
+                                                        <div class="col-md-6 col-12 form-group">
+                                                            <label>Ma'sul xarid agenti:</label>
+                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, "Buyerni tanlang:", new { @class = "form-control select", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
+                                                        </div>
 
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Buyurtma haqida batafsil</label>
-                                                            @Html.TextBoxFor(model => model.Comment, new { @type = "text", @class = "form-control", @required = "required" })
+                                                            @Html.TextAreaFor(model => model.Comment, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Comment, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -96,15 +85,10 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label>Ma'sul xarid agenti:</label>
-                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, "Buyerni tanlang:", new { @class = "form-control select", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
+                                                            <label>Buyurtma berilgan sanasi</label>
+                                                            @Html.TextBoxFor(model => model.CreatedDT, new { @class = "form-control pickadate-months-year round" })
+                                                            @Html.ValidationMessageFor(model => model.CreatedDT, "", new { @class = "text-danger" })
                                                         </div>
-                                                        @*<div class="col-md-6 col-12 form-group">
-                            <label>Buyurtma berilgan sanasi</label>
-                            @Html.TextBoxFor(model => model.CreatedDT, new { @class = "form-control pickadate-months-year round" })
-                            @Html.ValidationMessageFor(model => model.CreatedDT, "", new { @class = "text-danger" })
-                        </div>*@
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Buyurtma tasdiqlangan (EDO) sanasi</label>
                                                             @Html.TextBoxFor(model => model.ApprovedDTEDO, new { @class = "form-control pickadate-months-year round", @required = "required" })
@@ -114,22 +98,13 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6 col-12 form-group">
-                                                <hr />
-                                                <label>Buyurtma faylini yuklang</label>
-                                                <input type="file" id="docUpload" name="File" class="custom-file-input" />
-
-                                                <label for="docUpload" class="custom-file-button">Faylni Yuklash</label>
-                                                @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
-                                                <hr />
-                                            </div>
                                             <div class="col-md-6 col-12 form-group" id="file-upload-div">
                                                 <hr />
-                                                <label for="file-upload" class="form-label">Buyurtma faylini yuklang</label>
+                                                <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
                                                 <div class="custom-file">
-                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control-file", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                    @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
+                                                    @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 </div>
-                                                @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 <div class="progress mt-3 d-none" id="upload-progress">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
                                                 </div>
@@ -168,7 +143,7 @@
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger", @type = "number", @required = "required" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Price">Taxminiy Narxi:</label>
+                                                            <label for="Part_Price">Taxminiy birlik narxi:</label>
                                                             <input type="number" name="Price" step="0.01" class="form-control" id="Part_Price" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger", @type = "number" })
                                                         </div>
