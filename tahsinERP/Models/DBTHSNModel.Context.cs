@@ -42,6 +42,7 @@ namespace tahsinERP.Models
         public virtual DbSet<F_CONTRACTS> F_CONTRACTS { get; set; }
         public virtual DbSet<F_TRANSPORT_TYPES> F_TRANSPORT_TYPES { get; set; }
         public virtual DbSet<F_WAYBILL_DOCS> F_WAYBILL_DOCS { get; set; }
+        public virtual DbSet<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
         public virtual DbSet<F_WAYBILLS> F_WAYBILLS { get; set; }
         public virtual DbSet<FORWARDER> FORWARDERS { get; set; }
         public virtual DbSet<GTD_DOCS> GTD_DOCS { get; set; }
@@ -56,6 +57,7 @@ namespace tahsinERP.Models
         public virtual DbSet<P_INVOICES> P_INVOICES { get; set; }
         public virtual DbSet<P_ORDER_DOCS> P_ORDER_DOCS { get; set; }
         public virtual DbSet<P_ORDER_PARTS> P_ORDER_PARTS { get; set; }
+        public virtual DbSet<P_ORDER_PAYMENTS> P_ORDER_PAYMENTS { get; set; }
         public virtual DbSet<P_ORDERS> P_ORDERS { get; set; }
         public virtual DbSet<P_PACKINGLIST_PARTS> P_PACKINGLIST_PARTS { get; set; }
         public virtual DbSet<P_PROFORMA_INVOICE_DOCS> P_PROFORMA_INVOICE_DOCS { get; set; }
@@ -97,11 +99,20 @@ namespace tahsinERP.Models
         public virtual DbSet<PRODUCT> PRODUCTS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACT_DOCS> PURCHASING_CONTRACT_DOCS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
+        public virtual DbSet<PURCHASING_CONTRACT_PAYMENTS> PURCHASING_CONTRACT_PAYMENTS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
+        public virtual DbSet<PURCHASING_INVOICE_DOCS> PURCHASING_INVOICE_DOCS { get; set; }
+        public virtual DbSet<PURCHASING_INVOICE_ITEMS> PURCHASING_INVOICE_ITEMS { get; set; }
+        public virtual DbSet<PURCHASING_INVOICES> PURCHASING_INVOICES { get; set; }
+        public virtual DbSet<PURCHASING_ITEM_STOCKS> PURCHASING_ITEM_STOCKS { get; set; }
         public virtual DbSet<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }
         public virtual DbSet<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_ORDERS> PURCHASING_ORDERS { get; set; }
+        public virtual DbSet<PURCHASING_WRHS_EXPENSE_ITEMS> PURCHASING_WRHS_EXPENSE_ITEMS { get; set; }
+        public virtual DbSet<PURCHASING_WRHS_EXPENSES> PURCHASING_WRHS_EXPENSES { get; set; }
+        public virtual DbSet<PURCHASING_WRHS_INCOME_ITEMS> PURCHASING_WRHS_INCOME_ITEMS { get; set; }
+        public virtual DbSet<PURCHASING_WRHS_INCOMES> PURCHASING_WRHS_INCOMES { get; set; }
         public virtual DbSet<ROLE> ROLES { get; set; }
         public virtual DbSet<S_CONTRACT_PRODUCTS> S_CONTRACT_PRODUCTS { get; set; }
         public virtual DbSet<S_CONTRACTS> S_CONTRACTS { get; set; }
@@ -191,6 +202,19 @@ namespace tahsinERP.Models
                 new ObjectParameter("SupplierID", typeof(int));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetSupplierParts_Result>("GetSupplierParts", supplierIDParameter);
+        }
+    
+        public virtual int InTransitView(Nullable<System.DateTime> todayDate, Nullable<System.DateTime> endDate)
+        {
+            var todayDateParameter = todayDate.HasValue ?
+                new ObjectParameter("TodayDate", todayDate) :
+                new ObjectParameter("TodayDate", typeof(System.DateTime));
+    
+            var endDateParameter = endDate.HasValue ?
+                new ObjectParameter("EndDate", endDate) :
+                new ObjectParameter("EndDate", typeof(System.DateTime));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("InTransitView", todayDateParameter, endDateParameter);
         }
     
         public virtual int WeeklyCoverage(Nullable<System.DateTime> todayDate, Nullable<System.DateTime> endDate)

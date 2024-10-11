@@ -26,6 +26,11 @@ namespace tahsinERP.Models
             this.PART_WRHS_EXPENSES1 = new HashSet<PART_WRHS_EXPENSES>();
             this.PART_WRHS_INCOMES = new HashSet<PART_WRHS_INCOMES>();
             this.PART_WRHS_INCOMES1 = new HashSet<PART_WRHS_INCOMES>();
+            this.PURCHASING_ITEM_STOCKS = new HashSet<PURCHASING_ITEM_STOCKS>();
+            this.PURCHASING_WRHS_EXPENSES = new HashSet<PURCHASING_WRHS_EXPENSES>();
+            this.PURCHASING_WRHS_EXPENSES1 = new HashSet<PURCHASING_WRHS_EXPENSES>();
+            this.PURCHASING_WRHS_INCOMES = new HashSet<PURCHASING_WRHS_INCOMES>();
+            this.PURCHASING_WRHS_INCOMES1 = new HashSet<PURCHASING_WRHS_INCOMES>();
             this.WASTE_STOCKS = new HashSet<WASTE_STOCKS>();
         }
     
@@ -57,6 +62,16 @@ namespace tahsinERP.Models
         public virtual ICollection<PART_WRHS_INCOMES> PART_WRHS_INCOMES1 { get; set; }
         public virtual SHOP SHOP { get; set; }
         public virtual USER USER { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_ITEM_STOCKS> PURCHASING_ITEM_STOCKS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_WRHS_EXPENSES> PURCHASING_WRHS_EXPENSES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_WRHS_EXPENSES> PURCHASING_WRHS_EXPENSES1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_WRHS_INCOMES> PURCHASING_WRHS_INCOMES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_WRHS_INCOMES> PURCHASING_WRHS_INCOMES1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<WASTE_STOCKS> WASTE_STOCKS { get; set; }
     }
