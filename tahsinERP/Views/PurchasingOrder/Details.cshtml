@@ -4,6 +4,26 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
+<style>
+    .progress-bar {
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        height: 30px;
+        position: relative;
+    }
+
+    .element {
+        background-color: #4caf50;
+        height: 100%;
+        line-height: 30px;
+        text-align: center;
+        color: white;
+        border-radius: 5px;
+        transition: width 1.5s;
+    }
+</style>
+
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     <div class="app-content content">
@@ -32,7 +52,7 @@
             </div>
             <div class="content-body">
                 <div class="row">
-                    <div class="col-xl-12 col-md-8 col-12">
+                    <div class="col-xl-10 col-md-8 col-12">
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body pb-0 mx-25">
@@ -54,27 +74,10 @@
                                             <hr />
                                             <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" }) </span>
                                             <hr />
-                                            <span>
                                                 <b>Status</b>:
-                                                @if (Model.Status == "Jarayonda")
-                                                {
-                                                    <span class="form-control" style="background-color: yellow; color: black;">
-                                                        @Html.DisplayFor(model => model.Status)
-                                                    </span>
-                                                }
-                                                else if (Model.Status == "Yakunlandi")
-                                                {
-                                                    <span class="form-control" style="background-color: green; color: white;">
-                                                        @Html.DisplayFor(model => model.Status)
-                                                    </span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="form-control" style="background-color: gray; color: white;">
-                                                        @Html.DisplayFor(model => model.Status)
-                                                    </span>
-                                                }
-                                            </span>
+                                                <div class="progress-bar">
+                                                    <div id="progress-element-@Model.ID" class="element" style="width: 0%;">0%</div>
+                                                </div>
                                             <hr />
                                             <span><b>Ijroga ma'sul xarid xodimi </b>: @Html.DisplayFor(model => model.USER1.FullName, new { @class = "form-control" })</span>
                                             <hr />
@@ -190,4 +193,32 @@ else
             });
         });
     });
+</script>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var orderID = '@Model.ID'; // Get the order ID from the model
+
+        // Call the function to update the progress bar for this specific order
+        updateProgressBar(orderID, 'progress-element-' + orderID);
+    });
+
+    // Function to update the progress bar for a specific order
+    function updateProgressBar(orderID, progressElementId) {
+        $.ajax({
+            url: '/PurchasingOrder/GetProgressPercentage', // Call your action
+            type: 'GET',
+            data: { ID: orderID }, // Pass the order ID to the controller
+            success: function (response) {
+                // Update the progress bar's width and text
+                $('#' + progressElementId).css('width', response + '%');
+                $('#' + progressElementId).text(response + '%');
+            },
+            error: function () {
+                console.error('Failed to get progress percentage.');
+            }
+        });
+    }
 </script>

@@ -19,9 +19,8 @@
         text-align: center;
         color: white;
         border-radius: 5px;
-        transition: width 0.5s;
+        transition: width 1.5s;
     }
-
 </style>
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -154,35 +153,9 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    $(document).ready(function () {
-        // Function to update progress bar dynamically
-        function updateProgressBar(orderID, progressElementId) {
-            $.ajax({
-                url: '/PurchasingOrder/GetProgressPercentage', // Point to the PurchasingOrder action
-                type: 'GET',
-                data: { ID: orderID }, // Pass the orderID to the controller
-                success: function (response) {
-                    // Update the width and text of the progress bar
-                    $('#' + progressElementId).css('width', response + '%');
-                    $('#' + progressElementId).text(response + '%');
-                },
-                error: function () {
-                    console.error('Failed to get progress percentage.');
-                }
-            });
-        }
 
-        // Iterate through each row and update the progress bars
-        $('tbody tr').each(function () {
-            var orderID = $(this).find('td:nth-child(3) a').text().trim(); // Get the OrderCodeEDO text (3rd cell in the row)
-            var progressElementId = 'progress-element-' + $(this).find('td:nth-child(3) a').attr('href').split('/').pop(); // Unique ID for the progress element based on the link ID
-
-            if (orderID) {
-                updateProgressBar($(this).find('td:nth-child(3) a').attr('href').split('/').pop(), progressElementId); // Pass the correct ID to the function
-            }
-        });
-    });
     //////////////////////////
     // Function to update the progress bar for a specific order
     function updateProgressBar(orderID, progressElementId) {

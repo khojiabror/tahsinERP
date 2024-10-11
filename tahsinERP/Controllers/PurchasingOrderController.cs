@@ -36,26 +36,29 @@ namespace tahsinERP.Controllers
                 }
 
                 // Assuming you calculate progress based on some logic
-                var progress = CalculateOrderProgress(order); // Implement your logic here
+                var progress = CalculateOrderProgress(order.ID); // Implement your logic here
 
                 return Json(progress, JsonRequestBehavior.AllowGet);
             }
         }
 
-        private int CalculateOrderProgress(PURCHASING_ORDERS order)
+        private int CalculateOrderProgress(int orderID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-
-                // Example logic to calculate progress
-                var existContract = db.PURCHASING_CONTRACTS.Find(order.ID);
-                if (existContract != null)
+                if (orderID != 0)
                 {
-                    return 100;
+                    // Example logic to calculate progress
+                    var existContract = db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted ==false && x.OrderID == orderID).FirstOrDefault();
+                    if (existContract != null)
+                    {
+                        return 100;
+                    }
+                    /*if (order.Status == "Completed") return 100;
+                    if (order.Status == "In Progress") return 50;*/
+                    return 0; // Default
                 }
-                /*if (order.Status == "Completed") return 100;
-                if (order.Status == "In Progress") return 50;*/
-                return 0; // Default
+                return 0;
             }
         }
 
