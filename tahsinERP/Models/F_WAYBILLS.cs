@@ -18,6 +18,7 @@ namespace tahsinERP.Models
         public F_WAYBILLS()
         {
             this.F_WAYBILL_DOCS = new HashSet<F_WAYBILL_DOCS>();
+            this.F_WAYBILL_PAYMENTS = new HashSet<F_WAYBILL_PAYMENTS>();
             this.PART_WRHS_INCOMES = new HashSet<PART_WRHS_INCOMES>();
         }
     
@@ -37,6 +38,8 @@ namespace tahsinERP.Models
         public virtual F_TRANSPORT_TYPES F_TRANSPORT_TYPES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_DOCS> F_WAYBILL_DOCS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
         public virtual P_INVOICES P_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART_WRHS_INCOMES> PART_WRHS_INCOMES { get; set; }

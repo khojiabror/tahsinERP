@@ -198,6 +198,18 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.BOMS_AND_NORMS' does not have a pr
           <Property Name="WaybillID" Type="int" Nullable="false" />
           <Property Name="Doc" Type="varbinary(max)" />
         </EntityType>
+        <EntityType Name="F_WAYBILL_PAYMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ForwarderID" Type="int" Nullable="false" />
+          <Property Name="WaybillID" Type="int" Nullable="false" />
+          <Property Name="Payment_Amount" Type="float" Nullable="false" />
+          <Property Name="Currency" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="Comment" Type="text" />
+        </EntityType>
         <EntityType Name="F_WAYBILLS">
           <Key>
             <PropertyRef Name="ID" />
@@ -367,6 +379,18 @@ warning 6013: The table/view 'DBTHSN-TEST.dbo.GTD_INVOICES' does not have a prim
           <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="MOQ" Type="float" />
           <Property Name="UnitID" Type="int" />
+        </EntityType>
+        <EntityType Name="P_ORDER_PAYMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SupplierID" Type="int" Nullable="false" />
+          <Property Name="OrderID" Type="int" Nullable="false" />
+          <Property Name="Payment_Amount" Type="float" Nullable="false" />
+          <Property Name="Currency" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="Comment" Type="text" />
         </EntityType>
         <EntityType Name="P_ORDERS">
           <Key>
@@ -969,6 +993,18 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="UnitID" Type="int" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
+        <EntityType Name="PURCHASING_CONTRACT_PAYMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Supplier" Type="varchar(max)" Nullable="false" />
+          <Property Name="ContractID" Type="int" Nullable="false" />
+          <Property Name="Payment_Amount" Type="float" Nullable="false" />
+          <Property Name="Currency" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="Comment" Type="text" />
+        </EntityType>
         <EntityType Name="PURCHASING_CONTRACTS">
           <Key>
             <PropertyRef Name="ID" />
@@ -986,6 +1022,50 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="Comment" Type="text" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="OrderID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PURCHASING_INVOICE_DOCS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InvoiceID" Type="int" Nullable="false" />
+          <Property Name="Doc" Type="varbinary(max)" />
+        </EntityType>
+        <EntityType Name="PURCHASING_INVOICE_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InvoiceID" Type="int" Nullable="false" />
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="Quantity" Type="float" Nullable="false" />
+          <Property Name="Price" Type="float" Nullable="false" />
+          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="UnitID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PURCHASING_INVOICES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InvoiceNo" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ContractID" Type="int" Nullable="false" />
+          <Property Name="Supplier" Type="varchar(max)" Nullable="false" />
+          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="InvoiceDate" Type="date" Nullable="false" />
+          <Property Name="Currency" Type="varchar" MaxLength="30" />
+          <Property Name="CompanyID" Type="int" />
+          <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="PURCHASING_ITEM_STOCKS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="WHID" Type="int" Nullable="false" />
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="Unit" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="Amount" Type="float" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ITEMS">
           <Key>
@@ -1036,6 +1116,65 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="OrderedByDept" Type="varchar(max)" />
           <Property Name="OrderedByUser" Type="varchar(max)" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_EXPENSE_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ExpenseID" Type="int" Nullable="false" />
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="PiecePrice" Type="float" />
+          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" />
+          <Property Name="Comment" Type="text" />
+          <Property Name="UnitID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_EXPENSES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocNo" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Amount" Type="float" />
+          <Property Name="Currency" Type="varchar" MaxLength="50" />
+          <Property Name="TotalPrice" Type="float" />
+          <Property Name="ReceiverWhID" Type="int" />
+          <Property Name="SenderWHID" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
+          <Property Name="Description" Type="text" />
+          <Property Name="IssueDateTime" Type="datetime" Nullable="false" />
+          <Property Name="SendStatus" Type="bit" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_INCOME_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="IncomeID" Type="int" Nullable="false" />
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="PiecePrice" Type="float" />
+          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" />
+          <Property Name="Comment" Type="text" />
+          <Property Name="UnitID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_INCOMES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocNo" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="WHID" Type="int" Nullable="false" />
+          <Property Name="ContractID" Type="int" />
+          <Property Name="Amount" Type="float" />
+          <Property Name="Currency" Type="varchar" MaxLength="35" />
+          <Property Name="TotalPrice" Type="float" />
+          <Property Name="IsDeleted" Type="bit" />
+          <Property Name="Description" Type="text" />
+          <Property Name="IssueDateTime" Type="datetime" Nullable="false" />
+          <Property Name="SenderWHID" Type="int" />
+          <Property Name="RecieveStatus" Type="bit" />
         </EntityType>
         <EntityType Name="ROLES">
           <Key>
@@ -1571,6 +1710,30 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENTS_F_WAYBILLS">
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="1" />
+          <End Role="F_WAYBILL_PAYMENTS" Type="Self.F_WAYBILL_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_WAYBILLS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENTS">
+              <PropertyRef Name="WaybillID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENTS_FORWARDERS">
+          <End Role="FORWARDERS" Type="Self.FORWARDERS" Multiplicity="1" />
+          <End Role="F_WAYBILL_PAYMENTS" Type="Self.F_WAYBILL_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FORWARDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENTS">
+              <PropertyRef Name="ForwarderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_F_WAYBILLS_F_CONTRACTS">
           <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="0..1" />
           <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
@@ -1841,6 +2004,30 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_P_ORDER_PAYMENTS_P_ORDERS">
+          <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="1" />
+          <End Role="P_ORDER_PAYMENTS" Type="Self.P_ORDER_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_ORDER_PAYMENTS">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_ORDER_PAYMENTS_SUPPLIERS">
+          <End Role="SUPPLIERS" Type="Self.SUPPLIERS" Multiplicity="1" />
+          <End Role="P_ORDER_PAYMENTS" Type="Self.P_ORDER_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_ORDER_PAYMENTS">
+              <PropertyRef Name="SupplierID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_P_ORDERS_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="0..1" />
           <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="*" />
@@ -2009,6 +2196,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_P_WRHS_INCOME_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOME_ITEMS" Type="Self.PURCHASING_WRHS_INCOME_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOME_ITEMS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_P_WRHS_INCOME_PARTS_P_WRHS_INCOMES">
           <End Role="PART_WRHS_INCOMES" Type="Self.PART_WRHS_INCOMES" Multiplicity="1" />
           <End Role="PART_WRHS_INCOME_PARTS" Type="Self.PART_WRHS_INCOME_PARTS" Multiplicity="*" />
@@ -2030,6 +2229,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="PART_WRHS_INCOME_PARTS">
               <PropertyRef Name="PartID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES">
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOME_ITEMS" Type="Self.PURCHASING_WRHS_INCOME_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOME_ITEMS">
+              <PropertyRef Name="IncomeID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2849,6 +3060,162 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PUR_INVOICE_ITEMS_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_ITEMS" Type="Self.PURCHASING_INVOICE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_ITEMS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_INVOICE_ITEMS_PUR_INVOICES">
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_ITEMS" Type="Self.PURCHASING_INVOICE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_ITEMS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_INVOICE_ITEMS_UNITS">
+          <End Role="UNITS" Type="Self.UNITS" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_ITEMS" Type="Self.PURCHASING_INVOICE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_ITEMS">
+              <PropertyRef Name="UnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_ITEM_STOCKS_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_ITEM_STOCKS" Type="Self.PURCHASING_ITEM_STOCKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ITEM_STOCKS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_ITEM_STOCKS_PART_WRHS">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="1" />
+          <End Role="PURCHASING_ITEM_STOCKS" Type="Self.PURCHASING_ITEM_STOCKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ITEM_STOCKS">
+              <PropertyRef Name="WHID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSE_ITEMS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES">
+          <End Role="PURCHASING_WRHS_EXPENSES" Type="Self.PURCHASING_WRHS_EXPENSES" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_WRHS_EXPENSES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSE_ITEMS">
+              <PropertyRef Name="ExpenseID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSE_PARTS_UNITS">
+          <End Role="UNITS" Type="Self.UNITS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSE_ITEMS">
+              <PropertyRef Name="UnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSES_PART_WRHS">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSES" Type="Self.PURCHASING_WRHS_EXPENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSES">
+              <PropertyRef Name="SenderWHID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSES_PART_WRHS1">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="0..1" />
+          <End Role="PURCHASING_WRHS_EXPENSES" Type="Self.PURCHASING_WRHS_EXPENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSES">
+              <PropertyRef Name="ReceiverWhID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURC_INVOICE_DOCS_PUR_INVOICES">
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_DOCS" Type="Self.PURCHASING_INVOICE_DOCS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_DOCS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURC_INVOICES_P_CONTRACTS">
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICES">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURC_WRHS_INCOME_ITEMS_UNITS">
+          <End Role="UNITS" Type="Self.UNITS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOME_ITEMS" Type="Self.PURCHASING_WRHS_INCOME_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOME_ITEMS">
+              <PropertyRef Name="UnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PURCHASING_CONTRACT_DOCS_CONTRACTS">
           <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="1" />
           <End Role="PURCHASING_CONTRACT_DOCS" Type="Self.PURCHASING_CONTRACT_DOCS" Multiplicity="*" />
@@ -2897,6 +3264,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS">
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="1" />
+          <End Role="PURCHASING_CONTRACT_PAYMENTS" Type="Self.PURCHASING_CONTRACT_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_CONTRACT_PAYMENTS">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PURCHASING_CONTRACTS_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="1" />
           <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="*" />
@@ -2905,6 +3284,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="CompanyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_INVOICES_COMPANIES">
+          <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="0..1" />
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="COMPANIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICES">
               <PropertyRef Name="CompanyID" />
             </Dependent>
           </ReferentialConstraint>
@@ -2978,6 +3369,42 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="PURCHASING_ORDERS">
               <PropertyRef Name="BuyerUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_WRHS_INCOMES_CONTRACTS">
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="0..1" />
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="WHID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="0..1" />
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="SenderWHID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3373,6 +3800,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
         <Function Name="GetSupplierParts" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="SupplierID" Type="int" Mode="In" />
         </Function>
+        <Function Name="InTransitView" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="TodayDate" Type="date" Mode="In" />
+          <Parameter Name="EndDate" Type="date" Mode="In" />
+        </Function>
         <Function Name="WeeklyCoverage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="TodayDate" Type="date" Mode="In" />
           <Parameter Name="EndDate" Type="date" Mode="In" />
@@ -3397,6 +3828,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySet Name="F_CONTRACTS" EntityType="Self.F_CONTRACTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_TRANSPORT_TYPES" EntityType="Self.F_TRANSPORT_TYPES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILL_DOCS" EntityType="Self.F_WAYBILL_DOCS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="F_WAYBILL_PAYMENTS" EntityType="Self.F_WAYBILL_PAYMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FORWARDERS" EntityType="Self.FORWARDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="GTD_DOCS" EntityType="Self.GTD_DOCS" Schema="dbo" store:Type="Tables" />
@@ -3411,6 +3843,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySet Name="P_INVOICES" EntityType="Self.P_INVOICES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_ORDER_DOCS" EntityType="Self.P_ORDER_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_ORDER_PARTS" EntityType="Self.P_ORDER_PARTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="P_ORDER_PAYMENTS" EntityType="Self.P_ORDER_PAYMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_ORDERS" EntityType="Self.P_ORDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_PACKINGLIST_PARTS" EntityType="Self.P_PACKINGLIST_PARTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_PROFORMA_INVOICE_DOCS" EntityType="Self.P_PROFORMA_INVOICE_DOCS" Schema="dbo" store:Type="Tables" />
@@ -3452,11 +3885,20 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySet Name="PRODUCTS" EntityType="Self.PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_CONTRACT_DOCS" EntityType="Self.PURCHASING_CONTRACT_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_CONTRACT_ITEMS" EntityType="Self.PURCHASING_CONTRACT_ITEMS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_CONTRACT_PAYMENTS" EntityType="Self.PURCHASING_CONTRACT_PAYMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_CONTRACTS" EntityType="Self.PURCHASING_CONTRACTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_INVOICE_DOCS" EntityType="Self.PURCHASING_INVOICE_DOCS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_INVOICE_ITEMS" EntityType="Self.PURCHASING_INVOICE_ITEMS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_INVOICES" EntityType="Self.PURCHASING_INVOICES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_ITEM_STOCKS" EntityType="Self.PURCHASING_ITEM_STOCKS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_ITEMS" EntityType="Self.PURCHASING_ITEMS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_ORDER_DOCS" EntityType="Self.PURCHASING_ORDER_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_ORDER_ITEMS" EntityType="Self.PURCHASING_ORDER_ITEMS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PURCHASING_ORDERS" EntityType="Self.PURCHASING_ORDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_WRHS_EXPENSE_ITEMS" EntityType="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_WRHS_EXPENSES" EntityType="Self.PURCHASING_WRHS_EXPENSES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_WRHS_INCOME_ITEMS" EntityType="Self.PURCHASING_WRHS_INCOME_ITEMS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PURCHASING_WRHS_INCOMES" EntityType="Self.PURCHASING_WRHS_INCOMES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ROLES" EntityType="Self.ROLES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_CONTRACT_PRODUCTS" EntityType="Self.S_CONTRACT_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_CONTRACTS" EntityType="Self.S_CONTRACTS" Schema="dbo" store:Type="Tables" />
@@ -3594,6 +4036,14 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
             <End Role="F_WAYBILL_DOCS" EntitySet="F_WAYBILL_DOCS" />
           </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENTS_F_WAYBILLS" Association="Self.FK_F_WAYBILL_PAYMENTS_F_WAYBILLS">
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+            <End Role="F_WAYBILL_PAYMENTS" EntitySet="F_WAYBILL_PAYMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENTS_FORWARDERS" Association="Self.FK_F_WAYBILL_PAYMENTS_FORWARDERS">
+            <End Role="FORWARDERS" EntitySet="FORWARDERS" />
+            <End Role="F_WAYBILL_PAYMENTS" EntitySet="F_WAYBILL_PAYMENTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILLS_F_CONTRACTS" Association="Self.FK_F_WAYBILLS_F_CONTRACTS">
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
@@ -3682,6 +4132,14 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="P_ORDER_PARTS" EntitySet="P_ORDER_PARTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_ORDER_PAYMENTS_P_ORDERS" Association="Self.FK_P_ORDER_PAYMENTS_P_ORDERS">
+            <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+            <End Role="P_ORDER_PAYMENTS" EntitySet="P_ORDER_PAYMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_ORDER_PAYMENTS_SUPPLIERS" Association="Self.FK_P_ORDER_PAYMENTS_SUPPLIERS">
+            <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
+            <End Role="P_ORDER_PAYMENTS" EntitySet="P_ORDER_PAYMENTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_P_ORDERS_COMPANIES" Association="Self.FK_P_ORDERS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="P_ORDERS" EntitySet="P_ORDERS" />
@@ -3738,6 +4196,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="PART_WRHS_INCOMES" EntitySet="PART_WRHS_INCOMES" />
             <End Role="PART_WRHS_INCOME_DOCS" EntitySet="PART_WRHS_INCOME_DOCS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_WRHS_INCOME_ITEMS" Association="Self.FK_P_WRHS_INCOME_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_WRHS_INCOME_ITEMS" EntitySet="PURCHASING_WRHS_INCOME_ITEMS" />
+          </AssociationSet>
           <AssociationSet Name="FK_P_WRHS_INCOME_PARTS_P_WRHS_INCOMES" Association="Self.FK_P_WRHS_INCOME_PARTS_P_WRHS_INCOMES">
             <End Role="PART_WRHS_INCOMES" EntitySet="PART_WRHS_INCOMES" />
             <End Role="PART_WRHS_INCOME_PARTS" EntitySet="PART_WRHS_INCOME_PARTS" />
@@ -3745,6 +4207,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <AssociationSet Name="FK_P_WRHS_INCOME_PARTS_PARTS" Association="Self.FK_P_WRHS_INCOME_PARTS_PARTS">
             <End Role="PARTS" EntitySet="PARTS" />
             <End Role="PART_WRHS_INCOME_PARTS" EntitySet="PART_WRHS_INCOME_PARTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES" Association="Self.FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES">
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
+            <End Role="PURCHASING_WRHS_INCOME_ITEMS" EntitySet="PURCHASING_WRHS_INCOME_ITEMS" />
           </AssociationSet>
           <AssociationSet Name="FK_P_WRHS_INCOMES_F_WAYBILLS" Association="Self.FK_P_WRHS_INCOMES_F_WAYBILLS">
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
@@ -4018,6 +4484,58 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_PUR_INVOICE_ITEMS_ITEMS" Association="Self.FK_PUR_INVOICE_ITEMS_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_INVOICE_ITEMS" EntitySet="PURCHASING_INVOICE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_INVOICE_ITEMS_PUR_INVOICES" Association="Self.FK_PUR_INVOICE_ITEMS_PUR_INVOICES">
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+            <End Role="PURCHASING_INVOICE_ITEMS" EntitySet="PURCHASING_INVOICE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_INVOICE_ITEMS_UNITS" Association="Self.FK_PUR_INVOICE_ITEMS_UNITS">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="PURCHASING_INVOICE_ITEMS" EntitySet="PURCHASING_INVOICE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_ITEM_STOCKS_ITEMS" Association="Self.FK_PUR_ITEM_STOCKS_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_ITEM_STOCKS" EntitySet="PURCHASING_ITEM_STOCKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_ITEM_STOCKS_PART_WRHS" Association="Self.FK_PUR_ITEM_STOCKS_PART_WRHS">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_ITEM_STOCKS" EntitySet="PURCHASING_ITEM_STOCKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS" Association="Self.FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES" Association="Self.FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES">
+            <End Role="PURCHASING_WRHS_EXPENSES" EntitySet="PURCHASING_WRHS_EXPENSES" />
+            <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSE_PARTS_UNITS" Association="Self.FK_PUR_WRHS_EXPENSE_PARTS_UNITS">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSES_PART_WRHS" Association="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_EXPENSES" EntitySet="PURCHASING_WRHS_EXPENSES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSES_PART_WRHS1" Association="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS1">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_EXPENSES" EntitySet="PURCHASING_WRHS_EXPENSES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURC_INVOICE_DOCS_PUR_INVOICES" Association="Self.FK_PURC_INVOICE_DOCS_PUR_INVOICES">
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+            <End Role="PURCHASING_INVOICE_DOCS" EntitySet="PURCHASING_INVOICE_DOCS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURC_INVOICES_P_CONTRACTS" Association="Self.FK_PURC_INVOICES_P_CONTRACTS">
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURC_WRHS_INCOME_ITEMS_UNITS" Association="Self.FK_PURC_WRHS_INCOME_ITEMS_UNITS">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="PURCHASING_WRHS_INCOME_ITEMS" EntitySet="PURCHASING_WRHS_INCOME_ITEMS" />
+          </AssociationSet>
           <AssociationSet Name="FK_PURCHASING_CONTRACT_DOCS_CONTRACTS" Association="Self.FK_PURCHASING_CONTRACT_DOCS_CONTRACTS">
             <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
             <End Role="PURCHASING_CONTRACT_DOCS" EntitySet="PURCHASING_CONTRACT_DOCS" />
@@ -4034,9 +4552,17 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="PURCHASING_CONTRACT_ITEMS" EntitySet="PURCHASING_CONTRACT_ITEMS" />
           </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS" Association="Self.FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS">
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+            <End Role="PURCHASING_CONTRACT_PAYMENTS" EntitySet="PURCHASING_CONTRACT_PAYMENTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_PURCHASING_CONTRACTS_COMPANIES" Association="Self.FK_PURCHASING_CONTRACTS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_INVOICES_COMPANIES" Association="Self.FK_PURCHASING_INVOICES_COMPANIES">
+            <End Role="COMPANIES" EntitySet="COMPANIES" />
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
           </AssociationSet>
           <AssociationSet Name="FK_PURCHASING_ITEMS_UNITS" Association="Self.FK_PURCHASING_ITEMS_UNITS">
             <End Role="UNITS" EntitySet="UNITS" />
@@ -4061,6 +4587,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <AssociationSet Name="FK_PURCHASING_ORDERS_USERS1" Association="Self.FK_PURCHASING_ORDERS_USERS1">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_WRHS_INCOMES_CONTRACTS" Association="Self.FK_PURCHASING_WRHS_INCOMES_CONTRACTS">
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS" Association="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER" Association="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
           </AssociationSet>
           <AssociationSet Name="FK_S_CONTRACT_PRODUCTS_PRODUCTS" Association="Self.FK_S_CONTRACT_PRODUCTS_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
@@ -4273,6 +4811,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="P_CONTRACTS" Relationship="Self.FK_PCONTRACTS_COMPANIES" FromRole="COMPANIES" ToRole="P_CONTRACTS" />
           <NavigationProperty Name="SHOPS" Relationship="Self.FK_PRODUCTION_SHOPS_COMPANIES" FromRole="COMPANIES" ToRole="SHOPS" />
           <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK_PURCHASING_CONTRACTS_COMPANIES" FromRole="COMPANIES" ToRole="PURCHASING_CONTRACTS" />
+          <NavigationProperty Name="PURCHASING_INVOICES" Relationship="Self.FK_PURCHASING_INVOICES_COMPANIES" FromRole="COMPANIES" ToRole="PURCHASING_INVOICES" />
           <NavigationProperty Name="S_ORDERS" Relationship="Self.FK_S_ORDERS_COMPANIES" FromRole="COMPANIES" ToRole="S_ORDERS" />
           <NavigationProperty Name="S_CONTRACTS" Relationship="Self.FK_SCONTRACTS_COMPANIES" FromRole="COMPANIES" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="USERS" Relationship="Self.FK_USERS_COMPANIES" FromRole="COMPANIES" ToRole="USERS" />
@@ -4410,6 +4949,20 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS" FromRole="F_WAYBILL_DOCS" ToRole="F_WAYBILLS" />
         </EntityType>
+        <EntityType Name="F_WAYBILL_PAYMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ForwarderID" Type="Int32" Nullable="false" />
+          <Property Name="WaybillID" Type="Int32" Nullable="false" />
+          <Property Name="Payment_Amount" Type="Double" Nullable="false" />
+          <Property Name="Currency" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILL_PAYMENTS_F_WAYBILLS" FromRole="F_WAYBILL_PAYMENTS" ToRole="F_WAYBILLS" />
+          <NavigationProperty Name="FORWARDER" Relationship="Self.FK_F_WAYBILL_PAYMENTS_FORWARDERS" FromRole="F_WAYBILL_PAYMENTS" ToRole="FORWARDERS" />
+        </EntityType>
         <EntityType Name="F_WAYBILLS">
           <Key>
             <PropertyRef Name="ID" />
@@ -4428,6 +4981,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_WAYBILLS_F_CONTRACTS" FromRole="F_WAYBILLS" ToRole="F_CONTRACTS" />
           <NavigationProperty Name="F_TRANSPORT_TYPES" Relationship="Self.FK_F_WAYBILLS_F_TRANSPORT_TYPES" FromRole="F_WAYBILLS" ToRole="F_TRANSPORT_TYPES" />
           <NavigationProperty Name="F_WAYBILL_DOCS" Relationship="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_DOCS" />
+          <NavigationProperty Name="F_WAYBILL_PAYMENTS" Relationship="Self.FK_F_WAYBILL_PAYMENTS_F_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_PAYMENTS" />
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_F_WAYBILLS_P_INVOICES" FromRole="F_WAYBILLS" ToRole="P_INVOICES" />
           <NavigationProperty Name="PART_WRHS_INCOMES" Relationship="Self.FK_P_WRHS_INCOMES_F_WAYBILLS" FromRole="F_WAYBILLS" ToRole="PART_WRHS_INCOMES" />
         </EntityType>
@@ -4442,6 +4996,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_CONTRACTS_FORWARDERS" FromRole="FORWARDERS" ToRole="F_CONTRACTS" />
+          <NavigationProperty Name="F_WAYBILL_PAYMENTS" Relationship="Self.FK_F_WAYBILL_PAYMENTS_FORWARDERS" FromRole="FORWARDERS" ToRole="F_WAYBILL_PAYMENTS" />
         </EntityType>
         <EntityType Name="GTD_DOCS">
           <Key>
@@ -4614,6 +5169,20 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PART" Relationship="Self.FK_P_ORDER_PARTS_PARTS" FromRole="P_ORDER_PARTS" ToRole="PARTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_P_ORDER_PARTS_UNITS" FromRole="P_ORDER_PARTS" ToRole="UNITS" />
         </EntityType>
+        <EntityType Name="P_ORDER_PAYMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SupplierID" Type="Int32" Nullable="false" />
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <Property Name="Payment_Amount" Type="Double" Nullable="false" />
+          <Property Name="Currency" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="P_ORDERS" Relationship="Self.FK_P_ORDER_PAYMENTS_P_ORDERS" FromRole="P_ORDER_PAYMENTS" ToRole="P_ORDERS" />
+          <NavigationProperty Name="SUPPLIER" Relationship="Self.FK_P_ORDER_PAYMENTS_SUPPLIERS" FromRole="P_ORDER_PAYMENTS" ToRole="SUPPLIERS" />
+        </EntityType>
         <EntityType Name="P_ORDERS">
           <Key>
             <PropertyRef Name="ID" />
@@ -4633,6 +5202,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_P_INVOICES_P_ORDERS" FromRole="P_ORDERS" ToRole="P_INVOICES" />
           <NavigationProperty Name="P_ORDER_DOCS" Relationship="Self.FK_P_ORDER_DOCS_P_ORDERS" FromRole="P_ORDERS" ToRole="P_ORDER_DOCS" />
           <NavigationProperty Name="P_ORDER_PARTS" Relationship="Self.FK_P_ORDER_PARTS_P_ORDERS" FromRole="P_ORDERS" ToRole="P_ORDER_PARTS" />
+          <NavigationProperty Name="P_ORDER_PAYMENTS" Relationship="Self.FK_P_ORDER_PAYMENTS_P_ORDERS" FromRole="P_ORDERS" ToRole="P_ORDER_PAYMENTS" />
           <NavigationProperty Name="SUPPLIER" Relationship="Self.FK_P_ORDERS_SUPPLIERS" FromRole="P_ORDERS" ToRole="SUPPLIERS" />
         </EntityType>
         <EntityType Name="P_PACKINGLIST_PARTS">
@@ -4815,6 +5385,11 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PART_WRHS_INCOMES1" Relationship="Self.FK_P_WRHS_INCOMES_PART_WRHS_SENDER" FromRole="PART_WRHS" ToRole="PART_WRHS_INCOMES" />
           <NavigationProperty Name="SHOP" Relationship="Self.FK_PART_WRHS_PROD_SHOPS" FromRole="PART_WRHS" ToRole="SHOPS" />
           <NavigationProperty Name="USER" Relationship="Self.FK_PART_WRHS_USERS" FromRole="PART_WRHS" ToRole="USERS" />
+          <NavigationProperty Name="PURCHASING_ITEM_STOCKS" Relationship="Self.FK_PUR_ITEM_STOCKS_PART_WRHS" FromRole="PART_WRHS" ToRole="PURCHASING_ITEM_STOCKS" />
+          <NavigationProperty Name="PURCHASING_WRHS_EXPENSES" Relationship="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS" FromRole="PART_WRHS" ToRole="PURCHASING_WRHS_EXPENSES" />
+          <NavigationProperty Name="PURCHASING_WRHS_EXPENSES1" Relationship="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS1" FromRole="PART_WRHS" ToRole="PURCHASING_WRHS_EXPENSES" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOMES" Relationship="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS" FromRole="PART_WRHS" ToRole="PURCHASING_WRHS_INCOMES" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOMES1" Relationship="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER" FromRole="PART_WRHS" ToRole="PURCHASING_WRHS_INCOMES" />
           <NavigationProperty Name="WASTE_STOCKS" Relationship="Self.FK_WASTE_STOCKS_PART_WRHS" FromRole="PART_WRHS" ToRole="WASTE_STOCKS" />
         </EntityType>
         <EntityType Name="PART_WRHS_EXPENSE_DOCS">
@@ -5344,6 +5919,19 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_ITEMS" FromRole="PURCHASING_CONTRACT_ITEMS" ToRole="PURCHASING_ITEMS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_UNITS" FromRole="PURCHASING_CONTRACT_ITEMS" ToRole="UNITS" />
         </EntityType>
+        <EntityType Name="PURCHASING_CONTRACT_PAYMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Supplier" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="ContractID" Type="Int32" Nullable="false" />
+          <Property Name="Payment_Amount" Type="Double" Nullable="false" />
+          <Property Name="Currency" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS" FromRole="PURCHASING_CONTRACT_PAYMENTS" ToRole="PURCHASING_CONTRACTS" />
+        </EntityType>
         <EntityType Name="PURCHASING_CONTRACTS">
           <Key>
             <PropertyRef Name="ID" />
@@ -5364,7 +5952,64 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_PURCHASING_CONTRACTS_COMPANIES" FromRole="PURCHASING_CONTRACTS" ToRole="COMPANIES" />
           <NavigationProperty Name="PURCHASING_CONTRACT_DOCS" Relationship="Self.FK_PURCHASING_CONTRACT_DOCS_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_CONTRACT_DOCS" />
           <NavigationProperty Name="PURCHASING_CONTRACT_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_CONTRACT_ITEMS" />
+          <NavigationProperty Name="PURCHASING_CONTRACT_PAYMENTS" Relationship="Self.FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_CONTRACT_PAYMENTS" />
           <NavigationProperty Name="PURCHASING_ORDERS" Relationship="Self.FK__PURCHASIN__Order__216BEC9A" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_ORDERS" />
+          <NavigationProperty Name="PURCHASING_INVOICES" Relationship="Self.FK_PURC_INVOICES_P_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_INVOICES" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOMES" Relationship="Self.FK_PURCHASING_WRHS_INCOMES_CONTRACTS" FromRole="PURCHASING_CONTRACTS" ToRole="PURCHASING_WRHS_INCOMES" />
+        </EntityType>
+        <EntityType Name="PURCHASING_INVOICE_DOCS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="InvoiceID" Type="Int32" Nullable="false" />
+          <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <NavigationProperty Name="PURCHASING_INVOICES" Relationship="Self.FK_PURC_INVOICE_DOCS_PUR_INVOICES" FromRole="PURCHASING_INVOICE_DOCS" ToRole="PURCHASING_INVOICES" />
+        </EntityType>
+        <EntityType Name="PURCHASING_INVOICE_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="InvoiceID" Type="Int32" Nullable="false" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="Quantity" Type="Double" Nullable="false" />
+          <Property Name="Price" Type="Double" Nullable="false" />
+          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="UnitID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PUR_INVOICE_ITEMS_ITEMS" FromRole="PURCHASING_INVOICE_ITEMS" ToRole="PURCHASING_ITEMS" />
+          <NavigationProperty Name="PURCHASING_INVOICES" Relationship="Self.FK_PUR_INVOICE_ITEMS_PUR_INVOICES" FromRole="PURCHASING_INVOICE_ITEMS" ToRole="PURCHASING_INVOICES" />
+          <NavigationProperty Name="UNIT" Relationship="Self.FK_PUR_INVOICE_ITEMS_UNITS" FromRole="PURCHASING_INVOICE_ITEMS" ToRole="UNITS" />
+        </EntityType>
+        <EntityType Name="PURCHASING_INVOICES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="InvoiceNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="ContractID" Type="Int32" Nullable="false" />
+          <Property Name="Supplier" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="InvoiceDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Currency" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="CompanyID" Type="Int32" />
+          <Property Name="IsDeleted" Type="Boolean" />
+          <NavigationProperty Name="COMPANy" Relationship="Self.FK_PURCHASING_INVOICES_COMPANIES" FromRole="PURCHASING_INVOICES" ToRole="COMPANIES" />
+          <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK_PURC_INVOICES_P_CONTRACTS" FromRole="PURCHASING_INVOICES" ToRole="PURCHASING_CONTRACTS" />
+          <NavigationProperty Name="PURCHASING_INVOICE_DOCS" Relationship="Self.FK_PURC_INVOICE_DOCS_PUR_INVOICES" FromRole="PURCHASING_INVOICES" ToRole="PURCHASING_INVOICE_DOCS" />
+          <NavigationProperty Name="PURCHASING_INVOICE_ITEMS" Relationship="Self.FK_PUR_INVOICE_ITEMS_PUR_INVOICES" FromRole="PURCHASING_INVOICES" ToRole="PURCHASING_INVOICE_ITEMS" />
+        </EntityType>
+        <EntityType Name="PURCHASING_ITEM_STOCKS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="WHID" Type="Int32" Nullable="false" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="Unit" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <NavigationProperty Name="PART_WRHS" Relationship="Self.FK_PUR_ITEM_STOCKS_PART_WRHS" FromRole="PURCHASING_ITEM_STOCKS" ToRole="PART_WRHS" />
+          <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PUR_ITEM_STOCKS_ITEMS" FromRole="PURCHASING_ITEM_STOCKS" ToRole="PURCHASING_ITEMS" />
         </EntityType>
         <EntityType Name="PURCHASING_ITEMS">
           <Key>
@@ -5377,6 +6022,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="PURCHASING_CONTRACT_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_CONTRACT_ITEMS" />
+          <NavigationProperty Name="PURCHASING_INVOICE_ITEMS" Relationship="Self.FK_PUR_INVOICE_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_INVOICE_ITEMS" />
+          <NavigationProperty Name="PURCHASING_ITEM_STOCKS" Relationship="Self.FK_PUR_ITEM_STOCKS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_ITEM_STOCKS" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOME_ITEMS" Relationship="Self.FK_P_WRHS_INCOME_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_WRHS_INCOME_ITEMS" />
+          <NavigationProperty Name="PURCHASING_WRHS_EXPENSE_ITEMS" Relationship="Self.FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_WRHS_EXPENSE_ITEMS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PURCHASING_ITEMS_UNITS" FromRole="PURCHASING_ITEMS" ToRole="UNITS" />
           <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_ORDER_ITEMS" />
         </EntityType>
@@ -5426,6 +6075,78 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_ORDER_ITEMS" />
           <NavigationProperty Name="USER" Relationship="Self.FK_PURCHASING_ORDERS_USERS" FromRole="PURCHASING_ORDERS" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_PURCHASING_ORDERS_USERS1" FromRole="PURCHASING_ORDERS" ToRole="USERS" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_EXPENSE_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ExpenseID" Type="Int32" Nullable="false" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="PiecePrice" Type="Double" />
+          <Property Name="TotalPrice" Type="Double" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="UnitID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS" FromRole="PURCHASING_WRHS_EXPENSE_ITEMS" ToRole="PURCHASING_ITEMS" />
+          <NavigationProperty Name="PURCHASING_WRHS_EXPENSES" Relationship="Self.FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES" FromRole="PURCHASING_WRHS_EXPENSE_ITEMS" ToRole="PURCHASING_WRHS_EXPENSES" />
+          <NavigationProperty Name="UNIT" Relationship="Self.FK_PUR_WRHS_EXPENSE_PARTS_UNITS" FromRole="PURCHASING_WRHS_EXPENSE_ITEMS" ToRole="UNITS" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_EXPENSES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Amount" Type="Double" />
+          <Property Name="Currency" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TotalPrice" Type="Double" />
+          <Property Name="ReceiverWhID" Type="Int32" />
+          <Property Name="SenderWHID" Type="Int32" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="IssueDateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SendStatus" Type="Boolean" />
+          <NavigationProperty Name="PART_WRHS" Relationship="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS" FromRole="PURCHASING_WRHS_EXPENSES" ToRole="PART_WRHS" />
+          <NavigationProperty Name="PART_WRHS1" Relationship="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS1" FromRole="PURCHASING_WRHS_EXPENSES" ToRole="PART_WRHS" />
+          <NavigationProperty Name="PURCHASING_WRHS_EXPENSE_ITEMS" Relationship="Self.FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES" FromRole="PURCHASING_WRHS_EXPENSES" ToRole="PURCHASING_WRHS_EXPENSE_ITEMS" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_INCOME_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="IncomeID" Type="Int32" Nullable="false" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="PiecePrice" Type="Double" />
+          <Property Name="TotalPrice" Type="Double" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="UnitID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_P_WRHS_INCOME_ITEMS" FromRole="PURCHASING_WRHS_INCOME_ITEMS" ToRole="PURCHASING_ITEMS" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOMES" Relationship="Self.FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES" FromRole="PURCHASING_WRHS_INCOME_ITEMS" ToRole="PURCHASING_WRHS_INCOMES" />
+          <NavigationProperty Name="UNIT" Relationship="Self.FK_PURC_WRHS_INCOME_ITEMS_UNITS" FromRole="PURCHASING_WRHS_INCOME_ITEMS" ToRole="UNITS" />
+        </EntityType>
+        <EntityType Name="PURCHASING_WRHS_INCOMES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="WHID" Type="Int32" Nullable="false" />
+          <Property Name="ContractID" Type="Int32" />
+          <Property Name="Amount" Type="Double" />
+          <Property Name="Currency" Type="String" MaxLength="35" FixedLength="false" Unicode="false" />
+          <Property Name="TotalPrice" Type="Double" />
+          <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="IssueDateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SenderWHID" Type="Int32" />
+          <Property Name="RecieveStatus" Type="Boolean" />
+          <NavigationProperty Name="PART_WRHS" Relationship="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS" FromRole="PURCHASING_WRHS_INCOMES" ToRole="PART_WRHS" />
+          <NavigationProperty Name="PART_WRHS1" Relationship="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER" FromRole="PURCHASING_WRHS_INCOMES" ToRole="PART_WRHS" />
+          <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK_PURCHASING_WRHS_INCOMES_CONTRACTS" FromRole="PURCHASING_WRHS_INCOMES" ToRole="PURCHASING_CONTRACTS" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOME_ITEMS" Relationship="Self.FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES" FromRole="PURCHASING_WRHS_INCOMES" ToRole="PURCHASING_WRHS_INCOME_ITEMS" />
         </EntityType>
         <EntityType Name="ROLE">
           <Key>
@@ -5629,6 +6350,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <Property Name="City" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="P_CONTRACTS" Relationship="Self.FK_PCONTRACTS_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_CONTRACTS" />
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_P_INVOICES_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_INVOICES" />
+          <NavigationProperty Name="P_ORDER_PAYMENTS" Relationship="Self.FK_P_ORDER_PAYMENTS_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_ORDER_PAYMENTS" />
           <NavigationProperty Name="P_ORDERS" Relationship="Self.FK_P_ORDERS_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_ORDERS" />
           <NavigationProperty Name="P_PROFORMA_INVOICES" Relationship="Self.FK_P_PROFORMA_INVOICES_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_PROFORMA_INVOICES" />
         </EntityType>
@@ -5691,7 +6413,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <NavigationProperty Name="PROD_WRHS_INCOME_PRODUCTS" Relationship="Self.FK_PROD_WRHS_INCOME_PRODUCTS_UNITS" FromRole="UNITS" ToRole="PROD_WRHS_INCOME_PRODUCTS" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_UNITS" FromRole="UNITS" ToRole="PRODUCTS" />
           <NavigationProperty Name="PURCHASING_CONTRACT_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_UNITS" FromRole="UNITS" ToRole="PURCHASING_CONTRACT_ITEMS" />
+          <NavigationProperty Name="PURCHASING_INVOICE_ITEMS" Relationship="Self.FK_PUR_INVOICE_ITEMS_UNITS" FromRole="UNITS" ToRole="PURCHASING_INVOICE_ITEMS" />
           <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PURCHASING_ITEMS_UNITS" FromRole="UNITS" ToRole="PURCHASING_ITEMS" />
+          <NavigationProperty Name="PURCHASING_WRHS_EXPENSE_ITEMS" Relationship="Self.FK_PUR_WRHS_EXPENSE_PARTS_UNITS" FromRole="UNITS" ToRole="PURCHASING_WRHS_EXPENSE_ITEMS" />
+          <NavigationProperty Name="PURCHASING_WRHS_INCOME_ITEMS" Relationship="Self.FK_PURC_WRHS_INCOME_ITEMS_UNITS" FromRole="UNITS" ToRole="PURCHASING_WRHS_INCOME_ITEMS" />
           <NavigationProperty Name="S_CONTRACT_PRODUCTS" Relationship="Self.FK_S_CONTRACT_PRODUCTS_UNITS" FromRole="UNITS" ToRole="S_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="S_ORDER_PRODUCTS" Relationship="Self.FK_S_ORDER_PRODUCTS_UNITS" FromRole="UNITS" ToRole="S_ORDER_PRODUCTS" />
           <NavigationProperty Name="TEMPORARY_BOMS" Relationship="Self.FK_TEMPORARY_BOMS_UNITS" FromRole="UNITS" ToRole="TEMPORARY_BOMS" />
@@ -6004,6 +6729,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PURCHASING_INVOICES_COMPANIES">
+          <End Role="COMPANIES" Type="Self.COMPANy" Multiplicity="0..1" />
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="COMPANIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICES">
+              <PropertyRef Name="CompanyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_S_ORDERS_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANy" Multiplicity="1" />
           <End Role="S_ORDERS" Type="Self.S_ORDERS" Multiplicity="*" />
@@ -6205,6 +6942,30 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="F_WAYBILL_DOCS">
               <PropertyRef Name="WaybillID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENTS_F_WAYBILLS">
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="1" />
+          <End Role="F_WAYBILL_PAYMENTS" Type="Self.F_WAYBILL_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_WAYBILLS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENTS">
+              <PropertyRef Name="WaybillID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENTS_FORWARDERS">
+          <End Role="FORWARDERS" Type="Self.FORWARDER" Multiplicity="1" />
+          <End Role="F_WAYBILL_PAYMENTS" Type="Self.F_WAYBILL_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FORWARDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENTS">
+              <PropertyRef Name="ForwarderID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -6520,6 +7281,30 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_P_ORDER_PAYMENTS_P_ORDERS">
+          <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="1" />
+          <End Role="P_ORDER_PAYMENTS" Type="Self.P_ORDER_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_ORDER_PAYMENTS">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_ORDER_PAYMENTS_SUPPLIERS">
+          <End Role="SUPPLIERS" Type="Self.SUPPLIER" Multiplicity="1" />
+          <End Role="P_ORDER_PAYMENTS" Type="Self.P_ORDER_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_ORDER_PAYMENTS">
+              <PropertyRef Name="SupplierID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_P_ORDERS_SUPPLIERS">
           <End Role="SUPPLIERS" Type="Self.SUPPLIER" Multiplicity="0..1" />
           <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="*" />
@@ -6805,6 +7590,66 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="PART_WRHS">
               <PropertyRef Name="MRP" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_ITEM_STOCKS_PART_WRHS">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="1" />
+          <End Role="PURCHASING_ITEM_STOCKS" Type="Self.PURCHASING_ITEM_STOCKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ITEM_STOCKS">
+              <PropertyRef Name="WHID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSES_PART_WRHS">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSES" Type="Self.PURCHASING_WRHS_EXPENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSES">
+              <PropertyRef Name="SenderWHID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSES_PART_WRHS1">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="0..1" />
+          <End Role="PURCHASING_WRHS_EXPENSES" Type="Self.PURCHASING_WRHS_EXPENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSES">
+              <PropertyRef Name="ReceiverWhID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="WHID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER">
+          <End Role="PART_WRHS" Type="Self.PART_WRHS" Multiplicity="0..1" />
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PART_WRHS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="SenderWHID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -7516,6 +8361,18 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS">
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="1" />
+          <End Role="PURCHASING_CONTRACT_PAYMENTS" Type="Self.PURCHASING_CONTRACT_PAYMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_CONTRACT_PAYMENTS">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK__PURCHASIN__Order__216BEC9A">
           <End Role="PURCHASING_ORDERS" Type="Self.PURCHASING_ORDERS" Multiplicity="1" />
           <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="*" />
@@ -7525,6 +8382,114 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="PURCHASING_CONTRACTS">
               <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURC_INVOICES_P_CONTRACTS">
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICES">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_WRHS_INCOMES_CONTRACTS">
+          <End Role="PURCHASING_CONTRACTS" Type="Self.PURCHASING_CONTRACTS" Multiplicity="0..1" />
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURC_INVOICE_DOCS_PUR_INVOICES">
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_DOCS" Type="Self.PURCHASING_INVOICE_DOCS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_DOCS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_INVOICE_ITEMS_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_ITEMS" Type="Self.PURCHASING_INVOICE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_ITEMS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_INVOICE_ITEMS_PUR_INVOICES">
+          <End Role="PURCHASING_INVOICES" Type="Self.PURCHASING_INVOICES" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_ITEMS" Type="Self.PURCHASING_INVOICE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_ITEMS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_INVOICE_ITEMS_UNITS">
+          <End Role="UNITS" Type="Self.UNIT" Multiplicity="1" />
+          <End Role="PURCHASING_INVOICE_ITEMS" Type="Self.PURCHASING_INVOICE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_INVOICE_ITEMS">
+              <PropertyRef Name="UnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_ITEM_STOCKS_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_ITEM_STOCKS" Type="Self.PURCHASING_ITEM_STOCKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ITEM_STOCKS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_WRHS_INCOME_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOME_ITEMS" Type="Self.PURCHASING_WRHS_INCOME_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOME_ITEMS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS">
+          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSE_ITEMS">
+              <PropertyRef Name="ItemID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -7597,6 +8562,54 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             </Principal>
             <Dependent Role="PURCHASING_ORDERS">
               <PropertyRef Name="BuyerUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES">
+          <End Role="PURCHASING_WRHS_EXPENSES" Type="Self.PURCHASING_WRHS_EXPENSES" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_WRHS_EXPENSES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSE_ITEMS">
+              <PropertyRef Name="ExpenseID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PUR_WRHS_EXPENSE_PARTS_UNITS">
+          <End Role="UNITS" Type="Self.UNIT" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_EXPENSE_ITEMS">
+              <PropertyRef Name="UnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES">
+          <End Role="PURCHASING_WRHS_INCOMES" Type="Self.PURCHASING_WRHS_INCOMES" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOME_ITEMS" Type="Self.PURCHASING_WRHS_INCOME_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_WRHS_INCOMES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOME_ITEMS">
+              <PropertyRef Name="IncomeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURC_WRHS_INCOME_ITEMS_UNITS">
+          <End Role="UNITS" Type="Self.UNIT" Multiplicity="1" />
+          <End Role="PURCHASING_WRHS_INCOME_ITEMS" Type="Self.PURCHASING_WRHS_INCOME_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_WRHS_INCOME_ITEMS">
+              <PropertyRef Name="UnitID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -7804,6 +8817,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySet Name="F_CONTRACTS" EntityType="Self.F_CONTRACTS" />
           <EntitySet Name="F_TRANSPORT_TYPES" EntityType="Self.F_TRANSPORT_TYPES" />
           <EntitySet Name="F_WAYBILL_DOCS" EntityType="Self.F_WAYBILL_DOCS" />
+          <EntitySet Name="F_WAYBILL_PAYMENTS" EntityType="Self.F_WAYBILL_PAYMENTS" />
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" />
           <EntitySet Name="FORWARDERS" EntityType="Self.FORWARDER" />
           <EntitySet Name="GTD_DOCS" EntityType="Self.GTD_DOCS" />
@@ -7818,6 +8832,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySet Name="P_INVOICES" EntityType="Self.P_INVOICES" />
           <EntitySet Name="P_ORDER_DOCS" EntityType="Self.P_ORDER_DOCS" />
           <EntitySet Name="P_ORDER_PARTS" EntityType="Self.P_ORDER_PARTS" />
+          <EntitySet Name="P_ORDER_PAYMENTS" EntityType="Self.P_ORDER_PAYMENTS" />
           <EntitySet Name="P_ORDERS" EntityType="Self.P_ORDERS" />
           <EntitySet Name="P_PACKINGLIST_PARTS" EntityType="Self.P_PACKINGLIST_PARTS" />
           <EntitySet Name="P_PROFORMA_INVOICE_DOCS" EntityType="Self.P_PROFORMA_INVOICE_DOCS" />
@@ -7859,11 +8874,20 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <EntitySet Name="PRODUCTS" EntityType="Self.PRODUCT" />
           <EntitySet Name="PURCHASING_CONTRACT_DOCS" EntityType="Self.PURCHASING_CONTRACT_DOCS" />
           <EntitySet Name="PURCHASING_CONTRACT_ITEMS" EntityType="Self.PURCHASING_CONTRACT_ITEMS" />
+          <EntitySet Name="PURCHASING_CONTRACT_PAYMENTS" EntityType="Self.PURCHASING_CONTRACT_PAYMENTS" />
           <EntitySet Name="PURCHASING_CONTRACTS" EntityType="Self.PURCHASING_CONTRACTS" />
+          <EntitySet Name="PURCHASING_INVOICE_DOCS" EntityType="Self.PURCHASING_INVOICE_DOCS" />
+          <EntitySet Name="PURCHASING_INVOICE_ITEMS" EntityType="Self.PURCHASING_INVOICE_ITEMS" />
+          <EntitySet Name="PURCHASING_INVOICES" EntityType="Self.PURCHASING_INVOICES" />
+          <EntitySet Name="PURCHASING_ITEM_STOCKS" EntityType="Self.PURCHASING_ITEM_STOCKS" />
           <EntitySet Name="PURCHASING_ITEMS" EntityType="Self.PURCHASING_ITEMS" />
           <EntitySet Name="PURCHASING_ORDER_DOCS" EntityType="Self.PURCHASING_ORDER_DOCS" />
           <EntitySet Name="PURCHASING_ORDER_ITEMS" EntityType="Self.PURCHASING_ORDER_ITEMS" />
           <EntitySet Name="PURCHASING_ORDERS" EntityType="Self.PURCHASING_ORDERS" />
+          <EntitySet Name="PURCHASING_WRHS_EXPENSE_ITEMS" EntityType="Self.PURCHASING_WRHS_EXPENSE_ITEMS" />
+          <EntitySet Name="PURCHASING_WRHS_EXPENSES" EntityType="Self.PURCHASING_WRHS_EXPENSES" />
+          <EntitySet Name="PURCHASING_WRHS_INCOME_ITEMS" EntityType="Self.PURCHASING_WRHS_INCOME_ITEMS" />
+          <EntitySet Name="PURCHASING_WRHS_INCOMES" EntityType="Self.PURCHASING_WRHS_INCOMES" />
           <EntitySet Name="ROLES" EntityType="Self.ROLE" />
           <EntitySet Name="S_CONTRACT_PRODUCTS" EntityType="Self.S_CONTRACT_PRODUCTS" />
           <EntitySet Name="S_CONTRACTS" EntityType="Self.S_CONTRACTS" />
@@ -7947,6 +8971,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_INVOICES_COMPANIES" Association="Self.FK_PURCHASING_INVOICES_COMPANIES">
+            <End Role="COMPANIES" EntitySet="COMPANIES" />
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+          </AssociationSet>
           <AssociationSet Name="FK_S_ORDERS_COMPANIES" Association="Self.FK_S_ORDERS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="S_ORDERS" EntitySet="S_ORDERS" />
@@ -8014,6 +9042,14 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <AssociationSet Name="FK_F_WAYBILL_DOCS_F_WAYBILLS" Association="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS">
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
             <End Role="F_WAYBILL_DOCS" EntitySet="F_WAYBILL_DOCS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENTS_F_WAYBILLS" Association="Self.FK_F_WAYBILL_PAYMENTS_F_WAYBILLS">
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+            <End Role="F_WAYBILL_PAYMENTS" EntitySet="F_WAYBILL_PAYMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENTS_FORWARDERS" Association="Self.FK_F_WAYBILL_PAYMENTS_FORWARDERS">
+            <End Role="FORWARDERS" EntitySet="FORWARDERS" />
+            <End Role="F_WAYBILL_PAYMENTS" EntitySet="F_WAYBILL_PAYMENTS" />
           </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILLS_P_INVOICES" Association="Self.FK_F_WAYBILLS_P_INVOICES">
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
@@ -8119,6 +9155,14 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="P_ORDER_PARTS" EntitySet="P_ORDER_PARTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_ORDER_PAYMENTS_P_ORDERS" Association="Self.FK_P_ORDER_PAYMENTS_P_ORDERS">
+            <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+            <End Role="P_ORDER_PAYMENTS" EntitySet="P_ORDER_PAYMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_ORDER_PAYMENTS_SUPPLIERS" Association="Self.FK_P_ORDER_PAYMENTS_SUPPLIERS">
+            <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
+            <End Role="P_ORDER_PAYMENTS" EntitySet="P_ORDER_PAYMENTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_P_ORDERS_SUPPLIERS" Association="Self.FK_P_ORDERS_SUPPLIERS">
             <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
             <End Role="P_ORDERS" EntitySet="P_ORDERS" />
@@ -8214,6 +9258,26 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <AssociationSet Name="FK_PART_WRHS_USERS" Association="Self.FK_PART_WRHS_USERS">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_ITEM_STOCKS_PART_WRHS" Association="Self.FK_PUR_ITEM_STOCKS_PART_WRHS">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_ITEM_STOCKS" EntitySet="PURCHASING_ITEM_STOCKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSES_PART_WRHS" Association="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_EXPENSES" EntitySet="PURCHASING_WRHS_EXPENSES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSES_PART_WRHS1" Association="Self.FK_PUR_WRHS_EXPENSES_PART_WRHS1">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_EXPENSES" EntitySet="PURCHASING_WRHS_EXPENSES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS" Association="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER" Association="Self.FK_PURCHASING_WRHS_INCOMES_PART_WRHS_SENDER">
+            <End Role="PART_WRHS" EntitySet="PART_WRHS" />
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
           </AssociationSet>
           <AssociationSet Name="FK_WASTE_STOCKS_PART_WRHS" Association="Self.FK_WASTE_STOCKS_PART_WRHS">
             <End Role="PART_WRHS" EntitySet="PART_WRHS" />
@@ -8451,9 +9515,49 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="PURCHASING_CONTRACT_ITEMS" EntitySet="PURCHASING_CONTRACT_ITEMS" />
           </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS" Association="Self.FK_PURCHASING_CONTRACT_PAYMENTS_PURCHASING_CONTRACTS">
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+            <End Role="PURCHASING_CONTRACT_PAYMENTS" EntitySet="PURCHASING_CONTRACT_PAYMENTS" />
+          </AssociationSet>
           <AssociationSet Name="FK__PURCHASIN__Order__216BEC9A" Association="Self.FK__PURCHASIN__Order__216BEC9A">
             <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
             <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURC_INVOICES_P_CONTRACTS" Association="Self.FK_PURC_INVOICES_P_CONTRACTS">
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_WRHS_INCOMES_CONTRACTS" Association="Self.FK_PURCHASING_WRHS_INCOMES_CONTRACTS">
+            <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURC_INVOICE_DOCS_PUR_INVOICES" Association="Self.FK_PURC_INVOICE_DOCS_PUR_INVOICES">
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+            <End Role="PURCHASING_INVOICE_DOCS" EntitySet="PURCHASING_INVOICE_DOCS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_INVOICE_ITEMS_ITEMS" Association="Self.FK_PUR_INVOICE_ITEMS_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_INVOICE_ITEMS" EntitySet="PURCHASING_INVOICE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_INVOICE_ITEMS_PUR_INVOICES" Association="Self.FK_PUR_INVOICE_ITEMS_PUR_INVOICES">
+            <End Role="PURCHASING_INVOICES" EntitySet="PURCHASING_INVOICES" />
+            <End Role="PURCHASING_INVOICE_ITEMS" EntitySet="PURCHASING_INVOICE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_INVOICE_ITEMS_UNITS" Association="Self.FK_PUR_INVOICE_ITEMS_UNITS">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="PURCHASING_INVOICE_ITEMS" EntitySet="PURCHASING_INVOICE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_ITEM_STOCKS_ITEMS" Association="Self.FK_PUR_ITEM_STOCKS_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_ITEM_STOCKS" EntitySet="PURCHASING_ITEM_STOCKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_WRHS_INCOME_ITEMS" Association="Self.FK_P_WRHS_INCOME_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_WRHS_INCOME_ITEMS" EntitySet="PURCHASING_WRHS_INCOME_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS" Association="Self.FK_PUR_WRHS_EXPENSE_ITEMS_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
           </AssociationSet>
           <AssociationSet Name="FK_PURCHASING_ITEMS_UNITS" Association="Self.FK_PURCHASING_ITEMS_UNITS">
             <End Role="UNITS" EntitySet="UNITS" />
@@ -8478,6 +9582,22 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           <AssociationSet Name="FK_PURCHASING_ORDERS_USERS1" Association="Self.FK_PURCHASING_ORDERS_USERS1">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES" Association="Self.FK_PUR_WRHS_EXPENSE_PARTS_P_WRHS_EXPENSES">
+            <End Role="PURCHASING_WRHS_EXPENSES" EntitySet="PURCHASING_WRHS_EXPENSES" />
+            <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PUR_WRHS_EXPENSE_PARTS_UNITS" Association="Self.FK_PUR_WRHS_EXPENSE_PARTS_UNITS">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES" Association="Self.FK_P_WRHS_INCOME_PURCHASING_WRHS_INCOMES">
+            <End Role="PURCHASING_WRHS_INCOMES" EntitySet="PURCHASING_WRHS_INCOMES" />
+            <End Role="PURCHASING_WRHS_INCOME_ITEMS" EntitySet="PURCHASING_WRHS_INCOME_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURC_WRHS_INCOME_ITEMS_UNITS" Association="Self.FK_PURC_WRHS_INCOME_ITEMS_UNITS">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="PURCHASING_WRHS_INCOME_ITEMS" EntitySet="PURCHASING_WRHS_INCOME_ITEMS" />
           </AssociationSet>
           <AssociationSet Name="FK_S_CONTRACT_PRODUCTS_S_CONTRACTS" Association="Self.FK_S_CONTRACT_PRODUCTS_S_CONTRACTS">
             <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
@@ -8566,6 +9686,10 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
           </FunctionImport>
           <FunctionImport Name="GetSupplierParts" ReturnType="Collection(DBTHSNModel.GetSupplierParts_Result)">
             <Parameter Name="SupplierID" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="InTransitView">
+            <Parameter Name="TodayDate" Mode="In" Type="DateTime" />
+            <Parameter Name="EndDate" Mode="In" Type="DateTime" />
           </FunctionImport>
           <FunctionImport Name="WeeklyCoverage">
             <Parameter Name="TodayDate" Mode="In" Type="DateTime" />
@@ -8838,6 +9962,19 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="F_WAYBILL_PAYMENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.F_WAYBILL_PAYMENTS">
+              <MappingFragment StoreEntitySet="F_WAYBILL_PAYMENTS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="ForwarderID" ColumnName="ForwarderID" />
+                <ScalarProperty Name="WaybillID" ColumnName="WaybillID" />
+                <ScalarProperty Name="Payment_Amount" ColumnName="Payment_Amount" />
+                <ScalarProperty Name="Currency" ColumnName="Currency" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="F_WAYBILLS">
             <EntityTypeMapping TypeName="DBTHSNModel.F_WAYBILLS">
               <MappingFragment StoreEntitySet="F_WAYBILLS">
@@ -9013,6 +10150,19 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
                 <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
                 <ScalarProperty Name="MOQ" ColumnName="MOQ" />
                 <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="P_ORDER_PAYMENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.P_ORDER_PAYMENTS">
+              <MappingFragment StoreEntitySet="P_ORDER_PAYMENTS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="SupplierID" ColumnName="SupplierID" />
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="Payment_Amount" ColumnName="Payment_Amount" />
+                <ScalarProperty Name="Currency" ColumnName="Currency" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -9639,6 +10789,19 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_CONTRACT_PAYMENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_CONTRACT_PAYMENTS">
+              <MappingFragment StoreEntitySet="PURCHASING_CONTRACT_PAYMENTS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="Supplier" ColumnName="Supplier" />
+                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="Payment_Amount" ColumnName="Payment_Amount" />
+                <ScalarProperty Name="Currency" ColumnName="Currency" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="PURCHASING_CONTRACTS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_CONTRACTS">
               <MappingFragment StoreEntitySet="PURCHASING_CONTRACTS">
@@ -9655,6 +10818,54 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
                 <ScalarProperty Name="Comment" ColumnName="Comment" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_INVOICE_DOCS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_INVOICE_DOCS">
+              <MappingFragment StoreEntitySet="PURCHASING_INVOICE_DOCS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="Doc" ColumnName="Doc" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_INVOICE_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_INVOICE_ITEMS">
+              <MappingFragment StoreEntitySet="PURCHASING_INVOICE_ITEMS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+                <ScalarProperty Name="Price" ColumnName="Price" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_INVOICES">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_INVOICES">
+              <MappingFragment StoreEntitySet="PURCHASING_INVOICES">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="InvoiceNo" ColumnName="InvoiceNo" />
+                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="Supplier" ColumnName="Supplier" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="InvoiceDate" ColumnName="InvoiceDate" />
+                <ScalarProperty Name="Currency" ColumnName="Currency" />
+                <ScalarProperty Name="CompanyID" ColumnName="CompanyID" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_ITEM_STOCKS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ITEM_STOCKS">
+              <MappingFragment StoreEntitySet="PURCHASING_ITEM_STOCKS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="WHID" ColumnName="WHID" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -9709,6 +10920,69 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="OrderedByDept" ColumnName="OrderedByDept" />
                 <ScalarProperty Name="OrderedByUser" ColumnName="OrderedByUser" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_WRHS_EXPENSE_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_WRHS_EXPENSE_ITEMS">
+              <MappingFragment StoreEntitySet="PURCHASING_WRHS_EXPENSE_ITEMS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="ExpenseID" ColumnName="ExpenseID" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="PiecePrice" ColumnName="PiecePrice" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_WRHS_EXPENSES">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_WRHS_EXPENSES">
+              <MappingFragment StoreEntitySet="PURCHASING_WRHS_EXPENSES">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DocNo" ColumnName="DocNo" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Currency" ColumnName="Currency" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="ReceiverWhID" ColumnName="ReceiverWhID" />
+                <ScalarProperty Name="SenderWHID" ColumnName="SenderWHID" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="IssueDateTime" ColumnName="IssueDateTime" />
+                <ScalarProperty Name="SendStatus" ColumnName="SendStatus" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_WRHS_INCOME_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_WRHS_INCOME_ITEMS">
+              <MappingFragment StoreEntitySet="PURCHASING_WRHS_INCOME_ITEMS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="IncomeID" ColumnName="IncomeID" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="PiecePrice" ColumnName="PiecePrice" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PURCHASING_WRHS_INCOMES">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_WRHS_INCOMES">
+              <MappingFragment StoreEntitySet="PURCHASING_WRHS_INCOMES">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DocNo" ColumnName="DocNo" />
+                <ScalarProperty Name="WHID" ColumnName="WHID" />
+                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Currency" ColumnName="Currency" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="IssueDateTime" ColumnName="IssueDateTime" />
+                <ScalarProperty Name="SenderWHID" ColumnName="SenderWHID" />
+                <ScalarProperty Name="RecieveStatus" ColumnName="RecieveStatus" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -10159,6 +11433,7 @@ error 6004: The table 'DBTHSN-TEST.dbo.GTD_INVOICES' is referenced by a relation
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="InTransitView" FunctionName="DBTHSNModel.Store.InTransitView" />
           <FunctionImportMapping FunctionImportName="WeeklyCoverage" FunctionName="DBTHSNModel.Store.WeeklyCoverage" />
           <FunctionImportMapping FunctionImportName="WeeklyPartRequirement" FunctionName="DBTHSNModel.Store.WeeklyPartRequirement" />
         </EntityContainerMapping>
