@@ -25,6 +25,39 @@ namespace tahsinERP.Controllers
                 return View(list);
             }
         }
+        public ActionResult GetProgressPercentage(int ID)
+        {
+            using(DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var order = db.PURCHASING_ORDERS.Find(ID);
+                if (order == null)
+                {
+                    return Json(0, JsonRequestBehavior.AllowGet); // Return 0 if order not found
+                }
+
+                // Assuming you calculate progress based on some logic
+                var progress = CalculateOrderProgress(order); // Implement your logic here
+
+                return Json(progress, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        private int CalculateOrderProgress(PURCHASING_ORDERS order)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+                // Example logic to calculate progress
+                var existContract = db.PURCHASING_CONTRACTS.Find(order.ID);
+                if (existContract != null)
+                {
+                    return 100;
+                }
+                /*if (order.Status == "Completed") return 100;
+                if (order.Status == "In Progress") return 50;*/
+                return 0; // Default
+            }
+        }
 
         public ActionResult Create()
         {
@@ -52,13 +85,13 @@ namespace tahsinERP.Controllers
                     {
                         var newOrder = new PURCHASING_ORDERS()
                         {
-                            OrderCode = model.OrderCode,
+                            OrderCode = model.OrderCodeEDO,
                             OrderCodeEDO = model.OrderCodeEDO,
                             Comment = model.Comment,
                             Status = "Jarayonda",
                             CreatedByUserID = GetUserID(User.Identity.Name),
                             BuyerUserID = model.BuyerUserID,
-                            CreatedDT = model.CreatedDT,
+                            CreatedDT = model.ApprovedDTEDO,
                             ApprovedDTEDO = model.ApprovedDTEDO,
                             OrderedByUser = model.OrderByUser,
                             OrderedByDept = model.OrderByDept
@@ -308,7 +341,7 @@ namespace tahsinERP.Controllers
 
                 partList = db.PURCHASING_ORDER_ITEMS
                                 .Include(x => x.PURCHASING_ITEMS)
-                                .Where(x => x.IsDeleted == false)
+                                .Where(x => x.IsDeleted == false && x.OrderID == ID)
                                 .ToList();
                 ViewBag.userList = new SelectList(
                                     db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
@@ -330,15 +363,18 @@ namespace tahsinERP.Controllers
                     PURCHASING_ORDERS purchasingOrderToUpdate = db.PURCHASING_ORDERS.Find(purchasingOrder.ID);
                     if (purchasingOrderToUpdate != null)
                     {
-                        purchasingOrderToUpdate.OrderCode = purchasingOrder.OrderCode;
+                        purchasingOrderToUpdate.OrderCode = purchasingOrder.OrderCodeEDO;
                         purchasingOrderToUpdate.OrderCodeEDO = purchasingOrder.OrderCodeEDO;
                         purchasingOrderToUpdate.BuyerUserID = purchasingOrder.BuyerUserID;
                         purchasingOrderToUpdate.Comment = purchasingOrder.Comment;
-                        purchasingOrderToUpdate.Status = purchasingOrder.Status;
                         purchasingOrderToUpdate.ApprovedDTEDO = purchasingOrder.ApprovedDTEDO;
-
+                        purchasingOrderToUpdate.CreatedDT = purchasingOrder.CreatedDT;
+                        purchasingOrderToUpdate.OrderedByDept = purchasingOrder.OrderedByDept;
+                        purchasingOrderToUpdate.OrderedByUser = purchasingOrder.OrderedByUser;
                         try
                         {
+                            // Correct this line
+                            //db.Entry(purchasingOrderToUpdate).State = EntityState.Modified;
                             db.SaveChanges();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingOrderToUpdate.OrderCode} - kodli tahrirladi");
@@ -357,6 +393,7 @@ namespace tahsinERP.Controllers
             LogHelper.LogToDatabase(userEmail, "PurchasingOrderController", "Edit[Post]");
             return View(purchasingOrder);
         }
+
         public ActionResult EditPart(int? ID)
         {
             if (ID == null)

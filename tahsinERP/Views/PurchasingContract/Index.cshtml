@@ -62,6 +62,7 @@
                                                     <th></th>
                                                     <th></th>
                                                     <th>Shartnoma raqami</th>
+                                                    <th>Buyurtma EDO raqami</th>
                                                     <th>Taminotchi</th>
                                                     <th>Miqdori</th>
                                                     <th>Sanasi</th>
@@ -82,8 +83,11 @@
                                                         <td>
                                                             <a href="~/PurchasingContract/Details/@item.ID">@item.ContractNo</a>
                                                         </td>
+                                                        <td>
+                                                            <a href="~/PurchasingOrder/Details/@item.OrderID">@item.PURCHASING_ORDERS.OrderCodeEDO</a>
+                                                        </td>
                                                         <td>@item.Supplier</td>
-                                                        <td>@item.Amount</td>
+                                                        <td>@item.Amount @item.Currency</td>
                                                         <td>@item.IssueDT.ToString("dd.MM.yyyy")</td>
                                                         <td>@item.Incoterms</td>
                                                         <td>@item.PaymentTerms</td>

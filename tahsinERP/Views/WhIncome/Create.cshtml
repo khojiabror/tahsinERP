@@ -26,17 +26,14 @@
                                         Kirim qilish
                                     </li>
                                     <li class="col-md-6 col-12 form-group ms-auto">
-                                        <label for="DocNo">Ombor</label>
-                                        @Html.TextBoxFor(model => model.WHName, new { @type = "text", @class = "form-control", @id = "DocNo", @disabled = "disabled" })
+                                        <br /> ombor: <b>@Model.WHName</b>
                                     </li>
                                 </ol>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
-            
             <div class="content-body">
                 <section id="form-repeater-wrapper">
                     <div class="row">
@@ -77,7 +74,7 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="Description">Batafsil ma'lumot</label>
+                                                            <label for="Description">Izoh</label>
                                                             @Html.TextBoxFor(model => model.Description, new { @type = "text", @class = "form-control", @id = "Description", @placeholder = "Batafsil ma'lumot kiriting" })
                                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                         </div>

@@ -26,7 +26,7 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/PurchasingContract/Index">Harid Shartnomalar</a>
+                                            <a href="~/PurchasingContract/Index">Xarid Shartnomalar</a>
                                         </li>
                                         <li class="breadcrumb-item active">
                                             Shartnoma sahifasi
@@ -45,8 +45,6 @@
                                 <div class="card-content">
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row justify-content-around d-flex align-items-start">
-
-
                                             <div class="col-lg-6 col-sm-12">
                                                 <div class="row">
                                                     <div class="col-md-6 col-12 form-group">
@@ -56,7 +54,7 @@
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group">
                                                         <h6 class="invoice-to">Buyurtmani tanlang</h6>@*
-                                                        @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, new { @class = "form-control select2", @disabled = "disabled" })*@
+            @Html.DropDownList("OrderID", (SelectList)ViewBag.orderList, new { @class = "form-control select2", @disabled = "disabled" })*@
                                                         @Html.TextBoxFor(model => model.PURCHASING_ORDERS.OrderCode, new { @type = "text", @class = "form-control", @disabled = "disabled" })
                                                         @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
                                                     </div>
@@ -64,6 +62,19 @@
                                                         <h6 class="invoice-to">Ta'minotchi</h6>
                                                         @Html.TextBoxFor(model => model.Supplier, new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Supplier, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="form-group position-relative has-icon-left">
+                                                        <label>Tuzilgan sanasi</label>
+                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
+                                                        <div class="form-control-position mt-2">
+                                                            <i class='bx bx-calendar'></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Izoh</h6>
+                                                        @Html.TextAreaFor(model => model.Comment, new { @type = "text", @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.Comment, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group">
                                                         <h6 class="invoice-to">Valyuta</h6>
@@ -88,14 +99,6 @@
                                                         @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="form-group position-relative has-icon-left">
-                                                        <label>Tuzilgan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
-                                                        <div class="form-control-position mt-2">
-                                                            <i class='bx bx-calendar'></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group position-relative has-icon-left">
                                                         <label>Tugaydigan sanasi</label>
                                                         @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
@@ -103,79 +106,84 @@
                                                             <i class='bx bx-calendar'></i>
                                                         </div>
                                                     </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <h6 class="invoice-to">Umumiy miqdori</h6>
+                                                        @Html.TextBoxFor(model => model.Amount, new { @type = "text", @class = "form-control", @required = "required", disabled="disabled" })
+                                                        @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                        <section id="column-selectors">
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="card">
-                                                        <div class="card-header">
-                                                            <h4 class="card-title">Shartnoma predmeti</h4>
-                                                        </div>
-                                                        <div class="card-content">
-                                                            <div class="card-body card-dashboard">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-striped dataex-html5-selectors" style="width:100%">
-                                                                        <thead>
+                                    <section id="column-selectors">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h4 class="card-title">Shartnoma predmeti</h4>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <div class="card-body card-dashboard">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-striped dataex-html5-selectors" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Maxsulot raqami</th>
+                                                                            <th>Maxsulot nomi</th>
+                                                                            <th>Miqdori</th>
+                                                                            <th>Birlik narxi</th>
+                                                                            <th>Umumiy narxi</th>
+                                                                            <th>MOQ</th>
+                                                                            <th>Amallar</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach (var item in ViewBag.partList)
+                                                                        {
                                                                             <tr>
-                                                                                <th>Item raqami</th>
-                                                                                <th>Item nomi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>Birlik narxi</th>
-                                                                                <th>Umumiy narxi</th>
-                                                                                <th>MOQ</th>
-                                                                                <th>Amallar</th>
+                                                                                <td>
+                                                                                    <a href="~/Part/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemCode</a>
+                                                                                </td>
+                                                                                <td><a href="~/Part/Details/@item.ItemID"> @item.PURCHASING_ITEMS.ItemName</a></td>
+                                                                                <td>@item.Amount @item.UNIT.UnitName</td>
+                                                                                <td>@item.Price</td>
+                                                                                <td>@item.TotalPrice</td>
+                                                                                <td>@item.MOQ</td>
+                                                                                <td>
+                                                                                    <div>
+                                                                                        <a href="@Url.Action("EditPart", "PurchasingContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
+                                                                                        <a href="~/PurchasingContract/DeletePart/@item.ID" onclick="return confirm('Ushbu shartnoma detalini ochirib yuborishga ishonchingiz komilmi?')">
+                                                                                            <i class="bx bx-trash"></i>
+                                                                                        </a>
+                                                                                    </div>
+                                                                                </td>
                                                                             </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach (var item in ViewBag.partList)
-                                                                            {
-                                                                                <tr>
-                                                                                    <td>
-                                                                                        <a href="~/Part/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemCode</a>
-                                                                                    </td>
-                                                                                    <td><a href="~/Part/Details/@item.ItemID"> @item.PURCHASING_ITEMS.ItemName</a></td>
-                                                                                    <td>@item.Amount @item.UNIT.UnitName</td>
-                                                                                    <td>@item.Price</td>
-                                                                                    <td>@item.TotalPrice</td>
-                                                                                    <td>@item.MOQ</td>
-                                                                                    <td>
-                                                                                        <div>
-                                                                                            <a href="@Url.Action("EditPart", "PurchasingContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                                            <a href="~/PurchasingContract/DeletePart/@item.ID" onclick="return confirm('Ushbu shartnoma detalini ochirib yuborishga ishonchingiz komilmi?')">
-                                                                                                <i class="bx bx-trash"></i>
-                                                                                            </a>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            }
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </section>
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item border-0 pb-0">
-                                                <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
-                                                    <i class='bx bx-save'></i>
-                                                    Saqlash
-                                                </button>
-                                            </li>
-                                        </ul>
-                                        <hr>
-                                    </div>
+                                        </div>
+                                    </section>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item border-0 pb-0">
+                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
+                                                <i class='bx bx-save'></i>
+                                                Saqlash
+                                            </button>
+                                        </li>
+                                    </ul>
+                                    <hr>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
     }
 }
 else

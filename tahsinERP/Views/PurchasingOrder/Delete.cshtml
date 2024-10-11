@@ -43,13 +43,9 @@
 
                                             <h4 class="text-primary">Sotuv buyurtma  ma'lumotlari</h4>
                                             <hr />
-                                            <span><b>Buyurtma raqami</b>: @Html.DisplayFor(model => model.OrderCode, new { @class = "form-control" })</span>
-                                            <hr />
                                             <span><b>Buyurtma raqami EDO</b>: @Html.DisplayFor(model => model.OrderCodeEDO, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Yaratilgan sanasi</b>: @Html.DisplayFor(model => model.CreatedDT, new { @class = "form-control" })</span>
-                                            <hr />
-                                            <span><b>Tasdiqlangan (EDO) sanasi</b>: @Html.DisplayFor(model => model.ApprovedDTEDO, new { @class = "form-control" })</span>
+                                            <span><b>Tasdiqlangan (EDO) sanasi</b>: @Model.ApprovedDTEDO.Value.ToString("dd.MM.yyyy")</span>
                                             <hr />
                                             <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" }) </span>
                                             <hr />
@@ -96,7 +92,7 @@
                                                                 <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Item nomi</th>
+                                                                            <th>Maxsulot nomi</th>
                                                                             <th>Birlik narxi</th>
                                                                             <th>Narxi</th>
                                                                             <th>Miqdori</th>

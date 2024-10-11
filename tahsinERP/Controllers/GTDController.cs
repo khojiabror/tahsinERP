@@ -13,14 +13,46 @@ namespace tahsinERP.Controllers
 {
     public class GTDController : Controller
     {
-        public ActionResult Create()
+        public ActionResult Index()
         {
             using ( DBTHSNEntities db = new DBTHSNEntities())
             {
-                
+                var list = db.GTDS.Where(x => x.IsDeleted == false).ToList();
+                return View(list);
+            }
+        }
+        public ActionResult Create()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
             }
             return View();
         }
-    
+        public ActionResult Delete()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+            }
+            return View();
+        }
+        public ActionResult Details()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+            }
+            return View();
+        }
+        public ActionResult Edit()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+            }
+            return View();
+        }
+
     }
 }

@@ -127,14 +127,14 @@
                                             </div>
                                             <br />
                                             <h4>
-                                                Predmeti
+                                                Maxsulotlar
                                             </h4>
                                             <div data-repeater-list="Parts">
                                                 <div data-repeater-item id="repeaterItem">
                                                     <div class="row justify-content-between">
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_PartID">Predmetni tanlang</label>
+                                                            <label for="Part_PartID">Maxsulotni tanlang</label>
                                                             @Html.DropDownList("ItemID", (SelectList)ViewBag.items, new { @class = "form-control select", @id = "select2", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
                                                         </div>
@@ -168,7 +168,7 @@
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_TotalPrice">Umumiy narx</label>
-                                                            <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" />
+                                                            <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" disabled="disabled" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
@@ -184,7 +184,7 @@
                                                 </div>
                                             </div>
 
-                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi item qo`shish</button>
+                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi maxsulot qo`shish</button>
 
                                             // Save button
                                             <ul class="list-group list-group-flush">
@@ -254,7 +254,7 @@ else
                     </div>
                     <div class="col-md-2 col-sm-12 form-group">
                         <label for="Part_TotalPrice">Umumiy narxi</label>
-                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" />
+                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" disabled="disabled" />
                     </div>
                     <div class="col-md-2 col-sm-12 form-group">
                         <label for="Part_MOQ">MOQ</label>

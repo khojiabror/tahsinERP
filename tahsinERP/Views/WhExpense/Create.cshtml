@@ -15,7 +15,7 @@
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
@@ -26,7 +26,7 @@
                                         Chiqim qilish
                                     </li>
                                     <li class="col-md-6 col-12 form-group ms-auto">
-                                    <br /> Ombor: @Html.TextBoxFor(model => model.WHName, new { @type = "text", @class = "form-control", @id = "DocNo", @disabled = "disabled" })
+                                        <br /> Ombor :  <b>@ViewBag.WHName</b>
                                     </li>
                                 </ol>
                             </div>
@@ -52,13 +52,13 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="DocNo">Hujjat raqami</label>
-                                                            @Html.TextBoxFor(model => model.DocNo, new { @type = "text", @class = "form-control", @id = "DocNo", @disabled = "disable" })
+                                                            @Html.TextBoxFor(model => model.DocNo, new { @type = "text", @class = "form-control", @id = "DocNo", @disabled = "disable", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="InvoiceId">Qabul qiluvchi</label>
-                                                            @Html.DropDownListFor(model => model.RecieverWHID, (SelectList)ViewBag.PartWrhs, new { @id = "RecieverWhID", @class = "form-control select2" })
+                                                            @Html.DropDownListFor(model => model.RecieverWHID, (SelectList)ViewBag.PartWrhs, new { @id = "RecieverWhID", @class = "form-control select2", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.RecieverWHID, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -73,8 +73,8 @@
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="Currency">Batafsil ma`lumot</label>
-                                                            @Html.TextBoxFor(model => model.Description, new { @type = "text", @class = "form-control", @id = "Currency" })
+                                                            <label for="Currency">Izoh</label>
+                                                            @Html.TextAreaFor(model => model.Description, new { @type = "text", @class = "form-control", @id = "Currency" })
                                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                         </div>
 @*
@@ -97,25 +97,20 @@
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_PartID">Ehtiyot qismni tanlang</label>
-                                                            @Html.DropDownList("PartID", (SelectList)ViewBag.IncomeParts, new { @class = "form-control select" })
+                                                            @Html.DropDownList("PartID", (SelectList)ViewBag.IncomeParts, new { @class = "form-control select", @required="required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].PartID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Unit">Birligi</label>
-                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
+                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                        <div class="col-md-2 col-sm-10 form-group">
                                                             <label for="Part_Amount">Miqdori</label>
                                                             <input type="number" name="Amount" class="form-control" id="Part_Amount" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger" })
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger", @required = "required" })
                                                         </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_PiecePrice">Birlik narxi</label>
-                                                            <input type="number" name="PiecePrice" step="0.01" class="form-control" id="Part_PiecePrice" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].PiecePrice, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                        <div class="col-md-2 col-sm-8 form-group">
                                                             <label for="Part_Comment">Izoh</label>
                                                             <input type="text" name="Comment" class="form-control" id="Part_Comment" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Comment, "", new { @class = "text-danger" })
