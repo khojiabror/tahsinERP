@@ -460,6 +460,32 @@
                             </a>
                         </li>
                     }
+                    @if(RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
+                    {
+                        <li class=" navigation-header">
+                            <span>To'lovlar</span>
+                        </li>
+                        <li class=" nav-item">
+                            <a href="#"><i class="bx bxs-cart"></i><span class="menu-title" data-i18n="Card">Примой</span></a>
+                            <ul class="menu-content">
+                                <li class=" nav-item">
+                                    <a href="/ComingSoon/Index">
+                                        <i class="bx bx-cart-alt"></i><span class="menu-item" data-i18n="Indirect">Buyurtmalar</span>
+                                    </a>
+                                </li>
+                                <li class=" nav-item">
+                                    <a href="/ComingSoon/Index">
+                                        <i class="bx bxs-purchase-tag-alt"></i><span class="menu-item" data-i18n="Indirect">Maxsulotlar bazasi</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class=" nav-item">
+                            <a href="/PurchasingPayment/Index">
+                                <i class="bx bx-receipt"></i><span class="menu-item" data-i18n="Indirect">Непримой</span>
+                            </a>
+                        </li>
+                    }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
                     {
                         <li class=" navigation-header">
