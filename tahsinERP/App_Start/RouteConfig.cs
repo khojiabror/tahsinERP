@@ -18,7 +18,14 @@ namespace tahsinERP
                 name: "DeletePart",
                 url: "PContract/DeletePart/{id}",
                 defaults: new { controller = "PContract", action = "DeletePart" }
-);
+            );
+            routes.MapRoute(
+                name: "PurchasingPayment",
+                url: "Purchasing/{controller}/{action}/{id}",
+                defaults: new { controller = "PurchasingPayment", action = "Index", id = UrlParameter.Optional },
+                namespaces: new[] { "tahsinERP.Controllers.Purchasing" } // Namespace qo'shish
+            );
+
         }
     }
 }
