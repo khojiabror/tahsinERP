@@ -923,7 +923,6 @@
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\PurchasingContractViewModel.cs" />
-    <Compile Include="ViewModels\PurchasingOrderViewModel.cs" />
     <Compile Include="ViewModels\PurchasingOrder\PurchasingOrderViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
