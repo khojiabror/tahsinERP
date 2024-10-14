@@ -22,6 +22,8 @@ namespace tahsinERP.Models
         public string Currency { get; set; }
         public double TotalPrice { get; set; }
         public bool IsDeleted { get; set; }
+        public Nullable<bool> Status { get; set; }
+        public string Comment { get; set; }
     
         public virtual PURCHASING_ITEMS PURCHASING_ITEMS { get; set; }
         public virtual PURCHASING_ORDERS PURCHASING_ORDERS { get; set; }

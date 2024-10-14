@@ -468,6 +468,7 @@
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\MES\CarPlanController.cs" />
+    <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
     <Compile Include="Controllers\SRM\GTDController.cs" />
     <Compile Include="Controllers\AdminSetting\LastActionsController.cs" />
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
@@ -503,6 +504,7 @@
     <Compile Include="Controllers\ProductionProcessController.cs" />
     <Compile Include="Controllers\Engeneering\ProductPackController.cs" />
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
+    <Compile Include="Controllers\SRM\POrderPaymentController.cs" />
     <Compile Include="Controllers\SRM\ProformaInvoiceController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingContractController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingItemController.cs" />
@@ -752,15 +754,6 @@
     <Compile Include="Models\PURCHASING_CONTRACT_PAYMENTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PURCHASING_INVOICES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_INVOICE_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_INVOICE_ITEMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\PURCHASING_ITEMS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -923,7 +916,10 @@
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\PurchasingContractViewModel.cs" />
-    <Compile Include="ViewModels\PurchasingOrder\PurchasingOrderViewModel.cs" />
+    <Compile Include="ViewModels\Purchasing\PurchasingContractViewModel.cs" />
+    <Compile Include="ViewModels\Purchasing\PurchasingOrderViewModel.cs" />
+    <Compile Include="ViewModels\Purchasing\PurchasingWhExpenseViewModel.cs" />
+    <Compile Include="ViewModels\Purchasing\PurchasingWhIncomeViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
@@ -2980,6 +2976,17 @@
     <Content Include="Views\GTD\Delete.cshtml" />
     <Content Include="Views\GTD\Details.cshtml" />
     <Content Include="Views\GTD\Edit.cshtml" />
+    <Content Include="Views\POrderPayment\Create.cshtml" />
+    <Content Include="Views\POrderPayment\Delete.cshtml" />
+    <Content Include="Views\POrderPayment\Details.cshtml" />
+    <Content Include="Views\POrderPayment\Edit.cshtml" />
+    <Content Include="Views\POrderPayment\Index.cshtml" />
+    <Content Include="Views\PurchasingPayment\Create.cshtml" />
+    <Content Include="Views\PurchasingPayment\Delete.cshtml" />
+    <Content Include="Views\PurchasingPayment\Details.cshtml" />
+    <Content Include="Views\PurchasingPayment\Edit.cshtml" />
+    <Content Include="Views\PurchasingPayment\Index.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

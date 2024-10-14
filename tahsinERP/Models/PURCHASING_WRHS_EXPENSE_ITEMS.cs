@@ -24,7 +24,7 @@ namespace tahsinERP.Models
         public int UnitID { get; set; }
     
         public virtual PURCHASING_ITEMS PURCHASING_ITEMS { get; set; }
-        public virtual PURCHASING_WRHS_EXPENSES PURCHASING_WRHS_EXPENSES { get; set; }
         public virtual UNIT UNIT { get; set; }
+        public virtual PURCHASING_WRHS_EXPENSES PURCHASING_WRHS_EXPENSES { get; set; }
     }
 }

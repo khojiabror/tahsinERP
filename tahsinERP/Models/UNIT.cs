@@ -30,7 +30,6 @@ namespace tahsinERP.Models
             this.PROD_WRHS_INCOME_PRODUCTS = new HashSet<PROD_WRHS_INCOME_PRODUCTS>();
             this.PRODUCTS = new HashSet<PRODUCT>();
             this.PURCHASING_CONTRACT_ITEMS = new HashSet<PURCHASING_CONTRACT_ITEMS>();
-            this.PURCHASING_INVOICE_ITEMS = new HashSet<PURCHASING_INVOICE_ITEMS>();
             this.PURCHASING_ITEMS = new HashSet<PURCHASING_ITEMS>();
             this.PURCHASING_WRHS_EXPENSE_ITEMS = new HashSet<PURCHASING_WRHS_EXPENSE_ITEMS>();
             this.PURCHASING_WRHS_INCOME_ITEMS = new HashSet<PURCHASING_WRHS_INCOME_ITEMS>();
@@ -70,8 +69,6 @@ namespace tahsinERP.Models
         public virtual ICollection<PRODUCT> PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PURCHASING_INVOICE_ITEMS> PURCHASING_INVOICE_ITEMS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

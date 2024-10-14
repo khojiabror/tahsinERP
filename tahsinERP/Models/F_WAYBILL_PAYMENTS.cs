@@ -22,7 +22,7 @@ namespace tahsinERP.Models
         public bool IsDeleted { get; set; }
         public string Comment { get; set; }
     
-        public virtual F_WAYBILLS F_WAYBILLS { get; set; }
         public virtual FORWARDER FORWARDER { get; set; }
+        public virtual F_WAYBILLS F_WAYBILLS { get; set; }
     }
 }

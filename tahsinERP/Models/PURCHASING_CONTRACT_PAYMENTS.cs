@@ -11,17 +11,13 @@ namespace tahsinERP.Models
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-
+    
     public partial class PURCHASING_CONTRACT_PAYMENTS
     {
         public int ID { get; set; }
-        [Required]
         public string Supplier { get; set; }
         public int ContractID { get; set; }
-        [Required]
         public double Payment_Amount { get; set; }
-        [Required]
         public string Currency { get; set; }
         public bool IsDeleted { get; set; }
         public string Comment { get; set; }

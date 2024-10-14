@@ -31,7 +31,7 @@ namespace tahsinERP.Models
         public string Description { get; set; }
         public System.DateTime IssueDateTime { get; set; }
         public Nullable<int> SenderWHID { get; set; }
-        public Nullable<bool> RecieveStatus { get; set; }
+        public Nullable<bool> ReceiveStatus { get; set; }
     
         public virtual PART_WRHS PART_WRHS { get; set; }
         public virtual PART_WRHS PART_WRHS1 { get; set; }

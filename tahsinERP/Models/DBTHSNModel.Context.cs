@@ -101,9 +101,6 @@ namespace tahsinERP.Models
         public virtual DbSet<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACT_PAYMENTS> PURCHASING_CONTRACT_PAYMENTS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
-        public virtual DbSet<PURCHASING_INVOICE_DOCS> PURCHASING_INVOICE_DOCS { get; set; }
-        public virtual DbSet<PURCHASING_INVOICE_ITEMS> PURCHASING_INVOICE_ITEMS { get; set; }
-        public virtual DbSet<PURCHASING_INVOICES> PURCHASING_INVOICES { get; set; }
         public virtual DbSet<PURCHASING_ITEM_STOCKS> PURCHASING_ITEM_STOCKS { get; set; }
         public virtual DbSet<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }
@@ -162,15 +159,6 @@ namespace tahsinERP.Models
                 new ObjectParameter("SupplierID", typeof(int));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_by_supplierID_Result>("GetPartsInfo_by_supplierID", supplierIDParameter);
-        }
-    
-        public virtual ObjectResult<GetPartsInfo_by_type_Result> GetPartsInfo_by_type(string type)
-        {
-            var typeParameter = type != null ?
-                new ObjectParameter("Type", type) :
-                new ObjectParameter("Type", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_by_type_Result>("GetPartsInfo_by_type", typeParameter);
         }
     
         public virtual ObjectResult<GetPartsInfo_by_type_and_supplierID_Result> GetPartsInfo_by_type_and_supplierID(string type, Nullable<int> supplierID)
@@ -241,6 +229,15 @@ namespace tahsinERP.Models
                 new ObjectParameter("EndDate", typeof(System.DateTime));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("WeeklyPartRequirement", todayDateParameter, endDateParameter);
+        }
+    
+        public virtual ObjectResult<GetPartsInfo_by_type_Result> GetPartsInfo_by_type(string type)
+        {
+            var typeParameter = type != null ?
+                new ObjectParameter("Type", type) :
+                new ObjectParameter("Type", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_by_type_Result>("GetPartsInfo_by_type", typeParameter);
         }
     }
 }
