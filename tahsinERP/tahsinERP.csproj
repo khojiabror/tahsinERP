@@ -468,7 +468,9 @@
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\MES\CarPlanController.cs" />
+    <Compile Include="Controllers\PublicViewController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
+    <Compile Include="Controllers\Purchasing\PurchasingWhIncomeController.cs" />
     <Compile Include="Controllers\SRM\GTDController.cs" />
     <Compile Include="Controllers\AdminSetting\LastActionsController.cs" />
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
@@ -918,6 +920,7 @@
     <Compile Include="ViewModels\PurchasingContractViewModel.cs" />
     <Compile Include="ViewModels\Purchasing\PurchasingContractViewModel.cs" />
     <Compile Include="ViewModels\Purchasing\PurchasingOrderViewModel.cs" />
+    <Compile Include="ViewModels\Purchasing\PurchasingStatusViewModel.cs" />
     <Compile Include="ViewModels\Purchasing\PurchasingWhExpenseViewModel.cs" />
     <Compile Include="ViewModels\Purchasing\PurchasingWhIncomeViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
@@ -2987,9 +2990,13 @@
     <Content Include="Views\PurchasingPayment\Edit.cshtml" />
     <Content Include="Views\PurchasingPayment\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\PurchasingWhIncome\Index.cshtml" />
+    <Content Include="Views\PurchasingWhIncome\Create.cshtml" />
+    <Content Include="Views\PurchasingOrder\Status.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\PublicView\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
