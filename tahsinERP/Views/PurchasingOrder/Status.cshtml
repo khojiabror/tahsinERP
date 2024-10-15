@@ -1,0 +1,123 @@
+﻿@model List<tahsinERP.ViewModels.Purchasing.PurchasingStatusViewModel>
+
+@{
+    ViewBag.Title = "Status";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@*
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = false;
+    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    {
+        changePermit = true;
+    }*@
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item ">
+                                        Sahifalar
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Xarid buyurtmalari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <!-- users list start -->
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <!-- datatable start -->
+                                    <div class="table-responsive table-responsivetable-responsive">
+                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Maxsulot nomi</th>
+                                                    <th>Buyurtma miqdori</th>
+                                                    <th>Shartnoma miqdori</th>
+                                                    <th>To'lov miqdori</th>
+                                                    <th>Ombor kirim</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <a href="~/PurchasingItem/Details/@item.ItemID">@item.ItemID</a>
+                                                        </td>
+                                                        <td>@item.OrderAmount</td>
+                                                        <td>@item.ContractAmount</td>
+                                                        <td>@item.PaymentAmount</td>
+                                                        <td>@item.IncomeAmount</td>
+                                                        @*<td>
+                                                            <div class="progress-bar">
+                                                                <div id="progress-element-@item.ID" class="element" style="width: 0%;">0%</div>
+                                                            </div>
+                                                        </td>*@
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+    //////////////////////////
+    // Function to update the progress bar for a specific order
+    function updateProgressBar(orderID, progressElementId) {
+        $.ajax({
+            url: '/PurchasingOrder/GetProgressPercentage', // Point to your action
+            type: 'GET',
+            data: { ID: orderID }, // Pass the orderID to the controller
+            success: function (response) {
+                // Update the progress bar's width and text
+                $('#' + progressElementId).css('width', response + '%');
+                $('#' + progressElementId).text(response + '%');
+            },
+            error: function () {
+                console.error('Failed to get progress percentage.');
+            }
+        });
+    }
+    $(document).ready(function () {
+        $('tbody tr').each(function () {
+            var orderID = $(this).find('td:nth-child(3) a').attr('href').split('/').pop(); // Extract ID from link
+            var progressElementId = 'progress-element-' + orderID; // Make the ID for the progress bar
+
+            // Call the function for each order
+            updateProgressBar(orderID, progressElementId);
+        });
+    });
+
+</script>
