@@ -2993,6 +2993,10 @@
     <Content Include="Views\PurchasingWhIncome\Index.cshtml" />
     <Content Include="Views\PurchasingWhIncome\Create.cshtml" />
     <Content Include="Views\PurchasingOrder\Status.cshtml" />
+    <Content Include="Views\PurchasingWhIncome\Details.cshtml" />
+    <Content Include="Views\PurchasingWhIncome\Delete.cshtml" />
+    <Content Include="Views\PurchasingWhIncome\Edit.cshtml" />
+    <Content Include="Views\PurchasingWhIncome\EditPart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

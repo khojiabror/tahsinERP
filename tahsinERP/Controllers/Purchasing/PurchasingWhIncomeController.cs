@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -171,7 +174,308 @@ namespace tahsinERP.Controllers.Purchasing
                 }
             }
         }
+        public ActionResult Details(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db1 = new DBTHSNEntities())
+            {
+                var wrhsIncome = db1.PURCHASING_WRHS_INCOMES
+                                  .Include(p => p.PURCHASING_CONTRACTS)
+                                  .FirstOrDefault(p => p.ID == ID);
+
+                if (wrhsIncome == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var partList = db1.PURCHASING_WRHS_INCOME_ITEMS
+                                  .Include(pc => pc.PURCHASING_ITEMS)
+                                  .Include(pc => pc.UNIT)
+                                  .Where(pc => pc.IncomeID == wrhsIncome.ID)
+                                  .ToList();
+
+                ViewBag.partList = partList;
+
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
 
 
+                return View(wrhsIncome);
+            }
+        }
+        public ActionResult Delete(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db1 = new DBTHSNEntities())
+            {
+                var wrhsIncome = db1.PURCHASING_WRHS_INCOMES
+                                  .Include(p => p.PURCHASING_CONTRACTS)
+                                  .FirstOrDefault(p => p.ID == ID);
+
+                if (wrhsIncome == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var partList = db1.PURCHASING_WRHS_INCOME_ITEMS
+                                  .Include(pc => pc.PURCHASING_ITEMS)
+                                  .Include(pc => pc.UNIT)
+                                  .Where(pc => pc.IncomeID == wrhsIncome.ID)
+                                  .ToList();
+
+                ViewBag.partList = partList;
+
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
+
+
+                return View(wrhsIncome);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int? ID, FormCollection gfs)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    PURCHASING_WRHS_INCOMES whIncomeToDelete = db.PURCHASING_WRHS_INCOMES.Find(ID);
+                    if (whIncomeToDelete != null)
+                    {
+                        whIncomeToDelete.IsDeleted = true;
+                        try
+                        {
+                            db.Entry(whIncomeToDelete).State = System.Data.Entity.EntityState.Modified;
+                            var purchasingItems = db.PURCHASING_WRHS_INCOME_ITEMS.Where(pc => pc.IncomeID == whIncomeToDelete.ID).ToList();
+                            foreach (var whIncomeItem in purchasingItems)
+                            {
+                                db.PURCHASING_WRHS_INCOME_ITEMS.Remove(whIncomeItem);
+                            }
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{whIncomeToDelete.DocNo} - itemWrhsIncomeni o'chirdi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Bunday shartnoma topilmadi.");
+                    }
+                }
+            }
+            return View();
+        }
+        public ActionResult DeletePart(int? id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                PURCHASING_WRHS_INCOME_ITEMS purchasingItemToDelete = db.PURCHASING_WRHS_INCOME_ITEMS.Find(id);
+                if (ModelState.IsValid)
+                {
+                    if (purchasingItemToDelete != null)
+                    {
+                        try
+                        {
+                            db.PURCHASING_WRHS_INCOME_ITEMS.Remove(purchasingItemToDelete);
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_ITEMS.Find(purchasingItemToDelete.ItemID).ItemName} - purchasingWrhsIncomeItemni o'chirdi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "ContractPart not found.");
+                    }
+                }
+                return View(purchasingItemToDelete);
+            }
+        }
+        public ActionResult Edit(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            PURCHASING_WRHS_INCOMES whrsIncome;
+            List<PURCHASING_WRHS_INCOME_ITEMS> partList;
+
+            using (DBTHSNEntities db1 = new DBTHSNEntities())
+            {
+                whrsIncome = db1.PURCHASING_WRHS_INCOMES
+                            .Include(i => i.PURCHASING_CONTRACTS)
+                            .FirstOrDefault(p => p.ID == ID);
+
+                if (whrsIncome == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // suppliers = new SelectList(db1.SUPPLIERS.ToList(), "ID", "Name", whrsIncome.SupplierID);
+
+                partList = db1.PURCHASING_WRHS_INCOME_ITEMS
+                            .Include(whp => whp.PURCHASING_ITEMS)
+                            .Include(whp => whp.UNIT)
+                            .Where(whp => whp.IncomeID == ID)
+                            .ToList();
+                //ViewBag.PartList = new SelectList(db1.PART_WRHS_INCOME_PARTS.Include(p => p.PART).ToList(),"ID","PName");
+
+                ViewBag.contracts = new SelectList(db1.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                ViewBag.units = new SelectList(db1.UNITS.ToList(), "ID", "UnitName");
+
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
+            }
+
+            // ViewBag.Supplier = suppliers;
+            ViewBag.partList = partList;
+
+            return View(whrsIncome);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(PURCHASING_WRHS_INCOMES whrsIncome)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db1 = new DBTHSNEntities())
+                {
+                    PURCHASING_WRHS_INCOMES wrhsIncomeToUpdate = db1.PURCHASING_WRHS_INCOMES.Find(whrsIncome.ID);
+                    if (wrhsIncomeToUpdate != null)
+                    {
+                        wrhsIncomeToUpdate.DocNo = whrsIncome.DocNo;
+                        wrhsIncomeToUpdate.WHID = warehouse.ID;
+                        wrhsIncomeToUpdate.ContractID = whrsIncome.ContractID;
+                        wrhsIncomeToUpdate.Currency = whrsIncome.Currency;
+                        wrhsIncomeToUpdate.Amount = whrsIncome.Amount;
+                        wrhsIncomeToUpdate.TotalPrice = whrsIncome.TotalPrice;
+                        wrhsIncomeToUpdate.Description = whrsIncome.Description;
+                        wrhsIncomeToUpdate.IssueDateTime = whrsIncome.IssueDateTime;
+                        //wrhsIncomeToUpdate.SenderWHID = whrsIncome.SenderWHID;
+
+                        try
+                        {
+                            db1.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{wrhsIncomeToUpdate.DocNo} - PurchasingWrhsIncomeni tahrirladi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    return View(wrhsIncomeToUpdate);
+                }
+            }
+            return View(whrsIncome);
+        }
+
+        public ActionResult EditPart(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var whIncomePart = db.PURCHASING_WRHS_INCOME_ITEMS
+                                    .Include(p => p.PURCHASING_WRHS_INCOMES)
+                                    .Include(p => p.PURCHASING_ITEMS)
+                                    .FirstOrDefault(p => p.ID == ID);
+                if (whIncomePart == null)
+                {
+                    return HttpNotFound();
+                }
+                var allParts = db.PURCHASING_ITEMS
+                                .Include(p => p.PURCHASING_WRHS_INCOME_ITEMS)
+                                .Include(p => p.UNIT)
+                                .Select(p => new SelectListItem
+                                {
+                                    Value = p.ID.ToString(),
+                                    Text = p.ItemName
+                                }).ToList();
+
+                ViewBag.partList = allParts;
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+
+                warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                if (warehouse is null)
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                else
+                    ViewBag.WHName = warehouse.WHName;
+
+                return View(whIncomePart);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditPart(PURCHASING_WRHS_INCOME_ITEMS whIncomeItem)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    PURCHASING_WRHS_INCOME_ITEMS whIncomeItemToUpdate = db.PURCHASING_WRHS_INCOME_ITEMS.Find(whIncomeItem.ID);
+                    if (whIncomeItemToUpdate != null)
+                    {
+                        whIncomeItemToUpdate.ItemID = whIncomeItem.ItemID;
+                        whIncomeItemToUpdate.Amount = whIncomeItem.Amount;
+                        whIncomeItemToUpdate.UnitID = whIncomeItem.UnitID;
+                        whIncomeItemToUpdate.PiecePrice = whIncomeItem.PiecePrice;
+                        whIncomeItemToUpdate.Comment = whIncomeItem.Comment;
+                        whIncomeItemToUpdate.TotalPrice = whIncomeItem.Amount * whIncomeItem.PiecePrice;
+
+                        try
+                        {
+                            db.SaveChanges();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_ITEMS.Find(whIncomeItemToUpdate.ItemID).ItemName} - PurchasingWrhsIncomeItem ni tahrirladi");
+
+                            return RedirectToAction("Index");
+                        }
+                        catch (RetryLimitExceededException)
+                        {
+                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        }
+                    }
+                    return View(whIncomeItemToUpdate);
+                }
+            }
+            return View();
+        }
     }
 }
