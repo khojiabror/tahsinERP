@@ -1,0 +1,222 @@
+﻿@model tahsinERP.Models.PURCHASING_ORDERS
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Tracing</title>
+    <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
+
+    <!-- BEGIN: Custom CSS-->
+    <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
+    <!-- END: Custom CSS-->
+    <!-- BEGIN: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/vendors.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/charts/apexcharts.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/extensions/dragula.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/extensions/swiper.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/datatables.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/extensions/dataTables.checkboxes.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/forms/select/select2.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/pickers/pickadate/pickadate.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/pickers/daterange/daterangepicker.css">
+    <!-- END: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/extensions/sweetalert2.min.css">
+
+    <!-- BEGIN: Theme CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap-extended.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/colors.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/components.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/dark-layout.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/semi-dark-layout.css">
+    <!-- END: Theme CSS-->
+    <!-- BEGIN: Page CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/core/menu/menu-types/vertical-menu.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/dashboard-analytics.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/dashboard-ecommerce.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-invoice.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/plugins/forms/wizard.css">
+
+    <link rel="stylesheet" type="text/css" href="~/assets/css/app.css" />
+    <!-- END: Page CSS-->
+</head>
+<body>
+    <div>
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    
+                </div>
+                <div class="content-body">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        <div class="row">
+                                            <div class="col-lg-12 col-md-12 mt-25">
+                                                <h4 class="text-primary">Buyurtma ma'lumotlari</h4>
+                                                <div class="wizard-container">
+                                                    <div class="wizard-header">
+                                                        @*@foreach (var item in Model)
+        {*@
+                                                        <div>
+                                                            <div class="circle">
+                                                                @(1)
+                                                            </div>
+                                                            <div class="label">
+                                                                <div class="date"></div>
+                                                                <div class="location">Buyurtma</div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="circle">
+                                                                Shartnoma@(2)
+                                                            </div>
+                                                            <div class="label">
+                                                                <div class="date"></div>
+                                                                <div class="location">TASDIQLANGAN</div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="circle">
+                                                                To'lov@(3)
+                                                            </div>
+                                                            <div class="label">
+                                                                <div class="date"></div>
+                                                                <div class="location">TO'LANGAN</div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="circle">
+                                                                Ombor@(4)
+                                                            </div>
+                                                            <div class="label">
+                                                                <div class="date"></div>
+                                                                <div class="location">YETIB KELDI</div>
+                                                            </div>
+                                                        </div>
+                                                        @*}*@
+                                                    </div>
+                                                    <div class="progress-container">
+                                                        <div class="progress-bar" id="progress"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+    .wizard-container {
+        position: relative;
+        padding: 20px;
+    }
+
+    .wizard-header {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .step {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        width: calc(100% / 4;
+    }
+
+    .circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #bbb;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-weight: bold;
+    }
+
+    .step.completed .circle {
+        background-color: green;
+    }
+
+    .label {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .progress-container {
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #bbb;
+        z-index: 0;
+    }
+
+    .progress-bar {
+        height: 2px;
+        background-color: green;
+        width: 0;
+    }
+
+    .date {
+        font-size: 12px;
+        color: gray;
+    }
+
+    .location {
+        font-weight: bold;
+    }
+
+    .distance {
+        font-size: 12px;
+        color: gray;
+    }
+
+    .progress-bar.dashed {
+        background: repeating-linear-gradient(
+            to right,
+            green 0%,
+            green 10%,
+            transparent 10%,
+            transparent 20%
+        );
+    }
+        </style>
+
+        <script>
+    $(document).ready(function () {
+        var steps = $('.step');
+        var totalSteps = steps.length;
+
+        var progressWidth = ($('.step.completed').length / totalSteps) * 100;
+
+        $('#progress').css('width', progressWidth + '%');
+        $('#progress').toggleClass('dashed', progressWidth < 100);
+    });
+        </script>
+    </div>
+</body>
+</html>
