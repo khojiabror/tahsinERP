@@ -479,7 +479,15 @@ namespace tahsinERP.Controllers
                                       IncomeAmount = income != null ? income.Amount ?? 0 : 0 // Default 0 if no income
                                   }).ToList();
 
+                var supplierList = db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false)
+                                                               .Select(x => x.Supplier)
+                                                               .ToList();
+                ViewBag.SupplierList = new SelectList(ViewBag.SupplierList);
 
+                var orderList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false)
+                                                                  .Select(x => x.OrderCodeEDO)
+                                                                  .ToList();
+                ViewBag.PurchasingOrderList = new SelectList(orderList);
             }
             return View();
         }

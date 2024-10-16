@@ -4,6 +4,8 @@
     ViewBag.Title = "Status";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+
 @*
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -36,6 +38,29 @@
                     </div>
                 </div>
             </div>
+            <div class="users-list-filter px-1">
+                <form>
+                    <div class="row border rounded py-2 mb-2">
+                        <div class="col-12 col-sm-12 col-lg-4">
+                            <label>Ta'minotchisi</label>
+                            <fieldset class="form-group">
+                                @Html.DropDownList("SupplierID", ViewBag.SupplierList as SelectList, "", new { @class = "form-control", onchange = "refreshDataTable()" })
+                            </fieldset>
+                        </div>
+                        <div class="col-12 col-sm-12 col-lg-4">
+                            <label>Turi</label>
+                            <fieldset class="form-group">
+                                @Html.DropDownList("SourceID", ViewBag.PurchasingOrderList as SelectList, new { @class = "form-control", onchange = "refreshdatatablesupplier()" })
+                            </fieldset>
+                        </div>
+                        <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
+                            <a href="~/PurchasingOrder" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
+                                Ro'yxatni yangilash
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
             <div class="content-body">
                 <!-- users list start -->
                 <section class="invoice-list-wrapper">
@@ -67,10 +92,10 @@
                                                         <td>@item.PaymentAmount</td>
                                                         <td>@item.IncomeAmount</td>
                                                         @*<td>
-                                                            <div class="progress-bar">
-                                                                <div id="progress-element-@item.ID" class="element" style="width: 0%;">0%</div>
-                                                            </div>
-                                                        </td>*@
+                                                        <div class="progress-bar">
+                                                            <div id="progress-element-@item.ID" class="element" style="width: 0%;">0%</div>
+                                                        </div>
+                                                    </td>*@
                                                     </tr>
                                                 }
                                             </tbody>

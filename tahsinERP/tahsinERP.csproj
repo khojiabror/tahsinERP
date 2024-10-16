@@ -913,6 +913,7 @@
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\GTDViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
+    <Compile Include="ViewModels\OrderTracingViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
@@ -3002,7 +3003,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\PublicView\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
