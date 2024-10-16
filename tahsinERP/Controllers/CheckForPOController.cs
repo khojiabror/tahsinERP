@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
@@ -27,7 +28,7 @@ namespace tahsinERP.Controllers
                 PURCHASING_ORDERS po = db.PURCHASING_ORDERS.Where(p => p.OrderCode.CompareTo(ordercode) == 0 && p.IsDeleted == false).FirstOrDefault();
                 if (po != null)
                 {
-                    return RedirectToAction("Tracing");
+                    return RedirectToAction("Tracing", new { orderID = po.ID});
                 }
                 else
                 {
@@ -36,9 +37,29 @@ namespace tahsinERP.Controllers
                 }
             }
         }
-        public ActionResult Tracing()
+        public ActionResult Tracing(int orderID)
         {
-            return View();
+            var model = new OrderTracingViewModel();
+            model.IsOrderCompleted = true;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var existContract = db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false && x.OrderID == orderID).FirstOrDefault();
+                if (existContract != null)
+                {
+                    model.IsContractConfirmed = true;
+                    
+                    var existPayment = db.PURCHASING_CONTRACT_PAYMENTS.Where(x => x.ContractID == existContract.ID && x.IsDeleted == false).FirstOrDefault();
+                    if (existPayment != null)
+                        model.IsPaymentMade = true;
+
+                    var existWrhsIncome = db.PURCHASING_WRHS_INCOMES.Where(x => x.IsDeleted == false && x.ContractID == existContract.ID).FirstOrDefault();
+                    if(existWrhsIncome != null) 
+                        model.HasArrivedInWarehouse = true;
+                }
+            }
+
+            return View(model);
         }
     }
 }
