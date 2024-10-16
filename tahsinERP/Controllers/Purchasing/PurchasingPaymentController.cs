@@ -46,14 +46,14 @@ namespace tahsinERP.Controllers
                         db.PURCHASING_CONTRACT_PAYMENTS.Add(model);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(model.ContractID).ContractNo} - li harid shartnomasiga purchasingPaymentni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(model.ContractID).ContractNo} - li xarid shartnomasiga purchasingPaymentni yaratdi");
 
                         return RedirectToAction("Index");
                     }
                     else
                     {
                         ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
-                        ModelState.AddModelError("", "Ushbu Harid shartnomasi uchun To'lov yaratilgan.");
+                        ModelState.AddModelError("", "Ushbu Xarid shartnomasi uchun To'lov yaratilgan.");
                         return View(model);
                     }
                 }
