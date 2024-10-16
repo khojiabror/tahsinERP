@@ -103,7 +103,6 @@
                                                     <th></th>
                                                     <th>Buyurtma raqami(EDO)</th>
                                                     <th>Заявитель</th>
-                                                    <th>Status</th>
                                                     <th>Buyurtma holati</th>
                                                     @if (changePermit)
                                                     {
@@ -126,9 +125,6 @@
                                                                 <div id="progress-element-@item.ID" class="element" style="width: 0%;">0%</div>
                                                             </div>
                                                         </td>
-                                                        <td>
-                                                            <a href="@Url.Action("Status", "PurchasingOrder", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                        <td>
                                                         @if (changePermit)
                                                         {
                                                             <td>

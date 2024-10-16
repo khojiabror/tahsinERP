@@ -55,7 +55,7 @@
                                                         <h6 class="text-primary">Shartnoma ma'lumotlari</h6>
                                                         <span>Shartnoma raqami: <b>@Html.DisplayFor(model => model.PURCHASING_CONTRACTS.ContractNo, new { @class = "form-control" })</b></span>
                                                         <br />
-                                                        <span>Shartnoma sanasi:<b> @Html.DisplayFor(model => model.PURCHASING_CONTRACTS.IssueDT, new { @class = "form-control" })</b></span>
+                                                        <span>Shartnoma sanasi:<b> @Model.PURCHASING_CONTRACTS.IssueDT.ToString("dd.MM.yyyy")</b></span>
                                                         <br />
                                                     </div>
                                                 </section>

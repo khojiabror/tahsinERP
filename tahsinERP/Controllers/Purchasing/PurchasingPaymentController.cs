@@ -46,7 +46,7 @@ namespace tahsinERP.Controllers
                         db.PURCHASING_CONTRACT_PAYMENTS.Add(model);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(model.ContractID).ContractNo} - li xarid shartnomasiga purchasingPaymentni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(model.ContractID).ContractNo} - li harid shartnomasiga purchasingPaymentni yaratdi");
 
                         return RedirectToAction("Index");
                     }
