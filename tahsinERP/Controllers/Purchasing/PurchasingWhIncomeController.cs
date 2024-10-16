@@ -59,6 +59,30 @@ namespace tahsinERP.Controllers.Purchasing
                 return Json(contractItems, JsonRequestBehavior.AllowGet);
             }
         }
+        public JsonResult GetContractDetails(int contractID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var contract = db.PURCHASING_CONTRACTS
+                                 .Where(c => c.ID == contractID && c.IsDeleted == false)
+                                 .Select(c => new
+                                 {
+                                     c.ID,
+                                     c.Currency,
+                                     c.Amount
+                                 })
+                                 .FirstOrDefault();
+
+                if (contract != null)
+                {
+                    return Json(new { success = true, data = contract }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Invoice not found." }, JsonRequestBehavior.AllowGet);
+                }
+            }
+        }
         public ActionResult Create()
         {
             string month = "";

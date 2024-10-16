@@ -57,17 +57,17 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Shartnomani tanlang</h6>
-                                                            @Html.DropDownList("ContractID", (SelectList)ViewBag.contracts, "Shartnomani tanlang", new { @class = "form-control select2", @id = "contract-dropdown" })
+                                                            @Html.DropDownList("contract-dropdown", (SelectList)ViewBag.contracts, "Shartnomani tanlang", new { @class = "form-control select2", @id = "contract-dropdown", onchange = "getContractDetails()" })
                                                             @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Miqdori</h6>
-                                                            @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @required = "required" })
+                                                            @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @required = "required", @id= "TotalAmount" })
                                                             @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Valyuta</h6>
-                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control", @required = "required" })
+                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control", @required = "required", @id="Currency" })
                                                             @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -93,7 +93,7 @@
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
                                                             </div>
-                                                        </div>  
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <br />
@@ -130,12 +130,13 @@
                                                             <label for="Part_TotalPrice">Umumiy narx</label>
                                                             <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" disabled="disabled" />
                                                             @Html.ValidationMessageFor(model => model.Items[0].TotalPrice, "", new { @class = "text-danger" })
-                                                        </div>@*
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_MOQ">MOQ</label>
-                                                            <input type="number" name="MOQ" class="form-control" id="Part_MOQ" />
-                                                            @Html.ValidationMessageFor(model => model.Items[0].Comment, "", new { @class = "text-danger", @required = "required" })
-                                                        </div>*@
+                                                        </div>
+                                                        @*
+        <div class="col-md-2 col-sm-12 form-group">
+            <label for="Part_MOQ">MOQ</label>
+            <input type="number" name="MOQ" class="form-control" id="Part_MOQ" />
+            @Html.ValidationMessageFor(model => model.Items[0].Comment, "", new { @class = "text-danger", @required = "required" })
+        </div>*@
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O`chirish</button>
                                                         </div>
@@ -210,7 +211,7 @@ else
                                         </div>
                                         <div class="col-md-2 col-sm-12 form-group">
                                             <label for="Part_PiecePrice">Dona narxi</label>
-                                            <input type="number" name="Items[${index}].PiecePrice" value="${item.PiecePrice}" class="form-control" step="0.01" />
+                                            <input type="number" name="Items[${index}].PiecePrice" value="${item.Price}" class="form-control" step="0.01" />
                                         </div>
                                         <div class="col-md-2 col-sm-12 form-group">
                                             <label for="Part_TotalPrice">Umumiy narxi</label>
@@ -233,4 +234,37 @@ else
             }
         });
     });
+
+    function getContractDetails() {
+        var contractID = $("#contract-dropdown").val();
+
+        $.ajax({
+            url: '@Url.Action("GetContractDetails", "PurchasingWhIncome")', // Ensure you have this action in your controller
+            type: 'GET',
+            data: { contractID: contractID },
+            success: function (data) {
+                if (data.success) {
+                    var contract = data.data;
+                    console.log(data);  // Ajax javobini tekshirish
+                    if (data.success) {
+                        var contract = data.data;
+                        console.log(contract);  // Shu yerda console.log ishlaydi
+                    }
+                    // Valyutani yangilash
+                    $("#Currency").val(contract.currency || '');
+
+                    // Umumiy narxni yangilash
+                    $("#TotalAmount").val(contract.totalAmount || '');
+                    document.getElementById("amount").value = contract.amount;
+                    document.getElementById("currency").value = contract.currency;
+                } else {
+                    console.error("Xatolik: " + data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Contract tafsilotlarini olishda xatolik:", error);
+            }
+        });
+    }
+
 </script>

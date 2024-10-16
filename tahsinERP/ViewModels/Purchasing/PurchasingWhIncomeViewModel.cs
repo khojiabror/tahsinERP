@@ -36,12 +36,13 @@ namespace tahsinERP.ViewModels.Purchasing
         public int ID { get; set; }
         public int IncomeID { get; set; }
         public int ItemID { get; set; }
+        public string ItemName { get; set; }
         public double Amount { get; set; }
         public Nullable<double> PiecePrice { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public string Comment { get; set; }
         public int UnitID { get; set; }
-
+        public string UnitName { get; set; }
         public virtual PURCHASING_ITEMS PURCHASING_ITEMS { get; set; }
         public virtual PURCHASING_WRHS_INCOMES PURCHASING_WRHS_INCOMES { get; set; }
         public virtual UNIT UNIT { get; set; }
