@@ -468,7 +468,7 @@
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\MES\CarPlanController.cs" />
-    <Compile Include="Controllers\PublicViewController.cs" />
+    <Compile Include="Controllers\CheckForPOController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingWhIncomeController.cs" />
     <Compile Include="Controllers\SRM\GTDController.cs" />
@@ -2997,6 +2997,8 @@
     <Content Include="Views\PurchasingWhIncome\Delete.cshtml" />
     <Content Include="Views\PurchasingWhIncome\Edit.cshtml" />
     <Content Include="Views\PurchasingWhIncome\EditPart.cshtml" />
+    <Content Include="Views\CheckForPO\Index.cshtml" />
+    <Content Include="Views\CheckForPO\Tracing.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

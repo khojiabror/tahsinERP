@@ -14,6 +14,7 @@ using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
+    [AllowAnonymous]
     public class AccountController : Controller
     {
         [DllImport("Iphlpapi.dll")]
