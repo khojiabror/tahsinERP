@@ -35,6 +35,30 @@ namespace tahsinERP.Controllers.Purchasing
                 return View(list);
             }
         }
+        public ActionResult GetContractItems(int contractId)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Assuming you have a service or context to fetch order items from the database
+                var contractItems = db.PURCHASING_CONTRACT_ITEMS
+                    .Include(o => o.PURCHASING_ITEMS)
+                    .Include(o => o.PURCHASING_ITEMS.UNIT)
+                                     .Where(o => o.ContractID == contractId)
+                                     .Select(o => new
+                                     {
+                                         o.PURCHASING_ITEMS.ID,
+                                         o.ItemID,
+                                         o.PURCHASING_ITEMS.ItemName,
+                                         o.Amount,
+                                         o.PURCHASING_ITEMS.UnitID,
+                                         o.PURCHASING_ITEMS.UNIT.ShortName,
+                                         o.Price,
+                                         o.TotalPrice
+                                     }).ToList();
+
+                return Json(contractItems, JsonRequestBehavior.AllowGet);
+            }
+        }
         public ActionResult Create()
         {
             string month = "";
@@ -42,6 +66,7 @@ namespace tahsinERP.Controllers.Purchasing
             {
                 ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.items = new SelectList(Enumerable.Empty<SelectListItem>());
 
                 PurchasingWhIncomeViewModel model = new PurchasingWhIncomeViewModel();
                 PURCHASING_WRHS_INCOMES income = db.PURCHASING_WRHS_INCOMES.OrderByDescending(w => w.IssueDateTime).FirstOrDefault();
