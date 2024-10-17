@@ -30,7 +30,7 @@
                                         Sahifalar
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Xarid buyurtmalari
+                                        Xarid buyurtmalari statuslari
                                     </li>
                                 </ol>
                             </div>
@@ -44,17 +44,17 @@
                         <div class="col-12 col-sm-12 col-lg-4">
                             <label>Ta'minotchisi</label>
                             <fieldset class="form-group">
-                                @Html.DropDownList("SupplierID", ViewBag.SupplierList as SelectList, "", new { @class = "form-control", onchange = "refreshDataTable()" })
+                                @Html.DropDownList("supplierName", ViewBag.SupplierList as SelectList, "", new { @class = "form-control", id = "SupplierID", onchange = "refreshDataTable(); toggleButtons()" })
                             </fieldset>
                         </div>
                         <div class="col-12 col-sm-12 col-lg-4">
-                            <label>Turi</label>
+                            <label>Buyurtma</label>
                             <fieldset class="form-group">
-                                @Html.DropDownList("SourceID", ViewBag.PurchasingOrderList as SelectList, new { @class = "form-control", onchange = "refreshdatatablesupplier()" })
+                                @Html.DropDownList("orderNoEDO", ViewBag.PurchasingOrderList as SelectList, "", new { @class = "form-control", id = "OrderCodeEDO", onchange = "refreshdatatablesupplier()" })
                             </fieldset>
                         </div>
                         <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
-                            <a href="~/PurchasingOrder" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
+                            <a href="~/PurchasingOrder/Status" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
                                 Ro'yxatni yangilash
                             </a>
                         </div>
@@ -73,6 +73,8 @@
                                         <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
+                                                    <th></th>
+                                                    <th></th>
                                                     <th>Maxsulot nomi</th>
                                                     <th>Buyurtma miqdori</th>
                                                     <th>Shartnoma miqdori</th>
@@ -85,17 +87,17 @@
                                                 {
                                                     <tr>
                                                         <td>
-                                                            <a href="~/PurchasingItem/Details/@item.ItemID">@item.ItemID</a>
+                                                            <a href="~/PurchasingItem/Details/@item.ItemID">@item.ItemName</a>
                                                         </td>
                                                         <td>@item.OrderAmount</td>
                                                         <td>@item.ContractAmount</td>
                                                         <td>@item.PaymentAmount</td>
                                                         <td>@item.IncomeAmount</td>
                                                         @*<td>
-                                                        <div class="progress-bar">
-                                                            <div id="progress-element-@item.ID" class="element" style="width: 0%;">0%</div>
-                                                        </div>
-                                                    </td>*@
+                    <div class="progress-bar">
+                        <div id="progress-element-@item.ID" class="element" style="width: 0%;">0%</div>
+                    </div>
+                </td>*@
                                                     </tr>
                                                 }
                                             </tbody>
@@ -144,5 +146,17 @@ else
             updateProgressBar(orderID, progressElementId);
         });
     });
+
+    function refreshDataTable() {
+        var source = document.getElementById("OrderCodeEDO").value;
+        var supplierID = document.getElementById("SupplierID").value;
+        window.location.href = '@Url.Action("Status", "PurchasingOrder")?orderNoEDO=' + source + '&supplierName=' + supplierID;
+    }
+
+    function refreshdatatablesupplier() {
+        var source = document.getElementById("OrderCodeEDO").value;
+        var supplierID = document.getElementById("SupplierID").value;
+        window.location.href = '@Url.Action("Status", "PurchasingOrder")?orderNoEDO=' + source + '&supplierName=' + supplierID;
+    }
 
 </script>

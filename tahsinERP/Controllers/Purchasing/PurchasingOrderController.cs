@@ -12,6 +12,7 @@ using tahsinERP.ViewModels.PurchasingOrder;
 using System.Net;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using tahsinERP.ViewModels.Purchasing;
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace tahsinERP.Controllers
 {
@@ -457,39 +458,77 @@ namespace tahsinERP.Controllers
             }
             return View();
         }
-        public ActionResult Status(int orderID)
+        public ActionResult Status(string orderNoEDO, string supplierName)
         {
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 List<PurchasingStatusViewModel> purchasingStatuses = new List<PurchasingStatusViewModel>();
 
-                var statusList = (from order in db.PURCHASING_ORDERS
-                                  where order.ID == orderID && !order.IsDeleted
-                                  join item in db.PURCHASING_ORDER_ITEMS on order.ID equals item.OrderID
-                                  join contract in db.PURCHASING_CONTRACTS on order.ID equals contract.OrderID into contractGroup
-                                  from contract in contractGroup.DefaultIfEmpty() // Nullable contract
-                                  join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
-                                  from income in incomeGroup.DefaultIfEmpty() // Nullable income
-                                  select new PurchasingStatusViewModel
-                                  {
-                                      ItemID = item.ItemID,
-                                      OrderAmount = item.Amount,
-                                      ContractAmount = contract != null ? contract.Amount : 0, // Default 0 if no contract
-                                      PaymentAmount = contract != null ? contract.PURCHASING_CONTRACT_PAYMENTS.Sum(p => p.Payment_Amount) : 0, // Payments sum if exists
-                                      IncomeAmount = income != null ? income.Amount ?? 0 : 0 // Default 0 if no income
-                                  }).ToList();
+                if (!string.IsNullOrEmpty(orderNoEDO))
+                {
+                    if (!string.IsNullOrEmpty(supplierName))
+                    {
+                        int orderID = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.OrderCodeEDO.CompareTo(orderNoEDO) == 0).FirstOrDefault().ID;
+                        /*purchasingStatuses = (from order in db.PURCHASING_ORDERS
+                                              where order.ID == orderID && !order.IsDeleted
+                                              join item in db.PURCHASING_ORDER_ITEMS on order.ID equals item.OrderID
+                                              join contract in db.PURCHASING_CONTRACTS on order.ID equals contract.OrderID into contractGroup
+                                              from contract in contractGroup.DefaultIfEmpty() // Nullable contract
+                                              join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
+                                              from income in incomeGroup.DefaultIfEmpty() // Nullable income
+                                              select new PurchasingStatusViewModel
+                                              {
+                                                  ItemID = item.ItemID,
+                                                  OrderAmount = item.Amount,
+                                                  ContractAmount = contract != null ? contract.Amount : 0, // Default 0 if no contract
+                                                  PaymentAmount = contract != null ? contract.PURCHASING_CONTRACT_PAYMENTS.Sum(p => p.Payment_Amount) : 0, // Payments sum if exists
+                                                  IncomeAmount = income != null ? income.Amount ?? 0 : 0 // Default 0 if no income
+                                              }).ToList();*/
+                    }
+                    else
+                    {
+                        int orderID = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.OrderCodeEDO.CompareTo(orderNoEDO) == 0).FirstOrDefault().ID;
+                       /* purchasingStatuses = (from order in db.PURCHASING_ORDERS
+                                              where order.ID == orderID && !order.IsDeleted
+                                              join item in db.PURCHASING_ORDER_ITEMS on order.ID equals item.OrderID
+                                              join contract in db.PURCHASING_CONTRACTS on order.ID equals contract.OrderID into contractGroup
+                                              from contract in contractGroup.DefaultIfEmpty() // Nullable contract
+                                              join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
+                                              from income in incomeGroup.DefaultIfEmpty() // Nullable income
+                                              select new PurchasingStatusViewModel
+                                              {
+                                                  ItemID = item.ItemID,
+                                                  OrderAmount = item.Amount,
+                                                  ContractAmount = contract != null ? contract.Amount : 0, // Default 0 if no contract
+                                                  PaymentAmount = contract != null ? contract.PURCHASING_CONTRACT_PAYMENTS.Sum(p => p.Payment_Amount) : 0, // Payments sum if exists
+                                                  IncomeAmount = income != null ? income.Amount ?? 0 : 0 // Default 0 if no income
+                                              }).ToList();*/
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(supplierName))
+                    {
+                        
+                    }
+                    else
+                    {
+                        
+                    }
+                }
+                
 
                 var supplierList = db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false)
                                                                .Select(x => x.Supplier)
                                                                .ToList();
-                ViewBag.SupplierList = new SelectList(ViewBag.SupplierList);
+                ViewBag.SupplierList = new SelectList(supplierList);
 
                 var orderList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false)
                                                                   .Select(x => x.OrderCodeEDO)
                                                                   .ToList();
                 ViewBag.PurchasingOrderList = new SelectList(orderList);
+                return View(purchasingStatuses);
             }
-            return View();
         }
     }
 }
