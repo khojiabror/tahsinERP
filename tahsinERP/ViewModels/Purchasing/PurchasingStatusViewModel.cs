@@ -9,10 +9,16 @@ namespace tahsinERP.ViewModels.Purchasing
     {
         public int ItemID { get; set; }
         public string ItemName { get; set; }
-        public int Status { get; set; }
-        public double OrderAmount { get; set; }
-        public double ContractAmount { get; set; }
-        public double PaymentAmount { get; set; }
-        public double IncomeAmount { get; set; }
+        public bool? Status { get; set; } = false;
+        public double? OrderAmount { get; set; }
+        public double? ContractAmount { get; set; }
+        public double? PaymentAmount { get; set; }
+        public string Supplier { get; set; }
+        public string Currency { get; set; }
+        public string OrderCode { get; set; }
+        public string OrderedByDept { get; set; }
+        public double? ItemAmount { get; set; }
+        public bool? IsPayment { get; set; } = false;
     }
+
 }
