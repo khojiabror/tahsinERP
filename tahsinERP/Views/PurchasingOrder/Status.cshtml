@@ -4,122 +4,188 @@
     ViewBag.Title = "Status";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
 
+    .progress {
+        background-color: #e0e0e0; /* Progress bar uchun bo'sh kulrang fon */
+        border-radius: 10px;
+        height: 20px;
+    }
+
+    .progress-bar {
+        background-color: #4CAF50; /* To'lganda yashil rang */
+        height: 20px;
+        transition: width 1s ease-in-out; /* Silliq to'lish */
+        color: white; /* Text rangi */
+        line-height: 20px;
+        min-width: 2%; /* Kamida 2% progress bar ko'rinishi */
+    }
+
+</style>
 
 @*
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
     {
-        changePermit = true;
-    }*@
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item ">
-                                        Sahifalar
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Xarid buyurtmalari statuslari
-                                    </li>
-                                </ol>
-                            </div>
+        bool changePermit = false;
+        if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+        {
+            changePermit = true;
+        }*@
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item ">
+                                    Sahifalar
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Xarid buyurtmalari statuslari
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="users-list-filter px-1">
-                <form>
-                    <div class="row border rounded py-2 mb-2">
-                        <div class="col-12 col-sm-12 col-lg-4">
-                            <label>Ta'minotchisi</label>
-                            <fieldset class="form-group">
-                                @Html.DropDownList("supplierName", ViewBag.SupplierList as SelectList, "", new { @class = "form-control", id = "SupplierID", onchange = "refreshDataTable(); toggleButtons()" })
-                            </fieldset>
-                        </div>
-                        <div class="col-12 col-sm-12 col-lg-4">
-                            <label>Buyurtma</label>
-                            <fieldset class="form-group">
-                                @Html.DropDownList("orderNoEDO", ViewBag.PurchasingOrderList as SelectList, "", new { @class = "form-control", id = "OrderCodeEDO", onchange = "refreshdatatablesupplier()" })
-                            </fieldset>
-                        </div>
-                        <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
-                            <a href="~/PurchasingOrder/Status" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
-                                Ro'yxatni yangilash
-                            </a>
-                        </div>
+        </div>
+        <div class="users-list-filter px-1">
+            <form>
+                <div class="row border rounded py-2 mb-2">
+                    <div class="col-12 col-sm-12 col-lg-4">
+                        <label>Ta'minotchisi</label>
+                        <fieldset class="form-group">
+                            @Html.DropDownList("supplierName", ViewBag.SupplierList as SelectList, "", new { @class = "form-control", id = "SupplierID", onchange = "refreshDataTable(); toggleButtons()" })
+                        </fieldset>
                     </div>
-                </form>
-            </div>
-            <div class="content-body">
-                <!-- users list start -->
-                <section class="invoice-list-wrapper">
-                    <div class="col-md-12 col-sm-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <!-- datatable start -->
-                                    <div class="table-responsive table-responsivetable-responsive">
-                                        <table id="myDataTable" class="table table-striped table-bordered complex-headers" style="width:100%">
-                                            <thead>
+                    <div class="col-12 col-sm-12 col-lg-4">
+                        <label>Buyurtma</label>
+                        <fieldset class="form-group">
+                            @Html.DropDownList("orderNoEDO", ViewBag.PurchasingOrderList as SelectList, "", new { @class = "form-control", id = "OrderCodeEDO", onchange = "refreshdatatablesupplier()" })
+                        </fieldset>
+                    </div>
+                    <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
+                        <a href="~/PurchasingOrder/Status" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
+                            Ro'yxatni yangilash
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="content-body">
+            <!-- users list start -->
+            <section class="invoice-list-wrapper">
+                <div class="col-md-13 col-sm-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <!-- datatable start -->
+                                <div class="table-responsive table-responsivetable-responsive">
+                                    <table id="myDataTable" class="table table-striped table-bordered complex-headers" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="3" class="align-top">Buyurtma</th>
+                                                <th colspan="3">Shartnoma</th>
+                                                <th colspan="2">To'lov</th>
+                                                <th colspan="2">Kirim</th>
+                                            </tr>
+                                            <tr>
+                                                <th>Maxsulot nomi</th>
+                                                <th>Bo'lim</th>
+                                                <th>Miqdori</th>
+
+                                                <th>Ta'minotchi</th>
+                                                <th>Miqdori</th>
+                                                <th>Status</th>
+
+                                                <th>Miqdori</th>
+                                                <th>Status</th>
+
+                                                <th>Miqdori</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
                                                 <tr>
-                                                    <th>Buyurtma raqami(EDO)</th>
-                                                    <th>Tashkilot</th>
-                                                    <th>Maxsulot nomi</th>
-                                                    <th>Buyurtma miqdori</th>
-                                                    <th>Shartnoma miqdori</th>
-                                                    <th>Ta'minotchi</th>
-                                                    <th>To'lamganmi</th>
+                                                    <td><a href="~/PurchasingOrder/Details/@item.OrderID">@item.ItemName</a></td>
+                                                    <td>@item.OrderedByDept</td>
+                                                    <td>@item.OrderAmount</td>
+
+                                                    <td>@item.Supplier</td>
+                                                    <td>@item.ContractAmount</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                 style="width: @item.ContractAmountStatus%;"
+                                                                 aria-valuenow="@item.ContractAmountStatus"
+                                                                 aria-valuemin="0" aria-valuemax="100">
+                                                                @item.ContractAmountStatus%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    <td>@item.PaymentAmount</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                 style="width: @item.PaymentAmountStatus%;"
+                                                                 aria-valuenow="@item.PaymentAmountStatus"
+                                                                 aria-valuemin="0" aria-valuemax="100">
+                                                                @item.PaymentAmountStatus%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    <td>@item.IncomeAmount</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                 style="width: @item.IncomeAmountStatus%;"
+                                                                 aria-valuenow="@item.IncomeAmountStatus"
+                                                                 aria-valuemin="0" aria-valuemax="100">
+                                                                @item.IncomeAmountStatus%
+                                                            </div>
+                                                        </div>
+                                                    </td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td>@item.OrderCode</td>
-                                                        <td>@item.OrderedByDept</td>
-                                                        <td>
-                                                            <a href="~/PurchasingItem/Details/@item.ItemID">@item.ItemName</a>
-                                                        </td>
-                                                        <td>@item.OrderAmount</td>
-                                                        <td>@item.ContractAmount</td>
-                                                        <td>@item.Supplier</td>
-                                                        @if (item.IsPayment == true)
-                                                        {
-                                                            <td><span class="badge badge-light-success">Ha</span></td>
-                                                        }
-                                                        else
-                                                        {
-                                                            <td><span class="badge badge-light-danger">Yo'q</span></td>
-                                                        }
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            }
+                                        </tbody>
+
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
+</div>
 @*}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}*@
+    else
+    {
+        Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+    }*@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let bars = document.querySelectorAll('.progress-bar');
+        bars.forEach(function (bar) {
+            let width = bar.getAttribute('aria-valuenow');
+            bar.style.width = '0%'; // Boshlanish qiymati 0%
+            setTimeout(function () {
+                bar.style.width = width + '%'; // Sekin to'lish
+            }, 100); // 0.1 soniyadan keyin progress boshlanadi
+        });
+    });
+</script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
