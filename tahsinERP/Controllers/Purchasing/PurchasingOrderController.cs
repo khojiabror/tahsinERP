@@ -467,6 +467,23 @@ namespace tahsinERP.Controllers
             }
             return View();
         }
+        public ActionResult UpdateItemStatus()
+        {
+            using(DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var itemsList = db.PURCHASING_ORDER_ITEMS.Where(x => x.IsDeleted == false).ToList();
+                return View(itemsList);
+            }
+        }
+        [HttpPost]
+        public ActionResult UpdateItemStatus(PURCHASING_ORDER_ITEMS orderItem)
+        {
+            using(DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+            }
+            return View(); 
+        }
         public ActionResult Status(string orderNoEDO, string supplierName)
         {
             using(DBTHSNEntities db = new DBTHSNEntities())
@@ -489,20 +506,36 @@ namespace tahsinERP.Controllers
                                               from contractItem in contractItemGroup.DefaultIfEmpty()
                                               join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                               from payment in paymentGroup.DefaultIfEmpty()
-                                              where orderItem.IsDeleted == false && orderItem.OrderID == orderID && contract.Supplier == supplierName
+                                              join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
+                                              from income in incomeGroup.DefaultIfEmpty()
+                                              join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
+                                              from incomeItem in incomeGroup.DefaultIfEmpty()
+                                              where orderItem.IsDeleted == false && 
+                                                    contract.IsDeleted == false &&
+                                                    contractItem.IsDeleted == false &&
+                                                    payment.IsDeleted == false &&
+                                                    income.IsDeleted == false &&
+                                                    incomeItem.IsDeleted == false &&
+                                                    orderItem.OrderID == orderID && 
+                                                    contract.Supplier == supplierName
                                               select new PurchasingStatusViewModel
                                               {
                                                   ItemName = orderItem.PURCHASING_ITEMS.ItemName,
                                                   Status = orderItem.Status != null ? (bool?)orderItem.Status : (bool?)false, // Nullable type handling
-                                                  OrderCode = order.OrderCodeEDO,
                                                   OrderedByDept = order.OrderedByDept,
-                                                  Supplier = contract != null ? contract.Supplier : "N/A",
-                                                  Currency = contract != null ? contract.Currency : "N/A",
-                                                  ItemAmount = contractItem != null ? contractItem.Amount : 0,
+                                                  OrderID = order.ID,
                                                   OrderAmount = orderItem.Amount,
-                                                  IsPayment = payment != null ? (bool?)true : (bool?)false // Comment if needed
-                                              }).ToList();
 
+                                                  Supplier = contract != null ? contract.Supplier : "N/A",
+                                                  ContractAmountStatus = contractItem != null && orderItem != null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+                                                  ContractAmount = contractItem != null ? contractItem.Amount : 0,
+
+                                                  PaymentAmount = payment != null ? contractItem.TotalPrice : 0,
+                                                  PaymentAmountStatus = contractItem != null && orderItem != null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+
+                                                  IncomeAmount = incomeItem != null ? incomeItem.Amount : 0,
+                                                  IncomeAmountStatus = incomeItem != null && contractItem != null ? (double)incomeItem.Amount / contractItem.Amount * 100 : 0,
+                                              }).ToList();
                     }
                     else
                     {
@@ -515,18 +548,34 @@ namespace tahsinERP.Controllers
                                                from contractItem in contractItemGroup.DefaultIfEmpty()
                                                join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                                from payment in paymentGroup.DefaultIfEmpty()
-                                               where orderItem.IsDeleted == false && orderItem.OrderID == orderID
+                                               join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
+                                               from income in incomeGroup.DefaultIfEmpty()
+                                               join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
+                                               from incomeItem in incomeGroup.DefaultIfEmpty()
+                                               where orderItem.IsDeleted == false &&
+                                                    contract.IsDeleted == false &&
+                                                    contractItem.IsDeleted == false &&
+                                                    payment.IsDeleted == false &&
+                                                    income.IsDeleted == false &&
+                                                    incomeItem.IsDeleted == false &&
+                                                    orderItem.OrderID == orderID
                                                select new PurchasingStatusViewModel
                                                {
                                                    ItemName = orderItem.PURCHASING_ITEMS.ItemName,
-                                                   OrderAmount = orderItem.Amount,
                                                    Status = orderItem.Status != null ? (bool?)orderItem.Status : (bool?)false, // Nullable type handling
-                                                   OrderCode = order.OrderCode,
                                                    OrderedByDept = order.OrderedByDept,
+                                                   OrderID = order.ID,
+                                                   OrderAmount = orderItem.Amount,
+
                                                    Supplier = contract != null ? contract.Supplier : "N/A",
-                                                   Currency = contract != null ? contract.Currency : "N/A",
+                                                   ContractAmountStatus = contractItem != null && orderItem != null ? contractItem.Amount / orderItem.Amount * 100 : 0,
                                                    ContractAmount = contractItem != null ? contractItem.Amount : 0,
-                                                   IsPayment = payment != null ? (bool?)true : (bool?)false // Comment if needed
+
+                                                   PaymentAmount = payment != null ? contractItem.TotalPrice : 0,
+                                                   PaymentAmountStatus = contractItem != null && orderItem != null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+
+                                                   IncomeAmount = incomeItem != null ? incomeItem.Amount : 0,
+                                                   IncomeAmountStatus = incomeItem != null && contractItem != null ? (double)incomeItem.Amount / contractItem.Amount * 100 : 0,
                                                }).ToList();
                     }
                 }
@@ -542,18 +591,34 @@ namespace tahsinERP.Controllers
                                               from contractItem in contractItemGroup.DefaultIfEmpty()
                                               join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                               from payment in paymentGroup.DefaultIfEmpty()
-                                              where orderItem.IsDeleted == false && contract.Supplier == supplierName
+                                              join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals  income.ContractID into incomeGroup
+                                              from income in incomeGroup.DefaultIfEmpty()
+                                              join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
+                                              from incomeItem in incomeGroup.DefaultIfEmpty()
+                                              where orderItem.IsDeleted == false &&
+                                                    contract.IsDeleted == false &&
+                                                    contractItem.IsDeleted == false &&
+                                                    payment.IsDeleted == false &&
+                                                    income.IsDeleted == false &&
+                                                    incomeItem.IsDeleted == false &&
+                                                    contract.Supplier == supplierName
                                               select new PurchasingStatusViewModel
                                               {
                                                   ItemName = orderItem.PURCHASING_ITEMS.ItemName,
                                                   Status = orderItem.Status != null ? (bool?)orderItem.Status : (bool?)false, // Nullable type handling
-                                                  OrderCode = order.OrderCodeEDO,
                                                   OrderedByDept = order.OrderedByDept,
-                                                  Supplier = contract != null ? contract.Supplier : "N/A",
-                                                  Currency = contract != null ? contract.Currency : "N/A",
-                                                  ItemAmount = contractItem != null ? contractItem.Amount : 0,
+                                                  OrderID = order.ID,
                                                   OrderAmount = orderItem.Amount,
-                                                  IsPayment = payment != null ? (bool?)true : (bool?)false // Comment if needed
+
+                                                  Supplier = contract != null ? contract.Supplier : "N/A",
+                                                  ContractAmountStatus = contractItem != null && orderItem != null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+                                                  ContractAmount = contractItem != null ? contractItem.Amount : 0,
+
+                                                  PaymentAmount = payment != null ? contractItem.TotalPrice : 0,
+                                                  PaymentAmountStatus = contractItem != null && orderItem != null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+
+                                                  IncomeAmount = incomeItem != null ? incomeItem.Amount : 0,
+                                                  IncomeAmountStatus = incomeItem != null && contractItem != null ? (double)incomeItem.Amount / contractItem.Amount * 100 : 0,
                                               }).ToList();
                     }
                     else
@@ -566,18 +631,33 @@ namespace tahsinERP.Controllers
                                               from contractItem in contractItemGroup.DefaultIfEmpty()
                                               join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                               from payment in paymentGroup.DefaultIfEmpty()
-                                              where orderItem.IsDeleted == false
+                                              join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
+                                              from income in incomeGroup.DefaultIfEmpty()
+                                              join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
+                                              from incomeItem in incomeGroup.DefaultIfEmpty()
+                                              where orderItem.IsDeleted == false &&
+                                                    contract.IsDeleted == false &&
+                                                    contractItem.IsDeleted == false &&
+                                                    payment.IsDeleted == false &&
+                                                    income.IsDeleted == false &&
+                                                    incomeItem.IsDeleted == false
                                               select new PurchasingStatusViewModel
                                               {
                                                   ItemName = orderItem.PURCHASING_ITEMS.ItemName,
                                                   Status = orderItem.Status != null ? (bool?)orderItem.Status : (bool?)false, // Nullable type handling
-                                                  OrderCode = order.OrderCodeEDO,
                                                   OrderedByDept = order.OrderedByDept,
-                                                  Supplier = contract != null ? contract.Supplier : "N/A",
-                                                  Currency = contract != null ? contract.Currency : "N/A",
-                                                  ItemAmount = contractItem != null ? contractItem.Amount : 0,
+                                                  OrderID = order.ID,
                                                   OrderAmount = orderItem.Amount,
-                                                  IsPayment = payment != null ? (bool?)true : (bool?)false // Comment if needed
+
+                                                  Supplier = contract != null ? contract.Supplier : "N/A",
+                                                  ContractAmountStatus = contractItem!= null && orderItem!= null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+                                                  ContractAmount = contractItem != null ? contractItem.Amount : 0,
+
+                                                  PaymentAmount = payment != null ? contractItem.TotalPrice : 0,
+                                                  PaymentAmountStatus = contractItem!=null && orderItem!=null ? contractItem.Amount / orderItem.Amount * 100 : 0,
+
+                                                  IncomeAmount = incomeItem != null ? incomeItem.Amount : 0,
+                                                  IncomeAmountStatus = incomeItem != null && contractItem!= null ? (double)incomeItem.Amount / contractItem.Amount * 100 : 0,
                                               }).ToList();
                     }
                 }
