@@ -46,7 +46,7 @@ namespace tahsinERP.Controllers
                         db.PURCHASING_CONTRACT_PAYMENTS.Add(model);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(model.ContractID).ContractNo} - li harid shartnomasiga purchasingPaymentni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACT_PAYMENTS.Find(model.ID).PURCHASING_CONTRACTS.ContractNo} - li harid shartnomasiga to'lovni kiritdi!");
 
                         return RedirectToAction("Index");
                     }
@@ -119,7 +119,7 @@ namespace tahsinERP.Controllers
                     purchasingPaymentToDelete.IsDeleted = true;
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(ID).ContractNo} - shartnoma payment ni o'chirdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACT_PAYMENTS.Find(ID).PURCHASING_CONTRACTS.ContractNo} - shartnoma uchun to'lov ni o'chirdi");
                     db.SaveChanges();
 
                     return RedirectToAction("Index");
@@ -164,7 +164,7 @@ namespace tahsinERP.Controllers
                         purchasingPaymentToUpdate.Comment = purchasingPayment.Comment;
                         purchasingPaymentToUpdate.Currency = purchasingPayment.Currency;
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACTS.Find(purchasingPayment.ID).ContractNo} - shartnoma paymentini taxrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACT_PAYMENTS.Find(purchasingPayment.ID).PURCHASING_CONTRACTS.ContractNo} - shartnoma to'lovni taxrirladi");
                         db.SaveChanges();
 
                         return RedirectToAction("Index");

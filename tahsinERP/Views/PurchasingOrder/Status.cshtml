@@ -92,7 +92,7 @@
                                             <tr>
                                                 <th colspan="3" class="align-top">Buyurtma</th>
                                                 <th colspan="3">Shartnoma</th>
-                                                <th colspan="2">To'lov</th>
+                                                <th colspan="1">To'lov</th>
                                                 <th colspan="2">Kirim</th>
                                             </tr>
                                             <tr>
@@ -104,7 +104,6 @@
                                                 <th>Miqdori</th>
                                                 <th>Status</th>
 
-                                                <th>Miqdori</th>
                                                 <th>Status</th>
 
                                                 <th>Miqdori</th>
@@ -124,22 +123,20 @@
                                                     <td>
                                                         <div class="progress">
                                                             <div class="progress-bar" role="progressbar"
-                                                                 style="width: @item.ContractAmountStatus%;"
-                                                                 aria-valuenow="@item.ContractAmountStatus"
+                                                                 style="width: @item.ContractAmountPercentage;"
+                                                                 aria-valuenow="@item.ContractAmountPercentage"
                                                                  aria-valuemin="0" aria-valuemax="100">
-                                                                @item.ContractAmountStatus%
+                                                                @item.ContractAmountPercentage%
                                                             </div>
                                                         </div>
                                                     </td>
-
-                                                    <td>@item.PaymentAmount</td>
                                                     <td>
                                                         <div class="progress">
                                                             <div class="progress-bar" role="progressbar"
-                                                                 style="width: @item.PaymentAmountStatus%;"
-                                                                 aria-valuenow="@item.PaymentAmountStatus"
+                                                                 style="width: @item.PaymentAmountPercentage;"
+                                                                 aria-valuenow="@item.PaymentAmountPercentage"
                                                                  aria-valuemin="0" aria-valuemax="100">
-                                                                @item.PaymentAmountStatus%
+                                                                @item.PaymentAmountPercentage%
                                                             </div>
                                                         </div>
                                                     </td>
@@ -148,10 +145,10 @@
                                                     <td>
                                                         <div class="progress">
                                                             <div class="progress-bar" role="progressbar"
-                                                                 style="width: @item.IncomeAmountStatus%;"
-                                                                 aria-valuenow="@item.IncomeAmountStatus"
+                                                                 style="width: @item.IncomeAmountPercentage;"
+                                                                 aria-valuenow="@item.IncomeAmountPercentage"
                                                                  aria-valuemin="0" aria-valuemax="100">
-                                                                @item.IncomeAmountStatus%
+                                                                @item.IncomeAmountPercentage%
                                                             </div>
                                                         </div>
                                                     </td>

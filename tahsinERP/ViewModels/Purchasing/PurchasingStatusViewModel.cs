@@ -10,20 +10,23 @@ namespace tahsinERP.ViewModels.Purchasing
         public string ItemName { get; set; }
         public bool? Status { get; set; } = false;
         public double? OrderAmount { get; set; }
+        public int ContractID { get; set; }
         public int OrderID { get; set; }
+        public int OrderItemID { get; set; }
+        public int ContractItemID { get; set; }
+        public int PaymentID { get; set; }
+        public int IncomeID { get; set; }
+        public int IncomeItemID { get; set; }
         public string OrderedByDept { get; set; }
-        //public string OrderCodeEDO { get; set; }
-        //public DateTime OrderedDate { get; set; }
-        //contract
         public double? ContractAmount { get; set; }
         public string Supplier { get; set; }
-        public double ContractAmountStatus { get; set; }
+        public double ContractAmountPercentage { get; set; }
         //payment
         public double? PaymentAmount { get; set; }
-        public double PaymentAmountStatus { get; set; } = 0;
+        public double PaymentAmountPercentage { get; set; } = 0;
         //warehouse ..
         public double? IncomeAmount { get; set; }
-        public double IncomeAmountStatus { get; set; } = 0;
+        public double IncomeAmountPercentage { get; set; } = 0;
     }
 
 }

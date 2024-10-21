@@ -30,7 +30,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/PurchasingOrder/Index">Purchasing buyurtmalar</a>
+                                        <a href="~/PurchasingOrder/Index">Xarid Buyurtmalar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
                                         Buyurtma yaratish
@@ -99,7 +99,7 @@
 
                                             <div class="col-md-6 col-12 form-group" id="file-upload-div">
                                                 <hr />
-                                                <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
+                                                <label for="file-upload" class="form-label">Buyurtma faylini yuklang</label>
                                                 <div class="custom-file">
                                                     @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
                                                     @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
