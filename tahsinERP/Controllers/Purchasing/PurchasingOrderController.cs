@@ -502,68 +502,119 @@ namespace tahsinERP.Controllers
                                               join order in db.PURCHASING_ORDERS on orderItem.OrderID equals order.ID
                                               join contract in db.PURCHASING_CONTRACTS on order.ID equals contract.OrderID into contractGroup
                                               from contract in contractGroup.DefaultIfEmpty()
-                                              join contractItem in db.PURCHASING_CONTRACT_ITEMS on contract.ID equals contractItem.ContractID into contractItemGroup
-                                              from contractItem in contractItemGroup.DefaultIfEmpty()
+
+                                                  // Remove additional joins related to contract items or group them by OrderItemID to avoid duplicates
+                                              let contractItem = db.PURCHASING_CONTRACT_ITEMS
+                                                                  .Where(ci => ci.ContractID == contract.ID)
+                                                                  .FirstOrDefault()
+
                                               join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                               from payment in paymentGroup.DefaultIfEmpty()
+
                                               join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
                                               from income in incomeGroup.DefaultIfEmpty()
+
                                               join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
                                               from incomeItem in incomeItemGroup.DefaultIfEmpty()
 
                                               where orderItem.IsDeleted == false &&
                                                     (contract == null || contract.IsDeleted == false) &&
-                                                    (contractItem == null || contractItem.IsDeleted == false) &&
                                                     (payment == null || payment.IsDeleted == false) &&
-                                                    (income == null || income.IsDeleted == false) &&
-                                                    orderItem.OrderID == orderID &&
-                                                    (contract == null || contract.Supplier == supplierName)
+                                                    (income == null || income.IsDeleted == false) && 
+                                                    contract.Supplier == supplierName && 
+                                                    orderItem.OrderID == orderID
+
+                                              // Group by OrderItemID to avoid repetition
+                                              group new { orderItem, order, contract, contractItem, payment, incomeItem } by orderItem.ID into grouped
 
                                               select new PurchasingStatusViewModel
                                               {
-                                                  OrderItemID = orderItem.ID,
-                                                  OrderID = order.ID,
-                                                  ContractID = contract != null ? contract.ID : 0,
-                                                  ContractItemID = contractItem != null ? contractItem.ID : 0,
-                                                  PaymentID = payment != null ? payment.ID : 0,
-                                                  IncomeID = income != null ? income.ID : 0,
-                                                  IncomeItemID = incomeItem != null ? incomeItem.ID : 0
+                                                  ItemName = grouped.FirstOrDefault().orderItem.PURCHASING_ITEMS.ItemName,
+                                                  OrderedByDept = grouped.FirstOrDefault().order.OrderedByDept,
+                                                  OrderAmount = grouped.FirstOrDefault().orderItem.Amount,
+                                                  Supplier = grouped.FirstOrDefault().contract != null ? grouped.FirstOrDefault().contract.Supplier : string.Empty,
+
+                                                  ContractAmount = grouped.FirstOrDefault().contractItem != null ? grouped.FirstOrDefault().contractItem.Amount : 0,
+                                                  IncomeAmount = grouped.FirstOrDefault().incomeItem != null ? grouped.FirstOrDefault().incomeItem.Amount : 0,
+
+                                                  // Additional IDs
+                                                  OrderItemID = grouped.FirstOrDefault().orderItem.ID,
+                                                  OrderID = grouped.FirstOrDefault().order.ID,
+                                                  ContractID = grouped.FirstOrDefault().contract != null ? grouped.FirstOrDefault().contract.ID : 0,
+                                                  ContractItemID = grouped.FirstOrDefault().contractItem != null ? grouped.FirstOrDefault().contractItem.ID : 0,
+                                                  PaymentID = grouped.FirstOrDefault().payment != null ? grouped.FirstOrDefault().payment.ID : 0,
+                                                  IncomeID = grouped.FirstOrDefault().incomeItem != null ? grouped.FirstOrDefault().incomeItem.ID : 0,
+
+                                                  // New percentage variables
+                                                  ContractAmountPercentage = (grouped.FirstOrDefault().contractItem != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().contractItem.Amount / grouped.FirstOrDefault().orderItem.Amount) * 100 : 0,
+
+                                                  PaymentAmountPercentage = (grouped.FirstOrDefault().payment != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().payment.Payment_Amount / grouped.FirstOrDefault().contract.Amount) * 100 : 0,
+
+                                                  IncomeAmountPercentage = (grouped.FirstOrDefault().incomeItem != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().incomeItem.Amount / grouped.FirstOrDefault().orderItem.Amount) * 100 : 0
                                               }).ToList();
                     }
                     else
                     {
                         int orderID = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.OrderCodeEDO.CompareTo(orderNoEDO) == 0).FirstOrDefault().ID;
-                        
+
                         purchasingStatuses = (from orderItem in db.PURCHASING_ORDER_ITEMS
                                               join order in db.PURCHASING_ORDERS on orderItem.OrderID equals order.ID
                                               join contract in db.PURCHASING_CONTRACTS on order.ID equals contract.OrderID into contractGroup
                                               from contract in contractGroup.DefaultIfEmpty()
-                                              join contractItem in db.PURCHASING_CONTRACT_ITEMS on contract.ID equals contractItem.ContractID into contractItemGroup
-                                              from contractItem in contractItemGroup.DefaultIfEmpty()
+
+                                                  // Remove additional joins related to contract items or group them by OrderItemID to avoid duplicates
+                                              let contractItem = db.PURCHASING_CONTRACT_ITEMS
+                                                                  .Where(ci => ci.ContractID == contract.ID)
+                                                                  .FirstOrDefault()
+
                                               join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                               from payment in paymentGroup.DefaultIfEmpty()
+
                                               join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
                                               from income in incomeGroup.DefaultIfEmpty()
+
                                               join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
                                               from incomeItem in incomeItemGroup.DefaultIfEmpty()
 
                                               where orderItem.IsDeleted == false &&
                                                     (contract == null || contract.IsDeleted == false) &&
-                                                    (contractItem == null || contractItem.IsDeleted == false) &&
                                                     (payment == null || payment.IsDeleted == false) &&
                                                     (income == null || income.IsDeleted == false) &&
-                                                    orderItem.OrderID == orderID &&
-                                                    (contract == null)
+                                                    orderItem.OrderID == orderID
+
+                                              // Group by OrderItemID to avoid repetition
+                                              group new { orderItem, order, contract, contractItem, payment, incomeItem } by orderItem.ID into grouped
 
                                               select new PurchasingStatusViewModel
                                               {
-                                                  OrderItemID = orderItem.ID,
-                                                  OrderID = order.ID,
-                                                  ContractID = contract != null ? contract.ID : 0,
-                                                  ContractItemID = contractItem != null ? contractItem.ID : 0,
-                                                  PaymentID = payment != null ? payment.ID : 0,
-                                                  IncomeID = income != null ? income.ID : 0,
-                                                  IncomeItemID = incomeItem != null ? incomeItem.ID : 0
+                                                  ItemName = grouped.FirstOrDefault().orderItem.PURCHASING_ITEMS.ItemName,
+                                                  OrderedByDept = grouped.FirstOrDefault().order.OrderedByDept,
+                                                  OrderAmount = grouped.FirstOrDefault().orderItem.Amount,
+                                                  Supplier = grouped.FirstOrDefault().contract != null ? grouped.FirstOrDefault().contract.Supplier : string.Empty,
+
+                                                  ContractAmount = grouped.FirstOrDefault().contractItem != null ? grouped.FirstOrDefault().contractItem.Amount : 0,
+                                                  IncomeAmount = grouped.FirstOrDefault().incomeItem != null ? grouped.FirstOrDefault().incomeItem.Amount : 0,
+
+                                                  // Additional IDs
+                                                  OrderItemID = grouped.FirstOrDefault().orderItem.ID,
+                                                  OrderID = grouped.FirstOrDefault().order.ID,
+                                                  ContractID = grouped.FirstOrDefault().contract != null ? grouped.FirstOrDefault().contract.ID : 0,
+                                                  ContractItemID = grouped.FirstOrDefault().contractItem != null ? grouped.FirstOrDefault().contractItem.ID : 0,
+                                                  PaymentID = grouped.FirstOrDefault().payment != null ? grouped.FirstOrDefault().payment.ID : 0,
+                                                  IncomeID = grouped.FirstOrDefault().incomeItem != null ? grouped.FirstOrDefault().incomeItem.ID : 0,
+
+                                                  // New percentage variables
+                                                  ContractAmountPercentage = (grouped.FirstOrDefault().contractItem != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().contractItem.Amount / grouped.FirstOrDefault().orderItem.Amount) * 100 : 0,
+
+                                                  PaymentAmountPercentage = (grouped.FirstOrDefault().payment != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().payment.Payment_Amount / grouped.FirstOrDefault().contract.Amount) * 100 : 0,
+
+                                                  IncomeAmountPercentage = (grouped.FirstOrDefault().incomeItem != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().incomeItem.Amount / grouped.FirstOrDefault().orderItem.Amount) * 100 : 0
                                               }).ToList();
                     }
                 }
@@ -575,31 +626,57 @@ namespace tahsinERP.Controllers
                                               join order in db.PURCHASING_ORDERS on orderItem.OrderID equals order.ID
                                               join contract in db.PURCHASING_CONTRACTS on order.ID equals contract.OrderID into contractGroup
                                               from contract in contractGroup.DefaultIfEmpty()
-                                              join contractItem in db.PURCHASING_CONTRACT_ITEMS on contract.ID equals contractItem.ContractID into contractItemGroup
-                                              from contractItem in contractItemGroup.DefaultIfEmpty()
+
+                                                  // Remove additional joins related to contract items or group them by OrderItemID to avoid duplicates
+                                              let contractItem = db.PURCHASING_CONTRACT_ITEMS
+                                                                  .Where(ci => ci.ContractID == contract.ID)
+                                                                  .FirstOrDefault()
+
                                               join payment in db.PURCHASING_CONTRACT_PAYMENTS on contract.ID equals payment.ContractID into paymentGroup
                                               from payment in paymentGroup.DefaultIfEmpty()
+
                                               join income in db.PURCHASING_WRHS_INCOMES on contract.ID equals income.ContractID into incomeGroup
                                               from income in incomeGroup.DefaultIfEmpty()
+
                                               join incomeItem in db.PURCHASING_WRHS_INCOME_ITEMS on income.ID equals incomeItem.IncomeID into incomeItemGroup
                                               from incomeItem in incomeItemGroup.DefaultIfEmpty()
 
                                               where orderItem.IsDeleted == false &&
                                                     (contract == null || contract.IsDeleted == false) &&
-                                                    (contractItem == null || contractItem.IsDeleted == false) &&
                                                     (payment == null || payment.IsDeleted == false) &&
                                                     (income == null || income.IsDeleted == false) &&
-                                                    (contract == null || contract.Supplier == supplierName)
+                                                    contract.Supplier == supplierName
+
+                                              // Group by OrderItemID to avoid repetition
+                                              group new { orderItem, order, contract, contractItem, payment, incomeItem } by orderItem.ID into grouped
 
                                               select new PurchasingStatusViewModel
                                               {
-                                                  OrderItemID = orderItem.ID,
-                                                  OrderID = order.ID,
-                                                  ContractID = contract != null ? contract.ID : 0,
-                                                  ContractItemID = contractItem != null ? contractItem.ID : 0,
-                                                  PaymentID = payment != null ? payment.ID : 0,
-                                                  IncomeID = income != null ? income.ID : 0,
-                                                  IncomeItemID = incomeItem != null ? incomeItem.ID : 0
+                                                  ItemName = grouped.FirstOrDefault().orderItem.PURCHASING_ITEMS.ItemName,
+                                                  OrderedByDept = grouped.FirstOrDefault().order.OrderedByDept,
+                                                  OrderAmount = grouped.FirstOrDefault().orderItem.Amount,
+                                                  Supplier = grouped.FirstOrDefault().contract != null ? grouped.FirstOrDefault().contract.Supplier : string.Empty,
+
+                                                  ContractAmount = grouped.FirstOrDefault().contractItem != null ? grouped.FirstOrDefault().contractItem.Amount : 0,
+                                                  IncomeAmount = grouped.FirstOrDefault().incomeItem != null ? grouped.FirstOrDefault().incomeItem.Amount : 0,
+
+                                                  // Additional IDs
+                                                  OrderItemID = grouped.FirstOrDefault().orderItem.ID,
+                                                  OrderID = grouped.FirstOrDefault().order.ID,
+                                                  ContractID = grouped.FirstOrDefault().contract != null ? grouped.FirstOrDefault().contract.ID : 0,
+                                                  ContractItemID = grouped.FirstOrDefault().contractItem != null ? grouped.FirstOrDefault().contractItem.ID : 0,
+                                                  PaymentID = grouped.FirstOrDefault().payment != null ? grouped.FirstOrDefault().payment.ID : 0,
+                                                  IncomeID = grouped.FirstOrDefault().incomeItem != null ? grouped.FirstOrDefault().incomeItem.ID : 0,
+
+                                                  // New percentage variables
+                                                  ContractAmountPercentage = (grouped.FirstOrDefault().contractItem != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().contractItem.Amount / grouped.FirstOrDefault().orderItem.Amount) * 100 : 0,
+
+                                                  PaymentAmountPercentage = (grouped.FirstOrDefault().payment != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().payment.Payment_Amount / grouped.FirstOrDefault().contract.Amount) * 100 : 0,
+
+                                                  IncomeAmountPercentage = (grouped.FirstOrDefault().incomeItem != null && grouped.FirstOrDefault().orderItem.Amount > 0)
+                                                      ? (grouped.FirstOrDefault().incomeItem.Amount / grouped.FirstOrDefault().orderItem.Amount) * 100 : 0
                                               }).ToList();
                     }
                     else
