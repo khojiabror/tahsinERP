@@ -14,6 +14,7 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using tahsinERP.ViewModels.Purchasing;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing.Charts;
+using Microsoft.AspNetCore.Mvc;
 
 namespace tahsinERP.Controllers
 {
@@ -467,23 +468,84 @@ namespace tahsinERP.Controllers
             }
             return View();
         }
-        public ActionResult UpdateItemStatus()
+        public ActionResult UpdateItemStatus(string orderNoEDO, string deptName)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var itemsList = db.PURCHASING_ORDER_ITEMS.Where(x => x.IsDeleted == false).ToList();
+                List<PURCHASING_ORDER_ITEMS> itemsList = new List<PURCHASING_ORDER_ITEMS>();
+                if (!string.IsNullOrEmpty(deptName))
+                {
+                    if (!string.IsNullOrEmpty(orderNoEDO))
+                    {
+                        itemsList = db.PURCHASING_ORDER_ITEMS
+                                    .Include(x => x.PURCHASING_ITEMS)
+                                    .Include(x => x.PURCHASING_ORDERS)
+                                    .Where(x => x.IsDeleted == false && x.PURCHASING_ORDERS.OrderCode == orderNoEDO && x.PURCHASING_ORDERS.OrderedByDept == deptName).ToList();
+                    }
+                    else
+                    {
+                        itemsList = db.PURCHASING_ORDER_ITEMS
+                                    .Include(x => x.PURCHASING_ITEMS)
+                                    .Include(x => x.PURCHASING_ORDERS)
+                                    .Where(x => x.IsDeleted == false && x.PURCHASING_ORDERS.OrderedByDept == deptName).ToList();
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(orderNoEDO))
+                    {
+                        itemsList = db.PURCHASING_ORDER_ITEMS
+                                    .Include(x => x.PURCHASING_ITEMS)
+                                    .Include(x => x.PURCHASING_ORDERS)
+                                    .Where(x => x.IsDeleted == false && x.PURCHASING_ORDERS.OrderCode == orderNoEDO).ToList();
+                    }
+                    else
+                    {
+                        itemsList = db.PURCHASING_ORDER_ITEMS
+                                    .Include(x => x.PURCHASING_ITEMS)
+                                    .Include(x => x.PURCHASING_ORDERS)
+                                    .Where(x => x.IsDeleted == false).ToList();
+                    }
+                }
+                var departamanentList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderedByDept).Distinct().ToList();
+                ViewBag.DepartamentList = new SelectList(departamanentList);
+
+                var orderList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderCodeEDO) .ToList();
+                ViewBag.PurchasingOrderList = new SelectList(orderList);
+
                 return View(itemsList);
             }
         }
         [HttpPost]
-        public ActionResult UpdateItemStatus(PURCHASING_ORDER_ITEMS orderItem)
+        public ActionResult UpdateItemStatus(int id, string status, string comment)
         {
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
+                var item = db.PURCHASING_ORDER_ITEMS.Find(id);
+                if (item != null)
+                {
+                    item.Status = status == "approve";
+                    if (item.Status != null) // Faqat disapprove bo'lsa commentni saqlaydi
+                    {
+                        item.Comment = comment;
+                    }
+                    db.SaveChanges();
+                }
+                var itemsList = db.PURCHASING_ORDER_ITEMS
+                               .Include(x => x.PURCHASING_ITEMS)
+                               .Include(x => x.PURCHASING_ORDERS)
+                               .Where(x => x.IsDeleted == false).ToList();
 
+                var departamanentList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderedByDept).Distinct().ToList();
+                ViewBag.DepartamentList = new SelectList(departamanentList);
+
+                var orderList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderCodeEDO).ToList();
+                ViewBag.PurchasingOrderList = new SelectList(orderList);
+
+                return View(itemsList);
             }
-            return View(); 
         }
+
         public ActionResult Status(string orderNoEDO, string supplierName)
         {
             using(DBTHSNEntities db = new DBTHSNEntities())

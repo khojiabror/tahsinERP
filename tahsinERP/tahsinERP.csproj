@@ -467,6 +467,7 @@
     <Content Include="assets\manual\popper.min.js" />
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
+    <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
     <Compile Include="Controllers\MES\CarPlanController.cs" />
     <Compile Include="Controllers\CheckForPOController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
@@ -3000,9 +3001,11 @@
     <Content Include="Views\PurchasingWhIncome\EditPart.cshtml" />
     <Content Include="Views\CheckForPO\Index.cshtml" />
     <Content Include="Views\CheckForPO\Tracing.cshtml" />
+    <Content Include="Views\PurchasingOrder\UpdateItemStatus.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\WaybillPayment\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

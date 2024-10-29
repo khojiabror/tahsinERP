@@ -1,0 +1,141 @@
+﻿@model List<tahsinERP.Models.PURCHASING_ORDER_ITEMS>
+
+@{
+    ViewBag.Title = "UpdateItemStatus";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">Sahifalar</li>
+                                <li class="breadcrumb-item active">Xarid buyurtmalari statuslari</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="users-list-filter px-1">
+            <form>
+                <div class="row border rounded py-2 mb-2">
+                    <div class="col-12 col-lg-4">
+                        <label>Bo'lim</label>
+                        <fieldset class="form-group">
+                            @Html.DropDownList("deptName", ViewBag.DepartamentList as SelectList, "", new { @class = "form-control", id = "SupplierID", onchange = "refreshDataTable();" })
+                        </fieldset>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <label>Buyurtma</label>
+                        <fieldset class="form-group">
+                            @Html.DropDownList("orderNoEDO", ViewBag.PurchasingOrderList as SelectList, "", new { @class = "form-control", id = "OrderCodeEDO", onchange = "refreshDataTable();" })
+                        </fieldset>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @using (Html.BeginForm("UpdateItemStatus", "PurchasingOrder", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="myDataTable" class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Maxsulot nomi</th>
+                                                <th>Bo'lim</th>
+                                                <th>Miqdori</th>
+                                                <th>Umumiy narxi</th>
+                                                <th>Status</th>
+                                                <th>Izoh</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Model.Count; i++)
+                                            {
+                                                <tr>
+                                                    <!-- Hidden ID field for each row -->
+                                                    @Html.HiddenFor(m => m[i].ID)
+                                                    <td><a href="~/PurchasingOrder/Details/@Model[i].OrderID">@Model[i].PURCHASING_ITEMS.ItemName</a></td>
+                                                    <td>@Model[i].PURCHASING_ORDERS.OrderedByDept</td>
+                                                    <td>@Model[i].Amount</td>
+                                                    <td>@Model[i].TotalPrice</td>
+                                                    <td>
+                                                        <!-- Radio buttons for Status selection -->
+                                                        <!--<input type="radio" name="Model[@i].Status" value="true" id="success_@i" @(Model[i].Status == true ? "checked" : "") />
+    <label for="success_@i">Success</label>
+
+    <input type="radio" name="Model[@i].Status" value="false" id="danger_@i" @(Model[i].Status == false ? "checked" : "") onchange="toggleComment(@i, true)" />
+    <label for="danger_@i">Danger</label>-->
+                                                        <ul class="list-unstyled mb-0">
+                                                            @*<li class="d-inline-block mr-2 mb-1">
+            <fieldset>
+                <div class="checkbox checkbox-secondary checkbox-glow">
+                    @Html.CheckBoxFor(model => model[i].Status ?? true, new { @id = "checkboxGlow2" })
+                    <label for="checkboxGlow2">Faolmi?</label>
+                </div>
+            </fieldset>
+        </li>*@
+                                                            <li class="d-inline-block mr-2 mb-1">
+                                                                <fieldset>
+                                                                    <div class="checkbox checkbox-danger checkbox-icon">
+                                                                        @Html.CheckBox($"Model[{i}].Status", Model[i].Status ?? true, new { @id = $"checkboxIcon{i}" })
+                                                                        <label for="checkboxIcon{i}"><i class="bx bx-x"></i>Danger</label>
+                                                                    </div>
+                                                                </fieldset>
+                                                            </li>
+
+                                                            @*
+        <li class="d-inline-block mr-2 mb-1">
+            <fieldset>
+                <div class="checkbox checkbox-danger checkbox-icon">
+                    @Html.CheckBoxFor(model => model[i].Status ?? true, new { @id = "checkboxIcon4" })
+                    <label for="checkboxIcon4"><i class="bx bx-x"></i>Danger</label>
+                </div>
+            </fieldset>
+        </li>*@
+                                                        </ul>
+                                                    </td>
+                                                    <td>
+                                                        @Html.TextBoxFor(m => m[i].Comment, new { @class = "form-control", id = $"comment_{i}", disabled = Model[i].Status != false })
+                                                    </td>   
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
+                                    <i class='bx bx-save'></i> Saqlash
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function toggleComment(index, enable) {
+        document.getElementById(`comment_${index}`).disabled = !enable;
+    }
+
+    function refreshDataTable() {
+        var source = document.getElementById("OrderCodeEDO").value;
+        var supplierID = document.getElementById("SupplierID").value;
+        window.location.href = '@Url.Action("UpdateItemStatus", "PurchasingOrder")?orderNoEDO=' + source + '&deptName=' + supplierID;
+    }
+</script>
