@@ -99,11 +99,11 @@
                                                                 @Html.TextBoxFor(model => model.PHeight, new { @class = "form-control", @placeholder = "Balandligini kiriting" })
                                                                 @Html.ValidationMessageFor(model => model.PHeight, "", new { @class = "text-danger" })
                                                             </fieldset>
-                                                            <h6 class="invoice-to">Qalinligi</h6>
+                                                          @*  <h6 class="invoice-to">Qalinligi</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 @Html.TextBoxFor(model => model.Thickness, new { @class = "form-control", @placeholder = "Qalinligini kiriting" })
                                                                 @Html.ValidationMessageFor(model => model.Thickness, "", new { @class = "text-danger" })
-                                                            </fieldset>
+                                                            </fieldset>*@
                                                             <h6 class="invoice-to">O'lchov birligi</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 @Html.TextBoxFor(model => model.Units.ShortName, new { @class = "form-control", @placeholder = "O'lchov birligini kiriting" })
