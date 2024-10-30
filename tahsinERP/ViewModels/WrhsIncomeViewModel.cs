@@ -17,7 +17,6 @@ namespace tahsinERP.ViewModels
         [Required(ErrorMessage = "Invoice ID is required.")]
         public int InvoiceID { get; set; }
 
-        public int WaybillID { get; set; } // Waybill ID, defaults to null
 
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File { get; set; } // File upload
@@ -56,12 +55,10 @@ namespace tahsinERP.ViewModels
         public int PartID { get; set; }
         [Required(ErrorMessage = "Unit ID is required.")]
         public int UnitID { get; set; }
-
         [Required(ErrorMessage = "Amount is required.")]
         public double Amount { get; set; }
         [Required]
         public double PiecePrice { get; set; }
-
         public string Comment { get; set; } // Optional comment
     }
 }

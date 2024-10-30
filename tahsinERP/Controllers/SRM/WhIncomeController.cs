@@ -203,28 +203,38 @@ namespace tahsinERP.Controllers
                 WrhsIncomeViewModel model = new WrhsIncomeViewModel();
                 PART_WRHS_INCOMES income = db.PART_WRHS_INCOMES.OrderByDescending(w => w.IssueDateTime).FirstOrDefault();
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
+
                 if (warehouse is null)
                     model.WHName = "Siz uchun ombor biriktirilmagan.";
                 else
                     model.WHName = warehouse.WHName;
-                if (income != null)
+
+                if (income != null && income.DocNo.Contains("_"))
                 {
-                    month = income.DocNo.Substring(0, 1);
-                    if (int.Parse(month) == int.Parse(DateTime.Now.Month.ToString()))
+                    // Oy va hujjat raqamini ajratamiz
+                    string[] docParts = income.DocNo.Split('_');
+                    int incomeMonth = int.Parse(docParts[0]);
+                    int currentMonth = DateTime.Now.Month;
+
+                    if (incomeMonth == currentMonth)
                     {
-                        int doc_No_number = Convert.ToInt32(income.DocNo.Substring(income.DocNo.LastIndexOf('_') + 1));
+                        // Agar hujjat shu oyga tegishli bo'lsa, raqamni oshiramiz
+                        int doc_No_number = int.Parse(docParts[1]);
                         doc_No_number++;
-                        model.DocNo = DateTime.Now.Month + "_" + doc_No_number;
+                        model.DocNo = $"{currentMonth}_{doc_No_number}";
                     }
                     else
                     {
-                        model.DocNo = DateTime.Now.Month.ToString() + "_1";
+                        // Agar hujjat boshqa oydan bo'lsa, raqamni 1 dan boshlaymiz
+                        model.DocNo = $"{currentMonth}_1";
                     }
                 }
                 else
                 {
-                    model.DocNo = DateTime.Now.Month.ToString() + "_1";
+                    // Agar hujjat mavjud bo'lmasa, shu oydan boshlaymiz
+                    model.DocNo = $"{DateTime.Now.Month}_1";
                 }
+
 
                 return View(model);
             }
