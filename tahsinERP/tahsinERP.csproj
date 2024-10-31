@@ -3002,10 +3002,14 @@
     <Content Include="Views\CheckForPO\Index.cshtml" />
     <Content Include="Views\CheckForPO\Tracing.cshtml" />
     <Content Include="Views\PurchasingOrder\UpdateItemStatus.cshtml" />
+    <Content Include="Views\WaybillPayment\Index.cshtml" />
+    <Content Include="Views\WaybillPayment\Create.cshtml" />
+    <Content Include="Views\WaybillPayment\Details.cshtml" />
+    <Content Include="Views\WaybillPayment\Delete.cshtml" />
+    <Content Include="Views\WaybillPayment\Edit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\WaybillPayment\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
