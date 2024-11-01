@@ -34,15 +34,9 @@
                                             <a href="~/GTD/Index">GTD invoyslar</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi proforma invoys qo'shish
+                                            Yangi GTD qo'shish
                                         </li>
                                     </ol>
-                                    <div class="invoice-create-btn mb-1">
-                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/GTD/UploadWithExcel'">
-                                            <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali ta'minotchilarni qo'shish</span>
-                                        </button>
-
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -68,10 +62,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Invoys</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.ListBoxFor(model => model.InvoiceID, ViewBag.PInvoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID",multiple = "multiple", id = "InvoiceID", @required = "required" })
-                                                    </fieldset>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.ListBox("RoleID", ViewBag.Roles as MultiSelectList, new { @class = "select2 form-control", multiple = "multiple" })
+                                                        @Html.ListBoxFor(model => model.InvoiceID, ViewBag.invoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID",multiple = "multiple", id = "InvoiceID", @required = "required" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Summa</h6>
                                                     <fieldset class="invoice-address form-group">
@@ -80,14 +71,14 @@
                                                     </fieldset>
                                                     <div class="col-md-6 col-12 form-group" id="file-upload-div">
                                                         <hr />
-                                                        <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
+                                                        <label for="file-upload" class="form-label">GTD faylini yuklang</label>
                                                         <div class="custom-file">
                                                             @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
                                                             @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
-                                                        </div>
+                                                        </div>@*
                                                         <div class="progress mt-3 d-none" id="upload-progress">
                                                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
-                                                        </div>
+                                                        </div>*@
                                                         <hr />
                                                     </div>
                                                     <ul class="list-group list-group-flush">
