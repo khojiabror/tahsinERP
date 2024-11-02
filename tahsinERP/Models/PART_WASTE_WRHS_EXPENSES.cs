@@ -23,7 +23,6 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public string DocNo { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public int ReceiverWhID { get; set; }
         public int SenderWHID { get; set; }
@@ -31,7 +30,9 @@ namespace tahsinERP.Models
         public string Description { get; set; }
         public System.DateTime IssueDateTime { get; set; }
         public Nullable<bool> SendStatus { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART_WASTE_WRHS_EXPENSE_WASTES> PART_WASTE_WRHS_EXPENSE_WASTES { get; set; }
         public virtual PART_WRHS PART_WRHS { get; set; }

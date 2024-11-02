@@ -28,11 +28,12 @@ namespace tahsinERP.Models
         public System.DateTime IssueDate { get; set; }
         public System.DateTime DueDate { get; set; }
         public double Amount { get; set; }
-        public string Currency { get; set; }
         public string Description { get; set; }
         public bool IsDeleted { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_CONTRACT_DOCS> F_CONTRACT_DOCS { get; set; }
         public virtual FORWARDER FORWARDER { get; set; }

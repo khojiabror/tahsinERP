@@ -27,11 +27,12 @@ namespace tahsinERP.Models
         public int CustomerID { get; set; }
         public int ContractID { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
         public string Description { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual CUSTOMER CUSTOMER { get; set; }
         public virtual S_CONTRACTS S_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

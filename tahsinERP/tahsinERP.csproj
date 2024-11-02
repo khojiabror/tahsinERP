@@ -555,6 +555,9 @@
     <Compile Include="Models\COOKIES_CONFIRMATION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CURRENCy.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CUSTOMER.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -755,6 +758,15 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PURCHASING_CONTRACT_PAYMENTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PURCHASING_INVOICES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PURCHASING_INVOICE_DOCS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PURCHASING_INVOICE_ITEMS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PURCHASING_ITEMS.cs">

@@ -24,7 +24,9 @@ namespace tahsinERP.Models
         public string GTD_No { get; set; }
         public double Sum { get; set; }
         public bool IsDeleted { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<GTD_DOCS> GTD_DOCS { get; set; }
     }

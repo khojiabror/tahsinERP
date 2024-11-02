@@ -32,10 +32,12 @@ namespace tahsinERP.Models
         public string Status { get; set; }
         public int BuyerUserID { get; set; }
         public bool IsDeleted { get; set; }
-        public string OrderedByUser { get; set; }
         public string OrderedByDept { get; set; }
+        public string OrderedByUser { get; set; }
         public Nullable<double> Progress { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

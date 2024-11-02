@@ -25,14 +25,15 @@ namespace tahsinERP.Models
         public int WHID { get; set; }
         public Nullable<int> ContractID { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string Description { get; set; }
         public System.DateTime IssueDateTime { get; set; }
         public Nullable<int> SenderWHID { get; set; }
         public Nullable<bool> ReceiveStatus { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual PART_WRHS PART_WRHS { get; set; }
         public virtual PART_WRHS PART_WRHS1 { get; set; }
         public virtual PURCHASING_CONTRACTS PURCHASING_CONTRACTS { get; set; }

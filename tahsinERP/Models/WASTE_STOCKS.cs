@@ -17,10 +17,11 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int WHID { get; set; }
         public int WasteID { get; set; }
-        public string Unit { get; set; }
         public double Amount { get; set; }
+        public int UnitID { get; set; }
     
         public virtual PART_WRHS PART_WRHS { get; set; }
+        public virtual UNIT UNIT { get; set; }
         public virtual WASTE WASTE { get; set; }
     }
 }
