@@ -30,7 +30,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false), "ID", "InvoiceNo");
+                ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
             }
             return View();
         }
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers
                 }
 
                 var roles = db.ROLES.ToList();
-                ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false), "ID", "InvoiceNo");
+                ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
 
                 return View(model);
             }
@@ -167,6 +167,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var gtd = db.GTDS.Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
+                ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
 
                 if (gtd != null)
                     return View(gtd);
@@ -177,9 +178,9 @@ namespace tahsinERP.Controllers
         [HttpPost]
         public ActionResult Edit(GTD model)
         {
-            if (ModelState.IsValid)
+            using(DBTHSNEntities db = new DBTHSNEntities())
             {
-                using(DBTHSNEntities db = new DBTHSNEntities())
+                if (ModelState.IsValid)
                 {
                     var gtdToUpdate = db.GTDS.Find(model.ID);
                     if (gtdToUpdate != null)
@@ -193,7 +194,9 @@ namespace tahsinERP.Controllers
                         return RedirectToAction("Index");
                     }
                 }
+                ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
             }
+
             return View(model); 
         }
     }

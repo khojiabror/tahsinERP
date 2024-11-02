@@ -39,6 +39,17 @@
             <div class="content-body">
                 <!-- users list start -->
                 <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/GTD/Create';">
+                                <span class="align-middle ml-25">GTD qo'shish</span>
+                            </button>@*
+                            <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/GTD/UploadWithExcel'">
+                                <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali forwarder qo'shish</span>
+                            </button>*@
+                        </div>
+                    }
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
                             <div class="card-content">
