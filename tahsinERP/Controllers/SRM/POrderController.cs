@@ -213,9 +213,12 @@ namespace tahsinERP.Controllers
                             ContractID = model.ContractID,
                             Currency = model.Currency,
                             Description = model.Description,
-                            IsDeleted = false
+                            IsDeleted = false,
+                            Amount = 0
                         };
-
+                        if (model.Parts != null)
+                            newOrder.Amount = model.Parts.Sum(p => p.Amount);
+                        
                         db.P_ORDERS.Add(newOrder);
                         db.SaveChanges();
                         LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - POrderni yaratdi");

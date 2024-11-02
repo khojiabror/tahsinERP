@@ -106,7 +106,6 @@
                                                                                 <th>O'lchov birligi</th>
                                                                                 <th>Miqdori</th>
                                                                                 <th>MOQ</th>
-                                                                                <th>Amallar</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -131,14 +130,6 @@
                                                                                         @Html.TextBoxFor(model => model.Parts[i].Amount, new { @class = "form-control" })
                                                                                     </td>
                                                                                     <td>@Html.TextBoxFor(model => model.Parts[i].MOQ, new { @class = "form-control" })</td>
-                                                                                    <td>
-                                                                                        <div>
-                                                                                            <a href="~/PContract/DeletePart/@Model.Parts[i].ID" onclick="return confirm('Ushbu shartnoma maxsulotini ochirib yuborishga ishonchingiz komilmi?')">
-                                                                                                <i class="bx bx-trash"></i>
-                                                                                            </a>
-                                                                                            <a href="@Url.Action("EditPart", "PInvoice", new { id = Model.Parts[i].ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                                        </div>
-                                                                                    </td>
                                                                                 </tr>
                                                                             }
                                                                         </tbody>
