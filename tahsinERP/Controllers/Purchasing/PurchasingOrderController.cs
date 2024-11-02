@@ -15,6 +15,7 @@ using tahsinERP.ViewModels.Purchasing;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using Microsoft.AspNetCore.Mvc;
+using Antlr.Runtime.Misc;
 
 namespace tahsinERP.Controllers
 {
@@ -468,82 +469,62 @@ namespace tahsinERP.Controllers
             }
             return View();
         }
-        public ActionResult UpdateItemStatus(string orderNoEDO, string deptName)
+        public ActionResult UpdateItemStatus(int? ID)
         {
+            if (ID == null)
+                HttpNotFound();
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                List<PURCHASING_ORDER_ITEMS> itemsList = new List<PURCHASING_ORDER_ITEMS>();
-                if (!string.IsNullOrEmpty(deptName))
-                {
-                    if (!string.IsNullOrEmpty(orderNoEDO))
-                    {
-                        itemsList = db.PURCHASING_ORDER_ITEMS
-                                    .Include(x => x.PURCHASING_ITEMS)
-                                    .Include(x => x.PURCHASING_ORDERS)
-                                    .Where(x => x.IsDeleted == false && x.PURCHASING_ORDERS.OrderCode == orderNoEDO && x.PURCHASING_ORDERS.OrderedByDept == deptName).ToList();
-                    }
-                    else
-                    {
-                        itemsList = db.PURCHASING_ORDER_ITEMS
-                                    .Include(x => x.PURCHASING_ITEMS)
-                                    .Include(x => x.PURCHASING_ORDERS)
-                                    .Where(x => x.IsDeleted == false && x.PURCHASING_ORDERS.OrderedByDept == deptName).ToList();
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(orderNoEDO))
-                    {
-                        itemsList = db.PURCHASING_ORDER_ITEMS
-                                    .Include(x => x.PURCHASING_ITEMS)
-                                    .Include(x => x.PURCHASING_ORDERS)
-                                    .Where(x => x.IsDeleted == false && x.PURCHASING_ORDERS.OrderCode == orderNoEDO).ToList();
-                    }
-                    else
-                    {
-                        itemsList = db.PURCHASING_ORDER_ITEMS
-                                    .Include(x => x.PURCHASING_ITEMS)
-                                    .Include(x => x.PURCHASING_ORDERS)
-                                    .Where(x => x.IsDeleted == false).ToList();
-                    }
-                }
-                var departamanentList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderedByDept).Distinct().ToList();
-                ViewBag.DepartamentList = new SelectList(departamanentList);
-
-                var orderList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderCodeEDO) .ToList();
-                ViewBag.PurchasingOrderList = new SelectList(orderList);
-
-                return View(itemsList);
+                var orderItems = db.PURCHASING_ORDER_ITEMS.Include(x => x.PURCHASING_ITEMS)
+                                                          .Include(x => x.PURCHASING_ORDERS)
+                                                          .Where(x => x.IsDeleted == false && x.OrderID == ID).ToList();
+                return View(orderItems);
             }
         }
         [HttpPost]
-        public ActionResult UpdateItemStatus(int id, string status, string comment)
+        public ActionResult UpdateItemStatus(int ID, string action, string comment)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var item = db.PURCHASING_ORDER_ITEMS.Find(id);
-                if (item != null)
+                try
                 {
-                    item.Status = status == "approve";
-                    if (item.Status != null) // Faqat disapprove bo'lsa commentni saqlaydi
+                    if (action == "approve")
                     {
-                        item.Comment = comment;
+                        // Approve logic
+                        PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                        purchasingItemToApprove.Status = true;
+                        purchasingItemToApprove.Comment = "";
+
+                        db.Entry(purchasingItemToApprove).State = EntityState.Modified;
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtani tasdiqladi");
+
+                        return RedirectToAction("Index");
                     }
-                    db.SaveChanges();
+                    else if (action == "disapprove")
+                    {
+                        PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                        purchasingItemToApprove.Status = false;
+                        purchasingItemToApprove.Comment = comment;
+
+                        db.Entry(purchasingItemToApprove).State = EntityState.Modified;
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtadan olib tashlandi");
+
+                        return RedirectToAction("Index");
+                    }
+                    else
+                        return HttpNotFound();
+
                 }
-                var itemsList = db.PURCHASING_ORDER_ITEMS
-                               .Include(x => x.PURCHASING_ITEMS)
-                               .Include(x => x.PURCHASING_ORDERS)
-                               .Where(x => x.IsDeleted == false).ToList();
-
-                var departamanentList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderedByDept).Distinct().ToList();
-                ViewBag.DepartamentList = new SelectList(departamanentList);
-
-                var orderList = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).Select(x => x.OrderCodeEDO).ToList();
-                ViewBag.PurchasingOrderList = new SelectList(orderList);
-
-                return View(itemsList);
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
+            return View();
         }
 
         public ActionResult Status(string orderNoEDO, string supplierName)

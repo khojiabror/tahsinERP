@@ -37,12 +37,6 @@
                                             Yangi proforma invoys qo'shish
                                         </li>
                                     </ol>
-                                    <div class="invoice-create-btn mb-1">
-                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/ProformaInvoice/UploadWithExcel'">
-                                            <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali ta'minotchilarni qo'shish</span>
-                                        </button>
-
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -98,9 +92,6 @@
                                                         <div class="custom-file">
                                                             @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
                                                             @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="progress mt-3 d-none" id="upload-progress">
-                                                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
                                                         </div>
                                                         <hr />
                                                     </div>
