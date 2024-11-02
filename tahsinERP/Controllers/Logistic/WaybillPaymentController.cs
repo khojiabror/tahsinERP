@@ -44,7 +44,7 @@ namespace tahsinERP.Controllers.Logistic
                         db.F_WAYBILL_PAYMENTS.Add(model);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.F_WAYBILL_PAYMENTS.Find(model.ID).F_WAYBILLS.WaybillNo} - li waybillga to'lovni kiritdi!");
+                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.F_WAYBILLS.Find(model.WaybillID).WaybillNo} - li waybillga to'lovni kiritdi!");
 
                         return RedirectToAction("Index");
                     }
@@ -75,6 +75,7 @@ namespace tahsinERP.Controllers.Logistic
             {
                 var waybillPayment = db.F_WAYBILL_PAYMENTS
                             .Include(x => x.F_WAYBILLS)
+                            .Include(x => x.FORWARDER)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
                 if (waybillPayment == null)
@@ -93,6 +94,7 @@ namespace tahsinERP.Controllers.Logistic
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var waybillPayment = db.F_WAYBILL_PAYMENTS
+                            .Include(x => x.FORWARDER)
                             .Include(x => x.F_WAYBILLS)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
@@ -136,6 +138,7 @@ namespace tahsinERP.Controllers.Logistic
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var waybillPayment = db.F_WAYBILL_PAYMENTS
+                            .Include(x => x.FORWARDER)
                             .Include(x => x.F_WAYBILLS)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
@@ -144,8 +147,8 @@ namespace tahsinERP.Controllers.Logistic
                 {
                     return HttpNotFound();
                 }
-                ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
-                ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo", Id);
+                ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName", Id);
                 return View(waybillPayment);
             }
         }

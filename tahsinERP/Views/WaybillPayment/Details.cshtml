@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item ">
-                                        <a href="~/WaybillPayment">Waybill to'lovlari</a>
+                                        <a href="~/WaybillPayment">AKT to'lovlari</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Waybill to'lovi ma'lumotlari
+                                        AKT to'lovi ma'lumotlari
                                     </li>
                                 </ol>
                             </div>
@@ -44,7 +44,7 @@
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                 <h4 class="text-primary">Waybill to'lovi ma'lumotlari</h4>
                                                 <hr />
-                                                <span><b>Waybill raqami</b>: @Html.DisplayFor(model => model.F_WAYBILLS.WaybillNo, new { @class = "form-control" })</span>
+                                                <span><b>AKT raqami</b>: @Html.DisplayFor(model => model.F_WAYBILLS.WaybillNo, new { @class = "form-control" })</span>
                                                 <br />
                                                 <span><b>Miqdori</b>: @Html.DisplayFor(model => model.Payment_Amount, new { @class = "form-control" }) @Model.Currency</span>
                                                 <hr />

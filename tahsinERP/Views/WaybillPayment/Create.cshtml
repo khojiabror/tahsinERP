@@ -5,7 +5,7 @@
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    using (Html.BeginForm("Create", "POrderPayment", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    using (Html.BeginForm("Create", "WaybillPayment", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
         <div class="app-content content">
@@ -21,10 +21,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/POrderPayment/Index">Buyurtma to'lovlari</a>
+                                            <a href="~/WaybillPayment/Index">AKT to'lovlari</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi buyurtma to'lovi qo'shish
+                                            Yangi AKT to'lovi qo'shish
                                         </li>
                                     </ol>
                                 </div>
@@ -45,14 +45,14 @@
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Waybill</h6>
+                                                    <h6 class="invoice-to">AKT</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.WaybillID, (SelectList)ViewBag.waybills, "Waybill tanlang:", new { id = "SupplierID", onchange = "refreshdatatablesupplier()", @class = "form-control select2", @placeholder = "Waybillni kiriting", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.WaybillID, (SelectList)ViewBag.waybills, "Waybill tanlang:", new { id = "SupplierID", @class = "form-control select2", @placeholder = "Waybillni kiriting", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.WaybillID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Forwarder</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, "Buyurtmani tanlang: ", new { id = "OrderID", @class = "form-control select2", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, "Forwarder tanlang: ", new { id = "OrderID", @class = "form-control select2", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">To'lov miqdori</h6>
@@ -67,7 +67,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Izoh</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextAreaFor(model => model.Comment, new { @class = "form-control round", @placeholder = "Izoh yozib qoldirish uchun(ixtiyoriy)" })
+                                                        @Html.TextAreaFor(model => model.Comment, new { @class = "form-control round", @placeholder = "Izoh yozib qoldirish uchun", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Comment, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
@@ -100,7 +100,7 @@ else
     function refreshdatatablesupplier() {
     const supplierID = $("#SupplierID").val();
     $.ajax({
-        url: '@Url.Action("GetOrdersBySupplier", "POrderPayment")',
+        url: '@Url.Action("GetOrdersBySupplier", "WaybillPayment")',
         type: 'GET',
         data: { supplierID: supplierID },
         success: function (data) {
