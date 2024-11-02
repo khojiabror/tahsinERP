@@ -20,6 +20,7 @@ namespace tahsinERP.Models
             this.PURCHASING_CONTRACT_DOCS = new HashSet<PURCHASING_CONTRACT_DOCS>();
             this.PURCHASING_CONTRACT_ITEMS = new HashSet<PURCHASING_CONTRACT_ITEMS>();
             this.PURCHASING_CONTRACT_PAYMENTS = new HashSet<PURCHASING_CONTRACT_PAYMENTS>();
+            this.PURCHASING_INVOICES = new HashSet<PURCHASING_INVOICES>();
             this.PURCHASING_WRHS_INCOMES = new HashSet<PURCHASING_WRHS_INCOMES>();
         }
     
@@ -28,7 +29,6 @@ namespace tahsinERP.Models
         public System.DateTime IssueDT { get; set; }
         public int CompanyID { get; set; }
         public string Supplier { get; set; }
-        public string Currency { get; set; }
         public double Amount { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
@@ -36,8 +36,10 @@ namespace tahsinERP.Models
         public string Comment { get; set; }
         public bool IsDeleted { get; set; }
         public int OrderID { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACT_DOCS> PURCHASING_CONTRACT_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -45,6 +47,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACT_PAYMENTS> PURCHASING_CONTRACT_PAYMENTS { get; set; }
         public virtual PURCHASING_ORDERS PURCHASING_ORDERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_INVOICES> PURCHASING_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_WRHS_INCOMES> PURCHASING_WRHS_INCOMES { get; set; }
     }

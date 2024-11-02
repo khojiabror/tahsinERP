@@ -27,15 +27,16 @@ namespace tahsinERP.Models
         public System.DateTime IssuedDate { get; set; }
         public int CompanyID { get; set; }
         public int SupplierID { get; set; }
-        public string Currency { get; set; }
         public Nullable<double> Amount { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
         public System.DateTime DueDate { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string IDN { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_CONTRACT_DOCS> P_CONTRACT_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

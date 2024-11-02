@@ -18,10 +18,11 @@ namespace tahsinERP.Models
         public int SupplierID { get; set; }
         public int OrderID { get; set; }
         public double Payment_Amount { get; set; }
-        public string Currency { get; set; }
         public bool IsDeleted { get; set; }
         public string Comment { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual P_ORDERS P_ORDERS { get; set; }
         public virtual SUPPLIER SUPPLIER { get; set; }
     }

@@ -19,7 +19,6 @@ namespace tahsinERP.Models
         public int ItemID { get; set; }
         public double Price { get; set; }
         public double Amount { get; set; }
-        public string Currency { get; set; }
         public double TotalPrice { get; set; }
         public bool IsDeleted { get; set; }
         public Nullable<bool> Status { get; set; }

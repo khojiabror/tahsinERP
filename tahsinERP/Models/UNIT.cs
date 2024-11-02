@@ -21,21 +21,25 @@ namespace tahsinERP.Models
             this.P_CONTRACT_PARTS = new HashSet<P_CONTRACT_PARTS>();
             this.P_INVOICE_PARTS = new HashSet<P_INVOICE_PARTS>();
             this.P_ORDER_PARTS = new HashSet<P_ORDER_PARTS>();
+            this.PART_STOCKS = new HashSet<PART_STOCKS>();
             this.PART_WASTE_WRHS_EXPENSE_WASTES = new HashSet<PART_WASTE_WRHS_EXPENSE_WASTES>();
             this.PART_WASTE_WRHS_INCOME_WASTES = new HashSet<PART_WASTE_WRHS_INCOME_WASTES>();
             this.PART_WRHS_EXPENSE_PARTS = new HashSet<PART_WRHS_EXPENSE_PARTS>();
             this.PART_WRHS_INCOME_PARTS = new HashSet<PART_WRHS_INCOME_PARTS>();
             this.PARTS = new HashSet<PART>();
+            this.PROD_STOCKS = new HashSet<PROD_STOCKS>();
             this.PROD_WRHS_EXPENSE_PRODUCTS = new HashSet<PROD_WRHS_EXPENSE_PRODUCTS>();
             this.PROD_WRHS_INCOME_PRODUCTS = new HashSet<PROD_WRHS_INCOME_PRODUCTS>();
             this.PRODUCTS = new HashSet<PRODUCT>();
             this.PURCHASING_CONTRACT_ITEMS = new HashSet<PURCHASING_CONTRACT_ITEMS>();
+            this.PURCHASING_INVOICE_ITEMS = new HashSet<PURCHASING_INVOICE_ITEMS>();
             this.PURCHASING_ITEMS = new HashSet<PURCHASING_ITEMS>();
             this.PURCHASING_WRHS_EXPENSE_ITEMS = new HashSet<PURCHASING_WRHS_EXPENSE_ITEMS>();
             this.PURCHASING_WRHS_INCOME_ITEMS = new HashSet<PURCHASING_WRHS_INCOME_ITEMS>();
             this.S_CONTRACT_PRODUCTS = new HashSet<S_CONTRACT_PRODUCTS>();
             this.S_ORDER_PRODUCTS = new HashSet<S_ORDER_PRODUCTS>();
             this.TEMPORARY_BOMS = new HashSet<TEMPORARY_BOMS>();
+            this.WASTE_STOCKS = new HashSet<WASTE_STOCKS>();
         }
     
         public int ID { get; set; }
@@ -52,6 +56,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_ORDER_PARTS> P_ORDER_PARTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PART_STOCKS> PART_STOCKS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART_WASTE_WRHS_EXPENSE_WASTES> PART_WASTE_WRHS_EXPENSE_WASTES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART_WASTE_WRHS_INCOME_WASTES> PART_WASTE_WRHS_INCOME_WASTES { get; set; }
@@ -62,6 +68,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART> PARTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PROD_STOCKS> PROD_STOCKS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PROD_WRHS_EXPENSE_PRODUCTS> PROD_WRHS_EXPENSE_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PROD_WRHS_INCOME_PRODUCTS> PROD_WRHS_INCOME_PRODUCTS { get; set; }
@@ -69,6 +77,8 @@ namespace tahsinERP.Models
         public virtual ICollection<PRODUCT> PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_INVOICE_ITEMS> PURCHASING_INVOICE_ITEMS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -81,5 +91,7 @@ namespace tahsinERP.Models
         public virtual ICollection<S_ORDER_PRODUCTS> S_ORDER_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TEMPORARY_BOMS> TEMPORARY_BOMS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<WASTE_STOCKS> WASTE_STOCKS { get; set; }
     }
 }

@@ -18,11 +18,12 @@ namespace tahsinERP.Models
         public int ForwarderID { get; set; }
         public int WaybillID { get; set; }
         public double Payment_Amount { get; set; }
-        public string Currency { get; set; }
         public bool IsDeleted { get; set; }
         public string Comment { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
-        public virtual FORWARDER FORWARDER { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual F_WAYBILLS F_WAYBILLS { get; set; }
+        public virtual FORWARDER FORWARDER { get; set; }
     }
 }

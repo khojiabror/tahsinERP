@@ -24,14 +24,15 @@ namespace tahsinERP.Models
         public string DocNo { get; set; }
         public int ReceiverWHID { get; set; }
         public double Amount { get; set; }
-        public string Currency { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string Description { get; set; }
         public System.DateTime IssueDateTime { get; set; }
         public int SenderWHID { get; set; }
         public Nullable<bool> RecieveStatus { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PART_WASTE_WRHS_INCOME_WASTES> PART_WASTE_WRHS_INCOME_WASTES { get; set; }
         public virtual PART_WRHS PART_WRHS { get; set; }

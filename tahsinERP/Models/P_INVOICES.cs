@@ -31,11 +31,12 @@ namespace tahsinERP.Models
         public int SupplierID { get; set; }
         public double Amount { get; set; }
         public System.DateTime InvoiceDate { get; set; }
-        public string Currency { get; set; }
         public Nullable<int> CompanyID { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

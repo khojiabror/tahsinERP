@@ -27,14 +27,15 @@ namespace tahsinERP.Models
         public Nullable<int> InvoiceID { get; set; }
         public Nullable<int> WaybillID { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string Description { get; set; }
         public System.DateTime IssueDateTime { get; set; }
         public Nullable<int> SenderWHID { get; set; }
         public Nullable<bool> RecieveStatus { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual F_WAYBILLS F_WAYBILLS { get; set; }
         public virtual P_INVOICES P_INVOICES { get; set; }
         public virtual PART_WRHS PART_WRHS { get; set; }
