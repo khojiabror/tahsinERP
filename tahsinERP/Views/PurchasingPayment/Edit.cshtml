@@ -60,10 +60,10 @@
                                                         @Html.DropDownListFor(model => model.ContractID, (IEnumerable<SelectListItem>)ViewBag.contracts, new { @class = "form-control select2", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Pul birligi</h6>
+                                                    <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @placeholder = "Pul birligi", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Izoh</h6>
                                                     <fieldset class="invoice-address form-group">

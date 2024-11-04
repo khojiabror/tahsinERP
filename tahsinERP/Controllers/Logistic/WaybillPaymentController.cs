@@ -17,7 +17,10 @@ namespace tahsinERP.Controllers.Logistic
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                List<F_WAYBILL_PAYMENTS> list = db.F_WAYBILL_PAYMENTS.Include(x => x.FORWARDER).Include(x => x.F_WAYBILLS).Where(x => x.IsDeleted == false).ToList();
+                List<F_WAYBILL_PAYMENTS> list = db.F_WAYBILL_PAYMENTS.Include(x => x.FORWARDER)
+                                                   .Include (x => x.CURRENCy)
+                                                   .Include(x => x.F_WAYBILLS)
+                                                   .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
@@ -27,6 +30,8 @@ namespace tahsinERP.Controllers.Logistic
             {
                 ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
                 ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View();
             }
         }
@@ -51,6 +56,7 @@ namespace tahsinERP.Controllers.Logistic
                     else
                     {
                         ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
+                         ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                         ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
                         ModelState.AddModelError("", "Ushbu Waybill uchun To'lov yaratilgan.");
                         return View(model);
@@ -60,6 +66,8 @@ namespace tahsinERP.Controllers.Logistic
                 {
                     ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
                     ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                     ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
                     return View(model);
                 }
@@ -75,6 +83,7 @@ namespace tahsinERP.Controllers.Logistic
             {
                 var waybillPayment = db.F_WAYBILL_PAYMENTS
                             .Include(x => x.F_WAYBILLS)
+                            .Include (x => x.CURRENCy)
                             .Include(x => x.FORWARDER)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
@@ -96,6 +105,7 @@ namespace tahsinERP.Controllers.Logistic
                 var waybillPayment = db.F_WAYBILL_PAYMENTS
                             .Include(x => x.FORWARDER)
                             .Include(x => x.F_WAYBILLS)
+                            .Include (x => x.CURRENCy)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
                 if (waybillPayment == null)
@@ -140,6 +150,7 @@ namespace tahsinERP.Controllers.Logistic
                 var waybillPayment = db.F_WAYBILL_PAYMENTS
                             .Include(x => x.FORWARDER)
                             .Include(x => x.F_WAYBILLS)
+                            .Include(x => x.CURRENCy)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
 
@@ -149,6 +160,8 @@ namespace tahsinERP.Controllers.Logistic
                 }
                 ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo", Id);
                 ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName", Id);
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View(waybillPayment);
             }
         }
@@ -166,7 +179,7 @@ namespace tahsinERP.Controllers.Logistic
                         waybillPaymentToUpdate.WaybillID = waybillPayment.WaybillID;
                         waybillPaymentToUpdate.Payment_Amount = waybillPayment.Payment_Amount;
                         waybillPaymentToUpdate.Comment = waybillPayment.Comment;
-                        waybillPaymentToUpdate.Currency = waybillPayment.Currency;
+                        waybillPaymentToUpdate.CurrencyID = waybillPayment.CurrencyID;
 
                         LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.F_WAYBILL_PAYMENTS.Find(waybillPayment.ID).F_WAYBILLS.WaybillNo}  - waybill uchun to'lov ni o'chirdi");
                         db.SaveChanges();
@@ -177,6 +190,8 @@ namespace tahsinERP.Controllers.Logistic
                     {
                         ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
                         ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                         return View(waybillPayment);
                     }
                 }
@@ -184,6 +199,8 @@ namespace tahsinERP.Controllers.Logistic
                 {
                     ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
                     ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                     ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
                     return View(waybillPayment);
                 }
