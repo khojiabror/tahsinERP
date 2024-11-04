@@ -62,12 +62,17 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Invoys</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.ListBoxFor(model => model.InvoiceID, ViewBag.invoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID",multiple = "multiple", id = "InvoiceID", @required = "required" })
+                                                        @Html.ListBoxFor(model => model.InvoiceID, ViewBag.invoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID", multiple = "multiple", id = "InvoiceID", @required = "required" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Summa</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.Sum, new { @class = "form-control round", id = "InvoiceID", @required = "required", @type = "number" })
                                                         @Html.ValidationMessageFor(model => model.Sum, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Valyuta</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <div class="col-md-6 col-12 form-group" id="file-upload-div">
                                                         <hr />
@@ -76,9 +81,9 @@
                                                             @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
                                                             @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                         </div>@*
-                                                        <div class="progress mt-3 d-none" id="upload-progress">
-                                                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
-                                                        </div>*@
+            <div class="progress mt-3 d-none" id="upload-progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar"></div>
+            </div>*@
                                                         <hr />
                                                     </div>
                                                     <ul class="list-group list-group-flush">

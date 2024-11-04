@@ -22,7 +22,9 @@ namespace tahsinERP.Controllers
         {
             using ( DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.GTDS.Where(x => x.IsDeleted == false).ToList();
+                var list = db.GTDS
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
@@ -30,6 +32,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
             }
             return View();
@@ -47,6 +50,7 @@ namespace tahsinERP.Controllers
                         {
                             GTD_No = model.GTDNo,
                             Sum = model.Sum,
+                            CurrencyID = model.CurrencyID,
                             IsDeleted = false
                         };
                         db.GTDS.Add(gtd);
@@ -96,6 +100,7 @@ namespace tahsinERP.Controllers
 
                 var roles = db.ROLES.ToList();
                 ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 return View(model);
             }
@@ -107,7 +112,9 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var gtd = db.GTDS.Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
+                var gtd = db.GTDS
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
 
                 if (gtd != null)
                     return View(gtd);
@@ -151,7 +158,9 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var gtd = db.GTDS.Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
+                var gtd = db.GTDS
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
 
                 if (gtd != null)
                     return View(gtd);
@@ -166,8 +175,11 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var gtd = db.GTDS.Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
+                var gtd = db.GTDS
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false && x.ID == id).FirstOrDefault();
                 ViewBag.invoices = new SelectList(db.P_INVOICES.Where(x => x.IsDeleted == false).ToList(), "ID", "InvoiceNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 if (gtd != null)
                     return View(gtd);
@@ -187,6 +199,7 @@ namespace tahsinERP.Controllers
                     {
                         gtdToUpdate.Sum = model.Sum;
                         gtdToUpdate.GTD_No = model.GTD_No;
+                        gtdToUpdate.CurrencyID = model.CurrencyID;
 
                         db.SaveChanges();
                         LogHelper.LogToDatabase(User.Identity.Name, controllerName, $"{model.ID} ID ga ega GTD ni tahrirladi");

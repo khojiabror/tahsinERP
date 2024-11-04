@@ -12,6 +12,7 @@ namespace tahsinERP.ViewModels
     {
         public int ID { get; set; }
         public string GTDNo { get; set; }
+        public int CurrencyID { get; set; }
         public double Sum { get; set; }
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File { get; set; }

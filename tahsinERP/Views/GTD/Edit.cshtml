@@ -51,14 +51,19 @@
                                                     @Html.TextBoxFor(model => model.GTD_No, new { @class = "form-control round", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.GTD_No, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                               @* <h6 class="invoice-to">Invoys</h6>
-                                                <fieldset class="form-group">
-                                                    @Html.ListBoxFor(model => model.InvoiceID, ViewBag.invoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID", multiple = "multiple", id = "InvoiceID", @required = "required" })
-                                                </fieldset>*@
+                                                @* <h6 class="invoice-to">Invoys</h6>
+        <fieldset class="form-group">
+            @Html.ListBoxFor(model => model.InvoiceID, ViewBag.invoices as MultiSelectList, new { @class = "form-control round select2 InvoiceID", multiple = "multiple", id = "InvoiceID", @required = "required" })
+        </fieldset>*@
                                                 <h6 class="invoice-to">Summa</h6>
                                                 <fieldset class="invoice-address form-group">
                                                     @Html.TextBoxFor(model => model.Sum, new { @class = "form-control round", id = "InvoiceID", @required = "required", @type = "number" })
                                                     @Html.ValidationMessageFor(model => model.Sum, "", new { @class = "text-danger" })
+                                                </fieldset>
+                                                <h6 class="invoice-to">Valyuta</h6>
+                                                <fieldset class="invoice-address form-group">
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                 </fieldset>
                                             </div>
                                         </div>
