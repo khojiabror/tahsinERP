@@ -54,7 +54,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Forwarder</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ForwarderID, ViewBag.Forwarder as SelectList,  new { @class = "form-control select2" })
+                                                        @Html.DropDownListFor(model => model.ForwarderID, ViewBag.Forwarder as SelectList, new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Tuzilgan sanasi</h6>
@@ -80,8 +80,8 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @placeholder = "Valyuta" })
-                                                        @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Batafsil ma`lumot</h6>
                                                     <fieldset class="invoice-address form-group">

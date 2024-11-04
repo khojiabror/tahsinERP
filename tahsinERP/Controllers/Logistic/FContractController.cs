@@ -24,6 +24,7 @@ namespace tahsinERP.Controllers
             {
                 var list = await db.F_CONTRACTS
                     .Include(fc => fc.FORWARDER)
+                    .Include(fc => fc.CURRENCy)
                     .Where(fc => fc.IsDeleted == false)
                     .ToListAsync();
 
@@ -35,6 +36,7 @@ namespace tahsinERP.Controllers
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
+                ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
                 return View();
             }
         }
@@ -60,6 +62,7 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
+                         ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
                         ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
                     }
                 }
@@ -70,6 +73,7 @@ namespace tahsinERP.Controllers
                 {
                     ModelState.AddModelError(ex.Message, ex);
                     ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
+                    ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
                 }
             }
             return View(contract);
@@ -85,6 +89,7 @@ namespace tahsinERP.Controllers
             {
                 var contract = await db1.F_CONTRACTS
                                   .Include(p => p.FORWARDER)
+                                  .Include(p => p.CURRENCy)
                                   .FirstOrDefaultAsync(p => p.ID == ID);
 
                 if (contract == null)
@@ -106,6 +111,7 @@ namespace tahsinERP.Controllers
             {
                 var contract = await db1.F_CONTRACTS
                     .Include(c => c.FORWARDER)
+                    .Include (c => c.CURRENCy)
                     .FirstOrDefaultAsync(c => c.ID == ID);
 
                 if (contract == null)
@@ -132,7 +138,7 @@ namespace tahsinERP.Controllers
                         contractToUpdate.ForwarderID = contract.ForwarderID;
                         contractToUpdate.IssueDate = contract.IssueDate;
                         contractToUpdate.DueDate = contract.DueDate;
-                        contractToUpdate.Currency = contract.Currency;
+                        contractToUpdate.CurrencyID = contract.CurrencyID;
                         contractToUpdate.Amount = contract.Amount;
                         contractToUpdate.Description = contract.Description;
                         contractToUpdate.IsDeleted = false;
@@ -172,6 +178,7 @@ namespace tahsinERP.Controllers
                 }
 
                 await db.Entry(contract).Reference(i => i.FORWARDER).LoadAsync();
+                await db.Entry(contract).Reference(i => i.CURRENCy).LoadAsync();
                 return View(contract);
             }
         }
@@ -193,7 +200,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "DefectTypeController", $"{contractToDelete.ContractNo} - FContratni o'chirdi");
+                            LogHelper.LogToDatabase(userEmail, "FContractController", $"{contractToDelete.ContractNo} - FContratni o'chirdi");
 
                             return RedirectToAction("Index");
                         }
