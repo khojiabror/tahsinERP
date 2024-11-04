@@ -16,7 +16,7 @@ namespace tahsinERP.ViewModels.PInvoice
         public int SupplierID { get; set; }
         public DateTime InvoiceDate { get; set; }
         [Required]
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         public int CompanyID { get; set; }
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File { get; set; }

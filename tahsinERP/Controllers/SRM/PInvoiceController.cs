@@ -112,7 +112,8 @@ namespace tahsinERP.Controllers
                                  .Select(c => new
                                  {
                                      c.ID,
-                                     c.Currency
+                                     c.CurrencyID,
+                                     c.CURRENCy
                                  })
                                  .FirstOrDefault();
 
@@ -179,7 +180,7 @@ namespace tahsinERP.Controllers
                         InvoiceNo = model.InvoiceNo,
                         OrderID = model.OrderID,
                         SupplierID = model.SupplierID,
-                        Currency = model.Currency,
+                        CurrencyID = model.CurrencyID,
                         InvoiceDate = model.InvoiceDate,
                         CompanyID = 1,
                         IsDeleted = false
@@ -285,6 +286,8 @@ namespace tahsinERP.Controllers
                 //ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
                 ViewBag.partList = new SelectList(Enumerable.Empty<SelectListItem>());
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
             }
         }
         public ActionResult DownloadDoc(int? invoiceID)
@@ -324,6 +327,7 @@ namespace tahsinERP.Controllers
 
                 invoice = db.P_INVOICES
                     .Include(i => i.COMPANy)
+                    .Include(x => x.CURRENCy)
                     .Include(i => i.SUPPLIER)
                     .Include(i => i.P_ORDERS.P_CONTRACTS)
                     .Include(i => i.P_INVOICE_PACKINGLISTS.Select(p => p.F_TRANSPORT_TYPES))
@@ -368,6 +372,7 @@ namespace tahsinERP.Controllers
                 ViewBag.packingListNo = packingListNo;
                 ViewBag.transportNo = transportNo;
                 ViewBag.partList = partList;
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 return View(invoice);
             }
@@ -394,6 +399,7 @@ namespace tahsinERP.Controllers
 
                 db.Entry(invoice).Reference(i => i.P_ORDERS).Load();
                 db.Entry(invoice).Reference(i => i.SUPPLIER).Load();
+                db.Entry(invoice).Reference(i => i.CURRENCy).Load();
 
                 return View(invoice);
             }
@@ -475,7 +481,7 @@ namespace tahsinERP.Controllers
                 var invoice = db.P_INVOICES
                                 .Include(i => i.P_INVOICE_PARTS.Select(pc => pc.PART))
                                 .Include(i => i.P_ORDERS)
-
+                                .Include(i => i.CURRENCy)
                                 .FirstOrDefault(i => i.ID == ID);
 
                 if (invoice == null)
@@ -488,7 +494,9 @@ namespace tahsinERP.Controllers
                 ViewBag.POrder = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
                 ViewBag.partList = db.P_INVOICE_PARTS.Include(x => x.UNIT).Where(x => x.InvoiceID == ID).ToList();
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-                return View(invoice);
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                return View(invoice); 
+
             }
         }
         [HttpPost]
@@ -506,7 +514,7 @@ namespace tahsinERP.Controllers
                         invoiceToUpdate.SupplierID = invoice.SupplierID;
                         invoiceToUpdate.OrderID = invoice.OrderID;
                         invoiceToUpdate.InvoiceDate = invoice.InvoiceDate;
-                        invoiceToUpdate.Currency = invoice.Currency;
+                        invoiceToUpdate.CurrencyID = invoice.CurrencyID;
                         invoiceToUpdate.IsDeleted = false;
 
                         db.Entry(invoiceToUpdate).State = EntityState.Modified;
@@ -551,7 +559,8 @@ namespace tahsinERP.Controllers
                 // Re-populate dropdown lists in case of an error
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", invoice.SupplierID);
                 ViewBag.POrder = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.partList = db.P_INVOICE_PARTS
                     .Include(pc => pc.PART)
                     .Include(pc => pc.UNIT)
@@ -586,7 +595,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.PartList = allParts;
-
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 return View(invoicePart);
             }
         }
@@ -875,7 +884,7 @@ namespace tahsinERP.Controllers
                                 new_invoice.OrderID = order.ID;
                                 new_invoice.SupplierID = supplier.ID;
                                 new_invoice.InvoiceDate = DateTime.Parse(row["Date"].ToString());
-                                new_invoice.Currency = row["Currency"].ToString();
+                                new_invoice.CurrencyID = (int)db.CURRENCIES.Where(x => x.Shortname.ToLower() == row["Currency"].ToString().ToLower()).FirstOrDefault().ID;
                                 new_invoice.CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]);
                                 new_invoice.IsDeleted = false;
 
