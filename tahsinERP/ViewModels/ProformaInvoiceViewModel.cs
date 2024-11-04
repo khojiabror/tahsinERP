@@ -15,7 +15,7 @@ namespace tahsinERP.ViewModels
         public int SupplierID { get; set; }
         public double Amount { get; set; }
         public System.DateTime InvoiceDate { get; set; }
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File { get; set; } // File upload
         public virtual COMPANy COMPANy { get; set; }

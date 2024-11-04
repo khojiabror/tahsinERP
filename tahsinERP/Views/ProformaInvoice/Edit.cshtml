@@ -67,8 +67,8 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @placeholder = "Mamlakat" })
-                                                        @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <div class="col-md-6 col-12 form-group position-relative has-icon-left">
                                                         <label>Tugaydigan sanasi</label>

@@ -27,6 +27,7 @@ namespace tahsinERP.Controllers
                     .Where(x => x.IsDeleted == false)
                     .Include(x => x.P_INVOICES)
                     .Include(x => x.SUPPLIER)
+                    .Include(x => x.CURRENCy)
                     .ToListAsync();
 
                 return View(list);
@@ -38,6 +39,8 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name");
                 ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 //ViewBag.PInvoices = new SelectList(Enumerable.Empty<SelectListItem>());
             }
             return View();
@@ -56,7 +59,7 @@ namespace tahsinERP.Controllers
                         InvoiceID = model.InvoiceID,
                         SupplierID = model.SupplierID,
                         Amount = model.Amount,
-                        Currency = model.Currency,
+                        CurrencyID = model.CurrencyID,
                         InvoiceDate = model.InvoiceDate,
                         CompanyID = 1,
                         IsDeleted = false
@@ -107,6 +110,7 @@ namespace tahsinERP.Controllers
                     ModelState.AddModelError(ex.Message, "Ma'lumotlarni kiritishda xatolik yuz berdi.");
                     ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name");
                     ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                     return View(model);
                 }
@@ -122,6 +126,7 @@ namespace tahsinERP.Controllers
                 var  invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
                     .Include(x => x.SUPPLIER)
+                    .Include(x => x.CURRENCy)
                     .Where(x => x.ID == id)
                     .FirstOrDefaultAsync();
 
@@ -141,6 +146,7 @@ namespace tahsinERP.Controllers
                 var invoice = await db.P_PROFORMA_INVOICES
                     .Include(x => x.P_INVOICES)
                     .Include(x => x.SUPPLIER)
+                    .Include(x => x.CURRENCy)
                     .Where(x => x.ID == id)
                     .FirstOrDefaultAsync();
 
@@ -213,7 +219,9 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Supplier = new SelectList(await db.SUPPLIERS.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "Name", invoice.SupplierID);
                 //ViewBag.PInvoices = new SelectList(await db.P_INVOICES.Where(x => x.IsDeleted == false).ToListAsync(), "ID", "InvoiceNo", invoice.InvoiceID);
-                ViewBag.PInvoices = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.PInvoices = new SelectList(Enumerable.Empty<SelectListItem>()); 
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View(invoice);
             }
         }
@@ -232,7 +240,7 @@ namespace tahsinERP.Controllers
                         invoiceToUpdate.SupplierID = invoice.SupplierID;
                         invoiceToUpdate.InvoiceID = invoice.InvoiceID;
                         invoiceToUpdate.InvoiceDate = invoice.InvoiceDate;
-                        invoiceToUpdate.Currency = invoice.Currency;
+                        invoiceToUpdate.CurrencyID = invoice.CurrencyID;
                         invoiceToUpdate.Amount = invoice.Amount;
 
                         db.Entry(invoiceToUpdate).State = EntityState.Modified;
@@ -277,6 +285,7 @@ namespace tahsinERP.Controllers
                 // Re-populate dropdown lists in case of an error
                 ViewBag.Supplier = new SelectList(await db.SUPPLIERS.ToListAsync(), "ID", "Name", invoice.SupplierID);
                 ViewBag.PInvoices = new SelectList(await db.P_INVOICES.ToListAsync(), "ID", "InvoiceNo", invoice.InvoiceID);
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 return View(invoice);
             }

@@ -81,7 +81,7 @@
                                                         <td>
                                                             <a href="~/Supplier/Details/@item.SupplierID">@item.SUPPLIER.Name</a>
                                                         </td>
-                                                        <td>@item.Amount</td>
+                                                        <td>@item.Amount @item.CURRENCy.Shortname</td>
                                                         <td>@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                                         @if (changePermit)
                                                         {
