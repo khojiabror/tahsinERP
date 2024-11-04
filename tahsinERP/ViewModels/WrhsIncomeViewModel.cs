@@ -11,36 +11,22 @@ namespace tahsinERP.ViewModels
     {
         [Required(ErrorMessage = "Document number is required.")]
         public string DocNo { get; set; }
-
         public int WHID { get; set; } // Warehouse ID, defaults to null
-
         [Required(ErrorMessage = "Invoice ID is required.")]
         public int InvoiceID { get; set; }
-
-
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File { get; set; } // File upload
-
         [Required(ErrorMessage = "Amount is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Amount must be a positive number.")]
         public int Amount { get; set; }
-
         [Required(ErrorMessage = "Currency is required.")]
-        public string Currency { get; set; }
-
+        public int CurrencyID { get; set; }
         [DataType(DataType.Text)]
         public string Description { get; set; } // Optional description
-
         public DateTime IssueDateTime { get; set; } // Set in controller
-
         public int SenderWHID { get; set; } // Sender Warehouse ID, defaults to null
-
-        public bool RecieveStatus { get; set; } // Receive status
-
-        // New property for selected Supplier ID
+        public bool RecieveStatus { get; set; } 
         public int? SupplierID { get; set; }
-
-        // Parts associated with the warehouse income
         public List<WhrsIncomePart> Parts { get; set; }
         public string WHName { get; set; }
         public WrhsIncomeViewModel()

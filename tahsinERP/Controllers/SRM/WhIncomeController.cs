@@ -114,7 +114,8 @@ namespace tahsinERP.Controllers
                     {
                         x.ID,
                         x.InvoiceNo,
-                        x.Currency // Include Currency in the response
+                        x.CurrencyID,
+                        x.CURRENCy, // Include Currency in the response
                     })
                     .ToList();
 
@@ -122,7 +123,7 @@ namespace tahsinERP.Controllers
                 {
                     Value = i.ID.ToString(),
                     Text = i.InvoiceNo,
-                    Currency = i.Currency
+                    Currency = i.CURRENCy.Shortname
                 }), JsonRequestBehavior.AllowGet);
             }
         }
@@ -136,7 +137,8 @@ namespace tahsinERP.Controllers
                                  .Select(c => new
                                  {
                                      c.ID,
-                                     c.Currency
+                                     c.CurrencyID,
+                                     c.CURRENCy
                                  })
                                  .FirstOrDefault();
 
@@ -199,6 +201,8 @@ namespace tahsinERP.Controllers
                 ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.Invoices = new SelectList(Enumerable.Empty<SelectListItem>());
                 ViewBag.partList = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 WrhsIncomeViewModel model = new WrhsIncomeViewModel();
                 PART_WRHS_INCOMES income = db.PART_WRHS_INCOMES.OrderByDescending(w => w.IssueDateTime).FirstOrDefault();
@@ -260,6 +264,7 @@ namespace tahsinERP.Controllers
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                         ViewBag.partList = new SelectList(Enumerable.Empty<SelectListItem>());
                         ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         ModelState.AddModelError("", "Invoice dan ortiqcha hajmni kirim qilib bo'lmaydi.");
                         return View(model);
@@ -277,7 +282,7 @@ namespace tahsinERP.Controllers
                     WHID = warehouse.ID,
                     InvoiceID = model.InvoiceID,
                     Amount = model.Amount,
-                    Currency = model.Currency,
+                    CurrencyID = model.CurrencyID,
                     IsDeleted = false,
                     Description = model.Description,
                     IssueDateTime = DateTime.Now,
@@ -313,7 +318,7 @@ namespace tahsinERP.Controllers
                         {
                             WHID = (int)newIncome.WHID,
                             PartID = part.PartID,
-                            Unit = db.UNITS.Where(x => x.ID == part.UnitID).FirstOrDefault().ShortName,
+                            UnitID = part.UnitID,
                             Amount = part.Amount
                         };
                         db.PART_STOCKS.Add(newPartStock);
@@ -400,6 +405,7 @@ namespace tahsinERP.Controllers
                 var wrhsIncome = db1.PART_WRHS_INCOMES
                                   .Include(p => p.P_INVOICES)
                                   .Include(p => p.F_WAYBILLS)
+                                  .Include(p => p.CURRENCy)
                                   .FirstOrDefault(p => p.ID == ID);
 
                 if (wrhsIncome == null)
@@ -441,6 +447,7 @@ namespace tahsinERP.Controllers
                 whrsIncome = db1.PART_WRHS_INCOMES
                     .Include(i => i.P_INVOICES)
                     .Include(i => i.F_WAYBILLS)
+                    .Include(p => p.CURRENCy)
                     .FirstOrDefault(p => p.ID == ID);
 
                 if (whrsIncome == null)
@@ -459,6 +466,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Invoices = new SelectList(db1.P_INVOICES.Where(i => i.IsDeleted == false).ToList(), "ID", "InvoiceNo");
                 ViewBag.Waybills = new SelectList(db1.F_WAYBILLS.Where(w => w.IsDeleted == false).ToList(), "ID", "WaybillNo");
                 ViewBag.units = new SelectList(db1.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db1.CURRENCIES.ToList(), "ID", "Shortname");
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)
@@ -488,7 +496,7 @@ namespace tahsinERP.Controllers
                         // wrhsIncomeToUpdate.WHID = whrsIncome.WHID;
                         wrhsIncomeToUpdate.InvoiceID = whrsIncome.InvoiceID;
                         wrhsIncomeToUpdate.WaybillID = whrsIncome.WaybillID;
-                        wrhsIncomeToUpdate.Currency = whrsIncome.Currency;
+                        wrhsIncomeToUpdate.CurrencyID = whrsIncome.CurrencyID;
                         wrhsIncomeToUpdate.Amount = whrsIncome.Amount;
                         wrhsIncomeToUpdate.TotalPrice = whrsIncome.TotalPrice;
                         wrhsIncomeToUpdate.Description = whrsIncome.Description;
@@ -610,6 +618,7 @@ namespace tahsinERP.Controllers
 
                 db.Entry(whrsIncome).Reference(i => i.P_INVOICES).Load();
                 db.Entry(whrsIncome).Reference(i => i.F_WAYBILLS).Load();
+                db.Entry(whrsIncome).Reference(i => i.CURRENCy).Load();
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)
