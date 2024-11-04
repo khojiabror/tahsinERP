@@ -42,6 +42,8 @@ namespace tahsinERP.Controllers
                 ViewBag.CustomerID = new SelectList(customers, "ID", "Name");
                 ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View(SContractViewModel);
             }
         }
@@ -70,7 +72,7 @@ namespace tahsinERP.Controllers
                         IssuedDate = DateTime.Now,
                         CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
                         CustomerID = (int)model.CustomerID,
-                        Currency = model.Currency,
+                        CurrencyID = model.CurrencyID,
                         Amount = (int)model.Amount,
                         Incoterms = model.Incoterms,
                         PaymentTerms = model.PaymentTerms,
@@ -93,6 +95,7 @@ namespace tahsinERP.Controllers
                         {
                             ModelState.AddModelError("Products", "Mahsulot bo'sh boʻlishi mumkin emas");
                             ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
+                            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                             ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
                             return View(model);
                         }
@@ -136,6 +139,7 @@ namespace tahsinERP.Controllers
             {
                 var contract = db.S_CONTRACTS
                                  .Include(c => c.CUSTOMER)
+                                 .Include(c => c.CURRENCy)
                                  .FirstOrDefault(p => p.ID == id);
 
                 if (contract == null)
@@ -175,7 +179,7 @@ namespace tahsinERP.Controllers
                     DueDate = contract.DueDate,
                     Incoterms = contract.Incoterms,
                     PaymentTerms = contract.PaymentTerms,
-                    Currency = contract.Currency,
+                    CurrencyID = (int)contract.CurrencyID,
                     Amount = (int)contract.Amount,
                     ProductList = contract.S_CONTRACT_PRODUCTS.Select(p => new SContractProductViewModel
                     {
@@ -197,6 +201,8 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", contract.CustomerID);
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View(model);
             }
         }
@@ -232,7 +238,7 @@ namespace tahsinERP.Controllers
                     contractToUpdate.DueDate = model.DueDate;
                     contractToUpdate.Incoterms = model.Incoterms;
                     contractToUpdate.PaymentTerms = model.PaymentTerms;
-                    contractToUpdate.Currency = model.Currency;
+                    contractToUpdate.CurrencyID = model.CurrencyID;
                     contractToUpdate.Amount = (int)model.Amount;
 
 
@@ -273,6 +279,7 @@ namespace tahsinERP.Controllers
                     {
                         ModelState.AddModelError("", "Maxsulot o'zgarishlarini saqlab bo'lmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratsiyasiga muroaat qiling.");
                     }
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                     var userEmail = User.Identity.Name;
                     LogHelper.LogToDatabase(userEmail, "SContractController", "Edit[Post]");
                     return RedirectToAction("Index");
@@ -280,6 +287,7 @@ namespace tahsinERP.Controllers
             }
 
             ViewBag.ProductList = model.ProductList;
+
             return View(model);
         }
         // __________
@@ -312,6 +320,7 @@ namespace tahsinERP.Controllers
                 }
 
                 db.Entry(contract).Reference(c => c.CUSTOMER).Load();
+                db.Entry(contract).Reference(c => c.CURRENCy).Load();
                 return View(contract);
             }
         }

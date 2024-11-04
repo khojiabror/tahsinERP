@@ -12,7 +12,7 @@ namespace tahsinERP.ViewModels
         public DateTime DueDate { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         public decimal Amount { get; set; }
         public List<SContractProductViewModel> ProductList { get; set; }
     }
