@@ -47,12 +47,12 @@
                                                     <hr>
                                                     <h6 class="invoice-to">Ta'minotchi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.suppliers,"Ta'minotchini tanlang:", new { id = "SupplierID", onchange = "refreshdatatablesupplier()", @class = "form-control select2", @placeholder = "Ta'minotchini kiriting", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.suppliers, "Ta'minotchini tanlang:", new { id = "SupplierID", onchange = "refreshdatatablesupplier()", @class = "form-control select2", @placeholder = "Ta'minotchini kiriting", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Buyurtma</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.OrderID, (IEnumerable<SelectListItem>)ViewBag.orders,"Buyurtmani tanlang: ", new {id="OrderID",  @class = "form-control select2", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.OrderID, (IEnumerable<SelectListItem>)ViewBag.orders, "Buyurtmani tanlang: ", new { id = "OrderID", @class = "form-control select2", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">To'lov miqdori</h6>
@@ -60,10 +60,10 @@
                                                         @Html.TextBoxFor(model => model.Payment_Amount, new { @class = "form-control round", @placeholder = "to'lov miqdori", @required = "required", @type = "number" })
                                                         @Html.ValidationMessageFor(model => model.Payment_Amount, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Pul birligi</h6>
+                                                    <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @placeholder = "Pul birligi", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Izoh</h6>
                                                     <fieldset class="invoice-address form-group">

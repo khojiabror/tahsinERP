@@ -19,6 +19,7 @@ namespace tahsinERP.Controllers.SRM
             {
                 List<P_ORDER_PAYMENTS> list = db.P_ORDER_PAYMENTS
                     .Include(x => x.P_ORDERS)
+                    .Include(x => x.CURRENCy)
                     .Include(x => x.SUPPLIER)
                     .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
@@ -43,6 +44,8 @@ namespace tahsinERP.Controllers.SRM
                 ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                 ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View();
             }
         }
@@ -67,6 +70,7 @@ namespace tahsinERP.Controllers.SRM
                     else
                     {
                         ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                         ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
                         //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                         ModelState.AddModelError("", "Ushbu Buyurtma  uchun To'lov yaratilgan.");
@@ -76,6 +80,7 @@ namespace tahsinERP.Controllers.SRM
                 else
                 {
                     ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                     //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                     ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                     ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
@@ -93,6 +98,7 @@ namespace tahsinERP.Controllers.SRM
             {
                 var orderPayment = db.P_ORDER_PAYMENTS
                             .Include(x => x.P_ORDERS)
+                            .Include(x => x.CURRENCy)
                             .Include(x => x.SUPPLIER)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
@@ -113,6 +119,7 @@ namespace tahsinERP.Controllers.SRM
             {
                 var orderPayment = db.P_ORDER_PAYMENTS
                             .Include(x => x.P_ORDERS)
+                            .Include(x => x.CURRENCy)
                             .Include(x => x.SUPPLIER)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
@@ -158,6 +165,7 @@ namespace tahsinERP.Controllers.SRM
                 var orderPayment = db.P_ORDER_PAYMENTS
                             .Include(x => x.P_ORDERS)
                             .Include(x => x.SUPPLIER)
+                            .Include(x => x.CURRENCy)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
 
@@ -166,6 +174,7 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
                 ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
                 //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                 return View(orderPayment);
@@ -185,7 +194,7 @@ namespace tahsinERP.Controllers.SRM
                         orderPaymentToUpdate.OrderID = orderPayment.OrderID;
                         orderPaymentToUpdate.Payment_Amount = orderPayment.Payment_Amount;
                         orderPaymentToUpdate.Comment = orderPayment.Comment;
-                        orderPaymentToUpdate.Currency = orderPayment.Currency;
+                        orderPaymentToUpdate.CurrencyID = orderPayment.CurrencyID;
 
                         LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.P_ORDERS.Find(orderPayment.OrderID).OrderNo} - shartnoma paymenti taxrirladi");
                         db.SaveChanges();
@@ -196,12 +205,14 @@ namespace tahsinERP.Controllers.SRM
                     {
                         //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                         ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                         ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
                         return View(orderPayment);
                     }
                 }
                 else
                 {
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                     ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                     //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                     ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
