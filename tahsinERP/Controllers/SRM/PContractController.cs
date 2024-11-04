@@ -295,7 +295,7 @@ namespace tahsinERP.Controllers
                                 new_contract.DueDate = DateTime.Parse(row["DueDate"].ToString());
                                 new_contract.Incoterms = row["Incoterms"].ToString();
                                 new_contract.PaymentTerms = row["PaymentTerms"].ToString();
-                                new_contract.Currency = row["Currency"].ToString();
+                                new_contract.CurrencyID = db.CURRENCIES.Where(x => x.Shortname == row["Currency"].ToString()).FirstOrDefault().ID;
                                 new_contract.CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]);
                                 new_contract.IsDeleted = false;
 
@@ -374,8 +374,9 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.partList = new SelectList(db.PARTS.Where(c => c.IsDeleted == false).ToList(), "ID", "PNo");
-                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                
                 return View();
             }
         }
@@ -395,7 +396,7 @@ namespace tahsinERP.Controllers
                             IssuedDate = model.IssuedDate,
                             CompanyID = 1,
                             SupplierID = model.SupplierID,
-                            Currency = model.Currency,
+                            CurrencyID = model.CurrencyID,
                             Amount = model.Amount,
                             Incoterms = model.Incoterms,
                             PaymentTerms = model.PaymentTerms,
@@ -472,6 +473,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.partList = new SelectList(db.PARTS.Where(c => c.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 return View(model);
             }
@@ -500,8 +502,6 @@ namespace tahsinERP.Controllers
                 }
             }
         }
-
-
         public ActionResult Details(int? ID)
         {
             if (ID == null)
@@ -513,6 +513,7 @@ namespace tahsinERP.Controllers
             {
                 var contract = db.P_CONTRACTS
                                   .Include(p => p.SUPPLIER)
+                                  .Include(p => p.CURRENCy)
                                   .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
 
                 if (contract == null)
@@ -564,6 +565,7 @@ namespace tahsinERP.Controllers
             {
                 contract = db.P_CONTRACTS
                     .Include(c => c.SUPPLIER)
+                    .Include(p => p.CURRENCy)
                     .Include(c => c.P_CONTRACT_PARTS.Select(p => p.PART))
                     .FirstOrDefault(c => c.ID == ID && c.IsDeleted == false);
 
@@ -574,6 +576,7 @@ namespace tahsinERP.Controllers
 
                 suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", contract.SupplierID);
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 partList = contract.P_CONTRACT_PARTS.ToList();
             }
@@ -591,6 +594,8 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                     P_CONTRACTS contractToUpdate = db.P_CONTRACTS.Find(contract.ID);
                     if (contractToUpdate != null)
                     {
@@ -598,7 +603,7 @@ namespace tahsinERP.Controllers
                         contractToUpdate.SupplierID = contract.SupplierID;
                         contractToUpdate.IssuedDate = contract.IssuedDate;
                         contractToUpdate.DueDate = contract.DueDate;
-                        contractToUpdate.Currency = contract.Currency;
+                        contractToUpdate.CurrencyID = contract.CurrencyID;
                         contractToUpdate.Incoterms = contract.Incoterms;
                         contractToUpdate.PaymentTerms = contract.PaymentTerms;
                         contractToUpdate.IDN = contract.IDN;
@@ -710,6 +715,7 @@ namespace tahsinERP.Controllers
                         .Where(pc => pc.ContractID == contract.ID).ToList();
 
                 db.Entry(contract).Reference(i => i.SUPPLIER).Load();
+                db.Entry(contract).Reference(i => i.CURRENCy).Load();
                 return View(contract);
             }
         }

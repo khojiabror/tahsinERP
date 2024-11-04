@@ -81,11 +81,11 @@
                                                             @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, new { @class = "form-control select2", @id = "supplierDropdown" })
                                                             @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Valyuta</h6>
-                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
-                                                        </div>
+                                                        <h6 class="invoice-to">Valyuta</h6>
+                                                        <fieldset class="invoice-address form-group">
+                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                            @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                        </fieldset>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">IDN raqami</h6>
                                                             @Html.TextBoxFor(model => model.IDN, new { @type = "number", @class = "form-control" })

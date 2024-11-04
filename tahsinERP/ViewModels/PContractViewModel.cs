@@ -23,7 +23,7 @@ namespace tahsinERP.ViewModels
         [Required]
         public string PaymentTerms { get; set; }
         [Required]
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         public double Amount { get; set; }
         [Required]
         public string IDN { get; set; }
