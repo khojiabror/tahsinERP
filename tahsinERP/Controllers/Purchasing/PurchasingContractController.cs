@@ -21,7 +21,10 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.PURCHASING_CONTRACTS.Include(x => x.PURCHASING_ORDERS).Where(x => x.IsDeleted == false).ToList();
+                var list = db.PURCHASING_CONTRACTS
+                    .Include(x => x.PURCHASING_ORDERS)
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
@@ -30,6 +33,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var order = db.PURCHASING_ORDERS
+                                 .Include(x => x.CURRENCy)
                                  .Where(c => c.ID == orderID && c.IsDeleted == false)
                                  .Select(c => new
                                  {
@@ -96,7 +100,8 @@ namespace tahsinERP.Controllers
                 ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
-    
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 /*PURCHASING_CONTRACTS newPurchasingContract = new PURCHASING_CONTRACTS();
                 PURCHASING_CONTRACT_ITEMS orderItem = new PURCHASING_CONTRACT_ITEMS();*/
             }
@@ -118,7 +123,7 @@ namespace tahsinERP.Controllers
                             IssueDT = model.IssueDT,
                             CompanyID = 1,
                             Supplier = model.Supplier,
-                            Currency = model.Currency,
+                            CurrencyID = model.CurrencyID,
                             Amount = model.Amount,
                             Incoterms  = model.Incoterms,
                             PaymentTerms = model.PaymentTerms,
@@ -250,6 +255,7 @@ namespace tahsinERP.Controllers
                         ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                         ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         return View(model);
                     }
@@ -297,8 +303,9 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var purchasingContract = db.PURCHASING_CONTRACTS
-                .Include(p => p.PURCHASING_ORDERS)
-                                  .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
+                                .Include(p => p.PURCHASING_ORDERS)
+                                .Include(x => x.CURRENCy)
+                                .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
 
                 if (purchasingContract == null)
                 {
@@ -402,6 +409,7 @@ namespace tahsinERP.Controllers
             {
                 var purchasingContract = db.PURCHASING_CONTRACTS
                                   .Include(p => p.PURCHASING_ORDERS)
+                                  .Include(x => x.CURRENCy)
                                   .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
 
                 if (purchasingContract == null)
@@ -459,6 +467,7 @@ namespace tahsinERP.Controllers
             {
                 var purchasingContract = db.PURCHASING_CONTRACTS
                                   .Include(p => p.PURCHASING_ORDERS)
+                                  .Include(x => x.CURRENCy)
                                   .FirstOrDefault(p => p.ID == ID && p.IsDeleted == false);
 
                 if (purchasingContract == null)
@@ -478,6 +487,8 @@ namespace tahsinERP.Controllers
                 {
                     ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(Doc.Doc);
                 }*/
+
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
@@ -500,7 +511,7 @@ namespace tahsinERP.Controllers
                         purchasingContractToUpdate.Supplier = purchasingContract.Supplier;
                         purchasingContractToUpdate.IssueDT = purchasingContract.IssueDT;
                         purchasingContractToUpdate.DueDT = purchasingContract.DueDT;
-                        purchasingContractToUpdate.Currency = purchasingContract.Currency;
+                        purchasingContractToUpdate.CurrencyID = purchasingContract.CurrencyID;
                         purchasingContractToUpdate.Incoterms = purchasingContract.Incoterms;
                         purchasingContractToUpdate.PaymentTerms = purchasingContract.PaymentTerms;
                         purchasingContractToUpdate.Comment = purchasingContract.Comment;

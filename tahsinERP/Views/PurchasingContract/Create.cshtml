@@ -72,8 +72,8 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Valyuta</h6>
-                                                            @Html.TextBoxFor(model => model.Currency, new { @type = "text", @class = "form-control", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList , new { @class = "form-control select2", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
 
                                                     </div>

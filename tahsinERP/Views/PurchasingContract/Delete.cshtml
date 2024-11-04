@@ -51,7 +51,7 @@
                                             <hr />
                                             <span><b>Amal qilish sanasi</b>: @Model.DueDT.ToString("dd.MM.yyyy")</span>
                                             <hr />
-                                            <span><b>Umumiy miqdori</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" }) @Model.Currency</span>
+                                            <span><b>Umumiy miqdori</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" }) @Model.CURRENCy.Shortname</span>
                                             <hr />
                                             <span><b>Incoterms</b>: @Html.DisplayFor(model => model.Incoterms, new { @class = "form-control" })</span>
                                             <hr />
