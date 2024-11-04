@@ -20,7 +20,10 @@ namespace tahsinERP.Controllers
         {
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
-                List<PURCHASING_CONTRACT_PAYMENTS> list = db.PURCHASING_CONTRACT_PAYMENTS.Include(x => x.PURCHASING_CONTRACTS).Where(x => x.IsDeleted == false).ToList();
+                List<PURCHASING_CONTRACT_PAYMENTS> list = db.PURCHASING_CONTRACT_PAYMENTS
+                    .Include(x => x.PURCHASING_CONTRACTS)
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
@@ -29,6 +32,8 @@ namespace tahsinERP.Controllers
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View();
             }
         }
@@ -53,13 +58,17 @@ namespace tahsinERP.Controllers
                     else
                     {
                         ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
-                        ModelState.AddModelError("", "Ushbu Xarid shartnomasi uchun To'lov yaratilgan.");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
+                        ModelState.AddModelError("", "Ushbu Xarid shartnomasi uchun To'lov yaratilgan."); ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                         return View(model);
                     }
                 }
                 else
                 {
-                    ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                    ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo"); 
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                     ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
                     return View(model);
                 }
@@ -75,6 +84,7 @@ namespace tahsinERP.Controllers
             {
                 var purchasingPayment = db.PURCHASING_CONTRACT_PAYMENTS
                             .Include(x => x.PURCHASING_CONTRACTS)
+                            .Include(x => x.CURRENCy)
                             .Where(x => x.ID ==  Id && x.IsDeleted==false)
                             .FirstOrDefault();
                 if (purchasingPayment == null)
@@ -94,6 +104,7 @@ namespace tahsinERP.Controllers
             {
                 var purchasingPayment = db.PURCHASING_CONTRACT_PAYMENTS
                             .Include(x => x.PURCHASING_CONTRACTS)
+                            .Include(x => x.CURRENCy)
                             .Where(x => x.ID ==  Id && x.IsDeleted==false)
                             .FirstOrDefault();
                 if (purchasingPayment == null)
@@ -137,6 +148,7 @@ namespace tahsinERP.Controllers
             {
                 var purchasingPayment = db.PURCHASING_CONTRACT_PAYMENTS
                             .Include(x => x.PURCHASING_CONTRACTS)
+                            .Include(x => x.CURRENCy)
                             .Where(x => x.ID == Id && x.IsDeleted == false)
                             .FirstOrDefault();
 
@@ -144,7 +156,9 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
-                ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo"); 
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 return View(purchasingPayment);
             }
         }
@@ -162,7 +176,7 @@ namespace tahsinERP.Controllers
                         purchasingPaymentToUpdate.ContractID = purchasingPayment.ContractID;
                         purchasingPaymentToUpdate.Payment_Amount = purchasingPayment.Payment_Amount;
                         purchasingPaymentToUpdate.Comment = purchasingPayment.Comment;
-                        purchasingPaymentToUpdate.Currency = purchasingPayment.Currency;
+                        purchasingPaymentToUpdate.CurrencyID = purchasingPayment.CurrencyID;
 
                         LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.PURCHASING_CONTRACT_PAYMENTS.Find(purchasingPayment.ID).PURCHASING_CONTRACTS.ContractNo} - shartnoma to'lovni taxrirladi");
                         db.SaveChanges();
@@ -172,12 +186,16 @@ namespace tahsinERP.Controllers
                     else
                     {
                         ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                         return View(purchasingPayment);
                     }
                 }
                 else
                 {
                     ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                     ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
                     return View(purchasingPayment);
                 }
