@@ -116,7 +116,7 @@
                                                                 <a href="~/PartWrhs/Details/@item.ReceiverWhID">@item.PART_WRHS.WHName</a>
                                                             </td>
                                                             <td>@item.IssueDateTime.ToShortDateString()</td>
-                                                            <td>@item.TotalPrice</td>
+                                                            <td>@item.TotalPrice @item.CURRENCy.Shortname</td>
                                                             @if (changePermit)
                                                             {
                                                                 <td>

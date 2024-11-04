@@ -50,10 +50,7 @@
                                             <span><b>Tuzilgan sanasi </b>: @Model.IssueDateTime.ToString("dd.yy.yyyy")</span>
                                             <br />
                                             <hr />
-                                            <span><b>Miqdori</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" })</span>
-                                            <br />
-                                            <hr />
-                                            <span><b>Valyuta</b>: @Html.DisplayFor(model => model.Currency, new { @class = "form-control" })</span>
+                                            <span><b>Miqdori</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" }) @Model.CURRENCy.Shortname</span>
                                             <br />
                                             <hr />
                                             <span><b>Qabul qiluvchi ombor</b>: @Html.DisplayFor(model => model.PART_WRHS.WHName, new { @class = "form-control" })</span>

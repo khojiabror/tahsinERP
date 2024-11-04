@@ -28,6 +28,7 @@ namespace tahsinERP.Controllers
             {
                 var list = db.PART_WRHS_EXPENSES
                     .Include(pe => pe.PART_WRHS)
+                    .Include( x => x.CURRENCy)
                     .Where(pe => pe.IsDeleted == false)
                     .ToList();
 
@@ -64,6 +65,7 @@ namespace tahsinERP.Controllers
                 ViewBag.InComes = new SelectList(db.PART_WRHS_EXPENSES.Where(wi => wi.IsDeleted == false).ToList(), "ID", "DocNo");
                 ViewBag.InComeParts = new SelectList(partInStock.ToList(), "ID", "PNo");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 // Initialize view model
                 WrhsExpenseViewModel viewModel = new WrhsExpenseViewModel();
@@ -148,7 +150,7 @@ namespace tahsinERP.Controllers
                 {
                     DocNo = model.DocNo,
                     ReceiverWhID = model.RecieverWHID,
-                    Currency = model.Currency,
+                    CurrencyID = model.CurrencyID,
                     IsDeleted = false,
                     Description = model.Description,
                     IssueDateTime = DateTime.Now,
@@ -202,7 +204,8 @@ namespace tahsinERP.Controllers
             ViewBag.PartWrhs = new SelectList(db.PART_WRHS.Where(w => w.IsDeleted == false).ToList(), "ID", "WHName");
             ViewBag.InComes = new SelectList(db.PART_WRHS_EXPENSES.Where(wi => wi.IsDeleted == false).ToList(), "ID", "DocNo");
             ViewBag.InComeParts = new SelectList(partInStock.ToList(), "ID", "PNo");
-            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
         }
         public ActionResult Details(int? ID)
         {
@@ -215,6 +218,7 @@ namespace tahsinERP.Controllers
             {
                 var wrhsExpense = db.PART_WRHS_EXPENSES
                                   .Include(x => x.PART_WRHS)
+                                  .Include(x => x.CURRENCy)
                                   .FirstOrDefault(p => p.ID == ID);
 
                 if (wrhsExpense == null)
@@ -252,6 +256,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 wrhsExpense = db.PART_WRHS_EXPENSES
+                    .Include(x => x.CURRENCy)
                     .FirstOrDefault(p => p.ID == ID);
 
                 if (wrhsExpense == null)
@@ -269,6 +274,8 @@ namespace tahsinERP.Controllers
                 //ViewBag.PartList = new SelectList(db.PART_WRHS_EXPENSE_PARTS.Include(p => p.PART).ToList(),"ID","PName");
                // ViewBag.Invoices = new SelectList(db.P_INVOICES.Where(i => i.IsDeleted == false).ToList(), "ID", "InvoiceNo");
                 ViewBag.PartWhrs = new SelectList(db.PART_WRHS.Where(i => i.IsDeleted == false).ToList(), "ID", "WHName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)
@@ -296,7 +303,7 @@ namespace tahsinERP.Controllers
                     {
                         //.DocNo = wrhsExpense.DocNo;
                         wrhsExpenseToUpdate.ReceiverWhID = wrhsExpense.ReceiverWhID;
-                        wrhsExpenseToUpdate.Currency = wrhsExpense.Currency;
+                        wrhsExpenseToUpdate.CurrencyID = wrhsExpense.CurrencyID;
                         //wrhsExpenseToUpdate.Amount = wrhsExpense.Amount;
                        // wrhsExpenseToUpdate.TotalPrice = wrhsExpense.TotalPrice;
                         wrhsExpenseToUpdate.Description = wrhsExpense.Description;
@@ -352,6 +359,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PartList = allParts;
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)
@@ -422,7 +430,8 @@ namespace tahsinERP.Controllers
                         .Include(pc => pc.UNIT)
                         .Where(pc => pc.ExpenseID == wrhsExpense.ID).ToList();
 
-                db.Entry(wrhsExpense).Reference(i => i.PART_WRHS).Load();
+                db.Entry(wrhsExpense).Reference(i => i.PART_WRHS).Load(); 
+                db.Entry(wrhsExpense).Reference(i => i.CURRENCy).Load();
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)

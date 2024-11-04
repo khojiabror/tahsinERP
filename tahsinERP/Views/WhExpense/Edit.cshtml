@@ -70,8 +70,8 @@
                                                 </fieldset>
                                                 <h6 class="invoice-to">Valyuta</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.Currency, new { @class = "form-control round", @placeholder = "Foydalanilgan pul birligi" })
-                                                    @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList,  new { @class = "form-control select2", @placeholder = "Foydalanilgan pul birligi" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                 </fieldset>
 
                                                 <h6 class="invoice-to">Batafsil ma`lumot</h6>
@@ -79,13 +79,13 @@
                                                     @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = "Qisqacha tavsifi" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <div class="col-md-6 col-12 form-group">
+                                               @* <div class="col-md-6 col-12 form-group">
                                                     <div class="checkbox checkbox-secondary checkbox-glow">
                                                         @Html.CheckBoxFor(model => model.SendStatus, new { @type = "checkbox", @id = "RecieveStatus" })
                                                         <label for="RecieveStatus">Qabul qilindi</label>
                                                         @Html.ValidationMessageFor(model => model.SendStatus, "", new { @class = "text-warning" })
                                                     </div>
-                                                </div>
+                                                </div>*@
 
                                             </div>
                                         </div>

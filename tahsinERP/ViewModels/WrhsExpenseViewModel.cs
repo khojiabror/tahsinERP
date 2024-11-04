@@ -14,7 +14,7 @@ namespace tahsinERP.ViewModels
         public HttpPostedFileBase File;
         public int RecieverWHID { get; set; }
         [Required]
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         [DataType(DataType.Text)]
         public string Description { get; set; }
         public bool SendStatus { get; set; }
