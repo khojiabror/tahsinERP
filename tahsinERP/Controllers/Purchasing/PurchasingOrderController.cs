@@ -26,7 +26,9 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false).ToList();
+                var list = db.PURCHASING_ORDERS
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
@@ -77,6 +79,8 @@ namespace tahsinERP.Controllers
 
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.itemList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
             }
             return View();
         }
@@ -95,8 +99,10 @@ namespace tahsinERP.Controllers
                         if (!string.IsNullOrEmpty(existOrderCodeEDO.OrderCodeEDO))
                         {
                             ModelState.AddModelError("", $"{existOrderCodeEDO.OrderCodeEDO} ushbu raqam bilan buyurtma kiritilgan");
-                            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+                            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                             ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
+
                             return View(model);
                         }
                         var newOrder = new PURCHASING_ORDERS()
@@ -110,7 +116,8 @@ namespace tahsinERP.Controllers
                             CreatedDT = model.ApprovedDTEDO,
                             ApprovedDTEDO = model.ApprovedDTEDO,
                             OrderedByUser = model.OrderByUser,
-                            OrderedByDept = model.OrderByDept
+                            OrderedByDept = model.OrderByDept,
+                            CurrencyID = model.CurrencyID
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
@@ -124,8 +131,7 @@ namespace tahsinERP.Controllers
                                 OrderID = newOrder.ID,
                                 ItemID = part.ItemID,
                                 Price = part.Price,
-                                Amount = part.Amount,
-                                Currency = part.Currency
+                                Amount = part.Amount
                             };
 
                             db.PURCHASING_ORDER_ITEMS.Add(newPart);
@@ -172,6 +178,7 @@ namespace tahsinERP.Controllers
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                         ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
                         //ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>());
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         return View(model);
                     }
@@ -232,6 +239,7 @@ namespace tahsinERP.Controllers
 
                 db1.Entry(purchasingOrder).Reference(o => o.USER).Load();
                 db1.Entry(purchasingOrder).Reference(o => o.USER1).Load();
+                db1.Entry(purchasingOrder).Reference(o => o.CURRENCy).Load();
 
                 partList = db1.PURCHASING_ORDER_ITEMS
                     .Include(x => x.PURCHASING_ITEMS)
@@ -256,6 +264,7 @@ namespace tahsinERP.Controllers
 
                 db1.Entry(purchasingOrder).Reference(o => o.USER).Load();
                 db1.Entry(purchasingOrder).Reference(o => o.USER1).Load();
+                db1.Entry(purchasingOrder).Reference(o => o.CURRENCy).Load();
 
                 partList = db1.PURCHASING_ORDER_ITEMS
                             .Include(x => x.PURCHASING_ITEMS)
@@ -346,6 +355,7 @@ namespace tahsinERP.Controllers
                 purchasingOrder = db.PURCHASING_ORDERS
                     .Include(x => x.USER1)
                     .Include(x => x.USER)
+                    .Include(x => x.CURRENCy)
                     .FirstOrDefault(c => c.ID == ID && c.IsDeleted == false);
 
                 if (purchasingOrder == null)
@@ -362,6 +372,7 @@ namespace tahsinERP.Controllers
                 ViewBag.userList = new SelectList(
                                     db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
                                     .ToList(), "ID", "Fullname");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
             }
 
             ViewBag.partList = partList;
@@ -387,6 +398,7 @@ namespace tahsinERP.Controllers
                         purchasingOrderToUpdate.CreatedDT = purchasingOrder.CreatedDT;
                         purchasingOrderToUpdate.OrderedByDept = purchasingOrder.OrderedByDept;
                         purchasingOrderToUpdate.OrderedByUser = purchasingOrder.OrderedByUser;
+                        purchasingOrderToUpdate.CurrencyID = purchasingOrder.CurrencyID;
                         try
                         {
                             // Correct this line
@@ -447,7 +459,6 @@ namespace tahsinERP.Controllers
                         purchasingOrdetItemToUpdate.Price = purchasingOrderItem.Price;
                         purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Amount;
                         purchasingOrdetItemToUpdate.TotalPrice = purchasingOrderItem.TotalPrice;
-                        purchasingOrdetItemToUpdate.Currency = purchasingOrderItem.Currency;
 
                         //purchasingOrdetItemToUpdate.Amount = purchasingOrderItem.Quantity * purchasingOrderItem.Price; SQL o'zi chiqarib beradi
 

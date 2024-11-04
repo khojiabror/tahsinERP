@@ -67,9 +67,9 @@
                                             <div class="col-lg-6 col-sm-12">
                                                 <div class="row">
                                                     <div class="col-md-6 col-12 form-group">
-                                                        <label>Buyurtma yaratilgan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.CreatedDT, new { @class = "form-control pickadate-months-year round" })
-                                                        @Html.ValidationMessageFor(model => model.CreatedDT, "", new { @class = "text-danger" })
+                                                        <label>Valyuta</label>
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group">
                                                         <label>Buyurtma tasdiqlangan (EDO) sanasi</label>

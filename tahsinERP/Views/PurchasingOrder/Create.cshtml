@@ -57,11 +57,11 @@
                                                 @* Left Part *@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
-                                                        @*<label for="OrderNo">Buyurtma raqami</label>
-                                                    <div class="col-md-6 col-12 form-group">
-                                                        @Html.TextBoxFor(model => model.OrderCode, new { @type = "text", @class = "form-control", id = "OrderNo", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
-                                                    </div>*@
+                                                        <label for="OrderNo">Valyuta</label>
+                                                        <div class="col-md-6 col-12 form-group">
+                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList,new { @class = "form-control select2", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
+                                                        </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Buyurtma raqami(EDO)</label>
                                                             @Html.TextBoxFor(model => model.OrderCodeEDO, new { @type = "text", @class = "form-control", @required = "required" })
@@ -78,11 +78,6 @@
                                                 @* Right Part *@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
-                                                        @*  <div class="col-md-6 col-12 form-group">
-            <label>Buyurtma berilgan sanasi</label>
-            @Html.TextBoxFor(model => model.CreatedDT, new { @class = "form-control pickadate-months-year round" })
-            @Html.ValidationMessageFor(model => model.CreatedDT, "", new { @class = "text-danger" })
-        </div>*@
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Buyurtma tasdiqlangan (EDO) sanasi</label>
                                                             @Html.TextBoxFor(model => model.ApprovedDTEDO, new { @class = "form-control pickadate-months-year round", @required = "required" })

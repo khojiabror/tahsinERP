@@ -17,6 +17,7 @@ namespace tahsinERP.ViewModels.PurchasingOrder
         public string Comment { get; set; }
         public string OrderByUser { get; set; }
         public string OrderByDept { get; set; }
+        public int CurrencyID { get; set; }
         public string Status { get; set; }
         public int BuyerUserID { get; set; }
         [DataType(DataType.Upload)]
