@@ -86,7 +86,8 @@ namespace tahsinERP.Controllers
                                  .Select(c => new
                                  {
                                      c.ID,
-                                     c.Currency
+                                     c.CurrencyID,
+                                     c.CURRENCy
                                  })
                                  .FirstOrDefault();
 
@@ -160,6 +161,7 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 //ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 ViewBag.PContract = new SelectList(Enumerable.Empty<SelectListItem>());
@@ -211,7 +213,7 @@ namespace tahsinERP.Controllers
                             CompanyID = 1,
                             SupplierID = model.SupplierID,
                             ContractID = model.ContractID,
-                            Currency = model.Currency,
+                            CurrencyID = model.CurrencyID,
                             Description = model.Description,
                             IsDeleted = false,
                             Amount = 0
@@ -306,7 +308,8 @@ namespace tahsinERP.Controllers
                         ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                         //ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
-                        ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>());
+                        ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>()); 
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         return View(model);
                     }
@@ -352,14 +355,17 @@ namespace tahsinERP.Controllers
                 if (supplierID.HasValue)
                 {
                     ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false && x.Type.CompareTo("Steel") == 0).ToList(), "ID", "Name");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                     ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false && x.SupplierID == supplierID.Value).ToList(), "ID", "ContractNo");
                 }
                 else
                 {
                     ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false && x.Type.CompareTo("Steel") == 0).ToList(), "ID", "Name");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                     ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 }
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 var steelCoils = db.STEEL_COILS.ToList();
 
@@ -389,7 +395,7 @@ namespace tahsinERP.Controllers
                         CompanyID = 1,
                         SupplierID = model.SupplierID,
                         ContractID = model.ContractID,
-                        Currency = model.Currency,
+                        CurrencyID = model.CurrencyID,
                         Description = model.Description,
                         IsDeleted = false
                     };
@@ -455,6 +461,7 @@ namespace tahsinERP.Controllers
                     ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", model.ContractID);
                     ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false && x.Type.CompareTo("Steel") == 0).ToList(), "ID", "Name", model.SupplierID);
                     ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                     ViewBag.steelMarka = new SelectList(db.STEEL_COILS.ToList(), "ID", "Marka");
                     ViewBag.steelStandart = new SelectList(db.STEEL_COILS.ToList(), "ID", "Standart");
@@ -507,6 +514,7 @@ namespace tahsinERP.Controllers
 
                 db1.Entry(order).Reference(o => o.SUPPLIER).Load();
                 db1.Entry(order).Reference(o => o.P_CONTRACTS).Load();
+                db1.Entry(order).Reference(o => o.CURRENCy).Load();
 
                 partList = db1.P_ORDER_PARTS.Where(pc => pc.OrderID == id).ToList();
                 foreach (var part in partList)
@@ -537,6 +545,7 @@ namespace tahsinERP.Controllers
 
                 db1.Entry(order).Reference(o => o.SUPPLIER).Load();
                 db1.Entry(order).Reference(o => o.P_CONTRACTS).Load();
+                db1.Entry(order).Reference(o => o.CURRENCy).Load();
 
                 partList = db1.P_ORDER_PARTS
                     .Include(pc => pc.UNIT)
@@ -634,7 +643,7 @@ namespace tahsinERP.Controllers
                     OrderNo = order.OrderNo,
                     SupplierID = (int)order.SupplierID,
                     ContractID = (int)order.ContractID,
-                    Currency = order.Currency,
+                    CurrencyID = (int)order.CurrencyID,
                     Description = order.Description,
                     IssuedDate = order.IssuedDate,
                     Parts = order.P_ORDER_PARTS.Select(p => new ViewModels.POrderPart
@@ -656,6 +665,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", order.SupplierID);
                 ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", order.ContractID);
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
 
@@ -674,6 +684,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", order.SupplierID);
                 ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", order.ContractID);
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 /*if (ModelState.IsValid)
                 {*/
@@ -710,7 +721,7 @@ namespace tahsinERP.Controllers
                     orderToUpdate.SupplierID = order.SupplierID;
                     orderToUpdate.ContractID = order.ContractID;
                     orderToUpdate.IssuedDate = order.IssuedDate;
-                    orderToUpdate.Currency = order.Currency;
+                    orderToUpdate.CurrencyID = order.CurrencyID;
                     orderToUpdate.Description = order.Description;
 
                     try
@@ -725,6 +736,8 @@ namespace tahsinERP.Controllers
                         // Re-populate the ViewBag.Supplier to ensure the dropdown list is available in case of an error
                         ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", order.SupplierID);
                         ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", order.ContractID);
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
                     }
 
                     // Update ProductList
@@ -754,6 +767,7 @@ namespace tahsinERP.Controllers
                         // Re-populate the ViewBag.Supplier to ensure the dropdown list is available in case of an error
                         ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", order.SupplierID);
                         ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", order.ContractID);
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                     }
@@ -1126,7 +1140,7 @@ namespace tahsinERP.Controllers
                                         ContractID = contract.ID,
                                         SupplierID = supplier.ID,
                                         IssuedDate = DateTime.Parse(row["IssuedDate"].ToString()),
-                                        Currency = row["Currency"].ToString(),
+                                        CurrencyID = (int)db.CURRENCIES.Where(x => x.Shortname.ToLower() == row["Currency"].ToString().ToLower()).FirstOrDefault().ID,
                                         CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]),
                                         IsDeleted = false
                                     };
