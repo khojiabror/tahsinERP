@@ -94,7 +94,7 @@
                                                                 <a href="~/PurchasingContract/Details/@item.ContractID">@item.PURCHASING_CONTRACTS.ContractNo</a>
                                                             </td>
                                                             <td>@item.Amount</td>
-                                                            <td>@item.TotalPrice @item.Currency</td>
+                                                            <td>@item.TotalPrice @item.CURRENCy.Shortname</td>
                                                             <td>@item.IssueDateTime.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)
                                                             {

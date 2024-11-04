@@ -31,7 +31,9 @@ namespace tahsinERP.Controllers.Purchasing
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.PURCHASING_WRHS_INCOMES.Where(x => x.IsDeleted == false).ToList();
+                var list = db.PURCHASING_WRHS_INCOMES
+                    .Include(x => x.CURRENCy)
+                    .Where(x => x.IsDeleted == false).ToList();
                 return View(list);
             }
         }
@@ -68,7 +70,8 @@ namespace tahsinERP.Controllers.Purchasing
                                  .Select(c => new
                                  {
                                      c.ID,
-                                     c.Currency,
+                                     c.CurrencyID,
+                                     c.CURRENCy,
                                      c.Amount
                                  })
                                  .FirstOrDefault();
@@ -88,6 +91,7 @@ namespace tahsinERP.Controllers.Purchasing
             string month = "";
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.items = new SelectList(Enumerable.Empty<SelectListItem>());
@@ -139,6 +143,7 @@ namespace tahsinERP.Controllers.Purchasing
                             ViewBag.contracts = new SelectList(Enumerable.Empty<SelectListItem>());
                             ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                             ViewBag.partList = new SelectList(Enumerable.Empty<SelectListItem>());
+                            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                             ModelState.AddModelError("", "Shartnomadan dan ortiqcha hajmni kirim qilib bo'lmaydi.");
                             return View(model);
@@ -150,6 +155,7 @@ namespace tahsinERP.Controllers.Purchasing
                         ModelState.AddModelError("", "Sizga tegishli ombor topilmadi.");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                         ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         return View(model);
                     }
@@ -159,7 +165,7 @@ namespace tahsinERP.Controllers.Purchasing
                         WHID = warehouse.ID,
                         ContractID = model.ContractID,
                         Amount = model.Amount,
-                        Currency = model.Currency,
+                        CurrencyID = model.CurrencyID,
                         IsDeleted = false,
                         Description = model.Description,
                         IssueDateTime = DateTime.Now,
@@ -218,6 +224,7 @@ namespace tahsinERP.Controllers.Purchasing
                     ModelState.AddModelError("", "Ma'umotlarni to'liq kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring.");
                     ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                     ViewBag.contracts = new SelectList(db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                     return View(model);
                 }
@@ -233,6 +240,7 @@ namespace tahsinERP.Controllers.Purchasing
             using (DBTHSNEntities db1 = new DBTHSNEntities())
             {
                 var wrhsIncome = db1.PURCHASING_WRHS_INCOMES
+                                  .Include(x => x.CURRENCy)
                                   .Include(p => p.PURCHASING_CONTRACTS)
                                   .FirstOrDefault(p => p.ID == ID);
 
@@ -270,6 +278,7 @@ namespace tahsinERP.Controllers.Purchasing
             {
                 var wrhsIncome = db1.PURCHASING_WRHS_INCOMES
                                   .Include(p => p.PURCHASING_CONTRACTS)
+                                  .Include(p => p.CURRENCy)
                                   .FirstOrDefault(p => p.ID == ID);
 
                 if (wrhsIncome == null)
@@ -380,6 +389,7 @@ namespace tahsinERP.Controllers.Purchasing
             {
                 whrsIncome = db1.PURCHASING_WRHS_INCOMES
                             .Include(i => i.PURCHASING_CONTRACTS)
+                            .Include(p => p.CURRENCy)
                             .FirstOrDefault(p => p.ID == ID);
 
                 if (whrsIncome == null)
@@ -398,6 +408,7 @@ namespace tahsinERP.Controllers.Purchasing
 
                 ViewBag.contracts = new SelectList(db1.PURCHASING_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 ViewBag.units = new SelectList(db1.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db1.CURRENCIES.ToList(), "ID", "Shortname");
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)
@@ -426,7 +437,7 @@ namespace tahsinERP.Controllers.Purchasing
                         wrhsIncomeToUpdate.DocNo = whrsIncome.DocNo;
                         wrhsIncomeToUpdate.WHID = warehouse.ID;
                         wrhsIncomeToUpdate.ContractID = whrsIncome.ContractID;
-                        wrhsIncomeToUpdate.Currency = whrsIncome.Currency;
+                        wrhsIncomeToUpdate.CurrencyID = whrsIncome.CurrencyID;
                         wrhsIncomeToUpdate.Amount = whrsIncome.Amount;
                         wrhsIncomeToUpdate.TotalPrice = whrsIncome.TotalPrice;
                         wrhsIncomeToUpdate.Description = whrsIncome.Description;

@@ -14,7 +14,7 @@ namespace tahsinERP.ViewModels.Purchasing
         public string WHName { get; set; }
         public Nullable<int> ContractID { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string Description { get; set; }
