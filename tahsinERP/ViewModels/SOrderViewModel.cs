@@ -13,7 +13,7 @@ namespace tahsinERP.ViewModels
         public DateTime IssuedDate { get; set; }
         public int CustomerID { get; set; }
         public int ContractID { get; set; }
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         public string Description { get; set; }
 
         public List<SOrderProduct> Products { get; set; }

@@ -26,6 +26,8 @@ namespace tahsinERP.Controllers
                 ViewBag.SContract = new SelectList(db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                 ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
             }
 
             return View();

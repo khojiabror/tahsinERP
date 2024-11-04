@@ -59,7 +59,7 @@
                                                 <span><b>Miqdori</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" })</span>
                                                 <br />
                                                 <hr />
-                                                <span><b>Valyuta</b>: @Html.DisplayFor(model => model.Currency, new { @class = "form-control" })</span>
+                                                <span><b>Valyuta</b>: @Html.DisplayFor(model => model.CURRENCy.Shortname, new { @class = "form-control" })</span>
                                                 <br />
                                                 <hr />
                                                 <span><b>Batafsil ma`lumot</b>: @Html.DisplayFor(model => model.Description, new { @class = "form-control" })</span>
@@ -97,10 +97,10 @@
                                                                                         <a href="~/Part/Details/@item.PartID">@item.PART.PNo</a>
                                                                                     </td>
                                                                                     <td>@item.PART.PName</td>
-                                                                                    <td>@item.Price @Model.Currency</td>
+                                                                                    <td>@item.Price @Model.CURRENCy.Shortname</td>
                                                                                     <td>@item.Amount</td>
                                                                                     <td>@item.UNIT.UnitName</td>
-                                                                                    <td>@item.TotalPrice @Model.Currency</td>
+                                                                                    <td>@item.TotalPrice @Model.CURRENCy.Shortname</td>
                                                                                     <td>@item.MOQ</td>
                                                                                 </tr>
                                                                             }
