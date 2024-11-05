@@ -1,5 +1,4 @@
-﻿@model tahsinERP.Models.P_CONTRACTS
-
+﻿@model tahsinERP.ViewModels.PContractViewModel
 @{
     ViewBag.Title = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -94,7 +93,7 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                         <div class="card-header">
-                                                            <h4 class="card-title">Shartnoma predmeti</h4>
+                                                            <h4 class="card-title">Buyurtma predmeti</h4>
                                                         </div>
                                                         <div class="card-content">
                                                             <div class="card-body card-dashboard">
@@ -104,42 +103,34 @@
                                                                             <tr>
                                                                                 <th>Detal raqami</th>
                                                                                 <th>Detal nomi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>O'lchov birligi</th>
                                                                                 <th>Birlik narxi</th>
+                                                                                <th>O'lchov birligi</th>
+                                                                                <th>Miqdori</th>
                                                                                 <th>MOQ</th>
-                                                                                <th>Faolligi</th>
-                                                                                <th>amallar</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            @foreach (var item in ViewBag.partList)
+                                                                            @for (int i = 0; i < Model.Parts.Count; i++)
                                                                             {
                                                                                 <tr>
                                                                                     <td>
-                                                                                        <a href="~/Part/Details/@item.PartID">@item.PART.PNo</a>
+                                                                                        <a href="~/Part/Details/@Model.Parts[i].PartID">@Model.Parts[i].Part.PNo</a>
+                                                                                        @Html.HiddenFor(model => model.Parts[i].PartID)
+                                                                                        @Html.HiddenFor(model => model.Parts[i].ID)
                                                                                     </td>
-                                                                                    <td>@item.PART.PName</td>
-                                                                                    <td>@item.Quantity</td>
-                                                                                    <td>@item.UNIT.UnitName</td>
-                                                                                    <td>@item.Price</td>
-                                                                                    <td>@item.MOQ</td>
-                                                                                    @if (item.ActivePart)
-                                                                                    {
-                                                                                        <td><span class="badge badge-light-success">Faol</span></td>
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                        <td><span class="badge badge-light-danger">Nofaol</span></td>
-                                                                                    }
                                                                                     <td>
-                                                                                        <div>
-                                                                                            <a href="@Url.Action("EditPart", "PContract", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                                            <a href="~/PContract/DeletePart/@item.ID" onclick="return confirm('Ushbu shartnoma detalini ochirib yuborishga ishonchingiz komilmi?')">
-                                                                                                <i class="bx bx-trash"></i>
-                                                                                            </a>
-                                                                                        </div>
+                                                                                        @Model.Parts[i].Part.PName
                                                                                     </td>
+                                                                                    <td>
+                                                                                        @Html.TextBoxFor(model => model.Parts[i].Price, new { @class = "form-control" })
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        @Html.DropDownListFor(model => model.Parts[i].UnitID, (SelectList)ViewBag.Units, new { @class = "form-control", @value = Model.Parts[i].UnitID })
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        @Html.TextBoxFor(model => model.Parts[i].Quantity, new { @class = "form-control" })
+                                                                                    </td>
+                                                                                    <td>@Html.TextBoxFor(model => model.Parts[i].MOQ, new { @class = "form-control" })</td>
                                                                                 </tr>
                                                                             }
                                                                         </tbody>

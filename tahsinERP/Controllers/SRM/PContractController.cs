@@ -69,18 +69,6 @@ namespace tahsinERP.Controllers
                 return View();
             }
         }
-       /* public ActionResult Download(int? contractID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var contractFile = db.P_CONTRACT_DOCS.Where(x => x.ContractID == contractID).FirstOrDefault();
-                if (contractFile != null)
-                    return File(contractFile.Doc, ".pdf");
-                else
-                    ModelState.AddModelError("", "Sahrtnoma fayli yuklanmagan!");
-                return View();
-            }
-        }*/
         public async Task<ActionResult> Download()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -423,11 +411,11 @@ namespace tahsinERP.Controllers
                             };
                             db.P_CONTRACT_PARTS.Add(newPart);
                         }
-
                         db.SaveChanges();
 
+                        newContract.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
+                        db.SaveChanges();
                         // Handle file upload
-
 
                         if (model.File != null && model.File.ContentLength > 0)
                         {
@@ -557,13 +545,9 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            P_CONTRACTS contract;
-            List<P_CONTRACT_PARTS> partList;
-            SelectList suppliers;
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                contract = db.P_CONTRACTS
+                var contract = db.P_CONTRACTS
                     .Include(c => c.SUPPLIER)
                     .Include(p => p.CURRENCy)
                     .Include(c => c.P_CONTRACT_PARTS.Select(p => p.PART))
@@ -574,21 +558,40 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", contract.SupplierID);
+                var model = new PContractViewModel
+                {
+                    ID = contract.ID,
+                    ContractNo = contract.ContractNo,
+                    IssuedDate = contract.IssuedDate,
+                    DueDate = contract.DueDate,
+                    SupplierID = contract.SupplierID,
+                    Incoterms = contract.Incoterms,
+                    PaymentTerms = contract.PaymentTerms,
+                    CurrencyID = (int)contract.CurrencyID,
+                    Amount = (double)contract.Amount,
+                    IDN = contract.IDN,
+                    Parts = contract.P_CONTRACT_PARTS.Select(x => new ViewModels.PContractPart
+                    {
+                        ID = x.ID,
+                        Part = x.PART,
+                        PartID = (int)x.PartID,
+                        UnitID = (int)x.UnitID,
+                        Price = (double)x.Price,
+                        Quantity = (double)x.Quantity,
+                        MOQ = (double)x.MOQ
+                    }).ToList()
+                };
+                ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", contract.SupplierID);
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-
-                partList = contract.P_CONTRACT_PARTS.ToList();
+                
+                return View(model);
             }
-
-            ViewBag.Supplier = suppliers;
-            ViewBag.partList = partList;
-            return View(contract);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(P_CONTRACTS contract)
+        public ActionResult Edit(PContractViewModel contract)
         {
             if (ModelState.IsValid)
             {
@@ -608,6 +611,39 @@ namespace tahsinERP.Controllers
                         contractToUpdate.PaymentTerms = contract.PaymentTerms;
                         contractToUpdate.IDN = contract.IDN;
                         contractToUpdate.IsDeleted = false;
+
+                        // Update PContractParts
+                            float summ=0;
+                        foreach (var product in contract.Parts)
+                        {
+                            var existingPart = db.P_CONTRACT_PARTS.Find(product.ID);
+                            if (existingPart != null)
+                            {
+                                existingPart.Price = product.Price;
+                                existingPart.UnitID = product.UnitID;
+                                existingPart.Quantity = product.Quantity;
+                                existingPart.MOQ = product.MOQ;
+                                summ += (float)(existingPart.Quantity * existingPart.Price);
+                                db.Entry(existingPart).State = EntityState.Modified;
+                                try
+                                {
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{existingPart.PartID} - li PContractPartni tahrirladi");
+
+                                    return RedirectToAction("Index");
+                                }
+                                catch (RetryLimitExceededException)
+                                {
+                                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                                }
+                            }
+                        }
+
+                        //Shartnoma miqdori o'zgargani uchun yozildi
+                        //contractToUpdate.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == contractToUpdate.ID).Sum(x => x.Amount);
+                        contractToUpdate.Amount = summ;
+                        db.SaveChanges();
 
                         try
                         {
@@ -770,6 +806,11 @@ namespace tahsinERP.Controllers
                             db.P_CONTRACT_PARTS.Remove(contractPartToDelete);
                             db.SaveChanges();
 
+                            //Shartnoma miqdori o'zgargani uchun yozildi
+                            var contractToUpdate = db.PURCHASING_CONTRACTS.Find(contractPartToDelete.ContractID);
+                            contractToUpdate.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == contractToUpdate.ID).Sum(x => x.Amount);
+
+                            db.SaveChanges();
                             LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPartToDelete.PART.PNo} - PContractPartni o'chirdi");
 
                             return RedirectToAction("Index");

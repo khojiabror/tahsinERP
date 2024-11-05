@@ -287,7 +287,7 @@ namespace tahsinERP.Controllers
                     Description = model.Description,
                     IssueDateTime = DateTime.Now,
                     SenderWHID = null,
-                    RecieveStatus = model.RecieveStatus
+                    RecieveStatus = true
                 };
                 db.PART_WRHS_INCOMES.Add(newIncome);
                 db.SaveChanges();

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using tahsinERP.Models;
 
 namespace tahsinERP.ViewModels
 {
     public class PContractViewModel
     {
+        public int ID { get; set; }
         [Required]
         public string ContractNo { get; set; }
         [DataType(DataType.Upload)]
@@ -36,9 +38,10 @@ namespace tahsinERP.ViewModels
     // Part ViewModel
     public class PContractPart
     {
-        //public int ID { set; get; } // Auto Increment in DB
-       // public int ContractID { get; set; } // User dan olinmaydi
+        public int ID { set; get; } // Auto Increment in DB
+        public int ContractID { get; set; } // User dan olinmaydi
         public int PartID { get; set; }
+        public PART Part { get; set; }
         [Required]
         public int UnitID { get; set; }
         [Required]
