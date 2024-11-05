@@ -57,11 +57,6 @@
                                                 @* Left Part *@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
-                                                        <label for="OrderNo">Valyuta</label>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList,new { @class = "form-control select2", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
-                                                        </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Buyurtma raqami(EDO)</label>
                                                             @Html.TextBoxFor(model => model.OrderCodeEDO, new { @type = "text", @class = "form-control", @required = "required" })
@@ -71,6 +66,11 @@
                                                             <label>Ma'sul xarid agenti:</label>
                                                             @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, "Buyerni tanlang:", new { @class = "form-control select", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="col-md-6 col-12 form-group">
+                                                        <label for="OrderNo">Valyuta</label>
+                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList,new { @class = "form-control select2", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
                                                 </div>
@@ -140,11 +140,6 @@
                                                             <label for="Part_Price">Taxminiy birlik narxi:</label>
                                                             <input type="number" name="Price" step="0.01" class="form-control" id="Part_Price" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger", @type = "number" })
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-10 form-group">
-                                                            <label for="Part_Currency">Valyutani kiriting:</label>
-                                                            <input name="Currency" class="form-control" id="Part_Currency" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].Currency, "", new { @class = "text-danger", @required = "required" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>

@@ -16,6 +16,7 @@ using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using Microsoft.AspNetCore.Mvc;
 using Antlr.Runtime.Misc;
+using DocumentFormat.OpenXml.EMMA;
 
 namespace tahsinERP.Controllers
 {
@@ -42,14 +43,15 @@ namespace tahsinERP.Controllers
                     return Json(0, JsonRequestBehavior.AllowGet); // Return 0 if order not found
                 }
 
-                // Assuming you calculate progress based on some logic
-                var progress = CalculateOrderProgress(order.ID); // Implement your logic here
-
-                return Json(progress, JsonRequestBehavior.AllowGet);
+                double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Where(x => x.Status == true && x.OrderID == ID).Count();
+                double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Where(x => x.OrderID == ID).Count();
+                double progress = (trueStatusCount / totalStatusCount ) * 100;
+                
+                return Json((int)Math.Round(progress), JsonRequestBehavior.AllowGet);
             }
         }
 
-        private int CalculateOrderProgress(int orderID)
+     /*   private int CalculateOrderProgress(int orderID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -61,13 +63,13 @@ namespace tahsinERP.Controllers
                     {
                         return 100;
                     }
-                    /*if (order.Status == "Completed") return 100;
-                    if (order.Status == "In Progress") return 50;*/
+                    *//*if (order.Status == "Completed") return 100;
+                    if (order.Status == "In Progress") return 50;*//*
                     return 0; // Default
                 }
                 return 0;
             }
-        }
+        }*/
 
         public ActionResult Create()
         {
@@ -96,7 +98,7 @@ namespace tahsinERP.Controllers
                     if (ModelState.IsValid)
                     {
                         var existOrderCodeEDO = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && model.OrderCodeEDO.CompareTo(x.OrderCodeEDO) == 0).FirstOrDefault();
-                        if (!string.IsNullOrEmpty(existOrderCodeEDO.OrderCodeEDO))
+                        if (existOrderCodeEDO != null)
                         {
                             ModelState.AddModelError("", $"{existOrderCodeEDO.OrderCodeEDO} ushbu raqam bilan buyurtma kiritilgan");
                             ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
@@ -117,7 +119,8 @@ namespace tahsinERP.Controllers
                             ApprovedDTEDO = model.ApprovedDTEDO,
                             OrderedByUser = model.OrderByUser,
                             OrderedByDept = model.OrderByDept,
-                            CurrencyID = model.CurrencyID
+                            CurrencyID = model.CurrencyID,
+                            Progress = 0
                         };
 
                         db.PURCHASING_ORDERS.Add(newOrder);
@@ -506,6 +509,13 @@ namespace tahsinERP.Controllers
                         purchasingItemToApprove.Status = true;
                         purchasingItemToApprove.Comment = "";
 
+                        PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
+                        purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
+                        //Progress update 
+                        double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.Status == true && x.ID == ID);
+                        double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
+                        purchasingOrder.Progress = trueStatusCount / totalStatusCount * 100;
+
                         db.Entry(purchasingItemToApprove).State = EntityState.Modified;
                         db.SaveChanges();
 
@@ -518,6 +528,13 @@ namespace tahsinERP.Controllers
                         PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
                         purchasingItemToApprove.Status = false;
                         purchasingItemToApprove.Comment = comment;
+
+                        PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
+                        purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
+                        //Progress update
+                        double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.Status == true && x.ID == ID);
+                        double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
+                        purchasingOrder.Progress = trueStatusCount / totalStatusCount * 100;
 
                         db.Entry(purchasingItemToApprove).State = EntityState.Modified;
                         db.SaveChanges();

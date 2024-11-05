@@ -158,33 +158,32 @@ namespace tahsinERP.Controllers
                                     .FirstOrDefault();
 
                                 var unt = db.UNITS.Where(x => x.UnitName.CompareTo(part.UnitName)==0 || x.ShortName.CompareTo(part.UnitName)==0).FirstOrDefault();
-                                if (true)
-                                {
-
-                                }
                               /*  if (orderItems.Where(cp => cp.ItemID == part.ItemID).Any())
                                 {*/
-                                    var newPart = new PURCHASING_CONTRACT_ITEMS
-                                    {
-                                        ContractID = newPurchasingContract.ID,
-                                        ItemID = existOrderItem.ItemID,
-                                        UnitID = unt.ID,
-                                        Amount = part.Amount,
-                                        Price = part.Price,
-                                        ActivePart = true,
-                                        IsDeleted = false, 
-                                        TotalPrice = part.TotalPrice,
-                                    };
-                                    newPart.TotalPrice = part.Price*part.Amount;
-                                    if (part.MOQ == null)
-                                        newPart.MOQ = 0;
-                                    else
-                                        newPart.MOQ = part.MOQ;
-                                    newPart.Price = orderItem.Price;
+                                var newPart = new PURCHASING_CONTRACT_ITEMS
+                                {
+                                    ContractID = newPurchasingContract.ID,
+                                    ItemID = existOrderItem.ItemID,
+                                    UnitID = unt.ID,
+                                    Amount = part.Amount,
+                                    Price = part.Price,
+                                    ActivePart = true,
+                                    IsDeleted = false, 
+                                    TotalPrice = part.TotalPrice,
+                                };
+                                newPart.TotalPrice = part.Price*part.Amount;
+                                if (part.MOQ == null)
+                                    newPart.MOQ = 0;
+                                else
+                                    newPart.MOQ = part.MOQ;
+                                newPart.Price = orderItem.Price;
 
-                                    db.PURCHASING_CONTRACT_ITEMS.Add(newPart);
-                                    var logPart = db.PURCHASING_ITEMS.Find(newPart.ItemID);
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{logPart.ItemName} - PurchasingItem ni yaratdi");
+                                //ushbu item shartnomada yaratilgani uchun buyurtmada update qilinmoqda
+                                existOrderItem.Status = true;
+
+                                db.PURCHASING_CONTRACT_ITEMS.Add(newPart);
+                                var logPart = db.PURCHASING_ITEMS.Find(newPart.ItemID);
+                                LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{logPart.ItemName} - PurchasingItem ni yaratdi");
                                /* }
                                 else
                                 {
@@ -206,9 +205,14 @@ namespace tahsinERP.Controllers
                             }
                             db.SaveChanges();
                             newPurchasingContract.Amount = model.Parts.Sum(x => x.TotalPrice);
+
                             PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
                             purchasingOrder = db.PURCHASING_ORDERS.Find(model.OrderID);
                             purchasingOrder.Status = "Yakunlandi";
+                            double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Where(x => x.Status == true && x.OrderID == model.OrderID).Count();
+                            double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Where(x => x.OrderID == model.OrderID).Count();
+                            purchasingOrder.Progress = trueStatusCount / totalStatusCount;
+
                             db.SaveChanges();
                         }
                         catch (Exception ex)

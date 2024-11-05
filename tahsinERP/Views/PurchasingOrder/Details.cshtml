@@ -128,14 +128,19 @@
                                                                                 {
                                                                                     <td><span class="badge badge-light-success">Tasdiqlangan</span></td>
                                                                                 }
-                                                                                else
+                                                                                else if (item.Status == false)
                                                                                 {
                                                                                     <td><span class="badge badge-light-danger">Bekor qilingan</span></td>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <td><span class="badge badge-light-secondary">Jarayonda</span></td>
                                                                                 }
                                                                                 <td>@item.Comment</td>
                                                                             </tr>
                                                                         }
                                                                     </tbody>
+
                                                                 </table>
                                                             </div>
                                                         </div>
