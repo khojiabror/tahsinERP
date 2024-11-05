@@ -154,42 +154,42 @@ namespace tahsinERP.Controllers
 
                                 var existOrderItem = db.PURCHASING_ORDER_ITEMS
                                     .Include(p => p.PURCHASING_ITEMS)
-                                    .Where(x => x.PURCHASING_ITEMS.ItemName.CompareTo(part.ItemName)==0)
+                                    .Where(x => x.PURCHASING_ITEMS.ItemName.CompareTo(part.ItemName)==0 && x.OrderID == model.OrderID)
                                     .FirstOrDefault();
 
                                 var unt = db.UNITS.Where(x => x.UnitName.CompareTo(part.UnitName)==0 || x.ShortName.CompareTo(part.UnitName)==0).FirstOrDefault();
-                              /*  if (orderItems.Where(cp => cp.ItemID == part.ItemID).Any())
-                                {*/
-                                var newPart = new PURCHASING_CONTRACT_ITEMS
+                                if (existOrderItem != null)
                                 {
-                                    ContractID = newPurchasingContract.ID,
-                                    ItemID = existOrderItem.ItemID,
-                                    UnitID = unt.ID,
-                                    Amount = part.Amount,
-                                    Price = part.Price,
-                                    ActivePart = true,
-                                    IsDeleted = false, 
-                                    TotalPrice = part.TotalPrice,
-                                };
-                                newPart.TotalPrice = part.Price*part.Amount;
-                                if (part.MOQ == null)
-                                    newPart.MOQ = 0;
-                                else
-                                    newPart.MOQ = part.MOQ;
-                                newPart.Price = orderItem.Price;
+                                    var newPart = new PURCHASING_CONTRACT_ITEMS
+                                    {
+                                        ContractID = newPurchasingContract.ID,
+                                        ItemID = existOrderItem.ItemID,
+                                        UnitID = unt.ID,
+                                        Amount = part.Amount,
+                                        Price = part.Price,
+                                        ActivePart = true,
+                                        IsDeleted = false, 
+                                        TotalPrice = part.TotalPrice,
+                                    };
+                                    newPart.TotalPrice = part.Price*part.Amount;
+                                    if (part.MOQ == null)
+                                        newPart.MOQ = 0;
+                                    else
+                                        newPart.MOQ = part.MOQ;
+                                    newPart.Price = orderItem.Price;
 
-                                //ushbu item shartnomada yaratilgani uchun buyurtmada update qilinmoqda
-                                existOrderItem.Status = true;
+                                    //ushbu item shartnomada yaratilgani uchun buyurtmada update qilinmoqda
+                                    existOrderItem.Status = true;
 
-                                db.PURCHASING_CONTRACT_ITEMS.Add(newPart);
-                                var logPart = db.PURCHASING_ITEMS.Find(newPart.ItemID);
-                                LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{logPart.ItemName} - PurchasingItem ni yaratdi");
-                               /* }
+                                    db.PURCHASING_CONTRACT_ITEMS.Add(newPart);
+                                    var logPart = db.PURCHASING_ITEMS.Find(newPart.ItemID);
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{logPart.ItemName} - PurchasingItem ni yaratdi");
+                                }
                                 else
                                 {
                                     PURCHASING_ITEMS paart = db.PURCHASING_ITEMS.Where(p => p.ID == part.ItemID).FirstOrDefault();
                                     notInOrderParts.Add(paart.ItemName);
-                                }*/
+                                }
                             }
                             if (notInOrderParts.Count > 0)
                             {
