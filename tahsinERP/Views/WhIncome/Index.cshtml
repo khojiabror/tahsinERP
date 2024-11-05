@@ -97,7 +97,7 @@
                                                     <th>Ta'minotchi</th>
                                                     <th>Umumiy summasi</th>
                                                     <th>Qabul sanasi</th>
-                                                    @if (changePermit)
+                                                    @if (changePermit && @ViewBag.WHName == "Bojxona ombori")
                                                     {
                                                         <th>amallar</th>
                                                     }
@@ -130,7 +130,7 @@
                                                             <td>@item.P_INVOICES.SUPPLIER.Name</td>
                                                             <td>@item.TotalPrice @item.CURRENCy.Shortname</td>
                                                             <td>@item.IssueDateTime.ToShortDateString()</td>
-                                                            @if (changePermit)
+                                                            @if (changePermit && @ViewBag.WHName=="Bojxona ombori")
                                                             {
                                                                 <td>
                                                                     <div>

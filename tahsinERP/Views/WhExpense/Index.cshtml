@@ -117,7 +117,7 @@
                                                             </td>
                                                             <td>@item.IssueDateTime.ToShortDateString()</td>
                                                             <td>@item.TotalPrice @item.CURRENCy.Shortname</td>
-                                                            @if (changePermit)
+                                                            @if (changePermit && @ViewBag.WHName == "Bojxona ombori")
                                                             {
                                                                 <td>
                                                                     <div>
