@@ -89,7 +89,6 @@
     </style>
 </head>
 <body>
-    <div class="app-content content">
         <div class="content-wrapper">
             <div class="content-body">
                 <div class="row">
@@ -104,12 +103,14 @@
                                                 1
                                             </div>
                                             <div class="label">Buyurtma </div>
+                                            <span><b>@Model.CreatedOrderDT.ToString("dd.MM.yyyy")</b></span>
                                         </div>
                                         <div class="step">
                                             <div class="circle @(Model.IsContractConfirmed ? "completed" : "pending")">
                                                 2
                                             </div>
                                             <div class="label">Shartnoma</div>
+                                            <span><b>@Model.IssuedContractDT.ToString("dd.MM.yyyy")</b></span>
                                         </div>
                                         <div class="step">
                                             <div class="circle @(Model.IsPaymentMade ? "completed" : "pending")">
@@ -123,7 +124,7 @@
                                             </div>
                                             <div class="label">Ombor</div>
                                         </div>
-                                                                                                                                                                                                                                                                                                                       </div> 
+                                    </div>
                                     <br />
                                     <hr />
                                     <hr />
@@ -132,6 +133,58 @@
                                     </div>
                                     <hr />
                                     <hr />
+                                    <div class="table-responsive table-responsivetable-responsive">
+                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th>Maxsulot nomi</th>
+                                                    <th>Miqdori</th>
+                                                    <th>Buyurtma</th>
+                                                    <th>Shartnoma</th>
+                                                    <th>To'lov</th>
+                                                    <th>Ombor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.Parts)
+                                                {
+                                                    <tr>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td>@item.ItemName</td>
+                                                        <td>@item.Amount</td>
+                                                        <td>
+                                                            <span class="badge @(item.OrderStatus ? "badge-light-success" : "badge-light-danger")">
+                                                                <i class="bx @(item.OrderStatus ? "bx-check" : "bx-x")"></i>
+                                                                @(item.OrderStatus ? "✔" : "X")
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge @(item.ContractStatus ? "badge-light-success" : "badge-light-danger")">
+                                                                <i class="bx @(item.ContractStatus ? "bx-check" : "bx-x")"></i>
+                                                                @(item.ContractStatus ? "✔" : "X")
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge @(item.PaymentStatus ? "badge-light-success" : "badge-light-danger")">
+                                                                <i class="bx @(item.PaymentStatus ? "bx-check" : "bx-x")"></i>
+                                                                @(item.PaymentStatus ? "✔" : "X")
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge @(item.IncomeStatus ? "badge-light-success" : "badge-light-danger")">
+                                                                <i class="bx @(item.IncomeStatus ? "bx-check" : "bx-x")"></i>
+                                                                @(item.IncomeStatus ? "✔" : "X")
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +192,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <script>
         $(document).ready(function () {
