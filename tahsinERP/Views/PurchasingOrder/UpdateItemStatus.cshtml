@@ -17,7 +17,9 @@
                                 <li class="breadcrumb-item">
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
-                                <li class="breadcrumb-item">Sahifalar</li>
+                                <li class="breadcrumb-item ">
+                                    <a href="~/PurchasingOrder">Xarid buyurtmalari</a>
+                                </li>
                                 <li class="breadcrumb-item active">Xarid buyurtmalari statuslari</li>
                             </ol>
                         </div>
@@ -57,9 +59,9 @@
                                                         <!-- Bitta umumiy shakl orqali tugmalar va comment qiymatlari jo'natiladi -->
                                                             @Html.Hidden("ID", item.ID)
                                                             @Html.Hidden("action", "") <!-- Action qiymati JS orqali yangilanadi -->
-                                                            <button type="button" onclick="submitForm(@item.ID, 'approve')" style="border: none;">
+                                                        @*    <button type="button" onclick="submitForm(@item.ID, 'approve')" style="border: none;">
                                                                 <i class="bx bx-check"></i>
-                                                            </button>
+                                                            </button>*@
                                                             <button type="button" onclick="submitForm(@item.ID, 'disapprove')" style="border: none;">
                                                                 <i class="bx bx-x"></i>
                                                             </button>
