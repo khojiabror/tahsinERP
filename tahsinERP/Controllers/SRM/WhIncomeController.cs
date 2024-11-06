@@ -386,13 +386,6 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        public class RepeaterItem
-        {
-            public string Email { get; set; }
-            public string Password { get; set; }
-            public int WrhsID { get; set; }
-        }
-
         public ActionResult Details(int? ID)
         {
             if (ID == null)
@@ -439,12 +432,10 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            PART_WRHS_INCOMES whrsIncome;
-            List<PART_WRHS_INCOME_PARTS> partList;
 
             using (DBTHSNEntities db1 = new DBTHSNEntities())
             {
-                whrsIncome = db1.PART_WRHS_INCOMES
+                var whrsIncome = db1.PART_WRHS_INCOMES
                     .Include(i => i.P_INVOICES)
                     .Include(i => i.F_WAYBILLS)
                     .Include(p => p.CURRENCy)
@@ -455,13 +446,28 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                var model = new WrhsIncomeViewModel
+                {
+                    ID = whrsIncome.ID,
+                    DocNo = whrsIncome.DocNo,
+                    InvoiceID = (int)whrsIncome.InvoiceID,
+                    Amount = (double)whrsIncome.Amount,
+                    CurrencyID = (int)whrsIncome.CurrencyID,
+                    Description = whrsIncome.Description,
+                    Parts = whrsIncome.PART_WRHS_INCOME_PARTS.Select(p => new ViewModels.WhrsIncomePart
+                    {
+                        ID = p.ID,
+                        PartID = p.PartID,
+                        Part = p.PART,
+                        UnitID = p.UnitID,
+                        Amount = p.Amount,
+                        PiecePrice = (double)p.PiecePrice,
+                        Comment = p.Comment
+                    }).ToList()
+                };
+
                 // suppliers = new SelectList(db1.SUPPLIERS.ToList(), "ID", "Name", whrsIncome.SupplierID);
 
-                partList = db1.PART_WRHS_INCOME_PARTS
-                    .Include(whp => whp.PART)
-                    .Include(whp => whp.UNIT)
-                    .Where(whp => whp.IncomeID == ID)
-                    .ToList();
                 //ViewBag.PartList = new SelectList(db1.PART_WRHS_INCOME_PARTS.Include(p => p.PART).ToList(),"ID","PName");
                 ViewBag.Invoices = new SelectList(db1.P_INVOICES.Where(i => i.IsDeleted == false).ToList(), "ID", "InvoiceNo");
                 ViewBag.Waybills = new SelectList(db1.F_WAYBILLS.Where(w => w.IsDeleted == false).ToList(), "ID", "WaybillNo");
@@ -473,39 +479,64 @@ namespace tahsinERP.Controllers
                     ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
                 else
                     ViewBag.WHName = warehouse.WHName;
+                return View(model);
             }
-
-            // ViewBag.Supplier = suppliers;
-            ViewBag.partList = partList;
-
-            return View(whrsIncome);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(PART_WRHS_INCOMES whrsIncome)
+        public ActionResult Edit(WrhsIncomeViewModel whrsIncome)
         {
             if (ModelState.IsValid)
             {
-                using (DBTHSNEntities db1 = new DBTHSNEntities())
+                using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    PART_WRHS_INCOMES wrhsIncomeToUpdate = db1.PART_WRHS_INCOMES.Find(whrsIncome.ID);
+                    PART_WRHS_INCOMES wrhsIncomeToUpdate = db.PART_WRHS_INCOMES.Find(whrsIncome.ID);
                     if (wrhsIncomeToUpdate != null)
                     {
                         wrhsIncomeToUpdate.DocNo = whrsIncome.DocNo;
-                        // wrhsIncomeToUpdate.WHID = whrsIncome.WHID;
                         wrhsIncomeToUpdate.InvoiceID = whrsIncome.InvoiceID;
-                        wrhsIncomeToUpdate.WaybillID = whrsIncome.WaybillID;
                         wrhsIncomeToUpdate.CurrencyID = whrsIncome.CurrencyID;
                         wrhsIncomeToUpdate.Amount = whrsIncome.Amount;
-                        wrhsIncomeToUpdate.TotalPrice = whrsIncome.TotalPrice;
                         wrhsIncomeToUpdate.Description = whrsIncome.Description;
                         wrhsIncomeToUpdate.IssueDateTime = whrsIncome.IssueDateTime;
+                        // wrhsIncomeToUpdate.WHID = whrsIncome.WHID;
+                        //wrhsIncomeToUpdate.WaybillID = whrsIncome.WaybillID;
+                        //wrhsIncomeToUpdate.TotalPrice = whrsIncome.TotalPrice;
                         //wrhsIncomeToUpdate.SenderWHID = whrsIncome.SenderWHID;
 
+                        db.Entry(wrhsIncomeToUpdate).State = EntityState.Modified;
+                        db.SaveChanges();
+                        double summ = 0;
+                        foreach (var product in whrsIncome.Parts)
+                        {
+                            var existingPart = db.PART_WRHS_INCOME_PARTS.Find(product.ID);
+                            if (existingPart != null)
+                            {
+                                existingPart.PiecePrice = product.PiecePrice;
+                                existingPart.UnitID = product.UnitID;
+                                existingPart.Amount = product.Amount;
+                                existingPart.TotalPrice = product.Amount * product.PiecePrice;
+
+                                summ += (double)(existingPart.TotalPrice);
+                                db.Entry(existingPart).State = EntityState.Modified;
+                                try
+                                {
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{existingPart.PartID} - li PContractPartni tahrirladi");
+                                }
+                                catch (RetryLimitExceededException)
+                                {
+                                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                                }
+                            }
+                        }
+                        //invoysdagi miqdor o'zgarishi
+                        wrhsIncomeToUpdate.TotalPrice = summ;
                         try
                         {
-                            db1.SaveChanges();
+                            db.SaveChanges();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{wrhsIncomeToUpdate.DocNo} - PartWrhsIncomeni tahrirladi");
 

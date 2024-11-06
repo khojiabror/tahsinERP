@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Models;
 
 namespace tahsinERP.ViewModels
 {
     // ViewModel for Warehouse Income
     public class WrhsIncomeViewModel
     {
+        public int ID { get; set; }
         [Required(ErrorMessage = "Document number is required.")]
         public string DocNo { get; set; }
         public int WHID { get; set; } // Warehouse ID, defaults to null
@@ -18,7 +20,7 @@ namespace tahsinERP.ViewModels
         public HttpPostedFileBase File { get; set; } // File upload
         [Required(ErrorMessage = "Amount is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Amount must be a positive number.")]
-        public int Amount { get; set; }
+        public double Amount { get; set; }
         [Required(ErrorMessage = "Currency is required.")]
         public int CurrencyID { get; set; }
         [DataType(DataType.Text)]
@@ -38,6 +40,8 @@ namespace tahsinERP.ViewModels
     // ViewModel for parts in Warehouse Income
     public class WhrsIncomePart
     {
+        public int ID { get; set; }
+        public PART Part { get; set; }
         public int PartID { get; set; }
         [Required(ErrorMessage = "Unit ID is required.")]
         public int UnitID { get; set; }

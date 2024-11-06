@@ -1,4 +1,4 @@
-﻿@model tahsinERP.Models.PART_WRHS_INCOMES
+﻿@model tahsinERP.ViewModels.WrhsIncomeViewModel
 @{
     ViewBag.Title = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -56,15 +56,15 @@
 
                                                 <h6 class="invoice-to">Invoice</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.InvoiceID, ViewBag.Invoices as SelectList, new { @class = "form-control select2" })
+                                                    @Html.DropDownListFor(model => model.InvoiceID, ViewBag.Invoices as SelectList, new { @class = "form-control select2" , @disabled = "disabled", @required = "required"})
                                                     @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
                                                 </fieldset>
-
+@*
                                                 <h6 class="invoice-to">Waybill raqami</h6>
                                                 <fieldset class="invoice-address form-group">
                                                     @Html.DropDownListFor(model => model.WaybillID, ViewBag.Waybills as SelectList, new { @class = "form-control select2" })
                                                     @Html.ValidationMessageFor(model => model.WaybillID, "", new { @class = "text-danger" })
-                                                </fieldset>
+                                                </fieldset>*@
 
                                                 <h6 class="invoice-to">Sanasi</h6>
                                                 <fieldset class="form-group position-relative has-icon-left">
@@ -93,7 +93,7 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                         <div class="card-header">
-                                                            <h4 class="card-title">Kirim predmeti</h4>
+                                                            <h4 class="card-title">Buyurtma predmeti</h4>
                                                         </div>
                                                         <div class="card-content">
                                                             <div class="card-body card-dashboard">
@@ -103,28 +103,31 @@
                                                                             <tr>
                                                                                 <th>Detal raqami</th>
                                                                                 <th>Detal nomi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>O'lchov birligi</th>
                                                                                 <th>Birlik narxi</th>
-                                                                                <th>Umumiy narxi</th>
-                                                                                <th>Amallar</th>
+                                                                                <th>O'lchov birligi</th>
+                                                                                <th>Miqdori</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            @foreach (var item in ViewBag.partList)
+                                                                            @for (int i = 0; i < Model.Parts.Count; i++)
                                                                             {
                                                                                 <tr>
                                                                                     <td>
-                                                                                        <a href="~/Part/Details/@item.PartID">@item.PART.PNo</a>
+                                                                                        <a href="~/Part/Details/@Model.Parts[i].PartID">@Model.Parts[i].Part.PNo</a>
+                                                                                        @Html.HiddenFor(model => model.Parts[i].PartID)
+                                                                                        @Html.HiddenFor(model => model.Parts[i].ID)
                                                                                     </td>
-                                                                                    <td>@item.PART.PName</td>
-                                                                                    <td>@item.Amount</td>
-                                                                                    <td>@item.UNIT.UnitName</td>
-                                                                                    <td>@item.PiecePrice</td>
-                                                                                    <td>@item.TotalPrice</td>
                                                                                     <td>
-                                                                                        <!-- Delete button -->
-                                                                                        <a href="@Url.Action("EditPart", "WhIncome", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
+                                                                                        @Model.Parts[i].Part.PName
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        @Html.TextBoxFor(model => model.Parts[i].PiecePrice, new { @class = "form-control" })
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        @Html.DropDownListFor(model => model.Parts[i].UnitID, (SelectList)ViewBag.Units, new { @class = "form-control", @value = Model.Parts[i].UnitID })
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        @Html.TextBoxFor(model => model.Parts[i].Amount, new { @class = "form-control" })
                                                                                     </td>
                                                                                 </tr>
                                                                             }
@@ -156,7 +159,6 @@
             </div>
         </div>
     </div>
-
 }
 else
 {
