@@ -613,7 +613,7 @@ namespace tahsinERP.Controllers
                         contractToUpdate.IsDeleted = false;
 
                         // Update PContractParts
-                            float summ=0;
+                        double summ=0;
                         foreach (var product in contract.Parts)
                         {
                             var existingPart = db.P_CONTRACT_PARTS.Find(product.ID);
@@ -623,15 +623,14 @@ namespace tahsinERP.Controllers
                                 existingPart.UnitID = product.UnitID;
                                 existingPart.Quantity = product.Quantity;
                                 existingPart.MOQ = product.MOQ;
-                                summ += (float)(existingPart.Quantity * existingPart.Price);
+                                existingPart.Amount = product.Price * product.Quantity;
+                                summ += ((double)existingPart.Quantity * (double)existingPart.Price);
                                 db.Entry(existingPart).State = EntityState.Modified;
                                 try
                                 {
                                     db.SaveChanges();
 
                                     LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{existingPart.PartID} - li PContractPartni tahrirladi");
-
-                                    return RedirectToAction("Index");
                                 }
                                 catch (RetryLimitExceededException)
                                 {
