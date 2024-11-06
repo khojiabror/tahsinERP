@@ -479,18 +479,31 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                var partList = db.PURCHASING_CONTRACT_ITEMS
-                                  .Include(pc => pc.PURCHASING_ITEMS)
-                                  .Include(pc => pc.UNIT)
-                                  .Where(pc => pc.ContractID == purchasingContract.ID && pc.IsDeleted == false)
-                                  .ToList();
-
-                ViewBag.partList = partList;
-                /*var Doc = db.PURCHASING_CONTRACT_DOCS.FirstOrDefault(pi => pi.ContractID == ID);
-                if (Doc != null)
+                var model = new PurchasingContractViewModel
                 {
-                    ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(Doc.Doc);
-                }*/
+                    ID = purchasingContract.ID,
+                    ContractNo = purchasingContract.ContractNo,
+                    IssueDT = purchasingContract.IssueDT,
+                    Supplier = purchasingContract.Supplier,
+                    Amount = purchasingContract.Amount,
+                    Incoterms = purchasingContract.Incoterms,
+                    PaymentTerms = purchasingContract.PaymentTerms,
+                    DueDT = purchasingContract.DueDT,
+                    Comment = purchasingContract.Comment,
+                    OrderID = purchasingContract.OrderID,
+                    CurrencyID = (int)purchasingContract.CurrencyID,
+                    Parts = purchasingContract.PURCHASING_CONTRACT_ITEMS.Select(x => new PurchasingContractItem
+                    {
+                        ID = x.ID,
+                        ItemID = x.ItemID,
+                        ItemName = x.PURCHASING_ITEMS.ItemName,
+                        UnitID = (int)x.UnitID,
+                        Price = x.Price,
+                        Amount = x.Amount,
+                        TotalPrice = x.TotalPrice,
+                        MOQ = (double)x.MOQ
+                    }).ToList()
+                };
 
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
@@ -502,7 +515,7 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(PURCHASING_CONTRACTS purchasingContract)
+        public ActionResult Edit(PurchasingContractViewModel purchasingContract)
         {
             if (ModelState.IsValid)
             {
@@ -521,6 +534,30 @@ namespace tahsinERP.Controllers
                         purchasingContractToUpdate.Comment = purchasingContract.Comment;
                         purchasingContractToUpdate.IsDeleted = false;
 
+                        foreach (var product in purchasingContract.Parts)
+                        {
+                            var existingPart = db.PURCHASING_CONTRACT_ITEMS.Find(product.ID);
+                            if (existingPart != null)
+                            {
+                                existingPart.Price = product.Price;
+                                existingPart.UnitID = product.UnitID;
+                                existingPart.Amount = product.Amount;
+                                existingPart.MOQ = product.MOQ;
+                                existingPart.TotalPrice = product.Amount * product.Price;
+
+                                db.Entry(existingPart).State = EntityState.Modified;
+                                try
+                                {
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingContractController", $"{existingPart.ItemID} - li PContractPartni tahrirladi");
+                                }
+                                catch (RetryLimitExceededException)
+                                {
+                                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                                }
+                            }
+                        }
                         try
                         {
                             db.SaveChanges();
