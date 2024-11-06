@@ -524,7 +524,7 @@ namespace tahsinERP.Controllers
                                 {
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{existingPart.PartID} - li PContractPartni tahrirladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{existingPart.PartID} - li WhIncomePartni tahrirladi");
                                 }
                                 catch (RetryLimitExceededException)
                                 {

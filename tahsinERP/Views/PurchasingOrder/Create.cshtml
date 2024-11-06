@@ -109,13 +109,13 @@
                                                 <div class="row border rounded py-2 mb-2">
                                                     <div class="col-12 col-sm-12 col-lg-4">
                                                         <label>Buyurtma beruvchi bo'lim</label>
-                                                        @Html.TextBoxFor(model => model.OrderByDept, new { @type = "text", @class = "form-control", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.OrderByDept, "", new { @class = "text-danger" })
+                                                        @Html.TextBoxFor(model => model.OrderedByDept, new { @type = "text", @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.OrderedByDept, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-12 col-sm-12 col-lg-4">
                                                         <label>Buyurtma beruvchi xodim</label>
-                                                        @Html.TextBoxFor(model => model.OrderByUser, new { @type = "text", @class = "form-control", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.OrderByUser, "", new { @class = "text-danger" })
+                                                        @Html.TextBoxFor(model => model.OrderedByUser, new { @type = "text", @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.OrderedByUser, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                             </div>

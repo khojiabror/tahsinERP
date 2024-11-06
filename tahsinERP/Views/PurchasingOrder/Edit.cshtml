@@ -1,6 +1,6 @@
 ﻿
 
-@model  tahsinERP.Models.PURCHASING_ORDERS
+@model  tahsinERP.ViewModels.PurchasingOrder.PurchasingOrderViewModel
 @{
     ViewBag.Title = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -97,54 +97,50 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <section id="column-selectors">
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="card">
-                                                        <div class="card-header">
-                                                            <h4 class="card-title">Shartnoma predmeti</h4>
-                                                        </div>
-                                                        <div class="card-content">
-                                                            <div class="card-body card-dashboard">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-striped dataex-html5-selectors" style="width:100%">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Maxsulot nomi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>Birlik narxi</th>
-                                                                                <th>Umumiy narx</th>
-                                                                                <th>amallar</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach (var item in ViewBag.partList)
-                                                                            {
+                                            <section id="column-selectors">
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="card">
+                                                            <div class="card-header">
+                                                                <h4 class="card-title">Buyurtma predmeti</h4>
+                                                            </div>
+                                                            <div class="card-content">
+                                                                <div class="card-body card-dashboard">
+                                                                    <div class="table-responsive">
+                                                                        <table class="table table-striped dataex-html5-selectors" style="width:100%">
+                                                                            <thead>
                                                                                 <tr>
-                                                                                    <td>
-                                                                                        <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemName</a>
-                                                                                    </td>
-                                                                                    <td>@item.Price</td>
-                                                                                    <td>@item.Amount</td>
-                                                                                    <td>@item.TotalPrice @item.Currency</td>
-                                                                                    <td>
-                                                                                        <a href="@Url.Action("EditPart", "PurchasingOrder", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                                        <!-- Delete button -->
-                                                                                        <a href="~/PurchasingOrder/DeletePart/@item.ID" onclick="return confirm('Ushbu sotuv buyurtmani o`chirib yuborishga ishonchingiz komilmi?')">
-                                                                                            <i class="bx bx-trash"></i>
-                                                                                        </a>
-                                                                                    </td>
+                                                                                    <th>Maxsulot nomi</th>
+                                                                                    <th>Birlik narxi</th>
+                                                                                    <th>Miqdori</th>
                                                                                 </tr>
-                                                                            }
-                                                                        </tbody>
-                                                                    </table>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                @for (int i = 0; i < Model.Parts.Count; i++)
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <a href="~/PurchasingItem/Details/@Model.Parts[i].Item">@Model.Parts[i].Item.ItemName</a>
+                                                                                            @Html.HiddenFor(model => model.Parts[i].ItemID)
+                                                                                            @Html.HiddenFor(model => model.Parts[i].ID)
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            @Html.TextBoxFor(model => model.Parts[i].Price, new { @class = "form-control" })
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            @Html.TextBoxFor(model => model.Parts[i].Amount, new { @class = "form-control" })
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </section>
+                                            </section>
 
                                         <ul class="list-group list-group-flush">
                                             <li class="list-group-item border-0 pb-0">

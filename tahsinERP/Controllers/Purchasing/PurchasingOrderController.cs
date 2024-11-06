@@ -117,8 +117,8 @@ namespace tahsinERP.Controllers
                             BuyerUserID = model.BuyerUserID,
                             CreatedDT = model.ApprovedDTEDO,
                             ApprovedDTEDO = model.ApprovedDTEDO,
-                            OrderedByUser = model.OrderByUser,
-                            OrderedByDept = model.OrderByDept,
+                            OrderedByUser = model.OrderedByUser,
+                            OrderedByDept = model.OrderedByDept,
                             CurrencyID = model.CurrencyID,
                             Progress = 0
                         };
@@ -350,12 +350,10 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            PURCHASING_ORDERS purchasingOrder;
-            List<PURCHASING_ORDER_ITEMS> partList;
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                purchasingOrder = db.PURCHASING_ORDERS
+                var purchasingOrder = db.PURCHASING_ORDERS
                     .Include(x => x.USER1)
                     .Include(x => x.USER)
                     .Include(x => x.CURRENCy)
@@ -365,26 +363,39 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
+                var model = new PurchasingOrderViewModel
+                {
+                    ID = purchasingOrder.ID,
+                    OrderCodeEDO = purchasingOrder.OrderCodeEDO,
+                    CreatedDT = purchasingOrder.CreatedDT,
+                    CreatedByUserID = purchasingOrder.CreatedByUserID,
+                    ApprovedDTEDO = (DateTime)purchasingOrder.ApprovedDTEDO,
+                    Comment = purchasingOrder.Comment,
+                    OrderedByDept = purchasingOrder.OrderedByDept,
+                    OrderedByUser = purchasingOrder.OrderedByUser,
+                    CurrencyID = (int)purchasingOrder.CurrencyID,
+                    BuyerUserID = purchasingOrder.BuyerUserID,
+                    Parts = purchasingOrder.PURCHASING_ORDER_ITEMS.Select(x => new PurchasingOrderPart
+                    {
+                        ID = x.ID,
+                        Item = x.PURCHASING_ITEMS,
+                        ItemID = x.ItemID,
+                        Price = x.Price,
+                        Amount = x.Amount
+                    }).ToList()
+                };
 
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-
-                partList = db.PURCHASING_ORDER_ITEMS
-                                .Include(x => x.PURCHASING_ITEMS)
-                                .Where(x => x.IsDeleted == false && x.OrderID == ID)
-                                .ToList();
-                ViewBag.userList = new SelectList(
-                                    db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
-                                    .ToList(), "ID", "Fullname");
+                ViewBag.userList = new SelectList( db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer")).ToList(), "ID", "Fullname");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-            }
 
-            ViewBag.partList = partList;
-            return View(purchasingOrder);
+                return View(model);
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(PURCHASING_ORDERS purchasingOrder)
+        public ActionResult Edit(PurchasingOrderViewModel purchasingOrder)
         {
             if (ModelState.IsValid)
             {
@@ -398,10 +409,36 @@ namespace tahsinERP.Controllers
                         purchasingOrderToUpdate.BuyerUserID = purchasingOrder.BuyerUserID;
                         purchasingOrderToUpdate.Comment = purchasingOrder.Comment;
                         purchasingOrderToUpdate.ApprovedDTEDO = purchasingOrder.ApprovedDTEDO;
-                        purchasingOrderToUpdate.CreatedDT = purchasingOrder.CreatedDT;
+                        purchasingOrderToUpdate.CreatedDT = purchasingOrder.ApprovedDTEDO;
                         purchasingOrderToUpdate.OrderedByDept = purchasingOrder.OrderedByDept;
                         purchasingOrderToUpdate.OrderedByUser = purchasingOrder.OrderedByUser;
                         purchasingOrderToUpdate.CurrencyID = purchasingOrder.CurrencyID;
+
+                        db.Entry(purchasingOrderToUpdate).State = EntityState.Modified;
+                        db.SaveChanges();
+                        foreach (var product in purchasingOrder.Parts)
+                        {
+                            var existingPart = db.PURCHASING_ORDER_ITEMS.Find(product.ID);
+                            if (existingPart != null)
+                            {
+                                existingPart.Price = product.Price;
+                                //existingPart.UnitID = product.UnitID;
+                                existingPart.Amount = product.Amount;
+                                existingPart.TotalPrice = product.Amount * product.Price;
+
+                                db.Entry(existingPart).State = EntityState.Modified;
+                                try
+                                {
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{existingPart.ItemID} - li PContractPartni tahrirladi");
+                                }
+                                catch (RetryLimitExceededException)
+                                {
+                                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                                }
+                            }
+                        }
                         try
                         {
                             // Correct this line
