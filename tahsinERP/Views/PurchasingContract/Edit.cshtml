@@ -144,8 +144,9 @@
                                                                                 <td>
                                                                                     @Html.TextBoxFor(model => model.Parts[i].Amount, new { @class = "form-control" })
                                                                                 </td>
+                                                                                <td>@Html.TextBoxFor(model => model.Parts[i].MOQ, new { @class = "form-control" })</td>@*
+                                                                                <td>@Html.DropDownListFor(model => model.Parts[i].UnitID, ViewBag.units as SelectList, new { @class = "form-control select2"})</td>*@
                                                                                 <td>@Html.DisplayFor(model => model.Parts[i].TotalPrice, new { @class = "form-control"})</td>
-                                                                                <td>@Html.TextBoxFor(model => model.Parts[i].MOQ, new { @class = "form-control" })</td>
                                                                             </tr>
                                                                         }
                                                                     </tbody>

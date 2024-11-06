@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.POrder;
+using tahsinERP.ViewModels.Purchasing;
 
 namespace tahsinERP.Controllers
 {
@@ -509,7 +510,7 @@ namespace tahsinERP.Controllers
                 ViewBag.items = new SelectList(db.PURCHASING_ITEMS.Where(x => x.IsDeleted == false).ToList(), "ID", "ItemName");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.orderList = new SelectList(db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && x.IsDeleted == false).ToList(), "ID", "OrderCodeEDO");
-                return View(purchasingContract);
+                return View(model);
             }
         }
 
@@ -534,17 +535,18 @@ namespace tahsinERP.Controllers
                         purchasingContractToUpdate.Comment = purchasingContract.Comment;
                         purchasingContractToUpdate.IsDeleted = false;
 
+                        double summ = 0;
                         foreach (var product in purchasingContract.Parts)
                         {
                             var existingPart = db.PURCHASING_CONTRACT_ITEMS.Find(product.ID);
                             if (existingPart != null)
                             {
                                 existingPart.Price = product.Price;
-                                existingPart.UnitID = product.UnitID;
+                                //existingPart.UnitID = product.UnitID;
                                 existingPart.Amount = product.Amount;
                                 existingPart.MOQ = product.MOQ;
                                 existingPart.TotalPrice = product.Amount * product.Price;
-
+                                summ += existingPart.TotalPrice;
                                 db.Entry(existingPart).State = EntityState.Modified;
                                 try
                                 {
@@ -558,6 +560,7 @@ namespace tahsinERP.Controllers
                                 }
                             }
                         }
+                        purchasingContractToUpdate.Amount = summ;
                         try
                         {
                             db.SaveChanges();
