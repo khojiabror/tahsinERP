@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using tahsinERP.Models;
 
 namespace tahsinERP.ViewModels
 {
     public class PInvoiceViewModel
     {
+        public int ID { get; set; }
         [Required]
         public string InvoiceNo { get; set; }
         [Required]
@@ -16,7 +18,7 @@ namespace tahsinERP.ViewModels
         public int SupplierID { get; set; }
         public DateTime InvoiceDate { get; set; }
         [Required]
-        public string Currency { get; set; }
+        public int CurrencyID { get; set; }
         public int CompanyID { get; set; }
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File { get; set; }
@@ -29,8 +31,10 @@ namespace tahsinERP.ViewModels
     }
     public class PInvoicePartViewModel
     {
+        public int ID { get; set; }
         [Required]
         public int InvoiceID { get; set; }
+        public PART Part { get; set; }
         [Required]
         public int PartID { get; set; }
         [Required]

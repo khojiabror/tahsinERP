@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.PInvoice;
 
 namespace tahsinERP.Controllers
@@ -489,19 +490,37 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                var model = new PInvoiceViewModel
+                {
+                    ID = invoice.ID,
+                    InvoiceNo = invoice.InvoiceNo,
+                    OrderID = invoice.OrderID,
+                    SupplierID = invoice.SupplierID,
+                    InvoiceDate = invoice.InvoiceDate,
+                    CurrencyID = (int)invoice.CurrencyID,
+                    Parts = invoice.P_INVOICE_PARTS.Select(x => new ViewModels.PInvoicePartViewModel
+                    {
+                        ID= x.ID,
+                        InvoiceID = x.InvoiceID,
+                        Part = x.PART,
+                        PartID = x.PartID,
+                        Quantity = x.Quantity,
+                        UnitID = x.UnitID,
+                        Price = x.Price
+                    }).ToList(),
+                };
 
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", invoice.SupplierID);
                 ViewBag.POrder = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                ViewBag.partList = db.P_INVOICE_PARTS.Include(x => x.UNIT).Where(x => x.InvoiceID == ID).ToList();
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                return View(invoice); 
 
+                return View(model); 
             }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(P_INVOICES invoice)
+        public ActionResult Edit(PInvoiceViewModel invoice)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -518,6 +537,34 @@ namespace tahsinERP.Controllers
                         invoiceToUpdate.IsDeleted = false;
 
                         db.Entry(invoiceToUpdate).State = EntityState.Modified;
+                        db.SaveChanges();
+                        double summ = 0;
+                        foreach (var product in invoice.Parts)
+                        {
+                            var existingPart = db.P_INVOICE_PARTS.Find(product.ID);
+                            if (existingPart != null)
+                            {
+                                existingPart.Price = product.Price;
+                                existingPart.UnitID = product.UnitID;
+                                existingPart.Quantity = product.Quantity;
+                                existingPart.TotalPrice = product.Price * product.Quantity;
+
+                                summ += (double)(existingPart.TotalPrice);
+                                db.Entry(existingPart).State = EntityState.Modified;
+                                try
+                                {
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{existingPart.PartID} - li PContractPartni tahrirladi");
+                                }
+                                catch (RetryLimitExceededException)
+                                {
+                                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                                }
+                            }
+                        }
+                        //invoysdagi miqdor o'zgarishi
+                        invoiceToUpdate.Amount = summ;
 
                         try
                         {
@@ -561,10 +608,6 @@ namespace tahsinERP.Controllers
                 ViewBag.POrder = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                ViewBag.partList = db.P_INVOICE_PARTS
-                    .Include(pc => pc.PART)
-                    .Include(pc => pc.UNIT)
-                    .Where(pc => pc.InvoiceID == invoice.ID).ToList();
 
                 return View(invoice);
             }
