@@ -500,7 +500,7 @@ namespace tahsinERP.Controllers
                     CurrencyID = (int)invoice.CurrencyID,
                     Parts = invoice.P_INVOICE_PARTS.Select(x => new ViewModels.PInvoicePartViewModel
                     {
-                        ID= x.ID,
+                        ID = x.ID,
                         InvoiceID = x.InvoiceID,
                         Part = x.PART,
                         PartID = x.PartID,
