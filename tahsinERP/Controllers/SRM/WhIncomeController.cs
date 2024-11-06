@@ -1,9 +1,14 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using Newtonsoft.Json;
+using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -354,37 +359,6 @@ namespace tahsinERP.Controllers
             }
         }
 
-        public async Task<ActionResult> Download()
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                SAMPLE_FILES invoys = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("ombor_kirim.xlsx") == 0).FirstOrDefault();
-                if (invoys != null)
-                    return File(invoys.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-
-                return View();
-            }
-        }
-
-        public ActionResult UploadWithExcel()
-        {
-            warehouse = GetWarehouseOfMRP(User.Identity.Name);
-            if (warehouse is null)
-                ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
-            else
-                ViewBag.WHName = warehouse.WHName;
-
-            ViewBag.IsFileUploaded = false;
-            return View();
-        }
-
-        [HttpPost]
-        public ActionResult UploadWithExcel(HttpPostedFileBase file)
-        {
-            // Process uploaded file
-            // ...
-            return View();
-        }
 
         public ActionResult Details(int? ID)
         {
@@ -731,5 +705,248 @@ namespace tahsinERP.Controllers
             }
         }
 
+        public async Task<ActionResult> Download()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                SAMPLE_FILES invoys = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("ombor_kirim.xlsx") == 0).FirstOrDefault();
+                if (invoys != null)
+                    return File(invoys.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                return View();
+            }
+        }
+        public ActionResult ClearDataTable()
+        {
+            ViewBag.DataTable = null;
+            ViewBag.DataTableModel = null;
+            ViewBag.IsFileUploaded = false;
+            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
+            return View("UploadWithExcel");
+        }
+        public ActionResult UploadWithExcel()
+        {
+            warehouse = GetWarehouseOfMRP(User.Identity.Name);
+            if (warehouse is null)
+                ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+            else
+                ViewBag.WHName = warehouse.WHName;
+
+            ViewBag.IsFileUploaded = false;
+            return View();
+        }
+        private List<string> missingContracts = new List<string>();
+        private List<string> missingSuppliers = new List<string>();
+        private List<string> missingParts = new List<string>();
+        private string whName, invoiceNo, docNo, partNo, waybillNo = "";
+
+        private async Task<bool> CheckForExistenceOfContracts(System.Data.DataTable dataTable)
+        {
+            if (dataTable == null)
+                return false;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    string contractNo = row["ContractNo"].ToString();
+
+                    bool contractExists = await db.P_CONTRACTS.AnyAsync(p => p.ContractNo.CompareTo(contractNo) == 0);
+                    if (!contractExists)
+                    {
+                        if (!missingContracts.Contains(contractNo))
+                        {
+                            missingContracts.Add(contractNo);
+                        }
+                        return false;  // Return false immediately if any contract is missing
+                    }
+                }
+            }
+
+            return true;  // Return true if all contracts exist
+        }
+
+
+        private async Task<bool> CheckForExistenceOfParts(System.Data.DataTable dataTable)
+        {
+            if (dataTable == null)
+                return false;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    string partPNo = row["Part Number"].ToString();
+
+                    bool partExists = await db.PARTS.AnyAsync(p => p.PNo.CompareTo(partPNo) == 0);
+                    if (!partExists)
+                    {
+                        if (!missingParts.Contains(partPNo))
+                        {
+                            missingParts.Add(partPNo);
+                        }
+                        return false;  // Return false immediately if any part is missing
+                    }
+                }
+            }
+
+            return true;  // Return true if all parts exist
+        }
+
+
+        private async Task<bool> CheckForExistenceOfSuppliers(System.Data.DataTable dataTable)
+        {
+            if (dataTable == null)
+                return false;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    string supplierName = row["Supplier Name"].ToString();
+
+                    bool supplierExists = await db.SUPPLIERS.AnyAsync(s => s.Name.CompareTo(supplierName) == 0);
+                    if (!supplierExists)
+                    {
+                        if (!missingSuppliers.Contains(supplierName))
+                        {
+                            missingSuppliers.Add(supplierName);
+                        }
+                        return false;  // Return false immediately if any supplier is missing
+                    }
+                }
+            }
+
+            return true;  // Return true if all suppliers exist
+        }
+        [HttpPost]
+        public async Task<ActionResult> UploadWithExcel(HttpPostedFileBase file)
+        {
+            if (file != null && file.ContentLength > 0)
+            {
+                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
+                {
+                    try
+                    {
+                        var dataTable = new System.Data.DataTable();
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                        using (var package = new ExcelPackage(file.InputStream))
+                        {
+                            var worksheet = package.Workbook.Worksheets[0];
+                            var rowCount = worksheet.Dimension.Rows;
+                            var colCount = worksheet.Dimension.Columns;
+
+                            for (int col = 1; col <= colCount; col++)
+                            {
+                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                            }
+
+                            for (int row = 2; row <= rowCount; row++)
+                            {
+                                var dataRow = dataTable.NewRow();
+                                for (int col = 1; col <= colCount; col++)
+                                {
+                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                                }
+                                dataTable.Rows.Add(dataRow);
+                            }
+                        }
+                        
+                        if (await CheckForExistenceOfContracts(dataTable))
+                        {
+                            if (await CheckForExistenceOfSuppliers(dataTable))
+                            {
+                                if (await CheckForExistenceOfParts(dataTable))
+                                {
+                                    ViewBag.DataTable = dataTable;
+                                    ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
+                                    ViewBag.IsFileUploaded = true;
+
+                                    using (DBTHSNEntities db = new DBTHSNEntities())
+                                    {
+                                        foreach (DataRow row in dataTable.Rows)
+                                        {
+                                            whName = row["OrderNo"].ToString();
+                                            invoiceNo = row["Invoice No."].ToString();
+                                            waybillNo = row["Waybill No."].ToString();
+                                            partNo = row["Part Number"].ToString();
+
+                                            PART_WRHS warehouse = db.PART_WRHS.Where(s => s.WHName.CompareTo(whName) == 0 && s.IsDeleted == false).FirstOrDefault();
+                                            PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                                            P_CONTRACTS contract = db.P_CONTRACTS.Where(p => p.ContractNo.CompareTo(invoiceNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                                            P_ORDERS order = db.P_ORDERS.Where(po => po.OrderNo.CompareTo(invoiceNo) == 0 && po.SupplierID == warehouse.ID && po.ContractID == contract.ID && po.IsDeleted == false).FirstOrDefault();
+                                            if (order != null && warehouse != null && part != null)
+                                            {
+                                                P_ORDER_PARTS orderPart = db.P_ORDER_PARTS
+                                                    .Where(pop => pop.PartID == part.ID && pop.OrderID == order.ID)
+                                                    .FirstOrDefault();
+                                                if (orderPart != null)
+                                                    ViewBag.ExistingRecordsCount = 1;
+                                            }
+                                            else
+                                            {
+                                                ViewBag.Message = "Order/Supplier/Part topilmadi";
+                                                return View("UploadWithExcel");
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var message = "";
+                                    foreach (var word in missingParts)
+                                    {
+                                        message += word + ", ";
+                                    }
+                                    ViewBag.Message = "Ushbu buyurtmalar faylida kiritilgan ehtiyot qismlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Ehtiyot qismlar bazasiga kiritib keyin qayta urining.";
+                                    return View("UploadWithExcel");
+                                }
+                            }
+                            else
+                            {
+                                var message = "";
+                                foreach (var word in missingSuppliers)
+                                {
+                                    message += word + ", ";
+                                }
+                                ViewBag.Message = "Ushbu buyurtmalar faylda kiritilgan ta'minotchilar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Ta'minotchilar bazasiga kiritib keyin qayta urining.";
+                                return View("UploadWithExcel");
+                            }
+                        }
+                        else
+                        {
+                            var message = "";
+                            foreach (var word in missingContracts)
+                            {
+                                message += word + ", ";
+                            }
+                            ViewBag.Message = "Ushbu buyurtmalar faylda kiritilgan shartnomalar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Shartnomalar bazasiga kiritib keyin qayta urining.";
+                            return View("UploadWithExcel");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                        if (ex.InnerException != null)
+                        {
+                            ViewBag.Message += $" - Ichki xato: {ex.InnerException.Message}";
+                        }
+                        return View("UploadWithExcel");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
+                    return View("UploadWithExcel");
+                }
+            }
+            else
+            {
+                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
+                return View("UploadWithExcel");
+            }
+            return View("UploadWithExcel");
+        }
     }
 }
