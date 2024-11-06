@@ -741,6 +741,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Update ProductList
+                    double summ = 0;
                     foreach (var product in order.Parts)
                     {
                         var existingPart = db.P_ORDER_PARTS.Find(product.ID);
@@ -750,13 +751,15 @@ namespace tahsinERP.Controllers
                             existingPart.UnitID = product.UnitID;
                             existingPart.Amount = product.Amount;
                             existingPart.MOQ = product.MOQ;
+                            existingPart.TotalPrice = product.Amount * product.Price;
+                            summ += ((double)existingPart.Amount * (double)existingPart.Price);
 
                             db.Entry(existingPart).State = EntityState.Modified;
 
                             LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{existingPart.PART.PNo} - POrderPartni tahrirladi");
                         }
                     }
-
+                    orderToUpdate.Amount = summ;
                     try
                     {
                         db.SaveChanges();
@@ -768,7 +771,6 @@ namespace tahsinERP.Controllers
                         ViewBag.Suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", order.SupplierID);
                         ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", order.ContractID);
                         ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                     }
 

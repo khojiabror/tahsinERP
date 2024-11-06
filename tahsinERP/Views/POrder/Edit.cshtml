@@ -54,13 +54,13 @@
 
                                                 <h6 class="invoice-to">Ta'minotchi</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, new { @class = "form-control select2" })
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, new { @class = "form-control select2", @disabled="disabled" })
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </fieldset>
 
                                                 <h6 class="invoice-to">Shartnoma raqami</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.PContract as SelectList, new { @class = "form-control select2" })
+                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.PContract as SelectList, new { @class = "form-control select2", @disabled = "disabled" })
                                                     @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                 </fieldset>
 
