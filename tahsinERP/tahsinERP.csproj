@@ -953,6 +953,7 @@
     <Compile Include="ViewModels\SContractViewModel.cs" />
     <Compile Include="ViewModels\TracingViewModel.cs" />
     <Compile Include="ViewModels\WrhsExpenseViewModel.cs" />
+    <Compile Include="ViewModels\WrhsIncomeEditViewModel.cs" />
     <Compile Include="ViewModels\WrhsIncomeViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />

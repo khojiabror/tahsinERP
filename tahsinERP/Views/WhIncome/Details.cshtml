@@ -48,26 +48,19 @@
                                                 <h4 class="text-primary">Kirim ma'lumotlari</h4>
                                                 <hr />
                                                 <span><b>Hujjat raqami </b>: @Html.DisplayFor(model => model.DocNo, new { @class = "form-control" })</span>
-                                                <br />
                                                 <hr />
                                                 <span><b>Kelgan sanasi </b>: @Model.IssueDateTime.ToString("dd.yy.yyyy")</span>
-                                                <br />
                                                 <hr />
                                                 <span><b>Invoice raqami</b>: @Html.DisplayFor(model => model.P_INVOICES.InvoiceNo, new { @class = "form-control" })</span>
-                                                <br />
                                                 <hr />
                                                 <span><b>Waybill raqami</b>: @Html.DisplayFor(model => model.F_WAYBILLS.WaybillNo, new { @class = "form-control" })</span>
-                                                <br />
                                                 <hr />
                                                 <span><b>Miqdori</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" })</span>
                                                 <br />
-                                                <hr />
                                                 <span><b>Valyuta</b>: @Html.DisplayFor(model => model.CURRENCy.Shortname, new { @class = "form-control" })</span>
                                                 <br />
-                                                <hr />
                                                 <span><b>Umumiy narxi</b>: @Html.DisplayFor(model => model.TotalPrice, new { @class = "form-control" })</span>
                                                 <br />
-                                                <hr />
                                                 <span><b>Qabul qilinganmi</b>:@* @Html.DisplayFor(model => model.RecieveStatus, new { @class = "form-control" })*@</span>
                                                 
                                                 @if (Model.RecieveStatus.HasValue && Model.RecieveStatus.Value)
