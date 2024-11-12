@@ -86,6 +86,16 @@
                                                     @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = "Qisqacha tavsifi" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </fieldset>
+
+                                                <div class="col-md-6 col-12 form-group position-relative has-icon-left">
+                                                    <label for="dateInput">Sana</label>
+                                                    @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required"})
+                                                    @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
+                                                    <div class="form-control-position mt-2">
+                                                        <i class='bx bx-calendar'></i>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         </div>
                                         <ul class="list-group list-group-flush">
@@ -111,3 +121,17 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>

@@ -79,8 +79,8 @@
                                                         @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                        <label>Proforma Invoys sanasi</label>
-                                                        @Html.TextBoxFor(model => model.InvoiceDate, new { @class = "form-control pickadate-months-year round" })
+                                                        <label for="dateInput">Proforma Invoys sanasi</label>
+                                                        @Html.TextBoxFor(model => model.InvoiceDate, new { @class = "form-control", @id = "dateInput", @name = "Date" })
                                                         @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>
@@ -88,7 +88,7 @@
                                                     </div>
                                                     <div class="col-md-6 col-12 form-group" id="file-upload-div">
                                                         <hr />
-                                                        <label for="file-upload" class="form-label">Shartnoma faylini yuklang</label>
+                                                        <label for="file-upload" class="form-label">PI faylini yuklang</label>
                                                         <div class="custom-file">
                                                             @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control", @id = "file-upload", accept = ".pdf,.doc,.docx,.xlsx" })
                                                             @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
@@ -122,6 +122,19 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d.m.Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>
 <script type="text/javascript">
     $(document).ready(function() {
         // Initialize select2 if needed

@@ -58,8 +58,8 @@
                                                         @Html.ValidationMessageFor(model => model.Supplier, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="form-group position-relative has-icon-left">
-                                                        <label>Tuzilgan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
+                                                        <label for="dateInput">Tuzilgan sanasi:</label>
+                                                        @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>
@@ -93,8 +93,8 @@
                                                         @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="form-group position-relative has-icon-left">
-                                                        <label>Tugaydigan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
+                                                        <label for="dateInput">Tugaydigan sanasi:</label>
+                                                        @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>
@@ -180,3 +180,16 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>

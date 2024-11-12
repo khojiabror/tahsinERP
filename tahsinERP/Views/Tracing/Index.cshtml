@@ -54,10 +54,10 @@
                             {
                                 <div class="row col-4 mb-1" style="float: right;">
                                     <div class="col-12">
-                                        <label>Sana:</label>
-                                        @Html.TextBox("Date", (string)ViewBag.Date, new { @class = "form-control pickadate-months-year round", @type = "date" })
+                                        <label for="dateInput">Sana:</label>
+                                        @Html.TextBox("Date", (string)ViewBag.Date, new { @class = "form-control", @id = "dateInput", @name = "Date" })
                                     </div>
-                                    <div class="col-12">    
+                                    <div class="col-12">
                                         <label>&nbsp;</label>
                                         <button type="submit" class="btn btn-primary form-control">Filterlash</button>
                                     </div>
@@ -120,6 +120,37 @@
             const customer = document.getElementById("CustomerID").value;
             window.location.href = '@Url.Action("Index", "Tracing")?customerID=' + customer;
         }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr("#dateInput", {
+                dateFormat: "d.m.Y", // You can customize the date format
+                // Optional: restricts the selection to today's date or later
+                weekNumbers: true,
+                showTodayButton: true,
+                locale: "uz",
+            });
+        });
+
+        document.querySelector("form").addEventListener("submit", function (e) {
+            // Ensure the date is in dd.MM.yyyy format before submitting
+            var dateInput = document.getElementById("dateInput");
+
+            // Check if the date is not empty before reformatting
+            if (dateInput && dateInput.value) {
+                // Get the date value as a Date object
+                var date = flatpickr.parseDate(dateInput.value, "d.m.Y");
+
+                // If the date object is valid, reformat it to dd.MM.yyyy
+                if (date) {
+                    // Reformat the date to dd.MM.yyyy format
+                    var formattedDate = flatpickr.formatDate(date, "d.m.Y");
+                    dateInput.value = formattedDate;  // Set the value to the correct format
+                }
+            }
+        });
+
     </script>
 }
 else

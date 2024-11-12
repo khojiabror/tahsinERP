@@ -91,8 +91,8 @@
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                            <label>Buyurtma berilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Buyurtma berilgan sanasi", @required = "required" })
+                                                            <label for="dateInput">Buyurtma berilgan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Buyurtma berilgan sanasi", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -185,7 +185,19 @@
     </div>
 }
 
-
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "Y-m-d H:i", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>
 <script type="text/javascript">
     function getContractDetails() {
         var contractID = $("#ContractID").val();

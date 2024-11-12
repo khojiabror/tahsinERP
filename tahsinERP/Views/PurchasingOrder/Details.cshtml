@@ -64,8 +64,6 @@
                                             <br />
                                             <span>Buyurtma raqami EDO:<b> @Html.DisplayFor(model => model.OrderCodeEDO, new { @class = "form-control" })</b></span>
                                             <br />
-                                            <span>Yaratilgan sanasi:<b> @Model.CreatedDT.ToString("dd.MM.yyyy")</b></span>
-                                            <br />
                                             <span>Tasdiqlangan (EDO) sanasi:<b> @Model.ApprovedDTEDO.Value.ToString("dd.MM.yyyy")</b></span>
                                             <br />
                                             <span>Buyurtma beruvchi bo'lim:<b> @Html.DisplayFor(model => model.OrderedByDept, new { @class = "form-control" })</b></span>
@@ -79,10 +77,10 @@
                                             <br />
                                             <span>Kim tomonidan yuklandi:<b> @Html.DisplayFor(model => model.USER.FullName, new { @class = "form-control" })</b></span>
                                             <hr />
-                                                <b>Status</b>:
-                                                <div class="progress-bar">
-                                                    <div id="progress-element-@Model.ID" class="element" style="width: 0%;">0%</div>
-                                                </div>
+                                            <b>Status</b>:
+                                            <div class="progress-bar">
+                                                <div id="progress-element-@Model.ID" class="element" style="width: 0%;">0%</div>
+                                            </div>
                                             <hr />
 
                                             <button id="downloadFileBtn" class="btn btn-outline-warning" onclick="downloadFile()">

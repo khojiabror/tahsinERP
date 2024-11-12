@@ -72,7 +72,7 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <h6 class="invoice-to">Valyuta</h6>
-                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList , new { @class = "form-control select2", @required = "required" })
+                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
 
@@ -92,17 +92,17 @@
                                                             @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="form-group position-relative has-icon-left">
-                                                            <label>Tuzilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
+                                                        <div class="col-md-6 col-12 form-group">
+                                                            <label for="dateInput">Tuzilgan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.IssueDT, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "dan", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.IssueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
                                                             </div>
                                                         </div>
-                                                        <div class="form-group position-relative has-icon-left">
-                                                            <label>Tugaydigan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control pickadate-months-year round", @required = "required" })
+                                                        <div class="col-md-6 col-12 form-group">
+                                                            <label for="dateInput">Tugaydigan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.DueDT, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "gacha", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.DueDT, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -143,18 +143,18 @@
                                                             @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
-    
-                                                        @*<div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_PartID">Predmetni tanlang</label>
-                                                            <input type="text" name="Part_PartID" class="form-control" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].ItemName, "", new { @class = "text-danger" })
 
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Unit">Birligi</label>
-                                                            <input type="text" name="Part_Unit" class="form-control" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].UnitName, "", new { @class = "text-danger" })
-                                                        </div>*@
+                                                        @*<div class="col-md-2 col-sm-12 form-group">
+                                                                <label for="Part_PartID">Predmetni tanlang</label>
+                                                                <input type="text" name="Part_PartID" class="form-control" />
+                                                                @Html.ValidationMessageFor(model => model.Parts[0].ItemName, "", new { @class = "text-danger" })
+
+                                                            </div>
+                                                            <div class="col-md-2 col-sm-12 form-group">
+                                                                <label for="Part_Unit">Birligi</label>
+                                                                <input type="text" name="Part_Unit" class="form-control" />
+                                                                @Html.ValidationMessageFor(model => model.Parts[0].UnitName, "", new { @class = "text-danger" })
+                                                            </div>*@
 
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Amount">Miqdori</label>
@@ -211,6 +211,20 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>
 <script>
     $(document).ready(function () {
         // Trigger event when OrderID is changed

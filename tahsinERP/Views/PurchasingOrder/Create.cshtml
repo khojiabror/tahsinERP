@@ -68,8 +68,8 @@
                                                             @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
-                                                        <label for="OrderNo">Valyuta</label>
-                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList,new { @class = "form-control select2", @required = "required" })
+                                                            <label for="OrderNo">Valyuta</label>
+                                                            @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -79,8 +79,8 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label>Buyurtma tasdiqlangan (EDO) sanasi</label>
-                                                            @Html.TextBoxFor(model => model.ApprovedDTEDO, new { @class = "form-control pickadate-months-year round", @required = "required" })
+                                                            <label for="dateInput">Buyurtma tasdiqlangan (EDO) sanasi</label>
+                                                            @Html.TextBoxFor(model => model.ApprovedDTEDO, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Buyurtma sanasi", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.ApprovedDTEDO, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
@@ -173,6 +173,20 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y", // You can customize the date format
+            maxDate: "today",// Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>
 <script>
     document.getElementById('file-upload').addEventListener('change', function () {
         if (this.files && this.files.length > 0) {

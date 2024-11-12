@@ -88,8 +88,8 @@
                                                     </fieldset>
 
                                                     <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                        <label>Sana</label>
-                                                        @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Tuzilgan sanasi" })
+                                                        <label for="dateInput">Sana</label>
+                                                        @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required", @placeholder = "Tuzilgan sanasi" })
                                                         @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
                                                         <div class="form-control-position mt-2">
                                                             <i class='bx bx-calendar'></i>
@@ -133,3 +133,17 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>

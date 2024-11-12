@@ -10,25 +10,30 @@
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb p-0 mb-0">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item ">
-                                        Sahifalar
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Qoldiqlar
-                                    </li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               <div class="content-header row">
+                   <div class="content-header-left col-12 mb-2 mt-1">
+                       <div class="row breadcrumbs-top">
+                           <div class="col-12">
+                               <div class="breadcrumb-wrapper col-12">
+                                   <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                       <li class="breadcrumb-item">
+                                           <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                       </li>
+                                       <li class="breadcrumb-item">
+                                           Sahifalar
+                                       </li>
+                                       <li class="breadcrumb-item active">
+                                           Ombordagi qoldiq
+                                       </li>
+                                       <li class="col-md-6 col-12 form-group ms-auto">
+                                           <br /> Ombor :  <b>@ViewBag.WHName</b>
+                                       </li>
+                                   </ol>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
             </div>
             <div class="content-body">
                 <!-- users list start -->
@@ -38,8 +43,8 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <!-- datatable start -->
-                                    <div class="table-responsive table-responsivetable-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th></th>
@@ -63,7 +68,7 @@
                                                         <td><a href="~/Part/Details/@item.ID">@item.PART.PNo</a></td>
                                                         <td>@item.PART.PName</td>
                                                         <td>@item.Amount</td>
-                                                        <td>@item.Unit</td>
+                                                        <td>@item.UNIT.ShortName</td>
                                                     </tr>
                                                 }
                                             </tbody>

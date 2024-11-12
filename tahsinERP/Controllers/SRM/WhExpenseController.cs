@@ -24,21 +24,36 @@ namespace tahsinERP.Controllers
         // GET: WhExpense
         public ActionResult Index(string type, int? supplierID)
         {
+            this.warehouse = GetWarehouseOfMRP(User.Identity.Name);
+            warehouse = GetWarehouseOfMRP(User.Identity.Name);
+            if (warehouse is null)
+                ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+            else
+                ViewBag.WHName = warehouse.WHName;
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.PART_WRHS_EXPENSES
-                    .Include(pe => pe.PART_WRHS)
-                    .Include( x => x.CURRENCy)
-                    .Where(pe => pe.IsDeleted == false)
-                    .ToList();
-
-                warehouse = GetWarehouseOfMRP(User.Identity.Name);
-                if (warehouse is null)
-                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                if (warehouse == null)
+                {
+                    ViewBag.SourceList = new SelectList(sources, type);
+                    List<PART_WRHS_EXPENSES> list = new List<PART_WRHS_EXPENSES>();
+                    return View(list);
+                }
                 else
-                    ViewBag.WHName = warehouse.WHName;
+                {
+                    var list = db.PART_WRHS_EXPENSES
+                        .Include(pe => pe.PART_WRHS)
+                        .Include(x => x.CURRENCy)
+                        .Where(pe => pe.IsDeleted == false && pe.PART_WRHS.ID == warehouse.ID)
+                        .ToList();
 
-                return View(list);
+                    warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                    if (warehouse is null)
+                        ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+                    else
+                        ViewBag.WHName = warehouse.WHName;
+
+                    return View(list);
+                }
             }
         }
         private PART_WRHS GetWarehouseOfMRP(string email)
@@ -178,7 +193,7 @@ namespace tahsinERP.Controllers
                         PartID = item.PartID,
                         UnitID = item.UnitID,
                         Amount = item.Amount,
-                        PiecePrice = existPartInCome.PiecePrice,    
+                        PiecePrice = existPartInCome.PiecePrice,
                         Comment = item.Comment,
                         TotalPrice = item.Amount * existPartInCome.PiecePrice
                     };
@@ -188,7 +203,7 @@ namespace tahsinERP.Controllers
                 }
                 newExpense.TotalPrice = expenseTotalPrice;
                 var updateExpense = db.PART_WRHS_EXPENSES.Find(newExpense.ID);
-                updateExpense.TotalPrice = expenseTotalPrice;   
+                updateExpense.TotalPrice = expenseTotalPrice;
                 db.SaveChanges();
 
                 return RedirectToAction("Index");
@@ -204,7 +219,7 @@ namespace tahsinERP.Controllers
             ViewBag.PartWrhs = new SelectList(db.PART_WRHS.Where(w => w.IsDeleted == false).ToList(), "ID", "WHName");
             ViewBag.InComes = new SelectList(db.PART_WRHS_EXPENSES.Where(wi => wi.IsDeleted == false).ToList(), "ID", "DocNo");
             ViewBag.InComeParts = new SelectList(partInStock.ToList(), "ID", "PNo");
-            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
             ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
         }
         public ActionResult Details(int? ID)
@@ -272,7 +287,7 @@ namespace tahsinERP.Controllers
                     .Where(whp => whp.ExpenseID == ID)
                     .ToList();
                 //ViewBag.PartList = new SelectList(db.PART_WRHS_EXPENSE_PARTS.Include(p => p.PART).ToList(),"ID","PName");
-               // ViewBag.Invoices = new SelectList(db.P_INVOICES.Where(i => i.IsDeleted == false).ToList(), "ID", "InvoiceNo");
+                // ViewBag.Invoices = new SelectList(db.P_INVOICES.Where(i => i.IsDeleted == false).ToList(), "ID", "InvoiceNo");
                 ViewBag.PartWhrs = new SelectList(db.PART_WRHS.Where(i => i.IsDeleted == false).ToList(), "ID", "WHName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
@@ -305,7 +320,7 @@ namespace tahsinERP.Controllers
                         wrhsExpenseToUpdate.ReceiverWhID = wrhsExpense.ReceiverWhID;
                         wrhsExpenseToUpdate.CurrencyID = wrhsExpense.CurrencyID;
                         //wrhsExpenseToUpdate.Amount = wrhsExpense.Amount;
-                       // wrhsExpenseToUpdate.TotalPrice = wrhsExpense.TotalPrice;
+                        // wrhsExpenseToUpdate.TotalPrice = wrhsExpense.TotalPrice;
                         wrhsExpenseToUpdate.Description = wrhsExpense.Description;
                         wrhsExpenseToUpdate.IssueDateTime = wrhsExpense.IssueDateTime;
                         //wrhsExpenseToUpdate.IsDeleted = false;
@@ -330,7 +345,7 @@ namespace tahsinERP.Controllers
             return View(wrhsExpense);
         }
         //hali toliq ozgartitilmagan
-        
+
         public ActionResult EditPart(int? ID)
         {
             if (ID == null)
@@ -430,7 +445,7 @@ namespace tahsinERP.Controllers
                         .Include(pc => pc.UNIT)
                         .Where(pc => pc.ExpenseID == wrhsExpense.ID).ToList();
 
-                db.Entry(wrhsExpense).Reference(i => i.PART_WRHS).Load(); 
+                db.Entry(wrhsExpense).Reference(i => i.PART_WRHS).Load();
                 db.Entry(wrhsExpense).Reference(i => i.CURRENCy).Load();
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
@@ -458,7 +473,7 @@ namespace tahsinERP.Controllers
                         try
                         {
                             db.Entry(whExpenseToDelete).State = System.Data.Entity.EntityState.Modified;
-                            
+
                             db.SaveChanges();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "WhExpenseController", $"{whExpenseToDelete.DocNo} - PartWrhsExpenseni o'chirdi");

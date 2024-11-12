@@ -57,7 +57,7 @@ namespace tahsinERP.Controllers.SRM
                 if (ModelState.IsValid)
                 {
                     var existPurchasingPayment = db.P_ORDER_PAYMENTS.Where(x => x.OrderID == model.OrderID).FirstOrDefault();
-                    if (existPurchasingPayment is null)
+                    if (existPurchasingPayment == null)
                     {
                         model.IsDeleted = false;
                         db.P_ORDER_PAYMENTS.Add(model);

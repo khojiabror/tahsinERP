@@ -54,7 +54,7 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Ta`minotchi</label>
-                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier,"", new { @class = "form-control", id = "SupplierID", onchange = "refreshdatatablesupplier()" })
+                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, "", new { @class = "form-control", id = "SupplierID", onchange = "refreshdatatablesupplier()" })
                                                             @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
@@ -64,15 +64,15 @@
                                                         </div>
 
                                                         @* <div class="col-md-6 col-12 form-group">
-                                                            <label for="SupplierID">Ta`minotchi</label>
-                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, new { @class = "form-control", id = "SupplierID", onchange = "refreshdatatablesupplier()" })
-                                                            @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
-                                                        </div>
-                                                        <div class="col-md-6 col-12 form-group">
-                                                            <label for="ContractID">Shartnoma raqami</label>
-                                                            @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, new { @class = "form-control", id = "ContractID" })
-                                                            @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                        </div>*@
+                                                                <label for="SupplierID">Ta`minotchi</label>
+                                                                @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, new { @class = "form-control", id = "SupplierID", onchange = "refreshdatatablesupplier()" })
+                                                                @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                                            </div>
+                                                            <div class="col-md-6 col-12 form-group">
+                                                                <label for="ContractID">Shartnoma raqami</label>
+                                                                @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, new { @class = "form-control", id = "ContractID" })
+                                                                @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                                            </div>*@
                                                     </div>
                                                 </div>
 
@@ -91,10 +91,10 @@
                                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Buyurtma berilgan sanasi</h6>
-                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Shartnoma tuzilgan sanasi", id = "IssuedDate" })
+                                                            <label for="dateInput">Buyurtma berilgan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Buyurtma berilgan sanasi", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
-                                                            <div class="form-control-position">
+                                                            <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
                                                             </div>
                                                         </div>
@@ -170,6 +170,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr("#dateInput", {
+                dateFormat: "Y-m-d H:i", // You can customize the date format
+                // Optional: restricts the selection to today's date or later
+                altInput: true, // Optional: creates an alternate input (more user-friendly)
+                altFormat: "F j, Y", // Format displayed in alt input
+                weekNumbers: true,
+                showTodayButton: true,
+                locale: "uz",
+                maxDate: "today",   
+            });
+        });
+    </script>
     <script type="text/javascript">
     function refreshdatatablesupplier() {
         const supplierID = document.getElementById("SupplierID").value;

@@ -57,17 +57,17 @@
                                                         @Html.DropDownListFor(model => model.ForwarderID, ViewBag.Forwarder as SelectList, new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Tuzilgan sanasi</h6>
+                                                    <h6 for="dateInput" class="invoice-to">Tuzilgan sanasi</h6>
                                                     <fieldset class="form-group position-relative has-icon-left">
-                                                        @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Shartnoma tuzilgan sanasi" })
+                                                        @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required", @placeholder = "Shartnoma tuzilgan sanasi" })
                                                         @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
                                                         <div class="form-control-position">
                                                             <i class='bx bx-calendar'></i>
                                                         </div>
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Tugaydigan sana</h6>
+                                                    <h6 for="dateInput" class="invoice-to">Tugaydigan sana</h6>
                                                     <fieldset class="form-group position-relative has-icon-left">
-                                                        @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Shartnoma muddati" })
+                                                        @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required", @placeholder = "Shartnoma tugaydigan sanasi" })
                                                         @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                         <div class="form-control-position">
                                                             <i class='bx bx-calendar'></i>
@@ -114,3 +114,17 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d.m.Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>

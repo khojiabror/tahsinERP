@@ -93,8 +93,8 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                            <label>invoice sanasi</label>
-                                                            @Html.TextBoxFor(model => model.InvoiceDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Invoice sanasi", @required = "required" })
+                                                            <label for="dateInput">Invoys sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.InvoiceDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Sana", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -102,7 +102,7 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="Currency">Valyuta</label>
-                                                            @Html.DropDownListFor(model => model.CurrencyID, (SelectList)ViewBag.currencies,"", new { @class = "form-control select2", @id = "Currency", @placeholder = "Valyuta" })
+                                                            @Html.DropDownListFor(model => model.CurrencyID, (SelectList)ViewBag.currencies, "", new { @class = "form-control select2", @id = "Currency", @placeholder = "Valyuta" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -173,6 +173,20 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr("#dateInput", {
+                dateFormat: "d-m-Y", // You can customize the date format
+                // Optional: restricts the selection to today's date or later
+                altInput: true, // Optional: creates an alternate input (more user-friendly)
+                altFormat: "F j, Y", // Format displayed in alt input
+                weekNumbers: true,
+                showTodayButton: true,
+                maxDate: "today",
+                locale: "uz",
+            });
+        });
+    </script>
     <script type="text/javascript">
     // Supplier tanlanganda orderlarni yangilash va valyutani to'ldirish
     function refreshOrderListbySupplier() {

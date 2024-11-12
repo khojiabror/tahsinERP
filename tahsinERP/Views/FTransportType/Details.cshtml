@@ -45,13 +45,13 @@
                                             <span><b>Transport turi</b>: @Html.DisplayFor(model => model.TransportType)</span>
                                             <br />
                                             <hr />
-                                            <span><b>Unit</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
+                                            <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
                                             <br />
                                             <hr />
-                                            <span><b>Transport og`irligi</b>: @Html.DisplayFor(model => model.TransportWeight)</span>
+                                            <span><b>Transport og`irligi (kg)</b>: @Html.DisplayFor(model => model.TransportWeight)</span>
                                             <br />
                                             <hr />
-                                            <span><b>Ko`tarish imkoniyati</b>: @Html.DisplayFor(model => model.CapableOfLifting)</span>
+                                            <span><b>Maks. Ko`tarish qobilyati (kg)</b>: @Html.DisplayFor(model => model.CapableOfLifting)</span>
                                             <br />
                                             <br />
                                             <div class="row">
@@ -60,13 +60,13 @@
                                                         <div class="card-body">
                                                             <h4 class="card-title text-primary">Tashqi</h4>
                                                             <hr />
-                                                            <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.ExtLgth)</span>
+                                                            <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.ExtLgth)  @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                             <br />
                                                             <hr />
-                                                            <span><b>Kengligi</b>: @Html.DisplayFor(model => model.ExtWdth)</span>
+                                                            <span><b>Kengligi</b>: @Html.DisplayFor(model => model.ExtWdth)  @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                             <br />
                                                             <hr />
-                                                            <span><b>Balandligi</b>: @Html.DisplayFor(model => model.ExtHght)</span>
+                                                            <span><b>Balandligi</b>: @Html.DisplayFor(model => model.ExtHght)  @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                             <br />
                                                               <hr />
                                                         </div>
@@ -77,13 +77,13 @@
                                                         <div class="card-body">
                                                             <h4 class="card-title text-primary">Ichki</h4>
                                                             <hr />
-                                                            <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.IntLgth)</span>
+                                                            <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.IntLgth)  @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                             <br />
                                                             <hr />
-                                                            <span><b>Kengligi</b>: @Html.DisplayFor(model => model.IntWdth)</span>
+                                                            <span><b>Kengligi</b>: @Html.DisplayFor(model => model.IntWdth)  @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                             <br />
                                                             <hr />
-                                                            <span><b>Balandligi</b>: @Html.DisplayFor(model => model.IntHght)</span>
+                                                            <span><b>Balandligi</b>: @Html.DisplayFor(model => model.IntHght)  @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                             <br />
                                                             <hr />
                                                         </div>

@@ -119,6 +119,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
                 ViewBag.Forwarder = new SelectList( await db1.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
+                ViewBag.currencies = new SelectList(await db1.CURRENCIES.ToListAsync(), "ID", "Shortname");
                 return View(contract);
             }
         }

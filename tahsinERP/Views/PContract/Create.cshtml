@@ -26,7 +26,6 @@
         .custom-file-button:hover {
             background-color: #0056b3;
         }
-
 </style>
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContract"))
 {
@@ -72,22 +71,22 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Shartnoma raqami</h6>
+                                                            <h6 class="invoice-to">Shartnoma raqami:</h6>
                                                             @Html.TextBoxFor(model => model.ContractNo, new { @type = "text", @class = "form-control", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Ta'minotchi</h6>
+                                                            <h6 class="invoice-to">Ta'minotchi:</h6>
                                                             @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, new { @class = "form-control select2", @id = "supplierDropdown" })
                                                             @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <h6 class="invoice-to">Valyuta</h6>
-                                                        <fieldset class="invoice-address form-group">
+                                                        <div class="col-md-6 col-12 form-group">
+                                                            <h6 class="invoice-to">Valyuta:</h6>
                                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
-                                                        </fieldset>
+                                                        </div>
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">IDN raqami</h6>
+                                                            <h6 class="invoice-to">IDN raqami:</h6>
                                                             @Html.TextBoxFor(model => model.IDN, new { @type = "number", @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.IDN, "", new { @class = "text-danger" })
                                                         </div>
@@ -98,26 +97,26 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Incoterms</h6>
+                                                            <h6 class="invoice-to">Incoterms:</h6>
                                                             @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">To'lov sharti</h6>
+                                                            <h6 class="invoice-to">To'lov sharti:</h6>
                                                             @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                            <label>Tuzilgan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Tuzilgan sanasi" })
+                                                            <label for="dateInput">Tuzilgan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Tuzilgan sanasi" })
                                                             @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                            <label>Tugaydigan sanasi</label>
-                                                            @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Tugaydigan sanasi" })
+                                                            <label for="dateInput">Tugaydigan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Tuzilgan sanasi" })
                                                             @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                             <div class="form-control-position mt-2">
                                                                 <i class='bx bx-calendar'></i>
@@ -129,7 +128,7 @@
                                             </div>
                                             <div class="col-md-6 col-12 form-group">
                                                 <hr />
-                                                <label>Buyurtma faylini yuklang</label>
+                                                <h6>Shartnoma fayli(PDF)ni yuklang</h6>
                                                 @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control" })
                                                 @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                 <hr />
@@ -143,27 +142,27 @@
                                                     <div class="row col-12 justify-content-between">
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_PartID">Qismni tanlang</label>
+                                                            <h6 for="Part_PartID">Qismni tanlang</h6>
                                                             @Html.DropDownList("PartID", (SelectList)ViewBag.partList, new { @class = "form-control select", @id = "select2" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].PartID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Unit">Birligi</label>
+                                                            <h6 for="Part_Unit">Birligi</h6>
                                                             @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Quantity">Miqdori</label>
+                                                            <h6 for="Part_Quantity">Miqdori</h6>
                                                             <input type="number" name="Quantity" step="0.001" class="form-control" id="Part_Quantity" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Quantity, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Price">Narx</label>
+                                                            <h6 for="Part_Price">Narx</h6>
                                                             <input type="number" name="Price" step="0.001" class="form-control" id="Part_Price" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_MOQ">MOQ</label>
+                                                            <h6 for="Part_MOQ">MOQ</h6>
                                                             <input type="text" name="MOQ" step="0.001" class="form-control" id="Part_MOQ" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger" })
                                                         </div>
@@ -201,27 +200,41 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-@*
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-    $(document).ready(function () {
-        $('#supplierDropdown').change(function () {
-            var supplierId = $(this).val();
-            $.ajax({
-                url: '@Url.Action("GetPartsBySupplier", "PContract")',
-                type: 'GET',
-                data: { supplierId: supplierId },
-                success: function (data) {
-                    var partDropdown = $('#partDropdown');
-                    partDropdown.empty();
-                    $.each(data, function (index, part) {
-                        partDropdown.append($('<option/>', {
-                            value: part.ID,
-                            text: part.PNo
-                        }));
-                    });
-                }
-            });
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y",  // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
         });
     });
-</script>*@
+</script>
+@*
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#supplierDropdown').change(function () {
+                var supplierId = $(this).val();
+                $.ajax({
+                    url: '@Url.Action("GetPartsBySupplier", "PContract")',
+                    type: 'GET',
+                    data: { supplierId: supplierId },
+                    success: function (data) {
+                        var partDropdown = $('#partDropdown');
+                        partDropdown.empty();
+                        $.each(data, function (index, part) {
+                            partDropdown.append($('<option/>', {
+                                value: part.ID,
+                                text: part.PNo
+                            }));
+                        });
+                    }
+                });
+            });
+        });
+    </script>*@

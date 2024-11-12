@@ -22,13 +22,15 @@ namespace tahsinERP.Controllers
         // GET: Tracing
         public async Task<ActionResult> Index(DateTime? date = null)
         {
-            date = date ?? DateTime.Now.Date;
-
+            if (date is null)
+                date = date ?? DateTime.Now.Date;
+            string dateWithText = date.Value.ToString("MM-dd-yyyy");
+            DateTime date2 = Convert.ToDateTime(dateWithText);
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = await db.TRACINGS
                     .Include(p => p.P_INVOICE_PACKINGLISTS)
-                    .Where(p => p.IsDeleted == false && p.IssueDateTime == date)
+                    .Where(p => p.IsDeleted == false && p.IssueDateTime == date2)
                     .GroupBy(t => t.P_INVOICE_PACKINGLISTS.TransportNo)
                     .Select(g => new TracingViewModel
                     {
@@ -399,7 +401,7 @@ namespace tahsinERP.Controllers
                                     var message = "";
                                     foreach (KeyValuePair<string, DateTime> word in transportRecords)
                                     {
-                                        message += (word.Key + "  "+ word.Value.ToString("dd.MM.yyyy"));
+                                        message += (word.Key + "  " + word.Value.ToString("dd.MM.yyyy"));
                                         ViewBag.Message = "Ushbu tracing faylida kiritilgan transportNo va IssueDate  " + message + "  bir sanada ko'p marta kiritib bo'lmaydi";
                                     }
                                     return View("UploadWithExcel");

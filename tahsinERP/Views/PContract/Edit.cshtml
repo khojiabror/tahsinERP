@@ -55,16 +55,16 @@
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </fieldset>
 
-                                                <h6 class="invoice-to">Tuzilgan sanasi</h6>
+                                                <h6 class="invoice-to" for="dateInput">Tuzilgan sanasi</h6>
                                                 <fieldset class="form-group position-relative has-icon-left">
-                                                    @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control pickadate-months-year round" })
+                                                    @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date"})
                                                     <div class="form-control-position">
                                                         <i class='bx bx-calendar'></i>
                                                     </div>
                                                 </fieldset>
-                                                <h6 class="invoice-to">Tugaydigan sana</h6>
+                                                <h6 class="invoice-to" for="dateInput">Tugaydigan sanasi</h6>
                                                 <fieldset class="form-group position-relative has-icon-left">
-                                                    @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control pickadate-months-year round" })
+                                                    @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control", @id = "dateInput", @name = "Date"})
                                                     <div class="form-control-position">
                                                         <i class='bx bx-calendar'></i>
                                                     </div>
@@ -165,3 +165,16 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dateInput", {
+            dateFormat: "d-m-Y", // You can customize the date format
+            // Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>
