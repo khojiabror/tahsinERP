@@ -102,9 +102,6 @@ namespace tahsinERP.Models
         public virtual DbSet<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACT_PAYMENTS> PURCHASING_CONTRACT_PAYMENTS { get; set; }
         public virtual DbSet<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
-        public virtual DbSet<PURCHASING_INVOICE_DOCS> PURCHASING_INVOICE_DOCS { get; set; }
-        public virtual DbSet<PURCHASING_INVOICE_ITEMS> PURCHASING_INVOICE_ITEMS { get; set; }
-        public virtual DbSet<PURCHASING_INVOICES> PURCHASING_INVOICES { get; set; }
         public virtual DbSet<PURCHASING_ITEM_STOCKS> PURCHASING_ITEM_STOCKS { get; set; }
         public virtual DbSet<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }

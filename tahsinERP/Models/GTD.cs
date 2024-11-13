@@ -18,16 +18,19 @@ namespace tahsinERP.Models
         public GTD()
         {
             this.GTD_DOCS = new HashSet<GTD_DOCS>();
+            this.P_INVOICES = new HashSet<P_INVOICES>();
         }
     
         public int ID { get; set; }
         public string GTD_No { get; set; }
         public double Sum { get; set; }
         public bool IsDeleted { get; set; }
-        public Nullable<int> CurrencyID { get; set; }
+        public int CurrencyID { get; set; }
     
-        public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<GTD_DOCS> GTD_DOCS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<P_INVOICES> P_INVOICES { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
     }
 }

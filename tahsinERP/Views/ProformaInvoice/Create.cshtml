@@ -73,7 +73,7 @@
                                                         @Html.TextBoxFor(model => model.Amount, new { @class = "form-control round", id = "InvoiceID", @required = "required", @type = "number" })
                                                         @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Valyuta</h6>
+                                                    <h6 class="invoice-to">Valyuta<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Valyuta ma'lumotlarini sozlamalardan o'zgartiring"></i></h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })

@@ -33,6 +33,7 @@ namespace tahsinERP.ViewModels.PurchasingOrder
         public int ID { get; set; }
         public PURCHASING_ITEMS Item { get; set; }
         public int ItemID { get; set; }
+        public int UnitID { get; set; }
         public double Price { get; set; }
         public double Amount { get; set; }
         public double TotalPrice { get; set; }

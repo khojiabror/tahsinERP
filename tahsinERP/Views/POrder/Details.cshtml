@@ -163,7 +163,51 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script>
+    // Function to format price/amount values to two decimal places
+    function formatCurrency() {
+        // Get all table rows
+        var rows = document.querySelectorAll("table tbody tr");
 
+        rows.forEach(function (row) {
+            // Get the Price column (6th column) and Amount column (7th column)
+            var quantityCell = row.cells[3];
+            var priceCell = row.cells[2]; // 6th column (0-indexed)
+            var amountCell = row.cells[5]; // 7th column (0-indexed)
+
+            // Format Quantity
+            var quantity = parseFloat(quantityCell.textContent.replace(',', '.'));
+            if (!isNaN(quantity)) {
+                quantityCell.textContent = quantity.toFixed(2).replace('.', ',');
+            }
+
+            // Format Price
+            var priceText = priceCell.textContent.trim();
+            var priceParts = priceText.split(' '); // Split to separate the value from the currency symbol
+            var priceValue = parseFloat(priceParts[0].replace(',', '.')); // Convert the numeric part to float
+
+            if (!isNaN(priceValue)) {
+                // Format the value and replace the period with a comma
+                priceCell.textContent = priceValue.toFixed(2).replace('.', ',') + ' ' + priceParts[1];
+            }
+
+            // Format Amount
+            var amountText = amountCell.textContent.trim();
+            var amountParts = amountText.split(' '); // Split to separate the value from the currency symbol
+            var amountValue = parseFloat(amountParts[0].replace(',', '.')); // Convert the numeric part to float
+
+            if (!isNaN(amountValue)) {
+                // Format the value and replace the period with a comma
+                amountCell.textContent = amountValue.toFixed(2).replace('.', ',') + ' ' + amountParts[1];
+            }
+        });
+    }
+
+    // Call the format function when the page loads
+    window.onload = function () {
+        formatCurrency();
+    };
+</script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript">
     function downloadFile() {

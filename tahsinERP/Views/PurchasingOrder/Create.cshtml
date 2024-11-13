@@ -131,6 +131,11 @@
                                                             @Html.DropDownList("ItemID", (SelectList)ViewBag.itemList, new { @class = "form-control select", id = "ItemID", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].ItemID, "", new { @class = "text-danger" })
                                                         </div>
+                                                        <div class="col-md-2 col-sm-10 form-group">
+                                                            <label for="Part_PartID">O'lchov birligi:</label>
+                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control select", id = "UnitID", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
+                                                        </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Amount">Miqdori:</label>
                                                             <input type="number" name="Amount" class="form-control" id="Part_Amount" />

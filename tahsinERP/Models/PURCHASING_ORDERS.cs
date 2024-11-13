@@ -32,8 +32,8 @@ namespace tahsinERP.Models
         public string Status { get; set; }
         public int BuyerUserID { get; set; }
         public bool IsDeleted { get; set; }
-        public string OrderedByDept { get; set; }
         public string OrderedByUser { get; set; }
+        public string OrderedByDept { get; set; }
         public Nullable<double> Progress { get; set; }
         public Nullable<int> CurrencyID { get; set; }
     

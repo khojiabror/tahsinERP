@@ -272,31 +272,64 @@ namespace tahsinERP.Controllers
             }
             return View(model);
         }
-        
+
         public ActionResult GetOrderItems(int orderId)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Assuming you have a service or context to fetch order items from the database
+                // Fetch order items with related item and unit data
                 var orderItems = db.PURCHASING_ORDER_ITEMS
                     .Include(o => o.PURCHASING_ITEMS)
                     .Include(o => o.PURCHASING_ITEMS.UNIT)
-                                     .Where(o => o.OrderID == orderId)
-                                     .Select(o => new
-                                     {
-                                         o.PURCHASING_ITEMS.ID,
-                                         o.ItemID,
-                                         o.PURCHASING_ITEMS.ItemName,
-                                         o.Amount,
-                                         o.PURCHASING_ITEMS.UnitID,
-                                         o.PURCHASING_ITEMS.UNIT.ShortName,
-                                         o.Price,
-                                         o.TotalPrice
-                                     }).ToList();
+                    .Where(o => o.OrderID == orderId)
+                    .Select(o => new
+                    {
+                        o.PURCHASING_ITEMS.ID,
+                        o.ItemID,
+                        o.PURCHASING_ITEMS.ItemName,
+                        o.Amount,
+                        o.PURCHASING_ITEMS.UnitID,
+                        o.PURCHASING_ITEMS.UNIT.ShortName,
+                        o.Price,
+                        o.TotalPrice
+                    })
+                    .ToList();
 
-                return Json(orderItems, JsonRequestBehavior.AllowGet);
+                // Fetch all available items and units for the dropdowns
+                var items = db.PURCHASING_ITEMS
+                    .Select(i => new
+                    {
+                        i.ID,
+                        i.ItemName
+                    })
+                    .ToList();
+
+                var units = db.UNITS
+                    .Select(u => new
+                    {
+                        u.ID,
+                        u.ShortName
+                    })
+                    .ToList();
+
+                // Prepare the response with both order items, items, and units
+                var response = orderItems.Select(item => new
+                {
+                    item.ID,
+                    item.ItemID,
+                    item.ItemName,
+                    item.UnitID,
+                    item.Amount,
+                    item.Price,
+                    item.TotalPrice,
+                    Items = items,  // All available items for dropdown
+                    Units = units   // All available units for dropdown
+                }).ToList();
+
+                return Json(response, JsonRequestBehavior.AllowGet);
             }
         }
+
 
         public ActionResult Delete(int? ID)
         {

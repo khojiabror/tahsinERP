@@ -23,7 +23,10 @@ namespace tahsinERP.Models
         public bool IsDeleted { get; set; }
         public Nullable<bool> Status { get; set; }
         public string Comment { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
+        public Nullable<int> UnitID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual PURCHASING_ITEMS PURCHASING_ITEMS { get; set; }
         public virtual PURCHASING_ORDERS PURCHASING_ORDERS { get; set; }
     }

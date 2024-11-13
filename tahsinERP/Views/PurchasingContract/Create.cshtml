@@ -144,18 +144,6 @@
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
 
-                                                        @*<div class="col-md-2 col-sm-12 form-group">
-                                                                <label for="Part_PartID">Predmetni tanlang</label>
-                                                                <input type="text" name="Part_PartID" class="form-control" />
-                                                                @Html.ValidationMessageFor(model => model.Parts[0].ItemName, "", new { @class = "text-danger" })
-
-                                                            </div>
-                                                            <div class="col-md-2 col-sm-12 form-group">
-                                                                <label for="Part_Unit">Birligi</label>
-                                                                <input type="text" name="Part_Unit" class="form-control" />
-                                                                @Html.ValidationMessageFor(model => model.Parts[0].UnitName, "", new { @class = "text-danger" })
-                                                            </div>*@
-
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Amount">Miqdori</label>
                                                             <input type="number" name="Amount" class="form-control" id="Part_Amount" />
@@ -227,70 +215,99 @@ else
 </script>
 <script>
     $(document).ready(function () {
-        // Trigger event when OrderID is changed
-        $('#order-dropdown').on('change', function () {
-            console.log("Ishlopti")
-            var orderId = $(this).val();
-            if (orderId) {
-                // Make an AJAX request to load items based on selected OrderID
-                $.ajax({
-                    url: '@Url.Action("GetOrderItems", "PurchasingContract")', // Ensure this action is in your controller
-                    type: 'GET',
-                    data: { orderId: orderId },
-                    success: function (response) {
-                        // Clear existing repeater items
-                        $('[data-repeater-list="Parts"]').empty();
+    // Trigger event when OrderID is changed
+    $('#order-dropdown').on('change', function () {
+        var orderId = $(this).val();
+        if (orderId) {
+            // Make an AJAX request to load items based on selected OrderID
+            $.ajax({
+                url: '@Url.Action("GetOrderItems", "PurchasingContract")',
+                type: 'GET',
+                data: { orderId: orderId },
+                success: function (response) {
+                    // Clear existing repeater items
+                    $('[data-repeater-list="Parts"]').empty();
 
-                        // Populate the repeater with new items from response
-                        response.forEach(function (item, index) {
-                            // Append a new repeater item with the fetched data
-                            var newItem = `
-            <div data-repeater-item id="repeaterItem">
-                <div class="row justify-content-between">
-                    <input type="hidden" name="Parts[${index}].ID" value="${item.ID}" />
-                    <input type="hidden" name="Parts[${index}].ID" value="${item.ItemID}" />
-                    <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_PartID">Predmetni tanlang</label>
-                        <input type="text" name="Parts[${index}].ItemName" value="${item.ItemName}" class="form-control" />
-                    </div>
-                    <input type="hidden" name="Parts[${index}].ID" value="${item.UnitID}" />
-                    <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_Unit">Birligi</label>
-                        <input type="text" name="Parts[${index}].UnitName" value="${item.ShortName}" class="form-control" />
-                    </div>
-                    <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_Amount">Miqdori</label>
-                        <input type="number" name="Parts[${index}].Amount" value="${item.Amount}" class="form-control" />
-                    </div>
-                    <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_Price">Dona narxi</label>
-                        <input type="number" name="Parts[${index}].Price" value="${item.Price}" class="form-control" step="0.01" />
-                    </div>
-                    <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_TotalPrice">Umumiy narxi</label>
-                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" disabled="disabled" />
-                    </div>
-                    <div class="col-md-2 col-sm-12 form-group">
-                        <label for="Part_MOQ">MOQ</label>
-                        <input type="text" name="Parts[${index}].MOQ" class="form-control" />
-                    </div>
-                    <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
-                        <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
-                    </div>
-                </div>
-                <hr>
-            </div>`;
-                            $('[data-repeater-list="Parts"]').append(newItem);
+                    // Populate the repeater with new items from response
+                    response.forEach(function (item, index) {
+                        // Create Item dropdown options
+                        var itemOptions = '';
+                        item.Items.forEach(function (itemOption) {
+                            itemOptions += `<option value="${itemOption.ID}" ${itemOption.ID === item.ItemID ? 'selected' : ''}>${itemOption.ItemName}</option>`;
                         });
 
-                    },
-                    error: function () {
-                        alert('Error loading order items.');
-                    }
-                });
-            }
-        });
+                        // Create Unit dropdown options
+                        var unitOptions = '';
+                        item.Units.forEach(function (unitOption) {
+                            unitOptions += `<option value="${unitOption.ID}" ${unitOption.ID === item.UnitID ? 'selected' : ''}>${unitOption.ShortName}</option>`;
+                        });
+
+                        // Append new repeater item with populated dropdowns
+                        var newItem = `
+                        <div data-repeater-item id="repeaterItem">
+                            <div class="row justify-content-between">
+                                <input type="hidden" name="Parts[${index}].ID" value="${item.ID}" />
+
+                                <!-- ItemName Dropdown (Predmetni tanlang) -->
+                                <div class="col-md-2 col-sm-12 form-group">
+                                    <label for="Part_PartID">Predmetni tanlang</label>
+                                    <select name="Parts[${index}].ItemID" class="form-control">
+                                        ${itemOptions}
+                                    </select>
+                                </div>
+
+                                <!-- UnitName Dropdown (Birligi) -->
+                                <div class="col-md-2 col-sm-12 form-group">
+                                    <label for="Part_Unit">Birligi</label>
+                                    <select name="Parts[${index}].UnitID" class="form-control">
+                                        ${unitOptions}
+                                    </select>
+                                </div>
+
+                                <!-- Other fields (Amount, Price, etc.) -->
+                                <!-- Amount -->
+                                <div class="col-md-2 col-sm-12 form-group">
+                                    <label for="Part_Amount">Miqdori</label>
+                                    <input type="number" name="Parts[${index}].Amount" value="${item.Amount}" class="form-control" />
+                                </div>
+                                <!-- Price -->
+                                <div class="col-md-2 col-sm-12 form-group">
+                                    <label for="Part_Price">Dona narxi</label>
+                                    <input type="number" name="Parts[${index}].Price" value="${item.Price}" class="form-control" step="0.01" />
+                                </div>
+                                <!-- TotalPrice (disabled) -->
+                                <div class="col-md-2 col-sm-12 form-group">
+                                    <label for="Part_TotalPrice">Umumiy narxi</label>
+                                    <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" disabled="disabled" />
+                                </div>
+
+                                <!-- MOQ Input -->
+                                <div class="col-md-2 col-sm-12 form-group">
+                                    <label for="Part_MOQ">MOQ</label>
+                                    <input type="text" name="Parts[${index}].MOQ" value="${item.MOQ}" class="form-control" />
+                                </div>
+
+                                <!-- Delete Button -->
+                                <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                                    <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
+                                </div>
+                            </div>
+                            <hr>
+                        </div>`;
+
+                        // Append the new item to the repeater list
+                        $('[data-repeater-list="Parts"]').append(newItem);
+                    });
+
+                },
+                error: function () {
+                    alert('Error loading order items.');
+                }
+            });
+        }
     });
+});
+
 </script>
 
 <script>

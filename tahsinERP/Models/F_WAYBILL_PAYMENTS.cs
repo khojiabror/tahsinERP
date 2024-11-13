@@ -23,7 +23,7 @@ namespace tahsinERP.Models
         public Nullable<int> CurrencyID { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
-        public virtual F_WAYBILLS F_WAYBILLS { get; set; }
         public virtual FORWARDER FORWARDER { get; set; }
+        public virtual F_WAYBILLS F_WAYBILLS { get; set; }
     }
 }

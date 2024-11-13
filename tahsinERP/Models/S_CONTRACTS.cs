@@ -31,7 +31,7 @@ namespace tahsinERP.Models
         public string PaymentTerms { get; set; }
         public System.DateTime DueDate { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
-        public Nullable<int> CurrencyID { get; set; }
+        public int CurrencyID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
         public virtual CURRENCy CURRENCy { get; set; }

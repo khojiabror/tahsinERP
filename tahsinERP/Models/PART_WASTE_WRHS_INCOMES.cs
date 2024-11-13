@@ -30,7 +30,7 @@ namespace tahsinERP.Models
         public System.DateTime IssueDateTime { get; set; }
         public int SenderWHID { get; set; }
         public Nullable<bool> RecieveStatus { get; set; }
-        public Nullable<int> CurrencyID { get; set; }
+        public int CurrencyID { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

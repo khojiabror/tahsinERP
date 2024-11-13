@@ -81,7 +81,7 @@
                                                             @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <h6 class="invoice-to">Valyuta:</h6>
+                                                            <h6 class="invoice-to">Valyuta<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Valyuta ma'lumotlarini sozlamalardan o'zgartiring"></i>:</h6>
                                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
@@ -147,8 +147,8 @@
                                                             @Html.ValidationMessageFor(model => model.Parts[0].PartID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <h6 for="Part_Unit">Birligi</h6>
-                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
+                                                            <h6 for="Part_Unit">Birligi<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="O'lchov birligi ma'lumotlarini sozlamalardan o'zgartiring"></i></h6>
+                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
