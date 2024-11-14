@@ -42,9 +42,9 @@ namespace tahsinERP.Models
         public virtual ICollection<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
         public virtual USER USER { get; set; }
         public virtual USER USER1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
     }
 }

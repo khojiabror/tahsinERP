@@ -1079,10 +1079,10 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
           <Property Name="Amount" Type="float" Nullable="false" />
           <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="Status" Type="bit" />
           <Property Name="Comment" Type="text" />
           <Property Name="CurrencyID" Type="int" />
           <Property Name="UnitID" Type="int" />
+          <Property Name="Progress" Type="float" Nullable="false" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDERS">
           <Key>
@@ -5178,7 +5178,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <NavigationProperty Name="PROD_WRHS_INCOMES" Relationship="Self.FK__PROD_WRHS__Curre__56D3D912" FromRole="CURRENCIES" ToRole="PROD_WRHS_INCOMES" />
           <NavigationProperty Name="PURCHASING_CONTRACT_PAYMENTS" Relationship="Self.FK__PURCHASIN__Curre__57C7FD4B" FromRole="CURRENCIES" ToRole="PURCHASING_CONTRACT_PAYMENTS" />
           <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK__PURCHASIN__Curre__58BC2184" FromRole="CURRENCIES" ToRole="PURCHASING_CONTRACTS" />
-          <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK__PURCHASIN__Curre__59B045BD" FromRole="CURRENCIES" ToRole="PURCHASING_ORDER_ITEMS" />
           <NavigationProperty Name="PURCHASING_WRHS_EXPENSES" Relationship="Self.FK__PURCHASIN__Curre__5AA469F6" FromRole="CURRENCIES" ToRole="PURCHASING_WRHS_EXPENSES" />
           <NavigationProperty Name="PURCHASING_WRHS_INCOMES" Relationship="Self.FK__PURCHASIN__Curre__5B988E2F" FromRole="CURRENCIES" ToRole="PURCHASING_WRHS_INCOMES" />
           <NavigationProperty Name="PURCHASING_ORDERS" Relationship="Self.FK__PURCHASIN__Curre__61516785" FromRole="CURRENCIES" ToRole="PURCHASING_ORDERS" />
@@ -5186,6 +5185,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <NavigationProperty Name="S_ORDERS" Relationship="Self.FK__S_ORDERS__Curren__5D80D6A1" FromRole="CURRENCIES" ToRole="S_ORDERS" />
           <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_CONTRACTS_CURRENCIES" FromRole="CURRENCIES" ToRole="F_CONTRACTS" />
           <NavigationProperty Name="GTDS" Relationship="DBTHSNModel.FK_GTDS_CURRENCIES" FromRole="CURRENCy" ToRole="GTD" />
+          <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="DBTHSNModel.FK__PURCHASIN__Curre__59B045BD" FromRole="CURRENCy" ToRole="PURCHASING_ORDER_ITEMS" />
         </EntityType>
         <EntityType Name="CUSTOMER">
           <Key>
@@ -6353,9 +6353,9 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <NavigationProperty Name="PURCHASING_CONTRACT_ITEMS" Relationship="Self.FK_PURCHASING_CONTRACT_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_CONTRACT_ITEMS" />
           <NavigationProperty Name="PURCHASING_ITEM_STOCKS" Relationship="Self.FK_PURCHASING_ITEM_STOCKS_PURCHASING_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_ITEM_STOCKS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PURCHASING_ITEMS_UNITS" FromRole="PURCHASING_ITEMS" ToRole="UNITS" />
-          <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_ORDER_ITEMS" />
           <NavigationProperty Name="PURCHASING_WRHS_EXPENSE_ITEMS" Relationship="Self.FK_PURCHASING_WRHS_EXPENSE_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_WRHS_EXPENSE_ITEMS" />
           <NavigationProperty Name="PURCHASING_WRHS_INCOME_ITEMS" Relationship="Self.FK_PURCHASING_WRHS_INCOME_ITEMS_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_WRHS_INCOME_ITEMS" />
+          <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ITEMS" ToRole="PURCHASING_ORDER_ITEMS" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDER_DOCS">
           <Key>
@@ -6366,25 +6366,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="PURCHASING_ORDERS" Relationship="Self.FK_PURCHASING_ORDER_DOCS_P_ORDERS" FromRole="PURCHASING_ORDER_DOCS" ToRole="PURCHASING_ORDERS" />
-        </EntityType>
-        <EntityType Name="PURCHASING_ORDER_ITEMS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="OrderID" Type="Int32" Nullable="false" />
-          <Property Name="ItemID" Type="Int32" Nullable="false" />
-          <Property Name="Price" Type="Double" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
-          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
-          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
-          <Property Name="Status" Type="Boolean" />
-          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="CurrencyID" Type="Int32" />
-          <Property Name="UnitID" Type="Int32" />
-          <NavigationProperty Name="CURRENCy" Relationship="Self.FK__PURCHASIN__Curre__59B045BD" FromRole="PURCHASING_ORDER_ITEMS" ToRole="CURRENCIES" />
-          <NavigationProperty Name="PURCHASING_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ORDER_ITEMS" ToRole="PURCHASING_ITEMS" />
-          <NavigationProperty Name="PURCHASING_ORDERS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDER_ITEMS" ToRole="PURCHASING_ORDERS" />
         </EntityType>
         <EntityType Name="PURCHASING_ORDERS">
           <Key>
@@ -6407,9 +6388,9 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK__PURCHASIN__Curre__61516785" FromRole="PURCHASING_ORDERS" ToRole="CURRENCIES" />
           <NavigationProperty Name="PURCHASING_CONTRACTS" Relationship="Self.FK__PURCHASIN__Order__1CA7377D" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_CONTRACTS" />
           <NavigationProperty Name="PURCHASING_ORDER_DOCS" Relationship="Self.FK_PURCHASING_ORDER_DOCS_P_ORDERS" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_ORDER_DOCS" />
-          <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_ORDER_ITEMS" />
           <NavigationProperty Name="USER" Relationship="Self.FK_PURCHASING_ORDERS_USERS" FromRole="PURCHASING_ORDERS" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_PURCHASING_ORDERS_USERS1" FromRole="PURCHASING_ORDERS" ToRole="USERS" />
+          <NavigationProperty Name="PURCHASING_ORDER_ITEMS" Relationship="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDERS" ToRole="PURCHASING_ORDER_ITEMS" />
         </EntityType>
         <EntityType Name="PURCHASING_WRHS_EXPENSE_ITEMS">
           <Key>
@@ -7284,18 +7265,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="PURCHASING_CONTRACTS">
-              <PropertyRef Name="CurrencyID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK__PURCHASIN__Curre__59B045BD">
-          <End Role="CURRENCIES" Type="Self.CURRENCy" Multiplicity="0..1" />
-          <End Role="PURCHASING_ORDER_ITEMS" Type="Self.PURCHASING_ORDER_ITEMS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CURRENCIES">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="PURCHASING_ORDER_ITEMS">
               <PropertyRef Name="CurrencyID" />
             </Dependent>
           </ReferentialConstraint>
@@ -9028,18 +8997,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS">
-          <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
-          <End Role="PURCHASING_ORDER_ITEMS" Type="Self.PURCHASING_ORDER_ITEMS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PURCHASING_ITEMS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="PURCHASING_ORDER_ITEMS">
-              <PropertyRef Name="ItemID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_PURCHASING_WRHS_EXPENSE_ITEMS_ITEMS">
           <End Role="PURCHASING_ITEMS" Type="Self.PURCHASING_ITEMS" Multiplicity="1" />
           <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" Type="Self.PURCHASING_WRHS_EXPENSE_ITEMS" Multiplicity="*" />
@@ -9072,18 +9029,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="PURCHASING_ORDER_DOCS">
-              <PropertyRef Name="OrderID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS">
-          <End Role="PURCHASING_ORDERS" Type="Self.PURCHASING_ORDERS" Multiplicity="1" />
-          <End Role="PURCHASING_ORDER_ITEMS" Type="Self.PURCHASING_ORDER_ITEMS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PURCHASING_ORDERS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="PURCHASING_ORDER_ITEMS">
               <PropertyRef Name="OrderID" />
             </Dependent>
           </ReferentialConstraint>
@@ -9443,7 +9388,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <EntitySet Name="PURCHASING_ITEM_STOCKS" EntityType="Self.PURCHASING_ITEM_STOCKS" />
           <EntitySet Name="PURCHASING_ITEMS" EntityType="Self.PURCHASING_ITEMS" />
           <EntitySet Name="PURCHASING_ORDER_DOCS" EntityType="Self.PURCHASING_ORDER_DOCS" />
-          <EntitySet Name="PURCHASING_ORDER_ITEMS" EntityType="Self.PURCHASING_ORDER_ITEMS" />
           <EntitySet Name="PURCHASING_ORDERS" EntityType="Self.PURCHASING_ORDERS" />
           <EntitySet Name="PURCHASING_WRHS_EXPENSE_ITEMS" EntityType="Self.PURCHASING_WRHS_EXPENSE_ITEMS" />
           <EntitySet Name="PURCHASING_WRHS_EXPENSES" EntityType="Self.PURCHASING_WRHS_EXPENSES" />
@@ -9603,10 +9547,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <AssociationSet Name="FK__PURCHASIN__Curre__58BC2184" Association="Self.FK__PURCHASIN__Curre__58BC2184">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
             <End Role="PURCHASING_CONTRACTS" EntitySet="PURCHASING_CONTRACTS" />
-          </AssociationSet>
-          <AssociationSet Name="FK__PURCHASIN__Curre__59B045BD" Association="Self.FK__PURCHASIN__Curre__59B045BD">
-            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
-            <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
           </AssociationSet>
           <AssociationSet Name="FK__PURCHASIN__Curre__5AA469F6" Association="Self.FK__PURCHASIN__Curre__5AA469F6">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
@@ -10184,10 +10124,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
           </AssociationSet>
-          <AssociationSet Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" Association="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS">
-            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
-            <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
-          </AssociationSet>
           <AssociationSet Name="FK_PURCHASING_WRHS_EXPENSE_ITEMS_ITEMS" Association="Self.FK_PURCHASING_WRHS_EXPENSE_ITEMS_ITEMS">
             <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
             <End Role="PURCHASING_WRHS_EXPENSE_ITEMS" EntitySet="PURCHASING_WRHS_EXPENSE_ITEMS" />
@@ -10199,10 +10135,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <AssociationSet Name="FK_PURCHASING_ORDER_DOCS_P_ORDERS" Association="Self.FK_PURCHASING_ORDER_DOCS_P_ORDERS">
             <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
             <End Role="PURCHASING_ORDER_DOCS" EntitySet="PURCHASING_ORDER_DOCS" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" Association="Self.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS">
-            <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
-            <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
           </AssociationSet>
           <AssociationSet Name="FK_PURCHASING_ORDERS_USERS" Association="Self.FK_PURCHASING_ORDERS_USERS">
             <End Role="USERS" EntitySet="USERS" />
@@ -10340,6 +10272,19 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             <End Role="CURRENCy" EntitySet="CURRENCIES" />
             <End Role="GTD" EntitySet="GTDS" />
           </AssociationSet>
+          <EntitySet Name="PURCHASING_ORDER_ITEMS" EntityType="DBTHSNModel.PURCHASING_ORDER_ITEMS" />
+          <AssociationSet Name="FK__PURCHASIN__Curre__59B045BD" Association="DBTHSNModel.FK__PURCHASIN__Curre__59B045BD">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS">
+            <End Role="PURCHASING_ITEMS" EntitySet="PURCHASING_ITEMS" />
+            <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS">
+            <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
+            <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetCarPlanRequirements_Result">
           <Property Type="String" Name="PNo" Nullable="false" MaxLength="15" />
@@ -10410,6 +10355,61 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             </Principal>
             <Dependent Role="GTD">
               <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PURCHASING_ORDER_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="Price" Type="Double" Nullable="false" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="UnitID" Type="Int32" />
+          <Property Name="Progress" Type="Double" Nullable="false" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK__PURCHASIN__Curre__59B045BD" FromRole="PURCHASING_ORDER_ITEMS" ToRole="CURRENCy" />
+          <NavigationProperty Name="PURCHASING_ITEMS" Relationship="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" FromRole="PURCHASING_ORDER_ITEMS" ToRole="PURCHASING_ITEMS" />
+          <NavigationProperty Name="PURCHASING_ORDERS" Relationship="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" FromRole="PURCHASING_ORDER_ITEMS" ToRole="PURCHASING_ORDERS" />
+        </EntityType>
+        <Association Name="FK__PURCHASIN__Curre__59B045BD">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.PURCHASING_ORDER_ITEMS" Role="PURCHASING_ORDER_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ORDER_ITEMS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS">
+          <End Type="DBTHSNModel.PURCHASING_ITEMS" Role="PURCHASING_ITEMS" Multiplicity="1" />
+          <End Type="DBTHSNModel.PURCHASING_ORDER_ITEMS" Role="PURCHASING_ORDER_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ORDER_ITEMS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS">
+          <End Type="DBTHSNModel.PURCHASING_ORDERS" Role="PURCHASING_ORDERS" Multiplicity="1" />
+          <End Type="DBTHSNModel.PURCHASING_ORDER_ITEMS" Role="PURCHASING_ORDER_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PURCHASING_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PURCHASING_ORDER_ITEMS">
+              <PropertyRef Name="OrderID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -11519,23 +11519,6 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="PURCHASING_ORDER_ITEMS">
-            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ORDER_ITEMS">
-              <MappingFragment StoreEntitySet="PURCHASING_ORDER_ITEMS">
-                <ScalarProperty Name="ID" ColumnName="ID" />
-                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
-                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
-                <ScalarProperty Name="Price" ColumnName="Price" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="Comment" ColumnName="Comment" />
-                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
-                <ScalarProperty Name="UnitID" ColumnName="UnitID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="PURCHASING_ORDERS">
             <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ORDERS">
               <MappingFragment StoreEntitySet="PURCHASING_ORDERS">
@@ -12078,6 +12061,23 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <FunctionImportMapping FunctionImportName="InTransitView" FunctionName="DBTHSNModel.Store.InTransitView" />
           <FunctionImportMapping FunctionImportName="WeeklyCoverage" FunctionName="DBTHSNModel.Store.WeeklyCoverage" />
           <FunctionImportMapping FunctionImportName="WeeklyPartRequirement" FunctionName="DBTHSNModel.Store.WeeklyPartRequirement" />
+          <EntitySetMapping Name="PURCHASING_ORDER_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.PURCHASING_ORDER_ITEMS">
+              <MappingFragment StoreEntitySet="PURCHASING_ORDER_ITEMS">
+                <ScalarProperty Name="Progress" ColumnName="Progress" />
+                <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Price" ColumnName="Price" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

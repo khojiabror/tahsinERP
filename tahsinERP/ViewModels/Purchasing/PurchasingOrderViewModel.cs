@@ -14,6 +14,7 @@ namespace tahsinERP.ViewModels.PurchasingOrder
         public string OrderCodeEDO { get; set; }
         public System.DateTime CreatedDT { get; set; }
         public int CreatedByUserID { get; set; }
+        [Required]
         public System.DateTime ApprovedDTEDO { get; set; }
         public string Comment { get; set; }
         public int CurrencyID { get; set; }

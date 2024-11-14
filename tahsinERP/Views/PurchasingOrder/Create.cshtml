@@ -64,13 +64,13 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label>Ma'sul xarid agenti:</label>
-                                                            @Html.DropDownList("BuyerUserID", (SelectList)ViewBag.userList, "Buyerni tanlang:", new { @class = "form-control select", @required = "required" })
+                                                            @Html.DropDownListFor(model => model.BuyerUserID, ViewBag.userList as SelectList, "Buyerni tanlang:", new { @class = "form-control select", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.BuyerUserID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="OrderNo">Valyuta</label>
                                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.OrderCode, "", new { @class = "text-danger" })
+                                                            @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
                                                 </div>

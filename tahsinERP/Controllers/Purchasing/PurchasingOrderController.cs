@@ -37,40 +37,23 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var order = db.PURCHASING_ORDERS.Find(ID);
+                double orderPercentage = 0, number = 0;
+                var order = db.PURCHASING_ORDERS.Include(x => x.PURCHASING_ORDER_ITEMS).Where(x => x.ID == ID).FirstOrDefault();
                 if (order == null)
                 {
                     return Json(0, JsonRequestBehavior.AllowGet); // Return 0 if order not found
                 }
-
-                double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Where(x => x.Status == true && x.OrderID == ID).Count();
-                double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Where(x => x.OrderID == ID).Count();
-                double progress = (trueStatusCount / totalStatusCount) * 100;
-
-                return Json((int)Math.Round(progress), JsonRequestBehavior.AllowGet);
+                else
+                {
+                    foreach (var item in order.PURCHASING_ORDER_ITEMS)
+                    {
+                        number += item.Progress;
+                    }
+                    orderPercentage = number / order.PURCHASING_ORDER_ITEMS.Count * 100;
+                    return Json((int)Math.Round(orderPercentage), JsonRequestBehavior.AllowGet);
+                }
             }
         }
-
-        /*   private int CalculateOrderProgress(int orderID)
-           {
-               using (DBTHSNEntities db = new DBTHSNEntities())
-               {
-                   if (orderID != 0)
-                   {
-                       // Example logic to calculate progress
-                       var existContract = db.PURCHASING_CONTRACTS.Where(x => x.IsDeleted ==false && x.OrderID == orderID).FirstOrDefault();
-                       if (existContract != null)
-                       {
-                           return 100;
-                       }
-                       *//*if (order.Status == "Completed") return 100;
-                       if (order.Status == "In Progress") return 50;*//*
-                       return 0; // Default
-                   }
-                   return 0;
-               }
-           }*/
-
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -95,100 +78,105 @@ namespace tahsinERP.Controllers
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
 
-                    if (ModelState.IsValid)
+                    //if (ModelState.IsValid)
+                    //{
+                    var existOrderCodeEDO = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && model.OrderCodeEDO.CompareTo(x.OrderCodeEDO) == 0).FirstOrDefault();
+                    if (existOrderCodeEDO != null)
                     {
-                        var existOrderCodeEDO = db.PURCHASING_ORDERS.Where(x => x.IsDeleted == false && model.OrderCodeEDO.CompareTo(x.OrderCodeEDO) == 0).FirstOrDefault();
-                        if (existOrderCodeEDO != null)
-                        {
-                            ModelState.AddModelError("", $"{existOrderCodeEDO.OrderCodeEDO} ushbu raqam bilan buyurtma kiritilgan");
-                            ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-                            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                            ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
-
-                            return View(model);
-                        }
-                        else
-                        {
-                            var newOrder = new PURCHASING_ORDERS()
-                            {
-                                OrderCode = model.OrderCodeEDO,
-                                OrderCodeEDO = model.OrderCodeEDO,
-                                Comment = model.Comment,
-                                Status = "Jarayonda",
-                                CreatedByUserID = GetUserID(User.Identity.Name),
-                                BuyerUserID = model.BuyerUserID,
-                                CreatedDT = model.ApprovedDTEDO,
-                                ApprovedDTEDO = model.ApprovedDTEDO,
-                                OrderedByUser = model.OrderedByUser,
-                                OrderedByDept = model.OrderedByDept,
-                                CurrencyID = model.CurrencyID,
-                                Progress = 0
-                            };
-
-                            db.PURCHASING_ORDERS.Add(newOrder);
-                            db.SaveChanges();
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmani kiritdi");
-
-                            foreach (var part in model.Parts)
-                            {
-                                var newPart = new PURCHASING_ORDER_ITEMS
-                                {
-                                    OrderID = newOrder.ID,
-                                    ItemID = part.ItemID,
-                                    UnitID = part.UnitID,
-                                    Price = part.Price,
-                                    Amount = part.Amount
-                                };
-
-                                db.PURCHASING_ORDER_ITEMS.Add(newPart);
-                                PURCHASING_ITEMS pItem = db.PURCHASING_ITEMS.Where(pi => pi.ID == newPart.ItemID).FirstOrDefault();
-                                LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
-
-                            }
-                            db.SaveChanges();
-                            if (model.File != null)
-                            {
-                                if (model.File.ContentLength < 5242880)
-                                {
-                                    if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
-                                    {
-                                        PURCHASING_ORDER_DOCS purchasingOrderDoc = new PURCHASING_ORDER_DOCS();
-                                        byte[] fileData = new byte[model.File.InputStream.Length];
-                                        model.File.InputStream.Read(fileData, 0, fileData.Length);
-
-                                        purchasingOrderDoc.OrderID = newOrder.ID;
-                                        purchasingOrderDoc.Doc = fileData;
-
-                                        db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
-                                        db.SaveChanges();
-
-                                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"Buyurtma: {newOrder.OrderCode} uchun fayl yukladi");
-                                    }
-                                    else
-                                    {
-                                        ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
-                                    }
-                                }
-                                else
-                                {
-                                    ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 5MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
-                                    throw new RetryLimitExceededException();
-                                }
-
-                            }
-                        }
-
-                        return RedirectToAction("Index");
-                    }
-                    else
-                    {
+                        ModelState.AddModelError("", $"{existOrderCodeEDO.OrderCodeEDO} ushbu raqam bilan buyurtma kiritilgan");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
-                        ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
-                        //ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>());
                         ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                        ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
+                        ViewBag.userList = new SelectList(
+                                db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
+                                .ToList(), "ID", "Fullname");
 
                         return View(model);
                     }
+                    else
+                    {
+                        var newOrder = new PURCHASING_ORDERS()
+                        {
+                            OrderCode = model.OrderCodeEDO,
+                            OrderCodeEDO = model.OrderCodeEDO,
+                            Comment = model.Comment,
+                            Status = "Jarayonda",
+                            CreatedByUserID = GetUserID(User.Identity.Name),
+                            BuyerUserID = model.BuyerUserID,
+                            CreatedDT = model.ApprovedDTEDO,
+                            ApprovedDTEDO = model.ApprovedDTEDO,
+                            OrderedByUser = model.OrderedByUser,
+                            OrderedByDept = model.OrderedByDept,
+                            CurrencyID = model.CurrencyID,
+                            Progress = 0
+                        };
+
+                        db.PURCHASING_ORDERS.Add(newOrder);
+                        db.SaveChanges();
+                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmani kiritdi");
+
+                        foreach (var part in model.Parts)
+                        {
+                            var newPart = new PURCHASING_ORDER_ITEMS
+                            {
+                                OrderID = newOrder.ID,
+                                ItemID = part.ItemID,
+                                UnitID = part.UnitID,
+                                Price = part.Price,
+                                Amount = part.Amount
+                            };
+
+                            db.PURCHASING_ORDER_ITEMS.Add(newPart);
+                            PURCHASING_ITEMS pItem = db.PURCHASING_ITEMS.Where(pi => pi.ID == newPart.ItemID).FirstOrDefault();
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
+
+                        }
+                        db.SaveChanges();
+                        if (model.File != null)
+                        {
+                            if (model.File.ContentLength < 5242880)
+                            {
+                                if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
+                                {
+                                    PURCHASING_ORDER_DOCS purchasingOrderDoc = new PURCHASING_ORDER_DOCS();
+                                    byte[] fileData = new byte[model.File.InputStream.Length];
+                                    model.File.InputStream.Read(fileData, 0, fileData.Length);
+
+                                    purchasingOrderDoc.OrderID = newOrder.ID;
+                                    purchasingOrderDoc.Doc = fileData;
+
+                                    db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"Buyurtma: {newOrder.OrderCode} uchun fayl yukladi");
+                                }
+                                else
+                                {
+                                    ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
+                                }
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", "Faylni yuklab bo'lmadi, u 5MBdan kattaroq. Qayta urinib ko'ring, agar muammo yana qaytarilsa, tizim administratoriga murojaat qiling.");
+                                throw new RetryLimitExceededException();
+                            }
+
+                        }
+                    }
+
+                    return RedirectToAction("Index");
+                    //}
+                    //else
+                    //{
+                    //    ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                    //    ViewBag.partList = new SelectList(db.PURCHASING_ITEMS.ToList(), "ID", "ItemName");
+                    //    ViewBag.userList = new SelectList(
+                    //                db.USERS.Where(u => u.ROLES.Any(r => r.RName == "Buyer"))
+                    //                .ToList(), "ID", "Fullname");
+                    //    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+
+                    //    return View(model);
+                    //}
                 }
             }
             catch (Exception ex)
@@ -547,15 +535,13 @@ namespace tahsinERP.Controllers
                     {
                         // Approve logic
                         PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
-                        purchasingItemToApprove.Status = true;
+
                         purchasingItemToApprove.Comment = "";
 
                         PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
                         purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
                         //Progress update 
-                        double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.Status == true && x.ID == ID);
                         double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
-                        purchasingOrder.Progress = trueStatusCount / totalStatusCount * 100;
 
                         db.Entry(purchasingItemToApprove).State = EntityState.Modified;
                         db.SaveChanges();
@@ -567,15 +553,12 @@ namespace tahsinERP.Controllers
                     else if (action == "disapprove")
                     {
                         PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
-                        purchasingItemToApprove.Status = false;
                         purchasingItemToApprove.Comment = comment;
 
                         PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
                         purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
                         //Progress update
-                        double trueStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.Status == true && x.ID == ID);
                         double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
-                        purchasingOrder.Progress = trueStatusCount / totalStatusCount * 100;
 
                         db.Entry(purchasingItemToApprove).State = EntityState.Modified;
                         db.SaveChanges();

@@ -77,12 +77,26 @@
                                             <br />
                                             <span>Kim tomonidan yuklandi:<b> @Html.DisplayFor(model => model.USER.FullName, new { @class = "form-control" })</b></span>
                                             <hr />
-                                            <b>Status</b>:
+                                            <br />
+                                            <span>Status:</span>
+                                            @if (Model.Status.CompareTo("Yakunlandi") == 0)
+                                            {
+                                                <span class="badge badge-light-success"><b>@Html.DisplayFor(model => model.Status, new { @class = "form-control" })</b></span>
+                                            }
+                                            else if (Model.Status.CompareTo("Bekor qilingan") == 0)
+                                            {
+                                                <span class="badge badge-light-danger"><b>@Html.DisplayFor(model => model.Status, new { @class = "form-control" })</b></span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-light-secondary"><b>@Html.DisplayFor(model => model.Status, new { @class = "form-control" })</b></span>
+                                            }
+                                            <br />
+                                            <b>Umumiy Progress</b>:
                                             <div class="progress-bar">
                                                 <div id="progress-element-@Model.ID" class="element" style="width: 0%;">0%</div>
                                             </div>
                                             <hr />
-
                                             <button id="downloadFileBtn" class="btn btn-outline-warning" onclick="downloadFile()">
                                                 <i class='bx bx-save'></i> Original fayl yuklash
                                             </button>
@@ -108,13 +122,13 @@
                                                                             <th>Birlik narxi</th>
                                                                             <th>Miqdori</th>
                                                                             <th>Umumiy narx</th>
-                                                                            <th>Status</th>
-                                                                            <th>Izoh</th>
+                                                                            <th>Progress</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         @foreach (var item in ViewBag.partList)
                                                                         {
+                                                                            var progressPercentage = item.Progress * 100;
                                                                             <tr>
                                                                                 <td>
                                                                                     <a href="~/PurchasingItem/Details/@item.ItemID">@item.PURCHASING_ITEMS.ItemName</a>
@@ -122,19 +136,11 @@
                                                                                 <td>@item.Price @Model.CURRENCy.Shortname</td>
                                                                                 <td>@item.Amount</td>
                                                                                 <td>@item.TotalPrice @Model.CURRENCy.Shortname</td>
-                                                                                @if (item.Status == true)
-                                                                                {
-                                                                                    <td><span class="badge badge-light-success">Tasdiqlangan</span></td>
-                                                                                }
-                                                                                else if (item.Status == false)
-                                                                                {
-                                                                                    <td><span class="badge badge-light-danger">Bekor qilingan</span></td>
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    <td><span class="badge badge-light-secondary">Jarayonda</span></td>
-                                                                                }
-                                                                                <td>@item.Comment</td>
+                                                                                <td>
+                                                                                    <div class="progress-bar">
+                                                                                        <div class="element" style="width: @progressPercentage%;">@progressPercentage%</div>
+                                                                                    </div>
+                                                                                </td>
                                                                             </tr>
                                                                         }
                                                                     </tbody>
@@ -212,27 +218,29 @@ else
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
+
     $(document).ready(function () {
-        var orderID = '@Model.ID'; // Get the order ID from the model
+    var orderID = '@Model.ID'; // Get the order ID from the model
 
-        // Call the function to update the progress bar for this specific order
-        updateProgressBar(orderID, 'progress-element-' + orderID);
+    // Call the function to update the progress bar for this specific order
+    updateProgressBar(orderID, 'progress-element-' + orderID);
+});
+
+// Function to update the progress bar for a specific order
+function updateProgressBar(orderID, progressElementId) {
+    $.ajax({
+        url: '/PurchasingOrder/GetProgressPercentage', // Call your action
+        type: 'GET',
+        data: { ID: orderID }, // Pass the order ID to the controller
+        success: function (response) {
+            // Update the progress bar's width and text
+            $('#' + progressElementId).css('width', response + '%');
+            $('#' + progressElementId).text(response + '%');
+        },
+        error: function () {
+            console.error('Failed to get progress percentage.');
+        }
     });
+}
 
-    // Function to update the progress bar for a specific order
-    function updateProgressBar(orderID, progressElementId) {
-        $.ajax({
-            url: '/PurchasingOrder/GetProgressPercentage', // Call your action
-            type: 'GET',
-            data: { ID: orderID }, // Pass the order ID to the controller
-            success: function (response) {
-                // Update the progress bar's width and text
-                $('#' + progressElementId).css('width', response + '%');
-                $('#' + progressElementId).text(response + '%');
-            },
-            error: function () {
-                console.error('Failed to get progress percentage.');
-            }
-        });
-    }
 </script>

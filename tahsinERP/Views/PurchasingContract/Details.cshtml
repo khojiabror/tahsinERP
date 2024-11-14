@@ -60,8 +60,6 @@
                                                 <hr />
                                                 <span><b>Incoterms</b>: @Html.DisplayFor(model => model.Incoterms, new { @class = "form-control" })</span>
                                                 <hr />
-                                                <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" })</span>
-                                                <hr />
                                                 <span><b>To`lov sharti</b>: @Html.DisplayFor(model => model.PaymentTerms, new { @class = "form-control" })</span>
                                                 <hr />
 
@@ -92,7 +90,6 @@
                                                                             <th>Miqdori</th>
                                                                             <th>Birlik narxi</th>
                                                                             <th>Umumiy narxi</th>
-                                                                            <th>MOQ</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -105,7 +102,6 @@
                                                                                 <td>@item.Amount @item.UNIT.UnitName</td>
                                                                                 <td>@item.Price</td>
                                                                                 <td>@item.TotalPrice</td>
-                                                                                <td>@item.MOQ</td>
                                                                             </tr>
                                                                         }
                                                                     </tbody>

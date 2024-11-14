@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="f3051e307c9f4f9e80418afd3a67a316" Name="Diagram1">
+      <Diagram DiagramId="f3051e307c9f4f9e80418afd3a67a316" Name="Diagram1" ZoomLevel="47">
         <EntityTypeShape EntityType="DBTHSNModel.BLANKING_NORMS" Width="1.5" PointX="16.25" PointY="77.625" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.BOM" Width="1.5" PointX="3" PointY="20.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.CAR_PLANS" Width="1.5" PointX="3" PointY="1" IsExpanded="true" />
@@ -83,7 +83,6 @@
         <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_ITEM_STOCKS" Width="1.5" PointX="5.25" PointY="158.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_ITEMS" Width="1.5" PointX="3" PointY="158.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_ORDER_DOCS" Width="1.5" PointX="3" PointY="135.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_ORDER_ITEMS" Width="1.5" PointX="8.25" PointY="158.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_ORDERS" Width="1.5" PointX="0.75" PointY="126.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_WRHS_EXPENSE_ITEMS" Width="1.5" PointX="8.25" PointY="121" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_WRHS_EXPENSES" Width="1.5" PointX="6" PointY="115.625" IsExpanded="true" />
@@ -148,7 +147,6 @@
         <AssociationConnector Association="DBTHSNModel.FK__PROD_WRHS__Curre__56D3D912" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__57C7FD4B" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__58BC2184" ManuallyRouted="false" />
-        <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__59B045BD" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__5AA469F6" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__5B988E2F" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__61516785" ManuallyRouted="false" />
@@ -293,11 +291,9 @@
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_WRHS_INCOMES_PURCHASING_CONTRACTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ITEM_STOCKS_PURCHASING_ITEMS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ITEMS_UNITS" ManuallyRouted="false" />
-        <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_WRHS_EXPENSE_ITEMS_ITEMS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_WRHS_INCOME_ITEMS_ITEMS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_DOCS_P_ORDERS" ManuallyRouted="false" />
-        <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDERS_USERS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDERS_USERS1" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_EXPENSE_ITEMS_UNITS" ManuallyRouted="false" />
@@ -324,6 +320,10 @@
         <AssociationConnector Association="DBTHSNModel.PROD_SHOPS_PRODUCTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.USERROLES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_GTDS_CURRENCIES" />
+        <EntityTypeShape EntityType="DBTHSNModel.PURCHASING_ORDER_ITEMS" Width="1.5" PointX="12.25" PointY="109.75" />
+        <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__59B045BD" />
+        <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" />
+        <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

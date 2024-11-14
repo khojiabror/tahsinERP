@@ -31,7 +31,6 @@ namespace tahsinERP.Models
             this.PROD_WRHS_INCOMES = new HashSet<PROD_WRHS_INCOMES>();
             this.PURCHASING_CONTRACT_PAYMENTS = new HashSet<PURCHASING_CONTRACT_PAYMENTS>();
             this.PURCHASING_CONTRACTS = new HashSet<PURCHASING_CONTRACTS>();
-            this.PURCHASING_ORDER_ITEMS = new HashSet<PURCHASING_ORDER_ITEMS>();
             this.PURCHASING_WRHS_EXPENSES = new HashSet<PURCHASING_WRHS_EXPENSES>();
             this.PURCHASING_WRHS_INCOMES = new HashSet<PURCHASING_WRHS_INCOMES>();
             this.PURCHASING_ORDERS = new HashSet<PURCHASING_ORDERS>();
@@ -39,6 +38,7 @@ namespace tahsinERP.Models
             this.S_ORDERS = new HashSet<S_ORDERS>();
             this.F_CONTRACTS = new HashSet<F_CONTRACTS>();
             this.GTDS = new HashSet<GTD>();
+            this.PURCHASING_ORDER_ITEMS = new HashSet<PURCHASING_ORDER_ITEMS>();
         }
     
         public int ID { get; set; }
@@ -75,8 +75,6 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_WRHS_EXPENSES> PURCHASING_WRHS_EXPENSES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PURCHASING_WRHS_INCOMES> PURCHASING_WRHS_INCOMES { get; set; }
@@ -90,5 +88,7 @@ namespace tahsinERP.Models
         public virtual ICollection<F_CONTRACTS> F_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<GTD> GTDS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
     }
 }

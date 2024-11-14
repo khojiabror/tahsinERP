@@ -159,11 +159,6 @@
                                                             <input type="number" name="TotalPrice" step="0.01" class="form-control" id="Part_TotalPrice" disabled="disabled" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_MOQ">MOQ</label>
-                                                            <input type="number" name="MOQ" class="form-control" id="Part_MOQ" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger", @required = "required" })
-                                                        </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O`chirish</button>
                                                         </div>
@@ -203,7 +198,7 @@ else
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         flatpickr("#dateInput", {
-            dateFormat: "d-m-Y", // You can customize the date format
+            dateFormat: "d.m.Y", // You can customize the date format
             // Optional: restricts the selection to today's date or later
             altInput: true, // Optional: creates an alternate input (more user-friendly)
             altFormat: "F j, Y", // Format displayed in alt input
@@ -279,12 +274,6 @@ else
                                 <div class="col-md-2 col-sm-12 form-group">
                                     <label for="Part_TotalPrice">Umumiy narxi</label>
                                     <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" disabled="disabled" />
-                                </div>
-
-                                <!-- MOQ Input -->
-                                <div class="col-md-2 col-sm-12 form-group">
-                                    <label for="Part_MOQ">MOQ</label>
-                                    <input type="text" name="Parts[${index}].MOQ" value="${item.MOQ}" class="form-control" />
                                 </div>
 
                                 <!-- Delete Button -->

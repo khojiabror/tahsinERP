@@ -105,7 +105,6 @@ namespace tahsinERP.Models
         public virtual DbSet<PURCHASING_ITEM_STOCKS> PURCHASING_ITEM_STOCKS { get; set; }
         public virtual DbSet<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }
-        public virtual DbSet<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_ORDERS> PURCHASING_ORDERS { get; set; }
         public virtual DbSet<PURCHASING_WRHS_EXPENSE_ITEMS> PURCHASING_WRHS_EXPENSE_ITEMS { get; set; }
         public virtual DbSet<PURCHASING_WRHS_EXPENSES> PURCHASING_WRHS_EXPENSES { get; set; }
@@ -138,6 +137,7 @@ namespace tahsinERP.Models
         public virtual DbSet<PROD_SHOPS_PARTS> PROD_SHOPS_PARTS { get; set; }
         public virtual DbSet<CarPlanRequirement> CarPlanRequirements { get; set; }
         public virtual DbSet<MaterialRequirement> MaterialRequirements { get; set; }
+        public virtual DbSet<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
     
         public virtual ObjectResult<GetCarPlanRequirements_Result> GetCarPlanRequirements(string optionCode)
         {
