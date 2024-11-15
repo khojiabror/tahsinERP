@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -77,7 +78,6 @@ namespace tahsinERP.Controllers
                 }
             }
         }
-
         public JsonResult GetPartList(int orderID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -95,7 +95,6 @@ namespace tahsinERP.Controllers
                 return Json(new { success = true, data = partList }, JsonRequestBehavior.AllowGet);
             }
         }
-
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -222,7 +221,7 @@ namespace tahsinERP.Controllers
 
                                 return View(model);
                             }
-
+                            SetStatusOfOrder(model.OrderID);
                             db.SaveChanges();
                             return RedirectToAction("Index");
                         }
@@ -250,7 +249,31 @@ namespace tahsinERP.Controllers
             }
             return View(model);
         }
+        private void SetStatusOfOrder(int orderID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                double orderPercentage = 0, number = 0;
+                var order = db.PURCHASING_ORDERS.Include(x => x.PURCHASING_ORDER_ITEMS).Where(x => x.ID == orderID).FirstOrDefault();
+                if (order != null)
+                {
+                    foreach (var item in order.PURCHASING_ORDER_ITEMS)
+                    {
+                        number += item.Progress;
+                    }
+                    orderPercentage = number / order.PURCHASING_ORDER_ITEMS.Count;
+                    if (orderPercentage == 1)
+                        order.Status = "Yakunlandi";
+                    else if (orderPercentage < 1 && orderPercentage > 0)
+                        order.Status = "Jarayonda";
+                    else
+                        order.Status = "";
 
+                    db.Entry(order).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+            }
+        }
         private void SetOrderProgress(int ID, double Amount)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -265,7 +288,6 @@ namespace tahsinERP.Controllers
                 }
             }
         }
-
         public ActionResult GetOrderItems(int orderId)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -322,8 +344,6 @@ namespace tahsinERP.Controllers
                 return Json(response, JsonRequestBehavior.AllowGet);
             }
         }
-
-
         public ActionResult Delete(int? ID)
         {
             if (ID == null)

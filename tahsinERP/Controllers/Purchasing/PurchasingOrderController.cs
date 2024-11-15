@@ -531,45 +531,48 @@ namespace tahsinERP.Controllers
             {
                 try
                 {
-                    if (action == "approve")
+                    if (!string.IsNullOrEmpty(comment))
                     {
-                        // Approve logic
-                        PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                        if (action == "approve")
+                        {
+                            // Approve logic
+                            PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
 
-                        purchasingItemToApprove.Comment = "";
+                            purchasingItemToApprove.Comment = comment;
+                            purchasingItemToApprove.Progress = 1;
 
-                        PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
-                        purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
-                        //Progress update 
-                        double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
+                            db.Entry(purchasingItemToApprove).State = EntityState.Modified;
+                            db.SaveChanges();
 
-                        db.Entry(purchasingItemToApprove).State = EntityState.Modified;
-                        db.SaveChanges();
+                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtani tasdiqladi");
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtani tasdiqladi");
+                            return RedirectToAction("Index");
+                        }
+                        else if (action == "disapprove")
+                        {
+                        //    PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                        //    purchasingItemToApprove.Comment = comment;
 
-                        return RedirectToAction("Index");
-                    }
-                    else if (action == "disapprove")
-                    {
-                        PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
-                        purchasingItemToApprove.Comment = comment;
+                        //    PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
+                        //    purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
+                        //    //Progress update
+                        //    double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
 
-                        PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
-                        purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
-                        //Progress update
-                        double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
+                        //    db.Entry(purchasingItemToApprove).State = EntityState.Modified;
+                        //    db.SaveChanges();
 
-                        db.Entry(purchasingItemToApprove).State = EntityState.Modified;
-                        db.SaveChanges();
+                        //    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtadan olib tashlandi");
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtadan olib tashlandi");
-
-                        return RedirectToAction("Index");
+                            return RedirectToAction("Index");
+                        }
+                        else
+                            return HttpNotFound();
                     }
                     else
-                        return HttpNotFound();
-
+                    {
+                        ModelState.AddModelError("", "Izoh yozish majburiy, izohni to'ldiring");
+                        return RedirectToAction("UpdateItemStatus", ID);
+                    }
                 }
                 catch (Exception ex)
                 {

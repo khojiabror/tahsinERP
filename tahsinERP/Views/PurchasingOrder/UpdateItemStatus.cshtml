@@ -4,6 +4,24 @@
     ViewBag.Title = "UpdateItemStatus";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .progress-bar {
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        height: 30px;
+        position: relative;
+    }
+
+    .element {
+        background-color: #4caf50;
+        height: 100%;
+        line-height: 30px;
+        text-align: center;
+        color: white;
+        border-radius: 5px;
+        transition: width 1.5s;
+    }
+</style>
 
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -41,8 +59,9 @@
                                             <th>Bo'lim</th>
                                             <th>Miqdori</th>
                                             <th>Umumiy narxi</th>
-                                            <th>Status</th>
+                                            <th>Progress</th>
                                             <th>Izoh</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -50,25 +69,35 @@
                                         {
                                             using (Html.BeginForm("UpdateItemStatus", "PurchasingOrder", FormMethod.Post))
                                             {
+                                                @Html.AntiForgeryToken()
+                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                                var progressPercentage = item.Progress * 100;
                                                 <tr>
                                                     <td><a href="~/PurchasingOrder/Details/@item.OrderID">@item.PURCHASING_ITEMS.ItemName</a></td>
                                                     <td>@item.PURCHASING_ORDERS.OrderedByDept</td>
                                                     <td>@item.Amount</td>
                                                     <td>@item.TotalPrice</td>
                                                     <td>
-                                                        <!-- Bitta umumiy shakl orqali tugmalar va comment qiymatlari jo'natiladi -->
-                                                            @Html.Hidden("ID", item.ID)
-                                                            @Html.Hidden("action", "") <!-- Action qiymati JS orqali yangilanadi -->
-                                                            <button type="button" onclick="submitForm(@item.ID, 'approve')" style="border: none;">
-                                                                <i class="bx bx-check"></i>
-                                                            </button>
-                                                            <button type="button" onclick="submitForm(@item.ID, 'disapprove')" style="border: none;">
-                                                                <i class="bx bx-x"></i>
-                                                            </button>
+                                                        <div class="progress-bar">
+                                                            <div class="element" style="width: @progressPercentage%;">@progressPercentage%</div>
+                                                        </div>
                                                     </td>
-                                                    <td>@Html.TextBox("comment", item.Comment, new { @class = "form-control", id = $"comment_{item.ID}" })</td>
-                                                </tr>   
-                                             }
+                                                    <td>@Html.TextBox("comment", item.Comment, new { @class = "form-control", id = $"comment_{item.ID}", @required = "required" })</td>
+                                                    <td>
+                                                        <!-- Bitta umumiy shakl orqali tugmalar va comment qiymatlari jo'natiladi -->
+                                                        @Html.Hidden("ID", item.ID)
+                                                        @Html.Hidden("action", "") <!-- Action qiymati JS orqali yangilanadi -->
+                                                        @if (progressPercentage != 100)
+                                                        {
+                                                            <button type="button" onclick="submitForm(@item.ID, 'approve')" style="border: none;">
+                                                                Buyurtmani yopish
+                                                            </button>
+                                                        }
+                                                    </td>
+                                                </tr>
+
+                                            }
                                         }
                                     </tbody>
                                 </table>
@@ -94,17 +123,4 @@
         // Shaklni yuborish
         document.forms[0].submit();
     }
-</script>
-
-
-<script>
-    /*function toggleComment(index, enable) {
-        document.getElementById(`comment_${index}`).disabled = !enable;
-    }*/
-
-@*    function refreshDataTable() {
-        var source = document.getElementById("OrderCodeEDO").value;
-        var supplierID = document.getElementById("SupplierID").value;
-        window.location.href = '@Url.Action("UpdateItemStatus", "PurchasingOrder")?orderNoEDO=' + source + '&deptName=' + supplierID;
-    }*@
 </script>
