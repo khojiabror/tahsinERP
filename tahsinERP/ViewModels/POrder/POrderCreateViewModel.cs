@@ -41,5 +41,6 @@ namespace tahsinERP.ViewModels.POrder
         [Required]
         public double MOQ { get; set; }
         public int UnitID { get; set; }
+        public double TotalPrice => Price * Amount;
     }
 }

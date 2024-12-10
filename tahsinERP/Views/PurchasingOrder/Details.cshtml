@@ -92,8 +92,8 @@
                                                 <span class="badge badge-light-secondary"><b>@Html.DisplayFor(model => model.Status, new { @class = "form-control" })</b></span>
                                             }
                                             <br />
-                                            <b>Umumiy Progress</b>:
-                                            <div class="progress-bar">
+                                            <span>Umumiy Progress</span>:
+                                            <div class="progress-bar" style="width:100px;height:30px;">
                                                 <div id="progress-element-@Model.ID" class="element" style="width: 0%;">0%</div>
                                             </div>
                                             <hr />
@@ -123,6 +123,7 @@
                                                                             <th>Miqdori</th>
                                                                             <th>Umumiy narx</th>
                                                                             <th>Progress</th>
+                                                                            <th>Izoh</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -141,6 +142,10 @@
                                                                                         <div class="element" style="width: @progressPercentage%;">@progressPercentage%</div>
                                                                                     </div>
                                                                                 </td>
+                                                                                @if (item.Comment != null)
+                                                                                {
+                                                                                    <td>@Model.USER1.FullName :<i>@item.Comment</i></td>
+                                                                                }
                                                                             </tr>
                                                                         }
                                                                     </tbody>

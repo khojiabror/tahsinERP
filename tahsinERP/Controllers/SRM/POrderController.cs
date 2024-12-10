@@ -1,4 +1,5 @@
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
@@ -97,31 +98,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Contract not found." }, JsonRequestBehavior.AllowGet);
-                }
-            }
-        }
-        public JsonResult GetPriceAndMOQ(int partID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var contractPart = db.P_CONTRACT_PARTS
-                                     .Where(cp => cp.PartID == partID)
-                                     .Select(cp => new
-                                     {
-                                         Price = cp.Price,
-                                         MOQ = cp.MOQ,
-                                         Amount = cp.Quantity
-                                     })
-                                     .FirstOrDefault();
-
-                if (contractPart != null)
-                {
-                    return Json(new { success = true, data = contractPart }, JsonRequestBehavior.AllowGet);
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Part not found in contract." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Shartnoma topilmadi." }, JsonRequestBehavior.AllowGet);
                 }
             }
         }
@@ -131,15 +108,53 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var partList = db.P_CONTRACT_PARTS
+                    .Include(cp => cp.PART)
+                    .Include(cp => cp.UNIT)
                     .Where(cp => cp.ContractID == contractID)
                     .Select(cp => new
                     {
+                        cp.PART.ID,
                         cp.PartID,
-                        cp.PART.PNo
+                        cp.PART.PNo,
+                        cp.MOQ,
+                        cp.Amount,
+                        cp.UnitID,
+                        cp.UNIT.ShortName,
+                        cp.Price
                     })
                     .ToList();
 
-                return Json(new { success = true, data = partList }, JsonRequestBehavior.AllowGet);
+                var parts = db.PARTS
+                    .Select(cp => new
+                    {
+                        cp.ID,
+                        cp.PNo,
+                    })
+                    .ToList();
+
+                var units = db.UNITS
+                    .Select(u => new
+                    {
+                        u.ID,
+                        u.ShortName
+                    })
+                    .ToList();
+
+                // Prepare the response with both contract parts, parts, and units
+                var response = partList.Select(part => new
+                {
+                    part.ID,
+                    part.PartID,
+                    part.PNo,
+                    part.UnitID,
+                    part.MOQ,
+                    part.Amount,
+                    part.Price,
+                    Parts = parts,  // All available items for dropdown
+                    Units = units   // All available units for dropdown
+                }).ToList();
+
+                return Json(response, JsonRequestBehavior.AllowGet);
             }
         }
         public ActionResult GetContractsBySupplier(int supplierID)
@@ -220,7 +235,7 @@ namespace tahsinERP.Controllers
                         };
                         if (model.Parts != null)
                             newOrder.Amount = model.Parts.Sum(p => p.Amount);
-                        
+
                         db.P_ORDERS.Add(newOrder);
                         db.SaveChanges();
                         LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - POrderni yaratdi");
@@ -308,7 +323,7 @@ namespace tahsinERP.Controllers
                         ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                         //ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
-                        ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>()); 
+                        ViewBag.partList = new SelectList(Enumerable.Empty<SelectList>());
                         ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                         return View(model);
@@ -321,7 +336,7 @@ namespace tahsinERP.Controllers
             }
             return View(model);
         }
-        
+
 
         private List<string> contractExceedingParts = new List<string>();
         private bool checkForContractPartsAmount(POrderCreateViewModel model)

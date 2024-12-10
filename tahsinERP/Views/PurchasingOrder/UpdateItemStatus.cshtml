@@ -83,20 +83,21 @@
                                                             <div class="element" style="width: @progressPercentage%;">@progressPercentage%</div>
                                                         </div>
                                                     </td>
-                                                    <td>@Html.TextBox("comment", item.Comment, new { @class = "form-control", id = $"comment_{item.ID}", @required = "required" })</td>
-                                                    <td>
-                                                        <!-- Bitta umumiy shakl orqali tugmalar va comment qiymatlari jo'natiladi -->
-                                                        @Html.Hidden("ID", item.ID)
-                                                        @Html.Hidden("action", "") <!-- Action qiymati JS orqali yangilanadi -->
-                                                        @if (progressPercentage != 100)
-                                                        {
+                                                    @if (progressPercentage != 100)
+                                                    {
+                                                        <td>@Html.TextBox("comment", item.Comment, new { @class = "form-control", id = $"comment_{item.ID}", @required = "required" })</td>
+                                                        <td>
+                                                            <!-- Bitta umumiy shakl orqali tugmalar va comment qiymatlari jo'natiladi -->
+                                                            @Html.Hidden("ID", item.ID)
+                                                            @Html.Hidden("action", "") <!-- Action qiymati JS orqali yangilanadi -->
+
                                                             <button type="button" onclick="submitForm(@item.ID, 'approve')" style="border: none;">
                                                                 Buyurtmani yopish
                                                             </button>
-                                                        }
-                                                    </td>
-                                                </tr>
 
+                                                        </td>
+                                                    }
+                                                </tr>
                                             }
                                         }
                                     </tbody>

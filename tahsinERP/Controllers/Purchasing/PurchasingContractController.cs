@@ -32,69 +32,6 @@ namespace tahsinERP.Controllers
                 return View(list);
             }
         }
-        public JsonResult GetContractDetails(int orderID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var order = db.PURCHASING_ORDERS
-                                 .Include(x => x.CURRENCy)
-                                 .Where(c => c.ID == orderID && c.IsDeleted == false)
-                                 .Select(c => new
-                                 {
-                                     c.ID
-                                 })
-                                 .FirstOrDefault();
-
-                if (order != null)
-                {
-                    return Json(new { success = true, data = order }, JsonRequestBehavior.AllowGet);
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Contract not found." }, JsonRequestBehavior.AllowGet);
-                }
-            }
-        }
-        public JsonResult GetPriceAndMOQ(int itemID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var itemDetails = db.PURCHASING_ORDER_ITEMS
-                    .Where(i => i.ID == itemID && i.IsDeleted == false)
-                    .Select(i => new
-                    {
-                        i.Price,
-                        i.Amount
-                    })
-                    .FirstOrDefault();
-
-                if (itemDetails != null)
-                {
-                    return Json(new { success = true, data = itemDetails }, JsonRequestBehavior.AllowGet);
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Item not found." }, JsonRequestBehavior.AllowGet);
-                }
-            }
-        }
-        public JsonResult GetPartList(int orderID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var partList = db.PURCHASING_ORDER_ITEMS
-                    .Include(x => x.PURCHASING_ITEMS)
-                    .Where(p => p.OrderID == orderID && p.IsDeleted == false)
-                    .Select(p => new
-                    {
-                        p.ItemID,
-                        p.PURCHASING_ITEMS.ItemName
-                    })
-                    .ToList();
-
-                return Json(new { success = true, data = partList }, JsonRequestBehavior.AllowGet);
-            }
-        }
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

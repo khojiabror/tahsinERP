@@ -475,8 +475,8 @@
     <Compile Include="Controllers\SRM\GTDController.cs" />
     <Compile Include="Controllers\AdminSetting\LastActionsController.cs" />
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
-    <Compile Include="Controllers\Engeneering\BlankingController.cs" />
-    <Compile Include="Controllers\Engeneering\BOMController.cs" />
+    <Compile Include="Controllers\Engineering\BlankingController.cs" />
+    <Compile Include="Controllers\Engineering\BOMController.cs" />
     <Compile Include="Controllers\AdminSetting\ComingSoonController.cs" />
     <Compile Include="Controllers\AdminSetting\CookieHelper.cs" />
     <Compile Include="Controllers\CRM\CustomerController.cs" />
@@ -491,7 +491,7 @@
     <Compile Include="Controllers\AdminSetting\ManualController.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
     <Compile Include="Controllers\SRM\PackingListController.cs" />
-    <Compile Include="Controllers\Engeneering\PartController.cs" />
+    <Compile Include="Controllers\Engineering\PartController.cs" />
     <Compile Include="Controllers\SRM\PartPackController.cs" />
     <Compile Include="Controllers\SRM\PartStockController.cs" />
     <Compile Include="Controllers\SRM\PartWRHSController.cs" />
@@ -503,9 +503,9 @@
     <Compile Include="Controllers\SRM\PInvoiceController.cs" />
     <Compile Include="Controllers\AdminSetting\PModuleController.cs" />
     <Compile Include="Controllers\SRM\POrderController.cs" />
-    <Compile Include="Controllers\Engeneering\ProductController.cs" />
+    <Compile Include="Controllers\Engineering\ProductController.cs" />
     <Compile Include="Controllers\ProductionProcessController.cs" />
-    <Compile Include="Controllers\Engeneering\ProductPackController.cs" />
+    <Compile Include="Controllers\Engineering\ProductPackController.cs" />
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
     <Compile Include="Controllers\SRM\POrderPaymentController.cs" />
     <Compile Include="Controllers\SRM\ProformaInvoiceController.cs" />
@@ -515,11 +515,11 @@
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Controllers\AdminSetting\RoleController.cs" />
     <Compile Include="Controllers\CRM\SContractController.cs" />
-    <Compile Include="Controllers\Engeneering\ShopController.cs" />
-    <Compile Include="Controllers\Engeneering\SlittingController.cs" />
+    <Compile Include="Controllers\Engineering\ShopController.cs" />
+    <Compile Include="Controllers\Engineering\SlittingController.cs" />
     <Compile Include="Controllers\CRM\SOrderController.cs" />
     <Compile Include="Controllers\MES\SPLController.cs" />
-    <Compile Include="Controllers\Engeneering\StampingController.cs" />
+    <Compile Include="Controllers\Engineering\StampingController.cs" />
     <Compile Include="Controllers\SRM\SupplierController.cs" />
     <Compile Include="Controllers\Logistic\TracingController.cs" />
     <Compile Include="Controllers\AdminSetting\UserController.cs" />
