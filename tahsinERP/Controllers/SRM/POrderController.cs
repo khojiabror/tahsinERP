@@ -117,10 +117,11 @@ namespace tahsinERP.Controllers
                         cp.PartID,
                         cp.PART.PNo,
                         cp.MOQ,
-                        cp.Amount,
+                        Amount = Math.Round(cp.Amount, 2),
                         cp.UnitID,
                         cp.UNIT.ShortName,
-                        cp.Price
+                        Price = Math.Round(cp.Price, 2),
+                        TotalPrice = Math.Round(cp.Price * cp.Amount, 2)
                     })
                     .ToList();
 
@@ -150,6 +151,7 @@ namespace tahsinERP.Controllers
                     part.MOQ,
                     part.Amount,
                     part.Price,
+                    part.TotalPrice,
                     Parts = parts,  // All available items for dropdown
                     Units = units   // All available units for dropdown
                 }).ToList();
@@ -259,6 +261,7 @@ namespace tahsinERP.Controllers
 
                                 newPart.MOQ = contractPart.MOQ;
                                 newPart.Price = contractPart.Price;
+                                newPart.TotalPrice = newPart.Amount * newPart.Price;
 
                                 db.P_ORDER_PARTS.Add(newPart);
                                 var logPart = db.PARTS.Find(newPart.PartID);
@@ -300,7 +303,7 @@ namespace tahsinERP.Controllers
                                         db.P_ORDER_DOCS.Add(orderDoc);
                                         db.SaveChanges();
 
-                                        LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{orderDoc.P_ORDERS.OrderNo} - uchun POrderDocni yaratdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderDoc.P_ORDERS.OrderNo} - uchun POrderDocni yaratdi");
                                     }
                                     else
                                     {

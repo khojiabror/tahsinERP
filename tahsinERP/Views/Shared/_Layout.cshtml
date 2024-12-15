@@ -360,7 +360,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoice"))
                     {
                         <li class=" nav-item">
-                            <a href="#"><i class="bx bx-file"></i><span class="menu-title" data-i18n="Invoice">Invoice lar</span></a>
+                            <a href="#"><i class="bx bx-file"></i><span class="menu-title" data-i18n="Invoice">Invoyslar</span></a>
                             <ul class="menu-content">
                                 <li>
                                     <a href="~/PInvoice"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Invoice List">Barchasi</span></a>
@@ -373,6 +373,9 @@
                                 </li>
                                 <li>
                                     <a href="@Url.Action("Index", "PInvoice")?type=Maxalliy"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Maxalliy</span></a>
+                                </li>
+                                <li>
+                                    <a href="~/ProformaInvoice/Index"><i class="bx bx-credit-card"></i><span class="menu-item" data-i18n="Basic">Proforma Invoys</span></a>
                                 </li>
                             </ul>
                         </li>
@@ -404,7 +407,7 @@
                             </ul>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoice"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PartWRHS"))
                     {
                         <li class=" nav-item">
                             <a href="#"><i class="bx bxs-home"></i><span class="menu-title" data-i18n="Card">Omborlash</span></a>
@@ -433,17 +436,6 @@
                                 </li>
                                 <li>
                                     <a href="~/Partwrhs/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Card Actions">Ombor ma'lumotlari</span></a>
-                                </li>
-                            </ul>
-                        </li>
-                    }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoice"))
-                    {
-                        <li class=" nav-item">
-                            <a href="#"><i class="bx bxs-file-blank"></i><span class="menu-title" data-i18n="Card">Proforma Invoys</span></a>
-                            <ul class="menu-content">
-                                <li>
-                                    <a href="~/ProformaInvoice/Index"><i class="bx bx-credit-card"></i><span class="menu-item" data-i18n="Basic">Barchasi</span></a>
                                 </li>
                             </ul>
                         </li>

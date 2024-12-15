@@ -15,5 +15,6 @@ namespace tahsinERP.ViewModels
         public DateTime LastIssueDateTime { get; set; }
         public TRACING LastTracing { get; set; }
         public List<TRACING> Tracings { get; set; }
+        public DateTime? Date { get; set; }
     }
 }

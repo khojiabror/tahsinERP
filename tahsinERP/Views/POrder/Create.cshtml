@@ -143,23 +143,23 @@
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_MOQ">MOQ</label>
-                                                            <input type="number" name="MOQ" class="form-control Part_MOQ" id="Part_MOQ" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger", @disabled = "true" })
+                                                            <input type="number" name="MOQ" class="form-control Part_MOQ" id="Part_MOQ" disabled="disabled" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Amount">Miqdori</label>
-                                                            <input type="number" name="Amount" step="0.0001" class="form-control" id="Part_Amount" />
+                                                            <input type="number" name="Amount" step="0.001" class="form-control Part_Amount" id="Part_Amount" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Price">Narx</label>
-                                                            <input type="number" name="Price" step="0.001" class="form-control Part_Price" id="Part_Price" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger", @disabled = "disabled" })
+                                                            <input type="number" name="Price" step="0.001" class="form-control Part_Price" id="Part_Price" disabled="disabled" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_TotalPrice">Umumiy Narxi</label>
-                                                            <input type="number" name="Price" step="0.001" class="form-control Part_Price" id="Part_Price" />
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger", @disabled = "disabled" })
+                                                            <input type="number" name="Price" step="0.001" class="form-control Part_TotalPrice" id="Part_TotalPrice" disabled="disabled" />
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
@@ -231,83 +231,123 @@
 </script>
 <script>
     $(document).ready(function () {
+        // Event listener for ContractID change
         $('#ContractID').on('change', function () {
-            console.log("ContractID changed");
-        var contractID = $(this).val();
-        if (contractID) {
-            var token = $('input[name="__RequestVerificationToken"]').val();
+            var contractID = $(this).val();
+            if (contractID) {
+                var token = $('input[name="__RequestVerificationToken"]').val();
 
-            $.ajax({
-                url: '@Url.Action("GetPartList", "POrder")',
-                type: 'GET',
-                headers: { 'RequestVerificationToken': token },
-                data: { contractID: contractID },
-                success: function (response) {
-                    $('[data-repeater-list="Parts"]').empty();
+                $.ajax({
+                    url: '@Url.Action("GetPartList", "POrder")',
+                    type: 'GET',
+                    headers: { 'RequestVerificationToken': token },
+                    data: { contractID: contractID },
+                    success: function (response) {
+                        $('[data-repeater-list="Parts"]').empty();
 
-                    response.forEach(function (item, index) {
-                        var partOptions = '';
-                        item.Parts.forEach(function (partOption) {
-                            partOptions += `<option value="${partOption.ID}" ${partOption.ID === item.PartID ? 'selected' : ''}>${partOption.PNo}</option>`;
+                        response.forEach(function (item, index) {
+                            var partOptions = '';
+                            item.Parts.forEach(function (partOption) {
+                                partOptions += `<option value="${partOption.ID}" ${partOption.ID === item.PartID ? 'selected' : ''}>${partOption.PNo}</option>`;
+                            });
+
+                            var unitOptions = '';
+                            item.Units.forEach(function (unitOption) {
+                                unitOptions += `<option value="${unitOption.ID}" ${unitOption.ID === item.UnitID ? 'selected' : ''}>${unitOption.ShortName}</option>`;
+                            });
+
+                            var newItem = `
+                            <div data-repeater-item>
+                                <div class="row justify-content-between">
+                                    <input type="hidden" name="Parts[${index}].ID" value="${item.ID}" />
+
+                                    <div class="col-md-2">
+                                        <label>Qismni tanlang</label>
+                                        <select name="Parts[${index}].PartID" class="form-control select">
+                                            ${partOptions}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label>Birligi<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="O'lchov ma'lumotlarini sozlamalardan o'zgartiring"></i></label>
+                                        <select name="Parts[${index}].UnitID" class="form-control select">
+                                            ${unitOptions}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label>MOQ</label>
+                                        <input type="number" name="Parts[${index}].MOQ" value="${item.MOQ}" class="form-control" disabled />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>Miqdori</label>
+                                        <input type="number" name="Parts[${index}].Amount" value="${item.Amount}" class="form-control Part_Amount" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>Dona narxi</label>
+                                        <input type="number" name="Parts[${index}].Price" value="${item.Price}" class="form-control Part_Price" step="0.01" disabled />
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label>Umumiy narxi</label>
+                                        <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control Part_TotalPrice" step="0.01" disabled />
+                                    </div>
+
+                                    <div class="col-md-1">
+                                        <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
+                                    </div>
+                                </div>
+                                <hr>
+                            </div>`;
+                            $('[data-repeater-list="Parts"]').append(newItem);
                         });
+                    },
+                    error: function () {
+                        alert('Qismlarni yuklashda muammo bor.');
+                    }
+                });
+            }
+        });
 
-                        var unitOptions = '';
-                        item.Units.forEach(function (unitOption) {
-                            unitOptions += `<option value="${unitOption.ID}" ${unitOption.ID === item.UnitID ? 'selected' : ''}>${unitOption.ShortName}</option>`;
-                        });
+        // Dynamic calculation for TotalPrice
+        $(document).on('input', '.Part_Amount, .Part_Price', function () {
+            // Find the row of the input field
+            const row = $(this).closest('[data-repeater-item]');
 
-                        var newItem = `
-                        <div data-repeater-item>
-                            <div class="row justify-content-between">
-                                <input type="hidden" name="Parts[${index}].ID" value="${item.ID}" />
+            // Get the price and quantity inputs within the same row
+            const priceInput = row.find('.Part_Price');
+            const quantityInput = row.find('.Part_Amount');
+            const totalPriceInput = row.find('.Part_TotalPrice');
 
-                                <div class="col-md-2">
-                                    <label>Qismni tanlang</label>
-                                    <select name="Parts[${index}].PartID" class="form-control select">
-                                        ${partOptions}
-                                    </select>
-                                </div>
+            // Parse the values as numbers and calculate the total price
+            const price = parseFloat(priceInput.val()) || 0;
+            const quantity = parseFloat(quantityInput.val()) || 0;
+            const totalPrice = price * quantity;
 
-                                <div class="col-md-2">
-                                    <label>Birligi</label>
-                                    <select name="Parts[${index}].UnitID" class="form-control select">
-                                        ${unitOptions}
-                                    </select>
-                                </div>
+            // Update the TotalPrice field
+            totalPriceInput.val(totalPrice.toFixed(6)); // Adjust decimal places as needed
+        });
+    });
+</script>
 
-                                <div class="col-md-2">
-                                    <label>MOQ</label>
-                                    <input type="number" name="Parts[${index}].MOQ" value="${item.MOQ}" class="form-control" disabled />
-                                </div>
-                                <div class="col-md-2">
-                                    <label>Miqdori</label>
-                                    <input type="number" name="Parts[${index}].Amount" value="${item.Amount}" class="form-control" />
-                                </div>
-                                <div class="col-md-2">
-                                    <label>Dona narxi</label>
-                                    <input type="number" name="Parts[${index}].Price" value="${item.Price}" class="form-control" step="0.01" disabled />
-                                </div>
+<script>
+    document.addEventListener('input', function (event) {
+        if (event.target.matches('.Part_Price') || event.target.matches('.Part_Amount')) {
+            // Find the row of the input field
+            const row = event.target.closest('[data-repeater-item]');
 
-                                <div class="col-md-2">
-                                    <label>Umumiy narxi</label>
-                                    <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control" step="0.01" disabled />
-                                </div>
+            // Get the price and quantity inputs within the same row
+            const priceInput = row.querySelector('.Part_Price');
+            const quantityInput = row.querySelector('.Part_Amount');
+            const totalPriceInput = row.querySelector('.Part_TotalPrice');
 
-                                <div class="col-md-1">
-                                    <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
-                                </div>
-                            </div>
-                            <hr>
-                        </div>`;
-                        $('[data-repeater-list="Parts"]').append(newItem);
-                    });
-                },
-                error: function () {
-                    alert('Qismlarni yuklashda muammo bor.');
-                }
-            });
+            // Parse the values as numbers and calculate the total price
+            const price = parseFloat(priceInput.value) || 0;
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const totalPrice = price * quantity;
+
+            // Update the TotalPrice field
+            totalPriceInput.value = totalPrice.toFixed(6); // Adjust decimal places as needed
         }
     });
-});
-
 </script>

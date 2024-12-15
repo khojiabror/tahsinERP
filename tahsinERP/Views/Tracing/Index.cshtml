@@ -1,9 +1,10 @@
-﻿@model List<tahsinERP.ViewModels.TracingViewModel>
+﻿@model tahsinERP.ViewModels.TracingViewModel
 
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     bool changePermit = false;
@@ -50,19 +51,20 @@
                     }
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
-                            @using (Html.BeginForm("Index", "Tracing", FormMethod.Get, new { enctype = "multipart/form-data" }))
+                            @using (Html.BeginForm("Index", "Tracing", FormMethod.Get))
                             {
-                                <div class="row col-4 mb-1" style="float: right;">
-                                    <div class="col-12">
-                                        <label for="dateInput">Sana:</label>
-                                        @Html.TextBox("Date", (string)ViewBag.Date, new { @class = "form-control", @id = "dateInput", @name = "Date" })
+                                <div class="row justify-content-end mb-3">
+                                    <div class="col-md-4 col-12">
+                                        <label for="dateInput" class="form-label">Sana:</label>
+                                        @Html.TextBoxFor(model => model.Date, new { @class = "form-control", @id = "dateInput", @type = "text" })
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-md-2 col-12 mt-md-0 mt-2">
                                         <label>&nbsp;</label>
                                         <button type="submit" class="btn btn-primary form-control">Filterlash</button>
                                     </div>
                                 </div>
                             }
+
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive table-responsivetable-responsive">
@@ -82,7 +84,7 @@
                                             <tbody>
                                                 @if (Model != null)
                                                 {
-                                                    foreach (var item in Model)
+                                                    foreach (var item in ViewBag.data)
                                                     {
                                                         <tr>
                                                             <td>
@@ -114,44 +116,34 @@
             </div>
         </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript">
-        function refreshDataTable() {
-            const customer = document.getElementById("CustomerID").value;
-            window.location.href = '@Url.Action("Index", "Tracing")?customerID=' + customer;
-        }
-    </script>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            flatpickr("#dateInput", {
-                dateFormat: "d.m.Y", // You can customize the date format
-                // Optional: restricts the selection to today's date or later
-                weekNumbers: true,
-                showTodayButton: true,
-                locale: "uz",
-            });
-        });
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get the model date passed from the server, if it exists
+        var modelDate = '@Model.Date?.ToString("yyyy-MM-dd")'; // Ensure the format is yyyy-MM-dd
 
-        document.querySelector("form").addEventListener("submit", function (e) {
-            // Ensure the date is in dd.MM.yyyy format before submitting
-            var dateInput = document.getElementById("dateInput");
+        // If there's a date passed, set it as the value of the input
+        if (modelDate && modelDate !== 'null') {
+            document.getElementById("dateInput").value = modelDate;
+        }
 
-            // Check if the date is not empty before reformatting
-            if (dateInput && dateInput.value) {
-                // Get the date value as a Date object
-                var date = flatpickr.parseDate(dateInput.value, "d.m.Y");
-
-                // If the date object is valid, reformat it to dd.MM.yyyy
-                if (date) {
-                    // Reformat the date to dd.MM.yyyy format
-                    var formattedDate = flatpickr.formatDate(date, "d.m.Y");
-                    dateInput.value = formattedDate;  // Set the value to the correct format
-                }
+        flatpickr("#dateInput", {
+            dateFormat: "d.m.Y", // Date format displayed to the user
+            altInput: true, // Use an alternative input for better user experience
+            altFormat: "F j, Y", // Alternate format (like December 15, 2024)
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "ru", // Adjust locale as needed
+            onChange: function (selectedDates, dateStr, instance) {
+                // When date changes, ensure it's formatted correctly for submission
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("dateInput").value = formattedDate; // Update the value in the input
             }
         });
-
+    });
     </script>
+
 }
 else
 {

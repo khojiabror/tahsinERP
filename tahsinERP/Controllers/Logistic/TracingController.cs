@@ -22,15 +22,19 @@ namespace tahsinERP.Controllers
         // GET: Tracing
         public async Task<ActionResult> Index(DateTime? date = null)
         {
-            if (date is null)
-                date = date ?? DateTime.Now.Date;
-            string dateWithText = date.Value.ToString("MM-dd-yyyy");
-            DateTime date2 = Convert.ToDateTime(dateWithText);
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = await db.TRACINGS
-                    .Include(p => p.P_INVOICE_PACKINGLISTS)
-                    .Where(p => p.IsDeleted == false && p.IssueDateTime == date2)
+                var query = db.TRACINGS
+                              .Include(p => p.P_INVOICE_PACKINGLISTS)
+                              .AsQueryable();
+
+                if (date.HasValue)
+                {
+                    // Filter records by the selected date (only the date part, not the time)
+                    query = query.Where(t => DbFunctions.TruncateTime(t.IssueDateTime) == DbFunctions.TruncateTime(date.Value));
+                }
+
+                var list = await query
                     .GroupBy(t => t.P_INVOICE_PACKINGLISTS.TransportNo)
                     .Select(g => new TracingViewModel
                     {
@@ -41,19 +45,16 @@ namespace tahsinERP.Controllers
                     })
                     .ToListAsync();
 
-                // Ensure the list is not null
-                if (list == null)
+                ViewBag.data = list;
+
+                TracingViewModel model = new TracingViewModel()
                 {
-                    list = new List<TracingViewModel>();
-                }
+                    Date = date,
+                };
 
-                ViewBag.Date = date.Value.ToString("dd-MM-yyyy");
-
-                return View(list);
+                return View(model);
             }
         }
-
-
         public async Task<JsonResult> GetInvoiceNo_Supplier(int packingListID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

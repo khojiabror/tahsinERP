@@ -92,63 +92,53 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var partList = db.P_ORDER_PARTS
-                    .Where(cp => cp.OrderID == orderID)
-                    .Select(cp => new
+                    .Include(op => op.PART)
+                    .Include(op => op.UNIT)
+                    .Where(op => op.OrderID == orderID)
+                    .Select(op => new
                     {
-                        cp.PartID,
-                        cp.PART.PNo
+                        op.PART.ID,
+                        op.PartID,
+                        op.PART.PNo,
+                        op.Amount,
+                        op.UnitID,
+                        op.UNIT.ShortName,
+                        Price = Math.Round(op.Price, 2),
+                        TotalPrice = Math.Round(op.Price * op.Amount, 2)
                     })
                     .ToList();
 
-                return Json(new { success = true, data = partList }, JsonRequestBehavior.AllowGet);
-            }
-        }
-        //Invoice currency ni Orderdan olish
-        public JsonResult GetOrderDetails(int orderID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var order = db.P_ORDERS
-                                 .Where(c => c.ID == orderID && c.IsDeleted == false)
-                                 .Select(c => new
-                                 {
-                                     c.ID,
-                                     c.CurrencyID,
-                                     c.CURRENCy
-                                 })
-                                 .FirstOrDefault();
+                var parts = db.PARTS
+                    .Select(cp => new
+                    {
+                        cp.ID,
+                        cp.PNo,
+                    })
+                    .ToList();
 
-                if (order != null)
-                {
-                    return Json(new { success = true, data = order }, JsonRequestBehavior.AllowGet);
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Contract not found." }, JsonRequestBehavior.AllowGet);
-                }
-            }
-        }
-        public JsonResult GetPriceAndQuantity(int partID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var orderPart = db.P_ORDER_PARTS
-                                     .Where(cp => cp.PartID == partID)
-                                     .Select(cp => new
-                                     {
-                                         Price = cp.Price,
-                                         Quantity = cp.Amount
-                                     })
-                                     .FirstOrDefault();
+                var units = db.UNITS
+                    .Select(u => new
+                    {
+                        u.ID,
+                        u.ShortName
+                    })
+                    .ToList();
 
-                if (orderPart != null)
+                // Prepare the response with both contract parts, parts, and units
+                var response = partList.Select(part => new
                 {
-                    return Json(new { success = true, data = orderPart }, JsonRequestBehavior.AllowGet);
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Part not found in contract." }, JsonRequestBehavior.AllowGet);
-                }
+                    part.ID,
+                    part.PartID,
+                    part.PNo,
+                    part.UnitID,
+                    part.Amount,
+                    part.Price,
+                    part.TotalPrice,
+                    Parts = parts,  // All available items for dropdown
+                    Units = units   // All available units for dropdown
+                }).ToList();
+
+                return Json(response, JsonRequestBehavior.AllowGet);
             }
         }
         public ActionResult Create()
@@ -190,7 +180,7 @@ namespace tahsinERP.Controllers
                     db.P_INVOICES.Add(invoice);
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{invoice.InvoiceNo} - PInvoiceni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "PInvoiceController", $"{invoice.InvoiceNo} - Invoysni yaratdi");
 
                     List<P_ORDER_PARTS> orderParts = db.P_ORDER_PARTS.Where(po => po.OrderID == model.OrderID).ToList();
                     List<string> notInOrderParts = new List<string>();
@@ -209,9 +199,11 @@ namespace tahsinERP.Controllers
                             };
 
                             newPart.Price = orderPart.Price;
+                            newPart.TotalPrice = newPart.Quantity * newPart.Price;
                             db.P_INVOICE_PARTS.Add(newPart);
+
                             var logPart = db.PARTS.Find(item.PartID);
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{logPart.PNo} - PInvoicenPartni yaratdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "PInvoiceController", $"{invoice.InvoiceNo} uchun {logPart.PNo} - qismni biriktirdi");
                         }
                         else
                         {
@@ -219,6 +211,7 @@ namespace tahsinERP.Controllers
                             notInOrderParts.Add(paart.PNo);
                         }
                     }
+                    db.SaveChanges();
 
                     if (notInOrderParts.Count > 0)
                     {
@@ -232,8 +225,6 @@ namespace tahsinERP.Controllers
                         db.SaveChanges();
                         return View(model);
                     }
-
-                    db.SaveChanges();
 
                     if (model.File != null)
                     {
@@ -251,7 +242,7 @@ namespace tahsinERP.Controllers
 
                                     db.P_INVOICE_DOCS.Add(invoiceDoc);
                                     db.SaveChanges();
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{invoiceDoc.P_INVOICES.InvoiceNo} - uchun PInvoiceDocni yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "PInvoiceController", $"{invoiceDoc.P_INVOICES.InvoiceNo} - uchun hujjatni yukladi!");
                                 }
                                 else
                                 {
@@ -295,7 +286,7 @@ namespace tahsinERP.Controllers
         {
             if (invoiceID == null)
             {
-                return Json(new { success = false, message = "Invoice ID ko'rsatilmagan."}, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Invoice ID ko'rsatilmagan." }, JsonRequestBehavior.AllowGet);
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -515,7 +506,7 @@ namespace tahsinERP.Controllers
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
-                return View(model); 
+                return View(model);
             }
         }
         [HttpPost]
@@ -606,7 +597,7 @@ namespace tahsinERP.Controllers
                 // Re-populate dropdown lists in case of an error
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", invoice.SupplierID);
                 ViewBag.POrder = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 return View(invoice);

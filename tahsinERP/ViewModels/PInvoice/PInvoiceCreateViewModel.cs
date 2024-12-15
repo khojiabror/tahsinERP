@@ -36,5 +36,6 @@ namespace tahsinERP.ViewModels.PInvoice
         public int UnitID { get; set; }
         [Required]
         public double Price { get; set; }
+        public double TotalPrice => Price * Quantity;
     }
 }
