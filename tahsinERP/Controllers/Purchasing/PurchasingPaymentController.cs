@@ -27,6 +27,42 @@ namespace tahsinERP.Controllers
                 return View(list);
             }
         }
+        public JsonResult GetContractDetails(int contractID)
+        {
+            // Fetch contract details based on the OrderID
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                
+                var contract = db.PURCHASING_CONTRACTS.Include(c => c.CURRENCy).FirstOrDefault(c => c.ID == contractID && c.IsDeleted == false);
+
+                if (contract != null)
+                {
+                    return Json(new
+                    {
+                        ContractAmount = Math.Round((double)contract.Amount, 2) + " " + contract.CURRENCy.Shortname,
+                        PaidAmount = GetPaidAmountSoFar(contract.Amount, contractID) + " " + contract.CURRENCy.Shortname,
+                        BalanceAmount = Math.Round((double)contract.Amount, 2) - GetPaidAmountSoFar(contract.Amount, contractID) + " " + contract.CURRENCy.Shortname
+                    }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                    return Json(null, JsonRequestBehavior.AllowGet);
+            }
+        }
+        private double? GetPaidAmountSoFar(double? contractAmount, int contractID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var payment = db.PURCHASING_CONTRACT_PAYMENTS.Where(pop => pop.ContractID == contractID && pop.IsDeleted == false).FirstOrDefault();
+                if (payment != null)
+                {
+                    double paymentAmount = db.PURCHASING_CONTRACT_PAYMENTS.Where(pcp => pcp.ContractID == contractID && pcp.IsDeleted == false).Sum(pcp => pcp.Payment_Amount);
+
+                    return Math.Round(paymentAmount, 2);
+                }
+                else
+                    return 0;
+            }
+        }
         public ActionResult Create()
         {
             using(DBTHSNEntities db = new DBTHSNEntities())

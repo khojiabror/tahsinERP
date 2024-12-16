@@ -24,7 +24,7 @@
                                             <a href="~/PurchasingPayment/Index">Xarid to'lovlari</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi harid to'lovi qo'shish
+                                            Yangi xarid to'lovi qo'shish
                                         </li>
                                     </ol>
                                 </div>
@@ -57,9 +57,25 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Shartnoma</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(model => model.ContractID, (IEnumerable<SelectListItem>)ViewBag.contracts, new { @class = "form-control select2", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.ContractID, (IEnumerable<SelectListItem>)ViewBag.contracts, new { @class = "form-control select2", @required = "required", @id = "ContractID" })
                                                         @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                     </fieldset>
+                                                    <div class="users-list-filter px-1">
+                                                        <div class="row border rounded py-2 mb-2">
+                                                            <div class="col-12 col-sm-12 col-lg-4">
+                                                                <label>Summasi</label>
+                                                                <input type="text" id="ContractAmount" name="ContractAmount" class="form-control" disabled="disabled" />
+                                                            </div>
+                                                            <div class="col-12 col-sm-12 col-lg-4">
+                                                                <label>To'langan</label>
+                                                                <input type="text" id="PaidAmount" name="PaidAmount" class="form-control" disabled="disabled" />
+                                                            </div>
+                                                            <div class="col-12 col-sm-12 col-lg-4">
+                                                                <label>Qoldiq summa<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Ushbu qoldiqda ko'rsatilgan summani to'lov qilishingiz mumkin ammo undan ortiq emas"></i></label>
+                                                                <input type="text" id="ContractBalanceAmount" name="ContractBalanceAmount" class="form-control" disabled="disabled" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                     <h6 class="invoice-to">Valyuta</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
@@ -96,3 +112,56 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        function updateBalanceFieldColor() {
+            const balanceField = $('#ContractBalanceAmount');
+            const balanceValue = parseFloat(balanceField.val());
+
+            // Check if balanceValue is a valid number
+            if (!isNaN(balanceValue)) {
+                if (balanceValue > 0) {
+                    balanceField.css('background-color', 'lightgreen').css('color', 'black');
+                } else if (balanceValue < 0) {
+                    balanceField.css('background-color', 'pink').css('color', 'white');
+                } else {
+                    balanceField.css('background-color', '').css('color', ''); // Reset to default
+                }
+            }
+        }
+
+        // Update color initially
+        updateBalanceFieldColor();
+
+        // Attach change event to the dropdown
+        $('#ContractID').change(function () {
+            const contractID = $(this).val(); // Get selected OrderID
+
+            if (contractID) {
+                // Make AJAX call to the controller
+                $.ajax({
+                    url: '/PurchasingPayment/GetContractDetails', // Update with your controller/action URL
+                    type: 'GET',
+                    data: { contractID: contractID },
+                    success: function (response) {
+                        // Update the fields with data from the server
+                        $('#ContractAmount').val(response.ContractAmount);
+                        $('#ContractBalanceAmount').val(response.BalanceAmount);
+                        $('#PaidAmount').val(response.PaidAmount);
+
+                        // Update color after setting the value
+                        updateBalanceFieldColor();
+                    },
+                    error: function () {
+                        alert('Shartnoma tolov malumotlarini yuklab bolmadi. Qayta urunib koring.');
+                    }
+                });
+            } else {
+                // Clear fields and reset color
+                $('#ContractAmount, #PaidAmount, #ContractBalanceAmount').val('');
+                $('#ContractBalanceAmount').css('background-color', '').css('color', '');
+            }
+        });
+    });
+</script>

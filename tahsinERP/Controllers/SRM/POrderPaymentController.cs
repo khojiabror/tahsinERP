@@ -111,16 +111,16 @@ namespace tahsinERP.Controllers.SRM
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 int? conractID = db.P_ORDERS.Where(po => po.ID == orderId && po.IsDeleted == false).Select(po => po.ContractID).FirstOrDefault();
-                var contract = db.P_CONTRACTS.FirstOrDefault(c => c.ID == conractID && c.IsDeleted == false);
+                var contract = db.P_CONTRACTS.Include(c => c.CURRENCy).FirstOrDefault(c => c.ID == conractID && c.IsDeleted == false);
 
                 if (contract != null)
                 {
                     return Json(new
                     {
                         contract.ContractNo,
-                        ContractAmount = Math.Round((double)contract.Amount, 2),
-                        PaidAmount = GetPaidAmountSoFar(contract.Amount, orderId),
-                        BalanceAmount = Math.Round((double)contract.Amount, 2) - GetPaidAmountSoFar(contract.Amount, orderId)
+                        ContractAmount = Math.Round((double)contract.Amount, 2) + " " + contract.CURRENCy.Shortname,
+                        PaidAmount = GetPaidAmountSoFar(contract.Amount, orderId) + " " + contract.CURRENCy.Shortname,
+                        BalanceAmount = Math.Round((double)contract.Amount, 2) - GetPaidAmountSoFar(contract.Amount, orderId) + " " + contract.CURRENCy.Shortname
                     }, JsonRequestBehavior.AllowGet);
                 }
                 else
