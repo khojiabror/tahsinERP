@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace tahsinERP.Controllers.SRM
 {
     public class POrderPaymentController : Controller
     {
-        private string ControllerName = "POrderPaymentController";
+        private string message = "";
         // GET: POrderPayment
         public ActionResult Index()
         {
@@ -42,7 +43,6 @@ namespace tahsinERP.Controllers.SRM
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
-                //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                 ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
@@ -56,14 +56,13 @@ namespace tahsinERP.Controllers.SRM
             {
                 if (ModelState.IsValid)
                 {
-                    var existPurchasingPayment = db.P_ORDER_PAYMENTS.Where(x => x.OrderID == model.OrderID).FirstOrDefault();
-                    if (existPurchasingPayment == null)
+                    if (!CheckForAmountExcess(model.OrderID, model.Payment_Amount))
                     {
                         model.IsDeleted = false;
                         db.P_ORDER_PAYMENTS.Add(model);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.P_ORDERS.Find(model.OrderID).OrderNo} - li buyurtma uchun POrderPaymentni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "POrderPaymentController", $"{db.P_ORDERS.Find(model.OrderID).OrderNo} - li buyurtma uchun {model.Payment_Amount} miqdorida to'lov kiritdi");
 
                         return RedirectToAction("Index");
                     }
@@ -72,8 +71,8 @@ namespace tahsinERP.Controllers.SRM
                         ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                         ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                         ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
-                        //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
-                        ModelState.AddModelError("", "Ushbu Buyurtma  uchun To'lov yaratilgan.");
+
+                        ModelState.AddModelError("", message);
                         return View(model);
                     }
                 }
@@ -81,11 +80,66 @@ namespace tahsinERP.Controllers.SRM
                 {
                     ViewBag.orders = new SelectList(Enumerable.Empty<SelectList>());
                     ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                    //ViewBag.orders = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                     ViewBag.suppliers = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                     ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
                     return View(model);
                 }
+            }
+        }
+        private bool CheckForAmountExcess(int orderID, double amount)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var order = db.P_ORDERS.Where(pop => pop.ID == orderID && pop.IsDeleted == false).FirstOrDefault();
+                if (order != null)
+                {
+                    double paidAmountSoFar = db.P_ORDER_PAYMENTS.Where(pop => pop.OrderID == orderID && pop.IsDeleted == false).Sum(pop => pop.Payment_Amount);
+                    if (amount <= order.Amount - paidAmountSoFar)
+                        return false;
+                    else
+                    {
+                        message = "Kiritilayotgan summa: " + amount + " buyurtmaning umumiy summasi: " + order.Amount + " va shu paytgacha to'langan summa: " + paidAmountSoFar + " ning ayirmasidan ham katta. Buyurtmaning umumiy summasidan ortiq summada to'lov qilib bo'lmaydi";
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        public JsonResult GetContractDetails(int orderId)
+        {
+            // Fetch contract details based on the OrderID
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                int? conractID = db.P_ORDERS.Where(po => po.ID == orderId && po.IsDeleted == false).Select(po => po.ContractID).FirstOrDefault();
+                var contract = db.P_CONTRACTS.FirstOrDefault(c => c.ID == conractID && c.IsDeleted == false);
+
+                if (contract != null)
+                {
+                    return Json(new
+                    {
+                        contract.ContractNo,
+                        ContractAmount = Math.Round((double)contract.Amount, 2),
+                        PaidAmount = GetPaidAmountSoFar(contract.Amount, orderId),
+                        BalanceAmount = Math.Round((double)contract.Amount, 2) - GetPaidAmountSoFar(contract.Amount, orderId)
+                    }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                    return Json(null, JsonRequestBehavior.AllowGet);
+            }
+        }
+        private double? GetPaidAmountSoFar(double? contractAmount, int orderId)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var payment = db.P_ORDER_PAYMENTS.Where(pop => pop.OrderID == orderId && pop.IsDeleted == false).FirstOrDefault();
+                if (payment != null)
+                {
+                    double paymentAmount = db.P_ORDER_PAYMENTS.Where(pop => pop.OrderID == orderId && pop.IsDeleted == false).Sum(pop => pop.Payment_Amount);
+
+                    return Math.Round(paymentAmount, 2);
+                }
+                else
+                    return 0;
             }
         }
         public ActionResult Details(int? Id)
@@ -146,7 +200,7 @@ namespace tahsinERP.Controllers.SRM
                     orderPaymentToDelete.IsDeleted = true;
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.P_ORDERS.Find(orderPaymentToDelete.OrderID).OrderNo} - buyurtma payment ni o'chirdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "POrderPaymentController", $"{db.P_ORDERS.Find(orderPaymentToDelete.OrderID).OrderNo} - buyurtma payment ni o'chirdi");
                     db.SaveChanges();
 
                     return RedirectToAction("Index");
@@ -196,7 +250,7 @@ namespace tahsinERP.Controllers.SRM
                         orderPaymentToUpdate.Comment = orderPayment.Comment;
                         orderPaymentToUpdate.CurrencyID = orderPayment.CurrencyID;
 
-                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, $"{db.P_ORDERS.Find(orderPayment.OrderID).OrderNo} - shartnoma paymenti taxrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "POrderPaymentController", $"{db.P_ORDERS.Find(orderPayment.OrderID).OrderNo} - shartnoma paymenti taxrirladi");
                         db.SaveChanges();
 
                         return RedirectToAction("Index");

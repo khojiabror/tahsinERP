@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
@@ -171,7 +172,6 @@ namespace tahsinERP.Controllers
                 return Json(contracts.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }), JsonRequestBehavior.AllowGet);
             }
         }
-
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -188,7 +188,6 @@ namespace tahsinERP.Controllers
 
             return View();
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(POrderCreateViewModel model)
@@ -202,6 +201,7 @@ namespace tahsinERP.Controllers
                     if (isSameContract == null)
                     {
                         ModelState.AddModelError("", "Ta'minotchi va shartnomadagi ta'minotchi bir xil bo'lishi shart!");
+                        return View(model);
                     }
 
                     foreach (var part in model.Parts)
@@ -209,6 +209,7 @@ namespace tahsinERP.Controllers
                         if (part.MOQ > part.Amount)
                         {
                             ModelState.AddModelError("", db.PARTS.Where(p => p.ID == part.PartID).Select(p => p.PNo) + " uchun kiritilgan miqdor MOQ dan kichik");
+                            return View(model);
                         }
                     }
                     if (checkForContractPartsAmount(model))
@@ -219,7 +220,7 @@ namespace tahsinERP.Controllers
                             message += word + " ,";
                         }
                         ModelState.AddModelError("", "Ushbu ehtiyot qismlarda " + message + " shartnomadan ortiqcha hajmni buyurtma qilmoqchisiz, bunday qilib bo'lmaydi!");
-
+                        return View(model);
                     }
                     if (ModelState.IsValid)
                     {
@@ -240,7 +241,7 @@ namespace tahsinERP.Controllers
 
                         db.P_ORDERS.Add(newOrder);
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - POrderni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - buyurtmani yaratdi");
 
 
                         List<P_CONTRACT_PARTS> contractParts = db.P_CONTRACT_PARTS.Where(pcp => pcp.ContractID == model.ContractID).ToList();
@@ -265,7 +266,7 @@ namespace tahsinERP.Controllers
 
                                 db.P_ORDER_PARTS.Add(newPart);
                                 var logPart = db.PARTS.Find(newPart.PartID);
-                                LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{logPart.PNo} - POrderPartni yaratdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - buyurtmaga {logPart.PNo} - qismni biriktirdi");
                             }
                             else
                             {
@@ -281,11 +282,12 @@ namespace tahsinERP.Controllers
                                 message += word + " ,";
                             }
                             ModelState.AddModelError("", "Ushbu ehtiyot qism(lar): " + message + " shartnomadan topilmadi, shartnomada yo'q narsaga buyurtma qilib bo'lmaydi! Qaytadan urinib ko'ring!");
+                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - buyurtmada xatolik bo'lgani uchun tizim tomonidan o'chirib yuborildi ");
+                            DeleteOrderParts(newOrder.ID);
                             db.Entry(newOrder).State = EntityState.Deleted;
                             db.SaveChanges();
                             return View(model);
                         }
-                        db.SaveChanges();
                         if (model.File != null)
                         {
                             if (Request.Files["docUpload"].ContentLength > 0)
@@ -303,7 +305,7 @@ namespace tahsinERP.Controllers
                                         db.P_ORDER_DOCS.Add(orderDoc);
                                         db.SaveChanges();
 
-                                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderDoc.P_ORDERS.OrderNo} - uchun POrderDocni yaratdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderDoc.P_ORDERS.OrderNo} - uchun hujjat biriktirdi");
                                     }
                                     else
                                     {
@@ -339,8 +341,18 @@ namespace tahsinERP.Controllers
             }
             return View(model);
         }
-
-
+        private void DeleteOrderParts(int iD)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var parts = db.P_ORDER_PARTS.Where(pop => pop.OrderID == iD).ToList();
+                foreach (var part in parts)
+                {
+                    db.P_ORDER_PARTS.Remove(part);
+                    db.SaveChanges();
+                }
+            }
+        }
         private List<string> contractExceedingParts = new List<string>();
         private bool checkForContractPartsAmount(POrderCreateViewModel model)
         {
