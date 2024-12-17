@@ -67,7 +67,7 @@ namespace tahsinERP.Controllers
 
                     db.P_PROFORMA_INVOICES.Add(invoice);
                     await db.SaveChangesAsync();
-                    LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{model.ID} ID ga ega PProformaInvoiceni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoice lar", $"{model.ID} ID ga ega PProformaInvoiceni yaratdi");
                     
                     // proformanvoice fayl upload, hozircha models ichida yoq shunga comment ga olib qo'yildi
                    /* if (model.File != null)
@@ -172,7 +172,7 @@ namespace tahsinERP.Controllers
                         {
                             await db.SaveChangesAsync();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{ID} ID ga ega PProformaInvoiceni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoice lar", $"{ID} ID ga ega PProformaInvoiceni o'chirdi");
 
                             return RedirectToAction("Index");
                         }
@@ -249,7 +249,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoiceController", $"{invoiceToUpdate.ID} ID ga ega PProformaInvoiceni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "ProformaInvoice lar", $"{invoiceToUpdate.ID} ID ga ega PProformaInvoiceni tahrirladi");
 
                             return RedirectToAction("Index");
                         }

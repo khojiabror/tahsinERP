@@ -17,7 +17,6 @@ namespace tahsinERP.Controllers
 {
     public class GTDController : Controller
     {
-        private string controllerName = "GTDController";
         public ActionResult Index()
         {
             using ( DBTHSNEntities db = new DBTHSNEntities())
@@ -72,7 +71,7 @@ namespace tahsinERP.Controllers
                                     db.GTD_DOCS.Add(gtdDoc);
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "GTDController", $"{gtdDoc.GTD.GTD_No} - uchun gtdDOC yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "GTD lar", $"{gtdDoc.GTD.GTD_No} - uchun fayl biriktirdi.");
                                 }
                                 else
                                 {
@@ -81,14 +80,14 @@ namespace tahsinERP.Controllers
                             }
                             else
                             {
-                                ModelState.AddModelError("", "The file is too large. Please upload a file smaller than 5MB.");
+                                ModelState.AddModelError("", "Fayl o'ta katta. 5MB dan kichik bo'lgan faylni yuklang.");
                                 throw new RetryLimitExceededException();
                             }
                         }
 
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, controllerName, $"{gtd.GTD_No} - gtd yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "GTD lar", $"{gtd.GTD_No} - GTD ni tizimga kiritdi");
 
                         return RedirectToAction("Index");
                     }
@@ -135,7 +134,7 @@ namespace tahsinERP.Controllers
                     {
                          db.SaveChangesAsync();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, controllerName, $"{id} ID ga ega GTD ni o'chirdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "GTD lar", $"{gtdToDelete.GTD_No} GTD ni o'chirdi");
 
                         return RedirectToAction("Index");
                     }
@@ -202,7 +201,7 @@ namespace tahsinERP.Controllers
                         gtdToUpdate.CurrencyID = model.CurrencyID;
 
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, controllerName, $"{model.ID} ID ga ega GTD ni tahrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "GTD lar", $"{gtdToUpdate.GTD_No}  ni tahrirladi");
                         
                         return RedirectToAction("Index");
                     }

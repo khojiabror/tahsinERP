@@ -54,7 +54,7 @@ namespace tahsinERP.Controllers
                     db.PART_WRHS.Add(model);
                     db.SaveChanges();
                     
-                    LogHelper.LogToDatabase(User.Identity.Name, "PartWRHSController", $"{model.WHName} - PartWRHSni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", $"{model.WHName} - omborini yaratdi");
                     
                     return RedirectToAction("Index");
                 }
@@ -110,7 +110,7 @@ namespace tahsinERP.Controllers
                     db.Entry(partWRHS).State = EntityState.Modified;
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "PartWRHSController", $"{partWRHS.WHName} - PartWRHSni tahrirladi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", $"{partWRHS.WHName} - omborni tahrirladi");
 
                     return RedirectToAction("Index");
                 }
@@ -153,7 +153,7 @@ namespace tahsinERP.Controllers
                     db.Entry(partWRHS).State = EntityState.Modified;
                     db.SaveChanges();
                     
-                    LogHelper.LogToDatabase(User.Identity.Name, "PartWRHSController", $"{partWRHS.WHName} - PartWRHS o'chirdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", $"{partWRHS.WHName} - omborni o'chirib yubordi");
                 }
 
 

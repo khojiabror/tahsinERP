@@ -14,6 +14,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Services.Description;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
 using tahsinERP.Models;
@@ -158,7 +159,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Invoice not found." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Invoys topilmadi." }, JsonRequestBehavior.AllowGet);
                 }
             }
         }
@@ -181,7 +182,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Part not found in contract." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Ehtiyot qism shartnomada topilmadi." }, JsonRequestBehavior.AllowGet);
                 }
             }
         }
@@ -252,7 +253,7 @@ namespace tahsinERP.Controllers
                     model.WHName = "Siz uchun ombor biriktirilmagan.";
                 else
                     model.WHName = warehouse.WHName;
-               
+
                 model.DocNo = GenerateDocNo(income);
 
                 return View(model);
@@ -307,7 +308,7 @@ namespace tahsinERP.Controllers
                 db.PART_WRHS_INCOMES.Add(newIncome);
                 db.SaveChanges();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{newIncome.DocNo} - PartWrhsIncomeni yaratdi");
+                LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{newIncome.DocNo} - raqamli hujjat bilan kirim qildi");
 
                 // Yangi yozuvning IncomeID sini olish
                 int newIncomeID = newIncome.ID;
@@ -337,8 +338,8 @@ namespace tahsinERP.Controllers
                             Amount = part.Amount
                         };
                         db.PART_STOCKS.Add(newPartStock);
-                         partNo = db.PARTS.Where(x => x.ID == newPartStock.PartID).FirstOrDefault().PNo;
-                        LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{partNo} - PartStockni yaratdi");
+                        partNo = db.PARTS.Where(x => x.ID == newPartStock.PartID).FirstOrDefault().PNo;
+                        LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{partNo} - qism uchun qoldiq shakllantirdi");
                     }
                     else
                     {
@@ -348,7 +349,7 @@ namespace tahsinERP.Controllers
 
                     db.PART_WRHS_INCOME_PARTS.Add(newPart);
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{partNo} - PartWrhsIncomePartni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{partNo} - qismini {warehouse.WHName} omboriga kirim qildi");
                 }
 
                 db.SaveChanges();
@@ -368,8 +369,6 @@ namespace tahsinERP.Controllers
 
             }
         }
-
-
         public ActionResult Details(int? ID)
         {
             if (ID == null)
@@ -492,15 +491,15 @@ namespace tahsinERP.Controllers
                         db.Entry(wrhsIncomeToUpdate).State = EntityState.Modified;
                         db.SaveChanges();
                         double summ = 0;
-                        foreach (var product in whrsIncome.Parts)
+                        foreach (var part in whrsIncome.Parts)
                         {
-                            var existingPart = db.PART_WRHS_INCOME_PARTS.Find(product.ID);
+                            var existingPart = db.PART_WRHS_INCOME_PARTS.Include(p => p.PART_WRHS_INCOMES.PART_WRHS).Include(p => p.PART).Where(p => p.PartID == part.ID).FirstOrDefault();
                             if (existingPart != null)
                             {
-                                existingPart.PiecePrice = product.PiecePrice;
-                                existingPart.UnitID = product.UnitID;
-                                existingPart.Amount = product.Amount;
-                                existingPart.TotalPrice = product.Amount * product.PiecePrice;
+                                existingPart.PiecePrice = part.PiecePrice;
+                                existingPart.UnitID = part.UnitID;
+                                existingPart.Amount = part.Amount;
+                                existingPart.TotalPrice = part.Amount * part.PiecePrice;
 
                                 summ += (double)(existingPart.TotalPrice);
                                 db.Entry(existingPart).State = EntityState.Modified;
@@ -508,7 +507,7 @@ namespace tahsinERP.Controllers
                                 {
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{existingPart.PartID} - li WhIncomePartni tahrirladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{existingPart.PART_WRHS_INCOMES.PART_WRHS.WHName} omboriga qilingan kirimdagi {existingPart.PART.PNo} - qismni kirimini tahrirladi");
                                 }
                                 catch (RetryLimitExceededException)
                                 {
@@ -522,7 +521,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{wrhsIncomeToUpdate.DocNo} - PartWrhsIncomeni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{wrhsIncomeToUpdate.DocNo} - raqamli kirim hujjatini tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -564,7 +563,7 @@ namespace tahsinERP.Controllers
                                 }).ToList();
 
                 ViewBag.PartList = allParts;
-                ViewBag.units = new SelectList( db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
 
                 warehouse = GetWarehouseOfMRP(User.Identity.Name);
                 if (warehouse is null)
@@ -584,7 +583,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    PART_WRHS_INCOME_PARTS whIncomePartToUpdate = db.PART_WRHS_INCOME_PARTS.Find(whIncomePart.ID);
+                    PART_WRHS_INCOME_PARTS whIncomePartToUpdate = db.PART_WRHS_INCOME_PARTS.Include(p => p.PART_WRHS_INCOMES.PART_WRHS).Include(p => p.PART).Where(p => p.PartID == whIncomePart.ID).FirstOrDefault();
                     if (whIncomePartToUpdate != null)
                     {
                         whIncomePartToUpdate.PartID = whIncomePart.PartID;
@@ -598,7 +597,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{whIncomePartToUpdate.PART.PNo} - PartWrhsIncomePartni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{whIncomePartToUpdate.PART_WRHS_INCOMES.PART_WRHS.WHName} omboriga qilingan kirimdagi {whIncomePartToUpdate.PART.PNo} - qismni kirimini tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -666,7 +665,7 @@ namespace tahsinERP.Controllers
                             }*/
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{whIncomeToDelete.DocNo} - partWrhsIncomeni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{whIncomeToDelete.DocNo} - raqamli kirim hujjatini o'chirdi");
 
                             return RedirectToAction("Index");
                         }
@@ -687,7 +686,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                PART_WRHS_INCOME_PARTS contractPartToDelete = db.PART_WRHS_INCOME_PARTS.Find(id);
+                PART_WRHS_INCOME_PARTS contractPartToDelete = db.PART_WRHS_INCOME_PARTS.Include(p => p.PART_WRHS_INCOMES.PART_WRHS).Include(p => p.PART).Where(p => p.PartID == id).FirstOrDefault();
                 if (ModelState.IsValid)
                 {
                     if (contractPartToDelete != null)
@@ -697,7 +696,7 @@ namespace tahsinERP.Controllers
                             db.PART_WRHS_INCOME_PARTS.Remove(contractPartToDelete);
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{contractPartToDelete.PART.PNo} - PartWrhsIncomePartni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{contractPartToDelete.PART_WRHS_INCOMES.PART_WRHS.WHName} omboriga {contractPartToDelete.PART_WRHS_INCOMES.DocNo} hujjat raqami bilan kirim qilingan {contractPartToDelete.PART.PNo} - ehtiyot qismini o'chirdi");
 
                             return RedirectToAction("Index");
                         }
@@ -708,13 +707,12 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "ContractPart not found.");
+                        ModelState.AddModelError("", "ehtiyot qism topilmadi.");
                     }
                 }
                 return View(contractPartToDelete);
             }
         }
-
         public async Task<ActionResult> Download()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -775,8 +773,6 @@ namespace tahsinERP.Controllers
 
             return true;  // Return true if all contracts exist
         }
-
-
         private async Task<bool> CheckForExistenceOfParts(System.Data.DataTable dataTable)
         {
             if (dataTable == null)
@@ -802,8 +798,6 @@ namespace tahsinERP.Controllers
 
             return true;  // Return true if all parts exist
         }
-
-
         private async Task<bool> CheckForExistenceOfWarehouses(System.Data.DataTable dataTable)
         {
             if (dataTable == null)
@@ -845,7 +839,7 @@ namespace tahsinERP.Controllers
                         {
                             var worksheet = package.Workbook.Worksheets[0];
                             var rowCount = worksheet.Dimension.Rows;
-                            var colCount = worksheet.Dimension.Columns;
+                            var colCount = 10; // Currencies va Units ovomasligi uchun qo'lda yozildi
 
                             for (int col = 1; col <= colCount; col++)
                             {
@@ -862,7 +856,7 @@ namespace tahsinERP.Controllers
                                 dataTable.Rows.Add(dataRow);
                             }
                         }
-                        
+
                         if (await CheckForExistenceOfInvoices(dataTable))
                         {
                             if (await CheckForExistenceOfWarehouses(dataTable))
@@ -984,7 +978,6 @@ namespace tahsinERP.Controllers
                                 string warehouseName = row["Warehouse Name"].ToString();
                                 string partNo = row["Part Number"].ToString();
                                 string waybillNo = row["Waybill No."].ToString();
-                                string currencyName = row["Currency"].ToString().ToLower();
 
                                 PART_WRHS excelWarehouse = db.PART_WRHS
                                     .Where(s => s.WHName.CompareTo(warehouseName) == 0 && s.IsDeleted == false)
@@ -1001,14 +994,12 @@ namespace tahsinERP.Controllers
                                 PART_WRHS_INCOMES income = db.PART_WRHS_INCOMES
                                     .Where(po => po.WHID == warehouse.ID && po.IsDeleted == false && po.InvoiceID == invoice.ID)
                                     .FirstOrDefault();
-                                
+
                                 F_WAYBILLS waybill = db.F_WAYBILLS
                                     .Where(x => x.WaybillNo.CompareTo(waybillNo) == 0 && x.IsDeleted == false)
                                     .FirstOrDefault();
 
-                                CURRENCy currency = db.CURRENCIES
-                                    .Where(x => x.Shortname.ToLower() == currencyName)
-                                    .FirstOrDefault();
+                                int currencyID = db.CURRENCIES.Where(x => x.Shortname.ToLower() == row["Currency"].ToString().ToLower()).Select(x => x.ID).FirstOrDefault();
 
                                 if (income == null)
                                 {
@@ -1020,14 +1011,14 @@ namespace tahsinERP.Controllers
                                         WHID = warehouse.ID,
                                         SenderWHID = excelWarehouse.ID,
                                         IssueDateTime = DateTime.Now,
-                                        CurrencyID = currency == null ? (int?)1 : currency.ID,
+                                        CurrencyID = currencyID,
                                         IsDeleted = false
                                     };
 
                                     db.PART_WRHS_INCOMES.Add(new_income);
                                     await db.SaveChangesAsync();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{new_income.DocNo} - WhIncomeni Excell orqali yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{new_income.DocNo} - raqamli kirim hujjatini Excell orqali tizimga kiritdi");
 
                                     string unitFromFile = row["Unit"].ToString();
                                     UNIT unit = db.UNITS.Where(u => u.ShortName.CompareTo(unitFromFile) == 0).FirstOrDefault();
@@ -1049,8 +1040,8 @@ namespace tahsinERP.Controllers
                                         db.PART_WRHS_INCOME_PARTS.Add(new_incomePart);
                                         await db.SaveChangesAsync();
 
-                                        /*var logPart = db.PARTS.Find(new_incomePart.PartID);
-                                        LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{logPart.PNo} - incomePartni Excell orqali yaratdi");*/
+                                        var logPart = db.PARTS.Find(new_incomePart.PartID);
+                                        LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{new_income.DocNo} - raqamli kirim hujjatiga {logPart.PNo} - ehtiyot qismni Excel orqali biriktirdi");
                                     }
                                 }
                                 else
@@ -1075,8 +1066,8 @@ namespace tahsinERP.Controllers
 
                                         db.PART_WRHS_INCOME_PARTS.Add(new_incomePart);
                                         await db.SaveChangesAsync();
-                                       /* var logPart = db.PARTS.Find(new_incomePart.PartID);
-                                        LogHelper.LogToDatabase(User.Identity.Name, "WhIncomeController", $"{logPart.PNo} - incomePartni Excell orqali yaratdi");*/
+                                        var logPart = db.PARTS.Find(new_incomePart.PartID);
+                                        LogHelper.LogToDatabase(User.Identity.Name, "Omborga kirim", $"{income.DocNo} - raqamli kirim hujjatiga {logPart.PNo} - ehtiyot qismni Excel orqali biriktirdi");
                                     }
                                 }
                             }

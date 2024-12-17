@@ -143,7 +143,7 @@ namespace tahsinERP.Controllers
                     db.SaveChanges();
 
                     var userEmail = User.Identity.Name;
-                    LogHelper.LogToDatabase(userEmail, "PackingListController", $"{packingList.PackingListNo} - PInvoicePackingList yaratdi");
+                    LogHelper.LogToDatabase(userEmail, "PackingList lar", $"{packingList.PackingListNo} - PInvoicePackingList yaratdi");
 
                     var packinglistID = packingList.ID;
 
@@ -161,7 +161,7 @@ namespace tahsinERP.Controllers
                         };
 
                         db.P_PACKINGLIST_PARTS.Add(newPart);
-                        LogHelper.LogToDatabase(userEmail, "PackingListController", $"{newPart.PART.PNo} - PackingListPart yaratdi");
+                        LogHelper.LogToDatabase(userEmail, "PackingList lar", $"{packingList.PackingListNo} packing listga {newPart.PART.PNo} - qismini qo'shdi");
                     }
 
                     db.SaveChanges();
@@ -241,7 +241,7 @@ namespace tahsinERP.Controllers
                             db.SaveChanges();
 
                             var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "PackingListController", $"{packingListToDelete.PackingListNo} - PackingListni o'chirdi");
+                            LogHelper.LogToDatabase(userEmail, "PackingList lar", $"{packingListToDelete.PackingListNo} - PackingListni o'chirdi");
 
                             return RedirectToAction("Index");
                         }
@@ -303,7 +303,7 @@ namespace tahsinERP.Controllers
                                 db.SaveChanges();
 
                                 var userEmail = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail, "PackingListController", $"{packingList.PackingListNo} - PackingListni tahrirladi");
+                                LogHelper.LogToDatabase(userEmail, "PackingList lar", $"{packingList.PackingListNo} - PackingListni tahrirladi");
 
                                 return RedirectToAction("Index");
                             }

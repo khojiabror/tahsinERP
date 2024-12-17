@@ -62,7 +62,7 @@ namespace tahsinERP.Controllers.SRM
                         db.P_ORDER_PAYMENTS.Add(model);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrderPaymentController", $"{db.P_ORDERS.Find(model.OrderID).OrderNo} - li buyurtma uchun {model.Payment_Amount} miqdorida to'lov kiritdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "To'lovlar", $"{db.P_ORDERS.Find(model.OrderID).OrderNo} - li buyurtma uchun {model.Payment_Amount} miqdorida to'lov kiritdi");
 
                         return RedirectToAction("Index");
                     }
@@ -200,7 +200,7 @@ namespace tahsinERP.Controllers.SRM
                     orderPaymentToDelete.IsDeleted = true;
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "POrderPaymentController", $"{db.P_ORDERS.Find(orderPaymentToDelete.OrderID).OrderNo} - buyurtma payment ni o'chirdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "To'lovlar", $"{db.P_ORDERS.Find(orderPaymentToDelete.OrderID).OrderNo} - buyurtma to'lovini o'chirdi");
                     db.SaveChanges();
 
                     return RedirectToAction("Index");
@@ -250,7 +250,7 @@ namespace tahsinERP.Controllers.SRM
                         orderPaymentToUpdate.Comment = orderPayment.Comment;
                         orderPaymentToUpdate.CurrencyID = orderPayment.CurrencyID;
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrderPaymentController", $"{db.P_ORDERS.Find(orderPayment.OrderID).OrderNo} - shartnoma paymenti taxrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "To'lovlar", $"{db.P_ORDERS.Find(orderPayment.OrderID).OrderNo} - buyurmta to'lovini tahrirladi");
                         db.SaveChanges();
 
                         return RedirectToAction("Index");

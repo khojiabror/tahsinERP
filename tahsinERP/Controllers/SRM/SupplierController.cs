@@ -68,7 +68,7 @@ namespace tahsinERP.Controllers
                             db.SUPPLIERS.Add(supplier);
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "SupplierController", $"{supplier.Name} - Supplierni yaratdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Ta'minotchilar", $"{supplier.Name} - ta'minotchini tizimga kiritdi");
 
                             return RedirectToAction("Index");
                         }
@@ -157,7 +157,7 @@ namespace tahsinERP.Controllers
                                 var existSupplier = db.SUPPLIERS.Where(x => x.IsDeleted == false && x.Name.ToLower().CompareTo(supplier.Name.ToLower()) == 0 && x.ID != supplierToUpdate.ID).FirstOrDefault();
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "SupplierController", $"{supplierToUpdate.Name} - Supplierni tahrirladi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Ta'minotchilar", $"{supplierToUpdate.Name} - ta'minotchini tahrirladi");
 
                                 return RedirectToAction("Index");
                             }
@@ -208,7 +208,7 @@ namespace tahsinERP.Controllers
                             {
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "SupplierController", $"{supplierToDelete.Name} - Supplierni o'chirdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Ta'minotchilar", $"{supplierToDelete.Name} - ta'minotchini o'chirdi");
 
                                 return RedirectToAction("Index");
                             }
@@ -350,7 +350,7 @@ namespace tahsinERP.Controllers
                                 db.SUPPLIERS.Add(new_supplier);
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "SupplierController", $"{new_supplier.Name} - Supplierni Excell orqali yaratdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Ta'minotchilar", $"{new_supplier.Name} - ta'minotchini Excell orqali tizimga kiritdi");
                             }
                         }
                     }
