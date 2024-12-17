@@ -47,7 +47,7 @@ namespace tahsinERP.Controllers
                         db.Entry(perm).State = EntityState.Modified;
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "PermissionController", $"{role.RName} - Ruxsatini tahrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar", $"{role.RName} - Ruxsatini tahrirladi");
                     }
                 }
             }

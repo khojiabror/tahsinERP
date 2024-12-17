@@ -92,12 +92,6 @@ $(document).ready(function() {
                 exportOptions: {
                     columns: ':visible'
                 }
-            },
-            {
-                extend: 'print',
-                exportOptions: {
-                    columns: ':visible'
-                }
             }
         ]
     });

@@ -39,7 +39,7 @@ namespace tahsinERP.Controllers
 
                     db.ROLES.Add(newRole);
                     db.SaveChanges();
-                    LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{newRole.RName} - Roleni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Rollar", $"{newRole.RName} - Rolini yaratdi");
 
                     var length = db.PERMISSIONMODULES.ToList().Count;
                     int[] permissionModulesID = new int[length];
@@ -56,7 +56,7 @@ namespace tahsinERP.Controllers
                         newPermission.ROLE = newRole;
                         db.PERMISSIONS.Add(newPermission);
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{newPermission.ROLE.RName} uchun - {newPermission.PERMISSIONMODULE.Module} Permissionni yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Rollar", $"{newPermission.ROLE.RName} uchun - {newPermission.PERMISSIONMODULE.Module} ruxsatni biriktirdi");
 
                         i++;
                     }
@@ -84,7 +84,7 @@ namespace tahsinERP.Controllers
                 var currentUserRole = User.Identity.Name;
                 if (currentUserRole != "developer" && role.RName == "developer")
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Only developers can edit the developer role.");
+                    return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Faqat dasturchilar dasturchi rolini o'zgartira oladi xolos, uzr.");
                 }
 
                 return View(roles);
@@ -104,7 +104,7 @@ namespace tahsinERP.Controllers
                     var currentUserRole = User.Identity.Name;
                     if (currentUserRole != "developer" && roleToUpdate.RName == "developer")
                     {
-                        return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Only developers can edit the developer role.");
+                        return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Faqat dasturchilar dasturchi rolini o'zgartira oladi xolos, uzr.");
                     }
 
                     if (TryUpdateModel(roleToUpdate, "", new string[] { "RName", "Description" }))
@@ -113,7 +113,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{roleToUpdate.RName} - Roleni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Rollar", $"{roleToUpdate.RName} - Rolni tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -155,7 +155,7 @@ namespace tahsinERP.Controllers
                     {
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{role.RName} - Roleni o'chirdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Rollar", $"{role.RName} - Roleni o'chirdi");
 
                         return RedirectToAction("Index");
                     }
@@ -244,7 +244,7 @@ namespace tahsinERP.Controllers
                         }
 
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{role.RName} uchun Permissionni tahrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Rollar", $"{role.RName} uchun ruxsatlarni tahrirladi");
                         return RedirectToAction("Edit", new { id = role.ID });
                     }
                 }

@@ -29,7 +29,7 @@
                                             <a href="~/User/Index">Foydalanuvchilar</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Foydalanuvchi malumotlarini tahrirlash
+                                            Foydalanuvchi ma'lumotlarini tahrirlash
                                         </li>
                                     </ol>
                                 </div>
@@ -50,7 +50,7 @@
                                                 <br />
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     <fieldset>
-                                                        <h4 class="text-primary">User photo</h4>
+                                                        <h4 class="text-primary">Foydalanuvchi rasmi</h4>
                                                         <img alt="" src="@ViewBag.Base64String" style="height:150px;width:150px;" />
                                                     </fieldset>
                                                     <fieldset>
@@ -75,26 +75,26 @@
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Part name</h6>
+                                                    <h6 class="invoice-to">F.I.Sh</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @placeholder = "Full name" })
+                                                        @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @placeholder = "Ismi sharifini to'liq kiriting" })
                                                         @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Role</h6>
+                                                    <h6 class="invoice-to">Roli</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.DropDownList("RoleID", null, htmlAttributes: new { @class = "form-control" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Password</h6>
+                                                    <h6 class="invoice-to">Kalit so'zi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Password", @required = "required" })
+                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "kalit so'zi (пароль)", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Confirm Password</h6>
+                                                    <h6 class="invoice-to">Kalit so'zini qayta kiriting</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Password", @required = "required" })
+                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "kalit so'zi (пароль)", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6>Activity</h6>
+                                                    <h6>Faolligi</h6>
                                                     <ul class="list-unstyled mb-0">
                                                         <li class="d-inline-block mr-2 mb-1">
                                                             <fieldset>
@@ -110,7 +110,7 @@
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="save" type="submit" value="Edit">
                                                                 <i class='bx bx-save'></i>
-                                                                Save
+                                                                Saqlash
                                                             </button>
                                                         </li>
                                                     </ul>

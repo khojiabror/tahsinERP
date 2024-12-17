@@ -41,15 +41,15 @@
                                         <div class="row col-4 mb-1" style="float: right;">
                                             <div class="col-12">
                                                 <label>Foydalanuvchini tanlang</label>
-                                                @Html.DropDownList("userId", (SelectList)ViewBag.Users, "Foydalanuvchini tanlang", new { @class = "form-control" })
+                                                @Html.DropDownList("userId", (SelectList)ViewBag.Users, "barcha foydalanuvchilar", new { @class = "form-control" })
                                             </div>
                                             <div class="col-12">
-                                                <label>Dan:</label>
-                                                @Html.TextBox("StartDate", (string)ViewBag.StartDate, new { @class = "form-control pickadate-months-year round", @type = "date" })
+                                                <label for="startDateInput">Dan:</label>
+                                                @Html.TextBox("StartDate", (string)ViewBag.StartDate, new { @class = "form-control", @id = "startDateInput" })
                                             </div>
                                             <div class="col-12">
-                                                <label>Gacha:</label>
-                                                @Html.TextBox("EndDate", (string)ViewBag.EndDate, new { @class = "form-control pickadate-months-year round", @type = "date" })
+                                                <label for="endDateInput">Gacha:</label>
+                                                @Html.TextBox("EndDate", (string)ViewBag.EndDate, new { @class = "form-control", @id = "endDateInput" })
                                             </div>
                                             <div class="col-12">
                                                 <label>&nbsp;</label>
@@ -102,3 +102,26 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#startDateInput", {
+            dateFormat: "d.m.Y",
+            altInput: true,
+            altFormat: "F j, Y",
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+
+        flatpickr("#endDateInput", {
+            dateFormat: "d.m.Y",
+            altInput: true,
+            altFormat: "F j, Y",
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "uz",
+        });
+    });
+</script>
+

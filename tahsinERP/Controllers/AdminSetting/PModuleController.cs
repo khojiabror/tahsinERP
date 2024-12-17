@@ -75,7 +75,7 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "PModuleController", $"{permissions.Module} - Permission yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permissions.Module} - Permission yaratdi");
 
                         return RedirectToAction("Index");
                     }
@@ -175,7 +175,7 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "PModuleController", $"{permissions.Module} - Permissionni tahrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permissions.Module} - Permissionni tahrirladi");
 
                         return RedirectToAction("Index");
                     }
@@ -285,7 +285,7 @@ namespace tahsinERP.Controllers
                 foreach (var permission in permissions)
                 {
                     db.PERMISSIONS.Remove(permission);
-                    LogHelper.LogToDatabase(User.Identity.Name, "PModuleController", $"{permission.ROLE.RName} - uchun Permissionni o'chirdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permission.ROLE.RName} - uchun ruxsatni o'chirdi");
                 }
 
                 foreach (var role in roles)
@@ -294,18 +294,16 @@ namespace tahsinERP.Controllers
                     {
                         db.ROLES.Remove(role);
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "PModuleController", $"{role.RName} - Roleni o'chirdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{role.RName} - Rolni o'chirdi");
                     }
                 }
 
                 db.PERMISSIONMODULES.Remove(permissionModule);
                 db.SaveChanges();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "PModuleController", $"{permissionModule.Module} ID ga ega PermissionModuleni o'chirdi");
+                LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permissionModule.Module} ID ga ega ruxsatni o'chirdi");
             }
 
-            var userEmail = User.Identity.Name;
-            LogHelper.LogToDatabase(userEmail, "PModuleController", "Delete[Post]");
             return RedirectToAction("Index");
         }
 

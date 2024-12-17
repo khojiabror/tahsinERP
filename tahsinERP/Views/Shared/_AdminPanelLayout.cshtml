@@ -21,7 +21,6 @@
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/extensions/dataTables.checkboxes.css" />
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/responsive.bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/forms/select/select2.min.css" />
-    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/pickers/pickadate/pickadate.css" />
     <!-- END: Vendor CSS-->
     <!-- BEGIN: Theme CSS-->
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap.css">
@@ -38,6 +37,7 @@
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-invoice.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/plugins/forms/wizard.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/plugins/forms/validation/form-validation.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/flatpickr.css" />
     <!-- END: Page CSS-->
 </head>
 <body class="vertical-layout vertical-menu-modern semi-dark-layout 2-columns  navbar-sticky footer-static" data-open="click" data-menu="vertical-menu-modern" data-layout="semi-dark-layout" data-col="2-columns">
@@ -163,8 +163,6 @@
         <script src="~/app-assets/vendors/js/extensions/swiper.min.js"></script>
         <script src="~/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
         <script src="~/app-assets/vendors/js/forms/validation/jqBootstrapValidation.js"></script>
-        <script src="~/app-assets/vendors/js/pickers/pickadate/picker.js"></script>
-        <script src="~/app-assets/vendors/js/pickers/pickadate/picker.date.js"></script>
         <script src="~/app-assets/vendors/js/extensions/dropzone.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/datatables.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js"></script>
@@ -195,7 +193,7 @@
         <!-- END: Page JS-->
 
         <!-- Show-Entries default: 1000 in All DataTables -->
-        <script type="text/javascript">
+        @*<script type="text/javascript">
             // DataTables uchun umumiy sozlamalar
             $.extend($.fn.dataTable.defaults, {
                 "pageLength": 1000,  // Default ko'rsatiladigan entries sonini 1000 ga o'zgartirish
@@ -209,7 +207,7 @@
                 // Barcha jadval elementlarini DataTable'ga aylantirish
                 $('table').DataTable();
             });
-        </script>
+        </script>*@
         <!-- __________ -->
     }
     else

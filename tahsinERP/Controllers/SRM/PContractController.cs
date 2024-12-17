@@ -12,6 +12,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI.WebControls.WebParts;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
@@ -101,7 +102,7 @@ namespace tahsinERP.Controllers
                         {
                             var worksheet = package.Workbook.Worksheets[0];
                             var rowCount = worksheet.Dimension.Rows;
-                            var colCount = worksheet.Dimension.Columns;
+                            var colCount = 15; // ma'lumot uchun qo'shilgan columnlarni olmasligi uchun qo'lda yozildi
 
                             for (int col = 1; col <= colCount; col++)
                             {
@@ -283,14 +284,14 @@ namespace tahsinERP.Controllers
                                 new_contract.DueDate = DateTime.Parse(row["DueDate"].ToString());
                                 new_contract.Incoterms = row["Incoterms"].ToString();
                                 new_contract.PaymentTerms = row["PaymentTerms"].ToString();
-                                new_contract.CurrencyID = db.CURRENCIES.Where(x => x.Shortname == row["Currency"].ToString()).FirstOrDefault().ID;
+                                new_contract.CurrencyID = db.CURRENCIES.Where(x => x.Shortname.CompareTo(row["Currency"].ToString()) == 0).Select(x => x.ID).FirstOrDefault();
                                 new_contract.CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]);
                                 new_contract.IsDeleted = false;
 
                                 db.P_CONTRACTS.Add(new_contract);
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{new_contract.ContractNo} - PContractni Excell orqali yaratdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{new_contract.ContractNo} - shartnomani Excel orqali kiritdi");
 
                                 //var unitname = db.UNITS.Where(x => x.ShortName.CompareTo(row["Unit"].ToString()) == 0).FirstOrDefault();
                                 P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.ContractID == new_contract.ID && pcp.PartID == part.ID).FirstOrDefault();
@@ -311,10 +312,9 @@ namespace tahsinERP.Controllers
                                     new_contractPart.ActivePart = true;
 
                                     db.P_CONTRACT_PARTS.Add(new_contractPart);
-                                    //int noOfRowUpdated = db.Database.ExecuteSqlCommand("UPDATE P_CONTRACT_PARTS SET ActivePart =" + 0 + " WHERE ContractID !=" + new_contract.ID + " AND PartID =" + part.ID + "");
 
                                     db.SaveChanges();
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{new_contractPart.PART.PNo} - PContractPartni Excell orqali yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{new_contractPart.PART.PNo} - ushbu qismni Excel orqali {new_contract.ContractNo} shartnomasiga biriktirdi");
                                 }
                             }
                             else
@@ -341,7 +341,7 @@ namespace tahsinERP.Controllers
 
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{new_contractPart.ID} ID ga ega PContractPartni Excell orqali yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{new_contractPart.PART.PNo} ushbu qismni Excel orqali {contract.ContractNo} shartnomasiga biriktirdi");
                                 }
                             }
                         }
@@ -362,9 +362,9 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.partList = new SelectList(db.PARTS.Where(c => c.IsDeleted == false).ToList(), "ID", "PNo");
-                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName"); 
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                
+
                 return View();
             }
         }
@@ -394,6 +394,7 @@ namespace tahsinERP.Controllers
                         };
                         db.P_CONTRACTS.Add(newContract);
                         db.SaveChanges();
+                        LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasini tizimga kiritdi.");
 
                         int newContractID = newContract.ID;
 
@@ -410,12 +411,14 @@ namespace tahsinERP.Controllers
                                 MOQ = part.MOQ
                             };
                             db.P_CONTRACT_PARTS.Add(newPart);
+                            PART paart = db.PARTS.Where(p => p.ID == part.PartID).FirstOrDefault();
+                            if (paart != null)
+                                LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasiga {paart.PNo} ni biriktirdi.");
                         }
                         db.SaveChanges();
 
                         newContract.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
                         db.SaveChanges();
-                        // Handle file upload
 
                         if (model.File != null && model.File.ContentLength > 0)
                         {
@@ -433,7 +436,7 @@ namespace tahsinERP.Controllers
                                     db.P_CONTRACT_DOCS.Add(contractDoc);
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractDoc.P_CONTRACTS.ContractNo} - uchun PContractDocni yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractDoc.P_CONTRACTS.ContractNo} - uchun shartnoma uchun fayl biriktirdi");
                                 }
                                 else
                                 {
@@ -537,7 +540,6 @@ namespace tahsinERP.Controllers
                 return Json(parts, JsonRequestBehavior.AllowGet);
             }
         }
-
         public ActionResult Edit(int? ID)
         {
             if (ID == null)
@@ -584,7 +586,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", contract.SupplierID);
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                
+
                 return View(model);
             }
         }
@@ -612,25 +614,24 @@ namespace tahsinERP.Controllers
                         contractToUpdate.IDN = contract.IDN;
                         contractToUpdate.IsDeleted = false;
 
-                        // Update PContractParts
-                        double summ=0;
-                        foreach (var product in contract.Parts)
+                        double summ = 0;
+                        foreach (var part in contract.Parts)
                         {
-                            var existingPart = db.P_CONTRACT_PARTS.Find(product.ID);
+                            var existingPart = db.P_CONTRACT_PARTS.Include(pcp => pcp.PART).Where(pcp => pcp.PartID == part.ID).FirstOrDefault();
                             if (existingPart != null)
                             {
-                                existingPart.Price = product.Price;
-                                existingPart.UnitID = product.UnitID;
-                                existingPart.Quantity = product.Quantity;
-                                existingPart.MOQ = product.MOQ;
-                                existingPart.Amount = product.Price * product.Quantity;
+                                existingPart.Price = part.Price;
+                                existingPart.UnitID = part.UnitID;
+                                existingPart.Quantity = part.Quantity;
+                                existingPart.MOQ = part.MOQ;
+                                existingPart.Amount = part.Price * part.Quantity;
                                 summ += ((double)existingPart.Quantity * (double)existingPart.Price);
                                 db.Entry(existingPart).State = EntityState.Modified;
                                 try
                                 {
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{existingPart.PartID} - li PContractPartni tahrirladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractToUpdate.ContractNo} - shartnomasida {existingPart.PART.PNo} - li ehtiyot qismni tahrirladi");
                                 }
                                 catch (RetryLimitExceededException)
                                 {
@@ -648,7 +649,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractToUpdate.ContractNo} - PContractni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractToUpdate.ContractNo} - shartnomasini tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -660,8 +661,6 @@ namespace tahsinERP.Controllers
                     return View(contractToUpdate);
                 }
             }
-            var userEmail = User.Identity.Name;
-            LogHelper.LogToDatabase(userEmail, "PContractController", "Edit[Post]");
             return View(contract);
         }
         public ActionResult EditPart(int? ID)
@@ -701,7 +700,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    P_CONTRACT_PARTS contractPartToUpdate = db.P_CONTRACT_PARTS.Find(contractPart.ID);
+                    P_CONTRACT_PARTS contractPartToUpdate = db.P_CONTRACT_PARTS.Include(pcp => pcp.PART).Include(pcp => pcp.P_CONTRACTS).Where(pcp => pcp.PartID == contractPart.ID).FirstOrDefault();
                     if (contractPartToUpdate != null)
                     {
                         contractPartToUpdate.PartID = contractPart.PartID;
@@ -715,7 +714,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPartToUpdate.PART.PNo} - PContractPartni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractPartToUpdate.P_CONTRACTS.ContractNo} - shartnomasida {contractPartToUpdate.PART.PNo} - ehtiyot qismni tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -768,7 +767,7 @@ namespace tahsinERP.Controllers
                         {
                             contractToDelete.IsDeleted = true;
                             db.SaveChanges();
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractToDelete.ContractNo} - PContractni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractToDelete.ContractNo} - shartnomani o'chirib yubordi");
 
                             db.Entry(contractToDelete).State = EntityState.Modified;
                             var contractParts = db.P_CONTRACT_PARTS.Where(pc => pc.ContractID == contractToDelete.ID).ToList();
@@ -795,7 +794,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                P_CONTRACT_PARTS contractPartToDelete = db.P_CONTRACT_PARTS.Find(id);
+                P_CONTRACT_PARTS contractPartToDelete = db.P_CONTRACT_PARTS.Include(pcp => pcp.PART).Include(pcp => pcp.P_CONTRACTS).Where(pcp => pcp.PartID == id).FirstOrDefault();
                 if (ModelState.IsValid)
                 {
                     if (contractPartToDelete != null)
@@ -810,7 +809,7 @@ namespace tahsinERP.Controllers
                             contractToUpdate.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == contractToUpdate.ID).Sum(x => x.Amount);
 
                             db.SaveChanges();
-                            LogHelper.LogToDatabase(User.Identity.Name, "PContractController", $"{contractPartToDelete.PART.PNo} - PContractPartni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractPartToDelete.P_CONTRACTS.ContractNo} - shartnomasida {contractPartToDelete.PART.PNo} - ehtiyot qismni o'chirdi");
 
                             return RedirectToAction("Index");
                         }

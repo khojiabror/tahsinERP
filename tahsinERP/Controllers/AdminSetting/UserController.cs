@@ -86,7 +86,7 @@ namespace tahsinERP.Controllers
                 db.USERS.Add(user);
                 db.SaveChanges();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "UserController", $"{user.Uname} - Foydalanuvchini yaratdi");
+                LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimga qo'shdi");
 
                 ROLE selectedRole = db.ROLES.Where(r => r.ID.Equals(userVM.RoleID)).FirstOrDefault();
                 if (selectedRole != null && selectedRole.RName != "Developer" || selectedRole.ID != 1)
@@ -116,7 +116,7 @@ namespace tahsinERP.Controllers
                         db.USERIMAGES.Add(userImage);
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "UserController", $"{user.Uname} uchun Foydalanuvchini-Rasmini yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} uchun Foydalanuvchini-Rasmini biriktirdi");
                     }
                     else
                     {
@@ -126,7 +126,6 @@ namespace tahsinERP.Controllers
                 }
 
                 var userEmail = User.Identity.Name;
-                LogHelper.LogToDatabase(userEmail, "UserController", "Create[Post]");
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -214,7 +213,7 @@ namespace tahsinERP.Controllers
                                 db.USERIMAGES.Add(uImageNew);
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "UserController", $"{userToUpdate.Uname} uchun Foydalanuvchini-Rasmini yaratdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{userToUpdate.Uname} uchun Foydalanuvchini-Rasmini o'zgartirdi");
                             }
                             else
                             {
@@ -224,7 +223,7 @@ namespace tahsinERP.Controllers
                                 db.Entry(uImage).State = System.Data.Entity.EntityState.Modified;
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "UserController", $"{uImage.ID} ID ga ega Foydalanuvchini-Rasmini tahrirladi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{userToUpdate.Uname} Foydalanuvchini-Rasmini tahrirladi");
                             }
                         }
                         else
@@ -235,7 +234,7 @@ namespace tahsinERP.Controllers
                     }
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "UserController", $"{userToUpdate.Uname} - Foydalanuvchini tahrirladi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{userToUpdate.Uname} - Foydalanuvchini ma'lumotlarini tahrirladi");
 
                     return RedirectToAction("Index");
                 }
@@ -325,7 +324,7 @@ namespace tahsinERP.Controllers
                 {
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "UserController", $"{user.Uname} - Foydalanuvchini o'chiridi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimdan o'chirdi");
 
                     return RedirectToAction("Index");
                 }
