@@ -113,7 +113,7 @@ namespace tahsinERP.Controllers
 
                         db.PURCHASING_ORDERS.Add(newOrder);
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmani kiritdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{newOrder.OrderCodeEDO} - raqamli buyurtmani tizimga kiritdi");
 
                         foreach (var part in model.Parts)
                         {
@@ -128,7 +128,7 @@ namespace tahsinERP.Controllers
 
                             db.PURCHASING_ORDER_ITEMS.Add(newPart);
                             PURCHASING_ITEMS pItem = db.PURCHASING_ITEMS.Where(pi => pi.ID == newPart.ItemID).FirstOrDefault();
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{newOrder.OrderCode} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{newOrder.OrderCode} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
 
                         }
                         db.SaveChanges();
@@ -148,7 +148,7 @@ namespace tahsinERP.Controllers
                                     db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"Buyurtma: {newOrder.OrderCode} uchun fayl yukladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"Buyurtma: {newOrder.OrderCode} uchun fayl yukladi");
                                 }
                                 else
                                 {
@@ -287,7 +287,7 @@ namespace tahsinERP.Controllers
 
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingorderToDelete.OrderCode} - PurchasingOrderni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingorderToDelete.OrderCodeEDO} - buyurtmani tizimdan o'chirib yubordi");
 
                             return RedirectToAction("Index");
                         }
@@ -308,7 +308,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                PURCHASING_ORDER_ITEMS purchasingOrderItemToDelete = db.PURCHASING_ORDER_ITEMS.Find(id);
+                PURCHASING_ORDER_ITEMS purchasingOrderItemToDelete = db.PURCHASING_ORDER_ITEMS.Include(i => i.PURCHASING_ORDERS).Where(i => i.ItemID == id).FirstOrDefault();
                 if (ModelState.IsValid)
                 {
                     if (purchasingOrderItemToDelete != null)
@@ -318,7 +318,7 @@ namespace tahsinERP.Controllers
                             db.PURCHASING_ORDER_ITEMS.Remove(purchasingOrderItemToDelete);
                             db.SaveChanges();
                             var orderItem = db.PURCHASING_ORDER_ITEMS.Include(x => x.PURCHASING_ITEMS).Where(x => x.ID == id).FirstOrDefault();
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderItem.PURCHASING_ITEMS.ItemName}  - PurchasingOrderni o'chirdii");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingOrderItemToDelete.PURCHASING_ORDERS.OrderCodeEDO} buyurtmasidagi {orderItem.PURCHASING_ITEMS.ItemName} - predmetni o'chirib yubordi.");
 
                             return RedirectToAction("Index");
                         }
@@ -408,22 +408,22 @@ namespace tahsinERP.Controllers
 
                         db.Entry(purchasingOrderToUpdate).State = EntityState.Modified;
                         db.SaveChanges();
-                        foreach (var product in purchasingOrder.Parts)
+                        foreach (var part in purchasingOrder.Parts)
                         {
-                            var existingPart = db.PURCHASING_ORDER_ITEMS.Find(product.ID);
+                            var existingPart = db.PURCHASING_ORDER_ITEMS.Include(i => i.PURCHASING_ORDERS).Where(i => i.ItemID == part.ID).FirstOrDefault();
                             if (existingPart != null)
                             {
-                                existingPart.Price = product.Price;
+                                existingPart.Price = part.Price;
                                 //existingPart.UnitID = product.UnitID;
-                                existingPart.Amount = product.Amount;
-                                existingPart.TotalPrice = product.Amount * product.Price;
+                                existingPart.Amount = part.Amount;
+                                existingPart.TotalPrice = part.Amount * part.Price;
 
                                 db.Entry(existingPart).State = EntityState.Modified;
                                 try
                                 {
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{existingPart.ItemID} - li PContractPartni tahrirladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingOrderToUpdate.OrderCodeEDO} buyurtmasidagi {existingPart.PURCHASING_ITEMS.ItemName} - ni tahrirladi");
                                 }
                                 catch (RetryLimitExceededException)
                                 {
@@ -437,7 +437,7 @@ namespace tahsinERP.Controllers
                             //db.Entry(purchasingOrderToUpdate).State = EntityState.Modified;
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingOrderToUpdate.OrderCode} - kodli tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingOrderToUpdate.OrderCode} - kodli buyurtmani tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -485,7 +485,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    PURCHASING_ORDER_ITEMS purchasingOrdetItemToUpdate = db.PURCHASING_ORDER_ITEMS.Find(purchasingOrderItem.ID);
+                    PURCHASING_ORDER_ITEMS purchasingOrdetItemToUpdate = db.PURCHASING_ORDER_ITEMS.Include(i => i.PURCHASING_ORDERS).Include(i => i.PURCHASING_ITEMS).Where(i => i.ItemID == purchasingOrderItem.ID).FirstOrDefault();
                     if (purchasingOrdetItemToUpdate != null)
                     {
                         purchasingOrdetItemToUpdate.Price = purchasingOrderItem.Price;
@@ -498,7 +498,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{purchasingOrdetItemToUpdate.ItemID} - li POrderPartni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingOrdetItemToUpdate.PURCHASING_ORDERS.OrderCodeEDO} buyurtmasidagi {purchasingOrdetItemToUpdate.PURCHASING_ITEMS.ItemName} - predmetini tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -544,24 +544,24 @@ namespace tahsinERP.Controllers
                             db.Entry(purchasingItemToApprove).State = EntityState.Modified;
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtani tasdiqladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingItemToApprove.OrderID} li buyurtmani 'yakunlandi' deb tasdiqladi");
 
                             return RedirectToAction("Index");
                         }
                         else if (action == "disapprove")
                         {
-                        //    PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
-                        //    purchasingItemToApprove.Comment = comment;
+                            //    PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                            //    purchasingItemToApprove.Comment = comment;
 
-                        //    PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
-                        //    purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
-                        //    //Progress update
-                        //    double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
+                            //    PURCHASING_ORDERS purchasingOrder = new PURCHASING_ORDERS();
+                            //    purchasingOrder = db.PURCHASING_ORDERS.Find(purchasingItemToApprove.OrderID);
+                            //    //Progress update
+                            //    double totalStatusCount = db.PURCHASING_ORDER_ITEMS.Count(x => x.ID == ID);
 
-                        //    db.Entry(purchasingItemToApprove).State = EntityState.Modified;
-                        //    db.SaveChanges();
+                            //    db.Entry(purchasingItemToApprove).State = EntityState.Modified;
+                            //    db.SaveChanges();
 
-                        //    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtadan olib tashlandi");
+                            //    LogHelper.LogToDatabase(User.Identity.Name, "PurchasingOrderController", $"{purchasingItemToApprove.OrderID} li buyurtadan olib tashlandi");
 
                             return RedirectToAction("Index");
                         }
