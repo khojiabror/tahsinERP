@@ -1,5 +1,3 @@
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using OfficeOpenXml;
@@ -9,15 +7,12 @@ using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.Mvc;
-using System.Web.UI.WebControls.WebParts;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.POrder;
@@ -228,7 +223,7 @@ namespace tahsinERP.Controllers
                         {
                             OrderNo = model.OrderNo,
                             IssuedDate = model.IssuedDate,
-                            CompanyID = 1,
+                            CompanyID = 1, // bu yerda settings page dan oladigan qilish kerak!
                             SupplierID = model.SupplierID,
                             ContractID = model.ContractID,
                             CurrencyID = model.CurrencyID,
@@ -241,7 +236,7 @@ namespace tahsinERP.Controllers
 
                         db.P_ORDERS.Add(newOrder);
                         db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - buyurtmani yaratdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{newOrder.OrderNo} - buyurtmani tizimga qo'shdi");
 
 
                         List<P_CONTRACT_PARTS> contractParts = db.P_CONTRACT_PARTS.Where(pcp => pcp.ContractID == model.ContractID).ToList();
@@ -266,7 +261,7 @@ namespace tahsinERP.Controllers
 
                                 db.P_ORDER_PARTS.Add(newPart);
                                 var logPart = db.PARTS.Find(newPart.PartID);
-                                LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - buyurtmaga {logPart.PNo} - qismni biriktirdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{newOrder.OrderNo} - buyurtmaga {logPart.PNo} - qismni biriktirdi");
                             }
                             else
                             {
@@ -282,7 +277,7 @@ namespace tahsinERP.Controllers
                                 message += word + " ,";
                             }
                             ModelState.AddModelError("", "Ushbu ehtiyot qism(lar): " + message + " shartnomadan topilmadi, shartnomada yo'q narsaga buyurtma qilib bo'lmaydi! Qaytadan urinib ko'ring!");
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - buyurtmada xatolik bo'lgani uchun tizim tomonidan o'chirib yuborildi ");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{newOrder.OrderNo} - buyurtmada xatolik bo'lgani uchun tizim tomonidan o'chirib yuborildi ");
                             DeleteOrderParts(newOrder.ID);
                             db.Entry(newOrder).State = EntityState.Deleted;
                             db.SaveChanges();
@@ -305,7 +300,7 @@ namespace tahsinERP.Controllers
                                         db.P_ORDER_DOCS.Add(orderDoc);
                                         db.SaveChanges();
 
-                                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderDoc.P_ORDERS.OrderNo} - uchun hujjat biriktirdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{orderDoc.P_ORDERS.OrderNo} - buyurtmasi uchun hujjat biriktirdi");
                                     }
                                     else
                                     {
@@ -345,11 +340,12 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var parts = db.P_ORDER_PARTS.Where(pop => pop.OrderID == iD).ToList();
+                var parts = db.P_ORDER_PARTS.Include(pop => pop.PART).Include(pop => pop.P_ORDERS).Where(pop => pop.OrderID == iD).ToList();
                 foreach (var part in parts)
                 {
                     db.P_ORDER_PARTS.Remove(part);
                     db.SaveChanges();
+                    LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{part.P_ORDERS.OrderNo} - buyurtmadan {part.PART.PNo} ehtiyot qismini o'chirib yubordi ");
                 }
             }
         }
@@ -432,7 +428,7 @@ namespace tahsinERP.Controllers
                     db.P_ORDERS.Add(newOrder);
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrder.OrderNo} - POrderni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{newOrder.OrderNo} - buyurtmasini tizimga qo'shdi");
 
                     // Yangi yozuvning IncomeID sini olish
                     int newOrderID = newOrder.ID;
@@ -462,7 +458,7 @@ namespace tahsinERP.Controllers
                             db.PARTS.Add(newPartInsert);
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newPartInsert.PNo} - Partni yaratdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Ehtiyot qismlar", $"{newPartInsert.PNo} - ehtiyot qism(Steel)ini tizimga qo'shdi");
 
                             var newOrderPart = new P_ORDER_PARTS
                             {
@@ -474,7 +470,7 @@ namespace tahsinERP.Controllers
                             db.P_ORDER_PARTS.Add(newOrderPart);
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{newOrderPart.PART.PNo} - POrderPartni yaratdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{newOrderPart.P_ORDERS.OrderNo} - buyurtmasi uchun {newOrderPart.PART.PNo} - ehtiyot qismini biriktirdi");
                         }
                         else
                         {
@@ -498,9 +494,7 @@ namespace tahsinERP.Controllers
                     ViewBag.steelCoating = new SelectList(db.STEEL_COILS.ToList(), "ID", "Coating");
                     ViewBag.steelThickness = new SelectList(db.STEEL_COILS.ToList(), "ID", "Thickness");
 
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "see your system administrator.");
+                    ModelState.AddModelError("", "O'zgarish qilalmadim, qayta urunib ko'ring yoki tizim adminstratoriga murojaat qiling!");
                     return View(model);
                 }
 
@@ -604,7 +598,7 @@ namespace tahsinERP.Controllers
 
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderToDelete.OrderNo} - POrderni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{orderToDelete.OrderNo} - buyurtmani o'chirib yubordi");
 
                             return RedirectToAction("Index");
                         }
@@ -625,7 +619,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                P_ORDER_PARTS orderPartToDelete = db.P_ORDER_PARTS.Find(id);
+                P_ORDER_PARTS orderPartToDelete = db.P_ORDER_PARTS.Include(pop => pop.PART).Include(pop => pop.P_ORDERS).Where(pop => pop.PartID == id).FirstOrDefault();
                 if (ModelState.IsValid)
                 {
                     if (orderPartToDelete != null)
@@ -635,7 +629,7 @@ namespace tahsinERP.Controllers
                             db.P_ORDER_PARTS.Remove(orderPartToDelete);
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderPartToDelete.PART.PNo} - POrderPartni o'chirdi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{orderPartToDelete.P_ORDERS.OrderNo} - buyurtmasidan {orderPartToDelete.PART.PNo} - ehtiyot qismini o'chirib yubordi");
 
                             return RedirectToAction("Index");
                         }
@@ -758,7 +752,7 @@ namespace tahsinERP.Controllers
                     {
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderToUpdate.OrderNo} - POrderni tahrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{orderToUpdate.OrderNo} - buyurtmasini tahrirladi");
                     }
                     catch (RetryLimitExceededException)
                     {
@@ -786,7 +780,7 @@ namespace tahsinERP.Controllers
 
                             db.Entry(existingPart).State = EntityState.Modified;
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{existingPart.PART.PNo} - POrderPartni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{orderToUpdate.OrderNo} - buyurtmasidagi {existingPart.PART.PNo} - ehtiyot qism ma'lumotlarini tahrirladi");
                         }
                     }
                     orderToUpdate.Amount = summ;
@@ -843,7 +837,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    P_ORDER_PARTS orderPartToUpdate = db.P_ORDER_PARTS.Find(orderPart.ID);
+                    P_ORDER_PARTS orderPartToUpdate = db.P_ORDER_PARTS.Include(pop => pop.PART).Include(pop => pop.P_ORDERS).Where(pop => pop.PartID == orderPart.ID).FirstOrDefault();
                     if (orderPartToUpdate != null)
                     {
                         orderPartToUpdate.PartID = orderPart.PartID;
@@ -880,7 +874,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{orderPartToUpdate.PART.PNo} - POrderPartni tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{orderPartToUpdate.P_ORDERS.OrderNo} buyurtmasidagi {orderPartToUpdate.PART.PNo} - ehtiyot qism ma'lumotlarini tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -909,7 +903,6 @@ namespace tahsinERP.Controllers
             ViewBag.IsFileUploaded = false;
             return View();
         }
-
         private async Task<bool> CheckForExistenceOfContracts(DataTable dataTable)
         {
             if (dataTable == null)
@@ -935,8 +928,6 @@ namespace tahsinERP.Controllers
 
             return true;  // Return true if all contracts exist
         }
-
-
         private async Task<bool> CheckForExistenceOfParts(DataTable dataTable)
         {
             if (dataTable == null)
@@ -962,8 +953,6 @@ namespace tahsinERP.Controllers
 
             return true;  // Return true if all parts exist
         }
-
-
         private async Task<bool> CheckForExistenceOfSuppliers(DataTable dataTable)
         {
             if (dataTable == null)
@@ -989,7 +978,6 @@ namespace tahsinERP.Controllers
 
             return true;  // Return true if all suppliers exist
         }
-
         [HttpPost]
         public async Task<ActionResult> UploadWithExcel(HttpPostedFileBase file)
         {
@@ -1006,7 +994,7 @@ namespace tahsinERP.Controllers
                         {
                             var worksheet = package.Workbook.Worksheets[0];
                             var rowCount = worksheet.Dimension.Rows;
-                            var colCount = worksheet.Dimension.Columns;
+                            var colCount = 12; // Units va Currencies ni olmasligi uchun qo'lda yozildi
 
                             for (int col = 1; col <= colCount; col++)
                             {
@@ -1119,7 +1107,6 @@ namespace tahsinERP.Controllers
             }
             return View("UploadWithExcel");
         }
-
         public ActionResult ClearDataTable()
         {
             ViewBag.DataTable = null;
@@ -1128,7 +1115,6 @@ namespace tahsinERP.Controllers
             ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
             return View("UploadWithExcel");
         }
-
         [HttpPost]
         public async Task<ActionResult> Save(string dataTableModel)
         {
@@ -1172,7 +1158,7 @@ namespace tahsinERP.Controllers
                                         ContractID = contract.ID,
                                         SupplierID = supplier.ID,
                                         IssuedDate = DateTime.Parse(row["IssuedDate"].ToString()),
-                                        CurrencyID = (int)db.CURRENCIES.Where(x => x.Shortname.ToLower() == row["Currency"].ToString().ToLower()).FirstOrDefault().ID,
+                                        CurrencyID = db.CURRENCIES.Where(x => x.Shortname.ToLower() == row["Currency"].ToString().ToLower()).Select(x => x.ID).FirstOrDefault(),
                                         CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]),
                                         IsDeleted = false
                                     };
@@ -1180,7 +1166,7 @@ namespace tahsinERP.Controllers
                                     db.P_ORDERS.Add(new_order);
                                     await db.SaveChangesAsync();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{new_order.OrderNo} - POrderni Excell orqali yaratdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{new_order.OrderNo} - buyurtmasini Excel orqali tizimga kiritdi");
 
                                     string unitFromFile = row["Unit"].ToString();
                                     UNIT unit = db.UNITS.Where(u => u.ShortName.CompareTo(unitFromFile) == 0).FirstOrDefault();
@@ -1206,7 +1192,7 @@ namespace tahsinERP.Controllers
                                         await db.SaveChangesAsync();
 
                                         var logPart = db.PARTS.Find(new_orderPart.PartID);
-                                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{logPart.PNo} - POrderPartni Excell orqali yaratdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{new_order.OrderNo} - buyurtmasiga {logPart.PNo} - ehtiyot qismini Excel orqali biriktirdi");
                                     }
                                 }
                                 else
@@ -1234,7 +1220,7 @@ namespace tahsinERP.Controllers
                                         db.P_ORDER_PARTS.Add(new_orderPart);
                                         await db.SaveChangesAsync();
                                         var logPart = db.PARTS.Find(new_orderPart.PartID);
-                                        LogHelper.LogToDatabase(User.Identity.Name, "POrderController", $"{logPart.PNo} - POrderPartni Excell orqali yaratdi");
+                                        LogHelper.LogToDatabase(User.Identity.Name, "Buyurtmalar", $"{order.OrderNo} - buyurtmasiga {logPart.PNo} - ehtiyot qismini Excel orqali biriktirdi");
                                     }
                                 }
                             }
