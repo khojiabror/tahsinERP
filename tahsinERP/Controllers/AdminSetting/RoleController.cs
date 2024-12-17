@@ -38,6 +38,7 @@ namespace tahsinERP.Controllers
                     newRole.IsDeleted = false;
 
                     db.ROLES.Add(newRole);
+                    db.SaveChanges();
                     LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{newRole.RName} - Roleni yaratdi");
 
                     var length = db.PERMISSIONMODULES.ToList().Count;
@@ -52,17 +53,16 @@ namespace tahsinERP.Controllers
                         newPermission.ChangePermit = false;
                         newPermission.ViewPermit = true;
                         newPermission.RoleID = role.ID;
+                        newPermission.ROLE = newRole;
                         db.PERMISSIONS.Add(newPermission);
 
                         LogHelper.LogToDatabase(User.Identity.Name, "RoleController", $"{newPermission.ROLE.RName} uchun - {newPermission.PERMISSIONMODULE.Module} Permissionni yaratdi");
 
                         i++;
                     }
-
                     db.SaveChanges();
+                    return RedirectToAction("Index");
                 }
-
-                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
