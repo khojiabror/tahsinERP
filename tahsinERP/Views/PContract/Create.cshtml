@@ -153,17 +153,23 @@
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <h6 for="Part_Quantity">Miqdori</h6>
-                                                            <input type="number" name="Quantity" step="0.001" class="form-control" id="Part_Quantity" />
+                                                            <input type="text" name="Quantity" class="form-control" id="Part_Quantity"
+                                                                   placeholder="misol, 0.01"
+                                                                   oninput="this.value = this.value.replace(',', '.');" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Quantity, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <h6 for="Part_Price">Narx</h6>
-                                                            <input type="number" name="Price" step="0.001" class="form-control" id="Part_Price" />
+                                                            <input type="text" name="Price" class="form-control" id="Part_Price"
+                                                                   placeholder="misol, 0.01"
+                                                                   oninput="this.value = this.value.replace(',', '.');" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Price, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <h6 for="Part_MOQ">MOQ</h6>
-                                                            <input type="text" name="MOQ" step="0.001" class="form-control" id="Part_MOQ" />
+                                                            <input type="text" name="MOQ" class="form-control" id="Part_MOQ"
+                                                                   placeholder="misol, 0.01"
+                                                                   oninput="this.value = this.value.replace(',', '.');" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].MOQ, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
@@ -173,6 +179,7 @@
                                                     <hr>
                                                 </div>
                                             </div>
+
 
                                             <button data-repeater-create type="button" class="btn btn-primary">Yangi qism qo`shish</button>
 

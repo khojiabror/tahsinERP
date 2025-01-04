@@ -374,8 +374,8 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (ModelState.IsValid)
-                {
+                //if (ModelState.IsValid)
+                //{
                     try
                     {
                         var newContract = new P_CONTRACTS()
@@ -405,10 +405,10 @@ namespace tahsinERP.Controllers
                                 ContractID = newContractID,
                                 PartID = part.PartID,
                                 UnitID = part.UnitID,
-                                Price = part.Price,
-                                Quantity = part.Quantity,
+                                Price = double.Parse(part.Price.ToString(), System.Globalization.CultureInfo.InvariantCulture),
+                                Quantity = double.Parse(part.Quantity.ToString(), System.Globalization.CultureInfo.InvariantCulture),
                                 ActivePart = true,
-                                MOQ = part.MOQ
+                                MOQ = double.Parse(part.MOQ.ToString(), System.Globalization.CultureInfo.InvariantCulture)
                             };
                             db.P_CONTRACT_PARTS.Add(newPart);
                             PART paart = db.PARTS.Where(p => p.ID == part.PartID).FirstOrDefault();
@@ -417,7 +417,7 @@ namespace tahsinERP.Controllers
                         }
                         db.SaveChanges();
 
-                        newContract.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
+                        newContract.Amount = (double)db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
                         db.SaveChanges();
 
                         if (model.File != null && model.File.ContentLength > 0)
@@ -460,7 +460,7 @@ namespace tahsinERP.Controllers
                     {
                         ModelState.AddModelError("", $"Error: {ex.Message}");
                     }
-                }
+                //}
 
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.partList = new SelectList(db.PARTS.Where(c => c.IsDeleted == false).ToList(), "ID", "PNo");
@@ -806,7 +806,7 @@ namespace tahsinERP.Controllers
 
                             //Shartnoma miqdori o'zgargani uchun yozildi
                             var contractToUpdate = db.PURCHASING_CONTRACTS.Find(contractPartToDelete.ContractID);
-                            contractToUpdate.Amount = db.P_CONTRACT_PARTS.Where(x => x.ContractID == contractToUpdate.ID).Sum(x => x.Amount);
+                            contractToUpdate.Amount = (double)db.P_CONTRACT_PARTS.Where(x => x.ContractID == contractToUpdate.ID).Sum(x => x.Amount);
 
                             db.SaveChanges();
                             LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractPartToDelete.P_CONTRACTS.ContractNo} - shartnomasida {contractPartToDelete.PART.PNo} - ehtiyot qismni o'chirdi");

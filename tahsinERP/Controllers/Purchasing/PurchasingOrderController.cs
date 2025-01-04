@@ -3,20 +3,12 @@ using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
-using tahsinERP.ViewModels.POrder;
 using System.IO;
 using tahsinERP.ViewModels.PurchasingOrder;
 using System.Net;
-using DocumentFormat.OpenXml.Office2010.Excel;
 using tahsinERP.ViewModels.Purchasing;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using Microsoft.AspNetCore.Mvc;
-using Antlr.Runtime.Misc;
-using DocumentFormat.OpenXml.EMMA;
 
 namespace tahsinERP.Controllers
 {
@@ -128,7 +120,7 @@ namespace tahsinERP.Controllers
 
                             db.PURCHASING_ORDER_ITEMS.Add(newPart);
                             PURCHASING_ITEMS pItem = db.PURCHASING_ITEMS.Where(pi => pi.ID == newPart.ItemID).FirstOrDefault();
-                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{newOrder.OrderCode} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{newOrder.OrderCodeEDO} - buyurtmasiga {pItem.ItemName} - predmetni biriktirdi.");
 
                         }
                         db.SaveChanges();
@@ -148,7 +140,7 @@ namespace tahsinERP.Controllers
                                     db.PURCHASING_ORDER_DOCS.Add(purchasingOrderDoc);
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"Buyurtma: {newOrder.OrderCode} uchun fayl yukladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"Buyurtma: {newOrder.OrderCodeEDO} uchun fayl yukladi");
                                 }
                                 else
                                 {
@@ -437,7 +429,7 @@ namespace tahsinERP.Controllers
                             //db.Entry(purchasingOrderToUpdate).State = EntityState.Modified;
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingOrderToUpdate.OrderCode} - kodli buyurtmani tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingOrderToUpdate.OrderCodeEDO} - kodli buyurtmani tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -536,7 +528,7 @@ namespace tahsinERP.Controllers
                         if (action == "approve")
                         {
                             // Approve logic
-                            PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Find(ID);
+                            PURCHASING_ORDER_ITEMS purchasingItemToApprove = db.PURCHASING_ORDER_ITEMS.Include(x => x.PURCHASING_ORDERS).Where(x => x.OrderID == ID).FirstOrDefault();
 
                             purchasingItemToApprove.Comment = comment;
                             purchasingItemToApprove.Progress = 1;
@@ -544,7 +536,7 @@ namespace tahsinERP.Controllers
                             db.Entry(purchasingItemToApprove).State = EntityState.Modified;
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingItemToApprove.OrderID} li buyurtmani 'yakunlandi' deb tasdiqladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Xarid buyurtmalari", $"{purchasingItemToApprove.PURCHASING_ORDERS.OrderCodeEDO} li buyurtmani 'yakunlandi' deb tasdiqladi");
 
                             return RedirectToAction("Index");
                         }

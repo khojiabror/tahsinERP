@@ -16,5 +16,12 @@ namespace tahsinERP
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             GlobalFilters.Filters.Add(new AuthorizeAttribute());
         }
+        protected void Application_BeginRequest()
+        {
+            System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("en-US");
+            System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+        }
+
     }
 }
