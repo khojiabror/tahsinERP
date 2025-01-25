@@ -174,10 +174,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-
-                //ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
                 ViewBag.PContract = new SelectList(Enumerable.Empty<SelectListItem>());
-                // Create a list of SelectListItem manually for parts
                 ViewBag.partList = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
@@ -378,27 +375,22 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (supplierID.HasValue)
-                {
-                    ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false && x.Type.CompareTo("Steel") == 0).ToList(), "ID", "Name");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                    ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false && x.SupplierID == supplierID.Value).ToList(), "ID", "ContractNo");
-                }
-                else
-                {
-                    ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false && x.Type.CompareTo("Steel") == 0).ToList(), "ID", "Name");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                    ViewBag.PContract = new SelectList(db.P_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo");
-                }
+                ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                ViewBag.PContract = new SelectList(Enumerable.Empty<SelectListItem>());
 
                 var steelCoils = db.STEEL_COILS.ToList();
 
-                ViewBag.steelMarka = new SelectList(steelCoils.ToList(), "ID", "Marka");
-                ViewBag.steelStandart = new SelectList(steelCoils.ToList(), "ID", "Standart");
-                ViewBag.steelCoating = new SelectList(steelCoils.ToList(), "ID", "Coating");
-                ViewBag.steelThickness = new SelectList(steelCoils.ToList(), "ID", "Thickness");
+                var distinctMarka = steelCoils.Select(s => s.Marka).Distinct();
+                var distinctStandart = steelCoils.Select(s => s.Standart).Distinct();
+                var distinctCoating = steelCoils.Select(s => s.Coating).Distinct();
+                var distinctThickness = steelCoils.Select(s => s.Thickness).Distinct();
+
+                ViewBag.steelMarka = new SelectList(distinctMarka);
+                ViewBag.steelStandart = new SelectList(distinctStandart);
+                ViewBag.steelCoating = new SelectList(distinctCoating);
+                ViewBag.steelThickness = new SelectList(distinctThickness);
             }
 
             return View();

@@ -54,25 +54,14 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Ta`minotchi</label>
-                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, "", new { @class = "form-control", id = "SupplierID", onchange = "refreshdatatablesupplier()" })
+                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, "", new { @class = "form-control select2", id = "SupplierID", onchange = "refreshContractList()" })
                                                             @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="ContractID">Shartnoma raqami</label>
-                                                            @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, new { @class = "form-control", id = "ContractID" })
+                                                            @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, new { @class = "form-control select2", id = "ContractID" })
                                                             @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                         </div>
-
-                                                        @* <div class="col-md-6 col-12 form-group">
-                                                                <label for="SupplierID">Ta`minotchi</label>
-                                                                @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, new { @class = "form-control", id = "SupplierID", onchange = "refreshdatatablesupplier()" })
-                                                                @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
-                                                            </div>
-                                                            <div class="col-md-6 col-12 form-group">
-                                                                <label for="ContractID">Shartnoma raqami</label>
-                                                                @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, new { @class = "form-control", id = "ContractID" })
-                                                                @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                            </div>*@
                                                     </div>
                                                 </div>
 
@@ -80,7 +69,7 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="Currency">Valyuta</label>
+                                                            <label for="Currency">Valyuta<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Valyuta ma'lumotlarini sozlamalardan o'zgartiring"></i></label>
                                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control", id = "Currency" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
@@ -90,7 +79,7 @@
                                                             @Html.TextAreaFor(model => model.Description, new { @class = "form-control", id = "Description" })
                                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-6 col-12 form-group">
+                                                        <div class="col-md-6 col-12 form-group position-relative has-icon-left">
                                                             <label for="dateInput">Buyurtma berilgan sanasi:</label>
                                                             @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Buyurtma berilgan sanasi", @required = "required" })
                                                             @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
@@ -101,43 +90,41 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <br />
                                             <h4>Ehtiyot qismlar</h4>
                                             <div data-repeater-list="Parts">
-                                                <div data-repeater-item>
+                                                <div data-repeater-item id="repeaterItem">
                                                     <div class="row justify-content-between">
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Marka">Marka</label>
-                                                            @Html.DropDownList("Marka", (SelectList)ViewBag.steelMarka, new { @class = "form-control" })
+                                                            @Html.DropDownList("Marka", (SelectList)ViewBag.steelMarka, new { @class = "form-control select"})
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Marka, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Standart">Standart</label>
-                                                            @Html.DropDownList("Standart", (SelectList)ViewBag.steelStandart, new { @class = "form-control" })
+                                                            @Html.DropDownList("Standart", (SelectList)ViewBag.steelStandart, new { @class = "form-control select"})
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Standart, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Coating">Coating</label>
-                                                            @Html.DropDownList("Coating", (SelectList)ViewBag.steelCoating, new { @class = "form-control" })
+                                                            @Html.DropDownList("Coating", (SelectList)ViewBag.steelCoating, new { @class = "form-control select"})
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Coating, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Unit">Thickness</label>
-                                                            @Html.DropDownList("Thickness", (SelectList)ViewBag.steelThickness, new { @class = "form-control" })
+                                                            @Html.DropDownList("Thickness", (SelectList)ViewBag.steelThickness, new { @class = "form-control select"})
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Thickness, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Unit">Unit</label>
-                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
-                                                        </div>
-
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_width">Eni</label>
                                                             <input type="number" name="Width" class="form-control" id="Part_Amount" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Width, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="col-md-2 col-sm-12 form-group">
+                                                            <label for="Part_Unit">O'lchov birligi<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="O'lchov birligi ma'lumotlarini sozlamalardan o'zgartiring"></i></label>
+                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.units, new { @class = "form-control select" })
+                                                            @Html.ValidationMessageFor(model => model.Parts[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Amount">Miqdori</label>
@@ -151,7 +138,7 @@
                                                     <hr>
                                                 </div>
                                             </div>
-                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi detal qo'shish</button>
+                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi qism qo'shish</button>
 
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item border-0 pb-0">
@@ -186,8 +173,8 @@
         });
     </script>
     <script type="text/javascript">
-    function refreshdatatablesupplier() {
-        const supplierID = document.getElementById("SupplierID").value;
+    function refreshContractList() {
+        const supplierID = $("#SupplierID").val();
         $.ajax({
             url: '@Url.Action("GetContractsBySupplier", "POrder")',
             type: 'GET',
@@ -198,6 +185,11 @@
                 $.each(data, function (index, item) {
                     contractDropdown.append(new Option(item.Text, item.Value));
                 });
+
+                // Default shartnomani tanlab olamiz
+                if (data.length > 0) {
+                    contractDropdown.val(data[0].Value).trigger('change');
+                }
             },
             error: function (xhr, status, error) {
                 console.error("Error fetching contracts:", error);
@@ -206,19 +198,6 @@
     }
     </script>
 
-    @* <script type="text/javascript">
-         function refreshDataTable() {
-             var source = document.getElementById("SourceID").value;
-             const supplierID = document.getElementById("SupplierID").value;
-             window.location.href = '@Url.Action("CreateSteel", "POrder")?type=' + source;
-             ////window.location.href = '@Url.Action("CreateSteel", "POrder")?type=' + source + '&supplierID='+ supplierID;
-         };
-         function refreshdatatablesupplier() {
-             var source = document.getElementById("SourceID").value;
-             const supplierID = document.getElementById("SupplierID").value;
-             window.location.href = '@Url.Action("CreateSteel", "POrder")?type=' + source + '&supplierID='+ supplierID;
-         }
-        </script>*@
 }
 else
 {

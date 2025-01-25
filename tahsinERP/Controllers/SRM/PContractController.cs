@@ -376,90 +376,90 @@ namespace tahsinERP.Controllers
             {
                 //if (ModelState.IsValid)
                 //{
-                    try
+                try
+                {
+                    var newContract = new P_CONTRACTS()
                     {
-                        var newContract = new P_CONTRACTS()
+                        ContractNo = model.ContractNo,
+                        IssuedDate = model.IssuedDate,
+                        CompanyID = 1,//TEMPORARILY SET
+                        SupplierID = model.SupplierID,
+                        CurrencyID = model.CurrencyID,
+                        Amount = model.Amount,
+                        Incoterms = model.Incoterms,
+                        PaymentTerms = model.PaymentTerms,
+                        DueDate = model.DueDate,
+                        IsDeleted = false,
+                        IDN = model.IDN,
+                    };
+                    db.P_CONTRACTS.Add(newContract);
+                    db.SaveChanges();
+                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasini tizimga kiritdi.");
+
+                    int newContractID = newContract.ID;
+
+                    foreach (var part in model.Parts)
+                    {
+                        var newPart = new P_CONTRACT_PARTS
                         {
-                            ContractNo = model.ContractNo,
-                            IssuedDate = model.IssuedDate,
-                            CompanyID = 1,
-                            SupplierID = model.SupplierID,
-                            CurrencyID = model.CurrencyID,
-                            Amount = model.Amount,
-                            Incoterms = model.Incoterms,
-                            PaymentTerms = model.PaymentTerms,
-                            DueDate = model.DueDate,
-                            IsDeleted = false,
-                            IDN = model.IDN,
+                            ContractID = newContractID,
+                            PartID = part.PartID,
+                            UnitID = part.UnitID,
+                            Price = double.Parse(part.Price.ToString(), System.Globalization.CultureInfo.InvariantCulture),
+                            Quantity = double.Parse(part.Quantity.ToString(), System.Globalization.CultureInfo.InvariantCulture),
+                            ActivePart = true,
+                            MOQ = double.Parse(part.MOQ.ToString(), System.Globalization.CultureInfo.InvariantCulture)
                         };
-                        db.P_CONTRACTS.Add(newContract);
-                        db.SaveChanges();
-                        LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasini tizimga kiritdi.");
+                        db.P_CONTRACT_PARTS.Add(newPart);
+                        PART paart = db.PARTS.Where(p => p.ID == part.PartID).FirstOrDefault();
+                        if (paart != null)
+                            LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasiga {paart.PNo} ni biriktirdi.");
+                    }
+                    db.SaveChanges();
 
-                        int newContractID = newContract.ID;
+                    newContract.Amount = (double)db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
+                    db.SaveChanges();
 
-                        foreach (var part in model.Parts)
+                    if (model.File != null && model.File.ContentLength > 0)
+                    {
+                        if (model.File.ContentLength < 5242880)
                         {
-                            var newPart = new P_CONTRACT_PARTS
+                            if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
                             {
-                                ContractID = newContractID,
-                                PartID = part.PartID,
-                                UnitID = part.UnitID,
-                                Price = double.Parse(part.Price.ToString(), System.Globalization.CultureInfo.InvariantCulture),
-                                Quantity = double.Parse(part.Quantity.ToString(), System.Globalization.CultureInfo.InvariantCulture),
-                                ActivePart = true,
-                                MOQ = double.Parse(part.MOQ.ToString(), System.Globalization.CultureInfo.InvariantCulture)
-                            };
-                            db.P_CONTRACT_PARTS.Add(newPart);
-                            PART paart = db.PARTS.Where(p => p.ID == part.PartID).FirstOrDefault();
-                            if (paart != null)
-                                LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasiga {paart.PNo} ni biriktirdi.");
-                        }
-                        db.SaveChanges();
+                                P_CONTRACT_DOCS contractDoc = new P_CONTRACT_DOCS();
+                                byte[] fileData = new byte[model.File.InputStream.Length];
+                                model.File.InputStream.Read(fileData, 0, fileData.Length);
 
-                        newContract.Amount = (double)db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
-                        db.SaveChanges();
+                                contractDoc.ContractID = newContract.ID;
+                                contractDoc.Doc = fileData;
 
-                        if (model.File != null && model.File.ContentLength > 0)
-                        {
-                            if (model.File.ContentLength < 5242880)
-                            {
-                                if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
-                                {
-                                    P_CONTRACT_DOCS contractDoc = new P_CONTRACT_DOCS();
-                                    byte[] fileData = new byte[model.File.InputStream.Length];
-                                    model.File.InputStream.Read(fileData, 0, fileData.Length);
+                                db.P_CONTRACT_DOCS.Add(contractDoc);
+                                db.SaveChanges();
 
-                                    contractDoc.ContractID = newContract.ID;
-                                    contractDoc.Doc = fileData;
-
-                                    db.P_CONTRACT_DOCS.Add(contractDoc);
-                                    db.SaveChanges();
-
-                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractDoc.P_CONTRACTS.ContractNo} - uchun shartnoma uchun fayl biriktirdi");
-                                }
-                                else
-                                {
-                                    ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
-                                }
+                                LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractDoc.P_CONTRACTS.ContractNo} - uchun shartnoma uchun fayl biriktirdi");
                             }
                             else
                             {
-                                ModelState.AddModelError("", "The file is too large. Please upload a file smaller than 5MB.");
-                                throw new RetryLimitExceededException();
+                                ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
                             }
                         }
                         else
                         {
-                            ModelState.AddModelError("", "No file uploaded. Please try again.");
+                            ModelState.AddModelError("", "The file is too large. Please upload a file smaller than 5MB.");
+                            throw new RetryLimitExceededException();
                         }
-
-                        return RedirectToAction("Index");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        ModelState.AddModelError("", $"Error: {ex.Message}");
+                        ModelState.AddModelError("", "No file uploaded. Please try again.");
                     }
+
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error: {ex.Message}");
+                }
                 //}
 
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
@@ -467,6 +467,166 @@ namespace tahsinERP.Controllers
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 return View(model);
+            }
+        }
+        public ActionResult CreateSteel()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                ViewBag.partList = new SelectList(db.PARTS.Where(c => c.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                ViewBag.hscodes = new SelectList(db.HSCODES.Where(h => h.ID >= 7647 && h.ID <= 8521).ToList(), "ID", "HSCODE1");
+
+                var steelCoils = db.STEEL_COILS.ToList();
+
+                var distinctMarka = steelCoils.Select(s => s.Marka).Distinct();
+                var distinctStandart = steelCoils.Select(s => s.Standart).Distinct();
+                var distinctCoating = steelCoils.Select(s => s.Coating).Distinct();
+                var distinctThickness = steelCoils.Select(s => s.Thickness).Distinct();
+
+                ViewBag.steelMarka = new SelectList(distinctMarka);
+                ViewBag.steelStandart = new SelectList(distinctStandart);
+                ViewBag.steelCoating = new SelectList(distinctCoating);
+                ViewBag.steelThickness = new SelectList(distinctThickness);
+
+                return View();
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateSteel(PContractSViewModel model)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                //if (ModelState.IsValid)
+                //{
+                try
+                {
+                    var newContract = new P_CONTRACTS()
+                    {
+                        ContractNo = model.ContractNo,
+                        IssuedDate = model.IssuedDate,
+                        CompanyID = 1, //TEMPORARILY SET
+                        SupplierID = model.SupplierID,
+                        CurrencyID = model.CurrencyID,
+                        Amount = model.Amount,
+                        Incoterms = model.Incoterms,
+                        PaymentTerms = model.PaymentTerms,
+                        DueDate = model.DueDate,
+                        IsDeleted = false,
+                        IDN = model.IDN,
+                    };
+                    db.P_CONTRACTS.Add(newContract);
+                    db.SaveChanges();
+                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasini tizimga kiritdi.");
+
+                    int newContractID = newContract.ID;
+
+                    foreach (var part in model.Parts)
+                    {
+                        var newPart = new P_CONTRACT_PARTS
+                        {
+                            ContractID = newContractID,
+                            PartID = GetPartAsPerSteelInformation(part),
+                            UnitID = part.UnitID,
+                            Price = double.Parse(part.Price.ToString(), System.Globalization.CultureInfo.InvariantCulture),
+                            Quantity = double.Parse(part.Quantity.ToString(), System.Globalization.CultureInfo.InvariantCulture),
+                            ActivePart = true
+                            //HSCodeID = part.HSCodeID
+                        };
+                        db.P_CONTRACT_PARTS.Add(newPart);
+                        db.SaveChanges();
+                        PART paart = db.PARTS.Where(p => p.ID == newPart.PartID).FirstOrDefault();
+                        if (paart != null)
+                            LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{newContract.ContractNo} - shartnomasiga {paart.PNo} ni biriktirdi.");
+                    }
+
+                    newContract.Amount = (double)db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
+                    db.Entry(newContract).State = EntityState.Modified;
+                    db.SaveChanges();
+
+                    if (model.File != null && model.File.ContentLength > 0)
+                    {
+                        if (model.File.ContentLength < 5242880)
+                        {
+                            if (Path.GetExtension(model.File.FileName).ToLower() == ".pdf")
+                            {
+                                P_CONTRACT_DOCS contractDoc = new P_CONTRACT_DOCS();
+                                byte[] fileData = new byte[model.File.InputStream.Length];
+                                model.File.InputStream.Read(fileData, 0, fileData.Length);
+
+                                contractDoc.ContractID = newContract.ID;
+                                contractDoc.Doc = fileData;
+
+                                db.P_CONTRACT_DOCS.Add(contractDoc);
+                                db.SaveChanges();
+
+                                LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{contractDoc.P_CONTRACTS.ContractNo} - uchun shartnoma uchun fayl biriktirdi");
+                            }
+                            else
+                            {
+                                ModelState.AddModelError("", "Format noto'g'ri. Faqat .pdf fayllarni yuklash mumkin.");
+                            }
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("", "The file is too large. Please upload a file smaller than 5MB.");
+                            throw new RetryLimitExceededException();
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "No file uploaded. Please try again.");
+                    }
+
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error: {ex.Message}");
+                }
+                //}
+
+                ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
+                ViewBag.partList = new SelectList(db.PARTS.Where(c => c.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+                return View(model);
+            }
+        }
+        private int GetPartAsPerSteelInformation(PContractSPart steel)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                PART part = db.PARTS.Where(p => p.Marka == steel.Marka && p.Coating == steel.Coating && p.Standart == steel.Standart && p.Gauge == steel.Thickness && p.PWidth == steel.Width).FirstOrDefault();
+                if (part != null)
+                    return part.ID;
+                else
+                {
+                    PART newPart = new PART();
+                    newPart.Marka = steel.Marka;
+                    newPart.Coating = steel.Coating;
+                    newPart.Standart = steel.Standart;
+                    newPart.Gauge = steel.Thickness;
+                    newPart.PWidth = steel.Width;
+                    newPart.PNo = steel.Standart + " " + steel.Thickness + "x" + steel.Width;
+                    newPart.PName = "steel coil " + steel.Standart + " " + steel.Thickness + "x" + steel.Width;
+                    newPart.PWeight = 0;
+                    newPart.PLength = 0;
+                    newPart.PHeight = 0;
+                    newPart.Pitch = 0;
+                    newPart.IsDeleted = false;
+                    newPart.IsInHouse = false;
+                    newPart.HSCodeID = steel.HsCodeID;
+                    newPart.UnitID = steel.UnitID;
+
+                    db.PARTS.Add(newPart);
+                    db.SaveChanges();
+
+                    return newPart.ID;
+                }
             }
         }
         public ActionResult DownloadDoc(int? contractID)

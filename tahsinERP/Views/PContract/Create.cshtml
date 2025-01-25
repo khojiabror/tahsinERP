@@ -221,27 +221,3 @@ else
         });
     });
 </script>
-@*
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#supplierDropdown').change(function () {
-                var supplierId = $(this).val();
-                $.ajax({
-                    url: '@Url.Action("GetPartsBySupplier", "PContract")',
-                    type: 'GET',
-                    data: { supplierId: supplierId },
-                    success: function (data) {
-                        var partDropdown = $('#partDropdown');
-                        partDropdown.empty();
-                        $.each(data, function (index, part) {
-                            partDropdown.append($('<option/>', {
-                                value: part.ID,
-                                text: part.PNo
-                            }));
-                        });
-                    }
-                });
-            });
-        });
-    </script>*@

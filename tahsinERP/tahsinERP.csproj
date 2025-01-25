@@ -918,6 +918,7 @@
     <Compile Include="ViewModels\GTDViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\OrderTracingViewModel.cs" />
+    <Compile Include="ViewModels\PContractSViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
@@ -3012,6 +3013,7 @@
     <Content Include="Views\WaybillPayment\Details.cshtml" />
     <Content Include="Views\WaybillPayment\Delete.cshtml" />
     <Content Include="Views\WaybillPayment\Edit.cshtml" />
+    <Content Include="Views\PContract\CreateSteel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
