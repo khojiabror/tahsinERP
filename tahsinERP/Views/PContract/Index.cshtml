@@ -42,10 +42,16 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <div class="invoice-create-btn mb-1">
-                                <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/PContract/Create';">
+                                <button type="button" class="btn btn-outline-success mr-1 mb-1" id="createButton" onclick="window.location.href='/PContract/Create';">
                                     <span class="align-middle ml-25">Shartnoma qo'shish</span>
                                 </button>
                                 <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/PContract/UploadWithExcel'">
+                                    <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali shartnoma qo'shish</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-success mr-1 mb-1" id="createSteelButton" style="display:none;" onclick="window.location.href='/PContract/CreateSteel';">
+                                    <span class="align-middle ml-25">Steel coil shartnoma qo'shish</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportSteelButton" style="display:none;" onclick="window.location.href='/PContract/UploadWithExcelSteel'">
                                     <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali shartnoma qo'shish</span>
                                 </button>
                             </div>
@@ -154,6 +160,25 @@
             const supplierID = document.getElementById("SupplierID").value;
             window.location.href = '@Url.Action("Index", "PContract")?type=' + source + '&supplierID='+ supplierID;
         }
+
+        function toggleButtons() {
+            var source = document.getElementById("SourceID").value;
+            if (source === "Steel") {
+                document.getElementById("createButton").style.display = "none";
+                document.getElementById("exportButton").style.display = "none";
+                document.getElementById("createSteelButton").style.display = "inline-block";
+                document.getElementById("exportSteelButton").style.display = "inline-block";
+            } else {
+                document.getElementById("createButton").style.display = "inline-block";
+                document.getElementById("exportButton").style.display = "inline-block";
+                document.getElementById("createSteelButton").style.display = "none";
+                document.getElementById("exportSteelButton").style.display = "none  ";
+            }
+        }
+        // Initial call to set the correct button visibility on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            toggleButtons();
+        });
     </script>
 }
 else

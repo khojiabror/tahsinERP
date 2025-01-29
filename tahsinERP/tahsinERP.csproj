@@ -3014,6 +3014,7 @@
     <Content Include="Views\WaybillPayment\Delete.cshtml" />
     <Content Include="Views\WaybillPayment\Edit.cshtml" />
     <Content Include="Views\PContract\CreateSteel.cshtml" />
+    <Content Include="Views\PContract\UploadWithExcelSteel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

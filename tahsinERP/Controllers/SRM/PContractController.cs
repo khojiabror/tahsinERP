@@ -81,6 +81,16 @@ namespace tahsinERP.Controllers
                 return View();
             }
         }
+        public async Task<ActionResult> DownloadSteel()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                SAMPLE_FILES contract = await db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("shartnoma-steel.xlsx") == 0).FirstOrDefaultAsync();
+                if (contract != null)
+                    return File(contract.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return View();
+            }
+        }
         public ActionResult UploadWithExcel()
         {
             ViewBag.IsFileUploaded = false;
@@ -192,6 +202,117 @@ namespace tahsinERP.Controllers
             }
             return View("UploadWithExcel");
         }
+        public ActionResult UploadWithExcelSteel()
+        {
+            ViewBag.IsFileUploaded = false;
+            return View();
+        }
+        [HttpPost]
+        public ActionResult UploadWithExcelSteel(HttpPostedFileBase file)
+        {
+            if (file != null && file.ContentLength > 0)
+            {
+                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
+                {
+                    try
+                    {
+                        var dataTable = new System.Data.DataTable();
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                        using (var package = new ExcelPackage(file.InputStream))
+                        {
+                            var worksheet = package.Workbook.Worksheets[0];
+                            var rowCount = worksheet.Dimension.Rows;
+                            var colCount = 20; // ma'lumot uchun qo'shilgan columnlarni olmasligi uchun qo'lda yozildi
+
+                            for (int col = 1; col <= colCount; col++)
+                            {
+                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                            }
+
+                            for (int row = 2; row <= rowCount; row++)
+                            {
+                                var dataRow = dataTable.NewRow();
+                                for (int col = 1; col <= colCount; col++)
+                                {
+                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                                }
+                                dataTable.Rows.Add(dataRow);
+                            }
+                        }
+                        if (CheckForExistenceOfSuppliers(dataTable))
+                        {
+                            //if (CheckForExistenceOfParts(dataTable))
+                            //{
+                            ViewBag.DataTable = dataTable;
+                            ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
+                            ViewBag.IsFileUploaded = true;
+
+                            using (DBTHSNEntities db = new DBTHSNEntities())
+                            {
+                                foreach (DataRow row in dataTable.Rows)
+                                {
+                                    contractNo = row["ContractNo"].ToString();
+                                    supplierName = row["Supplier Name"].ToString();
+                                    partNo = row["Steel Grade"].ToString() + " " + Convert.ToDouble(row["Thickness"].ToString()) + "x" + Convert.ToDouble(row["Width"].ToString());
+
+                                    SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
+                                    PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                                    P_CONTRACTS contract = db.P_CONTRACTS.Where(pc => pc.ContractNo.CompareTo(contractNo) == 0 && pc.SupplierID == supplier.ID && pc.IsDeleted == false).FirstOrDefault();
+
+                                    if (contract != null)
+                                    {
+                                        if (part != null)
+                                        {
+                                            P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.PartID == part.ID && pcp.ContractID == contract.ID).FirstOrDefault();
+                                            if (contractPart != null)
+                                                ViewBag.ExistingRecordsCount = 1;
+                                        }
+                                    }
+                                }
+                            }
+                            //}
+                            //else
+                            //{
+                            //    var message = "";
+                            //    foreach (var word in missingParts)
+                            //    {
+                            //        message += word + ", ";
+                            //    }
+                            //    ViewBag.Message = "Ushbu shartnomalar faylida kiritilgan ehtiyot qismlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Ehtiyot qismlar bazasiga kiritib keyin qayta urining.";
+                            //    return View("UploadWithExcelSteel");
+                            //}
+                        }
+                        else
+                        {
+                            var message = "";
+                            foreach (var word in missingSuppliers)
+                            {
+                                message += word + ", ";
+                            }
+                            ViewBag.Message = "Ushbu shartnomalar faylda kiritilgan ta'minotchilar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Ta'minotchilar bazasiga kiritib keyin qayta urining.";
+                            return View("UploadWithExcelSteel");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                        return View("UploadWithExcelSteel");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
+                    return View("UploadWithExcelSteel");
+                }
+            }
+            else
+            {
+                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
+                return View("UploadWithExcelSteel");
+            }
+            return View("UploadWithExcelSteel");
+        }
         private bool CheckForExistenceOfParts(DataTable dataTable)
         {
             bool flag = false;
@@ -200,7 +321,7 @@ namespace tahsinERP.Controllers
                 {
                     foreach (DataRow row in dataTable.Rows)
                     {
-                        string partPNo = row["Part Number"].ToString();
+                        string partPNo = row["Steel Grade"].ToString() + " " + Convert.ToDouble(row["Thickness"].ToString()) + "x" + Convert.ToDouble(row["Width"].ToString());
                         if (db.PARTS.Where(p => p.PNo.CompareTo(partPNo) == 0).Any())
                             flag = true;
                         else
@@ -252,6 +373,16 @@ namespace tahsinERP.Controllers
             ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
             // Return the UploadWithExcel view
             return View("UploadWithExcel");
+        }
+        public ActionResult ClearDataTableSteel()
+        {
+            // Clear the DataTable and related ViewBag properties
+            ViewBag.DataTable = null;
+            ViewBag.DataTableModel = null;
+            ViewBag.IsFileUploaded = false;
+            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
+            // Return the UploadWithExcel view
+            return View("UploadWithExcelSteel");
         }
         [HttpPost]
         public ActionResult Save(string dataTableModel)
@@ -356,6 +487,113 @@ namespace tahsinERP.Controllers
 
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        public ActionResult SaveSteel(string dataTableModel)
+        {
+            if (!string.IsNullOrEmpty(dataTableModel))
+            {
+                var tableModel = JsonConvert.DeserializeObject<System.Data.DataTable>(dataTableModel);
+                string currency = "";
+                try
+                {
+                    using (DBTHSNEntities db = new DBTHSNEntities())
+                    {
+                        foreach (DataRow row in tableModel.Rows)
+                        {
+                            contractNo = row["ContractNo"].ToString();
+                            supplierName = row["Supplier Name"].ToString();
+                            //partNo = row["Part Number"].ToString();
+                            currency = row["Currency"].ToString();
+
+
+                            SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
+                            PART part = GetPartAsPerSteelInformationExcel(row["Steel Grade"].ToString(), row["Coating type"].ToString(), row["Thickness"].ToString(), row["Width"].ToString(), row["HSCODE"].ToString());
+
+                            P_CONTRACTS contract = db.P_CONTRACTS.Where(pc => pc.ContractNo.CompareTo(contractNo) == 0 && pc.IsDeleted == false).FirstOrDefault();
+
+                            if (contract == null)
+                            {
+                                P_CONTRACTS new_contract = new P_CONTRACTS();
+                                new_contract.ContractNo = contractNo;
+                                new_contract.SupplierID = supplier.ID;
+                                new_contract.IssuedDate = DateTime.Parse(row["IssuedDate"].ToString());
+                                new_contract.DueDate = DateTime.Parse(row["DueDate"].ToString());
+                                new_contract.Incoterms = row["Incoterms"].ToString();
+                                new_contract.PaymentTerms = row["PaymentTerms"].ToString();
+                                new_contract.CurrencyID = db.CURRENCIES.Where(x => x.Shortname.CompareTo(currency) == 0).Select(x => x.ID).FirstOrDefault(); ;
+                                new_contract.CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]);
+                                new_contract.IsDeleted = false;
+
+                                db.P_CONTRACTS.Add(new_contract);
+                                db.SaveChanges();
+
+                                LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{new_contract.ContractNo} - shartnomani Excel orqali kiritdi");
+
+
+                                P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.ContractID == new_contract.ID && pcp.PartID == part.ID).FirstOrDefault();
+                                string unitName = row["Unit"].ToString();
+                                if (contractPart == null)
+                                {
+                                    P_CONTRACT_PARTS new_contractPart = new P_CONTRACT_PARTS();
+                                    new_contractPart.PartID = part.ID;
+                                    new_contractPart.ContractID = new_contract.ID;
+                                    new_contractPart.Price = Convert.ToDouble(row["Price"].ToString());
+                                    UNIT unit = db.UNITS.Where(u => u.ShortName.CompareTo(unitName) == 0).FirstOrDefault();
+                                    if (unit != null)
+                                        new_contractPart.UnitID = unit.ID;
+                                    else
+                                        new_contractPart.UnitID = 1;
+                                    if (!string.IsNullOrEmpty(row["MOQ"].ToString()))
+                                        new_contractPart.MOQ = Convert.ToDouble(row["MOQ"].ToString());
+                                    new_contractPart.Quantity = Convert.ToDouble(row["Volume"].ToString());
+                                    new_contractPart.ActivePart = true;
+
+                                    db.P_CONTRACT_PARTS.Add(new_contractPart);
+
+                                    db.SaveChanges();
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{part.PNo} - ushbu qismni Excel orqali {new_contract.ContractNo} shartnomasiga biriktirdi");
+                                }
+                            }
+                            else
+                            {
+                                P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.ContractID == contract.ID && pcp.PartID == part.ID).FirstOrDefault();
+                                string unitName = row["Unit"].ToString();
+                                if (contractPart == null)
+                                {
+                                    P_CONTRACT_PARTS new_contractPart = new P_CONTRACT_PARTS();
+                                    new_contractPart.PartID = part.ID;
+                                    new_contractPart.ContractID = contract.ID;
+                                    new_contractPart.Price = Convert.ToDouble(row["Price"].ToString());
+                                    UNIT unit = db.UNITS.Where(u => u.ShortName.CompareTo(unitName) == 0).FirstOrDefault();
+                                    if (unit != null)
+                                        new_contractPart.UNIT = unit;
+                                    else
+                                        new_contractPart.UnitID = 1;
+                                    new_contractPart.Quantity = Convert.ToDouble(row["Volume"].ToString());
+                                    if (!string.IsNullOrEmpty(row["MOQ"].ToString()))
+                                        new_contractPart.MOQ = Convert.ToDouble(row["MOQ"].ToString());
+                                    new_contractPart.ActivePart = true;
+
+                                    db.P_CONTRACT_PARTS.Add(new_contractPart);
+                                    int noOfRowUpdated = db.Database.ExecuteSqlCommand("UPDATE P_CONTRACT_PARTS SET ActivePart =" + 0 + " WHERE ContractID !=" + contract.ID + " AND PartID =" + part.ID + "");
+
+                                    db.SaveChanges();
+
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Shartnomalar", $"{part.PNo} ushbu qismni Excel orqali {contract.ContractNo} shartnomasiga biriktirdi");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -382,7 +620,7 @@ namespace tahsinERP.Controllers
                     {
                         ContractNo = model.ContractNo,
                         IssuedDate = model.IssuedDate,
-                        CompanyID = 1,//TEMPORARILY SET
+                        CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]),
                         SupplierID = model.SupplierID,
                         CurrencyID = model.CurrencyID,
                         Amount = model.Amount,
@@ -418,6 +656,7 @@ namespace tahsinERP.Controllers
                     db.SaveChanges();
 
                     newContract.Amount = (double)db.P_CONTRACT_PARTS.Where(x => x.ContractID == newContract.ID).Sum(x => x.Amount);
+                    db.Entry(newContract).State = EntityState.Modified;
                     db.SaveChanges();
 
                     if (model.File != null && model.File.ContentLength > 0)
@@ -508,7 +747,7 @@ namespace tahsinERP.Controllers
                     {
                         ContractNo = model.ContractNo,
                         IssuedDate = model.IssuedDate,
-                        CompanyID = 1, //TEMPORARILY SET
+                        CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]),
                         SupplierID = model.SupplierID,
                         CurrencyID = model.CurrencyID,
                         Amount = model.Amount,
@@ -629,6 +868,42 @@ namespace tahsinERP.Controllers
                 }
             }
         }
+        private PART GetPartAsPerSteelInformationExcel(string v1, string v2, string v3, string v4, string v5)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                double gauge = Convert.ToDouble(v3);
+                double width = Convert.ToDouble(v4);
+                PART part = db.PARTS.Where(p => p.Standart.CompareTo(v1) == 0 && p.Coating.CompareTo(v2) == 0 && p.Gauge == gauge && p.PWidth == width).FirstOrDefault();
+                if (part != null)
+                    return part;
+                else
+                {
+                    PART newPart = new PART();
+                    newPart.Marka = "";
+                    newPart.Coating = v2;
+                    newPart.Standart = v1;
+                    newPart.Gauge = Convert.ToDouble(v3);
+                    newPart.PWidth = Convert.ToDouble(v4);
+                    newPart.PNo = v1 + " " + Convert.ToDouble(v3) + "x" + Convert.ToDouble(v4);
+                    newPart.PName = "steel coil " + v1 + " " + Convert.ToDouble(v3) + "x" + Convert.ToDouble(v4);
+                    newPart.PWeight = 0;
+                    newPart.PLength = 0;
+                    newPart.PHeight = 0;
+                    newPart.Pitch = 0;
+                    newPart.IsDeleted = false;
+                    newPart.IsInHouse = false;
+                    newPart.HSCodeID = db.HSCODES.Where(x => x.HSCODE1.CompareTo(v5) == 0).Select(x => x.ID).FirstOrDefault();
+                    newPart.UnitID = 3;
+
+                    db.PARTS.Add(newPart);
+                    db.SaveChanges();
+
+                    return newPart;
+                }
+            }
+        }
+
         public ActionResult DownloadDoc(int? contractID)
         {
             if (contractID == null)

@@ -140,7 +140,7 @@
                                                     <div class="row justify-content-between">
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Part_Marka">Marka</label>
+                                                            <label for="Part_Marka">Standart</label>
                                                             @Html.DropDownList("Marka", (SelectList)ViewBag.steelMarka, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Marka, "", new { @class = "text-danger" })
                                                         </div>
