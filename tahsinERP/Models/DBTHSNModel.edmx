@@ -304,6 +304,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.GTD_INVOICES' does not have a prim
           <Property Name="MOQ" Type="float" />
           <Property Name="ActivePart" Type="bit" />
           <Property Name="UnitID" Type="int" />
+          <Property Name="HSCodeID" Type="int" />
         </EntityType>
         <EntityType Name="P_CONTRACTS">
           <Key>
@@ -725,7 +726,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.GTD_INVOICES' does not have a prim
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="PNo" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="PNo" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="PName" Type="varchar" MaxLength="50" />
           <Property Name="PWeight" Type="float" Nullable="false" />
           <Property Name="PLength" Type="float" Nullable="false" />
@@ -2102,6 +2103,18 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             </Principal>
             <Dependent Role="P_CONTRACT_DOCS">
               <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_CONTRACT_PARTS_HSCODES">
+          <End Role="HSCODES" Type="Self.HSCODES" Multiplicity="0..1" />
+          <End Role="P_CONTRACT_PARTS" Type="Self.P_CONTRACT_PARTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HSCODES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_CONTRACT_PARTS">
+              <PropertyRef Name="HSCodeID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4409,6 +4422,10 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             <End Role="P_CONTRACTS" EntitySet="P_CONTRACTS" />
             <End Role="P_CONTRACT_DOCS" EntitySet="P_CONTRACT_DOCS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_CONTRACT_PARTS_HSCODES" Association="Self.FK_P_CONTRACT_PARTS_HSCODES">
+            <End Role="HSCODES" EntitySet="HSCODES" />
+            <End Role="P_CONTRACT_PARTS" EntitySet="P_CONTRACT_PARTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_P_CONTRACT_PARTS_P_CONTRACTS" Association="Self.FK_P_CONTRACT_PARTS_P_CONTRACTS">
             <End Role="P_CONTRACTS" EntitySet="P_CONTRACTS" />
             <End Role="P_CONTRACT_PARTS" EntitySet="P_CONTRACT_PARTS" />
@@ -5382,6 +5399,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="PARTS" Relationship="Self.FK_PARTS_HSCODES" FromRole="HSCODES" ToRole="PARTS" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_HSCODES" FromRole="HSCODES" ToRole="PRODUCTS" />
+          <NavigationProperty Name="P_CONTRACT_PARTS" Relationship="DBTHSNModel.FK_P_CONTRACT_PARTS_HSCODES" FromRole="HSCODE" ToRole="P_CONTRACT_PARTS" />
         </EntityType>
         <EntityType Name="P_CONTRACT_DOCS">
           <Key>
@@ -5408,6 +5426,8 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <NavigationProperty Name="P_CONTRACTS" Relationship="Self.FK_P_CONTRACT_PARTS_P_CONTRACTS" FromRole="P_CONTRACT_PARTS" ToRole="P_CONTRACTS" />
           <NavigationProperty Name="PART" Relationship="Self.FK_P_CONTRACT_PARTS_PARTS" FromRole="P_CONTRACT_PARTS" ToRole="PARTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_P_CONTRACT_PARTS_UNITS" FromRole="P_CONTRACT_PARTS" ToRole="UNITS" />
+          <Property Name="HSCodeID" Type="Int32" />
+          <NavigationProperty Name="HSCODE" Relationship="DBTHSNModel.FK_P_CONTRACT_PARTS_HSCODES" FromRole="P_CONTRACT_PARTS" ToRole="HSCODE" />
         </EntityType>
         <EntityType Name="P_CONTRACTS">
           <Key>
@@ -5943,7 +5963,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="PNo" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="PNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="PName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="PWeight" Type="Double" Nullable="false" />
           <Property Name="PLength" Type="Double" Nullable="false" />
@@ -10285,6 +10305,10 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             <End Role="PURCHASING_ORDERS" EntitySet="PURCHASING_ORDERS" />
             <End Role="PURCHASING_ORDER_ITEMS" EntitySet="PURCHASING_ORDER_ITEMS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_CONTRACT_PARTS_HSCODES" Association="DBTHSNModel.FK_P_CONTRACT_PARTS_HSCODES">
+            <End Role="HSCODE" EntitySet="HSCODES" />
+            <End Role="P_CONTRACT_PARTS" EntitySet="P_CONTRACT_PARTS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetCarPlanRequirements_Result">
           <Property Type="String" Name="PNo" Nullable="false" MaxLength="15" />
@@ -10410,6 +10434,18 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             </Principal>
             <Dependent Role="PURCHASING_ORDER_ITEMS">
               <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_CONTRACT_PARTS_HSCODES">
+          <End Type="DBTHSNModel.HSCODE" Role="HSCODE" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.P_CONTRACT_PARTS" Role="P_CONTRACT_PARTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HSCODE">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_CONTRACT_PARTS">
+              <PropertyRef Name="HSCodeID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -10709,6 +10745,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
           <EntitySetMapping Name="P_CONTRACT_PARTS">
             <EntityTypeMapping TypeName="DBTHSNModel.P_CONTRACT_PARTS">
               <MappingFragment StoreEntitySet="P_CONTRACT_PARTS">
+                <ScalarProperty Name="HSCodeID" ColumnName="HSCodeID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
                 <ScalarProperty Name="PartID" ColumnName="PartID" />

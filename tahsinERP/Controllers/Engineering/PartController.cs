@@ -434,7 +434,9 @@ namespace tahsinERP.Controllers
                         SupplierName = x.s.Name,
                         SupplierID = x.s.ID,
                         IssuedDate = x.pc.IssuedDate,
-                        DueDate = x.pc.DueDate
+                        DueDate = x.pc.DueDate,
+                        ActivePart = (bool)x.pcp.ActivePart,
+                        PiecePrice = x.pcp.Price
                     })
                     .ToList();
 

@@ -14,8 +14,8 @@
                     <th>Ta'minotchi</th>
                     <th>Tuzilgan sana</th>
                     <th>Tugaydigan sana</th>
-                    <th>Narxi</th>
                     <th>Faolligi</th>
+                    <th>Narxi</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,8 +34,15 @@
                         <td>
                             @item.DueDate.ToString("dd-MM-yyyy")
                         </td>
-                        <td>@item.ActivePart</td>
-                        <td>@item.PiecePrice</td>
+                        @if (item.ActivePart)
+                        {
+                            <td><span class="badge badge-light-success">Faol</span></td>
+                        }
+                        else
+                        {
+                            <td><span class="badge badge-light-danger">Nofaol</span></td>
+                        }
+                    <td>@item.PiecePrice</td>
                     </tr>
 
                 }

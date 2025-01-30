@@ -262,12 +262,12 @@ namespace tahsinERP.Controllers
 
                                     if (contract != null)
                                     {
-                                        if (part != null)
-                                        {
-                                            P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.PartID == part.ID && pcp.ContractID == contract.ID).FirstOrDefault();
-                                            if (contractPart != null)
-                                                ViewBag.ExistingRecordsCount = 1;
-                                        }
+                                        //if (part != null)
+                                        //{
+                                        //    P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.PartID == part.ID && pcp.ContractID == contract.ID).FirstOrDefault();
+                                        //    if (contractPart != null)
+                                        //        ViewBag.ExistingRecordsCount = 1;
+                                        //}
                                     }
                                 }
                             }
@@ -546,6 +546,7 @@ namespace tahsinERP.Controllers
                                     if (!string.IsNullOrEmpty(row["MOQ"].ToString()))
                                         new_contractPart.MOQ = Convert.ToDouble(row["MOQ"].ToString());
                                     new_contractPart.Quantity = Convert.ToDouble(row["Volume"].ToString());
+                                    new_contractPart.HSCodeID = part.HSCodeID;
                                     new_contractPart.ActivePart = true;
 
                                     db.P_CONTRACT_PARTS.Add(new_contractPart);
@@ -573,6 +574,7 @@ namespace tahsinERP.Controllers
                                     if (!string.IsNullOrEmpty(row["MOQ"].ToString()))
                                         new_contractPart.MOQ = Convert.ToDouble(row["MOQ"].ToString());
                                     new_contractPart.ActivePart = true;
+                                    new_contractPart.HSCodeID = part.HSCodeID;
 
                                     db.P_CONTRACT_PARTS.Add(new_contractPart);
                                     int noOfRowUpdated = db.Database.ExecuteSqlCommand("UPDATE P_CONTRACT_PARTS SET ActivePart =" + 0 + " WHERE ContractID !=" + contract.ID + " AND PartID =" + part.ID + "");
@@ -874,6 +876,7 @@ namespace tahsinERP.Controllers
             {
                 double gauge = Convert.ToDouble(v3);
                 double width = Convert.ToDouble(v4);
+                string hscode = v5.Replace(",", "");
                 PART part = db.PARTS.Where(p => p.Standart.CompareTo(v1) == 0 && p.Coating.CompareTo(v2) == 0 && p.Gauge == gauge && p.PWidth == width).FirstOrDefault();
                 if (part != null)
                     return part;
@@ -893,7 +896,7 @@ namespace tahsinERP.Controllers
                     newPart.Pitch = 0;
                     newPart.IsDeleted = false;
                     newPart.IsInHouse = false;
-                    newPart.HSCodeID = db.HSCODES.Where(x => x.HSCODE1.CompareTo(v5) == 0).Select(x => x.ID).FirstOrDefault();
+                    newPart.HSCodeID = db.HSCODES.Where(x => x.HSCODE1.CompareTo(hscode) == 0).Select(x => x.ID).FirstOrDefault();
                     newPart.UnitID = 3;
 
                     db.PARTS.Add(newPart);

@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         {
             this.PARTS = new HashSet<PART>();
             this.PRODUCTS = new HashSet<PRODUCT>();
+            this.P_CONTRACT_PARTS = new HashSet<P_CONTRACT_PARTS>();
         }
     
         public int ID { get; set; }
@@ -29,5 +30,7 @@ namespace tahsinERP.Models
         public virtual ICollection<PART> PARTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCT> PRODUCTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<P_CONTRACT_PARTS> P_CONTRACT_PARTS { get; set; }
     }
 }

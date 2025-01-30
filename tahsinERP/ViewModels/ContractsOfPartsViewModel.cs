@@ -13,6 +13,8 @@ namespace tahsinERP.ViewModels
         public DateTime DueDate { get; set; }
         public string SupplierName { get; set; }
         public int SupplierID { get; set; }
+        public bool ActivePart { get; set; }
+        public double PiecePrice { get; set; }
         public List<ContractsOfPartsViewModel> Contracts { get; set; }
     }
 }

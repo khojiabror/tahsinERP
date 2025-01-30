@@ -324,6 +324,7 @@
         <AssociationConnector Association="DBTHSNModel.FK__PURCHASIN__Curre__59B045BD" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ITEMS" />
         <AssociationConnector Association="DBTHSNModel.FK_PURCHASING_ORDER_ITEMS_PURCHASING_ORDERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_CONTRACT_PARTS_HSCODES" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
