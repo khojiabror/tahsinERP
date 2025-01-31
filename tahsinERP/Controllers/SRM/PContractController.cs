@@ -6,6 +6,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -242,46 +243,19 @@ namespace tahsinERP.Controllers
                         }
                         if (CheckForExistenceOfSuppliers(dataTable))
                         {
-                            //if (CheckForExistenceOfParts(dataTable))
-                            //{
                             ViewBag.DataTable = dataTable;
                             ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
                             ViewBag.IsFileUploaded = true;
-
-                            using (DBTHSNEntities db = new DBTHSNEntities())
+                            if (!CheckForExistenceOfSteelCoils(dataTable))
                             {
-                                foreach (DataRow row in dataTable.Rows)
+                                var message = "";
+                                foreach (var word in missingParts)
                                 {
-                                    contractNo = row["ContractNo"].ToString();
-                                    supplierName = row["Supplier Name"].ToString();
-                                    partNo = row["Steel Grade"].ToString() + " " + Convert.ToDouble(row["Thickness"].ToString()) + "x" + Convert.ToDouble(row["Width"].ToString());
-
-                                    SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
-                                    PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
-                                    P_CONTRACTS contract = db.P_CONTRACTS.Where(pc => pc.ContractNo.CompareTo(contractNo) == 0 && pc.SupplierID == supplier.ID && pc.IsDeleted == false).FirstOrDefault();
-
-                                    if (contract != null)
-                                    {
-                                        //if (part != null)
-                                        //{
-                                        //    P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.PartID == part.ID && pcp.ContractID == contract.ID).FirstOrDefault();
-                                        //    if (contractPart != null)
-                                        //        ViewBag.ExistingRecordsCount = 1;
-                                        //}
-                                    }
+                                    message += word + ", ";
                                 }
+                                ViewBag.Message = "Ushbu shartnomalar faylida kiritilgan ehtiyot qismlar: " + message + " shartnoma: " + contractNo + " da mavjud emas.";
+                                return View("UploadWithExcelSteel");
                             }
-                            //}
-                            //else
-                            //{
-                            //    var message = "";
-                            //    foreach (var word in missingParts)
-                            //    {
-                            //        message += word + ", ";
-                            //    }
-                            //    ViewBag.Message = "Ushbu shartnomalar faylida kiritilgan ehtiyot qismlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Ehtiyot qismlar bazasiga kiritib keyin qayta urining.";
-                            //    return View("UploadWithExcelSteel");
-                            //}
                         }
                         else
                         {
@@ -313,6 +287,43 @@ namespace tahsinERP.Controllers
             }
             return View("UploadWithExcelSteel");
         }
+        private bool CheckForExistenceOfSteelCoils(DataTable dataTable)
+        {
+            bool flag = false;
+            string partPNo = "";
+            if (dataTable != null)
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+
+                        supplierName = row["Supplier Name"].ToString();
+                        contractNo = row["ContractNo"].ToString();
+                        partPNo = row["Steel Grade"].ToString() + " " + Convert.ToDouble(row["Thickness"].ToString()) + "x" + Convert.ToDouble(row["Width"].ToString());
+
+                        SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
+                        P_CONTRACTS contract = db.P_CONTRACTS.Where(pc => pc.ContractNo.CompareTo(contractNo) == 0 && pc.SupplierID == supplier.ID && pc.IsDeleted == false).FirstOrDefault();
+                        PART part = db.PARTS.Where(p => p.PNo.CompareTo(partPNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                        if (part != null)
+                        {
+                            P_CONTRACT_PARTS contractPart = db.P_CONTRACT_PARTS.Where(pcp => pcp.PartID == part.ID && pcp.ContractID == contract.ID).FirstOrDefault();
+                            if (contractPart != null)
+                                flag = true;
+                        }
+                        else
+                        {
+                            if (!missingParts.Contains(partPNo))
+                                missingParts.Add(partPNo);
+                        }
+                    }
+                    if (missingParts.Count > 0)
+                        return false;
+                    else
+                        return flag;
+                }
+            else
+                return flag;
+        }
         private bool CheckForExistenceOfParts(DataTable dataTable)
         {
             bool flag = false;
@@ -321,7 +332,7 @@ namespace tahsinERP.Controllers
                 {
                     foreach (DataRow row in dataTable.Rows)
                     {
-                        string partPNo = row["Steel Grade"].ToString() + " " + Convert.ToDouble(row["Thickness"].ToString()) + "x" + Convert.ToDouble(row["Width"].ToString());
+                        string partPNo = row["Part Number"].ToString();
                         if (db.PARTS.Where(p => p.PNo.CompareTo(partPNo) == 0).Any())
                             flag = true;
                         else
@@ -906,7 +917,6 @@ namespace tahsinERP.Controllers
                 }
             }
         }
-
         public ActionResult DownloadDoc(int? contractID)
         {
             if (contractID == null)
