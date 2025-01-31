@@ -39,7 +39,6 @@
                                 <div class="card-body pb-0 mx-25">
                                     <div class="row">
                                         <div class="col-lg-12 col-md-12 mt-25">
-
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                             <h4 class="text-primary">Birlik ma'lumotlari</h4>
@@ -53,7 +52,7 @@
                                                     <br />
                                                     <span><b>Qisqa Nomi</b>: @Html.DisplayFor(model => model.ShortName, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Kodi</b>: @Html.DisplayFor(model => model.Code, new { @class = "form-control" })</span>
+                                                    <span><b>Kodi<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Bojxona tizimidagi o'lchov birliklari kodi"></i></b>: @Html.DisplayFor(model => model.Code, new { @class = "form-control" })</span>
                                                     <hr />
                                                 </div>
                                             </div>
