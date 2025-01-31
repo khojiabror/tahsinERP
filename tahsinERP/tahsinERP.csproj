@@ -472,6 +472,7 @@
     <Compile Include="Controllers\CheckForPOController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingWhIncomeController.cs" />
+    <Compile Include="Controllers\Settings\UnitController.cs" />
     <Compile Include="Controllers\SRM\GTDController.cs" />
     <Compile Include="Controllers\AdminSetting\LastActionsController.cs" />
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
@@ -3015,10 +3016,14 @@
     <Content Include="Views\WaybillPayment\Edit.cshtml" />
     <Content Include="Views\PContract\CreateSteel.cshtml" />
     <Content Include="Views\PContract\UploadWithExcelSteel.cshtml" />
+    <Content Include="Views\Unit\Index.cshtml" />
+    <Content Include="Views\Unit\Create.cshtml" />
+    <Content Include="Views\Unit\Details.cshtml" />
+    <Content Include="Views\Unit\Delete.cshtml" />
+    <Content Include="Views\Unit\Edit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\Settings\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
