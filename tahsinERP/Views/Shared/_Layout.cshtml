@@ -258,7 +258,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Dashboards"))
                     {
                         <li class="nav-item">
-                            <a href="/Index"><i class="bx bx-home-alt"></i><span class="menu-title" data-i18n="Dashboard">Dashboard</span><span class="badge badge-light-danger badge-pill badge-round float-right mr-2"></span></a>
+                            <a href="/Index"><i class="bx bxs-bar-chart-square"></i><span class="menu-title" data-i18n="Dashboard">Dashboard</span><span class="badge badge-light-danger badge-pill badge-round float-right mr-2"></span></a>
                             <ul class="menu-content">
                                 <li>
                                     <a href="~/ComingSoon/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="eCommerce">Sotuv</span></a>
@@ -275,7 +275,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SRM-reports"))
                     {
                         <li class="nav-item">
-                            <a href="/Index"><i class="bx bx-home-alt"></i><span class="menu-title" data-i18n="Dashboard">Xisobotlar</span><span class="badge badge-light-danger badge-pill badge-round float-right mr-2">HOT</span></a>
+                            <a href="/Index"><i class="bx bxs-pie-chart-alt-2"></i><span class="menu-title" data-i18n="Dashboard">Xisobotlar</span><span class="badge badge-light-danger badge-pill badge-round float-right mr-2">HOT</span></a>
                             <ul class="menu-content">
                                 <li>
                                     <a href="~/Reports/Coverage"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="eCommerce">Coverage</span></a>
@@ -695,7 +695,7 @@
                         </li>
                     }
                     <li class=" navigation-header">
-                        <span>Sozlamalar</span>
+                        <span>Qo'llanma</span>
                     </li>
                     <li class=" nav-item">
                         <a href="~/Manual/Index">
@@ -705,6 +705,10 @@
                             </span>
                         </a>
                     </li>
+                    <li class=" navigation-header">
+                        <span>Sozlamalar</span>
+                    </li>
+
                     <li class=" nav-item">
                         <a href="#"><i class="bx bx-wrench"></i><span class="menu-title" data-i18n="Card">Sozlamalar</span></a>
                         <ul class="menu-content">
@@ -721,7 +725,7 @@
                     </li>
                     <li class="nav-item">
                         <a href="@Url.Action("Settings", "Account", new { eMail = this.User.Identity.Name })">
-                            <i class="bx bx-wrench"></i>
+                            <i class="bx bx-user-circle"></i>
                             <span class="menu-title" data-i18n="Account Settings">Akkaunt Sozlamalari</span>
                         </a>
                     </li>
@@ -729,7 +733,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
                     {
                         <li class=" nav-item">
-                            <a href="~/AdminPanel"><i class="bx bx-wrench"></i><span class="menu-title" data-i18n="Account Settings">Admin paneli</span></a>
+                            <a href="~/AdminPanel"><i class="bx bx-font"></i><span class="menu-title" data-i18n="Account Settings">Admin paneli</span></a>
                         </li>
                     }
                 </ul>
