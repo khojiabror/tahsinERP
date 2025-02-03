@@ -472,6 +472,7 @@
     <Compile Include="Controllers\CheckForPOController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
     <Compile Include="Controllers\Purchasing\PurchasingWhIncomeController.cs" />
+    <Compile Include="Controllers\Settings\CompanyController.cs" />
     <Compile Include="Controllers\Settings\CurrencyController.cs" />
     <Compile Include="Controllers\Settings\UnitController.cs" />
     <Compile Include="Controllers\SRM\GTDController.cs" />
@@ -3027,6 +3028,7 @@
     <Content Include="Views\Currency\Details.cshtml" />
     <Content Include="Views\Currency\Delete.cshtml" />
     <Content Include="Views\Currency\Edit.cshtml" />
+    <Content Include="Views\Company\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

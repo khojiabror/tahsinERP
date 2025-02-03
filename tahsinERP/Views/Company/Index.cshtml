@@ -1,0 +1,128 @@
+﻿@model tahsinERP.Models.COMPANy
+@{
+    ViewBag.Title = "AccountSettings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Korxona ma'lumotlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="#">Sahifalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Korxona ma'lumotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @using (Html.BeginForm("Index", "Company", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div class="content-body">
+                    <section id="page-account-settings">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="row">
+                                    <!-- right content section -->
+                                    <div class="col-md-9">
+                                        <div class="card">
+                                            <div class="card-content">
+                                                <div class="card-body">
+                                                    @Html.AntiForgeryToken()
+                                                    @Html.HiddenFor(model => model.ID)
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>Korxona nomi</label>
+                                                                    @Html.TextBoxFor(model => model.Name, new { @class = "form-control", @type = "text" })
+                                                                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>Davlati</label>
+                                                                    @Html.TextBoxFor(model => model.Country, new { @class = "form-control", @type = "text" })
+                                                                    @Html.ValidationMessageFor(model => model.Country, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>Shaxri</label>
+                                                                    @Html.TextBoxFor(model => model.City, new { @class = "form-control", @type = "text" })
+                                                                    @Html.ValidationMessageFor(model => model.City, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>DUNS</label>
+                                                                    @Html.TextBoxFor(model => model.DUNS, new { @class = "form-control", @type = "text" })
+                                                                    @Html.ValidationMessageFor(model => model.DUNS, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>Telefon</label>
+                                                                    @Html.TextBoxFor(model => model.Telephone, new { @class = "form-control", @type = "text" })
+                                                                    @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>E-mail</label>
+                                                                    @Html.TextBoxFor(model => model.Email, new { @class = "form-control", @type = "text", @placeholder = "Email" })
+                                                                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
+                                                            <button type="submit" class="btn btn-primary glow mr-sm-1 mb-1">
+                                                                Saqlash
+                                                            </button>
+                                                            <button type="reset" class="btn btn-light mb-1" onclick="location.href='/Home'">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
