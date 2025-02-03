@@ -40,6 +40,10 @@
                                     {
                                         <div class="row col-4 mb-1" style="float: right;">
                                             <div class="col-12">
+                                                <label>Modulni tanlang</label>
+                                                @Html.DropDownList("module", (SelectList)ViewBag.Modules, "barchasi", new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-12">
                                                 <label>Foydalanuvchini tanlang</label>
                                                 @Html.DropDownList("userId", (SelectList)ViewBag.Users, "barcha foydalanuvchilar", new { @class = "form-control" })
                                             </div>
@@ -112,6 +116,12 @@ else
             weekNumbers: true,
             showTodayButton: true,
             locale: "uz",
+            maxDate: "today",
+            onChange: function (selectedDates, dateStr, instance) {
+                // Format the date to Y-m-d when it's selected
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("startDateInput").value = formattedDate;  // Update the input field with the formatted date
+            }
         });
 
         flatpickr("#endDateInput", {
@@ -121,6 +131,12 @@ else
             weekNumbers: true,
             showTodayButton: true,
             locale: "uz",
+            maxDate: "today",
+            onChange: function (selectedDates, dateStr, instance) {
+                // Format the date to Y-m-d when it's selected
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("endDateInput").value = formattedDate;  // Update the input field with the formatted date
+            }
         });
     });
 </script>
