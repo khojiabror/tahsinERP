@@ -467,6 +467,7 @@
     <Content Include="assets\manual\popper.min.js" />
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
+    <Compile Include="Controllers\Engineering\NormaController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
     <Compile Include="Controllers\MES\CarPlanController.cs" />
     <Compile Include="Controllers\CheckForPOController.cs" />
@@ -3032,6 +3033,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\Norma\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

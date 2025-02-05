@@ -3,6 +3,49 @@
     ViewBag.Title = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<div id="progressOverlay">
+    <div class="progress-container">
+        <div class="progress-bar"></div>
+        <span class="progress-text">Yuklanmoqda...</span>
+    </div>
+</div>
+
+<style>
+    #progressOverlay {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        visibility: hidden;
+    }
+
+    .progress-container {
+        width: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .progress-bar {
+        width: 0%;
+        height: 20px;
+        background: linear-gradient(45deg, #4CAF50, #2196F3);
+        transition: width 0.4s ease-in-out;
+        border-radius: 5px;
+    }
+
+    .progress-text {
+        display: block;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #333;
+    }
+</style>
 
 @Html.AntiForgeryToken()
 <div class="app-content content">
@@ -18,7 +61,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/CarPlan/Index">Rejalashtirish</a>
+                                    <a href="~/ProductPlan/Index">Rejalashtirish</a>
                                 </li>
                                 <li class="breadcrumb-item active">
                                     Avtomobilga reja berish
@@ -41,12 +84,12 @@
                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                     <h6 class="invoice-to">Avtomobileni tanlang</h6>
                                     <fieldset class="invoice-address form-group">
-                                        @Html.DropDownList("CarID", (SelectList)ViewBag.CarModelList, "--tanlang--", new { @class = "form-control select2", @id = "carModel" })
+                                        @Html.DropDownList("Model", (SelectList)ViewBag.CarModelList, "--tanlang--", new { @class = "form-control select2", @id = "carModel" })
                                         @Html.ValidationMessageFor(model => model.CarID, "", new { @class = "text-danger" })
                                     </fieldset>
                                     <h6 class="invoice-to">Avtomobileni variantini tanlang</h6>
                                     <fieldset class="invoice-address form-group">
-                                        @Html.DropDownList("OptionID", (SelectList)ViewBag.CarOptionList, "--tanlang--", new { @class = "form-control select2", @id = "optionCode" })
+                                        @Html.DropDownList("CarID", (SelectList)ViewBag.CarOptionList, "--tanlang--", new { @class = "form-control select2", @id = "optionCode" })
                                         @Html.ValidationMessageFor(model => model.CarID, "", new { @class = "text-danger" })
                                     </fieldset>
                                     <h6 class="invoice-to">Rejadagi mahsulot miqdori</h6>
@@ -56,12 +99,12 @@
                                     </fieldset>
                                     <h6 class="invoice-to">Boshlanish sana</h6>
                                     <fieldset class="invoice-address form-group">
-                                        @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control pickadate-months-year " } })
+                                        @Html.TextBoxFor(model => model.StartDate, new { @class = "form-control", @id = "startDateInput", @name = "Date", @placeholder = "Boshlanish sanasi", @required = "required" })
                                         @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
                                     </fieldset>
                                     <h6 class="invoice-to">Tugash sana </h6>
                                     <fieldset class="invoice-address form-group">
-                                        @Html.EditorFor(model => model.DueDate, new { htmlAttributes = new { @class = "form-control pickadate-months-year " } })
+                                        @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control", @id = "dueDateInput", @name = "Date", @placeholder = "Tugash sanasi", @required = "required" })
                                         @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                     </fieldset>
 
@@ -128,7 +171,7 @@
                                         <hr />
                                         <ul class="list-group list-group-flush">
                                             <li class="list-group-item border-0 pb-0">
-                                                <button class="btn btn-outline-success round mr-1 mb-1" type="submit" value="Maxsulotlarga reja berish" onclick="return confirmSave()">
+                                                <button id="saveButton" class="btn btn-outline-success round mr-1 mb-1" type="submit" onclick="return confirmSave()">
                                                     <i class='bx bx-save'></i>
                                                     Saqlash
                                                 </button>
@@ -147,7 +190,41 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#startDateInput", {
+            dateFormat: "d.m.Y", // You can customize the date format
+            maxDate: "today",// Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "en",
+            onChange: function (selectedDates, dateStr, instance) {
+                // Format the date to Y-m-d when it's selected
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("startDateInput").value = formattedDate;  // Update the input field with the formatted date
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dueDateInput", {
+            dateFormat: "d.m.Y", // You can customize the date format
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "en",
+            onChange: function (selectedDates, dateStr, instance) {
+                // Format the date to Y-m-d when it's selected
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("dueDateInput").value = formattedDate;  // Update the input field with the formatted date
+            }
+        });
+    });
+</script>
 <script type="text/javascript">
     $(document).ready(function () {
         function getOptionCodes() {
@@ -171,5 +248,66 @@
         }
 
         $('#carModel').on('change', getOptionCodes);
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        function showProgressBar() {
+            document.getElementById("progressOverlay").style.visibility = "visible";
+            let progress = 0;
+            let progressBar = document.querySelector(".progress-bar");
+
+            function updateProgress() {
+                if (progress < 100) {
+                    progress += Math.random() * 10; // Simulating progress increment
+                    if (progress > 100) progress = 100;
+                    progressBar.style.width = progress + "%";
+                    setTimeout(updateProgress, 500);
+                }
+            }
+
+            updateProgress();
+        }
+
+        function hideProgressBar() {
+            document.getElementById("progressOverlay").style.visibility = "hidden";
+            document.querySelector(".progress-bar").style.width = "0%"; // Reset progress bar
+        }
+
+        // Attach progress bar to form submission
+        $("form").on("submit", function () {
+            showProgressBar();
+        });
+
+        // AJAX-based submission for the "Saqlash" button in the table form
+        $("#saveButton").click(function (event) {
+            event.preventDefault(); // Prevent default form submission
+            showProgressBar(); // Show progress bar
+
+            var form = $(this).closest("form");
+            var formData = new FormData(form[0]);
+
+            $.ajax({
+                url: form.attr("action"),
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() }, // CSRF protection
+                success: function (data) {
+                    hideProgressBar();
+                    if (data.success) {
+                        alert("Plan added successfully!");
+                        location.reload();
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    hideProgressBar();
+                    alert("Something went wrong: " + error);
+                }
+            });
+        });
     });
 </script>

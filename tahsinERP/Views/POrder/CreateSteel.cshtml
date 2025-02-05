@@ -4,6 +4,30 @@
     ViewBag.Title = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    /* Hide the default file input */
+    .custom-file-input {
+        display: none;
+    }
+
+    /* Style the custom button */
+    .custom-file-button {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 16px;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+        /* Optional: Change button color on hover */
+        .custom-file-button:hover {
+            background-color: #0056b3;
+        }
+</style>
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -23,7 +47,7 @@
                                         <a href="~/POrder/Index">Buyurtmalar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Buyurtma yaratish
+                                        Buyurtma yaratish (Po'lat o'ramlari)
                                     </li>
                                 </ol>
                             </div>
@@ -54,13 +78,21 @@
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="SupplierID">Ta`minotchi</label>
-                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, "", new { @class = "form-control select2", id = "SupplierID", onchange = "refreshContractList()" })
+                                                            @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.Supplier, "Ta'minotchini tanlang", new { @class = "form-control select2", id = "SupplierID", onchange = "refreshContractList()" })
                                                             @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="ContractID">Shartnoma raqami</label>
-                                                            @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, new { @class = "form-control select2", id = "ContractID" })
+                                                            @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.PContract, "Shartnomani tanlang", new { @class = "form-control select2", @id = "ContractID" })
                                                             @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                                        </div>
+                                                        <div class="col-md-6 col-12 form-group position-relative has-icon-left">
+                                                            <label for="dateInput">Buyurtma berilgan sanasi:</label>
+                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Buyurtma berilgan sanasi", @required = "required" })
+                                                            @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                            <div class="form-control-position mt-2">
+                                                                <i class='bx bx-calendar'></i>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -73,22 +105,21 @@
                                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control", id = "Currency" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
-
                                                         <div class="col-md-6 col-12 form-group">
                                                             <label for="Description">Qisqacha tavsifi</label>
                                                             @Html.TextAreaFor(model => model.Description, new { @class = "form-control", id = "Description" })
                                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                            <label for="dateInput">Buyurtma berilgan sanasi:</label>
-                                                            @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @placeholder = "Buyurtma berilgan sanasi", @required = "required" })
-                                                            @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
-                                                            <div class="form-control-position mt-2">
-                                                                <i class='bx bx-calendar'></i>
-                                                            </div>
-                                                        </div>
+
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div class="col-md-6 col-12 form-group">
+                                                <hr />
+                                                <label>Buyurtma faylini yuklang</label>
+                                                @Html.TextBoxFor(model => model.File, new { type = "file", @class = "form-control" })
+                                                @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
+                                                <hr />
                                             </div>
                                             <br />
                                             <h4>Ehtiyot qismlar</h4>
@@ -98,22 +129,22 @@
                                                         <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Marka">Marka</label>
-                                                            @Html.DropDownList("Marka", (SelectList)ViewBag.steelMarka, new { @class = "form-control select"})
+                                                            @Html.DropDownList("Marka", (SelectList)ViewBag.steelMarka, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Marka, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Standart">Standart</label>
-                                                            @Html.DropDownList("Standart", (SelectList)ViewBag.steelStandart, new { @class = "form-control select"})
+                                                            @Html.DropDownList("Standart", (SelectList)ViewBag.steelStandart, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Standart, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Coating">Coating</label>
-                                                            @Html.DropDownList("Coating", (SelectList)ViewBag.steelCoating, new { @class = "form-control select"})
+                                                            @Html.DropDownList("Coating", (SelectList)ViewBag.steelCoating, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Coating, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
                                                             <label for="Part_Unit">Thickness</label>
-                                                            @Html.DropDownList("Thickness", (SelectList)ViewBag.steelThickness, new { @class = "form-control select"})
+                                                            @Html.DropDownList("Thickness", (SelectList)ViewBag.steelThickness, new { @class = "form-control select" })
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Thickness, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
@@ -131,7 +162,7 @@
                                                             <input type="number" name="Amount" class="form-control" id="Part_Amount" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].Amount, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                                                        <div class="col-md-2 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
                                                         </div>
                                                     </div>
@@ -168,7 +199,7 @@
                 weekNumbers: true,
                 showTodayButton: true,
                 locale: "uz",
-                maxDate: "today",   
+                maxDate: "today",
             });
         });
     </script>

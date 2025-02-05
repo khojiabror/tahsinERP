@@ -161,7 +161,7 @@
                                                             <input type="number" name="Price" step="0.1" class="form-control Part_TotalPrice" id="Part_TotalPrice" disabled="disabled" />
                                                             @Html.ValidationMessageFor(model => model.Parts[0].TotalPrice, "", new { @class = "text-danger" })
                                                         </div>
-                                                        <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                                                        <div class="col-md-2 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
                                                         </div>
                                                     </div>
@@ -293,7 +293,7 @@
                                         <input type="number" name="Parts[${index}].TotalPrice" value="${item.TotalPrice}" class="form-control Part_TotalPrice" step="0.01" disabled />
                                     </div>
 
-                                    <div class="col-md-1">
+                                    <div class="col-md-2">
                                         <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
                                     </div>
                                 </div>
@@ -325,7 +325,7 @@
             const totalPrice = price * quantity;
 
             // Update the TotalPrice field
-            totalPriceInput.val(totalPrice.toFixed(6)); // Adjust decimal places as needed
+            totalPriceInput.val(totalPrice.toFixed(2)); // Adjust decimal places as needed
         });
     });
 </script>
@@ -347,7 +347,7 @@
             const totalPrice = price * quantity;
 
             // Update the TotalPrice field
-            totalPriceInput.value = totalPrice.toFixed(6); // Adjust decimal places as needed
+            totalPriceInput.value = totalPrice.toFixed(2); // Adjust decimal places as needed
         }
     });
 </script>
