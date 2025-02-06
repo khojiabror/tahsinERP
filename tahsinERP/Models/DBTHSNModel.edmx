@@ -1405,7 +1405,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.PROD_SHOPS_PRODUCTS' does not have
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ControllerName" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="ActionName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ActionName" Type="text" Nullable="false" />
           <Property Name="DateTime" Type="datetime" Nullable="false" />
           <Property Name="UserID" Type="int" Nullable="false" />
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
@@ -6796,7 +6796,7 @@ warning 6002: The table/view 'DBTHSN-TEST.dbo.MaterialRequirement' does not have
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ControllerName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="ActionName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ActionName" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="DateTime" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="UserID" Type="Int32" Nullable="false" />
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />

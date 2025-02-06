@@ -10,30 +10,44 @@
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
-               <div class="content-header row">
-                   <div class="content-header-left col-12 mb-2 mt-1">
-                       <div class="row breadcrumbs-top">
-                           <div class="col-12">
-                               <div class="breadcrumb-wrapper col-12">
-                                   <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
-                                       <li class="breadcrumb-item">
-                                           <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                       </li>
-                                       <li class="breadcrumb-item">
-                                           Sahifalar
-                                       </li>
-                                       <li class="breadcrumb-item active">
-                                           Ombordagi qoldiq
-                                       </li>
-                                       <li class="col-md-6 col-12 form-group ms-auto">
-                                           <br /> Ombor :  <b>@ViewBag.WHName</b>
-                                       </li>
-                                   </ol>
-                               </div>
-                           </div>
-                       </div>
-                   </div>
-               </div>
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            Sahifalar
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Ombordagi qoldiq
+                                        </li>
+                                        <li class="col-md-6 col-12 form-group ms-auto">
+                                            <br /> Ombor :  <b>@ViewBag.WHName</b>
+                                        </li>
+                                    </ol>
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
+                                    {
+                                        <div class="invoice-create-btn mb-1">
+                                            <button type="button" class="btn btn-outline-danger mr-1 mb-1" id="exportButton" onclick="window.location.href='/PartStock/UploadWithExcel'">
+                                                <i class="bx bx-file"></i><span class="align-middle ml-25">Inventarizatsiya qoldiqlarini kiritish</span>
+                                            </button>
+                                        </div>
+                                    }
+                                    @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
+                                    {
+                                        <div class="invoice-create-btn mb-1">
+                                            @Html.DropDownList("WarehouseID", (SelectList)ViewBag.warehouseList, "--omborni tanlang--", new { @class = "form-control" })
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="content-body">
                 <!-- users list start -->
@@ -50,7 +64,7 @@
                                                     <th></th>
                                                     <th></th>
                                                     <th>Ombor</th>
-                                                    <th>Detall raqami</th>
+                                                    <th>Detal raqami</th>
                                                     <th>Nomi</th>
                                                     <th>Miqdori</th>
                                                     <th>Birligi</th>

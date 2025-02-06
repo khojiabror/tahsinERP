@@ -60,12 +60,12 @@
                                                         </fieldset>
                                                         <h6 class="invoice-to">Tuzilgan sana</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control pickadate-months-year " } })
+                                                            @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", @id = "startDateInput", @placeholder = "Boshlanish sanasi" } })
                                                             @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
                                                         </fieldset>
                                                         <h6 class="invoice-to">Muddati tugaydigan sana </h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.EditorFor(model => model.DueDate, new { htmlAttributes = new { @class = "form-control pickadate-months-year " } })
+                                                            @Html.EditorFor(model => model.DueDate, new { htmlAttributes = new { @class = "form-control", @id = "dueDateInput", @placeholder = "Tugash sanasi" } })
                                                             @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                         </fieldset>
                                                         <fieldset class="invoice-address form-group">
@@ -101,3 +101,38 @@
         Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
     }
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#startDateInput", {
+            dateFormat: "d.m.Y", // You can customize the date format
+            maxDate: "today",// Optional: restricts the selection to today's date or later
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "en",
+            onChange: function (selectedDates, dateStr, instance) {
+                // Format the date to Y-m-d when it's selected
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("startDateInput").value = formattedDate;  // Update the input field with the formatted date
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#dueDateInput", {
+            dateFormat: "d.m.Y", // You can customize the date format
+            altInput: true, // Optional: creates an alternate input (more user-friendly)
+            altFormat: "F j, Y", // Format displayed in alt input
+            weekNumbers: true,
+            showTodayButton: true,
+            locale: "en",
+            onChange: function (selectedDates, dateStr, instance) {
+                // Format the date to Y-m-d when it's selected
+                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                document.getElementById("dueDateInput").value = formattedDate;  // Update the input field with the formatted date
+            }
+        });
+    });
+</script>

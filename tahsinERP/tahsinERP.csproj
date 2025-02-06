@@ -3030,6 +3030,7 @@
     <Content Include="Views\Currency\Delete.cshtml" />
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
+    <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
