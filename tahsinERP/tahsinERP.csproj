@@ -3031,6 +3031,7 @@
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
     <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
+    <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -19,9 +19,6 @@
                                         <li class="breadcrumb-item">
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
-                                        <li class="breadcrumb-item">
-                                            Sahifalar
-                                        </li>
                                         <li class="breadcrumb-item active">
                                             Ombordagi qoldiq
                                         </li>
@@ -29,6 +26,7 @@
                                             <br /> Ombor :  <b>@ViewBag.WHName</b>
                                         </li>
                                     </ol>
+
                                     @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
                                     {
                                         <div class="invoice-create-btn mb-1">
@@ -40,7 +38,7 @@
                                     @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
                                     {
                                         <div class="invoice-create-btn mb-1">
-                                            @Html.DropDownList("WarehouseID", (SelectList)ViewBag.warehouseList, "--omborni tanlang--", new { @class = "form-control" })
+                                            @Html.DropDownList("WarehouseID", (SelectList)ViewBag.warehouseList, "--omborni tanlang--", new { @class = "form-control", onchange = "refreshDataTable()" })
                                         </div>
                                     }
                                 </div>
@@ -61,8 +59,6 @@
                                         <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th></th>
-                                                    <th></th>
                                                     <th>Ombor</th>
                                                     <th>Detal raqami</th>
                                                     <th>Nomi</th>
@@ -74,8 +70,6 @@
                                                 @foreach (var item in Model)
                                                 {
                                                     <tr>
-                                                        <td></td>
-                                                        <td></td>
                                                         <td>
                                                             <a href="~/PartWRHS/Details/@item.WHID">@item.PART_WRHS.WHName</a>
                                                         </td>
@@ -101,3 +95,11 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+
+<script type="text/javascript">
+function refreshDataTable() {
+    var source = document.getElementById("WarehouseID").value;
+    const warehouseID = document.getElementById("WarehouseID").value;
+    window.location.href = '@Url.Action("Index", "PartStock")?whid=' + source;
+    };
+</script>
