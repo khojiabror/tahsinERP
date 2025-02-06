@@ -17,6 +17,8 @@ namespace tahsinERP.Controllers
             startDate = startDate ?? DateTime.Now.AddDays(-30); // So'nggi 30 kunlik ma'lumot
             endDate = endDate ?? DateTime.Now; // Bugungi sana
 
+            endDate = endDate.Value.AddDays(1);
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (userId != null)
@@ -26,7 +28,7 @@ namespace tahsinERP.Controllers
                         List<USERLOG> logs = await db.USERLOGS.Where(x => x.UserID == userId
                                         && x.ControllerName.CompareTo(module) == 0
                                         && x.DateTime >= startDate
-                                        && x.DateTime <= endDate)
+                                        && x.DateTime < endDate)
                                         .ToListAsync();
 
                         ViewBag.Users = new SelectList(await db.USERS.Where(u => u.IsDeleted == false && u.IsActive == true).ToListAsync(), "ID", "Uname", userId);
@@ -40,7 +42,7 @@ namespace tahsinERP.Controllers
                     {
                         List<USERLOG> logs = await db.USERLOGS.Where(x => x.UserID == userId
                                         && x.DateTime >= startDate
-                                        && x.DateTime <= endDate)
+                                        && x.DateTime < endDate)
                                         .ToListAsync();
 
                         ViewBag.Users = new SelectList(await db.USERS.Where(u => u.IsDeleted == false && u.IsActive == true).ToListAsync(), "ID", "Uname", userId);
@@ -55,7 +57,7 @@ namespace tahsinERP.Controllers
                 {
                     if (!string.IsNullOrEmpty(module))
                     {
-                        List<USERLOG> logs = await db.USERLOGS.Where(x => x.ControllerName.CompareTo(module) == 0 && x.DateTime >= startDate && x.DateTime <= endDate).ToListAsync();
+                        List<USERLOG> logs = await db.USERLOGS.Where(x => x.ControllerName.CompareTo(module) == 0 && x.DateTime >= startDate && x.DateTime < endDate).ToListAsync();
 
                         ViewBag.Users = new SelectList(await db.USERS.Where(u => u.IsDeleted == false && u.IsActive == true).ToListAsync(), "ID", "Uname", userId);
                         ViewBag.StartDate = startDate.Value.ToString("dd-MM-yyyy");
@@ -66,7 +68,7 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        List<USERLOG> logs = await db.USERLOGS.Where(x => x.DateTime >= startDate && x.DateTime <= endDate).ToListAsync();
+                        List<USERLOG> logs = await db.USERLOGS.Where(x => x.DateTime >= startDate && x.DateTime < endDate).ToListAsync();
 
                         ViewBag.Users = new SelectList(await db.USERS.Where(u => u.IsDeleted == false && u.IsActive == true).ToListAsync(), "ID", "Uname", userId);
                         ViewBag.StartDate = startDate.Value.ToString("dd-MM-yyyy");
