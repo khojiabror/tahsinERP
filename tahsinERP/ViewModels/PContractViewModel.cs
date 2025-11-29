@@ -41,7 +41,7 @@ namespace tahsinERP.ViewModels
         public int ID { set; get; } // Auto Increment in DB
         public int ContractID { get; set; } // User dan olinmaydi
         public int PartID { get; set; }
-        public PART Part { get; set; }
+        public PRODUCT Part { get; set; }
         [Required]
         public int UnitID { get; set; }
         [Required]

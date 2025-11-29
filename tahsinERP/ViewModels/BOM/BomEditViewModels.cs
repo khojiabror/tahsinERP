@@ -7,13 +7,10 @@ namespace tahsinERP.ViewModels.BOM
     {
         public string ProductPNo { get; set; }
         public string PartPno { get; set; }
-        public SLITTING_NORMS SLITTING_NORMS { get; set; }
         public int Slitting_After_ID { get; set; }
         public int Slitting_Before_ID { get; set; }
-        public STAMPING_NORMS STAMPING_NORMS { get; set; }
         public int Stamping_After_ID { get; set; }
         public int Stamping_Before_ID { get; set; }
-        public BLANKING_NORMS BLANKING_NORMS { get; set; }
         public int Blanking_After_ID { get; set; }
         public int Blanking_Before_ID { get; set; }
         public List<WeldingParts> WeldingPart { get; set; }

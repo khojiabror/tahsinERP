@@ -14,10 +14,10 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var damagedParts = db.DAMAGED_PARTS
+                var damagedParts = db.DAMAGED_PRODUCTS
                                      .Where(dp => dp.IsDeleted == false)
                                      .Include(dp => dp.DEFECT_TYPES)
-                                     .Include(dp => dp.PART)
+                                     .Include(dp => dp.PRODUCT)
                                      .ToList();
                 return View(damagedParts);
             }
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var part = db.PARTS.Where(x => x.IsDeleted == false).ToList();
+                var part = db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsRawMaterial == true).ToList();
                 ViewBag.Part = new SelectList(part, "ID", "PNo");
                 var defect_types = db.DEFECT_TYPES.Where(x => x.IsDeleted == false).ToList();
                 ViewBag.DefectType = new SelectList(defect_types, "ID", "DefectType");
@@ -37,7 +37,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create(DAMAGED_PARTS model)
+        public ActionResult Create(DAMAGED_PRODUCTS model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -47,11 +47,11 @@ namespace tahsinERP.Controllers
                     {
                         model.IsDeleted = false;
                         model.IssueDateTime = DateTime.Now;
-                        db.DAMAGED_PARTS.Add(model);
+                        db.DAMAGED_PRODUCTS.Add(model);
                         db.SaveChanges();
 
                         var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "DamagedPartController", $"{model.PART.PNo} - Buzilgan Qism yaratdi");
+                        LogHelper.LogToDatabase(userEmail, "DamagedPartController", $"{model.PRODUCT.PNo} - shikastlangan maxsulot tizimga kiritildi");
 
                         return RedirectToAction("Index");
                     }
@@ -72,13 +72,13 @@ namespace tahsinERP.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
-                var damaged_part = db.DAMAGED_PARTS.Find(id);
+                var damaged_part = db.DAMAGED_PRODUCTS.Find(id);
 
                 if (damaged_part == null)
                 {
                     return HttpNotFound();
                 }
-                var part = db.PARTS.Where(x => x.IsDeleted == false).ToList();
+                var part = db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsRawMaterial == true).ToList();
                 ViewBag.Part = new SelectList(part, "ID", "PNo");
                 var defect_types = db.DEFECT_TYPES.Where(x => x.IsDeleted == false).ToList();
                 ViewBag.DefectType = new SelectList(defect_types, "ID", "DefectType");
@@ -87,25 +87,25 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
-        public ActionResult Edit(DAMAGED_PARTS damagedPart)
+        public ActionResult Edit(DAMAGED_PRODUCTS damagedPart)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
                 {
-                    var damaged_part = db.DAMAGED_PARTS.Find(damagedPart.ID);
-                    damaged_part.PartID = damagedPart.PartID;
+                    var damaged_part = db.DAMAGED_PRODUCTS.Find(damagedPart.ID);
+                    damaged_part.ProductID = damagedPart.ProductID;
                     damaged_part.DefectTypeID = damagedPart.DefectTypeID;
                     damaged_part.Quantity = damagedPart.Quantity;
                     db.SaveChanges();
 
                     var userEmail = User.Identity.Name;
-                    LogHelper.LogToDatabase(userEmail, "DamagedPartController", $"{damagedPart.PART.PNo} - Buzilgan Qismni tahrirladi");
+                    LogHelper.LogToDatabase(userEmail, "DamagedPartController", $"{damagedPart.PRODUCT.PNo}  - shikastlangan maxsulotni tahrirladi");
 
                     return RedirectToAction("Index");
                 }
-                var part = db.PARTS.Where(x => x.IsDeleted == false).ToList();
-                ViewBag.Part = new SelectList(part, "ID", "PNo", damagedPart.PartID);
+                var part = db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsRawMaterial == true).ToList();
+                ViewBag.Part = new SelectList(part, "ID", "PNo", damagedPart.ProductID);
                 var defect_types = db.DEFECT_TYPES.Where(x => x.IsDeleted == false).ToList();
                 ViewBag.DefectType = new SelectList(defect_types, "ID", "DefectType", damagedPart.DefectTypeID);
 
@@ -123,9 +123,9 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var damagedPart = db.DAMAGED_PARTS
+                var damagedPart = db.DAMAGED_PRODUCTS
                                     .Include(dp => dp.DEFECT_TYPES)
-                                    .Include(dp => dp.PART)
+                                    .Include(dp => dp.PRODUCT)
                                     .FirstOrDefault(dp => dp.ID == id);
 
                 if (damagedPart == null)
@@ -141,7 +141,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var damagedPart = db.DAMAGED_PARTS.Find(id);
+                var damagedPart = db.DAMAGED_PRODUCTS.Find(id);
 
                 if (damagedPart == null)
                 {
@@ -153,7 +153,7 @@ namespace tahsinERP.Controllers
                 db.SaveChanges();
 
                 var userEmail = User.Identity.Name;
-                LogHelper.LogToDatabase(userEmail, "DamagedPartController", $"{damagedPart.PART.PNo} Buzilgan Qismni o'chirdi");
+                LogHelper.LogToDatabase(userEmail, "DamagedPartController", $"{damagedPart.PRODUCT.PNo}   - shikastlangan maxsulotni o'chirib yubordi");
 
                 return RedirectToAction("Index");
             }
@@ -167,9 +167,9 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var damagedPart = db.DAMAGED_PARTS
+                var damagedPart = db.DAMAGED_PRODUCTS
                                     .Include(dp => dp.DEFECT_TYPES)
-                                    .Include(dp => dp.PART)
+                                    .Include(dp => dp.PRODUCT)
                                     .FirstOrDefault(dp => dp.ID == id);
 
                 if (damagedPart == null)

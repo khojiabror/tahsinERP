@@ -41,7 +41,7 @@ namespace tahsinERP.ViewModels
     public class WhrsIncomePart
     {
         public int ID { get; set; }
-        public PART Part { get; set; }
+        public PRODUCT Part { get; set; }
         public int PartID { get; set; }
         [Required(ErrorMessage = "Unit ID is required.")]
         public int UnitID { get; set; }

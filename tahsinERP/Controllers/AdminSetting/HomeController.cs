@@ -20,16 +20,17 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.ShowCookieConsent = false;
             }
-            StatisticsVM model = new StatisticsVM();
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                model.NoOfProducts = db.PRODUCTS.Where(p => p.IsDeleted == false).ToList().Count;
-                model.NoOfParts = db.PARTS.Where(p => p.IsDeleted == false).ToList().Count;
-                model.NoOfUsers = db.USERS.Where(u => u.IsDeleted == false && u.IsActive == true).ToList().Count;
-                model.NoOfRoles = db.ROLES.Where(r => r.IsDeleted == false).ToList().Count;
-                model.NoOfParentBOMs = db.BOMS.Where(b => b.IsDeleted == false && b.IsParentProduct == true).Select(b => b.ParentPNo).Distinct().Count();
-            }
-            return View(model);
+            //StatisticsVM model = new StatisticsVM();
+            //using (DBTHSNEntities db = new DBTHSNEntities())
+            //{
+            //    model.NoOfProducts = db.PRODUCTS.Where(p => p.IsDeleted == false).ToList().Count;
+            //    model.NoOfParts = db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsRawMaterial == true).ToList().Count;
+            //    model.NoOfUsers = db.USERS.Where(u => u.IsDeleted == false && u.IsActive == true).ToList().Count;
+            //    model.NoOfRoles = db.ROLES.Where(r => r.IsDeleted == false).ToList().Count;
+            //    model.NoOfParentBOMs = db.BOMS.Where(b => b.IsDeleted == false && b.IsParentProduct == true).Select(b => b.ParentPNo).Distinct().Count();
+            //}
+            //return View(model);
+            return View();
         }
         public JsonResult CookieConfirm()
         {

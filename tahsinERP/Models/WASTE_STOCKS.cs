@@ -20,8 +20,8 @@ namespace tahsinERP.Models
         public double Amount { get; set; }
         public int UnitID { get; set; }
     
-        public virtual PART_WRHS PART_WRHS { get; set; }
         public virtual UNIT UNIT { get; set; }
+        public virtual Warehouse Warehouse { get; set; }
         public virtual WASTE WASTE { get; set; }
     }
 }

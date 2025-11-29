@@ -22,8 +22,8 @@ namespace tahsinERP.ViewModels.Purchasing
         public Nullable<int> SenderWHID { get; set; }
         public Nullable<bool> RecieveStatus { get; set; }
 
-        public virtual PART_WRHS PART_WRHS { get; set; }
-        public virtual PART_WRHS PART_WRHS1 { get; set; }
+        public virtual Warehouse Warehouse { get; set; }
+        public virtual Warehouse Warehouse1 { get; set; }
         public virtual PURCHASING_CONTRACTS PURCHASING_CONTRACTS { get; set; }
         public List<PurchasingIncomeItem> Items { get; set; }
         public PurchasingWhIncomeViewModel()

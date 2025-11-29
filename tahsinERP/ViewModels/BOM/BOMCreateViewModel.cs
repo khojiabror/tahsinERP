@@ -10,14 +10,10 @@ namespace tahsinERP.ViewModels.BOM
     {
         public  string ProductPNo { get; set; }
         public int PartID { get; set; }
-        public PART Part { get; set; }
+        public PRODUCT Part { get; set; }
         public string PartNo { get; set; }
         public string Process { get; set; }
         public int[] SelectedProcessIds { get; set; }
-
-        public SLITTING_NORMS SLITTING_NORMS { get; set; }
-        public BLANKING_NORMS BLANKING_NORMS { get; set; }
-        public STAMPING_NORMS STAMPING_NORMS { get; set; }
         public int SelectedSlittingNormID { get; set; }
         public int SelectedBlankingNormID { get; set; }
         public int SelectedStampingNormID { get; set; }

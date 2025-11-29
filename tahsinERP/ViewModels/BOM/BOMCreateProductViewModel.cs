@@ -23,7 +23,7 @@ namespace tahsinERP.ViewModels.BOM
         public class BomPart
         {
             public int PartID { get; set; }
-            public PART PART { get; set; }
+            public PRODUCT PRODUCT { get; set; }
             public int Quantity { get; set; }
             public string Unit { get; set; }
         }

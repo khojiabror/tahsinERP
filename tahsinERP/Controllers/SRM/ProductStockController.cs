@@ -1,0 +1,296 @@
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Irony.Parsing;
+using Newtonsoft.Json;
+using OfficeOpenXml;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+using tahsinERP.Models;
+
+namespace tahsinERP.Controllers
+{
+    public class ProductStockController : Controller
+    {
+        private Warehouse warehouse = null;
+        private List<string> missingParts = new List<string>();
+        // GET: PartStock
+        public async Task<ActionResult> Index(int? whid)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                if (RoleHelper.GetUserRoles(User.Identity.Name)[0].CompareTo("MRP") == 0)
+                {
+                    this.warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                    warehouse = GetWarehouseOfMRP(User.Identity.Name);
+                    if (warehouse != null)
+                        ViewBag.WHName = warehouse.WHName;
+
+                    var userID = GetUserID(User.Identity.Name);
+                    var list = await db.PRODUCT_STOCKS
+                                            .Include(x => x.Warehouse)
+                                            .Include(x => x.PRODUCT)
+                                            .Include(x => x.UNIT)
+                                            .Where(x => x.Warehouse.MRP == userID)
+                                            .ToListAsync();
+                    return View(list);
+                }
+                else
+                {
+                    ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName", whid);
+                    ViewBag.WHName = "Siz uchun ombor biriktirilmagan.";
+
+                    var list = await db.PRODUCT_STOCKS
+                                            .Include(x => x.Warehouse)
+                                            .Include(x => x.PRODUCT)
+                                            .Include(x => x.UNIT)
+                                            .Where(x => x.Warehouse.ID == whid)
+                                            .ToListAsync();
+                    return View(list);
+                }
+
+            }
+        }
+        private Warehouse GetWarehouseOfMRP(string email)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                USER currentUser = db.USERS.Where(u => u.Email.CompareTo(email) == 0 && u.IsDeleted == false && u.IsActive == true).FirstOrDefault();
+                Warehouse this_warehouse = db.WAREHOUSES.Where(wrhs => wrhs.MRP == currentUser.ID).FirstOrDefault();
+
+                return this_warehouse;
+            }
+        }
+        private int? GetUserID(string email)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                USER currentUser = db.USERS
+                                     .Where(u => u.Email.CompareTo(email) == 0 && u.IsDeleted == false && u.IsActive == true)
+                                     .FirstOrDefault();
+
+                return currentUser?.ID;
+            }
+        }
+        public async Task<ActionResult> Download()
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                SAMPLE_FILES file = await db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("inventarizatsiya.xlsx") == 0).FirstOrDefaultAsync();
+                if (file != null)
+                    return File(file.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                return View();
+            }
+        }
+        public ActionResult UploadWithExcel()
+        {
+            ViewBag.IsFileUploaded = false;
+            using (DBTHSNEntities db = new DBTHSNEntities())
+                ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+
+            return View();
+        }
+        [HttpPost]
+        public ActionResult UploadWithExcel(HttpPostedFileBase file)
+        {
+            if (file != null && file.ContentLength > 0)
+            {
+                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
+                {
+                    try
+                    {
+                        var dataTable = new System.Data.DataTable();
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                        using (var package = new ExcelPackage(file.InputStream))
+                        {
+                            var worksheet = package.Workbook.Worksheets[0];
+                            var rowCount = worksheet.Dimension.Rows;
+                            var colCount = 3;
+
+                            for (int col = 1; col <= colCount; col++)
+                            {
+                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                            }
+
+                            for (int row = 2; row <= rowCount; row++)
+                            {
+                                var dataRow = dataTable.NewRow();
+                                for (int col = 1; col <= colCount; col++)
+                                {
+                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                                }
+                                dataTable.Rows.Add(dataRow);
+                            }
+                        }
+
+                        if (CheckForExistenceOfParts(dataTable))
+                        {
+                            ViewBag.DataTable = dataTable;
+                            ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
+                            ViewBag.IsFileUploaded = true;
+                        }
+                        else
+                        {
+                            var message = "";
+                            foreach (var word in missingParts)
+                            {
+                                message += word + ", ";
+                            }
+                            ViewBag.Message = "Ushbu reja faylida kiritilgan maxsulotlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Maxsulotlar bazasiga kiritib keyin qayta urining.";
+                            using (DBTHSNEntities db = new DBTHSNEntities())
+                                ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+                            return View("UploadWithExcel");
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                        using (DBTHSNEntities db = new DBTHSNEntities())
+                            ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+                        return View("UploadWithExcel");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
+                    using (DBTHSNEntities db = new DBTHSNEntities())
+                        ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+                    return View("UploadWithExcel");
+                }
+            }
+            else
+            {
+                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                    ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+                return View("UploadWithExcel");
+            }
+            using (DBTHSNEntities db = new DBTHSNEntities())
+                ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+            return View("UploadWithExcel");
+        }
+        private bool CheckForExistenceOfParts(DataTable dataTable)
+        {
+            bool flag = false;
+            if (dataTable != null)
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        string partPNo = row["Detal Raqami"].ToString();
+                        if (db.PRODUCTS.Where(p => p.PNo.CompareTo(partPNo) == 0 && p.IsRawMaterial == true).Any())
+                            flag = true;
+                        else
+                        {
+                            if (!missingParts.Contains(partPNo))
+                                missingParts.Add(partPNo);
+                        }
+                    }
+                    if (missingParts.Count > 0)
+                        return false;
+                    else
+                        return flag;
+                }
+            else
+                return flag;
+        }
+        public ActionResult ClearDataTable()
+        {
+            // Clear the DataTable and related ViewBag properties
+            ViewBag.DataTable = null;
+            ViewBag.DataTableModel = null;
+            ViewBag.IsFileUploaded = false;
+            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
+            return View("UploadWithExcel");
+        }
+        [HttpPost]
+        public ActionResult Save(string dataTableModel, int? WarehouseID)
+        {
+            if (WarehouseID > 0)
+            {
+                string pNo = "", amount = "", unitName = "";
+                if (!string.IsNullOrEmpty(dataTableModel))
+                {
+                    var tableModel = JsonConvert.DeserializeObject<System.Data.DataTable>(dataTableModel);
+
+                    try
+                    {
+                        using (DBTHSNEntities db = new DBTHSNEntities())
+                        {
+                            foreach (DataRow row in tableModel.Rows)
+                            {
+                                pNo = row["Detal Raqami"].ToString();
+                                amount = row["Qoldiq"].ToString();
+                                unitName = row["Birligi"].ToString();
+
+                                UNIT unit = db.UNITS.Where(u => u.ShortName.CompareTo(unitName) == 0).FirstOrDefault();
+                                PRODUCT part = db.PRODUCTS.Where(p => p.PNo.CompareTo(pNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+
+                                if (part != null)
+                                {
+                                    PRODUCT_STOCKS stock = db.PRODUCT_STOCKS.Where(ps => ps.ProductID == part.ID).FirstOrDefault();
+
+                                    if (stock != null)
+                                    {
+                                        stock.Amount = Convert.ToDouble(amount);
+                                        if (unit != null)
+                                            stock.UnitID = unit.ID;
+                                        else
+                                            stock.UnitID = 1;
+                                        stock.WHID = Convert.ToInt32(WarehouseID);
+                                        db.Entry(stock).State = EntityState.Modified;
+                                        db.SaveChanges();
+                                    }
+                                    else
+                                    {
+                                        PRODUCT_STOCKS newStock = new PRODUCT_STOCKS();
+
+                                        newStock.ProductID = part.ID;
+                                        newStock.Amount = Convert.ToDouble(amount);
+                                        if (unit != null)
+                                            newStock.UnitID = unit.ID;
+                                        else
+                                            newStock.UnitID = 1;
+                                        newStock.WHID = Convert.ToInt32(WarehouseID);
+
+                                        db.PRODUCT_STOCKS.Add(newStock);
+                                        db.SaveChanges();
+                                    }
+
+                                    var userEmail1 = User.Identity.Name;
+                                    LogHelper.LogToDatabase(userEmail1, "Inventarizatsiya", $"{pNo} ehtiyot qismi uchun {amount}  {unit.ShortName} bo'lgan qoldiqni {DateTime.Now} paytida kiritdi");
+
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                        ModelState.AddModelError("", ex.Message);
+                    }
+                }
+
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ViewBag.Message = "Ombor tanlanmagan. Avval kirim qilinadigan omborni tanlab oling va keyin qaytadan urunib ko'ring.";
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                    ViewBag.warehouseList = new SelectList(db.WAREHOUSES.Where(wh => wh.IsDeleted == false).ToList(), "ID", "WHName");
+
+                return View("UploadWithExcel");
+            }
+
+        }
+    }
+}

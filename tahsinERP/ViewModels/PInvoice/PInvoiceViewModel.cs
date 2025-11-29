@@ -34,7 +34,7 @@ namespace tahsinERP.ViewModels
         public int ID { get; set; }
         [Required]
         public int InvoiceID { get; set; }
-        public PART Part { get; set; }
+        public PRODUCT Part { get; set; }
         [Required]
         public int PartID { get; set; }
         [Required]

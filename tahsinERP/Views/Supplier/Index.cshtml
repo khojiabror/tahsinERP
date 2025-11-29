@@ -4,7 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var type = ViewBag.Type;
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString(), type))
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     bool changePermit = false;
     if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Suppliers"))
@@ -27,7 +27,7 @@
                                         Sahifalar
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Taminotchilar
+                                        Ta'minotchilar
                                     </li>
                                 </ol>
                             </div>
@@ -55,7 +55,7 @@
                                 <div class="col-12 col-sm-12 col-lg-4">
                                     <label for="users-list-role">Turi</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("SourceID", ViewBag.SourceList as SelectList, new { @class = "form-control", onchange = "refreshDataTable()" })
+                                        @Html.DropDownList("SourceID",ViewBag.SourceList as SelectList, new { @class = "form-control", onchange = "refreshDataTable()" })
                                     </fieldset>
                                 </div>
                                 <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
@@ -81,7 +81,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Nomi</th>
-                                                    <th>DUNS</th>
+                                                    <th>Aloqa uchun</th>
                                                     <th>Turi</th>
                                                     <th>Davlati</th>
                                                     <th>Shahri</th>
@@ -98,7 +98,7 @@
                                                         <td>
                                                             <a href="~/Supplier/Details/@item.ID">@item.Name</a>
                                                         </td>
-                                                        <td><a href="~/Supplier/Details/@item.ID">@item.DUNS</a></td>
+                                                        <td><a href="~/Supplier/Details/@item.ID">@item.ContactPersonName</a></td>
                                                         <td>@item.Type</td>
                                                         <td>@item.Country</td>
                                                         <td>@item.City</td>
@@ -118,7 +118,7 @@
                                             <tfoot>
                                                 <tr>
                                                     <th>Nomi</th>
-                                                    <th>DUNS</th>
+                                                    <th>Aloqa uchun</th>
                                                     <th>Turi</th>
                                                     <th>Davlati</th>
                                                     <th>Shahri</th>

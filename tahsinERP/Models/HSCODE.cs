@@ -17,9 +17,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public HSCODE()
         {
-            this.PARTS = new HashSet<PART>();
+            this.P_CONTRACT_PRODUCTS = new HashSet<P_CONTRACT_PRODUCTS>();
             this.PRODUCTS = new HashSet<PRODUCT>();
-            this.P_CONTRACT_PARTS = new HashSet<P_CONTRACT_PARTS>();
         }
     
         public int ID { get; set; }
@@ -27,10 +26,8 @@ namespace tahsinERP.Models
         public string Description { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PART> PARTS { get; set; }
+        public virtual ICollection<P_CONTRACT_PRODUCTS> P_CONTRACT_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCT> PRODUCTS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<P_CONTRACT_PARTS> P_CONTRACT_PARTS { get; set; }
     }
 }

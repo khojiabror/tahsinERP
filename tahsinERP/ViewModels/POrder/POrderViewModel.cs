@@ -37,7 +37,7 @@ namespace tahsinERP.ViewModels
         //public int OrderID { get; set; } // User dan olinmaydi
         [Required]
         public int PartID { get; set; }
-        public PART Part { get; set; }
+        public PRODUCT Part { get; set; }
         [Required]
         public double Price { get; set; }
         [Required]

@@ -18,12 +18,9 @@ namespace tahsinERP.Models
         public P_INVOICES()
         {
             this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
+            this.INCOMES = new HashSet<INCOME>();
             this.P_INVOICE_DOCS = new HashSet<P_INVOICE_DOCS>();
-            this.P_INVOICE_PACKINGLISTS = new HashSet<P_INVOICE_PACKINGLISTS>();
-            this.P_INVOICE_PARTS = new HashSet<P_INVOICE_PARTS>();
-            this.P_PROFORMA_INVOICES = new HashSet<P_PROFORMA_INVOICES>();
-            this.PART_WRHS_INCOMES = new HashSet<PART_WRHS_INCOMES>();
-            this.GTDS = new HashSet<GTD>();
+            this.P_INVOICE_PRODUCTS = new HashSet<P_INVOICE_PRODUCTS>();
         }
     
         public int ID { get; set; }
@@ -41,18 +38,12 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<INCOME> INCOMES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_INVOICE_DOCS> P_INVOICE_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<P_INVOICE_PACKINGLISTS> P_INVOICE_PACKINGLISTS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<P_INVOICE_PARTS> P_INVOICE_PARTS { get; set; }
+        public virtual ICollection<P_INVOICE_PRODUCTS> P_INVOICE_PRODUCTS { get; set; }
         public virtual P_ORDERS P_ORDERS { get; set; }
         public virtual SUPPLIER SUPPLIER { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<P_PROFORMA_INVOICES> P_PROFORMA_INVOICES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PART_WRHS_INCOMES> PART_WRHS_INCOMES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<GTD> GTDS { get; set; }
     }
 }

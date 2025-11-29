@@ -47,11 +47,11 @@ namespace tahsinERP.Controllers
                 {
                     List<IndexViewModel> result = db.BOMS
                                                     .Where(x => x.IsDeleted == false)
-                                                    .Join(db.PARTS, bom => bom.ParentPNo, product => product.PNo, (bom, product) =>
+                                                    .Join(db.PRODUCTS, bom => bom.ParentPNo, product => product.PNo, (bom, product) =>
                     new IndexViewModel
                     {
                         ParentPNo = bom.ParentPNo,
-                        ProductName = product.PName,
+                        ProductName = product.Name,
                         ProductID = product.ID,
                         IsParentProduct = false,
                         ID = product.ID
@@ -71,7 +71,7 @@ namespace tahsinERP.Controllers
                 PRODUCT product = db.PRODUCTS
                                     .Where(p => p.ID == ID && p.IsDeleted == false)
                                     .FirstOrDefault();
-                PART part = db.PARTS
+                PRODUCT part = db.PRODUCTS
                               .Where(p => p.ID == ID && p.IsDeleted == false)
                               .FirstOrDefault();
 
@@ -116,7 +116,7 @@ namespace tahsinERP.Controllers
                         ChildPNo = b.ChildPNo,
                         ChildImageBase64 = GetChildImage(b.ChildPNo),
                         Consumption = b.Consumption,
-                        ConsumptionUnit = b.ConsumptionUnit,
+                        ConsumptionUnit = "",
                         Children = GetBomTree(b.ChildPNo)?.Children
                     }).ToList()
                 };
@@ -130,7 +130,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var product = db.PRODUCTS.Where(p => p.PNo.CompareTo(PNo) == 0).FirstOrDefault();
-                var part = db.PARTS.Where(p => p.PNo.CompareTo(PNo) == 0).FirstOrDefault();
+                var part = db.PRODUCTS.Where(p => p.PNo.CompareTo(PNo) == 0 && p.IsRawMaterial == true).FirstOrDefault();
                 if (product != null)
                 {
                     var productImage = db.PRODUCTIMAGES.FirstOrDefault(pi => pi.ProdID == product.ID);
@@ -141,7 +141,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    var partImage = db.PARTIMAGES.FirstOrDefault(pi => pi.PartID == part.ID);
+                    var partImage = db.PRODUCTIMAGES.FirstOrDefault(pi => pi.ProdID == part.ID);
                     if (partImage != null)
                     {
                         Base64String = "data:image/jpeg;base64," + Convert.ToBase64String(partImage.Image);
@@ -157,8 +157,8 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
 
-                var part = db.PARTS.Where(p => p.PNo.CompareTo(PNo) == 0).FirstOrDefault();
-                var partImage = db.PARTIMAGES.FirstOrDefault(pi => pi.PartID == part.ID);
+                var part = db.PRODUCTS.Where(p => p.PNo.CompareTo(PNo) == 0).FirstOrDefault();
+                var partImage = db.PRODUCTIMAGES.FirstOrDefault(pi => pi.ProdID == part.ID);
                 if (partImage != null)
                 {
                     Base64String = "data:image/jpeg;base64," + Convert.ToBase64String(partImage.Image);
@@ -207,7 +207,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 PRODUCT product = db.PRODUCTS.Where(p => p.ID == ID && p.IsDeleted == false).FirstOrDefault();
-                PART part = db.PARTS.Where(p => p.ID == ID && p.IsDeleted == false).FirstOrDefault();
+                PRODUCT part = db.PRODUCTS.Where(p => p.ID == ID && p.IsDeleted == false && p.IsRawMaterial == true).FirstOrDefault();
 
                 try
                 {
@@ -369,7 +369,7 @@ namespace tahsinERP.Controllers
                     foreach (DataRow row in dataTable.Rows)
                     {
                         string childPNo = row["ChildPNo"].ToString();
-                        if (db.PARTS.Where(p => p.PNo.CompareTo(childPNo) == 0).Any())
+                        if (db.PRODUCTS.Where(p => p.PNo.CompareTo(childPNo) == 0).Any())
                             flag = true;
                         else
                         {
@@ -446,7 +446,6 @@ namespace tahsinERP.Controllers
 
                                 BOM bom = new BOM();
                                 bom.Consumption = Convert.ToDouble(Consumption);
-                                bom.ConsumptionUnit = ConsumptionUnit;
                                 bom.ParentPNo = ParentPNo;
                                 bom.ChildPNo = ChildPNo;
                                 bom.IsDeleted = false;

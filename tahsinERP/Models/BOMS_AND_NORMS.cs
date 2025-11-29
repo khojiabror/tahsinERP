@@ -20,5 +20,6 @@ namespace tahsinERP.Models
         public System.DateTime IssuedDT { get; set; }
     
         public virtual BOM BOM { get; set; }
+        public virtual NORMVERSION NORMVERSION { get; set; }
     }
 }

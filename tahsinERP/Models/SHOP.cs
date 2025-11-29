@@ -17,13 +17,11 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public SHOP()
         {
-            this.PART_PRODUCTION = new HashSet<PART_PRODUCTION>();
-            this.PART_WRHS = new HashSet<PART_WRHS>();
-            this.PARTS = new HashSet<PART>();
-            this.PROD_WRHS = new HashSet<PROD_WRHS>();
             this.PRODUCT_PRODUCTION = new HashSet<PRODUCT_PRODUCTION>();
-            this.SHOP_PLANNED_DTS = new HashSet<SHOP_PLANNED_DTS>();
             this.PRODUCTS = new HashSet<PRODUCT>();
+            this.SHOP_PLANNED_DTS = new HashSet<SHOP_PLANNED_DTS>();
+            this.WAREHOUSES = new HashSet<Warehouse>();
+            this.PRODUCTS1 = new HashSet<PRODUCT>();
         }
     
         public int ID { get; set; }
@@ -34,19 +32,14 @@ namespace tahsinERP.Models
     
         public virtual COMPANy COMPANy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PART_PRODUCTION> PART_PRODUCTION { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PART_WRHS> PART_WRHS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PART> PARTS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PROD_WRHS> PROD_WRHS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCT_PRODUCTION> PRODUCT_PRODUCTION { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<SHOP_PLANNED_DTS> SHOP_PLANNED_DTS { get; set; }
-        public virtual PROD_SHOPS_PARTS PROD_SHOPS_PARTS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCT> PRODUCTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SHOP_PLANNED_DTS> SHOP_PLANNED_DTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Warehouse> WAREHOUSES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PRODUCT> PRODUCTS1 { get; set; }
     }
 }

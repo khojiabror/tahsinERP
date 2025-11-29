@@ -22,7 +22,6 @@ namespace tahsinERP.Models
     
         public int ID { get; set; }
         public double Consumption { get; set; }
-        public string ConsumptionUnit { get; set; }
         public Nullable<bool> IsActive { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string ParentPNo { get; set; }

@@ -469,17 +469,11 @@
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\Engineering\NormaController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
-    <Compile Include="Controllers\MES\CarPlanController.cs" />
-    <Compile Include="Controllers\CheckForPOController.cs" />
-    <Compile Include="Controllers\Purchasing\PurchasingPaymentController.cs" />
-    <Compile Include="Controllers\Purchasing\PurchasingWhIncomeController.cs" />
     <Compile Include="Controllers\Settings\CompanyController.cs" />
     <Compile Include="Controllers\Settings\CurrencyController.cs" />
     <Compile Include="Controllers\Settings\UnitController.cs" />
-    <Compile Include="Controllers\SRM\GTDController.cs" />
     <Compile Include="Controllers\AdminSetting\LastActionsController.cs" />
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
-    <Compile Include="Controllers\Engineering\BlankingController.cs" />
     <Compile Include="Controllers\Engineering\BOMController.cs" />
     <Compile Include="Controllers\AdminSetting\ComingSoonController.cs" />
     <Compile Include="Controllers\AdminSetting\CookieHelper.cs" />
@@ -494,11 +488,8 @@
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
     <Compile Include="Controllers\AdminSetting\ManualController.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
-    <Compile Include="Controllers\SRM\PackingListController.cs" />
-    <Compile Include="Controllers\Engineering\PartController.cs" />
-    <Compile Include="Controllers\SRM\PartPackController.cs" />
-    <Compile Include="Controllers\SRM\PartStockController.cs" />
-    <Compile Include="Controllers\SRM\PartWRHSController.cs" />
+    <Compile Include="Controllers\SRM\ProductStockController.cs" />
+    <Compile Include="Controllers\SRM\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\PContractController.cs" />
     <Compile Include="Controllers\AdminSetting\ErrorController.cs" />
     <Compile Include="Controllers\AdminSetting\Helper.cs" />
@@ -509,31 +500,18 @@
     <Compile Include="Controllers\SRM\POrderController.cs" />
     <Compile Include="Controllers\Engineering\ProductController.cs" />
     <Compile Include="Controllers\ProductionProcessController.cs" />
-    <Compile Include="Controllers\Engineering\ProductPackController.cs" />
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
-    <Compile Include="Controllers\SRM\POrderPaymentController.cs" />
-    <Compile Include="Controllers\SRM\ProformaInvoiceController.cs" />
-    <Compile Include="Controllers\Purchasing\PurchasingContractController.cs" />
-    <Compile Include="Controllers\Purchasing\PurchasingItemController.cs" />
-    <Compile Include="Controllers\Purchasing\PurchasingOrderController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Controllers\AdminSetting\RoleController.cs" />
     <Compile Include="Controllers\CRM\SContractController.cs" />
     <Compile Include="Controllers\Engineering\ShopController.cs" />
-    <Compile Include="Controllers\Engineering\SlittingController.cs" />
     <Compile Include="Controllers\CRM\SOrderController.cs" />
-    <Compile Include="Controllers\MES\SPLController.cs" />
-    <Compile Include="Controllers\Engineering\StampingController.cs" />
     <Compile Include="Controllers\SRM\SupplierController.cs" />
-    <Compile Include="Controllers\Logistic\TracingController.cs" />
     <Compile Include="Controllers\AdminSetting\UserController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
-    <Compile Include="Controllers\SRM\WhExpenseController.cs" />
+    <Compile Include="Controllers\SRM\ExpenseController.cs" />
     <Compile Include="Controllers\SRM\WhIncomeController.cs" />
-    <Compile Include="Models\BLANKING_NORMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\BOM.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -541,13 +519,13 @@
     <Compile Include="Models\BOMS_AND_NORMS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\CAR.cs">
+    <Compile Include="Models\BOM_HEADERS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BOM_LINES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CarPlanRequirement.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\CAR_PLANS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\COMPANy.cs">
@@ -563,9 +541,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CUSTOMER.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\DAMAGED_PARTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DAMAGED_PRODUCTS.cs">
@@ -590,6 +565,12 @@
     <Compile Include="Models\DEFECT_TYPES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\EXPENS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\EXPENSE_PRODUCTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\FORWARDER.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -611,94 +592,28 @@
     <Compile Include="Models\F_WAYBILL_PAYMENTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\GetCarPlanRequirements_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GetPartsInfo_by_supplierID_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GetPartsInfo_by_type_and_supplierID_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GetPartsInfo_by_type_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GetPartsInfo_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\GetProductListPerShop_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GetSupplierParts_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GTD.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GTD_DOCS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HSCODE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\INCOME.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\INCOME_PRODUCTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\MaterialRequirement.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PART.cs">
+    <Compile Include="Models\NORMLINE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PART1738DOCS.cs">
+    <Compile Include="Models\NORMVERSION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PARTIMAGE.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PARTPACK.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PARTPLAN.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PARTPLANS_DAILY.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_PRODUCTION.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_STOCKS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WASTE_WRHS_EXPENSES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WASTE_WRHS_EXPENSE_WASTES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WASTE_WRHS_INCOMES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WASTE_WRHS_INCOME_WASTES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS_EXPENSES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS_EXPENSE_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS_EXPENSE_PARTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS_INCOMES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS_INCOME_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PART_WRHS_INCOME_PARTS.cs">
+    <Compile Include="Models\NORM_INPUT_LINES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PERMISSION.cs">
@@ -710,16 +625,10 @@
     <Compile Include="Models\PRODUCT.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PRODUCT1738DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\PRODUCTIMAGE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PRODUCTIONPROCESS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PRODUCTPACK.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PRODUCTPLAN.cs">
@@ -731,64 +640,7 @@
     <Compile Include="Models\PRODUCT_PRODUCTION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PROD_SHOPS_PARTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PROD_STOCKS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PROD_WRHS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PROD_WRHS_EXPENSES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PROD_WRHS_EXPENSE_PRODUCTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PROD_WRHS_INCOMES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PROD_WRHS_INCOME_PRODUCTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_CONTRACTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_CONTRACT_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_CONTRACT_ITEMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_CONTRACT_PAYMENTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_ITEMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_ITEM_STOCKS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_ORDERS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_ORDER_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_ORDER_ITEMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_WRHS_EXPENSES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_WRHS_EXPENSE_ITEMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_WRHS_INCOMES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PURCHASING_WRHS_INCOME_ITEMS.cs">
+    <Compile Include="Models\PRODUCT_STOCKS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\P_CONTRACTS.cs">
@@ -797,7 +649,7 @@
     <Compile Include="Models\P_CONTRACT_DOCS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\P_CONTRACT_PARTS.cs">
+    <Compile Include="Models\P_CONTRACT_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\P_INVOICES.cs">
@@ -806,31 +658,13 @@
     <Compile Include="Models\P_INVOICE_DOCS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\P_INVOICE_PACKINGLISTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\P_INVOICE_PARTS.cs">
+    <Compile Include="Models\P_INVOICE_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\P_ORDERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\P_ORDER_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\P_ORDER_PARTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\P_ORDER_PAYMENTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\P_PACKINGLIST_PARTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\P_PROFORMA_INVOICES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\P_PROFORMA_INVOICE_DOCS.cs">
+    <Compile Include="Models\P_ORDER_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ROLE.cs">
@@ -845,16 +679,7 @@
     <Compile Include="Models\SHOP_PLANNED_DTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\SLITTING_NORMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\SPL.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\STAMPING_NORMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\STEEL_COILS.cs">
+    <Compile Include="Models\sp_Norm_PreviewCutMaterial_Result.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\SUPPLIER.cs">
@@ -870,12 +695,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\S_ORDER_PRODUCTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\TEMPORARY_BOMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\TRACING.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\UNIT.cs">
@@ -902,57 +721,50 @@
     <Compile Include="Models\USER_LICENSES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Warehouse.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\WASTE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\WASTE_STOCKS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\WRHS_EXPENSE_DOCS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\WRHS_INCOME_DOCS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewModels\BOM\BlankingNormViewModel.cs" />
     <Compile Include="ViewModels\BOM\BOMCreateProductViewModel.cs" />
     <Compile Include="ViewModels\BOM\BOMCreateViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomEditViewModels.cs" />
     <Compile Include="ViewModels\BOM\BomViewModel.cs" />
     <Compile Include="ViewModels\BOM\BoomViewModel.cs" />
     <Compile Include="ViewModels\BOM\IndexViewModel.cs" />
-    <Compile Include="ViewModels\BOM\StampingNormViewModel.cs" />
-    <Compile Include="ViewModels\CreateAvtoViewModel.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
-    <Compile Include="ViewModels\GTDViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
-    <Compile Include="ViewModels\OrderTracingViewModel.cs" />
     <Compile Include="ViewModels\PContractSViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
-    <Compile Include="ViewModels\POrder\POrderSteelViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
-    <Compile Include="ViewModels\Purchasing\PurchasingContractViewModel.cs" />
-    <Compile Include="ViewModels\Purchasing\PurchasingOrderViewModel.cs" />
-    <Compile Include="ViewModels\Purchasing\PurchasingStatusViewModel.cs" />
-    <Compile Include="ViewModels\Purchasing\PurchasingWhExpenseViewModel.cs" />
-    <Compile Include="ViewModels\Purchasing\PurchasingWhIncomeViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
-    <Compile Include="ViewModels\PackingListViewModel.cs" />
     <Compile Include="ViewModels\PartIndexViewModel.cs" />
     <Compile Include="ViewModels\PartViewModel.cs" />
     <Compile Include="ViewModels\PContractViewModel.cs" />
-    <Compile Include="ViewModels\BOM\SlittingNormViewModel.cs" />
-    <Compile Include="ViewModels\BOM\SlittingProcessViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderViewModel.cs" />
     <Compile Include="ViewModels\ProductPlanVM.cs" />
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
-    <Compile Include="ViewModels\TracingViewModel.cs" />
     <Compile Include="ViewModels\WrhsExpenseViewModel.cs" />
     <Compile Include="ViewModels\WrhsIncomeEditViewModel.cs" />
     <Compile Include="ViewModels\WrhsIncomeViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
-    <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
     <Compile Include="ViewModels\UserViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -2770,7 +2582,6 @@
     <Content Include="Views\Supplier\Create.cshtml" />
     <Content Include="Views\Supplier\Details.cshtml" />
     <Content Include="Views\Product\Index.cshtml" />
-    <Content Include="Views\Supplier\SupplierParts.cshtml" />
     <Content Include="Views\Supplier\Edit.cshtml" />
     <Content Include="Views\Supplier\Delete.cshtml" />
     <Content Include="Views\PContract\Index.cshtml" />
@@ -3035,6 +2846,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Controllers\Purchasing\" />
     <Folder Include="Views\Norma\" />
   </ItemGroup>
   <ItemGroup>

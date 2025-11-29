@@ -22,7 +22,7 @@ namespace tahsinERP.ViewModels.BOM
         public string ConsumptionUnit { get; set; }
         //Bular kerak bo'lmasa o'chirivoringlar:
         public bool IsParentProduct { get; set; }
-        public PART PART { get; set; }
+        public PRODUCT PART { get; set; }
 
         public string ProcessName { get; set; }
     }

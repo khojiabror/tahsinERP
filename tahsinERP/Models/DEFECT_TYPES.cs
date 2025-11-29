@@ -17,7 +17,6 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public DEFECT_TYPES()
         {
-            this.DAMAGED_PARTS = new HashSet<DAMAGED_PARTS>();
             this.DAMAGED_PRODUCTS = new HashSet<DAMAGED_PRODUCTS>();
         }
     
@@ -26,8 +25,6 @@ namespace tahsinERP.Models
         public string Description { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<DAMAGED_PARTS> DAMAGED_PARTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DAMAGED_PRODUCTS> DAMAGED_PRODUCTS { get; set; }
     }

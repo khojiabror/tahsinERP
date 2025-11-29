@@ -47,12 +47,12 @@
                                                 <span><b>Nomi</b>: @Html.DisplayFor(model => model.Name, new { @class = "form-control" })</span>
                                                 <br />
                                                 <span><b>DUNS</b>: @Html.DisplayFor(model => model.DUNS, new { @class = "form-control" })</span>
+                                                <br />
+                                                <span><b>Turi</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
                                                 <hr />
                                                 <section>
                                                     <div>
                                                         <h6 class="text-primary">Geografik ma'lumotlari</h6>
-                                                        <span><b>Source</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
-                                                        <br />
                                                         <span><b>Mamlakati</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
                                                         <br />
                                                         <span><b>Shaxri</b>: @Html.DisplayFor(model => model.City, new { @class = "form-control" })</span>
@@ -72,7 +72,6 @@
                                                 <span><b>Telefon raqami:</b>: @Html.DisplayFor(model => model.Telephone, new { @class = "form-control" })</span>
                                                 <br />
                                             </div>
-                                            @Html.Partial("SupplierParts")
                                         </div>
                                         <hr>
                                     </div>

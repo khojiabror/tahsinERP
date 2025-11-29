@@ -27,18 +27,18 @@ namespace tahsinERP.Models
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<BLANKING_NORMS> BLANKING_NORMS { get; set; }
+        public virtual DbSet<BOM_HEADERS> BOM_HEADERS { get; set; }
+        public virtual DbSet<BOM_LINES> BOM_LINES { get; set; }
         public virtual DbSet<BOM> BOMS { get; set; }
-        public virtual DbSet<CAR_PLANS> CAR_PLANS { get; set; }
-        public virtual DbSet<CAR> CARS { get; set; }
         public virtual DbSet<COMPANy> COMPANIES { get; set; }
         public virtual DbSet<COMPANY_LICENSES> COMPANY_LICENSES { get; set; }
         public virtual DbSet<COOKIES_CONFIRMATION> COOKIES_CONFIRMATION { get; set; }
         public virtual DbSet<CURRENCy> CURRENCIES { get; set; }
         public virtual DbSet<CUSTOMER> CUSTOMERS { get; set; }
-        public virtual DbSet<DAMAGED_PARTS> DAMAGED_PARTS { get; set; }
         public virtual DbSet<DAMAGED_PRODUCTS> DAMAGED_PRODUCTS { get; set; }
         public virtual DbSet<DEFECT_TYPES> DEFECT_TYPES { get; set; }
+        public virtual DbSet<EXPENSE_PRODUCTS> EXPENSE_PRODUCTS { get; set; }
+        public virtual DbSet<EXPENS> EXPENSES { get; set; }
         public virtual DbSet<F_CONTRACT_DOCS> F_CONTRACT_DOCS { get; set; }
         public virtual DbSet<F_CONTRACTS> F_CONTRACTS { get; set; }
         public virtual DbSet<F_TRANSPORT_TYPES> F_TRANSPORT_TYPES { get; set; }
@@ -46,70 +46,29 @@ namespace tahsinERP.Models
         public virtual DbSet<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
         public virtual DbSet<F_WAYBILLS> F_WAYBILLS { get; set; }
         public virtual DbSet<FORWARDER> FORWARDERS { get; set; }
-        public virtual DbSet<GTD_DOCS> GTD_DOCS { get; set; }
-        public virtual DbSet<GTD> GTDS { get; set; }
         public virtual DbSet<HSCODE> HSCODES { get; set; }
+        public virtual DbSet<INCOME_PRODUCTS> INCOME_PRODUCTS { get; set; }
+        public virtual DbSet<INCOME> INCOMES { get; set; }
+        public virtual DbSet<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
+        public virtual DbSet<NORMLINE> NORMLINES { get; set; }
+        public virtual DbSet<NORMVERSION> NORMVERSIONS { get; set; }
         public virtual DbSet<P_CONTRACT_DOCS> P_CONTRACT_DOCS { get; set; }
-        public virtual DbSet<P_CONTRACT_PARTS> P_CONTRACT_PARTS { get; set; }
+        public virtual DbSet<P_CONTRACT_PRODUCTS> P_CONTRACT_PRODUCTS { get; set; }
         public virtual DbSet<P_CONTRACTS> P_CONTRACTS { get; set; }
         public virtual DbSet<P_INVOICE_DOCS> P_INVOICE_DOCS { get; set; }
-        public virtual DbSet<P_INVOICE_PACKINGLISTS> P_INVOICE_PACKINGLISTS { get; set; }
-        public virtual DbSet<P_INVOICE_PARTS> P_INVOICE_PARTS { get; set; }
+        public virtual DbSet<P_INVOICE_PRODUCTS> P_INVOICE_PRODUCTS { get; set; }
         public virtual DbSet<P_INVOICES> P_INVOICES { get; set; }
-        public virtual DbSet<P_ORDER_DOCS> P_ORDER_DOCS { get; set; }
-        public virtual DbSet<P_ORDER_PARTS> P_ORDER_PARTS { get; set; }
-        public virtual DbSet<P_ORDER_PAYMENTS> P_ORDER_PAYMENTS { get; set; }
+        public virtual DbSet<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
         public virtual DbSet<P_ORDERS> P_ORDERS { get; set; }
-        public virtual DbSet<P_PACKINGLIST_PARTS> P_PACKINGLIST_PARTS { get; set; }
-        public virtual DbSet<P_PROFORMA_INVOICE_DOCS> P_PROFORMA_INVOICE_DOCS { get; set; }
-        public virtual DbSet<P_PROFORMA_INVOICES> P_PROFORMA_INVOICES { get; set; }
-        public virtual DbSet<PART_PRODUCTION> PART_PRODUCTION { get; set; }
-        public virtual DbSet<PART_STOCKS> PART_STOCKS { get; set; }
-        public virtual DbSet<PART_WASTE_WRHS_EXPENSE_WASTES> PART_WASTE_WRHS_EXPENSE_WASTES { get; set; }
-        public virtual DbSet<PART_WASTE_WRHS_EXPENSES> PART_WASTE_WRHS_EXPENSES { get; set; }
-        public virtual DbSet<PART_WASTE_WRHS_INCOME_WASTES> PART_WASTE_WRHS_INCOME_WASTES { get; set; }
-        public virtual DbSet<PART_WASTE_WRHS_INCOMES> PART_WASTE_WRHS_INCOMES { get; set; }
-        public virtual DbSet<PART_WRHS> PART_WRHS { get; set; }
-        public virtual DbSet<PART_WRHS_EXPENSE_DOCS> PART_WRHS_EXPENSE_DOCS { get; set; }
-        public virtual DbSet<PART_WRHS_EXPENSE_PARTS> PART_WRHS_EXPENSE_PARTS { get; set; }
-        public virtual DbSet<PART_WRHS_EXPENSES> PART_WRHS_EXPENSES { get; set; }
-        public virtual DbSet<PART_WRHS_INCOME_DOCS> PART_WRHS_INCOME_DOCS { get; set; }
-        public virtual DbSet<PART_WRHS_INCOME_PARTS> PART_WRHS_INCOME_PARTS { get; set; }
-        public virtual DbSet<PART_WRHS_INCOMES> PART_WRHS_INCOMES { get; set; }
-        public virtual DbSet<PART1738DOCS> PART1738DOCS { get; set; }
-        public virtual DbSet<PARTIMAGE> PARTIMAGES { get; set; }
-        public virtual DbSet<PARTPACK> PARTPACKS { get; set; }
-        public virtual DbSet<PARTPLAN> PARTPLANS { get; set; }
-        public virtual DbSet<PARTPLANS_DAILY> PARTPLANS_DAILY { get; set; }
-        public virtual DbSet<PART> PARTS { get; set; }
         public virtual DbSet<PERMISSIONMODULE> PERMISSIONMODULES { get; set; }
         public virtual DbSet<PERMISSION> PERMISSIONS { get; set; }
-        public virtual DbSet<PROD_STOCKS> PROD_STOCKS { get; set; }
-        public virtual DbSet<PROD_WRHS> PROD_WRHS { get; set; }
-        public virtual DbSet<PROD_WRHS_EXPENSE_PRODUCTS> PROD_WRHS_EXPENSE_PRODUCTS { get; set; }
-        public virtual DbSet<PROD_WRHS_EXPENSES> PROD_WRHS_EXPENSES { get; set; }
-        public virtual DbSet<PROD_WRHS_INCOME_PRODUCTS> PROD_WRHS_INCOME_PRODUCTS { get; set; }
-        public virtual DbSet<PROD_WRHS_INCOMES> PROD_WRHS_INCOMES { get; set; }
         public virtual DbSet<PRODUCT_PRODUCTION> PRODUCT_PRODUCTION { get; set; }
-        public virtual DbSet<PRODUCT1738DOCS> PRODUCT1738DOCS { get; set; }
+        public virtual DbSet<PRODUCT_STOCKS> PRODUCT_STOCKS { get; set; }
         public virtual DbSet<PRODUCTIMAGE> PRODUCTIMAGES { get; set; }
         public virtual DbSet<PRODUCTIONPROCESS> PRODUCTIONPROCESSES { get; set; }
-        public virtual DbSet<PRODUCTPACK> PRODUCTPACKS { get; set; }
         public virtual DbSet<PRODUCTPLAN> PRODUCTPLANS { get; set; }
         public virtual DbSet<PRODUCTPLANS_DAILY> PRODUCTPLANS_DAILY { get; set; }
         public virtual DbSet<PRODUCT> PRODUCTS { get; set; }
-        public virtual DbSet<PURCHASING_CONTRACT_DOCS> PURCHASING_CONTRACT_DOCS { get; set; }
-        public virtual DbSet<PURCHASING_CONTRACT_ITEMS> PURCHASING_CONTRACT_ITEMS { get; set; }
-        public virtual DbSet<PURCHASING_CONTRACT_PAYMENTS> PURCHASING_CONTRACT_PAYMENTS { get; set; }
-        public virtual DbSet<PURCHASING_CONTRACTS> PURCHASING_CONTRACTS { get; set; }
-        public virtual DbSet<PURCHASING_ITEM_STOCKS> PURCHASING_ITEM_STOCKS { get; set; }
-        public virtual DbSet<PURCHASING_ITEMS> PURCHASING_ITEMS { get; set; }
-        public virtual DbSet<PURCHASING_ORDER_DOCS> PURCHASING_ORDER_DOCS { get; set; }
-        public virtual DbSet<PURCHASING_ORDERS> PURCHASING_ORDERS { get; set; }
-        public virtual DbSet<PURCHASING_WRHS_EXPENSE_ITEMS> PURCHASING_WRHS_EXPENSE_ITEMS { get; set; }
-        public virtual DbSet<PURCHASING_WRHS_EXPENSES> PURCHASING_WRHS_EXPENSES { get; set; }
-        public virtual DbSet<PURCHASING_WRHS_INCOME_ITEMS> PURCHASING_WRHS_INCOME_ITEMS { get; set; }
-        public virtual DbSet<PURCHASING_WRHS_INCOMES> PURCHASING_WRHS_INCOMES { get; set; }
         public virtual DbSet<ROLE> ROLES { get; set; }
         public virtual DbSet<S_CONTRACT_PRODUCTS> S_CONTRACT_PRODUCTS { get; set; }
         public virtual DbSet<S_CONTRACTS> S_CONTRACTS { get; set; }
@@ -118,60 +77,55 @@ namespace tahsinERP.Models
         public virtual DbSet<SAMPLE_FILES> SAMPLE_FILES { get; set; }
         public virtual DbSet<SHOP_PLANNED_DTS> SHOP_PLANNED_DTS { get; set; }
         public virtual DbSet<SHOP> SHOPS { get; set; }
-        public virtual DbSet<SLITTING_NORMS> SLITTING_NORMS { get; set; }
-        public virtual DbSet<SPL> SPLs { get; set; }
-        public virtual DbSet<STAMPING_NORMS> STAMPING_NORMS { get; set; }
-        public virtual DbSet<STEEL_COILS> STEEL_COILS { get; set; }
         public virtual DbSet<SUPPLIER> SUPPLIERS { get; set; }
-        public virtual DbSet<TEMPORARY_BOMS> TEMPORARY_BOMS { get; set; }
-        public virtual DbSet<TRACING> TRACINGS { get; set; }
         public virtual DbSet<UNIT> UNITS { get; set; }
         public virtual DbSet<USER_ENTRIES> USER_ENTRIES { get; set; }
         public virtual DbSet<USER_LICENSES> USER_LICENSES { get; set; }
         public virtual DbSet<USERIMAGE> USERIMAGES { get; set; }
         public virtual DbSet<USERLOG> USERLOGS { get; set; }
         public virtual DbSet<USER> USERS { get; set; }
+        public virtual DbSet<Warehouse> WAREHOUSES { get; set; }
         public virtual DbSet<WASTE_STOCKS> WASTE_STOCKS { get; set; }
         public virtual DbSet<WASTE> WASTES { get; set; }
+        public virtual DbSet<WRHS_EXPENSE_DOCS> WRHS_EXPENSE_DOCS { get; set; }
+        public virtual DbSet<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual DbSet<BOMS_AND_NORMS> BOMS_AND_NORMS { get; set; }
-        public virtual DbSet<PROD_SHOPS_PARTS> PROD_SHOPS_PARTS { get; set; }
         public virtual DbSet<CarPlanRequirement> CarPlanRequirements { get; set; }
         public virtual DbSet<MaterialRequirement> MaterialRequirements { get; set; }
-        public virtual DbSet<PURCHASING_ORDER_ITEMS> PURCHASING_ORDER_ITEMS { get; set; }
     
-        public virtual ObjectResult<GetCarPlanRequirements_Result> GetCarPlanRequirements(string optionCode)
+        public virtual int GetCarPlanRequirements(string optionCode)
         {
             var optionCodeParameter = optionCode != null ?
                 new ObjectParameter("OptionCode", optionCode) :
                 new ObjectParameter("OptionCode", typeof(string));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetCarPlanRequirements_Result>("GetCarPlanRequirements", optionCodeParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetCarPlanRequirements", optionCodeParameter);
         }
     
-        public virtual ObjectResult<GetPartsInfo_Result> GetPartsInfo()
+        public virtual int GetPartsInfo()
         {
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_Result>("GetPartsInfo");
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetPartsInfo");
         }
     
-        public virtual ObjectResult<GetPartsInfo_by_supplierID_Result> GetPartsInfo_by_supplierID(Nullable<int> supplierID)
+        public virtual int GetPartsInfo_by_supplierID(Nullable<int> supplierID)
         {
             var supplierIDParameter = supplierID.HasValue ?
                 new ObjectParameter("SupplierID", supplierID) :
                 new ObjectParameter("SupplierID", typeof(int));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_by_supplierID_Result>("GetPartsInfo_by_supplierID", supplierIDParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetPartsInfo_by_supplierID", supplierIDParameter);
         }
     
-        public virtual ObjectResult<GetPartsInfo_by_type_Result> GetPartsInfo_by_type(string type)
+        public virtual int GetPartsInfo_by_type(string type)
         {
             var typeParameter = type != null ?
                 new ObjectParameter("Type", type) :
                 new ObjectParameter("Type", typeof(string));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_by_type_Result>("GetPartsInfo_by_type", typeParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetPartsInfo_by_type", typeParameter);
         }
     
-        public virtual ObjectResult<GetPartsInfo_by_type_and_supplierID_Result> GetPartsInfo_by_type_and_supplierID(string type, Nullable<int> supplierID)
+        public virtual int GetPartsInfo_by_type_and_supplierID(string type, Nullable<int> supplierID)
         {
             var typeParameter = type != null ?
                 new ObjectParameter("Type", type) :
@@ -181,7 +135,7 @@ namespace tahsinERP.Models
                 new ObjectParameter("SupplierID", supplierID) :
                 new ObjectParameter("SupplierID", typeof(int));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetPartsInfo_by_type_and_supplierID_Result>("GetPartsInfo_by_type_and_supplierID", typeParameter, supplierIDParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetPartsInfo_by_type_and_supplierID", typeParameter, supplierIDParameter);
         }
     
         public virtual ObjectResult<GetProductListPerShop_Result> GetProductListPerShop(Nullable<int> shopID)
@@ -193,13 +147,13 @@ namespace tahsinERP.Models
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetProductListPerShop_Result>("GetProductListPerShop", shopIDParameter);
         }
     
-        public virtual ObjectResult<GetSupplierParts_Result> GetSupplierParts(Nullable<int> supplierID)
+        public virtual int GetSupplierParts(Nullable<int> supplierID)
         {
             var supplierIDParameter = supplierID.HasValue ?
                 new ObjectParameter("SupplierID", supplierID) :
                 new ObjectParameter("SupplierID", typeof(int));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetSupplierParts_Result>("GetSupplierParts", supplierIDParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetSupplierParts", supplierIDParameter);
         }
     
         public virtual int InTransitView(Nullable<System.DateTime> todayDate, Nullable<System.DateTime> endDate)
@@ -213,6 +167,37 @@ namespace tahsinERP.Models
                 new ObjectParameter("EndDate", typeof(System.DateTime));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("InTransitView", todayDateParameter, endDateParameter);
+        }
+    
+        public virtual int sp_GenerateMaterialRequirement_FromSalesOrders()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_GenerateMaterialRequirement_FromSalesOrders");
+        }
+    
+        public virtual ObjectResult<sp_Norm_PreviewCutMaterial_Result> sp_Norm_PreviewCutMaterial(Nullable<int> productID)
+        {
+            var productIDParameter = productID.HasValue ?
+                new ObjectParameter("ProductID", productID) :
+                new ObjectParameter("ProductID", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_Norm_PreviewCutMaterial_Result>("sp_Norm_PreviewCutMaterial", productIDParameter);
+        }
+    
+        public virtual int sp_Norm_SaveCutMaterials(Nullable<int> productID, Nullable<System.DateTime> effectiveFrom, string comment)
+        {
+            var productIDParameter = productID.HasValue ?
+                new ObjectParameter("ProductID", productID) :
+                new ObjectParameter("ProductID", typeof(int));
+    
+            var effectiveFromParameter = effectiveFrom.HasValue ?
+                new ObjectParameter("EffectiveFrom", effectiveFrom) :
+                new ObjectParameter("EffectiveFrom", typeof(System.DateTime));
+    
+            var commentParameter = comment != null ?
+                new ObjectParameter("Comment", comment) :
+                new ObjectParameter("Comment", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_Norm_SaveCutMaterials", productIDParameter, effectiveFromParameter, commentParameter);
         }
     
         public virtual int WeeklyCoverage(Nullable<System.DateTime> todayDate, Nullable<System.DateTime> endDate)

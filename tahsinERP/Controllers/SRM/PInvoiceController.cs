@@ -93,15 +93,15 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                var partList = db.P_ORDER_PARTS
-                    .Include(op => op.PART)
+                var partList = db.P_ORDER_PRODUCTS
+                    .Include(op => op.PRODUCT)
                     .Include(op => op.UNIT)
                     .Where(op => op.OrderID == orderID)
                     .Select(op => new
                     {
-                        op.PART.ID,
+                        op.PRODUCT.ID,
                         op.PartID,
-                        op.PART.PNo,
+                        op.PRODUCT.PNo,
                         op.Amount,
                         op.UnitID,
                         op.UNIT.ShortName,
@@ -110,7 +110,7 @@ namespace tahsinERP.Controllers
                     })
                     .ToList();
 
-                var parts = db.PARTS
+                var parts = db.PRODUCTS
                     .Select(cp => new
                     {
                         cp.ID,
@@ -184,7 +184,7 @@ namespace tahsinERP.Controllers
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoice.InvoiceNo} - Invoysni tizimga kiritdi");
 
-                    List<P_ORDER_PARTS> orderParts = db.P_ORDER_PARTS.Where(po => po.OrderID == model.OrderID).ToList();
+                    List<P_ORDER_PRODUCTS> orderParts = db.P_ORDER_PRODUCTS.Where(po => po.OrderID == model.OrderID).ToList();
                     List<string> notInOrderParts = new List<string>();
 
                     foreach (var item in model.Parts)
@@ -192,7 +192,7 @@ namespace tahsinERP.Controllers
                         var orderPart = orderParts.Where(p => p.PartID == item.PartID).FirstOrDefault();
                         if (orderParts.Where(cp => cp.PartID == item.PartID).Any())
                         {
-                            var newPart = new P_INVOICE_PARTS
+                            var newPart = new P_INVOICE_PRODUCTS
                             {
                                 InvoiceID = invoice.ID,
                                 PartID = item.PartID,
@@ -202,14 +202,14 @@ namespace tahsinERP.Controllers
 
                             newPart.Price = orderPart.Price;
                             newPart.TotalPrice = newPart.Quantity * newPart.Price;
-                            db.P_INVOICE_PARTS.Add(newPart);
+                            db.P_INVOICE_PRODUCTS.Add(newPart);
 
-                            var logPart = db.PARTS.Find(item.PartID);
+                            var logPart = db.PRODUCTS.Find(item.PartID);
                             LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoice.InvoiceNo} uchun {logPart.PNo} - qismni biriktirdi");
                         }
                         else
                         {
-                            PART paart = db.PARTS.Where(p => p.ID == item.PartID).FirstOrDefault();
+                            PRODUCT paart = db.PRODUCTS.Where(p => p.ID == item.PartID).FirstOrDefault();
                             notInOrderParts.Add(paart.PNo);
                         }
                     }
@@ -277,7 +277,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Supplier = new SelectList(db.SUPPLIERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name");
                 //ViewBag.POrder = new SelectList(db.P_ORDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "OrderNo");
                 ViewBag.POrder = new SelectList(Enumerable.Empty<SelectListItem>());
-                //ViewBag.partList = new SelectList(db.PARTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
+                //ViewBag.partList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false).ToList(), "ID", "PNo");
                 ViewBag.partList = new SelectList(Enumerable.Empty<SelectListItem>());
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
@@ -314,58 +314,34 @@ namespace tahsinERP.Controllers
                     return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
 
                 P_INVOICES invoice;
-                List<P_INVOICE_PARTS> partList;
+                List<P_INVOICE_PRODUCTS> partList;
                 string transportNo = null;
                 string packingListNo = null;
-                List<P_INVOICE_PACKINGLISTS> packingLists;
+                //List<P_INVOICE_PACKINGLISTS> packingLists;
 
                 invoice = db.P_INVOICES
                     .Include(i => i.COMPANy)
                     .Include(x => x.CURRENCy)
                     .Include(i => i.SUPPLIER)
                     .Include(i => i.P_ORDERS.P_CONTRACTS)
-                    .Include(i => i.P_INVOICE_PACKINGLISTS.Select(p => p.F_TRANSPORT_TYPES))
+                    //.Include(i => i.P_INVOICE_PACKINGLISTS.Select(p => p.F_TRANSPORT_TYPES))
                     .Where(i => i.ID == id).FirstOrDefault();
 
                 if (invoice == null)
                     return HttpNotFound();
                 else
                 {
-                    partList = db.P_INVOICE_PARTS
-                        .Include(ip => ip.PART)
+                    partList = db.P_INVOICE_PRODUCTS
+                        .Include(ip => ip.PRODUCT)
                         .Include(ip => ip.UNIT)
                         .Where(ip => ip.InvoiceID == invoice.ID)
                         .ToList();
 
-                    packingLists = invoice.P_INVOICE_PACKINGLISTS.ToList();
-
-                    List<P_PACKINGLIST_PARTS> packingListParts = new List<P_PACKINGLIST_PARTS>();
-                    List<P_PACKINGLIST_PARTS> VP = new List<P_PACKINGLIST_PARTS>();
-
-                    for (int i = 0; i < packingLists.Count; i++)
-                    {
-                        VP = packingLists[i].P_PACKINGLIST_PARTS.ToList();
-                        for (int j = 0; j < VP.Count; j++)
-                        {
-                            packingListParts.Add(VP[j]);
-                        }
-                    }
 
                     ViewBag.Invoice = invoice;
                     ViewBag.PartList = partList;
-                    ViewBag.PackingLists = packingLists;
-                    ViewBag.PackingListParts = packingListParts;
                 }
-                var firstPackingList = invoice.P_INVOICE_PACKINGLISTS.FirstOrDefault();
-                if (firstPackingList != null)
-                {
-                    transportNo = firstPackingList.TransportNo;
-                    packingListNo = firstPackingList.PackingListNo;
-                }
-
-                ViewBag.packingListNo = packingListNo;
-                ViewBag.transportNo = transportNo;
-                ViewBag.partList = partList;
+                
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
                 return View(invoice);
@@ -386,8 +362,8 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
                 else
-                    ViewBag.partList = db.P_INVOICE_PARTS
-                        .Include(pc => pc.PART)
+                    ViewBag.partList = db.P_INVOICE_PRODUCTS
+                        .Include(pc => pc.PRODUCT)
                         .Include(pc => pc.UNIT)
                         .Where(pc => pc.InvoiceID == invoice.ID).ToList();
 
@@ -435,17 +411,17 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var invoicePartToDelete = db.P_INVOICE_PARTS.Include(pip => pip.P_INVOICES).Include(pip => pip.PART).Where(pip => pip.PartID == id).FirstOrDefault();
+                var invoicePartToDelete = db.P_INVOICE_PRODUCTS.Include(pip => pip.P_INVOICES).Include(pip => pip.PRODUCT).Where(pip => pip.PartID == id).FirstOrDefault();
                 if (ModelState.IsValid)
                 {
                     if (invoicePartToDelete != null)
                     {
                         try
                         {
-                            db.P_INVOICE_PARTS.Remove(invoicePartToDelete);
+                            db.P_INVOICE_PRODUCTS.Remove(invoicePartToDelete);
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoicePartToDelete.P_INVOICES.InvoiceNo} - invoysdan {invoicePartToDelete.PART.PNo} ehtiyot qismini o'chirib yubordi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoicePartToDelete.P_INVOICES.InvoiceNo} - invoysdan {invoicePartToDelete.PRODUCT.PNo} ehtiyot qismini o'chirib yubordi");
 
                             return RedirectToAction("Index");
                         }
@@ -471,9 +447,9 @@ namespace tahsinERP.Controllers
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
 
-                // Eager loading P_INVOICE_PARTS and their associated PARTs
+                // Eager loading P_INVOICE_PRODUCTS and their associated PRODUCTs
                 var invoice = db.P_INVOICES
-                                .Include(i => i.P_INVOICE_PARTS.Select(pc => pc.PART))
+                                .Include(i => i.P_INVOICE_PRODUCTS.Select(pc => pc.PRODUCT))
                                 .Include(i => i.P_ORDERS)
                                 .Include(i => i.CURRENCy)
                                 .FirstOrDefault(i => i.ID == ID);
@@ -491,11 +467,11 @@ namespace tahsinERP.Controllers
                     SupplierID = invoice.SupplierID,
                     InvoiceDate = invoice.InvoiceDate,
                     CurrencyID = (int)invoice.CurrencyID,
-                    Parts = invoice.P_INVOICE_PARTS.Select(x => new ViewModels.PInvoicePartViewModel
+                    Parts = invoice.P_INVOICE_PRODUCTS.Select(x => new ViewModels.PInvoicePartViewModel
                     {
                         ID = x.ID,
                         InvoiceID = x.InvoiceID,
-                        Part = x.PART,
+                        Part = x.PRODUCT,
                         PartID = x.PartID,
                         Quantity = x.Quantity,
                         UnitID = x.UnitID,
@@ -534,7 +510,7 @@ namespace tahsinERP.Controllers
                         double summ = 0;
                         foreach (var part in invoice.Parts)
                         {
-                            var existingPart = db.P_INVOICE_PARTS.Include(pip => pip.P_INVOICES).Include(pip => pip.PART).Where(pip => pip.PartID == part.ID).FirstOrDefault();
+                            var existingPart = db.P_INVOICE_PRODUCTS.Include(pip => pip.P_INVOICES).Include(pip => pip.PRODUCT).Where(pip => pip.PartID == part.ID).FirstOrDefault();
                             if (existingPart != null)
                             {
                                 existingPart.Price = part.Price;
@@ -548,7 +524,7 @@ namespace tahsinERP.Controllers
                                 {
                                     db.SaveChanges();
 
-                                    LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoiceToUpdate.InvoiceNo} - invoysda {existingPart.PART.PNo} - ehtiyot qismini tahrirladi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoiceToUpdate.InvoiceNo} - invoysda {existingPart.PRODUCT.PNo} - ehtiyot qismini tahrirladi");
                                 }
                                 catch (RetryLimitExceededException)
                                 {
@@ -614,7 +590,7 @@ namespace tahsinERP.Controllers
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
 
-                var invoicePart = db.P_INVOICE_PARTS
+                var invoicePart = db.P_INVOICE_PRODUCTS
                     .Include(ip => ip.P_INVOICES)
                     .Include(ip => ip.UNIT)
                     .SingleOrDefault(pi => pi.ID == ID);
@@ -622,7 +598,7 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
-                var allParts = db.PARTS.Select(p => new SelectListItem
+                var allParts = db.PRODUCTS.Select(p => new SelectListItem
                 {
                     Value = p.ID.ToString(),
                     Text = p.PNo
@@ -637,13 +613,13 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult EditPart(P_INVOICE_PARTS invoicePart)
+        public ActionResult EditPart(P_INVOICE_PRODUCTS invoicePart)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
                 {
-                    P_INVOICE_PARTS invoicePartToUpdate = db.P_INVOICE_PARTS.Include(pip => pip.P_INVOICES).Include(pip => pip.PART).Where(pip => pip.PartID == invoicePart.ID).FirstOrDefault(); ;
+                    P_INVOICE_PRODUCTS invoicePartToUpdate = db.P_INVOICE_PRODUCTS.Include(pip => pip.P_INVOICES).Include(pip => pip.PRODUCT).Where(pip => pip.PartID == invoicePart.ID).FirstOrDefault(); ;
                     if (invoicePartToUpdate != null)
                     {
                         invoicePartToUpdate.PartID = invoicePart.PartID;
@@ -656,7 +632,7 @@ namespace tahsinERP.Controllers
                         {
                             db.SaveChanges();
 
-                            LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoicePart.P_INVOICES.InvoiceNo} invoysda {invoicePart.PART.PNo} - ehtiyot qism ma'lumotlarini tahrirladi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoicePart.P_INVOICES.InvoiceNo} invoysda {invoicePart.PRODUCT.PNo} - ehtiyot qism ma'lumotlarini tahrirladi");
 
                             return RedirectToAction("Index");
                         }
@@ -724,7 +700,7 @@ namespace tahsinERP.Controllers
                 {
                     string partPNo = row["Part Number"].ToString();
 
-                    bool partExists = await db.PARTS.AnyAsync(p => p.PNo.CompareTo(partPNo) == 0);
+                    bool partExists = await db.PRODUCTS.AnyAsync(p => p.PNo.CompareTo(partPNo) == 0);
                     if (!partExists)
                     {
                         if (!missingParts.Contains(partPNo))
@@ -814,13 +790,13 @@ namespace tahsinERP.Controllers
                                             invoiceNo = row["Invoice No."].ToString();
 
                                             SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
-                                            PART part = db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
+                                            PRODUCT part = db.PRODUCTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefault();
                                             P_ORDERS order = db.P_ORDERS.Where(po => po.OrderNo.CompareTo(orderNo) == 0 && po.IsDeleted == false).FirstOrDefault();
                                             P_INVOICES invoice = db.P_INVOICES.Where(pi => pi.InvoiceNo.CompareTo(invoiceNo) == 0 && pi.SupplierID == supplier.ID && pi.OrderID == order.ID && pi.IsDeleted == false).FirstOrDefault();
 
                                             if (invoice != null)
                                             {
-                                                P_INVOICE_PARTS invoicePart = db.P_INVOICE_PARTS.Where(pop => pop.PartID == part.ID && pop.InvoiceID == invoice.ID).FirstOrDefault();
+                                                P_INVOICE_PRODUCTS invoicePart = db.P_INVOICE_PRODUCTS.Where(pop => pop.PartID == part.ID && pop.InvoiceID == invoice.ID).FirstOrDefault();
                                                 if (invoicePart != null)
                                                     ViewBag.ExistingRecordsCount = 1;
                                             }
@@ -903,12 +879,12 @@ namespace tahsinERP.Controllers
                             supplierName = row["Supplier Name"].ToString();
                             partNo = row["Part Number"].ToString();
                             invoiceNo = row["Invoice No."].ToString();
-                            transportNo = row["Transport No."].ToString();
-                            string packinglistNo = invoiceNo + "_PL";
-                            transportType = row["Transport Type"].ToString();
+                            //transportNo = row["Transport No."].ToString();
+                            //string packinglistNo = invoiceNo + "_PL";
+                            //transportType = row["Transport Type"].ToString();
 
                             SUPPLIER supplier = await db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefaultAsync();
-                            PART part = await db.PARTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefaultAsync();
+                            PRODUCT part = await db.PRODUCTS.Where(p => p.PNo.CompareTo(partNo) == 0 && p.IsDeleted == false).FirstOrDefaultAsync();
                             P_ORDERS order = await db.P_ORDERS.Where(po => po.OrderNo.CompareTo(orderNo) == 0 && po.IsDeleted == false).FirstOrDefaultAsync();
                             P_INVOICES invoice = await db.P_INVOICES.Where(pi => pi.InvoiceNo.CompareTo(invoiceNo) == 0 && pi.SupplierID == supplier.ID && pi.OrderID == order.ID && pi.IsDeleted == false).FirstOrDefaultAsync();
                             string unitName = row["Unit"].ToString();
@@ -927,28 +903,13 @@ namespace tahsinERP.Controllers
                                 db.P_INVOICES.Add(new_invoice);
                                 await db.SaveChangesAsync();
 
-                                P_INVOICE_PACKINGLISTS newPackingList = new P_INVOICE_PACKINGLISTS();
-                                newPackingList.PackingListNo = packinglistNo;
-                                newPackingList.TransportNo = transportNo;
-                                newPackingList.InvoiceID = new_invoice.ID;
-                                newPackingList.SealNo = "";
-                                F_TRANSPORT_TYPES transport = db.F_TRANSPORT_TYPES.Where(t => t.TransportType.CompareTo(transportType) == 0).FirstOrDefault();
-                                if (transport != null)
-                                    newPackingList.TransportTypeID = transport.ID;
-                                else
-                                    newPackingList.TransportTypeID = 1;
-                                newPackingList.InTransit = true;
-                                newPackingList.IsDeleted = false;
-                                db.P_INVOICE_PACKINGLISTS.Add(newPackingList);
-                                await db.SaveChangesAsync();
-
+                               
                                 LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{new_invoice.InvoiceNo} - invoiceni Excel orqali tizimga kiritdi");
-                                LogHelper.LogToDatabase(User.Identity.Name, "PackingListlar", $"{newPackingList.PackingListNo} - packinglistni Excel orqali tizimga kiritdi");
 
-                                P_INVOICE_PARTS invoicePart = await db.P_INVOICE_PARTS.Where(pcp => pcp.InvoiceID == new_invoice.ID && pcp.PartID == part.ID).FirstOrDefaultAsync();
+                                P_INVOICE_PRODUCTS invoicePart = await db.P_INVOICE_PRODUCTS.Where(pcp => pcp.InvoiceID == new_invoice.ID && pcp.PartID == part.ID).FirstOrDefaultAsync();
                                 if (invoicePart == null)
                                 {
-                                    P_INVOICE_PARTS new_invoicePart = new P_INVOICE_PARTS();
+                                    P_INVOICE_PRODUCTS new_invoicePart = new P_INVOICE_PRODUCTS();
                                     new_invoicePart.PartID = part.ID;
                                     new_invoicePart.InvoiceID = new_invoice.ID;
                                     new_invoicePart.Price = Convert.ToDouble(row["Price"].ToString());
@@ -960,38 +921,17 @@ namespace tahsinERP.Controllers
 
                                     new_invoicePart.Quantity = Convert.ToDouble(row["Amount"].ToString());
 
-                                    db.P_INVOICE_PARTS.Add(new_invoicePart);
+                                    db.P_INVOICE_PRODUCTS.Add(new_invoicePart);
                                     await db.SaveChangesAsync();
-                                    LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{new_invoice.InvoiceNo} - invoysga {new_invoicePart.PART.PNo} ehtiyot qismini Excel orqali tizimga kiritdi");
-
-                                    P_PACKINGLIST_PARTS newPackingListPart = new P_PACKINGLIST_PARTS();
-
-                                    newPackingListPart.PackingListID = newPackingList.ID;
-                                    newPackingListPart.PartID = part.ID;
-                                    newPackingListPart.PrLength = Convert.ToDouble(row["Length"].ToString());
-                                    newPackingListPart.PrWidth = Convert.ToDouble(row["Width"].ToString());
-                                    newPackingListPart.PrHeight = Convert.ToDouble(row["Height"].ToString());
-                                    newPackingListPart.PrAmount = Convert.ToDouble(row["Box Amount"].ToString());
-                                    newPackingListPart.PieceWeight = Convert.ToDouble(row["Piece weight"].ToString());
-                                    newPackingListPart.PrNetWeight = Convert.ToDouble(row["NetWeight"].ToString());
-                                    newPackingListPart.PrGrWeight = Convert.ToDouble(row["GrWeight"].ToString());
-                                    newPackingListPart.TotalPrPacks = Convert.ToInt32(row["Box quantity"].ToString());
-                                    newPackingListPart.TotalNetWeight = Convert.ToDouble(row["TotalNetWeight"].ToString());
-                                    newPackingListPart.TotalGrWeight = Convert.ToDouble(row["TotalGrWeight"].ToString());
-
-                                    db.P_PACKINGLIST_PARTS.Add(newPackingListPart);
-                                    await db.SaveChangesAsync();
-
-                                    LogHelper.LogToDatabase(User.Identity.Name, "PackingListlar", $"{newPackingList.PackingListNo} - packing listga {newPackingListPart.PART.PNo} ehtiyot qismini Excel orqali tizimga kiritdi");
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{new_invoice.InvoiceNo} - invoysga {new_invoicePart.PRODUCT.PNo} ehtiyot qismini Excel orqali tizimga kiritdi");
                                 }
                             }
                             else
                             {
-                                P_INVOICE_PARTS invoicePart = await db.P_INVOICE_PARTS.Where(pcp => pcp.InvoiceID == invoice.ID && pcp.PartID == part.ID).FirstOrDefaultAsync();
-                                P_INVOICE_PACKINGLISTS packingList = db.P_INVOICE_PACKINGLISTS.Where(pl => pl.InvoiceID == invoice.ID).FirstOrDefault();
+                                P_INVOICE_PRODUCTS invoicePart = await db.P_INVOICE_PRODUCTS.Where(pcp => pcp.InvoiceID == invoice.ID && pcp.PartID == part.ID).FirstOrDefaultAsync();
                                 if (invoicePart == null)
                                 {
-                                    P_INVOICE_PARTS new_invoicePart = new P_INVOICE_PARTS();
+                                    P_INVOICE_PRODUCTS new_invoicePart = new P_INVOICE_PRODUCTS();
                                     new_invoicePart.PartID = part.ID;
                                     new_invoicePart.InvoiceID = invoice.ID;
                                     new_invoicePart.Price = Convert.ToDouble(row["Price"].ToString());
@@ -1003,32 +943,9 @@ namespace tahsinERP.Controllers
 
                                     new_invoicePart.Quantity = Convert.ToDouble(row["Amount"].ToString());
 
-                                    db.P_INVOICE_PARTS.Add(new_invoicePart);
+                                    db.P_INVOICE_PRODUCTS.Add(new_invoicePart);
                                     await db.SaveChangesAsync();
-                                    LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoice.InvoiceNo} - invoysga {new_invoicePart.PART.PNo} ehtiyot qismini Excel orqali tizimga kiritdi");
-
-                                    if (packingList != null)
-                                    {
-                                        P_PACKINGLIST_PARTS newPackingListPart = new P_PACKINGLIST_PARTS();
-
-                                        newPackingListPart.PackingListID = packingList.ID;
-                                        newPackingListPart.PartID = part.ID;
-                                        newPackingListPart.PrLength = Convert.ToDouble(row["Length"].ToString());
-                                        newPackingListPart.PrWidth = Convert.ToDouble(row["Width"].ToString());
-                                        newPackingListPart.PrHeight = Convert.ToDouble(row["Height"].ToString());
-                                        newPackingListPart.PrAmount = Convert.ToDouble(row["Box Amount"].ToString());
-                                        newPackingListPart.PieceWeight = Convert.ToDouble(row["Piece weight"].ToString());
-                                        newPackingListPart.PrNetWeight = Convert.ToDouble(row["NetWeight"].ToString());
-                                        newPackingListPart.PrGrWeight = Convert.ToDouble(row["GrWeight"].ToString());
-                                        newPackingListPart.TotalPrPacks = Convert.ToInt32(row["Box Quantity"].ToString());
-                                        newPackingListPart.TotalNetWeight = Convert.ToDouble(row["TotalNetWeight"].ToString());
-                                        newPackingListPart.TotalGrWeight = Convert.ToDouble(row["TotalGrWeight"].ToString());
-
-                                        db.P_PACKINGLIST_PARTS.Add(newPackingListPart);
-                                        await db.SaveChangesAsync();
-
-                                        LogHelper.LogToDatabase(User.Identity.Name, "PackingListlar", $"{packingList.PackingListNo} - packing listga {newPackingListPart.PART.PNo} ehtiyot qismini Excel orqali tizimga kiritdi");
-                                    }
+                                    LogHelper.LogToDatabase(User.Identity.Name, "Invoyslar", $"{invoice.InvoiceNo} - invoysga {new_invoicePart.PRODUCT.PNo} ehtiyot qismini Excel orqali tizimga kiritdi");
                                 }
                             }
                         }

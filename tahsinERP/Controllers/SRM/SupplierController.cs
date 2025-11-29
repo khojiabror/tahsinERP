@@ -17,18 +17,15 @@ namespace tahsinERP.Controllers
 {
     public class SupplierController : Controller
     {
-        private string[] sources;
+        private List<string> sources;
         private string supplierName = "";
-        public SupplierController()
-        {
-            sources = ConfigurationManager.AppSettings["partTypes"].Split(',');
-            sources = sources.Where(x => !x.Equals("InHouse", StringComparison.OrdinalIgnoreCase)).ToArray();
-        }
+        
         // GET: Supplier
         public ActionResult Index(string type)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                sources = db.SUPPLIERS.Where(s => s.IsDeleted == false).Select(s => s.Type).Distinct().ToList();
                 if (!string.IsNullOrEmpty(type))
                 {
                     List<SUPPLIER> list = db.SUPPLIERS.Where(s => s.IsDeleted == false && s.Type.CompareTo(type) == 0).ToList();
@@ -53,9 +50,9 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(/*[Bind(Include = "Name, DUNS, Type, Country, City, Address, Telephone, E_mail, ContactPerson, Director, IsDeleted")]*/ SUPPLIER supplier)
+        public ActionResult Create(SUPPLIER supplier)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 try
                 {
@@ -99,27 +96,26 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
-                ViewBag.partList = SupplierParts(supplier.ID);
                 return View(supplier);
             }
         }
-        public List<GetSupplierParts_Result> SupplierParts(int? supplierId)
-        {
-            if (supplierId == null)
-            {
-                // Handle missing SupplierID (e.g., show an error message)
-                return null;
-            }
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var supplierData = db.Database.SqlQuery<GetSupplierParts_Result>(
-                    "EXEC GetSupplierParts @SupplierID",
-                    new SqlParameter("@SupplierID", supplierId)
-                ).ToList();
+        //public List<GetSupplierParts_Result> SupplierParts(int? supplierId)
+        //{
+        //    if (supplierId == null)
+        //    {
+        //        // Handle missing SupplierID (e.g., show an error message)
+        //        return null;
+        //    }
+        //    using (DBTHSNEntities db = new DBTHSNEntities())
+        //    {
+        //        var supplierData = db.Database.SqlQuery<GetSupplierParts_Result>(
+        //            "EXEC GetSupplierParts @SupplierID",
+        //            new SqlParameter("@SupplierID", supplierId)
+        //        ).ToList();
 
-                return supplierData;
-            }
-        }
+        //        return supplierData;
+        //    }
+        //}
         public ActionResult Edit(int? Id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -133,7 +129,6 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
-                ViewBag.Type = new SelectList(sources, supplier.Type);
                 return View(supplier);
             }
         }
@@ -308,12 +303,10 @@ namespace tahsinERP.Controllers
         }
         public ActionResult ClearDataTable()
         {
-            // Clear the DataTable and related ViewBag properties
             ViewBag.DataTable = null;
             ViewBag.DataTableModel = null;
             ViewBag.IsFileUploaded = false;
             ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
-            // Return the UploadWithExcel view
             return View("UploadWithExcel");
         }
         [HttpPost]
@@ -350,7 +343,7 @@ namespace tahsinERP.Controllers
                                 db.SUPPLIERS.Add(new_supplier);
                                 db.SaveChanges();
 
-                                LogHelper.LogToDatabase(User.Identity.Name, "Ta'minotchilar", $"{new_supplier.Name} - ta'minotchini Excell orqali tizimga kiritdi");
+                                LogHelper.LogToDatabase(User.Identity.Name, "Ta'minotchilar", $"{new_supplier.Name} - ta'minotchini Excel orqali tizimga kiritdi");
                             }
                         }
                     }
