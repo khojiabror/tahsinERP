@@ -52,17 +52,48 @@
                                                     <br />
                                                     <span><b>Nomi</b>: @Html.DisplayFor(model => model.Name)</span>
                                                     <br />
-                                                    <span><b>Og'irligi</b>: @Html.DisplayFor(model => model.Weight)</span>
+                                                    <span><b>Og'irligi</b>: @Html.DisplayFor(model => model.Weight) kg</span>
                                                     <br />
-                                                    <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.Length)</span>
+                                                    <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.Length) mm</span>
                                                     <br />
-                                                    <span><b>Kengligi</b>: @Html.DisplayFor(model => model.Width)</span>
+                                                    <span><b>Kengligi</b>: @Html.DisplayFor(model => model.Width) mm</span>
                                                     <br />
-                                                    <span><b>Balandligi</b>: @Html.DisplayFor(model => model.Height)</span>
+                                                    <span><b>Balandligi</b>: @Html.DisplayFor(model => model.Height) mm</span>
+                                                    <br />
+                                                    <span><b>Hajmi (CBM)</b>:
+                                                        @{
+                                                            if (Model.Length.HasValue && Model.Width.HasValue && Model.Height.HasValue)
+                                                            {
+                                                                double cbm = (Model.Length.Value / 1000.0) * (Model.Width.Value / 1000.0) * (Model.Height.Value / 1000.0);
+                                                                @(cbm.ToString("F6") + " m³")
+                                                            }
+                                                            else
+                                                            {
+                                                                <text>-</text>
+                                                            }
+                                                        }
+                                                    </span>
                                                     <br />
                                                     <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.ShortName)</span>
                                                     <br />
-                                                    <span><b>Turi</b>: @Html.DisplayFor(model => model.Type)</span>
+                                                    <span><b>Turi</b>:
+                                                        @if (Model.IsFinishedGood == true)
+                                                        {
+                                                            <span class="badge badge-success">Maxsulot</span>
+                                                        }
+                                                        else if (Model.IsComponent == true)
+                                                        {
+                                                            <span class="badge badge-warning">Yarim tayyor maxsulot</span>
+                                                        }
+                                                        else if (Model.IsRawMaterial == true)
+                                                        {
+                                                            <span class="badge badge-info">Xomashyo</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>-</span>
+                                                        }
+                                                    </span>
                                                     <br />
                                                     <span><b>Tavsifi</b>: @Html.DisplayFor(model => model.Description)</span>
                                                     <br />

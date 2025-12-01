@@ -26,6 +26,10 @@ namespace tahsinERP.Models
             this.S_CONTRACTS = new HashSet<S_CONTRACTS>();
             this.S_ORDERS = new HashSet<S_ORDERS>();
             this.F_CONTRACTS = new HashSet<F_CONTRACTS>();
+            this.FIN_ACCOUNTS = new HashSet<FIN_ACCOUNTS>();
+            this.FIN_BALANCE_SNAPSHOTS = new HashSet<FIN_BALANCE_SNAPSHOTS>();
+            this.FIN_TRANSACTIONS = new HashSet<FIN_TRANSACTIONS>();
+            this.SHAREHOLDER_CONTRIBUTIONS = new HashSet<SHAREHOLDER_CONTRIBUTIONS>();
         }
     
         public int ID { get; set; }
@@ -51,5 +55,13 @@ namespace tahsinERP.Models
         public virtual ICollection<S_ORDERS> S_ORDERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_CONTRACTS> F_CONTRACTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_ACCOUNTS> FIN_ACCOUNTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_BALANCE_SNAPSHOTS> FIN_BALANCE_SNAPSHOTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SHAREHOLDER_CONTRIBUTIONS> SHAREHOLDER_CONTRIBUTIONS { get; set; }
     }
 }

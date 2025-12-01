@@ -177,6 +177,37 @@
         <AssociationConnector Association="DBTHSNModel.FK_WASTE_STOCKS_WASTES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.SHOP_PRODUCTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.USERROLES" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_ACCOUNTS" Width="1.5" PointX="11.75" PointY="32.25" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_BALANCE_CATEGORIES" Width="1.5" PointX="11.5" PointY="22.625" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_BALANCE_SNAPSHOTS" Width="1.5" PointX="13.75" PointY="27.375" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_CATEGORIES" Width="1.5" PointX="13.75" PointY="23.5" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_PL_ITEMS" Width="1.5" PointX="16" PointY="23.5" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_PL_PLANS" Width="1.5" PointX="18.25" PointY="17.5" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_TRANSACTIONS" Width="1.5" PointX="16" PointY="31.25" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" Width="1.5" PointX="19.25" PointY="42.375" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER_SHARE_PERIODS" Width="1.5" PointX="19.25" PointY="37.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER" Width="1.5" PointX="17" PointY="37.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_FACT_MONTHLY" Width="1.5" PointX="8.375" PointY="0.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY" Width="1.5" PointX="9.375" PointY="4.75" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_ACCOUNTS_CURRENCY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CURRENCY" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_ACCOUNTS_CREATEDBY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_ACCOUNT" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_CATEGORIES_PARENT" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_CATEGORIES_PARENT" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CATEGORY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_PL_ITEMS_PARENT" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_PL_PLANS_ITEM" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_PL_PLANS_CREATEDBY" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CREATEDBY" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_SH" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_SHARE_PERIODS_SH" />
+        <AssociationConnector Association="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

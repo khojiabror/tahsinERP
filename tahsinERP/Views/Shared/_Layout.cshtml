@@ -313,15 +313,6 @@
                                 <li>
                                     <a href="~/PContract"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Grid">Barchasi</span></a>
                                 </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "PContract")?type=KD"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Typography">KD</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "PContract")?type=Steel"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Po'lat o'ramlari</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "PContract")?type=Maxalliy"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Maxalliy</span></a>
-                                </li>
                             </ul>
                         </li>
                     }
@@ -333,15 +324,6 @@
                                 <li>
                                     <a href="~/POrder"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Grid">Barchasi</span></a>
                                 </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "POrder")?type=KD"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Typography">KD</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "POrder")?type=Steel"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Po'lat o'ramlari</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "POrder")?type=Maxalliy"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Maxalliy</span></a>
-                                </li>
                             </ul>
                         </li>
                     }
@@ -352,18 +334,6 @@
                             <ul class="menu-content">
                                 <li>
                                     <a href="~/PInvoice"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Invoice List">Barchasi</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "PInvoice")?type=KD"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Typography">KD</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "PInvoice")?type=Steel"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Po'lat o'ramlari</span></a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("Index", "PInvoice")?type=Maxalliy"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Indirect">Maxalliy</span></a>
-                                </li>
-                                <li>
-                                    <a href="~/ProformaInvoice/Index"><i class="bx bx-credit-card"></i><span class="menu-item" data-i18n="Basic">Proforma Invoys</span></a>
                                 </li>
                             </ul>
                         </li>
@@ -383,10 +353,6 @@
                                 </li>
                                 <li>
                                     <a href="~/Waybill/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="LivIcons">Aktlar</span></a>
-                                </li>
-
-                                <li>
-                                    <a href="~/Tracing"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="LivIcons">Yo'ldagi yuklar</span></a>
                                 </li>
 
                                 <li>
@@ -428,22 +394,6 @@
                             </ul>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "GTD"))
-                    {
-                        <li class=" nav-item">
-                            <a href="#">
-                                <i class="bx bxs-file"></i><span class="menu-title" data-i18n="Icons">ГТД</span>
-                            </a>
-                            <ul class="menu-content">
-                                <li>
-                                    <a href="~/GTD/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="LivIcons">ГТД lar ro'yxati</span></a>
-                                </li>
-                                <li>
-                                    <a href="~/Hscode/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="LivIcons">ТНВЭД kodlari</span></a>
-                                </li>
-                            </ul>
-                        </li>
-                    }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingOrder"))
                     {
                         <li class=" navigation-header">
@@ -480,12 +430,7 @@
                             <ul class="menu-content">
                                 <li class=" nav-item">
                                     <a href="/POrderPayment/Index">
-                                        <i class="bx bx-cart-alt"></i><span class="menu-item" data-i18n="Indirect">Прямой</span>
-                                    </a>
-                                </li>
-                                <li class=" nav-item">
-                                    <a href="/PurchasingPayment/Index">
-                                        <i class="bx bxs-purchase-tag-alt"></i><span class="menu-item" data-i18n="Indirect">Непрямой</span>
+                                        <i class="bx bx-cart-alt"></i><span class="menu-item" data-i18n="Indirect">Barchasi</span>
                                     </a>
                                 </li>
                             </ul>
@@ -510,30 +455,21 @@
                             </ul>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SPL"))
-                    {
-                        <li class=" nav-item">
-                            <a href="/SPL">
-                                <i class="bx bx-car"></i><span class="menu-item" data-i18n="Indirect">SPL</span>
-                            </a>
-                        </li>
-                    }
 
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product"))
                     {
                         <li class=" nav-item">
-                            <a href="/Product">
-                                <i class="bx bxl-product-hunt"></i><span class="menu-title" data-i18n="File Manager">Tayyor maxsulot</span>
+                            <a href="#">
+                                <i class="bx bx-git-compare"></i><span class="menu-title" data-i18n="Form Elements">Maxsulotlar</span>
                             </a>
-                        </li>
-                    }
-
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Parts"))
-                    {
-                        <li class=" nav-item">
-                            <a href="/Part/GetAllParts">
-                                <i class="bx bxl-pocket"></i><span class="menu-item" data-i18n="Indirect">Ehtiyot qismlar</span>
-                            </a>
+                            <ul class="menu-content">
+                                <li>
+                                    <a href="@Url.Action("Index", "Product")?typeFilter='MAXSULOT'"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Typography">Maxsulot</span></a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("Index", "Product")?typeFilter='XOMASHYO'"><i class="bx bx-right-arrow-alt"></i><span class="menu-item" data-i18n="Typography">Xomashyo</span></a>
+                                </li>
+                            </ul>
                         </li>
                     }
 
@@ -731,9 +667,9 @@
 
         <!-- BEGIN: Footer-->
         <footer class="footer footer-static footer-light">
-            <p class="clearfix mb-0">
+            @*<p class="clearfix mb-0">
                 <span class="float-left d-inline-block">@DateTime.Now.Year &copy; tahsinERP</span>
-            </p>
+            </p>*@
         </footer>
         <!-- END: Footer-->
 

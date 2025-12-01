@@ -24,6 +24,10 @@ namespace tahsinERP.Models
             this.USERLOGS = new HashSet<USERLOG>();
             this.WAREHOUSES = new HashSet<Warehouse>();
             this.ROLES = new HashSet<ROLE>();
+            this.FIN_ACCOUNTS = new HashSet<FIN_ACCOUNTS>();
+            this.FIN_BALANCE_SNAPSHOTS = new HashSet<FIN_BALANCE_SNAPSHOTS>();
+            this.FIN_PL_PLANS = new HashSet<FIN_PL_PLANS>();
+            this.FIN_TRANSACTIONS = new HashSet<FIN_TRANSACTIONS>();
         }
     
         public int ID { get; set; }
@@ -51,5 +55,13 @@ namespace tahsinERP.Models
         public virtual ICollection<Warehouse> WAREHOUSES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ROLE> ROLES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_ACCOUNTS> FIN_ACCOUNTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_BALANCE_SNAPSHOTS> FIN_BALANCE_SNAPSHOTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_PL_PLANS> FIN_PL_PLANS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
     }
 }

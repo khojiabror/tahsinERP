@@ -54,13 +54,13 @@
                                                         <div class="col-sm-6 col-12 order-2 order-sm-1">
                                                             <h4 class="text-primary">Maxsulot raqami</h4>
                                                             <fieldset class="invoice-address form-group">
-                                                                @Html.TextBoxFor(model => model.PNo, new { @class = "form-control round", @placeholder = "Maxsulot raqami" })
-                                                                @Html.ValidationMessageFor(model => model.PNo, "", new { @class = "text-danger" })
+                                                                @Html.EditorFor(m => m.PNo, new { htmlAttributes = new { @class = "form-control" } })
+                                                                @Html.ValidationMessageFor(m => m.PNo, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                             <h6 class="invoice-to">Maxsulot nomi</h6>
                                                             <fieldset class="invoice-address form-group">
-                                                                @Html.TextBoxFor(model => model.Name, new { @class = "form-control round", @placeholder = "Maxsulot nomi" })
-                                                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                                                                @Html.EditorFor(m => m.Name, new { htmlAttributes = new { @class = "form-control" } })
+                                                                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                         </div>
                                                         <br />
@@ -73,63 +73,74 @@
 
                                                     <h6 class="invoice-to">Turi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.TextBoxFor(model => model.Type, new { @class = "form-control round", @placeholder = "Turi" })
-                                                        @Html.ValidationMessageFor(model => model.Type, "", new { @class = "text-danger" })
+                                                        @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Sex (ishlab chiqarish bo'limi)</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(m => m.ShopID, (SelectList)ViewBag.ShopList, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.ShopID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Og'irligi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Weight, new { @class = "form-control round", @placeholder = "O'g'irligi" })
-                                                        @Html.ValidationMessageFor(model => model.Weight, "", new { @class = "text-danger" })
+                                                        @Html.EditorFor(m => m.Weight, new { htmlAttributes = new { @class = "form-control" } })
+                                                        @Html.ValidationMessageFor(m => m.Weight, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Uzunligi</h6>
+                                                    <h6 class="invoice-to">O'lchamlari, mm (UxExB)</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Length, new { @class = "form-control round", @placeholder = "Uzunligi" })
-                                                        @Html.ValidationMessageFor(model => model.Length, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                    <h6 class="invoice-to">Kengligi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Width, new { @class = "form-control round", @placeholder = "Kengligi" })
-                                                        @Html.ValidationMessageFor(model => model.Width, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                    <h6 class="invoice-to">Balandligi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Height, new { @class = "form-control round", @placeholder = "Balandligi" })
-                                                        @Html.ValidationMessageFor(model => model.Height, "", new { @class = "text-danger" })
+                                                        <div class="input-group">
+                                                            @Html.EditorFor(m => m.Length, new { htmlAttributes = new { @class = "form-control", placeholder = "Uzunligi" } })
+                                                            <span class="input-group-addon">x</span>
+                                                            @Html.EditorFor(m => m.Width, new { htmlAttributes = new { @class = "form-control", placeholder = "Eni" } })
+                                                            <span class="input-group-addon">x</span>
+                                                            @Html.EditorFor(m => m.Height, new { htmlAttributes = new { @class = "form-control", placeholder = "Balandligi" } })
+                                                        </div>
+                                                        @Html.ValidationMessageFor(m => m.Length, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.Width, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.Height, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">O'lchov birligi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.UnitID, (SelectList)ViewBag.UNIT, "", new { @class = "form-control" })
-                                                        @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
+                                                        @Html.DropDownListFor(m => m.UnitID, (SelectList)ViewBag.UNIT, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.UnitID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">HSCODES</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.HSCodeID, (SelectList)ViewBag.HSCODESS, "", new { @class = "form-control" })
-                                                        @Html.ValidationMessageFor(model => model.HSCodeID, "", new { @class = "text-danger" })
-                                                    </fieldset>
+                                                    @*<h6 class="invoice-to">HSCODES</h6>
+                                                        <fieldset class="invoice-address form-group">
+                                                            @Html.DropDownListFor(model => model.HSCodeID, (SelectList)ViewBag.HSCODESS, "", new { @class = "form-control" })
+                                                            @Html.ValidationMessageFor(model => model.HSCodeID, "", new { @class = "text-danger" })
+                                                        </fieldset>*@
                                                     <h6 class="invoice-to">Tavsifi </h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = "Tavsifi" })
-                                                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                        @Html.TextAreaFor(m => m.Description, 4, 80, new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Maxsulot raqami 2</h6>
+                                                    <h6 class="invoice-to">Alternativ Maxsulot raqamlari</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.PNo2, new { @class = "form-control round", @placeholder = "Maxsulot raqami 2" })
-                                                        @Html.ValidationMessageFor(model => model.PNo2, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                    <h6 class="invoice-to">Maxsulot raqami 3</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.PNo3, new { @class = "form-control round", @placeholder = "Maxsulot raqami 3" })
-                                                        @Html.ValidationMessageFor(model => model.PNo3, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                    <h6 class="invoice-to">Maxsulot raqami 4</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.PNo4, new { @class = "form-control round", @placeholder = "Maxsulot raqami 4" })
-                                                        @Html.ValidationMessageFor(model => model.PNo4, "", new { @class = "text-danger" })
+                                                        <div class="row">
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(m => m.PNo2, new { htmlAttributes = new { @class = "form-control", placeholder = "PNo2" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(m => m.PNo3, new { htmlAttributes = new { @class = "form-control", placeholder = "PNo3" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(m => m.PNo4, new { htmlAttributes = new { @class = "form-control", placeholder = "PNo4" } })
+                                                            </div>
+                                                        </div>
+                                                        @Html.ValidationMessageFor(m => m.PNo2, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.PNo3, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.PNo4, "", new { @class = "text-danger" })
                                                     </fieldset>
 
+
+                                                    @*<div class="form-group">
+                                                            <div class="col-md-offset-2 col-md-10">
+                                                                <input type="submit" value="Save" class="btn btn-primary btn-block subtotal-preview-btn" />
+                                                                @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-outline-primary" })
+                                                            </div>
+                                                        </div>*@
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
-                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Save">
                                                                 <i class='bx bx-save'></i>
                                                                 Saqlash
                                                             </button>

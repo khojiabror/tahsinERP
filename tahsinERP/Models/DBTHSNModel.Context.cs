@@ -92,6 +92,18 @@ namespace tahsinERP.Models
         public virtual DbSet<BOMS_AND_NORMS> BOMS_AND_NORMS { get; set; }
         public virtual DbSet<CarPlanRequirement> CarPlanRequirements { get; set; }
         public virtual DbSet<MaterialRequirement> MaterialRequirements { get; set; }
+        public virtual DbSet<FIN_ACCOUNTS> FIN_ACCOUNTS { get; set; }
+        public virtual DbSet<FIN_BALANCE_CATEGORIES> FIN_BALANCE_CATEGORIES { get; set; }
+        public virtual DbSet<FIN_BALANCE_SNAPSHOTS> FIN_BALANCE_SNAPSHOTS { get; set; }
+        public virtual DbSet<FIN_CATEGORIES> FIN_CATEGORIES { get; set; }
+        public virtual DbSet<FIN_PL_ITEMS> FIN_PL_ITEMS { get; set; }
+        public virtual DbSet<FIN_PL_PLANS> FIN_PL_PLANS { get; set; }
+        public virtual DbSet<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
+        public virtual DbSet<SHAREHOLDER_CONTRIBUTIONS> SHAREHOLDER_CONTRIBUTIONS { get; set; }
+        public virtual DbSet<SHAREHOLDER_SHARE_PERIODS> SHAREHOLDER_SHARE_PERIODS { get; set; }
+        public virtual DbSet<SHAREHOLDER> SHAREHOLDERS { get; set; }
+        public virtual DbSet<V_FIN_PL_FACT_MONTHLY> V_FIN_PL_FACT_MONTHLY { get; set; }
+        public virtual DbSet<V_FIN_PL_PLAN_VS_FACT_MONTHLY> V_FIN_PL_PLAN_VS_FACT_MONTHLY { get; set; }
     
         public virtual int GetCarPlanRequirements(string optionCode)
         {
@@ -224,6 +236,101 @@ namespace tahsinERP.Models
                 new ObjectParameter("EndDate", typeof(System.DateTime));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("WeeklyPartRequirement", todayDateParameter, endDateParameter);
+        }
+    
+        public virtual int sp_Fin_AddTransaction(Nullable<System.DateTime> txnDate, Nullable<int> accountID, Nullable<int> categoryID, Nullable<byte> direction, Nullable<decimal> amount, Nullable<int> currencyID, Nullable<decimal> qty, Nullable<decimal> pricePerUnit, Nullable<byte> counterpartyType, Nullable<int> counterpartyID, string counterpartyName, string purpose, string sourceDocType, Nullable<int> sourceDocID, string contractNo, string comment, Nullable<int> createdByUserID, ObjectParameter newID)
+        {
+            var txnDateParameter = txnDate.HasValue ?
+                new ObjectParameter("TxnDate", txnDate) :
+                new ObjectParameter("TxnDate", typeof(System.DateTime));
+    
+            var accountIDParameter = accountID.HasValue ?
+                new ObjectParameter("AccountID", accountID) :
+                new ObjectParameter("AccountID", typeof(int));
+    
+            var categoryIDParameter = categoryID.HasValue ?
+                new ObjectParameter("CategoryID", categoryID) :
+                new ObjectParameter("CategoryID", typeof(int));
+    
+            var directionParameter = direction.HasValue ?
+                new ObjectParameter("Direction", direction) :
+                new ObjectParameter("Direction", typeof(byte));
+    
+            var amountParameter = amount.HasValue ?
+                new ObjectParameter("Amount", amount) :
+                new ObjectParameter("Amount", typeof(decimal));
+    
+            var currencyIDParameter = currencyID.HasValue ?
+                new ObjectParameter("CurrencyID", currencyID) :
+                new ObjectParameter("CurrencyID", typeof(int));
+    
+            var qtyParameter = qty.HasValue ?
+                new ObjectParameter("Qty", qty) :
+                new ObjectParameter("Qty", typeof(decimal));
+    
+            var pricePerUnitParameter = pricePerUnit.HasValue ?
+                new ObjectParameter("PricePerUnit", pricePerUnit) :
+                new ObjectParameter("PricePerUnit", typeof(decimal));
+    
+            var counterpartyTypeParameter = counterpartyType.HasValue ?
+                new ObjectParameter("CounterpartyType", counterpartyType) :
+                new ObjectParameter("CounterpartyType", typeof(byte));
+    
+            var counterpartyIDParameter = counterpartyID.HasValue ?
+                new ObjectParameter("CounterpartyID", counterpartyID) :
+                new ObjectParameter("CounterpartyID", typeof(int));
+    
+            var counterpartyNameParameter = counterpartyName != null ?
+                new ObjectParameter("CounterpartyName", counterpartyName) :
+                new ObjectParameter("CounterpartyName", typeof(string));
+    
+            var purposeParameter = purpose != null ?
+                new ObjectParameter("Purpose", purpose) :
+                new ObjectParameter("Purpose", typeof(string));
+    
+            var sourceDocTypeParameter = sourceDocType != null ?
+                new ObjectParameter("SourceDocType", sourceDocType) :
+                new ObjectParameter("SourceDocType", typeof(string));
+    
+            var sourceDocIDParameter = sourceDocID.HasValue ?
+                new ObjectParameter("SourceDocID", sourceDocID) :
+                new ObjectParameter("SourceDocID", typeof(int));
+    
+            var contractNoParameter = contractNo != null ?
+                new ObjectParameter("ContractNo", contractNo) :
+                new ObjectParameter("ContractNo", typeof(string));
+    
+            var commentParameter = comment != null ?
+                new ObjectParameter("Comment", comment) :
+                new ObjectParameter("Comment", typeof(string));
+    
+            var createdByUserIDParameter = createdByUserID.HasValue ?
+                new ObjectParameter("CreatedByUserID", createdByUserID) :
+                new ObjectParameter("CreatedByUserID", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_Fin_AddTransaction", txnDateParameter, accountIDParameter, categoryIDParameter, directionParameter, amountParameter, currencyIDParameter, qtyParameter, pricePerUnitParameter, counterpartyTypeParameter, counterpartyIDParameter, counterpartyNameParameter, purposeParameter, sourceDocTypeParameter, sourceDocIDParameter, contractNoParameter, commentParameter, createdByUserIDParameter, newID);
+        }
+    
+        public virtual ObjectResult<sp_Fin_CashSummary_Result> sp_Fin_CashSummary(Nullable<System.DateTime> from, Nullable<System.DateTime> to)
+        {
+            var fromParameter = from.HasValue ?
+                new ObjectParameter("From", from) :
+                new ObjectParameter("From", typeof(System.DateTime));
+    
+            var toParameter = to.HasValue ?
+                new ObjectParameter("To", to) :
+                new ObjectParameter("To", typeof(System.DateTime));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_Fin_CashSummary_Result>("sp_Fin_CashSummary", fromParameter, toParameter);
+        }
+    
+        public virtual int sp_FIN_ShareholderValue_AsOf(Nullable<System.DateTime> asOfDate)
+        {
+            var asOfDateParameter = asOfDate.HasValue ?
+                new ObjectParameter("AsOfDate", asOfDate) :
+                new ObjectParameter("AsOfDate", typeof(System.DateTime));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_FIN_ShareholderValue_AsOf", asOfDateParameter);
         }
     }
 }

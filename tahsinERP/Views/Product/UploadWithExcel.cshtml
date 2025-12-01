@@ -40,12 +40,20 @@
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
+                                        <div class="alert alert-info mb-2">
+                                            <h6 class="alert-heading"><i class="bx bx-info-circle"></i> Type ustuni qiymatlari:</h6>
+                                            <ul class="mb-0">
+                                                <li><strong>MAXSULOT</strong> - Tayyor maxsulot</li>
+                                                <li><strong>YARIM TAYYOR</strong> yoki <strong>COMPONENT</strong> - Yarim tayyor maxsulot</li>
+                                                <li><strong>XOMASHYO</strong> yoki <strong>RAW MATERIAL</strong> - Xomashyo</li>
+                                            </ul>
+                                        </div>
                                         <div class="row">
                                             <div class="col-lg-6 col-md-12">
                                                 <fieldset class="form-group">
                                                     <label>Shablon faylni yuklab oling</label>
                                                     <br />
-                                                    @Html.ActionLink("maxsulot.xlsx", "download")
+                                                    @Html.ActionLink("maxsulot.xlsx", "Download", null, new { @class = "btn btn-outline-info" })
                                                 </fieldset>
                                             </div>
                                             <div class="col-lg-6 col-md-12">
@@ -128,14 +136,21 @@
                                                     </table>
 
                                                 </div>
-                                                @if (ViewBag.IsFileUploaded != null)
+                                                @if (ViewBag.IsFileUploaded == true)
                                                 {
                                                     <br />
+                                                    @if (ViewBag.ExistingRecordsCount != null && ViewBag.ExistingRecordsCount > 0)
+                                                    {
+                                                        <div class="alert alert-warning">
+                                                            <i class="bx bx-error-circle"></i>
+                                                            <strong>Diqqat!</strong> @ViewBag.ExistingRecordsCount ta yozuv allaqachon bazada mavjud va o'tkazib yuboriladi.
+                                                        </div>
+                                                    }
                                                     <h6>
                                                         Agar ma'lumotlar to'g'riliga ishonch xosil qilgan bo'lsangiz quyidagi tugma orqali ma'lumotlar bazasiga saqlashingiz mumkin.
                                                     </h6>
                                                     <input type="hidden" name="dataTableModel" value='@Html.Raw(ViewBag.DataTableModel)' />
-                                                    <input type="submit" value="Saqlash" class="btn btn-outline-success round mr-1 mb-1" onclick="return confirmSave()" />
+                                                    <input type="submit" value="Saqlash" class="btn btn-outline-success round mr-1 mb-1" />
                                                 }
                                             </div>
                                         </div>
@@ -148,19 +163,6 @@
             </div>
         </div>
     </div>
-
- @*   @section Scripts {
-        <script>
-        function confirmSave() {
-            var duplicateRecords = @ViewBag.ExistingRecordsCount;
-            if (duplicateRecords > 0) {
-                alert("Siz yuklagan fayldagi ma'lumotlar tizimning ma'lumotlar bazasida mavjud. Yuklayotgan ma'lumotingizni sinchkovlik bilan tekshirib qayta urinib ko'ring.");
-                return false; // Prevent form submission
-            }
-            return true; // Allow form submission
-        }
-        </script>
-    }*@
 }
 else
 {

@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="DBTHSNModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="DBTHSNModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="BOM_HEADERS">
           <Key>
             <PropertyRef Name="ID" />
@@ -235,6 +235,113 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="Amount" Type="float" />
           <Property Name="IssueDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="FIN_ACCOUNTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="OwnerName" Type="nvarchar" MaxLength="100" />
+          <Property Name="CurrencyID" Type="int" Nullable="false" />
+          <Property Name="IsCash" Type="bit" Nullable="false" />
+          <Property Name="IsBank" Type="bit" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_BALANCE_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Type" Type="tinyint" Nullable="false" />
+          <Property Name="ParentID" Type="int" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_BALANCE_SNAPSHOTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SnapshotDate" Type="date" Nullable="false" />
+          <Property Name="CategoryID" Type="int" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="CurrencyID" Type="int" Nullable="false" />
+          <Property Name="SourceType" Type="nvarchar" MaxLength="30" />
+          <Property Name="SourceID" Type="int" />
+          <Property Name="CreatedByUserID" Type="int" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Type" Type="tinyint" Nullable="false" />
+          <Property Name="ParentID" Type="int" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_PL_ITEM_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ItemID" />
+            <PropertyRef Name="CategoryID" />
+          </Key>
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="CategoryID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_PL_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Sign" Type="tinyint" Nullable="false" />
+          <Property Name="ParentID" Type="int" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_PL_PLANS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Year" Type="int" Nullable="false" />
+          <Property Name="Month" Type="tinyint" Nullable="false" />
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="AmountPlan" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FIN_TRANSACTIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TxnDate" Type="date" Nullable="false" />
+          <Property Name="AccountID" Type="int" Nullable="false" />
+          <Property Name="CategoryID" Type="int" Nullable="false" />
+          <Property Name="Direction" Type="tinyint" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="CurrencyID" Type="int" Nullable="false" />
+          <Property Name="Qty" Type="decimal" Precision="18" Scale="3" />
+          <Property Name="PricePerUnit" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="CounterpartyType" Type="tinyint" />
+          <Property Name="CounterpartyID" Type="int" />
+          <Property Name="CounterpartyName" Type="nvarchar" MaxLength="200" />
+          <Property Name="Purpose" Type="nvarchar" MaxLength="200" />
+          <Property Name="SourceDocType" Type="nvarchar" MaxLength="50" />
+          <Property Name="SourceDocID" Type="int" />
+          <Property Name="ContractNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="Comment" Type="nvarchar" MaxLength="500" />
+          <Property Name="CreatedByUserID" Type="int" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="FORWARDERS">
           <Key>
@@ -605,6 +712,40 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="File" Type="varbinary(max)" Nullable="false" />
           <Property Name="FileName" Type="varchar(max)" Nullable="false" />
         </EntityType>
+        <EntityType Name="SHAREHOLDER_CONTRIBUTIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ShareholderID" Type="int" Nullable="false" />
+          <Property Name="ContributionDate" Type="date" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="CurrencyID" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" />
+          <Property Name="ContributionType" Type="tinyint" Nullable="false" />
+          <Property Name="FinTransactionID" Type="int" />
+        </EntityType>
+        <EntityType Name="SHAREHOLDER_SHARE_PERIODS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ShareholderID" Type="int" Nullable="false" />
+          <Property Name="FromDate" Type="date" Nullable="false" />
+          <Property Name="ToDate" Type="date" />
+          <Property Name="SharePercent" Type="decimal" Precision="5" Scale="2" Nullable="false" />
+          <Property Name="EffectiveToDate" Type="date" StoreGeneratedPattern="Computed" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SHAREHOLDERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FullName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="50" />
+          <Property Name="Notes" Type="nvarchar" MaxLength="500" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+        </EntityType>
         <EntityType Name="SHOP_PLANNED_DTS">
           <Key>
             <PropertyRef Name="ID" />
@@ -796,6 +937,42 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <Property Name="ProductNo" Type="varchar" MaxLength="15" Nullable="false" />
           <Property Name="PartNo" Type="varchar" MaxLength="20" Nullable="false" />
           <Property Name="TotalConsumption" Type="float" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="V_FIN_PL_FACT_MONTHLY">
+          <Key>
+            <PropertyRef Name="ItemID" />
+            <PropertyRef Name="ItemName" />
+            <PropertyRef Name="SortOrder" />
+          </Key>
+          <Property Name="Year" Type="int" />
+          <Property Name="Month" Type="int" />
+          <Property Name="PeriodStartDate" Type="date" />
+          <Property Name="ItemID" Type="int" Nullable="false" />
+          <Property Name="ItemName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="AmountFact" Type="decimal" Precision="38" Scale="2" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
+          <Key>
+            <PropertyRef Name="ItemName" />
+            <PropertyRef Name="SortOrder" />
+            <PropertyRef Name="AmountPlan" />
+            <PropertyRef Name="AmountFact" />
+          </Key>
+          <Property Name="Year" Type="int" />
+          <Property Name="Month" Type="int" />
+          <Property Name="PeriodStartDate" Type="date" />
+          <Property Name="ItemID" Type="int" />
+          <Property Name="ItemName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="AmountPlan" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="AmountFact" Type="decimal" Precision="38" Scale="2" Nullable="false" />
+          <Property Name="Delta" Type="decimal" Precision="38" Scale="2" />
+          <Property Name="DeltaPercent" Type="decimal" Precision="38" Scale="6" />
         </EntityType>
         <Association Name="FK__F_WAYBILL__Curre__4979DDF4">
           <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
@@ -1178,6 +1355,198 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
             </Principal>
             <Dependent Role="F_WAYBILLS">
               <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_ACCOUNTS_CREATEDBY">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="1" />
+          <End Role="FIN_ACCOUNTS" Type="Self.FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_ACCOUNTS_CURRENCY">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="1" />
+          <End Role="FIN_ACCOUNTS" Type="Self.FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_CATEGORIES_PARENT">
+          <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="0..1" />
+          <End Role="FIN_BALANCE_CATEGORIES1" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_CATEGORIES1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CATEGORY">
+          <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="1" />
+          <End Role="FIN_BALANCE_SNAPSHOTS" Type="Self.FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_SNAPSHOTS">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="1" />
+          <End Role="FIN_BALANCE_SNAPSHOTS" Type="Self.FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_SNAPSHOTS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CURRENCY">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="1" />
+          <End Role="FIN_BALANCE_SNAPSHOTS" Type="Self.FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_SNAPSHOTS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_CATEGORIES_PARENT">
+          <End Role="FIN_CATEGORIES" Type="Self.FIN_CATEGORIES" Multiplicity="0..1" />
+          <End Role="FIN_CATEGORIES1" Type="Self.FIN_CATEGORIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_CATEGORIES1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_ITEM_CATEGORIES_CATEGORY">
+          <End Role="FIN_CATEGORIES" Type="Self.FIN_CATEGORIES" Multiplicity="1" />
+          <End Role="FIN_PL_ITEM_CATEGORIES" Type="Self.FIN_PL_ITEM_CATEGORIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_ITEM_CATEGORIES">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_ITEM_CATEGORIES_ITEM">
+          <End Role="FIN_PL_ITEMS" Type="Self.FIN_PL_ITEMS" Multiplicity="1" />
+          <End Role="FIN_PL_ITEM_CATEGORIES" Type="Self.FIN_PL_ITEM_CATEGORIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_PL_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_ITEM_CATEGORIES">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_ITEMS_PARENT">
+          <End Role="FIN_PL_ITEMS" Type="Self.FIN_PL_ITEMS" Multiplicity="0..1" />
+          <End Role="FIN_PL_ITEMS1" Type="Self.FIN_PL_ITEMS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_PL_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_ITEMS1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_PLANS_CREATEDBY">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="1" />
+          <End Role="FIN_PL_PLANS" Type="Self.FIN_PL_PLANS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_PLANS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_PLANS_ITEM">
+          <End Role="FIN_PL_ITEMS" Type="Self.FIN_PL_ITEMS" Multiplicity="1" />
+          <End Role="FIN_PL_PLANS" Type="Self.FIN_PL_PLANS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_PL_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_PLANS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_ACCOUNT">
+          <End Role="FIN_ACCOUNTS" Type="Self.FIN_ACCOUNTS" Multiplicity="1" />
+          <End Role="FIN_TRANSACTIONS" Type="Self.FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_ACCOUNTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="AccountID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_CATEGORY">
+          <End Role="FIN_CATEGORIES" Type="Self.FIN_CATEGORIES" Multiplicity="1" />
+          <End Role="FIN_TRANSACTIONS" Type="Self.FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_CREATEDBY">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="1" />
+          <End Role="FIN_TRANSACTIONS" Type="Self.FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_CURRENCY">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="1" />
+          <End Role="FIN_TRANSACTIONS" Type="Self.FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="CurrencyID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1985,6 +2354,54 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="1" />
+          <End Role="SHAREHOLDER_CONTRIBUTIONS" Type="Self.SHAREHOLDER_CONTRIBUTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_CONTRIBUTIONS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN">
+          <End Role="FIN_TRANSACTIONS" Type="Self.FIN_TRANSACTIONS" Multiplicity="0..1" />
+          <End Role="SHAREHOLDER_CONTRIBUTIONS" Type="Self.SHAREHOLDER_CONTRIBUTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_CONTRIBUTIONS">
+              <PropertyRef Name="FinTransactionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_CONTRIBUTIONS_SH">
+          <End Role="SHAREHOLDERS" Type="Self.SHAREHOLDERS" Multiplicity="1" />
+          <End Role="SHAREHOLDER_CONTRIBUTIONS" Type="Self.SHAREHOLDER_CONTRIBUTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SHAREHOLDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_CONTRIBUTIONS">
+              <PropertyRef Name="ShareholderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_SHARE_PERIODS_SH">
+          <End Role="SHAREHOLDERS" Type="Self.SHAREHOLDERS" Multiplicity="1" />
+          <End Role="SHAREHOLDER_SHARE_PERIODS" Type="Self.SHAREHOLDER_SHARE_PERIODS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SHAREHOLDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_SHARE_PERIODS">
+              <PropertyRef Name="ShareholderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_SHOP_PLANNED_DTS_SHOPS">
           <End Role="SHOPS" Type="Self.SHOPS" Multiplicity="1" />
           <End Role="SHOP_PLANNED_DTS" Type="Self.SHOP_PLANNED_DTS" Multiplicity="*" />
@@ -2129,6 +2546,33 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <Parameter Name="TodayDate" Type="date" Mode="In" />
           <Parameter Name="EndDate" Type="date" Mode="In" />
         </Function>
+        <Function Name="sp_Fin_AddTransaction" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="TxnDate" Type="date" Mode="In" />
+          <Parameter Name="AccountID" Type="int" Mode="In" />
+          <Parameter Name="CategoryID" Type="int" Mode="In" />
+          <Parameter Name="Direction" Type="tinyint" Mode="In" />
+          <Parameter Name="Amount" Type="decimal" Mode="In" />
+          <Parameter Name="CurrencyID" Type="int" Mode="In" />
+          <Parameter Name="Qty" Type="decimal" Mode="In" />
+          <Parameter Name="PricePerUnit" Type="decimal" Mode="In" />
+          <Parameter Name="CounterpartyType" Type="tinyint" Mode="In" />
+          <Parameter Name="CounterpartyID" Type="int" Mode="In" />
+          <Parameter Name="CounterpartyName" Type="nvarchar" Mode="In" />
+          <Parameter Name="Purpose" Type="nvarchar" Mode="In" />
+          <Parameter Name="SourceDocType" Type="nvarchar" Mode="In" />
+          <Parameter Name="SourceDocID" Type="int" Mode="In" />
+          <Parameter Name="ContractNo" Type="nvarchar" Mode="In" />
+          <Parameter Name="Comment" Type="nvarchar" Mode="In" />
+          <Parameter Name="CreatedByUserID" Type="int" Mode="In" />
+          <Parameter Name="NewID" Type="int" Mode="InOut" />
+        </Function>
+        <Function Name="sp_Fin_CashSummary" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="From" Type="date" Mode="In" />
+          <Parameter Name="To" Type="date" Mode="In" />
+        </Function>
+        <Function Name="sp_FIN_ShareholderValue_AsOf" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="AsOfDate" Type="date" Mode="In" />
+        </Function>
         <Function Name="sp_GenerateMaterialRequirement_FromSalesOrders" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
         <Function Name="sp_Norm_PreviewCutMaterial" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ProductID" Type="int" Mode="In" />
@@ -2165,6 +2609,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <EntitySet Name="F_WAYBILL_DOCS" EntityType="Self.F_WAYBILL_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILL_PAYMENTS" EntityType="Self.F_WAYBILL_PAYMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_ACCOUNTS" EntityType="Self.FIN_ACCOUNTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_BALANCE_CATEGORIES" EntityType="Self.FIN_BALANCE_CATEGORIES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_BALANCE_SNAPSHOTS" EntityType="Self.FIN_BALANCE_SNAPSHOTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_CATEGORIES" EntityType="Self.FIN_CATEGORIES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_PL_ITEM_CATEGORIES" EntityType="Self.FIN_PL_ITEM_CATEGORIES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_PL_ITEMS" EntityType="Self.FIN_PL_ITEMS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_PL_PLANS" EntityType="Self.FIN_PL_PLANS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_TRANSACTIONS" EntityType="Self.FIN_TRANSACTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FORWARDERS" EntityType="Self.FORWARDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HSCODES" EntityType="Self.HSCODES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOME_PRODUCTS" EntityType="Self.INCOME_PRODUCTS" Schema="dbo" store:Type="Tables" />
@@ -2195,6 +2647,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <EntitySet Name="S_ORDER_PRODUCTS" EntityType="Self.S_ORDER_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_ORDERS" EntityType="Self.S_ORDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SAMPLE_FILES" EntityType="Self.SAMPLE_FILES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SHAREHOLDER_CONTRIBUTIONS" EntityType="Self.SHAREHOLDER_CONTRIBUTIONS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SHAREHOLDER_SHARE_PERIODS" EntityType="Self.SHAREHOLDER_SHARE_PERIODS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SHAREHOLDERS" EntityType="Self.SHAREHOLDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOP_PLANNED_DTS" EntityType="Self.SHOP_PLANNED_DTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOPS" EntityType="Self.SHOPS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" Schema="dbo" store:Type="Tables" />
@@ -2244,6 +2699,31 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
     [MaterialRequirement].[PartNo] AS [PartNo], 
     [MaterialRequirement].[TotalConsumption] AS [TotalConsumption]
     FROM [dbo].[MaterialRequirement] AS [MaterialRequirement]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [V_FIN_PL_FACT_MONTHLY].[Year] AS [Year], 
+    [V_FIN_PL_FACT_MONTHLY].[Month] AS [Month], 
+    [V_FIN_PL_FACT_MONTHLY].[PeriodStartDate] AS [PeriodStartDate], 
+    [V_FIN_PL_FACT_MONTHLY].[ItemID] AS [ItemID], 
+    [V_FIN_PL_FACT_MONTHLY].[ItemName] AS [ItemName], 
+    [V_FIN_PL_FACT_MONTHLY].[SortOrder] AS [SortOrder], 
+    [V_FIN_PL_FACT_MONTHLY].[AmountFact] AS [AmountFact]
+    FROM [dbo].[V_FIN_PL_FACT_MONTHLY] AS [V_FIN_PL_FACT_MONTHLY]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY" EntityType="Self.V_FIN_PL_PLAN_VS_FACT_MONTHLY" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[Year] AS [Year], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[Month] AS [Month], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[PeriodStartDate] AS [PeriodStartDate], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[ItemID] AS [ItemID], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[ItemName] AS [ItemName], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[SortOrder] AS [SortOrder], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[AmountPlan] AS [AmountPlan], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[AmountFact] AS [AmountFact], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[Delta] AS [Delta], 
+    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[DeltaPercent] AS [DeltaPercent]
+    FROM [dbo].[V_FIN_PL_PLAN_VS_FACT_MONTHLY] AS [V_FIN_PL_PLAN_VS_FACT_MONTHLY]</DefiningQuery>
           </EntitySet>
           <AssociationSet Name="FK__F_WAYBILL__Curre__4979DDF4" Association="Self.FK__F_WAYBILL__Curre__4979DDF4">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
@@ -2372,6 +2852,70 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <AssociationSet Name="FK_F_WAYBILLS_P_INVOICES" Association="Self.FK_F_WAYBILLS_P_INVOICES">
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_ACCOUNTS_CREATEDBY" Association="Self.FK_FIN_ACCOUNTS_CREATEDBY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_ACCOUNTS_CURRENCY" Association="Self.FK_FIN_ACCOUNTS_CURRENCY">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_CATEGORIES_PARENT" Association="Self.FK_FIN_BALANCE_CATEGORIES_PARENT">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_BALANCE_CATEGORIES1" EntitySet="FIN_BALANCE_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" Association="Self.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" Association="Self.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" Association="Self.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_CATEGORIES_PARENT" Association="Self.FK_FIN_CATEGORIES_PARENT">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_CATEGORIES1" EntitySet="FIN_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_ITEM_CATEGORIES_CATEGORY" Association="Self.FK_FIN_PL_ITEM_CATEGORIES_CATEGORY">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_PL_ITEM_CATEGORIES" EntitySet="FIN_PL_ITEM_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_ITEM_CATEGORIES_ITEM" Association="Self.FK_FIN_PL_ITEM_CATEGORIES_ITEM">
+            <End Role="FIN_PL_ITEMS" EntitySet="FIN_PL_ITEMS" />
+            <End Role="FIN_PL_ITEM_CATEGORIES" EntitySet="FIN_PL_ITEM_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_ITEMS_PARENT" Association="Self.FK_FIN_PL_ITEMS_PARENT">
+            <End Role="FIN_PL_ITEMS" EntitySet="FIN_PL_ITEMS" />
+            <End Role="FIN_PL_ITEMS1" EntitySet="FIN_PL_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_PLANS_CREATEDBY" Association="Self.FK_FIN_PL_PLANS_CREATEDBY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="FIN_PL_PLANS" EntitySet="FIN_PL_PLANS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_PLANS_ITEM" Association="Self.FK_FIN_PL_PLANS_ITEM">
+            <End Role="FIN_PL_ITEMS" EntitySet="FIN_PL_ITEMS" />
+            <End Role="FIN_PL_PLANS" EntitySet="FIN_PL_PLANS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_ACCOUNT" Association="Self.FK_FIN_TRANSACTIONS_ACCOUNT">
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_CATEGORY" Association="Self.FK_FIN_TRANSACTIONS_CATEGORY">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_CREATEDBY" Association="Self.FK_FIN_TRANSACTIONS_CREATEDBY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_CURRENCY" Association="Self.FK_FIN_TRANSACTIONS_CURRENCY">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
           </AssociationSet>
           <AssociationSet Name="FK_INCOMES_InvoiceID_P_INVOICES" Association="Self.FK_INCOMES_InvoiceID_P_INVOICES">
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
@@ -2641,6 +3185,22 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" Association="Self.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="SHAREHOLDER_CONTRIBUTIONS" EntitySet="SHAREHOLDER_CONTRIBUTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" Association="Self.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN">
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+            <End Role="SHAREHOLDER_CONTRIBUTIONS" EntitySet="SHAREHOLDER_CONTRIBUTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_SH" Association="Self.FK_SHAREHOLDER_CONTRIBUTIONS_SH">
+            <End Role="SHAREHOLDERS" EntitySet="SHAREHOLDERS" />
+            <End Role="SHAREHOLDER_CONTRIBUTIONS" EntitySet="SHAREHOLDER_CONTRIBUTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_SHARE_PERIODS_SH" Association="Self.FK_SHAREHOLDER_SHARE_PERIODS_SH">
+            <End Role="SHAREHOLDERS" EntitySet="SHAREHOLDERS" />
+            <End Role="SHAREHOLDER_SHARE_PERIODS" EntitySet="SHAREHOLDER_SHARE_PERIODS" />
+          </AssociationSet>
           <AssociationSet Name="FK_SHOP_PLANNED_DTS_SHOPS" Association="Self.FK_SHOP_PLANNED_DTS_SHOPS">
             <End Role="SHOPS" EntitySet="SHOPS" />
             <End Role="SHOP_PLANNED_DTS" EntitySet="SHOP_PLANNED_DTS" />
@@ -2682,8 +3242,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
             <End Role="WASTES" EntitySet="WASTES" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="DBTHSNModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -2791,6 +3350,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <NavigationProperty Name="S_CONTRACTS" Relationship="Self.FK__S_CONTRAC__Curre__5C8CB268" FromRole="CURRENCIES" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="S_ORDERS" Relationship="Self.FK__S_ORDERS__Curren__5D80D6A1" FromRole="CURRENCIES" ToRole="S_ORDERS" />
           <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_CONTRACTS_CURRENCIES" FromRole="CURRENCIES" ToRole="F_CONTRACTS" />
+          <NavigationProperty Name="FIN_ACCOUNTS" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_CURRENCY" FromRole="CURRENCy" ToRole="FIN_ACCOUNTS" />
+          <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" FromRole="CURRENCy" ToRole="FIN_BALANCE_SNAPSHOTS" />
+          <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CURRENCY" FromRole="CURRENCy" ToRole="FIN_TRANSACTIONS" />
+          <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" FromRole="CURRENCy" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
         </EntityType>
         <EntityType Name="CUSTOMER">
           <Key>
@@ -3569,6 +4132,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <NavigationProperty Name="USERLOGS" Relationship="Self.FK_USERLOGS_USERS" FromRole="USERS" ToRole="USERLOGS" />
           <NavigationProperty Name="WAREHOUSES" Relationship="Self.FK_PROD_WRHS_USERS" FromRole="USERS" ToRole="WAREHOUSES" />
           <NavigationProperty Name="ROLES" Relationship="Self.USERROLES" FromRole="USERS" ToRole="ROLES" />
+          <NavigationProperty Name="FIN_ACCOUNTS" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="USER" ToRole="FIN_ACCOUNTS" />
+          <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" FromRole="USER" ToRole="FIN_BALANCE_SNAPSHOTS" />
+          <NavigationProperty Name="FIN_PL_PLANS" Relationship="DBTHSNModel.FK_FIN_PL_PLANS_CREATEDBY" FromRole="USER" ToRole="FIN_PL_PLANS" />
+          <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CREATEDBY" FromRole="USER" ToRole="FIN_TRANSACTIONS" />
         </EntityType>
         <EntityType Name="Warehouse">
           <Key>
@@ -5430,24 +5997,24 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
             <End Role="USERS" EntitySet="USERS" />
           </AssociationSet>
           <FunctionImport Name="GetCarPlanRequirements">
-            <Parameter Name="OptionCode" Mode="In" Type="String" />
+          <Parameter Name="OptionCode" Mode="In" Type="String" />
           </FunctionImport>
           <FunctionImport Name="GetPartsInfo" />
           <FunctionImport Name="GetPartsInfo_by_supplierID">
-            <Parameter Name="SupplierID" Mode="In" Type="Int32" />
+          <Parameter Name="SupplierID" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="GetPartsInfo_by_type">
-            <Parameter Name="Type" Mode="In" Type="String" />
+          <Parameter Name="Type" Mode="In" Type="String" />
           </FunctionImport>
           <FunctionImport Name="GetPartsInfo_by_type_and_supplierID">
             <Parameter Name="Type" Mode="In" Type="String" />
             <Parameter Name="SupplierID" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="GetProductListPerShop" ReturnType="Collection(DBTHSNModel.GetProductListPerShop_Result)">
-            <Parameter Name="ShopID" Mode="In" Type="Int32" />
+          <Parameter Name="ShopID" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="GetSupplierParts">
-            <Parameter Name="SupplierID" Mode="In" Type="Int32" />
+          <Parameter Name="SupplierID" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="InTransitView">
             <Parameter Name="TodayDate" Mode="In" Type="DateTime" />
@@ -5455,7 +6022,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           </FunctionImport>
           <FunctionImport Name="sp_GenerateMaterialRequirement_FromSalesOrders" />
           <FunctionImport Name="sp_Norm_PreviewCutMaterial" ReturnType="Collection(DBTHSNModel.sp_Norm_PreviewCutMaterial_Result)">
-            <Parameter Name="ProductID" Mode="In" Type="Int32" />
+          <Parameter Name="ProductID" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="sp_Norm_SaveCutMaterials">
             <Parameter Name="ProductID" Mode="In" Type="Int32" />
@@ -5469,6 +6036,121 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <FunctionImport Name="WeeklyPartRequirement">
             <Parameter Name="TodayDate" Mode="In" Type="DateTime" />
             <Parameter Name="EndDate" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <EntitySet Name="FIN_ACCOUNTS" EntityType="DBTHSNModel.FIN_ACCOUNTS" />
+          <EntitySet Name="FIN_BALANCE_CATEGORIES" EntityType="DBTHSNModel.FIN_BALANCE_CATEGORIES" />
+          <EntitySet Name="FIN_BALANCE_SNAPSHOTS" EntityType="DBTHSNModel.FIN_BALANCE_SNAPSHOTS" />
+          <EntitySet Name="FIN_CATEGORIES" EntityType="DBTHSNModel.FIN_CATEGORIES" />
+          <EntitySet Name="FIN_PL_ITEMS" EntityType="DBTHSNModel.FIN_PL_ITEMS" />
+          <EntitySet Name="FIN_PL_PLANS" EntityType="DBTHSNModel.FIN_PL_PLANS" />
+          <EntitySet Name="FIN_TRANSACTIONS" EntityType="DBTHSNModel.FIN_TRANSACTIONS" />
+          <EntitySet Name="SHAREHOLDER_CONTRIBUTIONS" EntityType="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" />
+          <EntitySet Name="SHAREHOLDER_SHARE_PERIODS" EntityType="DBTHSNModel.SHAREHOLDER_SHARE_PERIODS" />
+          <EntitySet Name="SHAREHOLDERS" EntityType="DBTHSNModel.SHAREHOLDER" />
+          <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="DBTHSNModel.V_FIN_PL_FACT_MONTHLY" />
+          <EntitySet Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY" EntityType="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY" />
+          <AssociationSet Name="FK_FIN_ACCOUNTS_CURRENCY" Association="DBTHSNModel.FK_FIN_ACCOUNTS_CURRENCY">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_CURRENCY" Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CURRENCY">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="SHAREHOLDER_CONTRIBUTIONS" EntitySet="SHAREHOLDER_CONTRIBUTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_ACCOUNTS_CREATEDBY" Association="DBTHSNModel.FK_FIN_ACCOUNTS_CREATEDBY">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_ACCOUNT" Association="DBTHSNModel.FK_FIN_TRANSACTIONS_ACCOUNT">
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_CATEGORIES_PARENT" Association="DBTHSNModel.FK_FIN_BALANCE_CATEGORIES_PARENT">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_BALANCE_CATEGORIES1" EntitySet="FIN_BALANCE_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_CATEGORIES_PARENT" Association="DBTHSNModel.FK_FIN_CATEGORIES_PARENT">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_CATEGORIES1" EntitySet="FIN_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_CATEGORY" Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CATEGORY">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_ITEMS_PARENT" Association="DBTHSNModel.FK_FIN_PL_ITEMS_PARENT">
+            <End Role="FIN_PL_ITEMS" EntitySet="FIN_PL_ITEMS" />
+            <End Role="FIN_PL_ITEMS1" EntitySet="FIN_PL_ITEMS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_PLANS_ITEM" Association="DBTHSNModel.FK_FIN_PL_PLANS_ITEM">
+            <End Role="FIN_PL_ITEMS" EntitySet="FIN_PL_ITEMS" />
+            <End Role="FIN_PL_PLANS" EntitySet="FIN_PL_PLANS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_PL_PLANS_CREATEDBY" Association="DBTHSNModel.FK_FIN_PL_PLANS_CREATEDBY">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="FIN_PL_PLANS" EntitySet="FIN_PL_PLANS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_TRANSACTIONS_CREATEDBY" Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CREATEDBY">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN">
+            <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+            <End Role="SHAREHOLDER_CONTRIBUTIONS" EntitySet="SHAREHOLDER_CONTRIBUTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_SH" Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_SH">
+            <End Role="SHAREHOLDER" EntitySet="SHAREHOLDERS" />
+            <End Role="SHAREHOLDER_CONTRIBUTIONS" EntitySet="SHAREHOLDER_CONTRIBUTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SHAREHOLDER_SHARE_PERIODS_SH" Association="DBTHSNModel.FK_SHAREHOLDER_SHARE_PERIODS_SH">
+            <End Role="SHAREHOLDER" EntitySet="SHAREHOLDERS" />
+            <End Role="SHAREHOLDER_SHARE_PERIODS" EntitySet="SHAREHOLDER_SHARE_PERIODS" />
+          </AssociationSet>
+          <AssociationSet Name="FIN_PL_ITEM_CATEGORIES" Association="DBTHSNModel.FIN_PL_ITEM_CATEGORIES">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_PL_ITEMS" EntitySet="FIN_PL_ITEMS" />
+          </AssociationSet>
+          <FunctionImport Name="sp_Fin_AddTransaction">
+            <Parameter Name="TxnDate" Mode="In" Type="DateTime" />
+            <Parameter Name="AccountID" Mode="In" Type="Int32" />
+            <Parameter Name="CategoryID" Mode="In" Type="Int32" />
+            <Parameter Name="Direction" Mode="In" Type="Byte" />
+            <Parameter Name="Amount" Mode="In" Type="Decimal" />
+            <Parameter Name="CurrencyID" Mode="In" Type="Int32" />
+            <Parameter Name="Qty" Mode="In" Type="Decimal" />
+            <Parameter Name="PricePerUnit" Mode="In" Type="Decimal" />
+            <Parameter Name="CounterpartyType" Mode="In" Type="Byte" />
+            <Parameter Name="CounterpartyID" Mode="In" Type="Int32" />
+            <Parameter Name="CounterpartyName" Mode="In" Type="String" />
+            <Parameter Name="Purpose" Mode="In" Type="String" />
+            <Parameter Name="SourceDocType" Mode="In" Type="String" />
+            <Parameter Name="SourceDocID" Mode="In" Type="Int32" />
+            <Parameter Name="ContractNo" Mode="In" Type="String" />
+            <Parameter Name="Comment" Mode="In" Type="String" />
+            <Parameter Name="CreatedByUserID" Mode="In" Type="Int32" />
+            <Parameter Name="NewID" Mode="InOut" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_Fin_CashSummary" ReturnType="Collection(DBTHSNModel.sp_Fin_CashSummary_Result)">
+            <Parameter Name="From" Mode="In" Type="DateTime" />
+            <Parameter Name="To" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="sp_FIN_ShareholderValue_AsOf">
+            <Parameter Name="AsOfDate" Mode="In" Type="DateTime" />
           </FunctionImport>
         </EntityContainer>
         <ComplexType Name="GetProductListPerShop_Result">
@@ -5489,6 +6171,431 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <Property Type="Double" Name="TotalRawMm" Nullable="true" />
           <Property Type="Double" Name="WasteMm" Nullable="true" />
           <Property Type="Decimal" Name="WastePercent" Nullable="true" Precision="5" Scale="2" />
+        </ComplexType>
+        <EntityType Name="FIN_ACCOUNTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="OwnerName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="CurrencyID" Type="Int32" Nullable="false" />
+          <Property Name="IsCash" Type="Boolean" Nullable="false" />
+          <Property Name="IsBank" Type="Boolean" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="Int32" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_CURRENCY" FromRole="FIN_ACCOUNTS" ToRole="CURRENCy" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="FIN_ACCOUNTS" ToRole="USER" />
+          <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_ACCOUNT" FromRole="FIN_ACCOUNTS" ToRole="FIN_TRANSACTIONS" />
+        </EntityType>
+        <EntityType Name="FIN_BALANCE_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Type" Type="Byte" Nullable="false" />
+          <Property Name="ParentID" Type="Int32" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="FIN_BALANCE_CATEGORIES1" Relationship="DBTHSNModel.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES1" />
+          <NavigationProperty Name="FIN_BALANCE_CATEGORIES2" Relationship="DBTHSNModel.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES1" ToRole="FIN_BALANCE_CATEGORIES" />
+          <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_SNAPSHOTS" />
+        </EntityType>
+        <EntityType Name="FIN_BALANCE_SNAPSHOTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SnapshotDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="CategoryID" Type="Int32" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="CurrencyID" Type="Int32" Nullable="false" />
+          <Property Name="SourceType" Type="String" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="SourceID" Type="Int32" />
+          <Property Name="CreatedByUserID" Type="Int32" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" FromRole="FIN_BALANCE_SNAPSHOTS" ToRole="CURRENCy" />
+          <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" FromRole="FIN_BALANCE_SNAPSHOTS" ToRole="FIN_BALANCE_CATEGORIES" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" FromRole="FIN_BALANCE_SNAPSHOTS" ToRole="USER" />
+        </EntityType>
+        <EntityType Name="FIN_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Type" Type="Byte" Nullable="false" />
+          <Property Name="ParentID" Type="Int32" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="FIN_CATEGORIES1" Relationship="DBTHSNModel.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES" ToRole="FIN_CATEGORIES1" />
+          <NavigationProperty Name="FIN_CATEGORIES2" Relationship="DBTHSNModel.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES1" ToRole="FIN_CATEGORIES" />
+          <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
+          <NavigationProperty Name="FIN_PL_ITEMS" Relationship="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" FromRole="FIN_CATEGORIES" ToRole="FIN_PL_ITEMS" />
+        </EntityType>
+        <EntityType Name="FIN_PL_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Sign" Type="Byte" Nullable="false" />
+          <Property Name="ParentID" Type="Int32" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="FIN_PL_ITEMS1" Relationship="DBTHSNModel.FK_FIN_PL_ITEMS_PARENT" FromRole="FIN_PL_ITEMS" ToRole="FIN_PL_ITEMS1" />
+          <NavigationProperty Name="FIN_PL_ITEMS2" Relationship="DBTHSNModel.FK_FIN_PL_ITEMS_PARENT" FromRole="FIN_PL_ITEMS1" ToRole="FIN_PL_ITEMS" />
+          <NavigationProperty Name="FIN_PL_PLANS" Relationship="DBTHSNModel.FK_FIN_PL_PLANS_ITEM" FromRole="FIN_PL_ITEMS" ToRole="FIN_PL_PLANS" />
+          <NavigationProperty Name="FIN_CATEGORIES" Relationship="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" FromRole="FIN_PL_ITEMS" ToRole="FIN_CATEGORIES" />
+        </EntityType>
+        <EntityType Name="FIN_PL_PLANS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Year" Type="Int32" Nullable="false" />
+          <Property Name="Month" Type="Byte" Nullable="false" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="AmountPlan" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="CreatedByUserID" Type="Int32" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="FIN_PL_ITEMS" Relationship="DBTHSNModel.FK_FIN_PL_PLANS_ITEM" FromRole="FIN_PL_PLANS" ToRole="FIN_PL_ITEMS" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_FIN_PL_PLANS_CREATEDBY" FromRole="FIN_PL_PLANS" ToRole="USER" />
+        </EntityType>
+        <EntityType Name="FIN_TRANSACTIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TxnDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="AccountID" Type="Int32" Nullable="false" />
+          <Property Name="CategoryID" Type="Int32" Nullable="false" />
+          <Property Name="Direction" Type="Byte" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="CurrencyID" Type="Int32" Nullable="false" />
+          <Property Name="Qty" Type="Decimal" Precision="18" Scale="3" />
+          <Property Name="PricePerUnit" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CounterpartyType" Type="Byte" />
+          <Property Name="CounterpartyID" Type="Int32" />
+          <Property Name="CounterpartyName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Purpose" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="SourceDocType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="SourceDocID" Type="Int32" />
+          <Property Name="ContractNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Comment" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CURRENCY" FromRole="FIN_TRANSACTIONS" ToRole="CURRENCy" />
+          <NavigationProperty Name="FIN_ACCOUNTS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_ACCOUNT" FromRole="FIN_TRANSACTIONS" ToRole="FIN_ACCOUNTS" />
+          <NavigationProperty Name="FIN_CATEGORIES" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_TRANSACTIONS" ToRole="FIN_CATEGORIES" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CREATEDBY" FromRole="FIN_TRANSACTIONS" ToRole="USER" />
+          <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" FromRole="FIN_TRANSACTIONS" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
+        </EntityType>
+        <EntityType Name="SHAREHOLDER_CONTRIBUTIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ShareholderID" Type="Int32" Nullable="false" />
+          <Property Name="ContributionDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Amount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="CurrencyID" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ContributionType" Type="Byte" Nullable="false" />
+          <Property Name="FinTransactionID" Type="Int32" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" FromRole="SHAREHOLDER_CONTRIBUTIONS" ToRole="CURRENCy" />
+          <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" FromRole="SHAREHOLDER_CONTRIBUTIONS" ToRole="FIN_TRANSACTIONS" />
+          <NavigationProperty Name="SHAREHOLDER" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_SH" FromRole="SHAREHOLDER_CONTRIBUTIONS" ToRole="SHAREHOLDER" />
+        </EntityType>
+        <EntityType Name="SHAREHOLDER_SHARE_PERIODS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ShareholderID" Type="Int32" Nullable="false" />
+          <Property Name="FromDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="ToDate" Type="DateTime" Precision="0" />
+          <Property Name="SharePercent" Type="Decimal" Nullable="false" Precision="5" Scale="2" />
+          <Property Name="EffectiveToDate" Type="DateTime" Nullable="false" annotation:StoreGeneratedPattern="Computed" Precision="0" />
+          <NavigationProperty Name="SHAREHOLDER" Relationship="DBTHSNModel.FK_SHAREHOLDER_SHARE_PERIODS_SH" FromRole="SHAREHOLDER_SHARE_PERIODS" ToRole="SHAREHOLDER" />
+        </EntityType>
+        <EntityType Name="SHAREHOLDER">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FullName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Notes" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_SH" FromRole="SHAREHOLDER" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
+          <NavigationProperty Name="SHAREHOLDER_SHARE_PERIODS" Relationship="DBTHSNModel.FK_SHAREHOLDER_SHARE_PERIODS_SH" FromRole="SHAREHOLDER" ToRole="SHAREHOLDER_SHARE_PERIODS" />
+        </EntityType>
+        <EntityType Name="V_FIN_PL_FACT_MONTHLY">
+          <Key>
+            <PropertyRef Name="ItemID" />
+            <PropertyRef Name="ItemName" />
+            <PropertyRef Name="SortOrder" />
+          </Key>
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="PeriodStartDate" Type="DateTime" Precision="0" />
+          <Property Name="ItemID" Type="Int32" Nullable="false" />
+          <Property Name="ItemName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="AmountFact" Type="Decimal" Precision="38" Scale="2" />
+        </EntityType>
+        <EntityType Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
+          <Key>
+            <PropertyRef Name="ItemName" />
+            <PropertyRef Name="SortOrder" />
+            <PropertyRef Name="AmountPlan" />
+            <PropertyRef Name="AmountFact" />
+          </Key>
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="PeriodStartDate" Type="DateTime" Precision="0" />
+          <Property Name="ItemID" Type="Int32" />
+          <Property Name="ItemName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="AmountPlan" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="AmountFact" Type="Decimal" Nullable="false" Precision="38" Scale="2" />
+          <Property Name="Delta" Type="Decimal" Precision="38" Scale="2" />
+          <Property Name="DeltaPercent" Type="Decimal" Precision="38" Scale="6" />
+        </EntityType>
+        <Association Name="FK_FIN_ACCOUNTS_CURRENCY">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_ACCOUNTS" Role="FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CURRENCY">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_BALANCE_SNAPSHOTS" Role="FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_SNAPSHOTS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_CURRENCY">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_TRANSACTIONS" Role="FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="1" />
+          <End Type="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" Role="SHAREHOLDER_CONTRIBUTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_CONTRIBUTIONS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_ACCOUNTS_CREATEDBY">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_ACCOUNTS" Role="FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_ACCOUNT">
+          <End Type="DBTHSNModel.FIN_ACCOUNTS" Role="FIN_ACCOUNTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_TRANSACTIONS" Role="FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_ACCOUNTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="AccountID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_CATEGORIES_PARENT">
+          <End Type="DBTHSNModel.FIN_BALANCE_CATEGORIES" Role="FIN_BALANCE_CATEGORIES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.FIN_BALANCE_CATEGORIES" Role="FIN_BALANCE_CATEGORIES1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_CATEGORIES1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CATEGORY">
+          <End Type="DBTHSNModel.FIN_BALANCE_CATEGORIES" Role="FIN_BALANCE_CATEGORIES" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_BALANCE_SNAPSHOTS" Role="FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_SNAPSHOTS">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_BALANCE_SNAPSHOTS" Role="FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_SNAPSHOTS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_CATEGORIES_PARENT">
+          <End Type="DBTHSNModel.FIN_CATEGORIES" Role="FIN_CATEGORIES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.FIN_CATEGORIES" Role="FIN_CATEGORIES1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_CATEGORIES1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_CATEGORY">
+          <End Type="DBTHSNModel.FIN_CATEGORIES" Role="FIN_CATEGORIES" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_TRANSACTIONS" Role="FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_ITEMS_PARENT">
+          <End Type="DBTHSNModel.FIN_PL_ITEMS" Role="FIN_PL_ITEMS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.FIN_PL_ITEMS" Role="FIN_PL_ITEMS1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_PL_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_ITEMS1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_PLANS_ITEM">
+          <End Type="DBTHSNModel.FIN_PL_ITEMS" Role="FIN_PL_ITEMS" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_PL_PLANS" Role="FIN_PL_PLANS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_PL_ITEMS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_PLANS">
+              <PropertyRef Name="ItemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_PL_PLANS_CREATEDBY">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_PL_PLANS" Role="FIN_PL_PLANS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_PL_PLANS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_TRANSACTIONS_CREATEDBY">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="1" />
+          <End Type="DBTHSNModel.FIN_TRANSACTIONS" Role="FIN_TRANSACTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN">
+          <End Type="DBTHSNModel.FIN_TRANSACTIONS" Role="FIN_TRANSACTIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" Role="SHAREHOLDER_CONTRIBUTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_TRANSACTIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_CONTRIBUTIONS">
+              <PropertyRef Name="FinTransactionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_CONTRIBUTIONS_SH">
+          <End Type="DBTHSNModel.SHAREHOLDER" Role="SHAREHOLDER" Multiplicity="1" />
+          <End Type="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" Role="SHAREHOLDER_CONTRIBUTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SHAREHOLDER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_CONTRIBUTIONS">
+              <PropertyRef Name="ShareholderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SHAREHOLDER_SHARE_PERIODS_SH">
+          <End Type="DBTHSNModel.SHAREHOLDER" Role="SHAREHOLDER" Multiplicity="1" />
+          <End Type="DBTHSNModel.SHAREHOLDER_SHARE_PERIODS" Role="SHAREHOLDER_SHARE_PERIODS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SHAREHOLDER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SHAREHOLDER_SHARE_PERIODS">
+              <PropertyRef Name="ShareholderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FIN_PL_ITEM_CATEGORIES">
+          <End Type="DBTHSNModel.FIN_CATEGORIES" Role="FIN_CATEGORIES" Multiplicity="*" />
+          <End Type="DBTHSNModel.FIN_PL_ITEMS" Role="FIN_PL_ITEMS" Multiplicity="*" />
+        </Association>
+        <ComplexType Name="sp_Fin_CashSummary_Result">
+          <Property Type="Int32" Name="AccountID" Nullable="false" />
+          <Property Type="String" Name="AccountCode" Nullable="false" MaxLength="20" />
+          <Property Type="String" Name="AccountName" Nullable="false" MaxLength="100" />
+          <Property Type="String" Name="OwnerName" Nullable="true" MaxLength="100" />
+          <Property Type="Decimal" Name="OpeningBalance" Nullable="false" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="Income" Nullable="false" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="Expense" Nullable="false" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="ClosingBalance" Nullable="true" Precision="38" Scale="2" />
         </ComplexType>
       </Schema>
     </edmx:ConceptualModels>
@@ -6376,6 +7483,202 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not hav
           <FunctionImportMapping FunctionImportName="sp_Norm_SaveCutMaterials" FunctionName="DBTHSNModel.Store.sp_Norm_SaveCutMaterials" />
           <FunctionImportMapping FunctionImportName="WeeklyCoverage" FunctionName="DBTHSNModel.Store.WeeklyCoverage" />
           <FunctionImportMapping FunctionImportName="WeeklyPartRequirement" FunctionName="DBTHSNModel.Store.WeeklyPartRequirement" />
+          <EntitySetMapping Name="FIN_ACCOUNTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_ACCOUNTS">
+              <MappingFragment StoreEntitySet="FIN_ACCOUNTS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="IsBank" ColumnName="IsBank" />
+                <ScalarProperty Name="IsCash" ColumnName="IsCash" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="OwnerName" ColumnName="OwnerName" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FIN_BALANCE_CATEGORIES">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_BALANCE_CATEGORIES">
+              <MappingFragment StoreEntitySet="FIN_BALANCE_CATEGORIES">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ParentID" ColumnName="ParentID" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FIN_BALANCE_SNAPSHOTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_BALANCE_SNAPSHOTS">
+              <MappingFragment StoreEntitySet="FIN_BALANCE_SNAPSHOTS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="SourceID" ColumnName="SourceID" />
+                <ScalarProperty Name="SourceType" ColumnName="SourceType" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="CategoryID" ColumnName="CategoryID" />
+                <ScalarProperty Name="SnapshotDate" ColumnName="SnapshotDate" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FIN_CATEGORIES">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_CATEGORIES">
+              <MappingFragment StoreEntitySet="FIN_CATEGORIES">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ParentID" ColumnName="ParentID" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FIN_PL_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_PL_ITEMS">
+              <MappingFragment StoreEntitySet="FIN_PL_ITEMS">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ParentID" ColumnName="ParentID" />
+                <ScalarProperty Name="Sign" ColumnName="Sign" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FIN_PL_PLANS">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_PL_PLANS">
+              <MappingFragment StoreEntitySet="FIN_PL_PLANS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="AmountPlan" ColumnName="AmountPlan" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FIN_TRANSACTIONS">
+            <EntityTypeMapping TypeName="DBTHSNModel.FIN_TRANSACTIONS">
+              <MappingFragment StoreEntitySet="FIN_TRANSACTIONS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="ContractNo" ColumnName="ContractNo" />
+                <ScalarProperty Name="SourceDocID" ColumnName="SourceDocID" />
+                <ScalarProperty Name="SourceDocType" ColumnName="SourceDocType" />
+                <ScalarProperty Name="Purpose" ColumnName="Purpose" />
+                <ScalarProperty Name="CounterpartyName" ColumnName="CounterpartyName" />
+                <ScalarProperty Name="CounterpartyID" ColumnName="CounterpartyID" />
+                <ScalarProperty Name="CounterpartyType" ColumnName="CounterpartyType" />
+                <ScalarProperty Name="PricePerUnit" ColumnName="PricePerUnit" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Direction" ColumnName="Direction" />
+                <ScalarProperty Name="CategoryID" ColumnName="CategoryID" />
+                <ScalarProperty Name="AccountID" ColumnName="AccountID" />
+                <ScalarProperty Name="TxnDate" ColumnName="TxnDate" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SHAREHOLDER_CONTRIBUTIONS">
+            <EntityTypeMapping TypeName="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS">
+              <MappingFragment StoreEntitySet="SHAREHOLDER_CONTRIBUTIONS">
+                <ScalarProperty Name="FinTransactionID" ColumnName="FinTransactionID" />
+                <ScalarProperty Name="ContributionType" ColumnName="ContributionType" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="ContributionDate" ColumnName="ContributionDate" />
+                <ScalarProperty Name="ShareholderID" ColumnName="ShareholderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SHAREHOLDER_SHARE_PERIODS">
+            <EntityTypeMapping TypeName="DBTHSNModel.SHAREHOLDER_SHARE_PERIODS">
+              <MappingFragment StoreEntitySet="SHAREHOLDER_SHARE_PERIODS">
+                <ScalarProperty Name="EffectiveToDate" ColumnName="EffectiveToDate" />
+                <ScalarProperty Name="SharePercent" ColumnName="SharePercent" />
+                <ScalarProperty Name="ToDate" ColumnName="ToDate" />
+                <ScalarProperty Name="FromDate" ColumnName="FromDate" />
+                <ScalarProperty Name="ShareholderID" ColumnName="ShareholderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SHAREHOLDERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.SHAREHOLDER">
+              <MappingFragment StoreEntitySet="SHAREHOLDERS">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_FIN_PL_FACT_MONTHLY">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_FIN_PL_FACT_MONTHLY">
+              <MappingFragment StoreEntitySet="V_FIN_PL_FACT_MONTHLY">
+                <ScalarProperty Name="AmountFact" ColumnName="AmountFact" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="PeriodStartDate" ColumnName="PeriodStartDate" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY">
+              <MappingFragment StoreEntitySet="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
+                <ScalarProperty Name="DeltaPercent" ColumnName="DeltaPercent" />
+                <ScalarProperty Name="Delta" ColumnName="Delta" />
+                <ScalarProperty Name="AmountFact" ColumnName="AmountFact" />
+                <ScalarProperty Name="AmountPlan" ColumnName="AmountPlan" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
+                <ScalarProperty Name="PeriodStartDate" ColumnName="PeriodStartDate" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="FIN_PL_ITEM_CATEGORIES" TypeName="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" StoreEntitySet="FIN_PL_ITEM_CATEGORIES">
+            <EndProperty Name="FIN_PL_ITEMS">
+              <ScalarProperty Name="ID" ColumnName="ItemID" />
+            </EndProperty>
+            <EndProperty Name="FIN_CATEGORIES">
+              <ScalarProperty Name="ID" ColumnName="CategoryID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <FunctionImportMapping FunctionImportName="sp_Fin_AddTransaction" FunctionName="DBTHSNModel.Store.sp_Fin_AddTransaction" />
+          <FunctionImportMapping FunctionImportName="sp_Fin_CashSummary" FunctionName="DBTHSNModel.Store.sp_Fin_CashSummary">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DBTHSNModel.sp_Fin_CashSummary_Result">
+                <ScalarProperty Name="AccountID" ColumnName="AccountID" />
+                <ScalarProperty Name="AccountCode" ColumnName="AccountCode" />
+                <ScalarProperty Name="AccountName" ColumnName="AccountName" />
+                <ScalarProperty Name="OwnerName" ColumnName="OwnerName" />
+                <ScalarProperty Name="OpeningBalance" ColumnName="OpeningBalance" />
+                <ScalarProperty Name="Income" ColumnName="Income" />
+                <ScalarProperty Name="Expense" ColumnName="Expense" />
+                <ScalarProperty Name="ClosingBalance" ColumnName="ClosingBalance" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="sp_FIN_ShareholderValue_AsOf" FunctionName="DBTHSNModel.Store.sp_FIN_ShareholderValue_AsOf" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
