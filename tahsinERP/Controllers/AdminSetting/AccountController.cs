@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Configuration;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -7,7 +6,6 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Script.Serialization;
 using System.Web.Security;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
@@ -22,79 +20,115 @@ namespace tahsinERP.Controllers
 
         [DllImport("Ws2_32.dll")]
         private static extern int inet_addr(string ip);
+
+        // Session timeout constants (in minutes)
+        private const int DEFAULT_SESSION_TIMEOUT = 15;
+        private const int KEEP_LOGGED_IN_TIMEOUT = 60; // 1 hour
+
         public ActionResult Index()
         {
             return View();
         }
+
         public ActionResult Login()
         {
+            // If already authenticated, redirect to home
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserViewModel user)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            if (string.IsNullOrWhiteSpace(user.UName))
             {
-                if (ModelState.IsValid)
-                {
-                    USER getUser = db.USERS.Where(u => u.Email.Equals(user.Email)).FirstOrDefault();
-                    if(getUser.IsDeleted != true)
-                    {
-                        if (getUser != null)
-                        {
-                            var hashCode = getUser.HashCode;
-                            var serializer = new JavaScriptSerializer();
-                            var encodingPasswordString = "";
-                            //Password Hasing Process Call Helper Class Method
-                            if (!string.IsNullOrEmpty(user.Password))
-                                encodingPasswordString = Helper.EncodePassword(user.Password, hashCode);
-
-                            bool IsValidUser = db.USERS
-                       .    Any(u => u.Email.ToLower() == user
-                       .    Email.ToLower() && u.Password.Equals(encodingPasswordString) && u.IsActive==true);
-                            USERIMAGE image = db.USERIMAGES.Where(ui => ui.UserID == getUser.ID).FirstOrDefault();
-                            if (IsValidUser)
-                            {
-                                var authTicket = new FormsAuthenticationTicket(1, user.Email, DateTime.Now, DateTime.Now.AddMinutes(15), false, getUser.FullName);
-                                string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
-
-                                var cookie = new HttpCookie(FormsAuthentication.FormsCookieName,
-                                    encryptedTicket)
-                                {
-                                    HttpOnly = true,
-                                    Secure = FormsAuthentication.RequireSSL,
-                                    Path = FormsAuthentication.FormsCookiePath,
-                                    Domain = FormsAuthentication.CookieDomain,
-                                    Expires = authTicket.Expiration
-                                };
-                                Response.Cookies.Set(cookie);
-
-                                if (image != null)
-                                {
-                                    var userImageCookie = new HttpCookie("UserImageId", image.ID.ToString())
-                                    {
-                                        HttpOnly = true,
-                                        Secure = FormsAuthentication.RequireSSL,
-                                        Path = "/", // Setting the path to root so it's accessible throughout the site
-                                        Expires = authTicket.Expiration // Adjust the expiration as needed
-                                    };
-                                    Response.Cookies.Set(userImageCookie);
-                                }
-
-                                SetUserEntry(getUser.ID);
-                                return RedirectToAction("Index", "Home");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Bunday foydalanuvchi mavjud emas!");
-                        return View();
-                    }
-                }
-                ModelState.AddModelError("", "E-mail yoki kalit so'zi noto'g'ri yoki faolligingiz o'chirilgan");
+                ModelState.AddModelError("UName", "Foydalanuvchi nomini kiriting");
                 return View();
+            }
+
+            if (string.IsNullOrWhiteSpace(user.Password))
+            {
+                ModelState.AddModelError("Password", "Kalit so'zni kiriting");
+                return View();
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Find user by username (case-insensitive)
+                var getUser = db.USERS.FirstOrDefault(u => 
+                    u.Uname.ToLower() == user.UName.ToLower() && 
+                    u.IsDeleted != true);
+
+                if (getUser == null)
+                {
+                    ModelState.AddModelError("", "Bunday foydalanuvchi mavjud emas!");
+                    return View();
+                }
+
+                if (!getUser.IsActive)
+                {
+                    ModelState.AddModelError("", "Foydalanuvchi faol emas. Administrator bilan bog'laning.");
+                    return View();
+                }
+
+                // Validate password
+                var hashCode = getUser.HashCode;
+                var encodingPasswordString = Helper.EncodePassword(user.Password, hashCode);
+
+                if (getUser.Password != encodingPasswordString)
+                {
+                    ModelState.AddModelError("", "Kalit so'zi noto'g'ri!");
+                    return View();
+                }
+
+                // Determine session timeout based on "Keep me logged in"
+                int sessionTimeout = user.KeepMeSigned ? KEEP_LOGGED_IN_TIMEOUT : DEFAULT_SESSION_TIMEOUT;
+                var expirationTime = DateTime.Now.AddMinutes(sessionTimeout);
+
+                // Create authentication ticket with username as identity
+                var authTicket = new FormsAuthenticationTicket(
+                    1,                          // version
+                    getUser.Uname,              // username (identity name)
+                    DateTime.Now,               // issue date
+                    expirationTime,             // expiration
+                    user.KeepMeSigned,          // persistent
+                    getUser.FullName ?? getUser.Uname  // user data (FullName)
+                );
+
+                string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
+
+                var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
+                {
+                    HttpOnly = true,
+                    Secure = FormsAuthentication.RequireSSL,
+                    Path = FormsAuthentication.FormsCookiePath,
+                    Domain = FormsAuthentication.CookieDomain,
+                    Expires = user.KeepMeSigned ? expirationTime : DateTime.MinValue
+                };
+                Response.Cookies.Set(cookie);
+
+                // Set user image cookie
+                var image = db.USERIMAGES.FirstOrDefault(ui => ui.UserID == getUser.ID);
+                if (image != null)
+                {
+                    var userImageCookie = new HttpCookie("UserImageId", image.ID.ToString())
+                    {
+                        HttpOnly = true,
+                        Secure = FormsAuthentication.RequireSSL,
+                        Path = "/",
+                        Expires = user.KeepMeSigned ? expirationTime : DateTime.MinValue
+                    };
+                    Response.Cookies.Set(userImageCookie);
+                }
+
+                // Log user entry
+                SetUserEntry(getUser.ID);
+
+                return RedirectToAction("Index", "Home");
             }
         }
 
@@ -102,22 +136,30 @@ namespace tahsinERP.Controllers
         {
             try
             {
-                string ip = string.Empty;
-                IPHostEntry ipEntry = Dns.GetHostEntry(Dns.GetHostName());
-                IPAddress[] addr = ipEntry.AddressList;
-                ip = addr[1].ToString();
+                string ip = "127.0.0.1";
+                string macAddress = "00:00:00:00:00:00";
 
-                int ldest = inet_addr(ip);
-                int lhost = inet_addr("");
-                long macInfo = 0;
-                int len = 6;
-                int result = SendARP(ldest, 0, ref macInfo, ref len);
-                string macSrc = macInfo.ToString("X");
-                while (macSrc.Length < 12)
+                try
                 {
-                    macSrc = macSrc.Insert(0, "0");
+                    IPHostEntry ipEntry = Dns.GetHostEntry(Dns.GetHostName());
+                    IPAddress[] addr = ipEntry.AddressList;
+                    if (addr.Length > 1)
+                    {
+                        ip = addr[1].ToString();
+
+                        int ldest = inet_addr(ip);
+                        long macInfo = 0;
+                        int len = 6;
+                        int result = SendARP(ldest, 0, ref macInfo, ref len);
+                        string macSrc = macInfo.ToString("X").PadLeft(12, '0');
+                        macAddress = string.Join(":", Enumerable.Range(0, 6).Select(i => macSrc.Substring(i * 2, 2)));
+                    }
                 }
-                string macAddress = string.Join(":", Enumerable.Range(0, 12).Where(x => x % 2 == 0).Select(x => macSrc.Substring(x, 2)));
+                catch
+                {
+                    // Use default values if network info can't be retrieved
+                }
+
                 var userEntry = new USER_ENTRIES
                 {
                     UserID = userID,
@@ -125,6 +167,7 @@ namespace tahsinERP.Controllers
                     IP = ip,
                     MAC = macAddress
                 };
+
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     db.USER_ENTRIES.Add(userEntry);
@@ -133,66 +176,107 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                // Log error but don't fail login
+                System.Diagnostics.Debug.WriteLine($"SetUserEntry error: {ex.Message}");
             }
         }
+
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
+
+            // Clear all cookies
+            if (Request.Cookies[FormsAuthentication.FormsCookieName] != null)
+            {
+                var cookie = new HttpCookie(FormsAuthentication.FormsCookieName)
+                {
+                    Expires = DateTime.Now.AddDays(-1)
+                };
+                Response.Cookies.Add(cookie);
+            }
+
+            if (Request.Cookies["UserImageId"] != null)
+            {
+                var imageCookie = new HttpCookie("UserImageId")
+                {
+                    Expires = DateTime.Now.AddDays(-1)
+                };
+                Response.Cookies.Add(imageCookie);
+            }
+
             return RedirectToAction("Login");
         }
+
         public ActionResult GetUserImage(int id)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var image = db.USERIMAGES.FirstOrDefault(ui => ui.ID == id);
                 if (image != null)
                 {
-                    return File(image.Image, "image/png"); // Adjust the MIME type if necessary
+                    return File(image.Image, "image/png");
                 }
-
                 return HttpNotFound();
             }
         }
-        public ActionResult Settings(string eMail)
+
+        public ActionResult Settings(string userName = null)
         {
+            // Use current user if no username provided
+            string currentUserName = userName ?? User.Identity.Name;
+
+            if (string.IsNullOrEmpty(currentUserName))
+            {
+                return RedirectToAction("Login");
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                USER currentUser = db.USERS.Where(u => u.Email == eMail).FirstOrDefault();
-                UserViewModel userViewModel = new UserViewModel();
+                var currentUser = db.USERS.FirstOrDefault(u => u.Uname == currentUserName);
+                if (currentUser == null)
+                {
+                    return HttpNotFound();
+                }
 
-                userViewModel.UName = currentUser.Uname;
-                userViewModel.Password = currentUser.Password;
-                userViewModel.Email = currentUser.Email;
-                userViewModel.FullName = currentUser.FullName;
-                userViewModel.IsActive = currentUser.IsActive;
-                USERIMAGE userimage = db.USERIMAGES.Where(ui => ui.UserID == currentUser.ID).FirstOrDefault();
+                var userViewModel = new UserViewModel
+                {
+                    ID = currentUser.ID,
+                    UName = currentUser.Uname,
+                    Email = currentUser.Email,
+                    FullName = currentUser.FullName,
+                    IsActive = currentUser.IsActive
+                };
+
+                var userimage = db.USERIMAGES.FirstOrDefault(ui => ui.UserID == currentUser.ID);
                 if (userimage != null)
                 {
-                    ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(userimage.Image, 0, userimage.Image.Length);
+                    ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(userimage.Image);
                 }
 
                 return View(userViewModel);
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SaveSettings(UserViewModel uvm)
         {
-            byte[] avatar;
-            int userPhotoMaxLength = Convert.ToInt32(ConfigurationManager.AppSettings["photoMaxSize"]);
-            if (uvm.Email == null)
+            if (string.IsNullOrEmpty(uvm.UName))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
+            int userPhotoMaxLength = Convert.ToInt32(ConfigurationManager.AppSettings["photoMaxSize"] ?? "2097152");
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-
-                USER userToUpdate = db.USERS.Where(u => u.Email == uvm.Email).FirstOrDefault();
+                var userToUpdate = db.USERS.FirstOrDefault(u => u.Uname == uvm.UName);
                 if (userToUpdate == null)
                 {
                     return HttpNotFound();
                 }
+
+                // Update password if provided
                 if (!string.IsNullOrEmpty(uvm.Password))
                 {
                     var keyNew = Helper.GeneratePassword(10);
@@ -200,58 +284,62 @@ namespace tahsinERP.Controllers
                     userToUpdate.HashCode = keyNew;
                     userToUpdate.Password = password;
                 }
-                USERIMAGE uImage = db.USERIMAGES.Where(ui => ui.UserID == userToUpdate.ID).FirstOrDefault();
-                if (TryUpdateModel(userToUpdate, "", new string[] { "UName", "Email", "FullName", "IsActive", "IsDeleted" }))
+
+                // Update other fields
+                if (!string.IsNullOrEmpty(uvm.FullName))
+                    userToUpdate.FullName = uvm.FullName;
+                if (!string.IsNullOrEmpty(uvm.Email))
+                    userToUpdate.Email = uvm.Email;
+
+                // Handle user image
+                var uImage = db.USERIMAGES.FirstOrDefault(ui => ui.UserID == userToUpdate.ID);
+
+                try
                 {
-                    try
+                    if (Request.Files["userPhotoUpload"] != null && Request.Files["userPhotoUpload"].ContentLength > 0)
                     {
-                        if (uImage != null)
-                            if (Request.Files["userPhotoUpload"].ContentLength > 0)
+                        if (Request.Files["userPhotoUpload"].InputStream.Length > userPhotoMaxLength)
+                        {
+                            ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq.");
+                            return View("Settings", uvm);
+                        }
+
+                        byte[] avatar = new byte[Request.Files["userPhotoUpload"].InputStream.Length];
+                        Request.Files["userPhotoUpload"].InputStream.Read(avatar, 0, avatar.Length);
+
+                        if (uImage == null)
+                        {
+                            var uImageNew = new USERIMAGE
                             {
-                                if (Request.Files["userPhotoUpload"].InputStream.Length < userPhotoMaxLength)
-                                {
-                                    avatar = new byte[Request.Files["userPhotoUpload"].InputStream.Length];
-                                    Request.Files["userPhotoUpload"].InputStream.Read(avatar, 0, avatar.Length);
-                                    if (uImage == null)
-                                    {
-                                        USERIMAGE uImageNew = new USERIMAGE
-                                        {
-                                            UserID = userToUpdate.ID,
-                                            Image = avatar
-                                        };
-
-                                        db.USERIMAGES.Add(uImageNew);
-                                        db.SaveChanges();
-                                    }
-                                    else
-                                    {
-                                        uImage.UserID = userToUpdate.ID;
-                                        uImage.Image = avatar;
-
-                                        db.Entry(uImage).State = System.Data.Entity.EntityState.Modified;
-                                        db.SaveChanges();
-                                    }
-                                }
-                                else
-                                {
-                                    ModelState.AddModelError("", "Suratni yuklab bo‘lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
-                                    throw new RetryLimitExceededException();
-                                }
-                            }
-                        db.SaveChanges();
-
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "AccountController", $"{userEmail} dagi foydalanuvchi ma'lumotlarini saqladi");
-
-                        return Redirect("/Home");
+                                UserID = userToUpdate.ID,
+                                Image = avatar
+                            };
+                            db.USERIMAGES.Add(uImageNew);
+                        }
+                        else
+                        {
+                            uImage.Image = avatar;
+                            db.Entry(uImage).State = System.Data.Entity.EntityState.Modified;
+                        }
                     }
-                    catch (RetryLimitExceededException /* dex */)
-                    {
-                        //Log the error (uncomment dex variable name and add a line here to write a log.
-                        ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                    }
+
+                    db.SaveChanges();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "AccountController", 
+                        $"{User.Identity.Name} foydalanuvchi ma'lumotlarini saqladi");
+
+                    return RedirectToAction("Index", "Home");
                 }
-                return View(uvm);
+                catch (RetryLimitExceededException)
+                {
+                    ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring.");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                }
+
+                return View("Settings", uvm);
             }
         }
     }

@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Collections.Generic;
 using tahsinERP.Models;
 
 namespace tahsinERP.ViewModels
 {
-
     public class RolePermissionsViewModel
     {
         public int RoleID { get; set; }
         public string RoleName { get; set; }
         public string Description { get; set; }
-
         public List<PermissionViewModel> Permissions { get; set; }
     }
 
@@ -23,9 +18,8 @@ namespace tahsinERP.ViewModels
         public string Module { get; set; }
         public string Controller { get; set; }
         public string Action { get; set; }
+        public string Parameter { get; set; }
         public bool ViewPermit { get; set; }
         public bool ChangePermit { get; set; }
     }
-
-
 }

@@ -101,12 +101,12 @@ namespace tahsinERP.Controllers
 
             }
         }
-        private Warehouse GetWarehouseOfMRP(string email)
+        private Warehouse GetWarehouseOfMRP(string username)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                USER currentUser = db.USERS.Where(u => u.Email.CompareTo(email) == 0 && u.IsDeleted == false && u.IsActive == true).FirstOrDefault();
-                Warehouse his_warehouse = db.WAREHOUSES.Where(wrhs => wrhs.MRP == currentUser.ID).FirstOrDefault();
+                USER currentUser = db.USERS.FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
+                Warehouse his_warehouse = currentUser != null ? db.WAREHOUSES.FirstOrDefault(wrhs => wrhs.MRP == currentUser.ID) : null;
 
                 return his_warehouse;
             }

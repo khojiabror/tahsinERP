@@ -59,8 +59,8 @@
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <div class="controls">
-                                                                <label>Foydalanuvchi username</label>
-                                                                @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @type = "text", @placeholder = "Username" })
+                                                                <label>Foydalanuvchi nomi</label>
+                                                                @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @type = "text", @placeholder = "Username", @readonly = "readonly" })
                                                                 @Html.ValidationMessageFor(model => model.UName, "", new { @class = "text-danger" })
                                                             </div>
                                                         </div>

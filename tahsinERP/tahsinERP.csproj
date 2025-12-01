@@ -472,7 +472,7 @@
     <Compile Include="Controllers\Settings\CompanyController.cs" />
     <Compile Include="Controllers\Settings\CurrencyController.cs" />
     <Compile Include="Controllers\Settings\UnitController.cs" />
-    <Compile Include="Controllers\AdminSetting\LastActionsController.cs" />
+    <Compile Include="Controllers\AdminSetting\LogController.cs" />
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
     <Compile Include="Controllers\Engineering\BOMController.cs" />
     <Compile Include="Controllers\AdminSetting\ComingSoonController.cs" />
@@ -805,6 +805,7 @@
     <Compile Include="ViewModels\WrhsIncomeViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
     <Compile Include="ViewModels\UserViewModel.cs" />
+    <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="app-assets\css-rtl\bootstrap-extended.css" />
@@ -2754,7 +2755,7 @@
     <Content Include="Views\DamagedProduct\Delete.cshtml" />
     <Content Include="Views\DamagedProduct\Details.cshtml" />
     <Content Include="Views\PartStock\Index.cshtml" />
-    <Content Include="Views\LastActions\Index.cshtml" />
+    <Content Include="Views\Log\Index.cshtml" />
     <Content Include="Views\BOM\UploadWithExcel.cshtml" />
     <Content Include="Views\BOM\Edit.cshtml" />
     <Content Include="Views\Reports\InTransit.cshtml" />

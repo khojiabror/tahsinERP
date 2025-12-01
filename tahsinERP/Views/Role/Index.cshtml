@@ -1,16 +1,13 @@
 ﻿@model List<tahsinERP.Models.ROLE>
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Rollar";
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-    {
-        changePermit = true;
-    }
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -18,55 +15,64 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Rollar</h5>
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/AdminPanel/Index"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item ">
-                                        Admin Panel
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Rollar
-                                    </li>
-
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Rollar</li>
                                 </ol>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="content-body">
-                <!-- users list start -->
                 <section class="invoice-list-wrapper">
                     @if (changePermit)
                     {
                         <div class="invoice-create-btn mb-1">
-                            <a href="@Url.Action("Create", "Role")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                Yangi
-                                Rol qo'shish
+                            <a href="@Url.Action("Create", "Role")" class="btn btn-success">
+                                <i class="bx bx-plus"></i> Yangi rol qo'shish
                             </a>
                         </div>
                     }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <!-- datatable start -->
-                                    <div class="card-datatable table-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                    <div class="table-responsive">
+                                        <table id="roleDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
+                                                    <th>Rol nomi</th>
+                                                    <th>Tavsif</th>
+                                                    <th>Huquqlar soni</th>
+                                                    <th>Foydalanuvchilar</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th></th>
-                                                        <th></th>
-                                                    }
-                                                    <th>Role Nomi</th>
-                                                    <th>Batafsil</th>
-                                                    @if (changePermit)
-                                                    {
-                                                        <th>amallar</th>
+                                                        <th class="text-center">Amallar</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -74,22 +80,41 @@
                                                 @foreach (var item in Model)
                                                 {
                                                     <tr>
-                                                        @if (changePermit)
-                                                        {
-                                                            <td></td>
-                                                            <td></td>
-                                                        }
                                                         <td>
-                                                            <a href="~/Role/Details/@item.ID">@item.RName</a>
+                                                            <a href="@Url.Action("Details", "Role", new { id = item.ID })" class="font-weight-bold">
+                                                                @item.RName
+                                                            </a>
                                                         </td>
-                                                        <td>@item.Description</td>
+                                                        <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
+                                                        <td>
+                                                            <span class="badge badge-light-info">
+                                                                @(item.PERMISSIONS?.Count ?? 0) ta
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-light-primary">
+                                                                @{
+                                                                    var userCounts = ViewBag.UserCounts as System.Collections.Generic.Dictionary<int, int>;
+                                                                    var count = userCounts != null && userCounts.ContainsKey(item.ID) ? userCounts[item.ID] : 0;
+                                                                }
+                                                                @count ta
+                                                            </span>
+                                                        </td>
                                                         @if (changePermit)
                                                         {
-                                                            <td>
-                                                                <div>
-                                                                    <a href="@Url.Action("Edit", "Role", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "Role", new { id = item.ID })"><i class="bx bx-trash"></i></a>
-                                                                </div>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Permissions", "Role", new { id = item.ID })" 
+                                                                   class="btn btn-sm btn-outline-warning" title="Huquqlar">
+                                                                    <i class="bx bx-lock"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Edit", "Role", new { id = item.ID })" 
+                                                                   class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                    <i class="bx bx-edit"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Delete", "Role", new { id = item.ID })" 
+                                                                   class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                    <i class="bx bx-trash"></i>
+                                                                </a>
                                                             </td>
                                                         }
                                                     </tr>
@@ -97,7 +122,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <!-- datatable ends -->
                                 </div>
                             </div>
                         </div>
@@ -106,6 +130,37 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#roleDataTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]],
+                "columnDefs": [
+                    @if (changePermit)
+                    {
+                        <text>
+                        { "orderable": false, "targets": -1 }
+                        </text>
+                    }
+                ]
+            });
+        });
+    </script>
 }
 else
 {

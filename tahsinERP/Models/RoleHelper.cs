@@ -1,179 +1,360 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Web.Mvc;
+using System.Web;
+using System.Web.Caching;
 using System.Web.Security;
-using tahsinERP.ViewModels;
 
 namespace tahsinERP.Models
 {
+    /// <summary>
+    /// Permission va Role boshqaruv yordamchisi
+    /// Caching bilan ishlaydi - har safar DB ga bormaslik uchun
+    /// </summary>
     public static class RoleHelper
     {
-        public static DBTHSNEntities db = new DBTHSNEntities();
+        // Cache davomiyligi (daqiqada)
+        private const int CACHE_DURATION_MINUTES = 10;
+
+        #region Cache Keys
+        private static string GetUserRolesCacheKey(string username) => $"UserRoles_{username}";
+        private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{username}";
+        private static string GetPermissionCacheKey(string username, string module) => $"Permission_{username}_{module}";
+        private static string GetPermissionCacheKey(string username, string controller, string action) => $"Permission_{username}_{controller}_{action}";
+        #endregion
+
+        #region Cache Helper
+        private static Cache AppCache => HttpRuntime.Cache;
+
+        private static void SetCache(string key, object value)
+        {
+            AppCache.Insert(key, value, null, DateTime.Now.AddMinutes(CACHE_DURATION_MINUTES), Cache.NoSlidingExpiration);
+        }
+
+        private static object GetCache(string key)
+        {
+            return AppCache.Get(key);
+        }
+
+        private static void RemoveCache(string key)
+        {
+            AppCache.Remove(key);
+        }
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Foydalanuvchining to'liq ismini olish (cache bilan)
+        /// </summary>
+        public static string GetUserFullName(string username)
+        {
+            if (string.IsNullOrEmpty(username)) return string.Empty;
+
+            var cacheKey = GetUserFullNameCacheKey(username);
+            var cachedName = GetCache(cacheKey) as string;
+            
+            if (cachedName != null)
+                return cachedName;
+
+            // Auth ticket dan olishga harakat qilish
+            try
+            {
+                var authCookie = HttpContext.Current?.Request.Cookies[FormsAuthentication.FormsCookieName];
+                if (authCookie != null)
+                {
+                    var authTicket = FormsAuthentication.Decrypt(authCookie.Value);
+                    if (authTicket != null && !string.IsNullOrEmpty(authTicket.UserData))
+                    {
+                        SetCache(cacheKey, authTicket.UserData);
+                        return authTicket.UserData;
+                    }
+                }
+            }
+            catch { }
+
+            // DB dan olish
+            using (var db = new DBTHSNEntities())
+            {
+                var user = db.USERS.FirstOrDefault(u => u.Uname == username && u.IsDeleted != true);
+                var fullName = user?.FullName ?? username;
+                SetCache(cacheKey, fullName);
+                return fullName;
+            }
+        }
+
+        /// <summary>
+        /// Foydalanuvchi rollarini olish (cache bilan)
+        /// </summary>
         public static string[] GetUserRoles(string username)
         {
-            if (string.IsNullOrEmpty(username)) return null;
-            return Roles.GetRolesForUser(username);
+            if (string.IsNullOrEmpty(username))
+                return new string[0];
+
+            var cacheKey = GetUserRolesCacheKey(username);
+            var cachedRoles = GetCache(cacheKey) as string[];
+            
+            if (cachedRoles != null)
+                return cachedRoles;
+
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var user = db.USERS
+                        .Include("ROLES")
+                        .FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
+
+                    if (user?.ROLES != null && user.ROLES.Any())
+                    {
+                        var roles = user.ROLES.Select(r => r.RName).ToArray();
+                        SetCache(cacheKey, roles);
+                        return roles;
+                    }
+                }
+            }
+            catch { }
+
+            return new string[0];
         }
+
+        /// <summary>
+        /// Ko'rish huquqi borligini tekshirish (Module nomi bo'yicha)
+        /// </summary>
         public static bool IsViewPermitted(string username, string moduleName)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                string roleName = GetUserRoles(username)[0];
+            if (string.IsNullOrEmpty(username)) return false;
 
-                // Perform CPU-bound work here
-                // For example, heavy computations or other synchronous tasks
-                ROLE role = db.ROLES.Where(r => r.RName.CompareTo(roleName) == 0).FirstOrDefault();
-                if (role != null)
-                {
-                    PERMISSION permit = GetPermissionsOfRole(role, moduleName);
-                    if (permit != null)
-                    {
-                        if (permit.ViewPermit)
-                            return true;
-                        else
-                            return false;
-                    }
-                }
-                return false;
-            }
+            var cacheKey = GetPermissionCacheKey(username, moduleName);
+            var cached = GetCache(cacheKey) as PermissionCache;
+            
+            if (cached != null)
+                return cached.ViewPermit;
+
+            var permission = GetPermissionFromDb(username, moduleName, null, null, null);
+            SetCache(cacheKey, permission);
+            return permission.ViewPermit;
         }
+
+        /// <summary>
+        /// Ko'rish huquqi borligini tekshirish (Controller/Action bo'yicha)
+        /// </summary>
         public static bool IsViewPermitted(string username, string controller, string action)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                string roleName = GetUserRoles(username)[0];
+            if (string.IsNullOrEmpty(username)) return false;
 
-                // Perform CPU-bound work here
-                // For example, heavy computations or other synchronous tasks
-                ROLE role = db.ROLES.Where(r => r.RName.CompareTo(roleName) == 0).FirstOrDefault();
-                if (role != null)
-                {
-                    PERMISSION permit = GetPermissionsOfRole(role, controller, action);
-                    if (permit != null)
-                    {
-                        if (permit.ViewPermit)
-                            return true;
-                        else
-                            return false;
-                    }
-                }
-                return false;
-            }
+            var cacheKey = GetPermissionCacheKey(username, controller, action);
+            var cached = GetCache(cacheKey) as PermissionCache;
+            
+            if (cached != null)
+                return cached.ViewPermit;
+
+            var permission = GetPermissionFromDb(username, null, controller, action, null);
+            SetCache(cacheKey, permission);
+            return permission.ViewPermit;
         }
-        public static bool IsViewPermitted(string username, string controller, string action, string parametr)
+
+        /// <summary>
+        /// Ko'rish huquqi borligini tekshirish (Controller/Action/Parameter bo'yicha)
+        /// </summary>
+        public static bool IsViewPermitted(string username, string controller, string action, string parameter)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                string roleName = GetUserRoles(username)[0];
+            if (string.IsNullOrEmpty(username)) return false;
 
-                // Perform CPU-bound work here
-                // For example, heavy computations or other synchronous tasks
-                ROLE role = db.ROLES.Where(r => r.RName.CompareTo(roleName) == 0).FirstOrDefault();
-                if (role != null)
-                {
-                    PERMISSION permit = GetPermissionsOfRole(role, controller, action, parametr);
-                    if (permit != null)
-                    {
-                        if (permit.ViewPermit)
-                            return true;
-                        else
-                            return false;
-                    }
-                }
-                return false;
-            }
+            var cacheKey = $"Permission_{username}_{controller}_{action}_{parameter}";
+            var cached = GetCache(cacheKey) as PermissionCache;
+            
+            if (cached != null)
+                return cached.ViewPermit;
+
+            var permission = GetPermissionFromDb(username, null, controller, action, parameter);
+            SetCache(cacheKey, permission);
+            return permission.ViewPermit;
         }
 
+        /// <summary>
+        /// O'zgartirish huquqi borligini tekshirish (Module nomi bo'yicha)
+        /// </summary>
         public static bool IsChangePermitted(string username, string moduleName)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                string roleName = GetUserRoles(username)[0];
-                ROLE role = db.ROLES.Where(r => r.RName.CompareTo(roleName) == 0).FirstOrDefault();
-                if (role != null)
-                {
-                    PERMISSION permit = GetPermissionsOfRole(role, moduleName);
-                    if (permit != null)
-                    {
-                        if (permit.ChangePermit)
-                            return true;
-                        else
-                            return false;
-                    }
-                }
-                return false;
-            }
+            if (string.IsNullOrEmpty(username)) return false;
+
+            var cacheKey = GetPermissionCacheKey(username, moduleName);
+            var cached = GetCache(cacheKey) as PermissionCache;
+            
+            if (cached != null)
+                return cached.ChangePermit;
+
+            var permission = GetPermissionFromDb(username, moduleName, null, null, null);
+            SetCache(cacheKey, permission);
+            return permission.ChangePermit;
         }
+
+        /// <summary>
+        /// O'zgartirish huquqi borligini tekshirish (Controller/Action bo'yicha)
+        /// </summary>
         public static bool IsChangePermitted(string username, string controller, string action)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (string.IsNullOrEmpty(username)) return false;
+
+            var cacheKey = GetPermissionCacheKey(username, controller, action);
+            var cached = GetCache(cacheKey) as PermissionCache;
+            
+            if (cached != null)
+                return cached.ChangePermit;
+
+            var permission = GetPermissionFromDb(username, null, controller, action, null);
+            SetCache(cacheKey, permission);
+            return permission.ChangePermit;
+        }
+
+        /// <summary>
+        /// O'zgartirish huquqi borligini tekshirish (Controller/Action/Parameter bo'yicha)
+        /// </summary>
+        public static bool IsChangePermitted(string username, string controller, string action, string parameter)
+        {
+            if (string.IsNullOrEmpty(username)) return false;
+
+            var cacheKey = $"Permission_{username}_{controller}_{action}_{parameter}";
+            var cached = GetCache(cacheKey) as PermissionCache;
+            
+            if (cached != null)
+                return cached.ChangePermit;
+
+            var permission = GetPermissionFromDb(username, null, controller, action, parameter);
+            SetCache(cacheKey, permission);
+            return permission.ChangePermit;
+        }
+
+        /// <summary>
+        /// Foydalanuvchi uchun cache ni tozalash (permission o'zgarganda chaqiriladi)
+        /// </summary>
+        public static void ClearUserCache(string username)
+        {
+            if (string.IsNullOrEmpty(username)) return;
+
+            var cache = HttpRuntime.Cache;
+            var keysToRemove = new List<string>();
+            
+            var enumerator = cache.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                string roleName = GetUserRoles(username)[0];
-                ROLE role = db.ROLES.Where(r => r.RName.CompareTo(roleName) == 0).FirstOrDefault();
-                if (role != null)
+                var key = enumerator.Key.ToString();
+                if (key.Contains(username))
+                    keysToRemove.Add(key);
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                cache.Remove(key);
+            }
+        }
+
+        /// <summary>
+        /// Barcha cache ni tozalash
+        /// </summary>
+        public static void ClearAllCache()
+        {
+            var cache = HttpRuntime.Cache;
+            var keysToRemove = new List<string>();
+            
+            var enumerator = cache.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                var key = enumerator.Key.ToString();
+                if (key.StartsWith("Permission_") || key.StartsWith("UserRoles_") || key.StartsWith("UserFullName_"))
+                    keysToRemove.Add(key);
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                cache.Remove(key);
+            }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// DB dan permission olish
+        /// </summary>
+        private static PermissionCache GetPermissionFromDb(string username, string moduleName, string controller, string action, string parameter)
+        {
+            var result = new PermissionCache();
+
+            try
+            {
+                using (var db = new DBTHSNEntities())
                 {
-                    PERMISSION permit = GetPermissionsOfRole(role, controller, action);
-                    if (permit != null)
+                    // Foydalanuvchi rolini olish
+                    var user = db.USERS
+                        .Include("ROLES")
+                        .FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
+
+                    if (user?.ROLES == null || !user.ROLES.Any())
+                        return result;
+
+                    var roleId = user.ROLES.First().ID;
+
+                    // Permission moduleni topish
+                    PERMISSIONMODULE module = null;
+
+                    if (!string.IsNullOrEmpty(moduleName))
                     {
-                        if (permit.ChangePermit)
-                            return true;
+                        module = db.PERMISSIONMODULES.FirstOrDefault(pm => pm.Module == moduleName);
+                    }
+                    else if (!string.IsNullOrEmpty(controller) && !string.IsNullOrEmpty(action))
+                    {
+                        if (!string.IsNullOrEmpty(parameter))
+                        {
+                            module = db.PERMISSIONMODULES.FirstOrDefault(pm =>
+                                pm.Controller == controller &&
+                                pm.Action == action &&
+                                pm.Parameter == parameter);
+                        }
                         else
-                            return false;
+                        {
+                            module = db.PERMISSIONMODULES.FirstOrDefault(pm =>
+                                pm.Controller == controller &&
+                                pm.Action == action &&
+                                (pm.Parameter == null || pm.Parameter == ""));
+                        }
+                    }
+
+                    if (module == null)
+                        return result;
+
+                    // Permission ni olish
+                    var permission = db.PERMISSIONS.FirstOrDefault(p =>
+                        p.RoleID == roleId &&
+                        p.PermissionModuleID == module.ID);
+
+                    if (permission != null)
+                    {
+                        result.ViewPermit = permission.ViewPermit;
+                        result.ChangePermit = permission.ChangePermit;
                     }
                 }
-                return false;
             }
+            catch { }
+
+            return result;
         }
-        public static bool IsChangePermitted(string username, string controller, string action, string parametr)
+
+        #endregion
+
+        #region Helper Classes
+
+        /// <summary>
+        /// Permission cache uchun oddiy class
+        /// </summary>
+        private class PermissionCache
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                string roleName = GetUserRoles(username)[0];
-                ROLE role = db.ROLES.Where(r => r.RName.CompareTo(roleName) == 0).FirstOrDefault();
-                if (role != null)
-                {
-                    PERMISSION permit = GetPermissionsOfRole(role, controller, action, parametr);
-                    if (permit != null)
-                    {
-                        if (permit.ChangePermit)
-                            return true;
-                        else
-                            return false;
-                    }
-                }
-                return false;
-            }
+            public bool ViewPermit { get; set; }
+            public bool ChangePermit { get; set; }
         }
-        public static PERMISSION GetPermissionsOfRole(ROLE role, string moduleName)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PERMISSIONMODULE module = db.PERMISSIONMODULES.Where(pm => pm.Module.CompareTo(moduleName) == 0).FirstOrDefault();
-                if (module != null)
-                    return db.PERMISSIONS.Where(p => p.RoleID == role.ID && p.PermissionModuleID == module.ID).FirstOrDefault();
-                return null;
-            }
-        }
-        public static PERMISSION GetPermissionsOfRole(ROLE role, string controller, string action)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PERMISSIONMODULE module = db.PERMISSIONMODULES.Where(pm => pm.Controller.CompareTo(controller) == 0 && pm.Action.CompareTo(action) == 0).FirstOrDefault();
-                if (module != null)
-                    return db.PERMISSIONS.Where(p => p.RoleID == role.ID && p.PermissionModuleID == module.ID).FirstOrDefault();
-                return null;
-            }
-        }
-        public static PERMISSION GetPermissionsOfRole(ROLE role, string controller, string action, string parametr)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PERMISSIONMODULE module = db.PERMISSIONMODULES.Where(pm => pm.Controller.CompareTo(controller) == 0 && pm.Action.CompareTo(action) == 0 && ((pm.Parameter == null && (parametr == null || parametr == "")) || pm.Parameter == parametr)).FirstOrDefault();
-                if (module != null)
-                    return db.PERMISSIONS.Where(p => p.RoleID == role.ID && p.PermissionModuleID == module.ID).FirstOrDefault();
-                return null;
-            }
-        }
+
+        #endregion
     }
 }

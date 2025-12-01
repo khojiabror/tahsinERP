@@ -1,8 +1,8 @@
-﻿
-@{
-    ViewBag.Title = "UploadWithExcel";
+﻿@{
+    ViewBag.Title = "Excel orqali yuklash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     <div class="app-content content">
@@ -17,12 +17,10 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item ">
+                                    <li class="breadcrumb-item">
                                         <a href="~/Product">Maxsulotlar</a>
                                     </li>
-                                    <li class="breadcrumb-item active">
-                                        Excel orqali yuklash
-                                    </li>
+                                    <li class="breadcrumb-item active">Excel orqali yuklash</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,7 +31,6 @@
                 <section id="input-file-browser">
                     <div class="row">
                         <div class="col-md-12">
-
                             <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">Excel orqali yuklash</h4>
@@ -44,8 +41,8 @@
                                             <h6 class="alert-heading"><i class="bx bx-info-circle"></i> Type ustuni qiymatlari:</h6>
                                             <ul class="mb-0">
                                                 <li><strong>MAXSULOT</strong> - Tayyor maxsulot</li>
-                                                <li><strong>YARIM TAYYOR</strong> yoki <strong>COMPONENT</strong> - Yarim tayyor maxsulot</li>
-                                                <li><strong>XOMASHYO</strong> yoki <strong>RAW MATERIAL</strong> - Xomashyo</li>
+                                                <li><strong>YARIM TAYYOR</strong> - Yarim tayyor maxsulot</li>
+                                                <li><strong>XOMASHYO</strong> - Xomashyo</li>
                                             </ul>
                                         </div>
                                         <div class="row">
@@ -60,22 +57,13 @@
                                                 @using (Html.BeginForm("UploadWithExcel", "Product", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                                 {
                                                     <fieldset class="form-group">
-                                                        <label for="basicInputFile">To'ldirilgan faylni yuklash uchun quyidagi tugmani bosing</label>
+                                                        <label>To'ldirilgan faylni yuklash</label>
                                                         <div class="custom-file">
                                                             <input type="file" class="custom-file-input" id="inputGroupFile01" name="file">
                                                             <label class="custom-file-label" for="inputGroupFile01">Faylni tanlang</label>
                                                         </div>
                                                     </fieldset>
-                                                    <input type="submit" class="btn btn-light-primary mr-1 mb-1 round" value="Yuklash" />
-                                                }
-                                                @using (Html.BeginForm("ClearDataTable", "Product", FormMethod.Post))
-                                                {
-                                                    <fieldset class="form-group">
-                                                        <div>
-                                                            <label for="basicInputFile">Jadval ma'lumotlarini tozalash uchun esa quyidagi tugmani bosing:</label>
-                                                        </div>
-                                                        <input type="submit" value="Tozalash" class="btn btn-outline-danger round" />
-                                                    </fieldset>
+                                                    <input type="submit" class="btn btn-primary round" value="Yuklash" />
                                                 }
                                             </div>
                                         </div>
@@ -83,78 +71,72 @@
                                 </div>
                             </div>
 
-                            <div class="card">
-                                @if (ViewBag.Message != null)
-                                {
-                                    <div class="alert border-danger alert-dismissible mb-2" role="alert">
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        <div class="d-flex align-items-center">
-                                            <i class="bx bx-error"></i>
-                                            <span>
-                                                @ViewBag.Message
-                                            </span>
-                                        </div>
+                            @if (ViewBag.Message != null)
+                            {
+                                <div class="alert border-danger alert-dismissible mb-2" role="alert">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-error"></i>
+                                        <span>@ViewBag.Message</span>
                                     </div>
-                                }
-                            </div>
+                                </div>
+                            }
+
                             @if (ViewBag.DataTable != null)
                             {
+                                var existingCount = ViewBag.ExistingRecordsCount ?? 0;
+
                                 <div class="card">
                                     <div class="card-header">
                                         <h4 class="card-title">Excel orqali yuklangan ma'lumot</h4>
                                     </div>
-                                    @using (Html.BeginForm("Save", "Product", FormMethod.Post))
-                                    {
-                                        <div class="card-content">
-                                            <div class="card-body">
-                                                <!-- datatable start -->
-                                                <div class="table-responsive">
-
-
-                                                    <table class="table zero-configuration" style="width:100%">
-                                                        <thead>
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            @foreach (var col in ViewBag.DataTable.Columns)
+                                                            {
+                                                                <th>@col.ColumnName</th>
+                                                            }
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var row in ViewBag.DataTable.Rows)
+                                                        {
                                                             <tr>
-                                                                @foreach (var col in ViewBag.DataTable.Columns)
+                                                                @foreach (var item in row.ItemArray)
                                                                 {
-                                                                    <th>@col.ColumnName</th>
+                                                                    <td>@item</td>
                                                                 }
                                                             </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach (var row in ViewBag.DataTable.Rows)
-                                                            {
-                                                                <tr>
-                                                                    @foreach (var item in row.ItemArray)
-                                                                    {
-                                                                        <td>@item</td>
-                                                                    }
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-
-                                                </div>
-                                                @if (ViewBag.IsFileUploaded == true)
-                                                {
-                                                    <br />
-                                                    @if (ViewBag.ExistingRecordsCount != null && ViewBag.ExistingRecordsCount > 0)
-                                                    {
-                                                        <div class="alert alert-warning">
-                                                            <i class="bx bx-error-circle"></i>
-                                                            <strong>Diqqat!</strong> @ViewBag.ExistingRecordsCount ta yozuv allaqachon bazada mavjud va o'tkazib yuboriladi.
-                                                        </div>
-                                                    }
-                                                    <h6>
-                                                        Agar ma'lumotlar to'g'riliga ishonch xosil qilgan bo'lsangiz quyidagi tugma orqali ma'lumotlar bazasiga saqlashingiz mumkin.
-                                                    </h6>
-                                                    <input type="hidden" name="dataTableModel" value='@Html.Raw(ViewBag.DataTableModel)' />
-                                                    <input type="submit" value="Saqlash" class="btn btn-outline-success round mr-1 mb-1" />
-                                                }
+                                                        }
+                                                    </tbody>
+                                                </table>
                                             </div>
+
+                                            @if (existingCount > 0)
+                                            {
+                                                <div class="alert alert-warning mt-2">
+                                                    <i class="bx bx-error-circle"></i>
+                                                    <strong>Diqqat!</strong> @existingCount ta yozuv allaqachon bazada mavjud va o'tkazib yuboriladi.
+                                                </div>
+                                            }
+
+                                            @using (Html.BeginForm("Save", "Product", FormMethod.Post))
+                                            {
+                                                <textarea name="dataTableModel" style="display:none;">@ViewBag.DataTableModel</textarea>
+                                                <div class="mt-2">
+                                                    <p>Agar ma'lumotlar to'g'riliga ishonch xosil qilgan bo'lsangiz quyidagi tugma orqali saqlang.</p>
+                                                    <input type="submit" value="Saqlash" class="btn btn-success round" />
+                                                    @Html.ActionLink("Bekor qilish", "Index", null, new { @class = "btn btn-outline-secondary round ml-1" })
+                                                </div>
+                                            }
                                         </div>
-                                    }
+                                    </div>
                                 </div>
                             }
                         </div>

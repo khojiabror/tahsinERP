@@ -117,68 +117,19 @@ namespace tahsinERP.Controllers
         #endregion
 
         // GET: Product
-        // Type bo'yicha filterli Index
-        public async Task<ActionResult> Index(string typeFilter = "ALL")
+        public async Task<ActionResult> Index()
         {
-            var query = db.PRODUCTS
-                          .Include(p => p.UNIT)
-                          .Include(p => p.SHOP)
-                          .Where(p => p.IsDeleted == false);
+            var list = await db.PRODUCTS
+                .Include(p => p.UNIT)
+                .Include(p => p.SHOP)
+                .Where(p => p.IsDeleted == false)
+                .OrderBy(p => p.PNo)
+                .ToListAsync();
 
-            // Filter by product type based on boolean flags
-            if (!string.IsNullOrEmpty(typeFilter) && typeFilter != PRODUCT_TYPE_ALL)
-            {
-                switch (typeFilter)
-                {
-                    case PRODUCT_TYPE_FINISHED_GOOD:
-                        query = query.Where(p => p.IsFinishedGood == true);
-                        break;
-                    case PRODUCT_TYPE_COMPONENT:
-                        query = query.Where(p => p.IsComponent == true);
-                        break;
-                    case PRODUCT_TYPE_RAW_MATERIAL:
-                        query = query.Where(p => p.IsRawMaterial == true);
-                        break;
-                }
-            }
-
-            var list = await query.OrderBy(p => p.PNo).ToListAsync();
-
-            ViewBag.TypeFilterList = GetProductTypeFilterSelectList(typeFilter);
-            ViewBag.UNIT = await GetUnitSelectListAsync();
+            ViewBag.TypeFilterList = GetProductTypeFilterSelectList();
             ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "Product", "Index");
 
             return View(list);
-        }
-
-        // AJAX orqali faqat jadvalni qaytaradigan action
-        public async Task<ActionResult> List(string typeFilter = "ALL")
-        {
-            var query = db.PRODUCTS
-                          .Include(p => p.UNIT)
-                          .Include(p => p.SHOP)
-                          .Where(p => p.IsDeleted == false);
-
-            // Filter by product type based on boolean flags
-            if (!string.IsNullOrEmpty(typeFilter) && typeFilter != PRODUCT_TYPE_ALL)
-            {
-                switch (typeFilter)
-                {
-                    case PRODUCT_TYPE_FINISHED_GOOD:
-                        query = query.Where(p => p.IsFinishedGood == true);
-                        break;
-                    case PRODUCT_TYPE_COMPONENT:
-                        query = query.Where(p => p.IsComponent == true);
-                        break;
-                    case PRODUCT_TYPE_RAW_MATERIAL:
-                        query = query.Where(p => p.IsRawMaterial == true);
-                        break;
-                }
-            }
-
-            var list = await query.OrderBy(p => p.PNo).ToListAsync();
-            ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "Product", "Index");
-            return PartialView("_ProductTable", list);
         }
 
         // GET: Product/Details/5
@@ -393,6 +344,15 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
+            // Load ProductImage if exists
+            var productImage = await db.PRODUCTIMAGES
+                .FirstOrDefaultAsync(pi => pi.ProdID == id && pi.IsDeleted != true);
+
+            if (productImage?.Image != null)
+            {
+                ViewBag.ProductImage = Convert.ToBase64String(productImage.Image);
+            }
+
             return View(product);
         }
 
@@ -424,55 +384,59 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Download()
         {
-            var maxsulot = await db.SAMPLE_FILES
-                .Where(s => s.FileName == "maxsulot.xlsx")
-                .FirstOrDefaultAsync();
+            var sampleFile = await db.SAMPLE_FILES
+                .FirstOrDefaultAsync(s => s.FileName == "maxsulot.xlsx");
 
-            if (maxsulot != null)
-                return File(maxsulot.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "maxsulot.xlsx");
+            if (sampleFile == null)
+                return HttpNotFound("Shablon fayl topilmadi");
 
-            return HttpNotFound("Sample file not found");
+            return File(sampleFile.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "maxsulot.xlsx");
         }
 
         public ActionResult UploadWithExcel()
         {
-            ViewBag.IsFileUploaded = false;
             return View();
         }
 
         [HttpPost]
         public async Task<ActionResult> UploadWithExcel(HttpPostedFileBase file)
         {
-            ViewBag.IsFileUploaded = false;
-
             if (file == null || file.ContentLength == 0)
             {
                 ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
-                return View("UploadWithExcel");
+                return View();
             }
 
-            if (Path.GetExtension(file.FileName).ToLower() != ".xlsx")
+            if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
                 ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
-                return View("UploadWithExcel");
+                return View();
             }
 
             try
             {
-                var dataTable = new DataTable();
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                var dataTable = new DataTable();
 
                 using (var package = new ExcelPackage(file.InputStream))
                 {
                     var worksheet = package.Workbook.Worksheets[0];
-                    var rowCount = worksheet.Dimension.Rows;
-                    var colCount = worksheet.Dimension.Columns;
+                    if (worksheet.Dimension == null)
+                    {
+                        ViewBag.Message = "Excel fayl bo'sh!";
+                        return View();
+                    }
 
+                    int rowCount = worksheet.Dimension.Rows;
+                    int colCount = worksheet.Dimension.Columns;
+
+                    // Add columns from header row
                     for (int col = 1; col <= colCount; col++)
                     {
                         dataTable.Columns.Add(worksheet.Cells[1, col].Text);
                     }
 
+                    // Add data rows
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var dataRow = dataTable.NewRow();
@@ -484,100 +448,100 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                ViewBag.DataTable = dataTable;
-                ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
-                ViewBag.IsFileUploaded = true;
-
                 // Check for existing records
                 int existingCount = 0;
-                foreach (DataRow row in dataTable.Rows)
+                if (dataTable.Columns.Contains("Partnumber"))
                 {
-                    var pno = row["Partnumber"].ToString();
-                    var exists = await db.PRODUCTS
-                        .AnyAsync(p => p.PNo == pno && p.IsDeleted == false);
-
-                    if (exists)
-                    {
-                        existingCount++;
-                    }
+                    var pnos = dataTable.AsEnumerable().Select(r => r["Partnumber"].ToString()).ToList();
+                    existingCount = await db.PRODUCTS.CountAsync(p => pnos.Contains(p.PNo) && p.IsDeleted == false);
                 }
+
+                ViewBag.DataTable = dataTable;
+                ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
                 ViewBag.ExistingRecordsCount = existingCount;
             }
             catch (Exception ex)
             {
-                ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                ViewBag.Message = $"Xatolik: {ex.Message}";
             }
 
-            return View("UploadWithExcel");
-        }
-
-        public ActionResult ClearDataTable()
-        {
-            ViewBag.DataTable = null;
-            ViewBag.DataTableModel = null;
-            ViewBag.IsFileUploaded = false;
-            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
-            return View("UploadWithExcel");
+            return View();
         }
 
         [HttpPost]
         public async Task<ActionResult> Save(string dataTableModel)
         {
-            if (string.IsNullOrEmpty(dataTableModel))
+            if (string.IsNullOrWhiteSpace(dataTableModel))
             {
+                TempData["Error"] = "Ma'lumot topilmadi";
                 return RedirectToAction("Index");
             }
 
-            var tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
+            DataTable tableModel;
+            try
+            {
+                tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
+                if (tableModel == null || tableModel.Rows.Count == 0)
+                {
+                    TempData["Error"] = "Excel faylda ma'lumot yo'q";
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (JsonException)
+            {
+                TempData["Error"] = "Ma'lumotlarni o'qishda xatolik yuz berdi";
+                return RedirectToAction("Index");
+            }
 
             try
             {
                 // Get default ShopID (first active shop)
                 var defaultShop = await db.SHOPS
-                    .Where(s => s.IsDeleted != true)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(s => s.IsDeleted != true);
 
                 int defaultShopId = defaultShop?.ID ?? 1;
+                int savedCount = 0;
 
                 foreach (DataRow row in tableModel.Rows)
                 {
-                    var pno = row["Partnumber"].ToString();
+                    var pno = row.Table.Columns.Contains("Partnumber") ? row["Partnumber"].ToString().Trim() : "";
+                    if (string.IsNullOrEmpty(pno)) continue;
 
-                    var existingProduct = await db.PRODUCTS
-                        .FirstOrDefaultAsync(p => p.PNo == pno && p.IsDeleted == false);
+                    var exists = await db.PRODUCTS.AnyAsync(p => p.PNo == pno && p.IsDeleted == false);
+                    if (exists) continue;
 
-                    if (existingProduct == null)
+                    var newProduct = new PRODUCT
                     {
-                        var newProduct = new PRODUCT
-                        {
-                            PNo = pno,
-                            Name = row["Name"].ToString(),
-                            Weight = ParseDoubleOrNull(row, "Weight"),
-                            Length = ParseDoubleOrNull(row, "Length"),
-                            Width = ParseDoubleOrNull(row, "Width"),
-                            Height = ParseDoubleOrNull(row, "Height"),
-                            PNo2 = row.Table.Columns.Contains("PNo2") ? row["PNo2"].ToString() : null,
-                            PNo3 = row.Table.Columns.Contains("PNo3") ? row["PNo3"].ToString() : null,
-                            PNo4 = row.Table.Columns.Contains("PNo4") ? row["PNo4"].ToString() : null,
-                            UnitID = 1,
-                            ShopID = defaultShopId,
-                            IsDeleted = false
-                        };
+                        PNo = pno,
+                        Name = row.Table.Columns.Contains("Name") ? row["Name"].ToString() : "",
+                        Weight = ParseDoubleOrNull(row, "Weight"),
+                        Length = ParseDoubleOrNull(row, "Length"),
+                        Width = ParseDoubleOrNull(row, "Width"),
+                        Height = ParseDoubleOrNull(row, "Height"),
+                        PNo2 = row.Table.Columns.Contains("PNo2") ? row["PNo2"].ToString() : null,
+                        PNo3 = row.Table.Columns.Contains("PNo3") ? row["PNo3"].ToString() : null,
+                        PNo4 = row.Table.Columns.Contains("PNo4") ? row["PNo4"].ToString() : null,
+                        UnitID = 1,
+                        ShopID = defaultShopId,
+                        IsDeleted = false
+                    };
 
-                        // Handle product type from Excel
-                        var typeFromExcel = row.Table.Columns.Contains("Type") ? row["Type"].ToString().Trim().ToUpper() : "";
-                        SetProductTypeFlagsFromExcel(newProduct, typeFromExcel);
+                    // Handle product type from Excel
+                    var typeFromExcel = row.Table.Columns.Contains("Type") ? row["Type"].ToString().Trim().ToUpper() : "";
+                    SetProductTypeFlagsFromExcel(newProduct, typeFromExcel);
 
-                        db.PRODUCTS.Add(newProduct);
-                        await db.SaveChangesAsync();
+                    db.PRODUCTS.Add(newProduct);
+                    await db.SaveChangesAsync();
+                    savedCount++;
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "ProductController", $"{newProduct.PNo} - Productni Excel orqali yaratdi");
-                    }
+                    LogHelper.LogToDatabase(User.Identity.Name, "ProductController", $"{newProduct.PNo} - Productni Excel orqali yaratdi");
                 }
+
+                TempData["Success"] = $"{savedCount} ta maxsulot muvaffaqiyatli saqlandi";
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                TempData["Error"] = $"Xatolik: {ex.Message}";
             }
 
             return RedirectToAction("Index");

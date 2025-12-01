@@ -5,14 +5,12 @@
 
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
-<!-- BEGIN: Head-->
-
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <meta name="author" content="Khojiabror Makhmudov">
-    <title>Login Page - tahsinERP </title>
+    <title>Login Page - tahsinERP</title>
     <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
     <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
@@ -36,7 +34,7 @@
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
     <!-- END: Custom CSS-->
 </head>
-<body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 1-column  navbar-sticky footer-static  blank-page blank-page">
+<body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 1-column navbar-sticky footer-static blank-page blank-page">
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -63,21 +61,32 @@
                                                 {
                                                     @Html.AntiForgeryToken()
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <div class="form-group mb-50">
-                                                    <label class="text-bold-600" for="email">E-mail</label>
-                                                    @Html.TextBoxFor(u => u.Email, new { @class = "form-control round", @id = "email", @placeholder = "E-mail" })
-                                                    @Html.ValidationMessageFor(m => m.Email)
-                                                </div>
+
+                                                    <div class="form-group mb-50">
+                                                        <label class="text-bold-600" for="username">Foydalanuvchi nomi</label>
+                                                        @Html.TextBoxFor(u => u.UName, new { @class = "form-control round", @id = "username", @placeholder = "Foydalanuvchi nomi", @autocomplete = "username" })
+                                                        @Html.ValidationMessageFor(m => m.UName, "", new { @class = "text-danger" })
+                                                    </div>
+
                                                     <div class="form-group">
                                                         <label class="text-bold-600" for="password">Kalit so'zi</label>
-                                                        @Html.PasswordFor(u => u.Password, new { @class = "form-control round", @id = "password", @placeholder = "Kalit so'zi(пароль)" })
-                                                        @Html.ValidationMessageFor(m => m.Password)
+                                                        @Html.PasswordFor(u => u.Password, new { @class = "form-control round", @id = "password", @placeholder = "Kalit so'zi", @autocomplete = "current-password" })
+                                                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
                                                     </div>
-                                                    <hr /> 
+
                                                     <div class="form-group d-flex flex-md-row flex-column justify-content-between align-items-center">
-                                                        <div class="text-right"><a href="" class="card-link"><small>Kalit so'zini unutdingizmi?</small></a></div>
+                                                        <div class="checkbox checkbox-sm">
+                                                            @Html.CheckBoxFor(u => u.KeepMeSigned, new { @id = "keepMeSigned" })
+                                                            <label for="keepMeSigned">
+                                                                <small>Meni tizimda saqlab qolish (1 soat)</small>
+                                                            </label>
+                                                        </div>
                                                     </div>
-                                                    <button type="submit" class="btn btn-light-secondary glow w-100 position-relative round">Kirish<i id="icon-arrow" class="bx bx-right-arrow-alt"></i></button>
+
+                                                    <hr />
+                                                    <button type="submit" class="btn btn-primary glow w-100 position-relative round">
+                                                        Kirish <i id="icon-arrow" class="bx bx-right-arrow-alt"></i>
+                                                    </button>
                                                 }
                                             </div>
                                         </div>
@@ -94,7 +103,6 @@
                     </div>
                 </section>
                 <!-- login page ends -->
-
             </div>
         </div>
     </div>
@@ -113,7 +121,5 @@
     <script src="~/app-assets/js/scripts/components.js"></script>
     <script src="~/app-assets/js/scripts/footer.js"></script>
     <!-- END: Theme JS-->
-    <!-- BEGIN: Page JS-->
-    <!-- END: Page JS-->
 </body>
 </html>

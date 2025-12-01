@@ -99,13 +99,12 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
-        private int? GetUserID(string email)
+        private int? GetUserID(string username)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 USER currentUser = db.USERS
-                                     .Where(u => u.Email.CompareTo(email) == 0 && u.IsDeleted == false && u.IsActive == true)
-                                     .FirstOrDefault();
+                                     .FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
 
                 return currentUser?.ID;
             }

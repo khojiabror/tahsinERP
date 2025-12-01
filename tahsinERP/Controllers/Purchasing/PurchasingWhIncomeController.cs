@@ -16,12 +16,12 @@ namespace tahsinERP.Controllers.Purchasing
     {
         PART_WRHS warehouse = null;
         private string ControllerName = "PurchasingWhIncomeController";
-        private PART_WRHS GetWarehouseOfMRP(string email)
+        private PART_WRHS GetWarehouseOfMRP(string username)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                USER currentUser = db.USERS.Where(u => u.Email.CompareTo(email) == 0 && u.IsDeleted == false && u.IsActive == true).FirstOrDefault();
-                PART_WRHS his_warehouse = db.PART_WRHS.Where(wrhs => wrhs.MRP == currentUser.ID).FirstOrDefault();
+                USER currentUser = db.USERS.FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
+                PART_WRHS his_warehouse = currentUser != null ? db.PART_WRHS.FirstOrDefault(wrhs => wrhs.MRP == currentUser.ID) : null;
 
                 return his_warehouse;
             }

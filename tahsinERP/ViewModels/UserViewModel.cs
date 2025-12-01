@@ -9,19 +9,32 @@ namespace tahsinERP.ViewModels
     public class UserViewModel
     {
         public int ID { get; set; }
+
+        [Required(ErrorMessage = "Foydalanuvchi nomini kiriting")]
+        [Display(Name = "Foydalanuvchi nomi")]
         public string UName { get; set; }
+
         public string FullName { get; set; }
-        [Required(ErrorMessage = "Emailni kiriting")]
+
+        [EmailAddress(ErrorMessage = "Email formati noto'g'ri")]
         public string Email { get; set; }
+
         [DataType(DataType.Upload)]
         public HttpPostedFileBase File;
+
         public int companyID { get; set; }
+
         [Required(ErrorMessage = "Kalit so'zni kiriting")]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
+
         public string Role { get; set; }
         public int RoleID { get; set; }
         public bool IsActive { get; set; }
+
+        [Display(Name = "Meni tizimda saqlab qolish")]
         public bool KeepMeSigned { get; set; }
+
         public List<USER> userList { get; set; }
         public int SelectedRoleId { get; set; }
         public List<string> Roles { get; set; }
@@ -29,6 +42,5 @@ namespace tahsinERP.ViewModels
         public string MAC_adrr { get; set; }
         public DateTime datetime { get; set; }
         public List<USERLOG> logs { get; set; }
-
     }
 }

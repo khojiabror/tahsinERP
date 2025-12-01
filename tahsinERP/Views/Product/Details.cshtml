@@ -37,90 +37,126 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body pb-0 mx-25">
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                    <h4 class="text-primary">Maxsulot ma'lumotlari</h4>
+                                    <hr>
+
                                     <div class="row">
-                                        <div class="col-lg-12 col-md-12 mt-25">
-
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
-                                            <h4 class="text-primary">Maxsulot malumotlari</h4>
-                                            <hr>
-
-                                            <div class="row my-2 py-50">
-                                                <div class="col-sm-12 col-12 order-2 order-sm-1">
-                                                    <span><b>Maxsulot raqami</b>: @Html.DisplayFor(model => model.PNo)</span>
-                                                    <br />
-                                                    <span><b>Nomi</b>: @Html.DisplayFor(model => model.Name)</span>
-                                                    <hr />
-                                                    <br />
-                                                    <span><b>Og'irligi</b>: @Html.DisplayFor(model => model.Weight) kg</span>
-                                                    <br />
-                                                    <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.Length) mm</span>
-                                                    <br />
-                                                    <span><b>Kengligi</b>: @Html.DisplayFor(model => model.Width) mm</span>
-                                                    <br />
-                                                    <span><b>Balandligi</b>: @Html.DisplayFor(model => model.Height) mm</span>
-                                                    <br />
-                                                    <span><b>Hajmi (CBM)</b>:
-                                                        @{
-                                                            if (Model.Length.HasValue && Model.Width.HasValue && Model.Height.HasValue)
-                                                            {
-                                                                double cbm = (Model.Length.Value / 1000.0) * (Model.Width.Value / 1000.0) * (Model.Height.Value / 1000.0);
-                                                                @(cbm.ToString("F6") + " m³")
-                                                            }
-                                                            else
-                                                            {
-                                                                <text>-</text>
-                                                            }
-                                                        }
-                                                    </span>
-                                                    <br />
-                                                    <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.ShortName)</span>
-                                                    <br />
-                                                    <hr />
-                                                    <span><b>Turi</b>:
-                                                        @if (Model.IsFinishedGood == true)
-                                                        {
-                                                            <span class="badge badge-success">Maxsulot</span>
-                                                        }
-                                                        else if (Model.IsComponent == true)
-                                                        {
-                                                            <span class="badge badge-warning">Yarim tayyor maxsulot</span>
-                                                        }
-                                                        else if (Model.IsRawMaterial == true)
-                                                        {
-                                                            <span class="badge badge-info">Xomashyo</span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span>-</span>
-                                                        }
-                                                    </span>
-                                                    <br />
-                                                    <span><b>Tavsifi</b>: @Html.DisplayFor(model => model.Description)</span>
-                                                    <br />
-                                                    <span><b>PNo2</b>: @Html.DisplayFor(model => model.PNo2)</span>
-                                                    <br />
-                                                    <span><b>PNo3</b>: @Html.DisplayFor(model => model.PNo3)</span>
-                                                    <br />
-                                                    <span><b>PNo4</b>: @Html.DisplayFor(model => model.PNo4)</span>
-                                                    <br />
+                                        <!-- Product Details - Left Column -->
+                                        <div class="col-md-8">
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Maxsulot raqami:</b></div>
+                                                <div class="col-8">@Model.PNo</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Nomi:</b></div>
+                                                <div class="col-8">@Model.Name</div>
+                                            </div>
+                                            <hr />
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Turi:</b></div>
+                                                <div class="col-8">
+                                                    @if (Model.IsFinishedGood == true)
+                                                    {
+                                                        <span class="badge badge-success">Maxsulot</span>
+                                                    }
+                                                    else if (Model.IsComponent == true)
+                                                    {
+                                                        <span class="badge badge-warning">Yarim tayyor maxsulot</span>
+                                                    }
+                                                    else if (Model.IsRawMaterial == true)
+                                                    {
+                                                        <span class="badge badge-info">Xomashyo</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>-</span>
+                                                    }
                                                 </div>
-                                                <div class="col-sm-6 col-12 order-1 order-sm-1 d-flex justify-content-end">
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>O'lchov birligi:</b></div>
+                                                <div class="col-8">@(Model.UNIT != null ? Model.UNIT.ShortName : "-")</div>
+                                            </div>
+                                            <hr />
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Og'irligi:</b></div>
+                                                <div class="col-8">@(Model.Weight.HasValue ? Model.Weight.Value.ToString() + " kg" : "-")</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Uzunligi:</b></div>
+                                                <div class="col-8">@(Model.Length.HasValue ? Model.Length.Value.ToString() + " mm" : "-")</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Kengligi:</b></div>
+                                                <div class="col-8">@(Model.Width.HasValue ? Model.Width.Value.ToString() + " mm" : "-")</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Balandligi:</b></div>
+                                                <div class="col-8">@(Model.Height.HasValue ? Model.Height.Value.ToString() + " mm" : "-")</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Hajmi (CBM):</b></div>
+                                                <div class="col-8">
+                                                    @if (Model.Length.HasValue && Model.Width.HasValue && Model.Height.HasValue)
+                                                    {
+                                                        var cbm = (Model.Length.Value / 1000.0) * (Model.Width.Value / 1000.0) * (Model.Height.Value / 1000.0);
+                                                        @(cbm.ToString("F6") + " m³")
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>-</text>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <hr />
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>Tavsifi:</b></div>
+                                                <div class="col-8">@(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>PNo2:</b></div>
+                                                <div class="col-8">@(string.IsNullOrEmpty(Model.PNo2) ? "-" : Model.PNo2)</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>PNo3:</b></div>
+                                                <div class="col-8">@(string.IsNullOrEmpty(Model.PNo3) ? "-" : Model.PNo3)</div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-4"><b>PNo4:</b></div>
+                                                <div class="col-8">@(string.IsNullOrEmpty(Model.PNo4) ? "-" : Model.PNo4)</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Product Image - Right Column -->
+                                        <div class="col-md-4">
+                                            <div class="card border">
+                                                <div class="card-header">
+                                                    <h5 class="card-title mb-0"><i class="bx bx-image"></i> Maxsulot rasmi</h5>
+                                                </div>
+                                                <div class="card-body text-center">
                                                     @if (ViewBag.ProductImage != null)
                                                     {
-                                                        <div class="product-image">
-                                                            <fieldset>
-                                                                <h4>Maxsulot rasmi</h4>
-                                                                <img src="data:image/png;base64,@ViewBag.ProductImage" alt="Product Image" style="width: 300px; height: auto;" />
-                                                                <hr>
-                                                            </fieldset>
+                                                        <img src="data:image/png;base64,@ViewBag.ProductImage" alt="@Model.PNo" class="img-fluid" style="max-width: 100%; max-height: 300px; border-radius: 8px;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="text-muted py-5">
+                                                            <i class="bx bx-image" style="font-size: 64px;"></i>
+                                                            <p>Rasm mavjud emas</p>
                                                         </div>
                                                     }
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
                                     <hr>
+                                    <div class="mb-2">
+                                        @Html.ActionLink("Tahrirlash", "Edit", new { id = Model.ID }, new { @class = "btn btn-primary" })
+                                        @Html.ActionLink("Ortga", "Index", null, new { @class = "btn btn-outline-secondary" })
+                                    </div>
                                 </div>
                             </div>
                         </div>

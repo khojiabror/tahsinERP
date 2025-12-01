@@ -6,48 +6,69 @@ namespace tahsinERP.Controllers
 {
     public static class UserHelper
     {
-        public static int GetUserId(string userEmail)
+        /// <summary>
+        /// Gets user ID by username (User.Identity.Name)
+        /// </summary>
+        public static int GetUserId(string username)
         {
+            if (string.IsNullOrEmpty(username))
+                throw new ArgumentException("Username cannot be null or empty");
+
             using (var db = new DBTHSNEntities())
             {
-                USER getUser = db.USERS
-                                 .Where(u => u.IsDeleted == false && u.Email.Equals(userEmail))
-                                 .FirstOrDefault();
+                var user = db.USERS.FirstOrDefault(u => 
+                    u.IsDeleted != true && 
+                    u.Uname == username);
 
-                if (getUser != null)
-                {
-                    return getUser.ID;
-                }
-                else
-                {
-                    throw new Exception("User not found");
-                }
+                if (user != null)
+                    return user.ID;
+
+                throw new Exception($"User '{username}' not found");
             }
         }
 
-        public static string GetFullName(string userEmail = null, int? userID = null)
+        /// <summary>
+        /// Gets user by username
+        /// </summary>
+        public static USER GetUser(string username)
         {
-            if (userEmail == null && userID == null)
+            if (string.IsNullOrEmpty(username))
+                return null;
+
+            using (var db = new DBTHSNEntities())
             {
-                throw new ArgumentException("Email va UserID ham bir vaqtda NULL bo'lishi mumkin emas");
+                return db.USERS.FirstOrDefault(u => 
+                    u.IsDeleted != true && 
+                    u.IsActive && 
+                    u.Uname == username);
             }
+        }
 
-            using (DBTHSNEntities db = new DBTHSNEntities())
+        /// <summary>
+        /// Gets full name by username or userID
+        /// </summary>
+        public static string GetFullName(string username = null, int? userID = null)
+        {
+            if (string.IsNullOrEmpty(username) && userID == null)
+                throw new ArgumentException("Username va UserID ham bir vaqtda NULL bo'lishi mumkin emas");
+
+            using (var db = new DBTHSNEntities())
             {
-                USER getUser = db.USERS
-                                 .Where(u => u.IsDeleted == false &&
-                                             ((userEmail != null && u.Email.Equals(userEmail)) ||
-                                              (userID != null && u.ID == userID)))
-                                 .FirstOrDefault();
+                USER user = null;
 
-                if (getUser != null)
+                if (userID.HasValue)
                 {
-                    return getUser.FullName;
+                    user = db.USERS.FirstOrDefault(u => u.IsDeleted != true && u.ID == userID.Value);
                 }
-                else
+                else if (!string.IsNullOrEmpty(username))
                 {
-                    throw new Exception("User not found");
+                    user = db.USERS.FirstOrDefault(u => u.IsDeleted != true && u.Uname == username);
                 }
+
+                if (user != null)
+                    return user.FullName ?? user.Uname;
+
+                throw new Exception("User not found");
             }
         }
     }

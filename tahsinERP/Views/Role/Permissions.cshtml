@@ -1,13 +1,11 @@
 ﻿@model tahsinERP.ViewModels.RolePermissionsViewModel
-
 @{
-    ViewBag.Title = "Permissions";
+    ViewBag.Title = "Huquqlarni boshqarish";
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -15,84 +13,173 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Huquqlarni boshqarish</h5>
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/AdminPanel/Index"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/AdminPanel/Index">Admin Panel</a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Role/Index">Rollar</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Ruxsatlarni o'zgartirish
-                                    </li>
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
+                                    <li class="breadcrumb-item active">@Model.RoleName - Huquqlar</li>
                                 </ol>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <div class="col-md-12 col-sm-12">
-                    <div class="card">
-                        <div class="card-content">
-                            <div class="card-body">
-                                @using (Html.BeginForm("Permissions", "Role", FormMethod.Post, new { enctype = "multipart/form-data" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    @Html.HiddenFor(model => model.RoleID)
 
-                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                    <hr>
-                                    <h6 class="invoice-to">Permissions</h6>
-                                    <div class="table-responsive table-responsivetable-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>Module</th>
-                                                    <th>Controller</th>
-                                                    <th>Action</th>
-                                                    <th>View Permit</th>
-                                                    <th>Change Permit</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @for (int i = 0; i < Model.Permissions.Count; i++)
-                                                {
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        @Html.HiddenFor(m => m.Permissions[i].ID)
-                                                        @Html.HiddenFor(m => m.Permissions[i].PermissionModuleID)
-                                                        <td>@Model.Permissions[i].Module</td>
-                                                        <td>@Model.Permissions[i].Controller</td>
-                                                        <td>@Model.Permissions[i].Action</td>
-                                                        <td>
-                                                            @Html.CheckBoxFor(m => m.Permissions[i].ViewPermit)
-                                                        </td>
-                                                        <td>
-                                                            @Html.CheckBoxFor(m => m.Permissions[i].ChangePermit)
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item border-0 pb-0">
-                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="editPermissions" type="submit" value="Permissions">
-                                                <i class='bx bx-save'></i>
-                                                Save
-                                            </button>
-                                        </li>
-                                    </ul>
-                                    <br />
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">
+                                    <i class="bx bx-shield mr-1"></i>
+                                    <strong>@Model.RoleName</strong> roli uchun huquqlar
+                                </h4>
+                                @if (!string.IsNullOrEmpty(Model.Description))
+                                {
+                                    <p class="text-muted mb-0">@Model.Description</p>
                                 }
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Permissions", "Role", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.RoleID)
+                                        @Html.HiddenFor(m => m.RoleName)
+
+                                        <!-- Bulk Actions -->
+                                        <div class="row mb-2">
+                                            <div class="col-md-12">
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAll('view')">
+                                                        <i class="bx bx-check-square"></i> Barcha View
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAll('change')">
+                                                        <i class="bx bx-check-square"></i> Barcha Change
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning" onclick="deselectAll()">
+                                                        <i class="bx bx-square"></i> Barchasini bekor qilish
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Permissions Table -->
+                                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                            <table class="table table-hover table-sm" id="permissionsTable">
+                                                <thead class="thead-light sticky-top">
+                                                    <tr>
+                                                        <th style="width: 30px;">
+                                                            <input type="checkbox" id="selectAllView" onchange="toggleAll('view', this.checked)">
+                                                        </th>
+                                                        <th style="width: 30px;">
+                                                            <input type="checkbox" id="selectAllChange" onchange="toggleAll('change', this.checked)">
+                                                        </th>
+                                                        <th>Modul</th>
+                                                        <th>Controller</th>
+                                                        <th>Action</th>
+                                                        <th class="text-center">View</th>
+                                                        <th class="text-center">Change</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @{
+                                                        var groupedPermissions = Model.Permissions
+                                                            .GroupBy(p => p.Module ?? "Boshqa")
+                                                            .OrderBy(g => g.Key);
+                                                    }
+                                                    @foreach (var group in groupedPermissions)
+                                                    {
+                                                        <tr class="table-info">
+                                                            <td colspan="7" class="font-weight-bold">
+                                                                <i class="bx bx-folder"></i> @group.Key
+                                                            </td>
+                                                        </tr>
+                                                        @for (int i = 0; i < Model.Permissions.Count; i++)
+                                                        {
+                                                            var perm = Model.Permissions[i];
+                                                            if (perm.Module == group.Key)
+                                                            {
+                                                                <tr>
+                                                                    <td>
+                                                                        <input type="checkbox" class="view-checkbox" 
+                                                                               onchange="updateSelectAll('view')">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="checkbox" class="change-checkbox" 
+                                                                               onchange="updateSelectAll('change')">
+                                                                    </td>
+                                                                    @Html.HiddenFor(m => m.Permissions[i].ID)
+                                                                    @Html.HiddenFor(m => m.Permissions[i].PermissionModuleID)
+                                                                    @Html.HiddenFor(m => m.Permissions[i].Module)
+                                                                    @Html.HiddenFor(m => m.Permissions[i].Controller)
+                                                                    @Html.HiddenFor(m => m.Permissions[i].Action)
+                                                                    @Html.HiddenFor(m => m.Permissions[i].Parameter)
+                                                                    <td>
+                                                                        <small class="text-muted">@perm.Module</small>
+                                                                    </td>
+                                                                    <td>
+                                                                        <code class="small">@perm.Controller</code>
+                                                                    </td>
+                                                                    <td>
+                                                                        <code class="small">@perm.Action</code>
+                                                                        @if (!string.IsNullOrEmpty(perm.Parameter))
+                                                                        {
+                                                                            <br><small class="text-muted">(@perm.Parameter)</small>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <div class="custom-control custom-switch">
+                                                                            @Html.CheckBoxFor(m => m.Permissions[i].ViewPermit, 
+                                                                                new { @class = "custom-control-input view-checkbox", @id = $"view_{i}" })
+                                                                            <label class="custom-control-label" for="view_@i"></label>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <div class="custom-control custom-switch">
+                                                                            @Html.CheckBoxFor(m => m.Permissions[i].ChangePermit, 
+                                                                                new { @class = "custom-control-input change-checkbox", @id = $"change_{i}" })
+                                                                            <label class="custom-control-label" for="change_@i"></label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bx bx-save"></i> Saqlash
+                                                </button>
+                                                <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
+                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -101,29 +188,50 @@
         </div>
     </div>
 
+    <script>
+        function selectAll(type) {
+            var checkboxes = type === 'view' 
+                ? document.querySelectorAll('.view-checkbox:not(#selectAllView)') 
+                : document.querySelectorAll('.change-checkbox:not(#selectAllChange)');
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+                cb.dispatchEvent(new Event('change'));
+            });
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.view-checkbox:not(#selectAllView), .change-checkbox:not(#selectAllChange)').forEach(cb => {
+                cb.checked = false;
+                cb.dispatchEvent(new Event('change'));
+            });
+        }
+
+        function toggleAll(type, checked) {
+            var checkboxes = type === 'view' 
+                ? document.querySelectorAll('.view-checkbox:not(#selectAllView)') 
+                : document.querySelectorAll('.change-checkbox:not(#selectAllChange)');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+        }
+
+        function updateSelectAll(type) {
+            var checkboxes = type === 'view' 
+                ? document.querySelectorAll('.view-checkbox:not(#selectAllView)') 
+                : document.querySelectorAll('.change-checkbox:not(#selectAllChange)');
+            var allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+            var selectAllId = type === 'view' ? 'selectAllView' : 'selectAllChange';
+            document.getElementById(selectAllId).checked = allChecked;
+        }
+
+        // Initialize select all checkboxes
+        $(document).ready(function () {
+            updateSelectAll('view');
+            updateSelectAll('change');
+        });
+    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-
-<!-- jQuery v3.6.0 -->
-@*<script src="~/assets/js/jquery.min.js"></script>*@
-@*<script>
-        $(document).ready(function () {
-            $('#DataTable').DataTable({
-                "paging": true,           // Pagingni yoqish
-                "pageLength": 1000,        // Default "Show Entries"ni 1000 ga sozlash
-                "lengthChange": true,     // "Show Entries" dropdown menyusini ko'rsatish
-                "buttons": [
-                    'excel',
-                    {
-                        extend: 'pdfHtml5',
-                        orientation: 'portrait', // PDFni landscape rejimida qilish
-                        pageSize: 'A4', // A4 o'lchamida qilish
-                    }
-                ],
-                "scrollX": true           // Gorizontal skrollni yoqish
-            });
-        });
-    </script>*@
