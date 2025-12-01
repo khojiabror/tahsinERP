@@ -1,16 +1,13 @@
 ﻿@model List<tahsinERP.ViewModels.UserViewModel>
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Foydalanuvchilar";
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-    {
-        changePermit = true;
-    }
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -18,106 +15,133 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Foydalanuvchilar</h5>
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/AdminPanel/Index"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item ">
-                                        Admin Panel
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Foydalanuvchilar
-                                    </li>
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Foydalanuvchilar</li>
                                 </ol>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="content-body">
-                <!-- users list start -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
                 <section class="invoice-list-wrapper">
                     @if (changePermit)
                     {
                         <div class="invoice-create-btn mb-1">
-                            <a href="~/User/Create" class="col-lg-offset-2 btn btn-success" role="button" aria-pressed="true">
-                                Foydalanuvchini qo'shish
+                            <a href="@Url.Action("Create", "User")" class="btn btn-success">
+                                <i class="bx bx-plus"></i> Yangi foydalanuvchi qo'shish
                             </a>
                         </div>
                     }
-                    <div class="users-list-filter px-1">
+
+                    <div class="users-list-filter px-1 mb-2">
                         <form>
-                            <div class="row border rounded py-2 mb-2">
-                                <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="users-list-role">Role</label>
+                            <div class="row border rounded py-2">
+                                <div class="col-12 col-sm-6 col-lg-4">
+                                    <label for="RoleId">Rol bo'yicha filtrlash</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("RoleId", ViewBag.RoleList as SelectList, new { @class = "form-control", onchange = "refreshDataTable()" })
+                                        @Html.DropDownList("RoleId", ViewBag.RoleList as SelectList, "Barcha rollar", new { @class = "form-control", @id = "RoleId" })
                                     </fieldset>
                                 </div>
-                                <div class="col-1 col-sm-5 col-lg-1">
-                                    <label></label>
-                                    <fieldset class="form-group">
-                                        <a href="@Url.Action("Index", "User", new { status = "InActive" })" role="link">faolligi o'chirib qo'yilgan foydalanuvchilar</a>
-                                    </fieldset>
-                                </div>
-                                <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
-                                    <a href="~/User" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
-                                        Ro'yxatni yangilash
+                                <div class="col-12 col-sm-6 col-lg-4 d-flex align-items-end">
+                                    <a href="@Url.Action("Index", "User", new { status = "InActive" })" class="btn btn-warning">
+                                        <i class="bx bx-user-x"></i> Nofaol foydalanuvchilar
+                                    </a>
+                                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary ml-2">
+                                        <i class="bx bx-refresh"></i> Yangilash
                                     </a>
                                 </div>
                             </div>
                         </form>
                     </div>
+
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <!-- datatable start -->
-                                    <div class="table-responsive table-responsivetable-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
-                                            <thead>
+                                    <!-- Controls -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <input type="text" id="searchBox" class="form-control form-control-sm" placeholder="Qidirish..." style="width: 100%; max-width: 300px; display: inline-block;">
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            <select id="pageSize" class="form-control form-control-sm d-inline-block" style="width: 120px;">
+                                                <option value="10">10</option>
+                                                <option value="25" selected>25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                                <option value="-1">Barchasi</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Table -->
+                                    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                        <table class="table table-striped table-bordered table-hover" id="userTable">
+                                            <thead class="thead-light sticky-top">
                                                 <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>username</th>
+                                                    <th>Foydalanuvchi nomi</th>
                                                     <th>F.I.Sh</th>
-                                                    <th>email</th>
-                                                    <th>roli</th>
-                                                    <th>faolligi</th>
+                                                    <th>E-mail</th>
+                                                    <th>Roli</th>
+                                                    <th>Faolligi</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>amallar</th>
+                                                        <th class="text-center">Amallar</th>
                                                     }
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody id="tableBody">
                                                 @foreach (var item in Model)
                                                 {
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
+                                                    <tr class="data-row">
                                                         <td>
-                                                            <a href="~/User/Details/@item.ID">@item.UName</a>
+                                                            <a href="@Url.Action("Details", "User", new { id = item.ID })" class="font-weight-bold">
+                                                                @item.UName
+                                                            </a>
                                                         </td>
                                                         <td>@item.FullName</td>
                                                         <td>@item.Email</td>
-                                                        <td>@item.Role</td>
-                                                        @if (item.IsActive)
-                                                        {
-                                                            <td><span class="badge badge-light-success">Faol</span></td>
-                                                        }
-                                                        else
-                                                        {
-                                                            <td><span class="badge badge-light-danger">Nofaol</span></td>
-                                                        }
+                                                        <td><span class="badge badge-light-primary">@item.Role</span></td>
+                                                        <td>
+                                                            @if (item.IsActive)
+                                                            {
+                                                                <span class="badge badge-light-success">Faol</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-light-danger">Nofaol</span>
+                                                            }
+                                                        </td>
                                                         @if (changePermit)
                                                         {
-                                                            <td>
-                                                                <div>
-                                                                    <a href="@Url.Action("Edit", "User", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "User", new { id = item.ID })"><i class="bx bx-trash"></i></a>
-                                                                </div>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Edit", "User", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                    <i class="bx bx-edit"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Delete", "User", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                    <i class="bx bx-trash"></i>
+                                                                </a>
                                                             </td>
                                                         }
                                                     </tr>
@@ -125,24 +149,220 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <!-- datatable ends -->
+
+                                    <!-- Pagination -->
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div id="paginationInfo" class="text-muted"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <nav>
+                                                <ul class="pagination justify-content-end mb-0" id="pagination"></ul>
+                                            </nav>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
-                <!-- users list ends -->
             </div>
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript">
-        function refreshDataTable() {
-            const roleId = document.getElementById("RoleId").value;
-
-            window.location.href = '@Url.Action("Index", "User")?roleID=' + roleId;
+    <style>
+        .data-row {
+            display: table-row;
         }
+        .data-row.hidden {
+            display: none;
+        }
+        #userTable thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+        }
+        .pagination .page-link {
+            cursor: pointer;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #5A8DEE;
+            border-color: #5A8DEE;
+        }
+    </style>
+
+    <script>
+        (function() {
+            var currentPage = 1;
+            var pageSize = 25;
+            var allRows = [];
+            var filteredRows = [];
+
+            function init() {
+                allRows = Array.from(document.querySelectorAll('.data-row'));
+                filteredRows = allRows;
+                updatePageSize();
+                renderTable();
+                setupEventListeners();
+            }
+
+            function setupEventListeners() {
+                // Search
+                document.getElementById('searchBox').addEventListener('input', function() {
+                    var searchTerm = this.value.toLowerCase();
+                    filteredRows = allRows.filter(function(row) {
+                        var text = row.textContent.toLowerCase();
+                        return text.indexOf(searchTerm) > -1;
+                    });
+                    currentPage = 1;
+                    renderTable();
+                });
+
+                // Page size
+                document.getElementById('pageSize').addEventListener('change', function() {
+                    pageSize = parseInt(this.value);
+                    if (pageSize === -1) pageSize = filteredRows.length;
+                    currentPage = 1;
+                    renderTable();
+                });
+
+                // Role filter
+                document.getElementById('RoleId').addEventListener('change', function() {
+                    var roleId = this.value;
+                    if (roleId) {
+                        window.location.href = '@Url.Action("Index", "User")?roleID=' + roleId;
+                    } else {
+                        window.location.href = '@Url.Action("Index", "User")';
+                    }
+                });
+            }
+
+            function updatePageSize() {
+                var select = document.getElementById('pageSize');
+                var value = select.value;
+                if (value === '-1') {
+                    pageSize = filteredRows.length;
+                } else {
+                    pageSize = parseInt(value);
+                }
+            }
+
+            function renderTable() {
+                updatePageSize();
+                var total = filteredRows.length;
+                var totalPages = Math.ceil(total / pageSize);
+                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                var start = (currentPage - 1) * pageSize;
+                var end = start + pageSize;
+
+                allRows.forEach(function(row) {
+                    row.classList.add('hidden');
+                });
+
+                filteredRows.slice(start, end).forEach(function(row) {
+                    row.classList.remove('hidden');
+                });
+
+                updatePagination(total, totalPages);
+                updateInfo(total, start, end);
+            }
+
+            function updatePagination(total, totalPages) {
+                var pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+
+                if (totalPages <= 1) return;
+
+                // Previous
+                var prev = document.createElement('li');
+                prev.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+                var prevLink = document.createElement('a');
+                prevLink.className = 'page-link';
+                prevLink.href = '#';
+                prevLink.textContent = 'Oldingi';
+                prevLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                    }
+                    return false;
+                });
+                prev.appendChild(prevLink);
+                pagination.appendChild(prev);
+
+                // Pages
+                var dotsAdded = false;
+                for (var i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        dotsAdded = false;
+                        var li = document.createElement('li');
+                        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+                        var link = document.createElement('a');
+                        link.className = 'page-link';
+                        link.href = '#';
+                        link.textContent = i;
+                        link.setAttribute('data-page', i);
+                        link.addEventListener('click', (function(pageNum) {
+                            return function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                currentPage = pageNum;
+                                renderTable();
+                                return false;
+                            };
+                        })(i));
+                        li.appendChild(link);
+                        pagination.appendChild(li);
+                    } else if (!dotsAdded && (i === currentPage - 3 || i === currentPage + 3)) {
+                        dotsAdded = true;
+                        var dots = document.createElement('li');
+                        dots.className = 'page-item disabled';
+                        dots.innerHTML = '<span class="page-link">...</span>';
+                        pagination.appendChild(dots);
+                    }
+                }
+
+                // Next
+                var next = document.createElement('li');
+                next.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+                var nextLink = document.createElement('a');
+                nextLink.className = 'page-link';
+                nextLink.href = '#';
+                nextLink.textContent = 'Keyingi';
+                nextLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                    }
+                    return false;
+                });
+                next.appendChild(nextLink);
+                pagination.appendChild(next);
+            }
+
+            function updateInfo(total, start, end) {
+                var info = document.getElementById('paginationInfo');
+                if (total === 0) {
+                    info.textContent = 'Yozuvlar yo\'q';
+                } else {
+                    info.textContent = total + ' ta yozuvdan ' + (start + 1) + ' dan ' + Math.min(end, total) + ' gacha';
+                }
+            }
+
+            // Initialize
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
     </script>
 }
 else

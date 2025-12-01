@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,6 +19,11 @@ namespace tahsinERP.Controllers
         // GET: Role
         public async Task<ActionResult> Index()
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using (var db = new DBTHSNEntities())
             {
                 var roles = await db.ROLES
@@ -46,7 +52,7 @@ namespace tahsinERP.Controllers
         // GET: Role/Create
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -59,7 +65,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ROLE role)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -130,7 +136,7 @@ namespace tahsinERP.Controllers
         // GET: Role/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -164,7 +170,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(int id, ROLE role)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -227,7 +233,7 @@ namespace tahsinERP.Controllers
         // GET: Role/Delete/5
         public async Task<ActionResult> Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -271,7 +277,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -316,7 +322,7 @@ namespace tahsinERP.Controllers
         // GET: Role/Details/5
         public async Task<ActionResult> Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -344,7 +350,7 @@ namespace tahsinERP.Controllers
         // GET: Role/Permissions/5
         public async Task<ActionResult> Permissions(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -405,15 +411,15 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Permissions(RolePermissionsViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Role"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            if (model.Permissions == null || !model.Permissions.Any())
+            if (model == null || model.Permissions == null || !model.Permissions.Any())
             {
                 TempData["Error"] = "Ma'lumot topilmadi";
-                return RedirectToAction("Permissions", new { id = model.RoleID });
+                return RedirectToAction("Permissions", new { id = model?.RoleID ?? 0 });
             }
 
             try
@@ -426,20 +432,41 @@ namespace tahsinERP.Controllers
 
                     if (role == null)
                     {
-                        return HttpNotFound();
+                        TempData["Error"] = "Rol topilmadi";
+                        return RedirectToAction("Index", "Role");
                     }
 
-                    // Har bir permission ni yangilash yoki yaratish
+                    // Barcha mavjud permissions ni dictionary ga olish (tezroq qidirish uchun)
+                    var existingPermissionsDict = role.PERMISSIONS
+                        .ToDictionary(p => p.PermissionModuleID, p => p);
+
+                    // PermissionModuleID lar ro'yxati (validation uchun)
+                    var validModuleIds = await db.PERMISSIONMODULES
+                        .Select(m => m.ID)
+                        .ToListAsync();
+
+                    var permissionsToAdd = new List<PERMISSION>();
+                    var permissionsToUpdate = new List<PERMISSION>();
+
+                    // Har bir permission ni tekshirish va yangilash/yaratish
                     foreach (var permVm in model.Permissions)
                     {
-                        var existingPermission = role.PERMISSIONS
-                            .FirstOrDefault(p => p.PermissionModuleID == permVm.PermissionModuleID);
+                        // Validation
+                        if (permVm.PermissionModuleID <= 0 || !validModuleIds.Contains(permVm.PermissionModuleID))
+                        {
+                            continue; // Noto'g'ri module ID ni o'tkazib yuborish
+                        }
 
-                        if (existingPermission != null)
+                        if (existingPermissionsDict.TryGetValue(permVm.PermissionModuleID, out var existingPermission))
                         {
                             // Mavjud permission ni yangilash
-                            existingPermission.ViewPermit = permVm.ViewPermit;
-                            existingPermission.ChangePermit = permVm.ChangePermit;
+                            if (existingPermission.ViewPermit != permVm.ViewPermit || 
+                                existingPermission.ChangePermit != permVm.ChangePermit)
+                            {
+                                existingPermission.ViewPermit = permVm.ViewPermit;
+                                existingPermission.ChangePermit = permVm.ChangePermit;
+                                permissionsToUpdate.Add(existingPermission);
+                            }
                         }
                         else
                         {
@@ -451,7 +478,21 @@ namespace tahsinERP.Controllers
                                 ViewPermit = permVm.ViewPermit,
                                 ChangePermit = permVm.ChangePermit
                             };
-                            db.PERMISSIONS.Add(newPermission);
+                            permissionsToAdd.Add(newPermission);
+                        }
+                    }
+
+                    // Bulk operations
+                    if (permissionsToAdd.Any())
+                    {
+                        db.PERMISSIONS.AddRange(permissionsToAdd);
+                    }
+
+                    if (permissionsToUpdate.Any())
+                    {
+                        foreach (var perm in permissionsToUpdate)
+                        {
+                            db.Entry(perm).State = System.Data.Entity.EntityState.Modified;
                         }
                     }
 
@@ -460,11 +501,20 @@ namespace tahsinERP.Controllers
                     // Cache ni tozalash
                     RoleHelper.ClearAllCache();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "Role", $"{role.RName} roli uchun huquqlar yangilandi");
-                    TempData["Success"] = "Huquqlar muvaffaqiyatli saqlandi";
+                    LogHelper.LogToDatabase(User.Identity.Name, "Role", $"{role.RName} roli uchun {permissionsToAdd.Count} ta yangi va {permissionsToUpdate.Count} ta yangilangan huquq saqlandi");
+                    TempData["Success"] = $"Huquqlar muvaffaqiyatli saqlandi ({permissionsToAdd.Count} ta yangi, {permissionsToUpdate.Count} ta yangilangan)";
 
                     return RedirectToAction("Permissions", new { id = model.RoleID });
                 }
+            }
+            catch (DbUpdateException dbEx)
+            {
+                TempData["Error"] = $"Ma'lumotlar bazasi xatosi: {dbEx.Message}";
+                if (dbEx.InnerException != null)
+                {
+                    TempData["Error"] += $" | {dbEx.InnerException.Message}";
+                }
+                return RedirectToAction("Permissions", new { id = model.RoleID });
             }
             catch (Exception ex)
             {

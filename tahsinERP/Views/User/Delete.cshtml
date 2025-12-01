@@ -1,6 +1,6 @@
 ﻿@model tahsinERP.ViewModels.UserViewModel
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Foydalanuvchi ma'lumotlarini o'chirish";
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -9,6 +9,8 @@
     using (Html.BeginForm("Delete", "User", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.ID)
+
         <div class="app-content content">
             <div class="content-overlay"></div>
             <div class="content-wrapper">
@@ -16,76 +18,78 @@
                     <div class="content-header-left col-12 mb-2 mt-1">
                         <div class="row breadcrumbs-top">
                             <div class="col-12">
+                                <h5 class="content-header-title float-left pr-1 mb-0">Foydalanuvchi ma'lumotlarini o'chirish</h5>
                                 <div class="breadcrumb-wrapper col-12">
-                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                        <li class="breadcrumb-item">
-                                            <a href="~/AdminPanel/Index"><i class="bx bx-home-alt"></i></a>
-                                        </li>
-                                        <li class="breadcrumb-item ">
-                                            Admin Panel
-                                        </li>
-                                        <li class="breadcrumb-item ">
-                                            <a href="~/User/index">Foydalanuvchilar</a>
-                                        </li>
-                                        <li class="breadcrumb-item active">
-                                            Foydalanuvchi ma'lumotlarini o'chirish
-                                        </li>
+                                    <ol class="breadcrumb p-0 mb-0">
+                                        <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                        <li class="breadcrumb-item"><a href="~/User/Index">Foydalanuvchilar</a></li>
+                                        <li class="breadcrumb-item active">O'chirish</li>
                                     </ol>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="content-body">
-                    <!-- app invoice View Page -->
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <h4 class="alert-heading"><i class="bx bx-error"></i> Diqqat!</h4>
+                        <p>Siz foydalanuvchini o'chirmoqchisiz. Bu amalni bekor qilib bo'lmaydi.</p>
+                    </div>
+
                     <section class="invoice-edit-wrapper">
                         <div class="row">
-                            <!-- invoice view page -->
-                            <div class="col-xl-9 col-md-8 col-12">
+                            <div class="col-xl-12 col-md-8 col-12">
                                 <div class="card">
                                     <div class="card-content">
                                         <div class="card-body pb-0 mx-25">
-
                                             <div class="row my-2 py-50">
-                                                <div class="col-sm-6 col-12 order-2 order-sm-1">
-                                                    <h4 class="text-primary">Foydalanuvchi nomi</h4>
-                                                    <span><b>Username</b>: @Html.DisplayFor(model => model.UName, new { @class = "form-control" })</span>
-                                                    <hr />
-                                                    <span><b>E-mail</b>: @Html.DisplayFor(model => model.Email, new { @class = "form-control" })</span>
+                                                <div class="col-sm-6 col-12">
+                                                    <h4 class="text-primary mb-3">Foydalanuvchi ma'lumotlari</h4>
+                                                    <p><strong>Foydalanuvchi nomi:</strong> @Html.DisplayFor(model => model.UName)</p>
+                                                    <p><strong>E-mail:</strong> @Html.DisplayFor(model => model.Email)</p>
+                                                    <p><strong>Ismi sharifi:</strong> @Html.DisplayFor(model => model.FullName)</p>
+                                                    <p><strong>Roli:</strong> <span class="badge badge-light-primary">@Html.DisplayFor(model => model.Role)</span></p>
+                                                    <p>
+                                                        <strong>Faolligi:</strong>
+                                                        @if (Model.IsActive)
+                                                        {
+                                                            <span class="badge badge-light-success">Faol</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-light-danger">Nofaol</span>
+                                                        }
+                                                    </p>
                                                 </div>
-                                                <div class="col-sm-6 col-12 order-1 order-sm-1 d-flex justify-content-end">
-                                                    <fieldset>
-                                                        <h4 class="text-primary">Foydalanuvchi rasmi</h4>
-                                                        <img alt="" src="@ViewBag.Base64String" style="height:150px;width:150px;" />
-                                                    </fieldset>
+                                                <div class="col-sm-6 col-12 text-center">
+                                                    <h4 class="text-primary mb-3">Foydalanuvchi rasmi</h4>
+                                                    @if (ViewBag.Base64String != null)
+                                                    {
+                                                        <img alt="" src="@ViewBag.Base64String" style="height:200px;width:200px;border-radius:8px;border:2px solid #ddd;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="text-muted">
+                                                            <i class="bx bx-user" style="font-size:100px;"></i>
+                                                            <p>Rasm yuklanmagan</p>
+                                                        </div>
+                                                    }
                                                 </div>
                                             </div>
-                                            <div class="row invoice-info">
-                                                <div class="col-lg-12 col-md-6 mt-25">
-                                                    <hr>
-                                                    <span><b>Ismi sharifi</b>: @Html.DisplayFor(model => model.FullName, new { @class = "form-control" })</span>
-                                                    <hr />
-                                                    <span><b>Roli</b>: @Html.DisplayFor(model => model.Role, new { @class = "form-control" })</span>
-                                                    <hr />
-                                                    <h6>Faolligi</h6>
-                                                    <fieldset class="form-group">
-                                                        @Html.DisplayFor(model => model.IsActive)
-                                                        <span class="switch-label w-100">
-                                                            Ayni paytda faolmi?
-                                                        </span>
-                                                    </fieldset>
 
-                                                    <ul class="list-group list-group-flush">
-                                                        <li class="list-group-item border-0 pb-0">
-                                                            <button class="btn btn-danger btn-block subtotal-preview-btn" name="save" type="submit" value="Delete">
-                                                                <i class='bx bx-trash'></i>
-                                                                O'chirish
-                                                            </button>
-                                                        </li>
-                                                    </ul>
+                                            <hr>
+
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <button class="btn btn-danger" type="submit" onclick="return confirm('Haqiqatan ham bu foydalanuvchini o\'chirmoqchimisiz?');">
+                                                        <i class='bx bx-trash'></i> O'chirish
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                                                        <i class='bx bx-x'></i> Bekor qilish
+                                                    </a>
                                                 </div>
                                             </div>
-                                            <hr>
                                         </div>
                                     </div>
                                 </div>

@@ -55,11 +55,11 @@
                                             <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)</p>
                                         </div>
 
-                                        @if (ViewBag.UsersCount != null && (int)ViewBag.UsersCount > 0)
+                                        if (ViewBag.UsersCount != null && (int)ViewBag.UsersCount > 0)
                                         {
                                             <div class="alert alert-info">
                                                 <i class="bx bx-info-circle"></i>
-                                                Bu rolga ega <strong>@ViewBag.UsersCount</strong> ta foydalanuvchi mavjud. 
+                                                Bu rolga ega <strong>@ViewBag.UsersCount</strong> ta foydalanuvchi mavjud.
                                                 Rol o'chirilgandan keyin, bu foydalanuvchilar rolsiz qoladi.
                                             </div>
                                         }

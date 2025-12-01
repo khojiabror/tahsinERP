@@ -210,12 +210,22 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Engineering -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM") || RoleHelper.IsViewPermitted(User.Identity.Name, "NormCutting"))
                     {
                         <li class="navigation-header"><span>Engineering</span></li>
                         
                         <li class="nav-item">
-                            <a href="~/BOM?IsParentProduct=true"><i class="bx bx-git-compare"></i><span class="menu-title">BOM</span></a>
+                            <a href="#"><i class="bx bx-git-compare"></i><span class="menu-title">BOM</span></a>
+                            <ul class="menu-content">
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+                                {
+                                    <li><a href="~/BOM?IsParentProduct=true"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">BOM ro'yxati</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "NormCutting"))
+                                {
+                                    <li><a href="~/NormCutting"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">NORM Kesish</span></a></li>
+                                }
+                            </ul>
                         </li>
                     }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product"))

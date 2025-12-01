@@ -1,0 +1,403 @@
+@model tahsinERP.ViewModels.ProductNormCuttingViewModel
+@{
+    ViewBag.Title = "NORM Kesish Variantlari Tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">NORM Kesish Variantlari Tahrirlash</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/NormCutting">NORM Kesish</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @using (Html.BeginForm("Edit", "NormCutting", FormMethod.Post, new { id = "normForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.ProductID)
+                    @Html.HiddenFor(m => m.NormVersionID)
+
+                    <section class="invoice-edit-wrapper">
+                        <div class="row">
+                            <div class="col-xl-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            <h4 class="text-primary mb-3">Mahsulot ma'lumotlari</h4>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Mahsulot raqami</label>
+                                                        <input type="text" class="form-control" value="@Model.ProductCode" readonly />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Mahsulot nomi</label>
+                                                        <input type="text" class="form-control" value="@Model.ProductName" readonly />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Oy <span class="text-danger">*</span></label>
+                                                        @Html.TextBoxFor(m => m.Period, new { @class = "form-control", type = "month", @required = "required" })
+                                                        @Html.ValidationMessageFor(m => m.Period, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Samarali sanadan</label>
+                                                        @Html.TextBoxFor(m => m.EffectiveFrom, new { @class = "form-control", type = "date" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Samarali sanagacha</label>
+                                                        @Html.TextBoxFor(m => m.EffectiveTo, new { @class = "form-control", type = "date" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Izoh</label>
+                                                @Html.TextAreaFor(m => m.Comment, new { @class = "form-control", rows = 2 })
+                                            </div>
+
+                                            <hr>
+
+                                            <h4 class="text-primary mb-3">Kesish variantlari</h4>
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-bordered" id="cuttingLinesTable">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th style="width: 30px;">
+                                                                <input type="checkbox" id="selectAll" />
+                                                            </th>
+                                                            <th>Material</th>
+                                                            <th>Material kodi</th>
+                                                            <th>Uzunlik (mm)</th>
+                                                            <th>Standart uzunlik (mm)</th>
+                                                            <th>Miqdori</th>
+                                                            <th>Dona/bar</th>
+                                                            <th>Sarflanish (m)</th>
+                                                            <th>Chiqindi (m)</th>
+                                                            <th>Narx</th>
+                                                            <th>Jami narx</th>
+                                                            <th style="width: 50px;">Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="linesBody">
+                                                        @for (int i = 0; i < Model.CuttingLines.Count; i++)
+                                                        {
+                                                            var line = Model.CuttingLines[i];
+                                                            <tr class="line-row" data-line-index="@i">
+                                                                <td>
+                                                                    @Html.CheckBoxFor(m => m.CuttingLines[i].IsSelected, new { @class = "line-select" })
+                                                                </td>
+                                                                <td>
+                                                                    @Html.DropDownListFor(m => m.CuttingLines[i].MaterialID, ViewBag.Materials as SelectList, "Tanlang", new { @class = "form-control material-select", @required = "required" })
+                                                                    @Html.ValidationMessageFor(m => m.CuttingLines[i].MaterialID, "", new { @class = "text-danger" })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="material-code">@line.MaterialCode</span>
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].CalculatedLengthMm, new { @class = "form-control length-input", type = "number", step = "0.01" })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="standard-length">@(line.StandardLengthMm?.ToString("F2") ?? "-")</span>
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].Quantity, new { @class = "form-control quantity-input", type = "number", min = "1", @required = "required" })
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].PiecesPerBar, new { @class = "form-control pieces-input", type = "number", min = "1", @required = "required" })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="consumption">@line.ConsumptionPerProduct.ToString("F4")</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="waste">@line.WastePerProduct.ToString("F4")</span>
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].UnitPrice, new { @class = "form-control price-input", type = "number", step = "0.01" })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="total-cost">@line.TotalCostPerProduct.ToString("F2")</span>
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-danger remove-line" title="O'chirish">
+                                                                        <i class="bx bx-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                            @Html.HiddenFor(m => m.CuttingLines[i].ID)
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-primary" id="addLineBtn">
+                                                    <i class="bx bx-plus"></i> Qator qo'shish
+                                                </button>
+                                            </div>
+
+                                            <hr>
+
+                                            <h4 class="text-primary mb-3">Jami hisoblar</h4>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="card bg-light">
+                                                        <div class="card-body">
+                                                            <h6>Umumiy norma (m)</h6>
+                                                            <h4 id="totalNorm">@Model.TotalNorm.ToString("F4")</h4>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card bg-light">
+                                                        <div class="card-body">
+                                                            <h6>Umumiy chiqindi (m)</h6>
+                                                            <h4 id="totalWaste">@Model.TotalWaste.ToString("F4")</h4>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card bg-light">
+                                                        <div class="card-body">
+                                                            <h6>Umumiy summa</h6>
+                                                            <h4 id="totalCost">@Model.TotalCost.ToString("F2")</h4>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
+                                            <div id="optimizationSection" style="display: none;">
+                                                <h4 class="text-primary mb-3">Optimizatsiya taklifi</h4>
+                                                <div class="alert alert-info" id="optimizationMessage"></div>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="card bg-info text-white">
+                                                            <div class="card-body">
+                                                                <h6>Taklif qilingan norma (m)</h6>
+                                                                <h4 id="suggestedNorm">0.0000</h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="card bg-info text-white">
+                                                            <div class="card-body">
+                                                                <h6>Taklif qilingan chiqindi (m)</h6>
+                                                                <h4 id="suggestedWaste">0.0000</h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="card bg-info text-white">
+                                                            <div class="card-body">
+                                                                <h6>Taklif qilingan summa</h6>
+                                                                <h4 id="suggestedCost">0.00</h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-warning" id="calculateBtn">
+                                                        <i class="bx bx-calculator"></i> Optimizatsiya qilish
+                                                    </button>
+                                                    <button type="submit" class="btn btn-success" id="confirmBtn" formaction="@Url.Action("Confirm", "NormCutting")">
+                                                        <i class="bx bx-check"></i> Saqlash va tasdiqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "NormCutting")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var lineIndex = @Model.CuttingLines.Count;
+        var materials = @Html.Raw(Json.Encode((ViewBag.Materials as SelectList)?.Items));
+
+        $(document).ready(function () {
+            // Add new line
+            $('#addLineBtn').click(function () {
+                var newRow = '<tr class="line-row" data-line-index="' + lineIndex + '">' +
+                    '<td><input type="checkbox" name="CuttingLines[' + lineIndex + '].IsSelected" class="line-select" checked /></td>' +
+                    '<td>' + getMaterialDropdown(lineIndex) + '</td>' +
+                    '<td><span class="material-code">-</span></td>' +
+                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].CalculatedLengthMm" class="form-control length-input" step="0.01" /></td>' +
+                    '<td><span class="standard-length">-</span></td>' +
+                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].Quantity" class="form-control quantity-input" min="1" value="1" required /></td>' +
+                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].PiecesPerBar" class="form-control pieces-input" min="1" value="1" required /></td>' +
+                    '<td><span class="consumption">0.0000</span></td>' +
+                    '<td><span class="waste">0.0000</span></td>' +
+                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].UnitPrice" class="form-control price-input" step="0.01" /></td>' +
+                    '<td><span class="total-cost">0.00</span></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
+                    '<input type="hidden" name="CuttingLines[' + lineIndex + '].ID" value="0" />' +
+                    '</tr>';
+                $('#linesBody').append(newRow);
+                lineIndex++;
+            });
+
+            // Remove line
+            $(document).on('click', '.remove-line', function () {
+                $(this).closest('tr').remove();
+                recalculateTotals();
+            });
+
+            // Material selection change
+            $(document).on('change', '.material-select', function () {
+                var materialId = $(this).val();
+                var row = $(this).closest('tr');
+                if (materialId) {
+                    loadMaterialData(materialId, row);
+                }
+            });
+
+            // Recalculate on input change
+            $(document).on('input', '.length-input, .quantity-input, .pieces-input, .price-input', function () {
+                recalculateRow($(this).closest('tr'));
+                recalculateTotals();
+            });
+
+            // Select all
+            $('#selectAll').change(function () {
+                $('.line-select').prop('checked', $(this).prop('checked'));
+            });
+
+            // Calculate optimization
+            $('#calculateBtn').click(function () {
+                calculateOptimization();
+            });
+        });
+
+        function getMaterialDropdown(index) {
+            var html = '<select name="CuttingLines[' + index + '].MaterialID" class="form-control material-select" required>';
+            html += '<option value="">Tanlang</option>';
+            @if (ViewBag.Materials != null)
+            {
+                foreach (SelectListItem item in (ViewBag.Materials as SelectList))
+                {
+                    <text>html += '<option value="@item.Value">@item.Text</option>';</text>
+                }
+            }
+            html += '</select>';
+            return html;
+        }
+
+        function loadMaterialData(materialId, row) {
+            // Load material data via AJAX or from a data attribute
+            // For now, we'll just update the code display
+            row.find('.material-code').text('Loading...');
+            // In a real implementation, you'd fetch this from the server
+        }
+
+        function recalculateRow(row) {
+            var length = parseFloat(row.find('.length-input').val()) || 0;
+            var quantity = parseInt(row.find('.quantity-input').val()) || 1;
+            var pieces = parseInt(row.find('.pieces-input').val()) || 1;
+            var price = parseFloat(row.find('.price-input').val()) || 0;
+
+            var consumption = (length / 1000.0) * quantity;
+            var waste = 0; // Calculate based on standard length if available
+            var totalCost = consumption * price;
+
+            row.find('.consumption').text(consumption.toFixed(4));
+            row.find('.waste').text(waste.toFixed(4));
+            row.find('.total-cost').text(totalCost.toFixed(2));
+        }
+
+        function recalculateTotals() {
+            var totalNorm = 0;
+            var totalWaste = 0;
+            var totalCost = 0;
+
+            $('.line-row').each(function () {
+                if ($(this).find('.line-select').prop('checked')) {
+                    totalNorm += parseFloat($(this).find('.consumption').text()) || 0;
+                    totalWaste += parseFloat($(this).find('.waste').text()) || 0;
+                    totalCost += parseFloat($(this).find('.total-cost').text()) || 0;
+                }
+            });
+
+            $('#totalNorm').text(totalNorm.toFixed(4));
+            $('#totalWaste').text(totalWaste.toFixed(4));
+            $('#totalCost').text(totalCost.toFixed(2));
+        }
+
+        function calculateOptimization() {
+            var formData = $('#normForm').serialize();
+            
+            $.ajax({
+                url: '@Url.Action("Calculate", "NormCutting")',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        $('#suggestedNorm').text(response.totalNorm.toFixed(4));
+                        $('#suggestedWaste').text(response.totalWaste.toFixed(4));
+                        $('#suggestedCost').text(response.totalCost.toFixed(2));
+                        $('#optimizationMessage').text(response.optimization.message);
+                        $('#optimizationSection').show();
+                    } else {
+                        alert('Xatolik: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Server xatosi yuz berdi.');
+                }
+            });
+        }
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

@@ -1,47 +1,92 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
+    /// <summary>
+    /// Permission Module CRUD - Ruxsat modullarini boshqarish
+    /// </summary>
     public class PModuleController : Controller
     {
         // GET: PModule
-        [HttpGet]
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                var permissionModules = db.PERMISSIONMODULES.ToList();
-                var permissions = db.PERMISSIONS.ToList();
-                var roles = db.ROLES.ToList();
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
 
-                var viewModel = permissionModules.Select(pm => new PermissionModuleViewModel
+            using (var db = new DBTHSNEntities())
+            {
+                // Optimized query - barcha ma'lumotlarni bitta query bilan olish
+                var permissionModules = await db.PERMISSIONMODULES
+                    .OrderBy(pm => pm.Module)
+                    .ThenBy(pm => pm.Controller)
+                    .ThenBy(pm => pm.Action)
+                    .ToListAsync();
+
+                var permissionModuleIds = permissionModules.Select(pm => pm.ID).ToList();
+
+                // Barcha permissions va rollarni bitta query bilan olish
+                var permissions = await db.PERMISSIONS
+                    .Where(p => permissionModuleIds.Contains(p.PermissionModuleID))
+                    .Include(p => p.ROLE)
+                    .ToListAsync();
+
+                var roleIds = permissions.Select(p => p.RoleID).Distinct().ToList();
+                var roles = await db.ROLES
+                    .Where(r => roleIds.Contains(r.ID))
+                    .ToDictionaryAsync(r => r.ID, r => r.RName);
+
+                // ViewModel yaratish
+                var viewModel = permissionModules.Select(pm =>
                 {
-                    ID = pm.ID,
-                    Module = pm.Module,
-                    RoleNames = string.Join(", ", permissions
-                                            .Where(p => p.PermissionModuleID == pm.ID)
-                                            .Select(p => roles
-                                            .FirstOrDefault(r => r.ID == p.RoleID)?.RName)
-                                            .Distinct())
+                    var relatedPermissions = permissions.Where(p => p.PermissionModuleID == pm.ID).ToList();
+                    var roleNames = relatedPermissions
+                        .Select(p => roles.ContainsKey(p.RoleID) ? roles[p.RoleID] : null)
+                        .Where(r => r != null)
+                        .Distinct()
+                        .ToList();
+
+                    return new PermissionModuleViewModel
+                    {
+                        ID = pm.ID,
+                        Module = pm.Module,
+                        Controller = pm.Controller,
+                        Action = pm.Action,
+                        Parametr = pm.Parameter,
+                        RoleNames = string.Join(", ", roleNames)
+                    };
                 }).ToList();
 
                 return View(viewModel);
             }
         }
 
-        public ActionResult Create()
+        // GET: PModule/Create
+        public async Task<ActionResult> Create()
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                var roles = db.ROLES.ToList();
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var roles = await db.ROLES
+                    .Where(r => r.IsDeleted != true)
+                    .OrderBy(r => r.RName)
+                    .ToListAsync();
+
                 ViewBag.Roles = new MultiSelectList(roles, "ID", "RName");
                 ViewBag.ControllerNames = GetAllControllerNames();
                 ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
@@ -50,65 +95,123 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // POST: PModule/Create
         [HttpPost]
-        public ActionResult Create(PERMISSIONMODULE permissions, int[] RoleID)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Create(PERMISSIONMODULE permissions, int[] RoleID)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                if (ModelState.IsValid)
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (string.IsNullOrWhiteSpace(permissions.Module))
+            {
+                ModelState.AddModelError("Module", "Modul nomi kiritilishi shart");
+            }
+
+            if (string.IsNullOrWhiteSpace(permissions.Controller))
+            {
+                ModelState.AddModelError("Controller", "Controller tanlanishi shart");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
                 {
-                    try
+                    using (var db = new DBTHSNEntities())
                     {
-                        db.PERMISSIONMODULES.Add(permissions);
-                        db.SaveChanges();
+                        // Takrorlanishni tekshirish (Action null yoki bo'sh bo'lishi mumkin)
+                        var existing = await db.PERMISSIONMODULES
+                            .FirstOrDefaultAsync(pm => pm.Module == permissions.Module &&
+                                                      pm.Controller == permissions.Controller &&
+                                                      (pm.Action == permissions.Action || 
+                                                       (string.IsNullOrEmpty(pm.Action) && string.IsNullOrEmpty(permissions.Action))));
 
-                        foreach (var roleId in RoleID)
+                        if (existing != null)
                         {
-                            db.PERMISSIONS.Add(new PERMISSION
-                            {
-                                PermissionModuleID = permissions.ID,
-                                RoleID = roleId,
-                                ViewPermit = true,
-                                ChangePermit = false
-                            });
+                            ModelState.AddModelError("", "Bu modul, controller va action kombinatsiyasi allaqachon mavjud");
                         }
+                        else
+                        {
+                            db.PERMISSIONMODULES.Add(permissions);
+                            await db.SaveChangesAsync();
 
-                        db.SaveChanges();
+                            // Rollarga permission biriktirish
+                            if (RoleID != null && RoleID.Length > 0)
+                            {
+                                var validRoleIds = await db.ROLES
+                                    .Where(r => RoleID.Contains(r.ID) && r.IsDeleted != true)
+                                    .Select(r => r.ID)
+                                    .ToListAsync();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permissions.Module} - Permission yaratdi");
+                                var permissionsToAdd = validRoleIds.Select(roleId => new PERMISSION
+                                {
+                                    PermissionModuleID = permissions.ID,
+                                    RoleID = roleId,
+                                    ViewPermit = true,
+                                    ChangePermit = false
+                                }).ToList();
 
-                        return RedirectToAction("Index");
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", ex.Message);
+                                db.PERMISSIONS.AddRange(permissionsToAdd);
+                                await db.SaveChangesAsync();
+                            }
+
+                            // Cache ni tozalash
+                            RoleHelper.ClearAllCache();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{permissions.Module} - Permission moduli yaratildi");
+                            TempData["Success"] = "Permission moduli muvaffaqiyatli yaratildi";
+
+                            return RedirectToAction("Index");
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                }
+            }
 
-                var roles = db.ROLES.ToList();
+            // Error bo'lsa, ViewBag ni qayta yuklash
+            using (var db = new DBTHSNEntities())
+            {
+                var roles = await db.ROLES
+                    .Where(r => r.IsDeleted != true)
+                    .OrderBy(r => r.RName)
+                    .ToListAsync();
+
                 ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", RoleID);
                 ViewBag.ControllerNames = GetAllControllerNames();
                 ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
-
-                return View(permissions);
             }
+
+            return View(permissions);
         }
 
-
-
+        // POST: PModule/GetActions
         [HttpPost]
         public JsonResult GetActions(string controller)
         {
             try
             {
+                if (string.IsNullOrEmpty(controller))
+                {
+                    return Json(new List<string>());
+                }
+
                 var controllerType = Assembly.GetExecutingAssembly().GetTypes()
-                    .FirstOrDefault(type => type.Name == $"{controller}Controller");
+                    .FirstOrDefault(type => type.Name == $"{controller}Controller" && typeof(Controller).IsAssignableFrom(type));
 
                 if (controllerType != null)
                 {
                     var actions = controllerType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public)
-                        .Where(m => !m.IsDefined(typeof(NonActionAttribute)))
+                        .Where(m => !m.IsDefined(typeof(NonActionAttribute)) && 
+                                    m.ReturnType == typeof(ActionResult) || 
+                                    m.ReturnType == typeof(Task<ActionResult>))
                         .Select(m => m.Name)
+                        .Distinct()
+                        .OrderBy(a => a)
                         .ToList();
 
                     return Json(actions);
@@ -118,211 +221,213 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message); 
                 return Json(new List<string>());
             }
         }
 
-        [HttpPost]
-        public ActionResult Edit(PERMISSIONMODULE permissions, int[] RoleID)
+        // GET: PModule/Edit/5
+        public async Task<ActionResult> Edit(int? id)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                if (ModelState.IsValid)
-                {
-                    try
-                    {
-                        var receivedID = permissions.ID;
-                        System.Diagnostics.Debug.WriteLine($"Received PermissionModule ID: {receivedID}");
-
-                        var pModule = db.PERMISSIONMODULES.Find(receivedID);
-                        if (pModule == null)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"PermissionModule not found for ID: {receivedID}");
-                            return HttpNotFound();
-                        }
-
-                        pModule.Module = permissions.Module;
-                        pModule.Controller = permissions.Controller;
-                        pModule.Action = permissions.Action;
-                        pModule.Parameter = permissions.Parameter; 
-
-                        var existingPermissions = db.PERMISSIONS
-                            .Where(p => p.PermissionModuleID == pModule.ID)
-                            .ToList();
-
-                        foreach (var permission in existingPermissions)
-                        {
-                            if (!RoleID.Contains(permission.RoleID))
-                            {
-                                db.PERMISSIONS.Remove(permission);
-                            }
-                        }
-
-                        foreach (var roleId in RoleID)
-                        {
-                            if (!existingPermissions.Any(p => p.RoleID == roleId))
-                            {
-                                db.PERMISSIONS.Add(new PERMISSION
-                                {
-                                    PermissionModuleID = pModule.ID,
-                                    RoleID = roleId,
-                                    ViewPermit = true,
-                                    ChangePermit = true
-                                });
-                            }
-                        }
-
-                        db.SaveChanges();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permissions.Module} - Permissionni tahrirladi");
-
-                        return RedirectToAction("Index");
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        ModelState.AddModelError("", "Malumotlar boshqa foydalanuvchi tomonidan o'zgartirilgan yoki o'chirilgan. Qayta urinib ko'ring.");
-                    }
-                    catch (RetryLimitExceededException)
-                    {
-                        ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                    }
-                }
-
-                var roles = db.ROLES.ToList();
-                ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", RoleID);
-                ViewBag.ControllerNames = new SelectList(GetAllControllerNames(), "Value", "Text", permissions.Controller);
-                ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
-
-                return View(permissions);
+                return RedirectToAction("Index", "ViewNotAuthorized");
             }
-        }
 
-
-        public ActionResult Edit(int id)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (id == null)
             {
-                var pModule = db.PERMISSIONMODULES.Find(id);
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var pModule = await db.PERMISSIONMODULES.FindAsync(id);
                 if (pModule == null)
                 {
                     return HttpNotFound();
                 }
 
-                var roles = db.ROLES.ToList();
-                var selectedRoleIDs = db.PERMISSIONS.Where(p => p.PermissionModuleID == id).Select(p => p.RoleID).ToList();
+                var roles = await db.ROLES
+                    .Where(r => r.IsDeleted != true)
+                    .OrderBy(r => r.RName)
+                    .ToListAsync();
+
+                var selectedRoleIDs = await db.PERMISSIONS
+                    .Where(p => p.PermissionModuleID == id)
+                    .Select(p => p.RoleID)
+                    .ToListAsync();
 
                 ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", selectedRoleIDs);
                 ViewBag.ControllerNames = new SelectList(GetAllControllerNames(), "Value", "Text", pModule.Controller);
                 ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
+
                 return View(pModule);
             }
         }
 
-
-        private List<SelectListItem> GetAllControllerNames()
+        // POST: PModule/Edit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit(PERMISSIONMODULE permissions, int[] RoleID)
         {
-            var controllers = Assembly.GetExecutingAssembly().GetTypes()
-                .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
-                .Select(type => type.Name.Replace("Controller", ""))
-                .ToList();
-
-            return controllers.Select(c => new SelectListItem { Text = c, Value = c }).ToList();
-        }
-
-
-
-        private DBTHSNEntities db = new DBTHSNEntities();
-
-
-        public ActionResult Delete(int id)
-        {
-            var permissionModule = db.PERMISSIONMODULES
-                                      .FirstOrDefault(pm => pm.ID == id);
-            if (permissionModule == null)
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                return HttpNotFound();
+                return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var permissions = db.PERMISSIONS
-                                .Where(p => p.PermissionModuleID == id)
-                                .ToList();
-            var roles = db.ROLES.ToList();
-
-            var viewModel = new PermissionModuleViewModel
+            if (string.IsNullOrWhiteSpace(permissions.Module))
             {
-                ID = permissionModule.ID,
-                Module = permissionModule.Module,
-                Controller = permissionModule.Controller,
-                Action = permissionModule.Action,
-                Parametr = permissionModule.Parameter,
-                RoleNames = string.Join(", ", permissions
-                                                .Select(p => roles
-                                                             .FirstOrDefault(r => r.ID == p.RoleID)?.RName)
-                                                .Distinct())
-            };
+                ModelState.AddModelError("Module", "Modul nomi kiritilishi shart");
+            }
 
-            return View(viewModel);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int Id)
-        {
-            var permissionModule = db.PERMISSIONMODULES.Find(Id);
-
-            if (permissionModule != null)
+            if (string.IsNullOrWhiteSpace(permissions.Controller))
             {
-                var permissions = db.PERMISSIONS
-                    .Where(p => p.PermissionModuleID == Id)
-                    .ToList();
+                ModelState.AddModelError("Controller", "Controller tanlanishi shart");
+            }
 
-                var roleIds = permissions.Select(p => p.RoleID).Distinct().ToList();
-                var roles = db.ROLES
-                    .Where(r => roleIds.Contains(r.ID))
-                    .ToList();
-
-                foreach (var permission in permissions)
+            if (ModelState.IsValid)
+            {
+                try
                 {
-                    db.PERMISSIONS.Remove(permission);
-                    LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permission.ROLE.RName} - uchun ruxsatni o'chirdi");
-                }
-
-                foreach (var role in roles)
-                {
-                    if (!db.PERMISSIONS.Any(p => p.RoleID == role.ID))
+                    using (var db = new DBTHSNEntities())
                     {
-                        db.ROLES.Remove(role);
+                        var pModule = await db.PERMISSIONMODULES.FindAsync(permissions.ID);
+                        if (pModule == null)
+                        {
+                            return HttpNotFound();
+                        }
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{role.RName} - Rolni o'chirdi");
+                        // Takrorlanishni tekshirish (o'zidan boshqa)
+                        var existing = await db.PERMISSIONMODULES
+                            .FirstOrDefaultAsync(pm => pm.ID != permissions.ID &&
+                                                      pm.Module == permissions.Module &&
+                                                      pm.Controller == permissions.Controller &&
+                                                      pm.Action == permissions.Action);
+
+                        if (existing != null)
+                        {
+                            ModelState.AddModelError("", "Bu modul, controller va action kombinatsiyasi allaqachon mavjud");
+                        }
+                        else
+                        {
+                            // PermissionModule ni yangilash
+                            pModule.Module = permissions.Module?.Trim();
+                            pModule.Controller = permissions.Controller?.Trim();
+                            pModule.Action = permissions.Action?.Trim();
+                            pModule.Parameter = permissions.Parameter?.Trim();
+
+                            // Mavjud permissions ni olish
+                            var existingPermissions = await db.PERMISSIONS
+                                .Where(p => p.PermissionModuleID == pModule.ID)
+                                .ToListAsync();
+
+                            // Valid role IDs
+                            var validRoleIds = RoleID != null && RoleID.Length > 0
+                                ? await db.ROLES
+                                    .Where(r => RoleID.Contains(r.ID) && r.IsDeleted != true)
+                                    .Select(r => r.ID)
+                                    .ToListAsync()
+                                : new List<int>();
+
+                            // O'chirish kerak bo'lgan permissions
+                            var permissionsToRemove = existingPermissions
+                                .Where(p => !validRoleIds.Contains(p.RoleID))
+                                .ToList();
+
+                            if (permissionsToRemove.Any())
+                            {
+                                db.PERMISSIONS.RemoveRange(permissionsToRemove);
+                            }
+
+                            // Yangi qo'shish kerak bo'lgan permissions
+                            var existingRoleIds = existingPermissions.Select(p => p.RoleID).ToList();
+                            var permissionsToAdd = validRoleIds
+                                .Where(roleId => !existingRoleIds.Contains(roleId))
+                                .Select(roleId => new PERMISSION
+                                {
+                                    PermissionModuleID = pModule.ID,
+                                    RoleID = roleId,
+                                    ViewPermit = true,
+                                    ChangePermit = false
+                                }).ToList();
+
+                            if (permissionsToAdd.Any())
+                            {
+                                db.PERMISSIONS.AddRange(permissionsToAdd);
+                            }
+
+                            await db.SaveChangesAsync();
+
+                            // Cache ni tozalash
+                            RoleHelper.ClearAllCache();
+
+                            LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{pModule.Module} - Permission moduli yangilandi");
+                            TempData["Success"] = "Permission moduli muvaffaqiyatli yangilandi";
+
+                            return RedirectToAction("Index");
+                        }
                     }
                 }
-
-                db.PERMISSIONMODULES.Remove(permissionModule);
-                db.SaveChanges();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "Ruxsatlar to'plami", $"{permissionModule.Module} ID ga ega ruxsatni o'chirdi");
+                catch (DbUpdateConcurrencyException)
+                {
+                    ModelState.AddModelError("", "Ma'lumotlar boshqa foydalanuvchi tomonidan o'zgartirilgan yoki o'chirilgan. Qayta urinib ko'ring.");
+                }
+                catch (RetryLimitExceededException)
+                {
+                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                }
             }
 
-            return RedirectToAction("Index");
+            // Error bo'lsa, ViewBag ni qayta yuklash
+            using (var db = new DBTHSNEntities())
+            {
+                var roles = await db.ROLES
+                    .Where(r => r.IsDeleted != true)
+                    .OrderBy(r => r.RName)
+                    .ToListAsync();
+
+                ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", RoleID);
+                ViewBag.ControllerNames = new SelectList(GetAllControllerNames(), "Value", "Text", permissions.Controller);
+                ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
+            }
+
+            return View(permissions);
         }
 
-
-        public ActionResult Details(int id)
+        // GET: PModule/Delete/5
+        public async Task<ActionResult> Delete(int? id)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                var permissionModule = db.PERMISSIONMODULES
-                                          .FirstOrDefault(pm => pm.ID == id);
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var permissionModule = await db.PERMISSIONMODULES.FindAsync(id);
                 if (permissionModule == null)
                 {
                     return HttpNotFound();
                 }
 
-                var permissions = db.PERMISSIONS
-                                    .Where(p => p.PermissionModuleID == id)
-                                    .ToList();
-                var roles = db.ROLES.ToList();
+                var permissions = await db.PERMISSIONS
+                    .Where(p => p.PermissionModuleID == id)
+                    .Include(p => p.ROLE)
+                    .ToListAsync();
+
+                var roleNames = permissions
+                    .Select(p => p.ROLE?.RName)
+                    .Where(r => r != null)
+                    .Distinct()
+                    .ToList();
 
                 var viewModel = new PermissionModuleViewModel
                 {
@@ -331,15 +436,124 @@ namespace tahsinERP.Controllers
                     Controller = permissionModule.Controller,
                     Action = permissionModule.Action,
                     Parametr = permissionModule.Parameter,
-                    RoleNames = string.Join(", ", permissions
-                                                .Select(p => roles
-                                                             .FirstOrDefault(r => r.ID == p.RoleID)?.RName)
-                                                .Distinct())
+                    RoleNames = string.Join(", ", roleNames)
+                };
+
+                ViewBag.PermissionsCount = permissions.Count;
+
+                return View(viewModel);
+            }
+        }
+
+        // POST: PModule/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteConfirmed(int id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var permissionModule = await db.PERMISSIONMODULES.FindAsync(id);
+                    if (permissionModule == null)
+                    {
+                        return HttpNotFound();
+                    }
+
+                    // Barcha permissions ni o'chirish
+                    var permissions = await db.PERMISSIONS
+                        .Where(p => p.PermissionModuleID == id)
+                        .Include(p => p.ROLE)
+                        .ToListAsync();
+
+                    if (permissions.Any())
+                    {
+                        db.PERMISSIONS.RemoveRange(permissions);
+                    }
+
+                    // PermissionModule ni o'chirish
+                    db.PERMISSIONMODULES.Remove(permissionModule);
+                    await db.SaveChangesAsync();
+
+                    // Cache ni tozalash
+                    RoleHelper.ClearAllCache();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{permissionModule.Module} - Permission moduli o'chirildi");
+                    TempData["Success"] = "Permission moduli muvaffaqiyatli o'chirildi";
+
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+        // GET: PModule/Details/5
+        public async Task<ActionResult> Details(int? id)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var permissionModule = await db.PERMISSIONMODULES.FindAsync(id);
+                if (permissionModule == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var permissions = await db.PERMISSIONS
+                    .Where(p => p.PermissionModuleID == id)
+                    .Include(p => p.ROLE)
+                    .ToListAsync();
+
+                var roleNames = permissions
+                    .Select(p => p.ROLE?.RName)
+                    .Where(r => r != null)
+                    .Distinct()
+                    .ToList();
+
+                var viewModel = new PermissionModuleViewModel
+                {
+                    ID = permissionModule.ID,
+                    Module = permissionModule.Module,
+                    Controller = permissionModule.Controller,
+                    Action = permissionModule.Action,
+                    Parametr = permissionModule.Parameter,
+                    RoleNames = string.Join(", ", roleNames)
                 };
 
                 return View(viewModel);
             }
         }
 
+        /// <summary>
+        /// Barcha controller nomlarini olish
+        /// </summary>
+        private List<SelectListItem> GetAllControllerNames()
+        {
+            var controllers = Assembly.GetExecutingAssembly().GetTypes()
+                .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
+                .Select(type => type.Name.Replace("Controller", ""))
+                .OrderBy(c => c)
+                .ToList();
+
+            return controllers.Select(c => new SelectListItem { Text = c, Value = c }).ToList();
+        }
     }
 }

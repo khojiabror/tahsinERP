@@ -1,108 +1,144 @@
 ﻿@model tahsinERP.Models.PERMISSIONMODULE
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Yangi modul qo'shish";
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
-<body>
-
-    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-    {
-        using (Html.BeginForm("Create", "PModule", FormMethod.Post, new { enctype = "multipart/form-data" }))
-        {
-            @Html.AntiForgeryToken()
-            <div class="app-content content">
-                <div class="content-overlay"></div>
-                <div class="content-wrapper">
-                    <div class="content-header row">
-                        <div class="content-header-left col-12 mb-2 mt-1">
-                            <div class="row breadcrumbs-top">
-                                <div class="col-12">
-                                    <div class="breadcrumb-wrapper col-12">
-                                        <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                            <li class="breadcrumb-item">
-                                                <a href="~/AdminPanel/Index"><i class="bx bx-home-alt"></i></a>
-                                            </li>
-                                            <li class="breadcrumb-item ">
-                                                Admin Panel
-                                            </li>
-                                            <li class="breadcrumb-item ">
-                                                <a href="~/PModule/Index">Ruxsatlar</a>
-                                            </li>
-                                            <li class="breadcrumb-item active">
-                                                Yangi ruxsat qo'shish
-                                            </li>
-                                        </ol>
-                                    </div>
-                                </div>
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Yangi modul qo'shish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/PModule">Ruxsat modullari</a></li>
+                                    <li class="breadcrumb-item active">Yangi modul</li>
+                                </ol>
                             </div>
                         </div>
-                    </div>
-                    <div class="content-body">
-                        <!-- app invoice View Page -->
-                        <section class="basic-select2">
-                            <div class="row">
-                                <!-- invoice view page -->
-                                <div class="col-xl-9 col-md-8 col-12">
-                                    <div class="card">
-                                        <div class="card-content">
-                                            <div class="card-body pb-0 mx-25">
-                                                <div class="row">
-                                                    <div class="col-lg-12 col-md-6 mt-25">
-                                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                        <hr>
-                                                        <h6 class="invoice-to">Yangi model nomi</h6>
-                                                        <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.Module, new { @class = "form-control", @placeholder = "Model nomi" })
-                                                            @Html.ValidationMessageFor(model => model.Module, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <fieldset class="invoice-address form-group">
-                                                            <label>Controller</label>
-                                                            @Html.DropDownListFor(model => model.Controller, (List<SelectListItem>)ViewBag.ControllerNames, "Tanlang", new { @class = "form-control select2", @id = "controllerDropdown" })
-                                                            @Html.ValidationMessageFor(model => model.Controller, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <fieldset class="invoice-address form-group">
-                                                            <label>Action</label>
-                                                            @Html.TextBoxFor(model => model.Action, new { @class = "form-control", @placeholder = "action nomi" })
-                                                            @Html.ValidationMessageFor(model => model.Action, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <h6 class="invoice-to">Parametr</h6>
-                                                        <fieldset class="invoice-address form-group">
-                                                            @Html.DropDownListFor(model => model.Parameter, new SelectList(ViewBag.Parametr, "Select Part Type"), new { @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.Parameter, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <h6 class="invoice-to">Rollarga birikishi</h6>
-                                                        <fieldset class="invoice-address form-group">
-                                                            @Html.ListBox("RoleID", ViewBag.Roles as MultiSelectList, new { @class = "select2 form-control", multiple = "multiple" })
-                                                        </fieldset>
-                                                        <br />
-                                                        <ul class="list-group list-group-flush">
-                                                            <li class="list-group-item border-0 pb-0">
-                                                                <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
-                                                                    <i class='bx bx-save'></i>
-                                                                    Save
-                                                                </button>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <hr>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
                     </div>
                 </div>
             </div>
 
-            <script src="~/app-assets/js/pmodule/script.js"></script>
-        }
-    }
-    else
-    {
-        Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-    }
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>Yangi modul ma'lumotlari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Create", "PModule", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-</body>
+                                        <div class="form-group">
+                                            <label for="Module">Modul nomi <span class="text-danger">*</span></label>
+                                            @Html.TextBoxFor(model => model.Module, new { 
+                                                @class = "form-control", 
+                                                @placeholder = "Masalan: Maxsulotlar, Xomashyo",
+                                                @required = "required",
+                                                @autofocus = "autofocus"
+                                            })
+                                            @Html.ValidationMessageFor(model => model.Module, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="Controller">Controller <span class="text-danger">*</span></label>
+                                            @Html.DropDownListFor(model => model.Controller, (List<SelectListItem>)ViewBag.ControllerNames, "Tanlang", new { 
+                                                @class = "form-control select2", 
+                                                @id = "controllerDropdown",
+                                                @required = "required"
+                                            })
+                                            @Html.ValidationMessageFor(model => model.Controller, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="Action">Action</label>
+                                            @Html.TextBoxFor(model => model.Action, new { 
+                                                @class = "form-control", 
+                                                @placeholder = "Masalan: Index, Create, Edit",
+                                                @id = "actionInput"
+                                            })
+                                            @Html.ValidationMessageFor(model => model.Action, "", new { @class = "text-danger" })
+                                            <small class="form-text text-muted">Controller tanlanganda actionlar avtomatik yuklanadi</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="Parameter">Parametr</label>
+                                            @Html.DropDownListFor(model => model.Parameter, new SelectList(ViewBag.Parametr ?? new List<string>(), "Select Part Type"), new { 
+                                                @class = "form-control"
+                                            })
+                                            @Html.ValidationMessageFor(model => model.Parameter, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="RoleID">Rollarga biriktirish</label>
+                                            @Html.ListBox("RoleID", ViewBag.Roles as MultiSelectList, new { 
+                                                @class = "select2 form-control", 
+                                                multiple = "multiple",
+                                                @style = "width: 100%;"
+                                            })
+                                            <small class="form-text text-muted">Bir nechta rollarni tanlash mumkin</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save"></i> Saqlash
+                                            </button>
+                                            <a href="@Url.Action("Index", "PModule")" class="btn btn-outline-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Controller o'zgarganda actionlarni yuklash
+            $('#controllerDropdown').on('change', function () {
+                var controller = $(this).val();
+                var actionInput = $('#actionInput');
+                
+                if (controller) {
+                    $.ajax({
+                        url: '@Url.Action("GetActions", "PModule")',
+                        type: 'POST',
+                        data: { controller: controller },
+                        success: function (actions) {
+                            if (actions && actions.length > 0) {
+                                // Autocomplete yoki dropdown yaratish
+                                actionInput.autocomplete({
+                                    source: actions,
+                                    minLength: 0
+                                });
+                                actionInput.focus(function() {
+                                    $(this).autocomplete("search", "");
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

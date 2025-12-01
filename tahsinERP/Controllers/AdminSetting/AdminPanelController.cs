@@ -18,7 +18,7 @@ namespace tahsinERP.Controllers
         // GET: AdminPanel
         public async Task<ActionResult> Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -75,7 +75,7 @@ namespace tahsinERP.Controllers
         // GET: AdminPanel/Users
         public async Task<ActionResult> Users()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -92,7 +92,7 @@ namespace tahsinERP.Controllers
         // GET: AdminPanel/Roles
         public async Task<ActionResult> Roles()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -107,7 +107,7 @@ namespace tahsinERP.Controllers
         // GET: AdminPanel/Permissions/{roleId}
         public async Task<ActionResult> Permissions(int? roleId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -159,7 +159,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SavePermissions(PermissionManagementViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -213,7 +213,7 @@ namespace tahsinERP.Controllers
         // GET: AdminPanel/Logs
         public async Task<ActionResult> Logs(int page = 1, int pageSize = 50)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -236,7 +236,7 @@ namespace tahsinERP.Controllers
         // GET: AdminPanel/UserEntries
         public async Task<ActionResult> UserEntries(int page = 1, int pageSize = 50)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }

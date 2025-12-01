@@ -1,14 +1,15 @@
 ﻿@model tahsinERP.ViewModels.UserViewModel
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Foydalanuvchi ma'lumotlarini tahrirlash";
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
+
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     using (Html.BeginForm("Edit", "User", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
-
         @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.ID)
 
         <div class="app-content content">
             <div class="content-overlay"></div>
@@ -17,106 +18,105 @@
                     <div class="content-header-left col-12 mb-2 mt-1">
                         <div class="row breadcrumbs-top">
                             <div class="col-12">
+                                <h5 class="content-header-title float-left pr-1 mb-0">Foydalanuvchi ma'lumotlarini tahrirlash</h5>
                                 <div class="breadcrumb-wrapper col-12">
-                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                        <li class="breadcrumb-item">
-                                            <a href="~/AdminPanel/Index"><i class="bx bx-home-alt"></i></a>
-                                        </li>
-                                        <li class="breadcrumb-item ">
-                                            Admin Panel
-                                        </li>
-                                        <li class="breadcrumb-item">
-                                            <a href="~/User/Index">Foydalanuvchilar</a>
-                                        </li>
-                                        <li class="breadcrumb-item active">
-                                            Foydalanuvchi ma'lumotlarini tahrirlash
-                                        </li>
+                                    <ol class="breadcrumb p-0 mb-0">
+                                        <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                        <li class="breadcrumb-item"><a href="~/User/Index">Foydalanuvchilar</a></li>
+                                        <li class="breadcrumb-item active">Tahrirlash</li>
                                     </ol>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="content-body">
-                    <!-- app invoice View Page -->
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        </div>
+                    }
+
                     <section class="invoice-edit-wrapper">
                         <div class="row">
-                            <!-- invoice view page -->
-                            <div class="col-xl-9 col-md-8 col-12">
+                            <div class="col-xl-12 col-md-8 col-12">
                                 <div class="card">
                                     <div class="card-content">
                                         <div class="card-body pb-0 mx-25">
-                                            <div class="row invoice-info">
-                                                <br />
-                                                <div class="col-lg-12 col-md-6 mt-25">
-                                                    <fieldset>
-                                                        <h4 class="text-primary">Foydalanuvchi rasmi</h4>
-                                                        <img alt="" src="@ViewBag.Base64String" style="height:150px;width:150px;" />
-                                                    </fieldset>
-                                                    <fieldset>
-                                                        <input type="file" id="userPhotoUpload" name="userPhotoUpload" />
-                                                        @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                </div>
-                                            </div>
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
                                             <div class="row my-2 py-50">
-                                                <div class="col-sm-6 col-12 order-2 order-sm-1">
-                                                    <h4 class="text-primary">Username</h4>
-                                                    @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @placeholder = "Username" })
-                                                    @Html.ValidationMessageFor(model => model.UName, "", new { @class = "text-danger" })
+                                                <div class="col-sm-6 col-12">
+                                                    <h6 class="invoice-to">Foydalanuvchi nomi <span class="text-danger">*</span></h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @placeholder = "Foydalanuvchi nomi", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.UName, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
                                                     <h6 class="invoice-to">E-mail</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control", @placeholder = "E-mail" })
+                                                    <fieldset class="form-group">
+                                                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control", @placeholder = "E-mail", type = "email" })
                                                         @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                </div>
-                                            </div>
-                                            <div class="row invoice-info">
-                                                <div class="col-lg-12 col-md-6 mt-25">
-                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                    <hr>
-                                                    <h6 class="invoice-to">F.I.Sh</h6>
-                                                    <fieldset class="invoice-address form-group">
+
+                                                    <h6 class="invoice-to">To'liq F.I.Sh</h6>
+                                                    <fieldset class="form-group">
                                                         @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @placeholder = "Ismi sharifini to'liq kiriting" })
                                                         @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Roli</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownList("RoleID", null, htmlAttributes: new { @class = "form-control" })
-                                                    </fieldset>
-                                                    <h6 class="invoice-to">Kalit so'zi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "kalit so'zi (пароль)", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                    <h6 class="invoice-to">Kalit so'zini qayta kiriting</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "kalit so'zi (пароль)", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
-                                                    </fieldset>
-                                                    <h6>Faolligi</h6>
-                                                    <ul class="list-unstyled mb-0">
-                                                        <li class="d-inline-block mr-2 mb-1">
-                                                            <fieldset>
-                                                                <div class="checkbox checkbox-secondary checkbox-glow">
-                                                                    @Html.CheckBoxFor(Model => Model.IsActive, new { @type = "checkbox", @id = "checkboxGlow2" })
-                                                                    <label for="checkboxGlow2">Faolmi?</label>
-                                                                </div>
-                                                            </fieldset>
-                                                        </li>
-                                                    </ul>
 
-                                                    <ul class="list-group list-group-flush">
-                                                        <li class="list-group-item border-0 pb-0">
-                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="save" type="submit" value="Edit">
-                                                                <i class='bx bx-save'></i>
-                                                                Saqlash
-                                                            </button>
-                                                        </li>
-                                                    </ul>
+                                                    <h6 class="invoice-to">Roli <span class="text-danger">*</span></h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownList("RoleID", null, "Rolni tanlang", htmlAttributes: new { @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.RoleID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                </div>
+
+                                                <div class="col-sm-6 col-12">
+                                                    <h6 class="invoice-to">Foydalanuvchi rasmi</h6>
+                                                    <fieldset class="form-group">
+                                                        @if (ViewBag.Base64String != null)
+                                                        {
+                                                            <img alt="" src="@ViewBag.Base64String" style="height:150px;width:150px;border-radius:8px;margin-bottom:10px;" class="d-block" />
+                                                        }
+                                                        <input type="file" id="userPhotoUpload" name="userPhotoUpload" accept="image/*" class="form-control" />
+                                                        <small class="text-muted">Maksimal hajmi: 2 MB (o'zgartirish uchun yangi rasm yuklang)</small>
+                                                        @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <h6 class="invoice-to">Kalit so'zi</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Kalit so'zi (faqat o'zgartirish uchun)", @value = "" })
+                                                        <small class="text-muted">Kalit so'zni o'zgartirish uchun yangi kalit so'z kiriting. Bo'sh qoldirilsa, eski kalit so'z saqlanadi.</small>
+                                                        @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <h6 class="invoice-to">Faolligi</h6>
+                                                    <fieldset class="form-group">
+                                                        <div class="checkbox checkbox-secondary checkbox-glow">
+                                                            @Html.CheckBoxFor(Model => Model.IsActive, new { @type = "checkbox", @id = "checkboxGlow2" })
+                                                            <label for="checkboxGlow2">Faol</label>
+                                                        </div>
+                                                        @Html.ValidationMessageFor(model => model.IsActive, "", new { @class = "text-danger" })
+                                                    </fieldset>
                                                 </div>
                                             </div>
+
                                             <hr>
+
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <button class="btn btn-primary" type="submit">
+                                                        <i class='bx bx-save'></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                                                        <i class='bx bx-x'></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
