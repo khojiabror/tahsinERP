@@ -198,10 +198,10 @@ namespace tahsinERP.Models
             if (string.IsNullOrEmpty(username)) return false;
 
             var cacheKey = GetPermissionCacheKey(username, controller, action);
-            var cached = GetCache(cacheKey) as PermissionCache;
+            //var cached = GetCache(cacheKey) as PermissionCache;
             
-            if (cached != null)
-                return cached.ChangePermit;
+            //if (cached != null)
+            //    return cached.ChangePermit;
 
             var permission = GetPermissionFromDb(username, null, controller, action, null);
             SetCache(cacheKey, permission);

@@ -468,7 +468,6 @@
     <Content Include="assets\manual\popper.min.js" />
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
-    <Compile Include="Controllers\Engineering\NormaController.cs" />
     <Compile Include="Controllers\Engineering\NormCuttingController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
     <Compile Include="Controllers\Settings\CompanyController.cs" />
@@ -514,6 +513,21 @@
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
     <Compile Include="Controllers\SRM\ExpenseController.cs" />
     <Compile Include="Controllers\SRM\WhIncomeController.cs" />
+    <Compile Include="Models\ADM_COMPANY_ORDERS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\APP_TASKS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\APP_TASK_PRIORITY_REF.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\APP_TASK_PROJECTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\APP_TASK_STATUS_REF.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\BOM.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -534,6 +548,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\COMPANY_LICENSES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\COM_OFFICIAL_LETTERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\COOKIES_CONFIRMATION.cs">
@@ -565,6 +582,21 @@
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\DEFECT_TYPES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_DOCUMENTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_DOCUMENT_STATUS_REF.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_DOCUMENT_TYPES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_FILES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_TEMPLATES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\EXPENS.cs">
@@ -616,6 +648,21 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\GetProductListPerShop_Result.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_JOB_DESCRIPTIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_ORG_UNITS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_POSITIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_SALARY_GRADES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_STAFFING_PLAN.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HSCODE.cs">
@@ -693,6 +740,18 @@
     <Compile Include="Models\ROLE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\SALES_INVOICES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SALES_INVOICE_LINES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SALES_SF_HEADERS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SALES_SF_LINES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\SAMPLE_FILES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -715,6 +774,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\sp_Norm_PreviewCutMaterial_Result.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\STD_COMPANY_STANDARDS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\SUPPLIER.cs">
@@ -2792,10 +2854,10 @@
     <Content Include="Views\Product\_ProductTable.cshtml" />
     <Content Include="Views\NormCutting\Edit.cshtml" />
     <Content Include="Views\NormCutting\Index.cshtml" />
+    <Content Include="Views\UserEntries\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Norma\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

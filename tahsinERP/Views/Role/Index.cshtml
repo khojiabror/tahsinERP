@@ -131,6 +131,15 @@
         </div>
     </div>
 
+    <!-- DataTables Buttons CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
     <script>
         $(document).ready(function () {
             $('#roleDataTable').DataTable({
@@ -156,6 +165,50 @@
                         <text>
                         { "orderable": false, "targets": -1 }
                         </text>
+                    }
+                ],
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bx-file"></i> Excel ga export',
+                        className: 'btn btn-success btn-sm mb-2',
+                        exportOptions: {
+                            columns: ':not(:last-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    // Remove HTML tags from data
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        filename: function() {
+                            return 'Rollar_' + new Date().toISOString().slice(0,10);
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bx-file-blank"></i> PDF ga export',
+                        className: 'btn btn-danger btn-sm mb-2',
+                        exportOptions: {
+                            columns: ':not(:last-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    // Remove HTML tags from data
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function() {
+                            return 'Rollar_' + new Date().toISOString().slice(0,10);
+                        },
+                        title: 'Rollar ro\'yxati',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
                     }
                 ]
             });

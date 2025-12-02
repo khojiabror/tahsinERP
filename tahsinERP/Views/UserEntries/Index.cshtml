@@ -1,0 +1,147 @@
+@model List<tahsinERP.Models.USER_ENTRIES>
+@{
+    ViewBag.Title = "Foydalanuvchi kirishlari";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Foydalanuvchi kirishlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Foydalanuvchi kirishlari</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-filter mr-1"></i>Filterlar</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Index", "UserEntries", FormMethod.Get, new { @class = "row" }))
+                                    {
+                                        <div class="col-md-4 col-12">
+                                            <label>Foydalanuvchi</label>
+                                            @Html.DropDownList("userId", (SelectList)ViewBag.Users, "Barcha foydalanuvchilar", new { @class = "form-control" })
+                                        </div>
+                                        <div class="col-md-3 col-12">
+                                            <label>Dan</label>
+                                            @Html.TextBox("startDate", (string)ViewBag.StartDate, new { @class = "form-control", @type = "date" })
+                                        </div>
+                                        <div class="col-md-3 col-12">
+                                            <label>Gacha</label>
+                                            @Html.TextBox("endDate", (string)ViewBag.EndDate, new { @class = "form-control", @type = "date" })
+                                        </div>
+                                        <div class="col-md-2 col-12 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary btn-block">
+                                                <i class="bx bx-search"></i> Qidirish
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="entriesDataTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Foydalanuvchi</th>
+                                                    <th>IP manzili</th>
+                                                    <th>MAC manzili</th>
+                                                    <th>Vaqt</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@(item.USER?.FullName ?? item.USER?.Uname ?? "Noma'lum")</td>
+                                                        <td>@item.IP</td>
+                                                        <td>@item.MAC</td>
+                                                        <td>@item.DateTime.ToString("dd.MM.yyyy HH:mm:ss")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#entriesDataTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[3, "desc"]],
+                "scrollX": true,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bx-file"></i> Excel ga export',
+                        className: 'btn btn-success btn-sm',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bx-file-blank"></i> PDF ga export',
+                        className: 'btn btn-danger btn-sm',
+                        exportOptions: {
+                            columns: ':visible'
+                        },
+                        orientation: 'landscape',
+                        pageSize: 'A4'
+                    }
+                ]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

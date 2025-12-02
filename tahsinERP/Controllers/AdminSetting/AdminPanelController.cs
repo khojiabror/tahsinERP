@@ -181,6 +181,7 @@ namespace tahsinERP.Controllers
                     {
                         existingPermission.ViewPermit = moduleVm.ViewPermit;
                         existingPermission.ChangePermit = moduleVm.ChangePermit;
+                        existingPermission.DeletePermit = false; // Default value
                     }
                     else
                     {
@@ -189,7 +190,8 @@ namespace tahsinERP.Controllers
                             RoleID = model.RoleId,
                             PermissionModuleID = moduleVm.ModuleId,
                             ViewPermit = moduleVm.ViewPermit,
-                            ChangePermit = moduleVm.ChangePermit
+                            ChangePermit = moduleVm.ChangePermit,
+                            DeletePermit = false // Default value
                         });
                     }
                 }

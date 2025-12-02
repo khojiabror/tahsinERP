@@ -100,7 +100,7 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h4 class="card-title"><i class="bx bx-log-in mr-1"></i>Oxirgi tizimga kirishlar</h4>
-                            <a href="@Url.Action("UserLog")" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                            <a href="~/UserEntries" class="btn btn-sm btn-outline-primary">Barchasi</a>
                         </div>
                         <div class="card-content">
                             <div class="card-body p-0">
@@ -121,7 +121,7 @@
                                                     <tr>
                                                         <td>@(entry.USER?.FullName ?? "Noma'lum")</td>
                                                         <td><code>@entry.IP</code></td>
-                                                        <td>@entry.DateTime?.ToString("dd.MM.yyyy HH:mm")</td>
+                                                        <td>@entry.DateTime.ToString("dd.MM.yyyy HH:mm:ss")</td>
                                                     </tr>
                                                 }
                                             }
@@ -272,7 +272,7 @@
                                                             </span>
                                                         </td>
                                                         <td>
-                                                            <a href="@Url.Action("Permissions", new { roleId = role.ID })" 
+                                                            <a href="/Role/Permissions/@role.ID" 
                                                                class="btn btn-sm btn-outline-primary">
                                                                 <i class="bx bx-edit"></i> Tahrirlash
                                                             </a>
@@ -310,7 +310,7 @@
                                         </a>
                                     </div>
                                     <div class="col-md-3 col-6 mb-2">
-                                        <a href="~/Permission" class="btn btn-outline-warning btn-block">
+                                        <a href="~/PModule" class="btn btn-outline-warning btn-block">
                                             <i class="bx bx-lock"></i> Huquqlar
                                         </a>
                                     </div>

@@ -5,6 +5,64 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
     <Schema Namespace="DBTHSNModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="ADM_COMPANY_ORDERS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="OrderNo" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="OrderDate" Type="date" Nullable="false" />
+          <Property Name="OrderTypeCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="OrgUnitID" Type="int" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="APP_TASK_PRIORITY_REF">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="APP_TASK_PROJECTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
+        <EntityType Name="APP_TASK_STATUS_REF">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="APP_TASKS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProjectID" Type="int" />
+          <Property Name="KeyCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="Title" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="StatusID" Type="int" Nullable="false" />
+          <Property Name="PriorityID" Type="int" Nullable="false" />
+          <Property Name="AssigneeUserID" Type="int" />
+          <Property Name="ReporterUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
+          <Property Name="DueDate" Type="date" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+        </EntityType>
         <EntityType Name="BOM_HEADERS">
           <Key>
             <PropertyRef Name="ID" />
@@ -52,6 +110,21 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="NormID" Type="int" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="IssuedDT" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="COM_OFFICIAL_LETTERS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="DirectionCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="LetterNo" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="LetterDate" Type="date" Nullable="false" />
+          <Property Name="ExternalCompanyName" Type="nvarchar" MaxLength="250" />
+          <Property Name="ExternalContactName" Type="nvarchar" MaxLength="200" />
+          <Property Name="OurRefNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="TheirRefNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="ChannelCode" Type="nvarchar" MaxLength="20" />
+          <Property Name="Topic" Type="nvarchar" MaxLength="500" />
         </EntityType>
         <EntityType Name="COMPANIES">
           <Key>
@@ -131,6 +204,83 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="DefectType" Type="varchar" MaxLength="30" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="DOC_DOCUMENT_STATUS_REF">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DOC_DOCUMENT_TYPES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DOC_DOCUMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocTypeID" Type="int" Nullable="false" />
+          <Property Name="StatusID" Type="int" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" />
+          <Property Name="Title" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="OrgUnitID" Type="int" />
+          <Property Name="PositionID" Type="int" />
+          <Property Name="EmployeeID" Type="int" />
+          <Property Name="TemplateID" Type="int" />
+          <Property Name="EffectiveFrom" Type="date" />
+          <Property Name="EffectiveTo" Type="date" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="ApprovedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
+          <Property Name="IntegrationUID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ExternalSystemCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="ExternalDocKey" Type="nvarchar" MaxLength="100" />
+          <Property Name="IntegrationStatusCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="LastSyncDT" Type="datetime2" Precision="0" />
+        </EntityType>
+        <EntityType Name="DOC_FILES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="VersionNo" Type="int" Nullable="false" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="260" Nullable="false" />
+          <Property Name="FileExtension" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="MimeType" Type="nvarchar" MaxLength="100" />
+          <Property Name="FileSizeBytes" Type="bigint" />
+          <Property Name="FileContent" Type="varbinary(max)" Nullable="false" />
+          <Property Name="IsMain" Type="bit" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DOC_TEMPLATES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocTypeID" Type="int" Nullable="false" />
+          <Property Name="TemplateCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="260" Nullable="false" />
+          <Property Name="FileExtension" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="MimeType" Type="nvarchar" MaxLength="100" />
+          <Property Name="FileContent" Type="varbinary(max)" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
         </EntityType>
         <EntityType Name="EXPENSE_PRODUCTS">
           <Key>
@@ -354,6 +504,69 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
         </EntityType>
+        <EntityType Name="HR_JOB_DESCRIPTIONS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="PositionID" Type="int" Nullable="false" />
+          <Property Name="OrgUnitID" Type="int" />
+          <Property Name="IsMandatory" Type="bit" Nullable="false" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="HR_ORG_UNITS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ParentID" Type="int" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="LevelNo" Type="int" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
+        <EntityType Name="HR_POSITIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="IsManager" Type="bit" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
+        <EntityType Name="HR_SALARY_GRADES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GradeCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="MinSalary" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="MaxSalary" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="CurrencyCode" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="EffectiveFrom" Type="date" Nullable="false" />
+          <Property Name="EffectiveTo" Type="date" />
+        </EntityType>
+        <EntityType Name="HR_STAFFING_PLAN">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="OrgUnitID" Type="int" Nullable="false" />
+          <Property Name="PositionID" Type="int" Nullable="false" />
+          <Property Name="SalaryGradeID" Type="int" />
+          <Property Name="PlannedHeadcount" Type="decimal" Precision="9" Scale="2" Nullable="false" />
+          <Property Name="IsPieceRate" Type="bit" Nullable="false" />
+          <Property Name="IsHourly" Type="bit" Nullable="false" />
+          <Property Name="IsFixedSalary" Type="bit" Nullable="false" />
+          <Property Name="EffectiveFrom" Type="date" Nullable="false" />
+          <Property Name="EffectiveTo" Type="date" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+        </EntityType>
         <EntityType Name="HSCODES">
           <Key>
             <PropertyRef Name="ID" />
@@ -547,6 +760,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="ChangePermit" Type="bit" Nullable="false" />
           <Property Name="RoleID" Type="int" Nullable="false" />
           <Property Name="PermissionModuleID" Type="int" Nullable="false" />
+          <Property Name="DeletePermit" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -704,6 +918,85 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" Nullable="false" />
         </EntityType>
+        <EntityType Name="SALES_INVOICE_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InvoiceID" Type="bigint" Nullable="false" />
+          <Property Name="LineNo" Type="int" Nullable="false" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" />
+          <Property Name="Qty" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="UnitPrice" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="LineAmount" Type="decimal" Precision="37" Scale="7" StoreGeneratedPattern="Computed" />
+          <Property Name="VATRate" Type="decimal" Precision="5" Scale="2" Nullable="false" />
+          <Property Name="VATAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalWithVAT" Type="decimal" Precision="38" Scale="7" StoreGeneratedPattern="Computed" />
+          <Property Name="WarehouseOutID" Type="bigint" />
+        </EntityType>
+        <EntityType Name="SALES_INVOICES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InvoiceNo" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="InvoiceDate" Type="date" Nullable="false" />
+          <Property Name="CustomerID" Type="int" Nullable="false" />
+          <Property Name="ContractID" Type="int" />
+          <Property Name="OrderID" Type="int" />
+          <Property Name="CurrencyCode" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="TotalAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalVAT" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalWithVAT" Type="decimal" Precision="19" Scale="2" StoreGeneratedPattern="Computed" />
+          <Property Name="DueDate" Type="date" />
+          <Property Name="StatusCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
+        </EntityType>
+        <EntityType Name="SALES_SF_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SFNumber" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="SFDate" Type="date" Nullable="false" />
+          <Property Name="InvoiceID" Type="bigint" />
+          <Property Name="CustomerID" Type="int" Nullable="false" />
+          <Property Name="SupplierINN" Type="nvarchar" MaxLength="20" />
+          <Property Name="CustomerINN" Type="nvarchar" MaxLength="20" />
+          <Property Name="XmlPayload" Type="xml" />
+          <Property Name="StatusCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="IntegrationUID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="SourceSystem" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ExternalSystemCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="ExternalSFKey" Type="nvarchar" MaxLength="100" />
+          <Property Name="IntegrationStatusCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="LastSyncDT" Type="datetime2" Precision="0" />
+          <Property Name="XmlSchemaVersion" Type="nvarchar" MaxLength="20" />
+          <Property Name="TaxMessageID" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="SALES_SF_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SFHeaderID" Type="bigint" Nullable="false" />
+          <Property Name="LineNo" Type="int" Nullable="false" />
+          <Property Name="InvoiceLineID" Type="bigint" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" />
+          <Property Name="Qty" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="UnitPrice" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="LineAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="VATRate" Type="decimal" Precision="5" Scale="2" Nullable="false" />
+          <Property Name="VATAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalWithVAT" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="ExternalLineKey" Type="nvarchar" MaxLength="100" />
+        </EntityType>
         <EntityType Name="SAMPLE_FILES">
           <Key>
             <PropertyRef Name="ID" />
@@ -776,6 +1069,16 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.SHOP_PRODUCTS' does not have a pr
           <Property Name="ShopName" Type="varchar" MaxLength="50" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="STD_COMPANY_STANDARDS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="StandardCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Area" Type="nvarchar" MaxLength="200" />
+          <Property Name="VersionNo" Type="int" Nullable="false" />
+          <Property Name="Notes" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="SUPPLIERS">
           <Key>
@@ -1094,6 +1397,54 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ADM_COMPANY_ORDERS_Document">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+          <End Role="ADM_COMPANY_ORDERS" Type="Self.ADM_COMPANY_ORDERS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="ADM_COMPANY_ORDERS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APP_TASKS_PRIORITY">
+          <End Role="APP_TASK_PRIORITY_REF" Type="Self.APP_TASK_PRIORITY_REF" Multiplicity="1" />
+          <End Role="APP_TASKS" Type="Self.APP_TASKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="APP_TASK_PRIORITY_REF">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="APP_TASKS">
+              <PropertyRef Name="PriorityID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APP_TASKS_PROJECT">
+          <End Role="APP_TASK_PROJECTS" Type="Self.APP_TASK_PROJECTS" Multiplicity="0..1" />
+          <End Role="APP_TASKS" Type="Self.APP_TASKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="APP_TASK_PROJECTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="APP_TASKS">
+              <PropertyRef Name="ProjectID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APP_TASKS_STATUS">
+          <End Role="APP_TASK_STATUS_REF" Type="Self.APP_TASK_STATUS_REF" Multiplicity="1" />
+          <End Role="APP_TASKS" Type="Self.APP_TASKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="APP_TASK_STATUS_REF">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="APP_TASKS">
+              <PropertyRef Name="StatusID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_BOM_HEADER_PRODUCTS">
           <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="0..1" />
           <End Role="BOM_HEADERS" Type="Self.BOM_HEADERS" Multiplicity="*" />
@@ -1178,6 +1529,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_COM_OFFICIAL_LETTERS_Document">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+          <End Role="COM_OFFICIAL_LETTERS" Type="Self.COM_OFFICIAL_LETTERS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="COM_OFFICIAL_LETTERS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_COMPANY_LICENSES_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="1" />
           <End Role="COMPANY_LICENSES" Type="Self.COMPANY_LICENSES" Multiplicity="*" />
@@ -1223,6 +1586,78 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="DAMAGED_PRODUCTS">
               <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_DocType">
+          <End Role="DOC_DOCUMENT_TYPES" Type="Self.DOC_DOCUMENT_TYPES" Multiplicity="1" />
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENT_TYPES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="DocTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_OrgUnit">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_Position">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="0..1" />
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_Status">
+          <End Role="DOC_DOCUMENT_STATUS_REF" Type="Self.DOC_DOCUMENT_STATUS_REF" Multiplicity="1" />
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENT_STATUS_REF">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="StatusID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_Template">
+          <End Role="DOC_TEMPLATES" Type="Self.DOC_TEMPLATES" Multiplicity="0..1" />
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_TEMPLATES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="TemplateID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_FILES_Document">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+          <End Role="DOC_FILES" Type="Self.DOC_FILES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_FILES">
+              <PropertyRef Name="DocumentID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1547,6 +1982,90 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="FIN_TRANSACTIONS">
               <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_JOB_DESCRIPTIONS_Document">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+          <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_JOB_DESCRIPTIONS_OrgUnit">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_JOB_DESCRIPTIONS_Position">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="1" />
+          <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_ORG_UNITS_Parent">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_ORG_UNITS1" Type="Self.HR_ORG_UNITS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_ORG_UNITS1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_STAFFING_PLAN_Grade">
+          <End Role="HR_SALARY_GRADES" Type="Self.HR_SALARY_GRADES" Multiplicity="0..1" />
+          <End Role="HR_STAFFING_PLAN" Type="Self.HR_STAFFING_PLAN" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_SALARY_GRADES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_STAFFING_PLAN">
+              <PropertyRef Name="SalaryGradeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_STAFFING_PLAN_OrgUnit">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="1" />
+          <End Role="HR_STAFFING_PLAN" Type="Self.HR_STAFFING_PLAN" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_STAFFING_PLAN">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_STAFFING_PLAN_Position">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="1" />
+          <End Role="HR_STAFFING_PLAN" Type="Self.HR_STAFFING_PLAN" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_STAFFING_PLAN">
+              <PropertyRef Name="PositionID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2342,6 +2861,42 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SALES_INVOICE_LINES_Invoice">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="1" />
+          <End Role="SALES_INVOICE_LINES" Type="Self.SALES_INVOICE_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_HEADERS_Invoice">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="0..1" />
+          <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_LINES_Header">
+          <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="1" />
+          <End Role="SALES_SF_LINES" Type="Self.SALES_SF_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_SF_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_LINES">
+              <PropertyRef Name="SFHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_SCONTRACTS_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="1" />
           <End Role="S_CONTRACTS" Type="Self.S_CONTRACTS" Multiplicity="*" />
@@ -2411,6 +2966,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="SHOP_PLANNED_DTS">
               <PropertyRef Name="ShopID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_STD_COMPANY_STANDARDS_Document">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+          <End Role="STD_COMPANY_STANDARDS" Type="Self.STD_COMPANY_STANDARDS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="STD_COMPANY_STANDARDS">
+              <PropertyRef Name="DocumentID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2591,9 +3158,15 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Parameter Name="EndDate" Type="date" Mode="In" />
         </Function>
         <EntityContainer Name="DBTHSNModelStoreContainer">
+          <EntitySet Name="ADM_COMPANY_ORDERS" EntityType="Self.ADM_COMPANY_ORDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="APP_TASK_PRIORITY_REF" EntityType="Self.APP_TASK_PRIORITY_REF" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="APP_TASK_PROJECTS" EntityType="Self.APP_TASK_PROJECTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="APP_TASK_STATUS_REF" EntityType="Self.APP_TASK_STATUS_REF" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="APP_TASKS" EntityType="Self.APP_TASKS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BOM_HEADERS" EntityType="Self.BOM_HEADERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BOM_LINES" EntityType="Self.BOM_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BOMS" EntityType="Self.BOMS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="COM_OFFICIAL_LETTERS" EntityType="Self.COM_OFFICIAL_LETTERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COMPANIES" EntityType="Self.COMPANIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COMPANY_LICENSES" EntityType="Self.COMPANY_LICENSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COOKIES_CONFIRMATION" EntityType="Self.COOKIES_CONFIRMATION" Schema="dbo" store:Type="Tables" />
@@ -2601,6 +3174,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="CUSTOMERS" EntityType="Self.CUSTOMERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DAMAGED_PRODUCTS" EntityType="Self.DAMAGED_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DEFECT_TYPES" EntityType="Self.DEFECT_TYPES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DOC_DOCUMENT_STATUS_REF" EntityType="Self.DOC_DOCUMENT_STATUS_REF" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DOC_DOCUMENT_TYPES" EntityType="Self.DOC_DOCUMENT_TYPES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DOC_DOCUMENTS" EntityType="Self.DOC_DOCUMENTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DOC_FILES" EntityType="Self.DOC_FILES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DOC_TEMPLATES" EntityType="Self.DOC_TEMPLATES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="EXPENSE_PRODUCTS" EntityType="Self.EXPENSE_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="EXPENSES" EntityType="Self.EXPENSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_CONTRACT_DOCS" EntityType="Self.F_CONTRACT_DOCS" Schema="dbo" store:Type="Tables" />
@@ -2618,6 +3196,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="FIN_PL_PLANS" EntityType="Self.FIN_PL_PLANS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_TRANSACTIONS" EntityType="Self.FIN_TRANSACTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FORWARDERS" EntityType="Self.FORWARDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_JOB_DESCRIPTIONS" EntityType="Self.HR_JOB_DESCRIPTIONS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_ORG_UNITS" EntityType="Self.HR_ORG_UNITS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_POSITIONS" EntityType="Self.HR_POSITIONS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_SALARY_GRADES" EntityType="Self.HR_SALARY_GRADES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_STAFFING_PLAN" EntityType="Self.HR_STAFFING_PLAN" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HSCODES" EntityType="Self.HSCODES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOME_PRODUCTS" EntityType="Self.INCOME_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOMES" EntityType="Self.INCOMES" Schema="dbo" store:Type="Tables" />
@@ -2646,12 +3229,17 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="S_CONTRACTS" EntityType="Self.S_CONTRACTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_ORDER_PRODUCTS" EntityType="Self.S_ORDER_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_ORDERS" EntityType="Self.S_ORDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_INVOICE_LINES" EntityType="Self.SALES_INVOICE_LINES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_INVOICES" EntityType="Self.SALES_INVOICES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_SF_HEADERS" EntityType="Self.SALES_SF_HEADERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_SF_LINES" EntityType="Self.SALES_SF_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SAMPLE_FILES" EntityType="Self.SAMPLE_FILES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDER_CONTRIBUTIONS" EntityType="Self.SHAREHOLDER_CONTRIBUTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDER_SHARE_PERIODS" EntityType="Self.SHAREHOLDER_SHARE_PERIODS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDERS" EntityType="Self.SHAREHOLDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOP_PLANNED_DTS" EntityType="Self.SHOP_PLANNED_DTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOPS" EntityType="Self.SHOPS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="Self.STD_COMPANY_STANDARDS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UNITS" EntityType="Self.UNITS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="USER_ENTRIES" EntityType="Self.USER_ENTRIES" Schema="dbo" store:Type="Tables" />
@@ -2765,6 +3353,22 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="WASTE_STOCKS" EntitySet="WASTE_STOCKS" />
           </AssociationSet>
+          <AssociationSet Name="FK_ADM_COMPANY_ORDERS_Document" Association="Self.FK_ADM_COMPANY_ORDERS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="ADM_COMPANY_ORDERS" EntitySet="ADM_COMPANY_ORDERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APP_TASKS_PRIORITY" Association="Self.FK_APP_TASKS_PRIORITY">
+            <End Role="APP_TASK_PRIORITY_REF" EntitySet="APP_TASK_PRIORITY_REF" />
+            <End Role="APP_TASKS" EntitySet="APP_TASKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APP_TASKS_PROJECT" Association="Self.FK_APP_TASKS_PROJECT">
+            <End Role="APP_TASK_PROJECTS" EntitySet="APP_TASK_PROJECTS" />
+            <End Role="APP_TASKS" EntitySet="APP_TASKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APP_TASKS_STATUS" Association="Self.FK_APP_TASKS_STATUS">
+            <End Role="APP_TASK_STATUS_REF" EntitySet="APP_TASK_STATUS_REF" />
+            <End Role="APP_TASKS" EntitySet="APP_TASKS" />
+          </AssociationSet>
           <AssociationSet Name="FK_BOM_HEADER_PRODUCTS" Association="Self.FK_BOM_HEADER_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="BOM_HEADERS" EntitySet="BOM_HEADERS" />
@@ -2793,6 +3397,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="PRODUCTIONPROCESSES" EntitySet="PRODUCTIONPROCESSES" />
             <End Role="BOMS" EntitySet="BOMS" />
           </AssociationSet>
+          <AssociationSet Name="FK_COM_OFFICIAL_LETTERS_Document" Association="Self.FK_COM_OFFICIAL_LETTERS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="COM_OFFICIAL_LETTERS" EntitySet="COM_OFFICIAL_LETTERS" />
+          </AssociationSet>
           <AssociationSet Name="FK_COMPANY_LICENSES_COMPANIES" Association="Self.FK_COMPANY_LICENSES_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="COMPANY_LICENSES" EntitySet="COMPANY_LICENSES" />
@@ -2808,6 +3416,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_DAMAGED_PRODUCTS_PRODUCTS" Association="Self.FK_DAMAGED_PRODUCTS_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="DAMAGED_PRODUCTS" EntitySet="DAMAGED_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_DocType" Association="Self.FK_DOC_DOCUMENTS_DocType">
+            <End Role="DOC_DOCUMENT_TYPES" EntitySet="DOC_DOCUMENT_TYPES" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_OrgUnit" Association="Self.FK_DOC_DOCUMENTS_OrgUnit">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_Position" Association="Self.FK_DOC_DOCUMENTS_Position">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_Status" Association="Self.FK_DOC_DOCUMENTS_Status">
+            <End Role="DOC_DOCUMENT_STATUS_REF" EntitySet="DOC_DOCUMENT_STATUS_REF" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_Template" Association="Self.FK_DOC_DOCUMENTS_Template">
+            <End Role="DOC_TEMPLATES" EntitySet="DOC_TEMPLATES" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_FILES_Document" Association="Self.FK_DOC_FILES_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="DOC_FILES" EntitySet="DOC_FILES" />
           </AssociationSet>
           <AssociationSet Name="FK_F_CONTRACT_DOCS_F_CONTRACTS" Association="Self.FK_F_CONTRACT_DOCS_F_CONTRACTS">
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
@@ -2916,6 +3548,34 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_FIN_TRANSACTIONS_CURRENCY" Association="Self.FK_FIN_TRANSACTIONS_CURRENCY">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
             <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Document" Association="Self.FK_HR_JOB_DESCRIPTIONS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_OrgUnit" Association="Self.FK_HR_JOB_DESCRIPTIONS_OrgUnit">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Position" Association="Self.FK_HR_JOB_DESCRIPTIONS_Position">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_ORG_UNITS_Parent" Association="Self.FK_HR_ORG_UNITS_Parent">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_ORG_UNITS1" EntitySet="HR_ORG_UNITS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_STAFFING_PLAN_Grade" Association="Self.FK_HR_STAFFING_PLAN_Grade">
+            <End Role="HR_SALARY_GRADES" EntitySet="HR_SALARY_GRADES" />
+            <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_STAFFING_PLAN_OrgUnit" Association="Self.FK_HR_STAFFING_PLAN_OrgUnit">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_STAFFING_PLAN_Position" Association="Self.FK_HR_STAFFING_PLAN_Position">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
           </AssociationSet>
           <AssociationSet Name="FK_INCOMES_InvoiceID_P_INVOICES" Association="Self.FK_INCOMES_InvoiceID_P_INVOICES">
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
@@ -3181,6 +3841,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
             <End Role="S_ORDERS" EntitySet="S_ORDERS" />
           </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICE_LINES_Invoice" Association="Self.FK_SALES_INVOICE_LINES_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_HEADERS_Invoice" Association="Self.FK_SALES_SF_HEADERS_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_LINES_Header" Association="Self.FK_SALES_SF_LINES_Header">
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+            <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
+          </AssociationSet>
           <AssociationSet Name="FK_SCONTRACTS_COMPANIES" Association="Self.FK_SCONTRACTS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
@@ -3204,6 +3876,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_SHOP_PLANNED_DTS_SHOPS" Association="Self.FK_SHOP_PLANNED_DTS_SHOPS">
             <End Role="SHOPS" EntitySet="SHOPS" />
             <End Role="SHOP_PLANNED_DTS" EntitySet="SHOP_PLANNED_DTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_STD_COMPANY_STANDARDS_Document" Association="Self.FK_STD_COMPANY_STANDARDS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="STD_COMPANY_STANDARDS" EntitySet="STD_COMPANY_STANDARDS" />
           </AssociationSet>
           <AssociationSet Name="FK_USER_ENTRIES_USERS" Association="Self.FK_USER_ENTRIES_USERS">
             <End Role="USERS" EntitySet="USERS" />
@@ -3786,6 +4462,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="PermissionModuleID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="PERMISSIONMODULE" Relationship="Self.FK_PERMISSIONS_PERMISSIONMODULES" FromRole="PERMISSIONS" ToRole="PERMISSIONMODULES" />
           <NavigationProperty Name="ROLE" Relationship="Self.FK_PERMISSIONS_ROLES" FromRole="PERMISSIONS" ToRole="ROLES" />
+          <Property Name="DeletePermit" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -6150,8 +6827,117 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <Parameter Name="To" Mode="In" Type="DateTime" />
           </FunctionImport>
           <FunctionImport Name="sp_FIN_ShareholderValue_AsOf">
-            <Parameter Name="AsOfDate" Mode="In" Type="DateTime" />
+          <Parameter Name="AsOfDate" Mode="In" Type="DateTime" />
           </FunctionImport>
+          <EntitySet Name="ADM_COMPANY_ORDERS" EntityType="DBTHSNModel.ADM_COMPANY_ORDERS" />
+          <EntitySet Name="APP_TASK_PRIORITY_REF" EntityType="DBTHSNModel.APP_TASK_PRIORITY_REF" />
+          <EntitySet Name="APP_TASK_PROJECTS" EntityType="DBTHSNModel.APP_TASK_PROJECTS" />
+          <EntitySet Name="APP_TASK_STATUS_REF" EntityType="DBTHSNModel.APP_TASK_STATUS_REF" />
+          <EntitySet Name="APP_TASKS" EntityType="DBTHSNModel.APP_TASKS" />
+          <EntitySet Name="COM_OFFICIAL_LETTERS" EntityType="DBTHSNModel.COM_OFFICIAL_LETTERS" />
+          <EntitySet Name="DOC_DOCUMENT_STATUS_REF" EntityType="DBTHSNModel.DOC_DOCUMENT_STATUS_REF" />
+          <EntitySet Name="DOC_DOCUMENT_TYPES" EntityType="DBTHSNModel.DOC_DOCUMENT_TYPES" />
+          <EntitySet Name="DOC_DOCUMENTS" EntityType="DBTHSNModel.DOC_DOCUMENTS" />
+          <EntitySet Name="DOC_FILES" EntityType="DBTHSNModel.DOC_FILES" />
+          <EntitySet Name="DOC_TEMPLATES" EntityType="DBTHSNModel.DOC_TEMPLATES" />
+          <EntitySet Name="HR_JOB_DESCRIPTIONS" EntityType="DBTHSNModel.HR_JOB_DESCRIPTIONS" />
+          <EntitySet Name="HR_ORG_UNITS" EntityType="DBTHSNModel.HR_ORG_UNITS" />
+          <EntitySet Name="HR_POSITIONS" EntityType="DBTHSNModel.HR_POSITIONS" />
+          <EntitySet Name="HR_SALARY_GRADES" EntityType="DBTHSNModel.HR_SALARY_GRADES" />
+          <EntitySet Name="HR_STAFFING_PLAN" EntityType="DBTHSNModel.HR_STAFFING_PLAN" />
+          <EntitySet Name="SALES_INVOICE_LINES" EntityType="DBTHSNModel.SALES_INVOICE_LINES" />
+          <EntitySet Name="SALES_INVOICES" EntityType="DBTHSNModel.SALES_INVOICES" />
+          <EntitySet Name="SALES_SF_HEADERS" EntityType="DBTHSNModel.SALES_SF_HEADERS" />
+          <EntitySet Name="SALES_SF_LINES" EntityType="DBTHSNModel.SALES_SF_LINES" />
+          <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="DBTHSNModel.STD_COMPANY_STANDARDS" />
+          <AssociationSet Name="FK_ADM_COMPANY_ORDERS_Document" Association="DBTHSNModel.FK_ADM_COMPANY_ORDERS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="ADM_COMPANY_ORDERS" EntitySet="ADM_COMPANY_ORDERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APP_TASKS_PRIORITY" Association="DBTHSNModel.FK_APP_TASKS_PRIORITY">
+            <End Role="APP_TASK_PRIORITY_REF" EntitySet="APP_TASK_PRIORITY_REF" />
+            <End Role="APP_TASKS" EntitySet="APP_TASKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APP_TASKS_PROJECT" Association="DBTHSNModel.FK_APP_TASKS_PROJECT">
+            <End Role="APP_TASK_PROJECTS" EntitySet="APP_TASK_PROJECTS" />
+            <End Role="APP_TASKS" EntitySet="APP_TASKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APP_TASKS_STATUS" Association="DBTHSNModel.FK_APP_TASKS_STATUS">
+            <End Role="APP_TASK_STATUS_REF" EntitySet="APP_TASK_STATUS_REF" />
+            <End Role="APP_TASKS" EntitySet="APP_TASKS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_COM_OFFICIAL_LETTERS_Document" Association="DBTHSNModel.FK_COM_OFFICIAL_LETTERS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="COM_OFFICIAL_LETTERS" EntitySet="COM_OFFICIAL_LETTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_Status" Association="DBTHSNModel.FK_DOC_DOCUMENTS_Status">
+            <End Role="DOC_DOCUMENT_STATUS_REF" EntitySet="DOC_DOCUMENT_STATUS_REF" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_DocType" Association="DBTHSNModel.FK_DOC_DOCUMENTS_DocType">
+            <End Role="DOC_DOCUMENT_TYPES" EntitySet="DOC_DOCUMENT_TYPES" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_OrgUnit" Association="DBTHSNModel.FK_DOC_DOCUMENTS_OrgUnit">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_Position" Association="DBTHSNModel.FK_DOC_DOCUMENTS_Position">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_DOCUMENTS_Template" Association="DBTHSNModel.FK_DOC_DOCUMENTS_Template">
+            <End Role="DOC_TEMPLATES" EntitySet="DOC_TEMPLATES" />
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_DOC_FILES_Document" Association="DBTHSNModel.FK_DOC_FILES_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="DOC_FILES" EntitySet="DOC_FILES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Document" Association="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_STD_COMPANY_STANDARDS_Document" Association="DBTHSNModel.FK_STD_COMPANY_STANDARDS_Document">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="STD_COMPANY_STANDARDS" EntitySet="STD_COMPANY_STANDARDS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_OrgUnit" Association="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_OrgUnit">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Position" Association="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Position">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_ORG_UNITS_Parent" Association="DBTHSNModel.FK_HR_ORG_UNITS_Parent">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_ORG_UNITS1" EntitySet="HR_ORG_UNITS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_STAFFING_PLAN_OrgUnit" Association="DBTHSNModel.FK_HR_STAFFING_PLAN_OrgUnit">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_STAFFING_PLAN_Position" Association="DBTHSNModel.FK_HR_STAFFING_PLAN_Position">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_STAFFING_PLAN_Grade" Association="DBTHSNModel.FK_HR_STAFFING_PLAN_Grade">
+            <End Role="HR_SALARY_GRADES" EntitySet="HR_SALARY_GRADES" />
+            <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICE_LINES_Invoice" Association="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_HEADERS_Invoice" Association="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_LINES_Header" Association="DBTHSNModel.FK_SALES_SF_LINES_Header">
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+            <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetProductListPerShop_Result">
           <Property Type="String" Name="EneniAmi" Nullable="false" MaxLength="15" />
@@ -6597,6 +7383,616 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Type="Decimal" Name="Expense" Nullable="false" Precision="38" Scale="2" />
           <Property Type="Decimal" Name="ClosingBalance" Nullable="true" Precision="38" Scale="2" />
         </ComplexType>
+        <EntityType Name="ADM_COMPANY_ORDERS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="OrderNo" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="OrderDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="OrderTypeCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_ADM_COMPANY_ORDERS_Document" FromRole="ADM_COMPANY_ORDERS" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="APP_TASK_PRIORITY_REF">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="APP_TASKS" Relationship="DBTHSNModel.FK_APP_TASKS_PRIORITY" FromRole="APP_TASK_PRIORITY_REF" ToRole="APP_TASKS" />
+        </EntityType>
+        <EntityType Name="APP_TASK_PROJECTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="APP_TASKS" Relationship="DBTHSNModel.FK_APP_TASKS_PROJECT" FromRole="APP_TASK_PROJECTS" ToRole="APP_TASKS" />
+        </EntityType>
+        <EntityType Name="APP_TASK_STATUS_REF">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="APP_TASKS" Relationship="DBTHSNModel.FK_APP_TASKS_STATUS" FromRole="APP_TASK_STATUS_REF" ToRole="APP_TASKS" />
+        </EntityType>
+        <EntityType Name="APP_TASKS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProjectID" Type="Int32" />
+          <Property Name="KeyCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="StatusID" Type="Int32" Nullable="false" />
+          <Property Name="PriorityID" Type="Int32" Nullable="false" />
+          <Property Name="AssigneeUserID" Type="Int32" />
+          <Property Name="ReporterUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <Property Name="DueDate" Type="DateTime" Precision="0" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="APP_TASK_PRIORITY_REF" Relationship="DBTHSNModel.FK_APP_TASKS_PRIORITY" FromRole="APP_TASKS" ToRole="APP_TASK_PRIORITY_REF" />
+          <NavigationProperty Name="APP_TASK_PROJECTS" Relationship="DBTHSNModel.FK_APP_TASKS_PROJECT" FromRole="APP_TASKS" ToRole="APP_TASK_PROJECTS" />
+          <NavigationProperty Name="APP_TASK_STATUS_REF" Relationship="DBTHSNModel.FK_APP_TASKS_STATUS" FromRole="APP_TASKS" ToRole="APP_TASK_STATUS_REF" />
+        </EntityType>
+        <EntityType Name="COM_OFFICIAL_LETTERS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="DirectionCode" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="LetterNo" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LetterDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="ExternalCompanyName" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="ExternalContactName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="OurRefNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TheirRefNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ChannelCode" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Topic" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_COM_OFFICIAL_LETTERS_Document" FromRole="COM_OFFICIAL_LETTERS" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="DOC_DOCUMENT_STATUS_REF">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Status" FromRole="DOC_DOCUMENT_STATUS_REF" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="DOC_DOCUMENT_TYPES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_DocType" FromRole="DOC_DOCUMENT_TYPES" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="DOC_DOCUMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocTypeID" Type="Int32" Nullable="false" />
+          <Property Name="StatusID" Type="Int32" Nullable="false" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="PositionID" Type="Int32" />
+          <Property Name="EmployeeID" Type="Int32" />
+          <Property Name="TemplateID" Type="Int32" />
+          <Property Name="EffectiveFrom" Type="DateTime" Precision="0" />
+          <Property Name="EffectiveTo" Type="DateTime" Precision="0" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="ApprovedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <Property Name="IntegrationUID" Type="Guid" Nullable="false" />
+          <Property Name="ExternalSystemCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ExternalDocKey" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="IntegrationStatusCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LastSyncDT" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="ADM_COMPANY_ORDERS" Relationship="DBTHSNModel.FK_ADM_COMPANY_ORDERS_Document" FromRole="DOC_DOCUMENTS" ToRole="ADM_COMPANY_ORDERS" />
+          <NavigationProperty Name="COM_OFFICIAL_LETTERS" Relationship="DBTHSNModel.FK_COM_OFFICIAL_LETTERS_Document" FromRole="DOC_DOCUMENTS" ToRole="COM_OFFICIAL_LETTERS" />
+          <NavigationProperty Name="DOC_DOCUMENT_STATUS_REF" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Status" FromRole="DOC_DOCUMENTS" ToRole="DOC_DOCUMENT_STATUS_REF" />
+          <NavigationProperty Name="DOC_DOCUMENT_TYPES" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_DocType" FromRole="DOC_DOCUMENTS" ToRole="DOC_DOCUMENT_TYPES" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_OrgUnit" FromRole="DOC_DOCUMENTS" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Position" FromRole="DOC_DOCUMENTS" ToRole="HR_POSITIONS" />
+          <NavigationProperty Name="DOC_TEMPLATES" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Template" FromRole="DOC_DOCUMENTS" ToRole="DOC_TEMPLATES" />
+          <NavigationProperty Name="DOC_FILES" Relationship="DBTHSNModel.FK_DOC_FILES_Document" FromRole="DOC_DOCUMENTS" ToRole="DOC_FILES" />
+          <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Document" FromRole="DOC_DOCUMENTS" ToRole="HR_JOB_DESCRIPTIONS" />
+          <NavigationProperty Name="STD_COMPANY_STANDARDS" Relationship="DBTHSNModel.FK_STD_COMPANY_STANDARDS_Document" FromRole="DOC_DOCUMENTS" ToRole="STD_COMPANY_STANDARDS" />
+        </EntityType>
+        <EntityType Name="DOC_FILES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="VersionNo" Type="Int32" Nullable="false" />
+          <Property Name="FileName" Type="String" Nullable="false" MaxLength="260" FixedLength="false" Unicode="true" />
+          <Property Name="FileExtension" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="MimeType" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="FileSizeBytes" Type="Int64" />
+          <Property Name="FileContent" Type="Binary" Nullable="false" MaxLength="Max" FixedLength="false" />
+          <Property Name="IsMain" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_FILES_Document" FromRole="DOC_FILES" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="DOC_TEMPLATES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocTypeID" Type="Int32" Nullable="false" />
+          <Property Name="TemplateCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="FileName" Type="String" Nullable="false" MaxLength="260" FixedLength="false" Unicode="true" />
+          <Property Name="FileExtension" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="MimeType" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="FileContent" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Template" FromRole="DOC_TEMPLATES" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="HR_JOB_DESCRIPTIONS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="PositionID" Type="Int32" Nullable="false" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="IsMandatory" Type="Boolean" Nullable="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Document" FromRole="HR_JOB_DESCRIPTIONS" ToRole="DOC_DOCUMENTS" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_OrgUnit" FromRole="HR_JOB_DESCRIPTIONS" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Position" FromRole="HR_JOB_DESCRIPTIONS" ToRole="HR_POSITIONS" />
+        </EntityType>
+        <EntityType Name="HR_ORG_UNITS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ParentID" Type="Int32" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="LevelNo" Type="Int32" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_OrgUnit" FromRole="HR_ORG_UNITS" ToRole="DOC_DOCUMENTS" />
+          <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_OrgUnit" FromRole="HR_ORG_UNITS" ToRole="HR_JOB_DESCRIPTIONS" />
+          <NavigationProperty Name="HR_ORG_UNITS1" Relationship="DBTHSNModel.FK_HR_ORG_UNITS_Parent" FromRole="HR_ORG_UNITS" ToRole="HR_ORG_UNITS1" />
+          <NavigationProperty Name="HR_ORG_UNITS2" Relationship="DBTHSNModel.FK_HR_ORG_UNITS_Parent" FromRole="HR_ORG_UNITS1" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_OrgUnit" FromRole="HR_ORG_UNITS" ToRole="HR_STAFFING_PLAN" />
+        </EntityType>
+        <EntityType Name="HR_POSITIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="IsManager" Type="Boolean" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Position" FromRole="HR_POSITIONS" ToRole="DOC_DOCUMENTS" />
+          <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Position" FromRole="HR_POSITIONS" ToRole="HR_JOB_DESCRIPTIONS" />
+          <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_Position" FromRole="HR_POSITIONS" ToRole="HR_STAFFING_PLAN" />
+        </EntityType>
+        <EntityType Name="HR_SALARY_GRADES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GradeCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="MinSalary" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="MaxSalary" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="CurrencyCode" Type="String" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Name="EffectiveFrom" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="EffectiveTo" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_Grade" FromRole="HR_SALARY_GRADES" ToRole="HR_STAFFING_PLAN" />
+        </EntityType>
+        <EntityType Name="HR_STAFFING_PLAN">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="OrgUnitID" Type="Int32" Nullable="false" />
+          <Property Name="PositionID" Type="Int32" Nullable="false" />
+          <Property Name="SalaryGradeID" Type="Int32" />
+          <Property Name="PlannedHeadcount" Type="Decimal" Nullable="false" Precision="9" Scale="2" />
+          <Property Name="IsPieceRate" Type="Boolean" Nullable="false" />
+          <Property Name="IsHourly" Type="Boolean" Nullable="false" />
+          <Property Name="IsFixedSalary" Type="Boolean" Nullable="false" />
+          <Property Name="EffectiveFrom" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="EffectiveTo" Type="DateTime" Precision="0" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_OrgUnit" FromRole="HR_STAFFING_PLAN" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_Position" FromRole="HR_STAFFING_PLAN" ToRole="HR_POSITIONS" />
+          <NavigationProperty Name="HR_SALARY_GRADES" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_Grade" FromRole="HR_STAFFING_PLAN" ToRole="HR_SALARY_GRADES" />
+        </EntityType>
+        <EntityType Name="SALES_INVOICE_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="InvoiceID" Type="Int64" Nullable="false" />
+          <Property Name="LineNo" Type="Int32" Nullable="false" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Qty" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="UnitPrice" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="LineAmount" Type="Decimal" Precision="37" Scale="7" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="VATRate" Type="Decimal" Nullable="false" Precision="5" Scale="2" />
+          <Property Name="VATAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalWithVAT" Type="Decimal" Precision="38" Scale="7" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="WarehouseOutID" Type="Int64" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice" FromRole="SALES_INVOICE_LINES" ToRole="SALES_INVOICES" />
+        </EntityType>
+        <EntityType Name="SALES_INVOICES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="InvoiceNo" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InvoiceDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="CustomerID" Type="Int32" Nullable="false" />
+          <Property Name="ContractID" Type="Int32" />
+          <Property Name="OrderID" Type="Int32" />
+          <Property Name="CurrencyCode" Type="String" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Name="TotalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalVAT" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalWithVAT" Type="Decimal" Precision="19" Scale="2" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="DueDate" Type="DateTime" Precision="0" />
+          <Property Name="StatusCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="SALES_INVOICE_LINES" Relationship="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice" FromRole="SALES_INVOICES" ToRole="SALES_INVOICE_LINES" />
+          <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice" FromRole="SALES_INVOICES" ToRole="SALES_SF_HEADERS" />
+        </EntityType>
+        <EntityType Name="SALES_SF_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SFNumber" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="SFDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="InvoiceID" Type="Int64" />
+          <Property Name="CustomerID" Type="Int32" Nullable="false" />
+          <Property Name="SupplierINN" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="CustomerINN" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="XmlPayload" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="StatusCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="IntegrationUID" Type="Guid" Nullable="false" />
+          <Property Name="SourceSystem" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ExternalSystemCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ExternalSFKey" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="IntegrationStatusCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LastSyncDT" Type="DateTime" Precision="0" />
+          <Property Name="XmlSchemaVersion" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TaxMessageID" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice" FromRole="SALES_SF_HEADERS" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_SF_LINES" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Header" FromRole="SALES_SF_HEADERS" ToRole="SALES_SF_LINES" />
+        </EntityType>
+        <EntityType Name="SALES_SF_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SFHeaderID" Type="Int64" Nullable="false" />
+          <Property Name="LineNo" Type="Int32" Nullable="false" />
+          <Property Name="InvoiceLineID" Type="Int64" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Qty" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="UnitPrice" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="LineAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="VATRate" Type="Decimal" Nullable="false" Precision="5" Scale="2" />
+          <Property Name="VATAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalWithVAT" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="ExternalLineKey" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Header" FromRole="SALES_SF_LINES" ToRole="SALES_SF_HEADERS" />
+        </EntityType>
+        <EntityType Name="STD_COMPANY_STANDARDS">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="StandardCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Area" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="VersionNo" Type="Int32" Nullable="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_STD_COMPANY_STANDARDS_Document" FromRole="STD_COMPANY_STANDARDS" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <Association Name="FK_ADM_COMPANY_ORDERS_Document">
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.ADM_COMPANY_ORDERS" Role="ADM_COMPANY_ORDERS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="ADM_COMPANY_ORDERS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APP_TASKS_PRIORITY">
+          <End Type="DBTHSNModel.APP_TASK_PRIORITY_REF" Role="APP_TASK_PRIORITY_REF" Multiplicity="1" />
+          <End Type="DBTHSNModel.APP_TASKS" Role="APP_TASKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="APP_TASK_PRIORITY_REF">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="APP_TASKS">
+              <PropertyRef Name="PriorityID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APP_TASKS_PROJECT">
+          <End Type="DBTHSNModel.APP_TASK_PROJECTS" Role="APP_TASK_PROJECTS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.APP_TASKS" Role="APP_TASKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="APP_TASK_PROJECTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="APP_TASKS">
+              <PropertyRef Name="ProjectID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APP_TASKS_STATUS">
+          <End Type="DBTHSNModel.APP_TASK_STATUS_REF" Role="APP_TASK_STATUS_REF" Multiplicity="1" />
+          <End Type="DBTHSNModel.APP_TASKS" Role="APP_TASKS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="APP_TASK_STATUS_REF">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="APP_TASKS">
+              <PropertyRef Name="StatusID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_COM_OFFICIAL_LETTERS_Document">
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.COM_OFFICIAL_LETTERS" Role="COM_OFFICIAL_LETTERS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="COM_OFFICIAL_LETTERS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_Status">
+          <End Type="DBTHSNModel.DOC_DOCUMENT_STATUS_REF" Role="DOC_DOCUMENT_STATUS_REF" Multiplicity="1" />
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENT_STATUS_REF">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="StatusID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_DocType">
+          <End Type="DBTHSNModel.DOC_DOCUMENT_TYPES" Role="DOC_DOCUMENT_TYPES" Multiplicity="1" />
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENT_TYPES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="DocTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_OrgUnit">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_Position">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_DOCUMENTS_Template">
+          <End Type="DBTHSNModel.DOC_TEMPLATES" Role="DOC_TEMPLATES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_TEMPLATES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_DOCUMENTS">
+              <PropertyRef Name="TemplateID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_DOC_FILES_Document">
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.DOC_FILES" Role="DOC_FILES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_FILES">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_JOB_DESCRIPTIONS_Document">
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_JOB_DESCRIPTIONS" Role="HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_STD_COMPANY_STANDARDS_Document">
+          <End Type="DBTHSNModel.DOC_DOCUMENTS" Role="DOC_DOCUMENTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.STD_COMPANY_STANDARDS" Role="STD_COMPANY_STANDARDS" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="STD_COMPANY_STANDARDS">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_JOB_DESCRIPTIONS_OrgUnit">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_JOB_DESCRIPTIONS" Role="HR_JOB_DESCRIPTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_JOB_DESCRIPTIONS_Position">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_JOB_DESCRIPTIONS" Role="HR_JOB_DESCRIPTIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_ORG_UNITS_Parent">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_ORG_UNITS1">
+              <PropertyRef Name="ParentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_STAFFING_PLAN_OrgUnit">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_STAFFING_PLAN" Role="HR_STAFFING_PLAN" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_STAFFING_PLAN">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_STAFFING_PLAN_Position">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_STAFFING_PLAN" Role="HR_STAFFING_PLAN" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_STAFFING_PLAN">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_STAFFING_PLAN_Grade">
+          <End Type="DBTHSNModel.HR_SALARY_GRADES" Role="HR_SALARY_GRADES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_STAFFING_PLAN" Role="HR_STAFFING_PLAN" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_SALARY_GRADES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_STAFFING_PLAN">
+              <PropertyRef Name="SalaryGradeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICE_LINES_Invoice">
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_INVOICE_LINES" Role="SALES_INVOICE_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_HEADERS_Invoice">
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_SF_HEADERS" Role="SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_LINES_Header">
+          <End Type="DBTHSNModel.SALES_SF_HEADERS" Role="SALES_SF_HEADERS" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_SF_LINES" Role="SALES_SF_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_SF_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_LINES">
+              <PropertyRef Name="SFHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -7054,6 +8450,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="PERMISSIONS">
             <EntityTypeMapping TypeName="DBTHSNModel.PERMISSION">
               <MappingFragment StoreEntitySet="PERMISSIONS">
+                <ScalarProperty Name="DeletePermit" ColumnName="DeletePermit" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ViewPermit" ColumnName="ViewPermit" />
                 <ScalarProperty Name="ChangePermit" ColumnName="ChangePermit" />
@@ -7679,6 +9076,329 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </ResultMapping>
           </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_FIN_ShareholderValue_AsOf" FunctionName="DBTHSNModel.Store.sp_FIN_ShareholderValue_AsOf" />
+          <EntitySetMapping Name="ADM_COMPANY_ORDERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.ADM_COMPANY_ORDERS">
+              <MappingFragment StoreEntitySet="ADM_COMPANY_ORDERS">
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="OrderTypeCode" ColumnName="OrderTypeCode" />
+                <ScalarProperty Name="OrderDate" ColumnName="OrderDate" />
+                <ScalarProperty Name="OrderNo" ColumnName="OrderNo" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="APP_TASK_PRIORITY_REF">
+            <EntityTypeMapping TypeName="DBTHSNModel.APP_TASK_PRIORITY_REF">
+              <MappingFragment StoreEntitySet="APP_TASK_PRIORITY_REF">
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="APP_TASK_PROJECTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.APP_TASK_PROJECTS">
+              <MappingFragment StoreEntitySet="APP_TASK_PROJECTS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="APP_TASK_STATUS_REF">
+            <EntityTypeMapping TypeName="DBTHSNModel.APP_TASK_STATUS_REF">
+              <MappingFragment StoreEntitySet="APP_TASK_STATUS_REF">
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="APP_TASKS">
+            <EntityTypeMapping TypeName="DBTHSNModel.APP_TASKS">
+              <MappingFragment StoreEntitySet="APP_TASKS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="DueDate" ColumnName="DueDate" />
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="ReporterUserID" ColumnName="ReporterUserID" />
+                <ScalarProperty Name="AssigneeUserID" ColumnName="AssigneeUserID" />
+                <ScalarProperty Name="PriorityID" ColumnName="PriorityID" />
+                <ScalarProperty Name="StatusID" ColumnName="StatusID" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="KeyCode" ColumnName="KeyCode" />
+                <ScalarProperty Name="ProjectID" ColumnName="ProjectID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="COM_OFFICIAL_LETTERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.COM_OFFICIAL_LETTERS">
+              <MappingFragment StoreEntitySet="COM_OFFICIAL_LETTERS">
+                <ScalarProperty Name="Topic" ColumnName="Topic" />
+                <ScalarProperty Name="ChannelCode" ColumnName="ChannelCode" />
+                <ScalarProperty Name="TheirRefNo" ColumnName="TheirRefNo" />
+                <ScalarProperty Name="OurRefNo" ColumnName="OurRefNo" />
+                <ScalarProperty Name="ExternalContactName" ColumnName="ExternalContactName" />
+                <ScalarProperty Name="ExternalCompanyName" ColumnName="ExternalCompanyName" />
+                <ScalarProperty Name="LetterDate" ColumnName="LetterDate" />
+                <ScalarProperty Name="LetterNo" ColumnName="LetterNo" />
+                <ScalarProperty Name="DirectionCode" ColumnName="DirectionCode" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_DOCUMENT_STATUS_REF">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_DOCUMENT_STATUS_REF">
+              <MappingFragment StoreEntitySet="DOC_DOCUMENT_STATUS_REF">
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_DOCUMENT_TYPES">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_DOCUMENT_TYPES">
+              <MappingFragment StoreEntitySet="DOC_DOCUMENT_TYPES">
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_DOCUMENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_DOCUMENTS">
+              <MappingFragment StoreEntitySet="DOC_DOCUMENTS">
+                <ScalarProperty Name="LastSyncDT" ColumnName="LastSyncDT" />
+                <ScalarProperty Name="IntegrationStatusCode" ColumnName="IntegrationStatusCode" />
+                <ScalarProperty Name="ExternalDocKey" ColumnName="ExternalDocKey" />
+                <ScalarProperty Name="ExternalSystemCode" ColumnName="ExternalSystemCode" />
+                <ScalarProperty Name="IntegrationUID" ColumnName="IntegrationUID" />
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="EffectiveTo" ColumnName="EffectiveTo" />
+                <ScalarProperty Name="EffectiveFrom" ColumnName="EffectiveFrom" />
+                <ScalarProperty Name="TemplateID" ColumnName="TemplateID" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="PositionID" ColumnName="PositionID" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="StatusID" ColumnName="StatusID" />
+                <ScalarProperty Name="DocTypeID" ColumnName="DocTypeID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_FILES">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_FILES">
+              <MappingFragment StoreEntitySet="DOC_FILES">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="IsMain" ColumnName="IsMain" />
+                <ScalarProperty Name="FileContent" ColumnName="FileContent" />
+                <ScalarProperty Name="FileSizeBytes" ColumnName="FileSizeBytes" />
+                <ScalarProperty Name="MimeType" ColumnName="MimeType" />
+                <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_TEMPLATES">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_TEMPLATES">
+              <MappingFragment StoreEntitySet="DOC_TEMPLATES">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="FileContent" ColumnName="FileContent" />
+                <ScalarProperty Name="MimeType" ColumnName="MimeType" />
+                <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="TemplateCode" ColumnName="TemplateCode" />
+                <ScalarProperty Name="DocTypeID" ColumnName="DocTypeID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_JOB_DESCRIPTIONS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_JOB_DESCRIPTIONS">
+              <MappingFragment StoreEntitySet="HR_JOB_DESCRIPTIONS">
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="IsMandatory" ColumnName="IsMandatory" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="PositionID" ColumnName="PositionID" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_ORG_UNITS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_ORG_UNITS">
+              <MappingFragment StoreEntitySet="HR_ORG_UNITS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="LevelNo" ColumnName="LevelNo" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ParentID" ColumnName="ParentID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_POSITIONS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_POSITIONS">
+              <MappingFragment StoreEntitySet="HR_POSITIONS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="IsManager" ColumnName="IsManager" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_SALARY_GRADES">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_SALARY_GRADES">
+              <MappingFragment StoreEntitySet="HR_SALARY_GRADES">
+                <ScalarProperty Name="EffectiveTo" ColumnName="EffectiveTo" />
+                <ScalarProperty Name="EffectiveFrom" ColumnName="EffectiveFrom" />
+                <ScalarProperty Name="CurrencyCode" ColumnName="CurrencyCode" />
+                <ScalarProperty Name="MaxSalary" ColumnName="MaxSalary" />
+                <ScalarProperty Name="MinSalary" ColumnName="MinSalary" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="GradeCode" ColumnName="GradeCode" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_STAFFING_PLAN">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_STAFFING_PLAN">
+              <MappingFragment StoreEntitySet="HR_STAFFING_PLAN">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="EffectiveTo" ColumnName="EffectiveTo" />
+                <ScalarProperty Name="EffectiveFrom" ColumnName="EffectiveFrom" />
+                <ScalarProperty Name="IsFixedSalary" ColumnName="IsFixedSalary" />
+                <ScalarProperty Name="IsHourly" ColumnName="IsHourly" />
+                <ScalarProperty Name="IsPieceRate" ColumnName="IsPieceRate" />
+                <ScalarProperty Name="PlannedHeadcount" ColumnName="PlannedHeadcount" />
+                <ScalarProperty Name="SalaryGradeID" ColumnName="SalaryGradeID" />
+                <ScalarProperty Name="PositionID" ColumnName="PositionID" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_INVOICE_LINES">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_INVOICE_LINES">
+              <MappingFragment StoreEntitySet="SALES_INVOICE_LINES">
+                <ScalarProperty Name="WarehouseOutID" ColumnName="WarehouseOutID" />
+                <ScalarProperty Name="TotalWithVAT" ColumnName="TotalWithVAT" />
+                <ScalarProperty Name="VATAmount" ColumnName="VATAmount" />
+                <ScalarProperty Name="VATRate" ColumnName="VATRate" />
+                <ScalarProperty Name="LineAmount" ColumnName="LineAmount" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="LineNo" ColumnName="LineNo" />
+                <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_INVOICES">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_INVOICES">
+              <MappingFragment StoreEntitySet="SALES_INVOICES">
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+                <ScalarProperty Name="DueDate" ColumnName="DueDate" />
+                <ScalarProperty Name="TotalWithVAT" ColumnName="TotalWithVAT" />
+                <ScalarProperty Name="TotalVAT" ColumnName="TotalVAT" />
+                <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+                <ScalarProperty Name="CurrencyCode" ColumnName="CurrencyCode" />
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+                <ScalarProperty Name="InvoiceDate" ColumnName="InvoiceDate" />
+                <ScalarProperty Name="InvoiceNo" ColumnName="InvoiceNo" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_SF_HEADERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_SF_HEADERS">
+              <MappingFragment StoreEntitySet="SALES_SF_HEADERS">
+                <ScalarProperty Name="TaxMessageID" ColumnName="TaxMessageID" />
+                <ScalarProperty Name="XmlSchemaVersion" ColumnName="XmlSchemaVersion" />
+                <ScalarProperty Name="LastSyncDT" ColumnName="LastSyncDT" />
+                <ScalarProperty Name="IntegrationStatusCode" ColumnName="IntegrationStatusCode" />
+                <ScalarProperty Name="ExternalSFKey" ColumnName="ExternalSFKey" />
+                <ScalarProperty Name="ExternalSystemCode" ColumnName="ExternalSystemCode" />
+                <ScalarProperty Name="SourceSystem" ColumnName="SourceSystem" />
+                <ScalarProperty Name="IntegrationUID" ColumnName="IntegrationUID" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+                <ScalarProperty Name="XmlPayload" ColumnName="XmlPayload" />
+                <ScalarProperty Name="CustomerINN" ColumnName="CustomerINN" />
+                <ScalarProperty Name="SupplierINN" ColumnName="SupplierINN" />
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+                <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="SFDate" ColumnName="SFDate" />
+                <ScalarProperty Name="SFNumber" ColumnName="SFNumber" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_SF_LINES">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_SF_LINES">
+              <MappingFragment StoreEntitySet="SALES_SF_LINES">
+                <ScalarProperty Name="ExternalLineKey" ColumnName="ExternalLineKey" />
+                <ScalarProperty Name="TotalWithVAT" ColumnName="TotalWithVAT" />
+                <ScalarProperty Name="VATAmount" ColumnName="VATAmount" />
+                <ScalarProperty Name="VATRate" ColumnName="VATRate" />
+                <ScalarProperty Name="LineAmount" ColumnName="LineAmount" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="InvoiceLineID" ColumnName="InvoiceLineID" />
+                <ScalarProperty Name="LineNo" ColumnName="LineNo" />
+                <ScalarProperty Name="SFHeaderID" ColumnName="SFHeaderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="STD_COMPANY_STANDARDS">
+            <EntityTypeMapping TypeName="DBTHSNModel.STD_COMPANY_STANDARDS">
+              <MappingFragment StoreEntitySet="STD_COMPANY_STANDARDS">
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="Area" ColumnName="Area" />
+                <ScalarProperty Name="StandardCode" ColumnName="StandardCode" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

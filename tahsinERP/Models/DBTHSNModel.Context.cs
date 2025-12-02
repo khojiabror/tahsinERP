@@ -104,6 +104,27 @@ namespace tahsinERP.Models
         public virtual DbSet<SHAREHOLDER> SHAREHOLDERS { get; set; }
         public virtual DbSet<V_FIN_PL_FACT_MONTHLY> V_FIN_PL_FACT_MONTHLY { get; set; }
         public virtual DbSet<V_FIN_PL_PLAN_VS_FACT_MONTHLY> V_FIN_PL_PLAN_VS_FACT_MONTHLY { get; set; }
+        public virtual DbSet<ADM_COMPANY_ORDERS> ADM_COMPANY_ORDERS { get; set; }
+        public virtual DbSet<APP_TASK_PRIORITY_REF> APP_TASK_PRIORITY_REF { get; set; }
+        public virtual DbSet<APP_TASK_PROJECTS> APP_TASK_PROJECTS { get; set; }
+        public virtual DbSet<APP_TASK_STATUS_REF> APP_TASK_STATUS_REF { get; set; }
+        public virtual DbSet<APP_TASKS> APP_TASKS { get; set; }
+        public virtual DbSet<COM_OFFICIAL_LETTERS> COM_OFFICIAL_LETTERS { get; set; }
+        public virtual DbSet<DOC_DOCUMENT_STATUS_REF> DOC_DOCUMENT_STATUS_REF { get; set; }
+        public virtual DbSet<DOC_DOCUMENT_TYPES> DOC_DOCUMENT_TYPES { get; set; }
+        public virtual DbSet<DOC_DOCUMENTS> DOC_DOCUMENTS { get; set; }
+        public virtual DbSet<DOC_FILES> DOC_FILES { get; set; }
+        public virtual DbSet<DOC_TEMPLATES> DOC_TEMPLATES { get; set; }
+        public virtual DbSet<HR_JOB_DESCRIPTIONS> HR_JOB_DESCRIPTIONS { get; set; }
+        public virtual DbSet<HR_ORG_UNITS> HR_ORG_UNITS { get; set; }
+        public virtual DbSet<HR_POSITIONS> HR_POSITIONS { get; set; }
+        public virtual DbSet<HR_SALARY_GRADES> HR_SALARY_GRADES { get; set; }
+        public virtual DbSet<HR_STAFFING_PLAN> HR_STAFFING_PLAN { get; set; }
+        public virtual DbSet<SALES_INVOICE_LINES> SALES_INVOICE_LINES { get; set; }
+        public virtual DbSet<SALES_INVOICES> SALES_INVOICES { get; set; }
+        public virtual DbSet<SALES_SF_HEADERS> SALES_SF_HEADERS { get; set; }
+        public virtual DbSet<SALES_SF_LINES> SALES_SF_LINES { get; set; }
+        public virtual DbSet<STD_COMPANY_STANDARDS> STD_COMPANY_STANDARDS { get; set; }
     
         public virtual int GetCarPlanRequirements(string optionCode)
         {

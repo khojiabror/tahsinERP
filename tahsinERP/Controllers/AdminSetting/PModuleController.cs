@@ -122,18 +122,34 @@ namespace tahsinERP.Controllers
                     using (var db = new DBTHSNEntities())
                     {
                         // Takrorlanishni tekshirish (Action null yoki bo'sh bo'lishi mumkin)
+                        // Action bo'sh yoki null bo'lsa, uni null sifatida saqlash
+                        var moduleValue = permissions.Module?.Trim();
+                        var controllerValue = permissions.Controller?.Trim();
+                        var actionValue = string.IsNullOrWhiteSpace(permissions.Action) ? null : permissions.Action.Trim();
+                        
                         var existing = await db.PERMISSIONMODULES
-                            .FirstOrDefaultAsync(pm => pm.Module == permissions.Module &&
-                                                      pm.Controller == permissions.Controller &&
-                                                      (pm.Action == permissions.Action || 
-                                                       (string.IsNullOrEmpty(pm.Action) && string.IsNullOrEmpty(permissions.Action))));
+                            .ToListAsync();
+                        
+                        var existingMatch = existing.FirstOrDefault(pm => 
+                            (pm.Module ?? "").Trim() == moduleValue &&
+                            (pm.Controller ?? "").Trim() == controllerValue &&
+                            ((string.IsNullOrWhiteSpace(pm.Action) && string.IsNullOrWhiteSpace(actionValue)) ||
+                             ((pm.Action ?? "").Trim() == actionValue))
+                        );
 
-                        if (existing != null)
+                        if (existingMatch != null)
                         {
-                            ModelState.AddModelError("", "Bu modul, controller va action kombinatsiyasi allaqachon mavjud");
+                            var actionText = string.IsNullOrWhiteSpace(existingMatch.Action) ? "(bo'sh)" : existingMatch.Action;
+                            ModelState.AddModelError("", $"Bu modul, controller va action kombinatsiyasi allaqachon mavjud. Mavjud: Module='{existingMatch.Module}', Controller='{existingMatch.Controller}', Action='{actionText}'");
                         }
                         else
                         {
+                            // Action bo'sh bo'lsa null qilish
+                            permissions.Action = actionValue;
+                            permissions.Module = permissions.Module?.Trim();
+                            permissions.Controller = permissions.Controller?.Trim();
+                            permissions.Parameter = permissions.Parameter?.Trim();
+                            
                             db.PERMISSIONMODULES.Add(permissions);
                             await db.SaveChangesAsync();
 
@@ -150,7 +166,8 @@ namespace tahsinERP.Controllers
                                     PermissionModuleID = permissions.ID,
                                     RoleID = roleId,
                                     ViewPermit = true,
-                                    ChangePermit = false
+                                    ChangePermit = false,
+                                    DeletePermit = false
                                 }).ToList();
 
                                 db.PERMISSIONS.AddRange(permissionsToAdd);
@@ -347,7 +364,8 @@ namespace tahsinERP.Controllers
                                     PermissionModuleID = pModule.ID,
                                     RoleID = roleId,
                                     ViewPermit = true,
-                                    ChangePermit = false
+                                    ChangePermit = false,
+                                    DeletePermit = false
                                 }).ToList();
 
                             if (permissionsToAdd.Any())

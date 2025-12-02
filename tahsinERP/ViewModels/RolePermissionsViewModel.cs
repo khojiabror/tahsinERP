@@ -21,5 +21,6 @@ namespace tahsinERP.ViewModels
         public string Parameter { get; set; }
         public bool ViewPermit { get; set; }
         public bool ChangePermit { get; set; }
+        public bool DeletePermit { get; set; }
     }
 }

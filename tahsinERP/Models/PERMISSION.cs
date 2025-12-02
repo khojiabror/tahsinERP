@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         public bool ChangePermit { get; set; }
         public int RoleID { get; set; }
         public int PermissionModuleID { get; set; }
+        public bool DeletePermit { get; set; }
     
         public virtual PERMISSIONMODULE PERMISSIONMODULE { get; set; }
         public virtual ROLE ROLE { get; set; }

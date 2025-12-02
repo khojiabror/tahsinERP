@@ -45,7 +45,7 @@
 
                 <div class="row">
                     <div class="col-12">
-                        <div class="card">
+                    <div class="card">
                             <div class="card-header border-bottom">
                                 <h4 class="card-title mb-0">
                                     <i class="bx bx-shield mr-1"></i>
@@ -56,11 +56,11 @@
                                     <p class="text-muted mb-0 mt-1">@Model.Description</p>
                                 }
                             </div>
-                            <div class="card-content">
-                                <div class="card-body">
+                        <div class="card-content">
+                            <div class="card-body">
                                     @using (Html.BeginForm("Permissions", "Role", FormMethod.Post, new { @id = "permissionsForm" }))
-                                    {
-                                        @Html.AntiForgeryToken()
+                                {
+                                    @Html.AntiForgeryToken()
                                         @Html.HiddenFor(m => m.RoleID)
                                         @Html.HiddenFor(m => m.RoleName)
 
@@ -73,6 +73,9 @@
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-success" id="btnSelectAllChange">
                                                         <i class="bx bx-check-square"></i> Barcha Change
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" id="btnSelectAllDelete">
+                                                        <i class="bx bx-check-square"></i> Barcha Delete
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-warning" id="btnDeselectAll">
                                                         <i class="bx bx-square"></i> Barchasini bekor qilish
@@ -96,19 +99,14 @@
                                             <table class="table table-hover table-sm table-bordered" id="permissionsTable">
                                                 <thead class="thead-light sticky-top">
                                                     <tr>
-                                                        <th style="width: 40px;" class="text-center">
-                                                            <input type="checkbox" id="selectAllViewHeader">
-                                                        </th>
-                                                        <th style="width: 40px;" class="text-center">
-                                                            <input type="checkbox" id="selectAllChangeHeader">
-                                                        </th>
-                                                        <th>Modul</th>
-                                                        <th>Controller</th>
-                                                        <th>Action</th>
-                                                        <th class="text-center" style="width: 100px;">View</th>
-                                                        <th class="text-center" style="width: 100px;">Change</th>
-                                                    </tr>
-                                                </thead>
+                                                    <th>Modul</th>
+                                                    <th>Controller</th>
+                                                    <th>Action</th>
+                                                    <th class="text-center" style="width: 100px;">View</th>
+                                                    <th class="text-center" style="width: 100px;">Change</th>
+                                                    <th class="text-center" style="width: 100px;">Delete</th>
+                                                </tr>
+                                            </thead>
                                                 <tbody id="tableBody">
                                                     @{
                                                         var groupedPermissions = Model.Permissions
@@ -121,12 +119,6 @@
                                                         {
                                                             var permIndex = Model.Permissions.IndexOf(perm);
                                                             <tr class="permission-row" data-module="@group.Key" data-controller="@perm.Controller" data-action="@perm.Action">
-                                                                <td class="text-center">
-                                                                    <input type="checkbox" class="view-checkbox" data-index="@permIndex">
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <input type="checkbox" class="change-checkbox" data-index="@permIndex">
-                                                                </td>
                                                                 @Html.HiddenFor(m => m.Permissions[permIndex].ID)
                                                                 @Html.HiddenFor(m => m.Permissions[permIndex].PermissionModuleID)
                                                                 @Html.HiddenFor(m => m.Permissions[permIndex].Module)
@@ -138,8 +130,8 @@
                                                                 </td>
                                                                 <td>
                                                                     <code class="small">@perm.Controller</code>
-                                                                </td>
-                                                                <td>
+                                                        </td>
+                                                        <td>
                                                                     <code class="small">@perm.Action</code>
                                                                     @if (!string.IsNullOrEmpty(perm.Parameter))
                                                                     {
@@ -160,12 +152,19 @@
                                                                         <label class="custom-control-label" for="change_@permIndex"></label>
                                                                     </div>
                                                                 </td>
-                                                            </tr>
+                                                                <td class="text-center">
+                                                                    <div class="custom-control custom-switch">
+                                                                        @Html.CheckBoxFor(m => m.Permissions[permIndex].DeletePermit, 
+                                                                            new { @class = "custom-control-input delete-checkbox-input", @id = $"delete_{permIndex}", @data_index = permIndex })
+                                                                        <label class="custom-control-label" for="delete_@permIndex"></label>
+                                                                    </div>
+                                                        </td>
+                                                    </tr>
                                                         }
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
 
                                         <!-- Pagination -->
                                         <div class="row mt-3">
@@ -184,14 +183,13 @@
                                             <div class="col-12">
                                                 <button type="submit" class="btn btn-primary" id="btnSave">
                                                     <i class="bx bx-save"></i> Saqlash
-                                                </button>
+                                            </button>
                                                 <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
                                                     <i class="bx bx-x"></i> Bekor qilish
                                                 </a>
                                             </div>
                                         </div>
-                                    }
-                                </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -199,13 +197,19 @@
             </div>
         </div>
     </div>
+    </div>
 
     <style>
         .permission-row {
             display: table-row;
         }
         .permission-row.hidden {
-            display: none;
+            display: none !important;
+        }
+        /* Form submit qilishda barcha checkboxlar o'qilishi uchun - yashirilgan qatorlardagi inputlar ham o'qilishi kerak */
+        #permissionsForm input[type="checkbox"],
+        #permissionsForm input[type="hidden"] {
+            /* Yashirilgan qatorlardagi inputlar ham form submit qilishda o'qilishi uchun */
         }
         #permissionsTable thead th {
             position: sticky;
@@ -258,123 +262,53 @@
                 });
 
                 // Select All View
-                document.getElementById('selectAllViewHeader').addEventListener('change', function() {
-                    var checked = this.checked;
-                    document.querySelectorAll('.view-checkbox-input').forEach(function(cb) {
-                        cb.checked = checked;
-                    });
-                    document.querySelectorAll('.view-checkbox').forEach(function(cb) {
-                        cb.checked = checked;
-                    });
-                });
-
                 document.getElementById('btnSelectAllView').addEventListener('click', function() {
                     document.querySelectorAll('.view-checkbox-input').forEach(function(cb) {
                         cb.checked = true;
                     });
-                    document.querySelectorAll('.view-checkbox').forEach(function(cb) {
-                        cb.checked = true;
-                    });
-                    document.getElementById('selectAllViewHeader').checked = true;
                 });
 
                 // Select All Change
-                document.getElementById('selectAllChangeHeader').addEventListener('change', function() {
-                    var checked = this.checked;
-                    document.querySelectorAll('.change-checkbox-input').forEach(function(cb) {
-                        cb.checked = checked;
-                    });
-                    document.querySelectorAll('.change-checkbox').forEach(function(cb) {
-                        cb.checked = checked;
-                    });
-                });
-
                 document.getElementById('btnSelectAllChange').addEventListener('click', function() {
                     document.querySelectorAll('.change-checkbox-input').forEach(function(cb) {
                         cb.checked = true;
                     });
-                    document.querySelectorAll('.change-checkbox').forEach(function(cb) {
+                });
+
+                // Select All Delete
+                document.getElementById('btnSelectAllDelete').addEventListener('click', function() {
+                    document.querySelectorAll('.delete-checkbox-input').forEach(function(cb) {
                         cb.checked = true;
                     });
-                    document.getElementById('selectAllChangeHeader').checked = true;
                 });
 
                 // Deselect All
                 document.getElementById('btnDeselectAll').addEventListener('click', function() {
-                    document.querySelectorAll('.view-checkbox-input, .change-checkbox-input').forEach(function(cb) {
+                    document.querySelectorAll('.view-checkbox-input, .change-checkbox-input, .delete-checkbox-input').forEach(function(cb) {
                         cb.checked = false;
-                    });
-                    document.querySelectorAll('.view-checkbox, .change-checkbox').forEach(function(cb) {
-                        cb.checked = false;
-                    });
-                    document.getElementById('selectAllViewHeader').checked = false;
-                    document.getElementById('selectAllChangeHeader').checked = false;
-                });
-
-                // Sync checkboxes
-                document.querySelectorAll('.view-checkbox-input').forEach(function(cb) {
-                    cb.addEventListener('change', function() {
-                        var index = this.getAttribute('data-index');
-                        document.querySelectorAll('.view-checkbox[data-index="' + index + '"]').forEach(function(c) {
-                            c.checked = this.checked;
-                        }.bind(this));
-                    });
-                });
-
-                document.querySelectorAll('.change-checkbox-input').forEach(function(cb) {
-                    cb.addEventListener('change', function() {
-                        var index = this.getAttribute('data-index');
-                        document.querySelectorAll('.change-checkbox[data-index="' + index + '"]').forEach(function(c) {
-                            c.checked = this.checked;
-                        }.bind(this));
-                    });
-                });
-
-                document.querySelectorAll('.view-checkbox').forEach(function(cb) {
-                    cb.addEventListener('change', function() {
-                        var index = this.getAttribute('data-index');
-                        document.querySelectorAll('.view-checkbox-input[data-index="' + index + '"]').forEach(function(c) {
-                            c.checked = this.checked;
-                        }.bind(this));
-                    });
-                });
-
-                document.querySelectorAll('.change-checkbox').forEach(function(cb) {
-                    cb.addEventListener('change', function() {
-                        var index = this.getAttribute('data-index');
-                        document.querySelectorAll('.change-checkbox-input[data-index="' + index + '"]').forEach(function(c) {
-                            c.checked = this.checked;
-                        }.bind(this));
                     });
                 });
 
                 // Form submit
                 document.getElementById('permissionsForm').addEventListener('submit', function(e) {
-                    // Show all rows to ensure all checkboxes are accessible
+                    // Barcha qatorlarni ko'rsatish - checkboxlar to'g'ri o'qilishi uchun
+                    // CSS display: none bilan yashirilgan elementlar form submit qilishda o'qilmaydi
+                    // Shuning uchun barcha qatorlarni ko'rsatish kerak
                     allRows.forEach(function(row) {
                         row.classList.remove('hidden');
+                        row.style.display = '';
+                        row.style.visibility = '';
                     });
                     
-                    // Sync all checkboxes
-                    document.querySelectorAll('.view-checkbox-input').forEach(function(cb) {
-                        var index = cb.getAttribute('data-index');
-                        var checkbox = document.querySelector('.view-checkbox[data-index="' + index + '"]');
-                        if (checkbox) {
-                            cb.checked = checkbox.checked;
-                        }
-                    });
-                    document.querySelectorAll('.change-checkbox-input').forEach(function(cb) {
-                        var index = cb.getAttribute('data-index');
-                        var checkbox = document.querySelector('.change-checkbox[data-index="' + index + '"]');
-                        if (checkbox) {
-                            cb.checked = checkbox.checked;
-                        }
+                    // Barcha inputlarni ko'rsatish (agar ular yashirilgan bo'lsa)
+                    document.querySelectorAll('#permissionsForm input[type="checkbox"], #permissionsForm input[type="hidden"]').forEach(function(input) {
+                        input.style.display = '';
+                        input.style.visibility = '';
+                        input.removeAttribute('disabled');
                     });
                     
-                    // Re-render table after a short delay to ensure form submits
-                    setTimeout(function() {
-                        renderTable();
-                    }, 100);
+                    // Kichik kechikish - DOM yangilanishi uchun
+                    // Form submit qilish davom etadi
                 });
             }
 
@@ -509,3 +443,4 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
+

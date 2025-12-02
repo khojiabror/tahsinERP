@@ -101,7 +101,7 @@ namespace tahsinERP.Controllers
                     db.ROLES.Add(newRole);
                     await db.SaveChangesAsync();
 
-                    // Barcha modullar uchun default permission yaratish (ViewPermit = true, ChangePermit = false)
+                    // Barcha modullar uchun default permission yaratish (ViewPermit = true, ChangePermit = false, DeletePermit = false)
                     var modules = await db.PERMISSIONMODULES.ToListAsync();
                     foreach (var module in modules)
                     {
@@ -110,7 +110,8 @@ namespace tahsinERP.Controllers
                             RoleID = newRole.ID,
                             PermissionModuleID = module.ID,
                             ViewPermit = true,
-                            ChangePermit = false
+                            ChangePermit = false,
+                            DeletePermit = false
                         };
                         db.PERMISSIONS.Add(permission);
                     }
@@ -397,7 +398,8 @@ namespace tahsinERP.Controllers
                             Action = module.Action ?? "",
                             Parameter = module.Parameter ?? "",
                             ViewPermit = existingPermission?.ViewPermit ?? false,
-                            ChangePermit = existingPermission?.ChangePermit ?? false
+                            ChangePermit = existingPermission?.ChangePermit ?? false,
+                            DeletePermit = existingPermission?.DeletePermit ?? false
                         };
                     }).ToList()
                 };
@@ -461,10 +463,12 @@ namespace tahsinERP.Controllers
                         {
                             // Mavjud permission ni yangilash
                             if (existingPermission.ViewPermit != permVm.ViewPermit || 
-                                existingPermission.ChangePermit != permVm.ChangePermit)
+                                existingPermission.ChangePermit != permVm.ChangePermit ||
+                                existingPermission.DeletePermit != permVm.DeletePermit)
                             {
                                 existingPermission.ViewPermit = permVm.ViewPermit;
                                 existingPermission.ChangePermit = permVm.ChangePermit;
+                                existingPermission.DeletePermit = permVm.DeletePermit;
                                 permissionsToUpdate.Add(existingPermission);
                             }
                         }
@@ -476,7 +480,8 @@ namespace tahsinERP.Controllers
                                 RoleID = model.RoleID,
                                 PermissionModuleID = permVm.PermissionModuleID,
                                 ViewPermit = permVm.ViewPermit,
-                                ChangePermit = permVm.ChangePermit
+                                ChangePermit = permVm.ChangePermit,
+                                DeletePermit = permVm.DeletePermit
                             };
                             permissionsToAdd.Add(newPermission);
                         }
