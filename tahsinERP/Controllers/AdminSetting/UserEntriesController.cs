@@ -14,6 +14,7 @@ namespace tahsinERP.Controllers
     public class UserEntriesController : Controller
     {
         // GET: UserEntries
+        [HttpGet]
         public async Task<ActionResult> Index(int? userId, DateTime? startDate = null, DateTime? endDate = null)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))

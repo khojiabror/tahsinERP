@@ -509,6 +509,7 @@
     <Compile Include="Controllers\CRM\SOrderController.cs" />
     <Compile Include="Controllers\SRM\SupplierController.cs" />
     <Compile Include="Controllers\AdminSetting\UserController.cs" />
+    <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
     <Compile Include="Controllers\SRM\ExpenseController.cs" />
