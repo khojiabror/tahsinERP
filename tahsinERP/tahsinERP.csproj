@@ -468,6 +468,9 @@
     <Content Include="assets\manual\popper.min.js" />
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
+    <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
+    <Compile Include="Controllers\CRM\SalesSFController.cs" />
+    <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
     <Compile Include="Controllers\Engineering\NormCuttingController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
     <Compile Include="Controllers\Settings\CompanyController.cs" />
@@ -708,6 +711,9 @@
     <Compile Include="Models\PRODUCTPLANS_DAILY.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PRODUCT_CATEGORIES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PRODUCT_PRODUCTION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -753,6 +759,15 @@
     <Compile Include="Models\SALES_SF_LINES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\SALES_TTNK_HEADERS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SALES_TTNK_INVOICES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SALES_TTNK_LINES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\SAMPLE_FILES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -769,6 +784,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\SHOP_PLANNED_DTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SORDER_DELIVERY_SCHEDULE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\sp_Fin_CashSummary_Result.cs">
@@ -867,6 +885,7 @@
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
+    <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
     <Compile Include="ViewModels\WrhsExpenseViewModel.cs" />
     <Compile Include="ViewModels\WrhsIncomeEditViewModel.cs" />
     <Compile Include="ViewModels\WrhsIncomeViewModel.cs" />
@@ -2811,11 +2830,6 @@
     <Content Include="Views\DefectType\Edit.cshtml" />
     <Content Include="Views\DefectType\Create.cshtml" />
     <Content Include="Views\DefectType\Delete.cshtml" />
-    <Content Include="Views\DamagedPart\Index.cshtml" />
-    <Content Include="Views\DamagedPart\Create.cshtml" />
-    <Content Include="Views\DamagedPart\Edit.cshtml" />
-    <Content Include="Views\DamagedPart\Details.cshtml" />
-    <Content Include="Views\DamagedPart\Delete.cshtml" />
     <Content Include="Views\DamagedProduct\Index.cshtml" />
     <Content Include="Views\DamagedProduct\Create.cshtml" />
     <Content Include="Views\DamagedProduct\Edit.cshtml" />
@@ -2856,6 +2870,29 @@
     <Content Include="Views\NormCutting\Edit.cshtml" />
     <Content Include="Views\NormCutting\Index.cshtml" />
     <Content Include="Views\UserEntries\Index.cshtml" />
+    <Content Include="Views\NormCutting\Details.cshtml" />
+    <Content Include="Views\NormCutting\ViewDetails.cshtml" />
+    <Content Include="Views\SContract\ManageOrders.cshtml" />
+    <Content Include="Views\SalesTTNK\CreateFromInvoices.cshtml" />
+    <Content Include="Views\SalesTTNK\Details.cshtml" />
+    <Content Include="Views\SalesTTNK\Edit.cshtml" />
+    <Content Include="Views\SalesTTNK\Index.cshtml" />
+    <Content Include="Views\SalesSF\Details.cshtml" />
+    <Content Include="Views\SalesSF\Edit.cshtml" />
+    <Content Include="Views\SalesSF\GenerateFromInvoice.cshtml" />
+    <Content Include="Views\SalesSF\Index.cshtml" />
+    <Content Include="Views\SalesInvoices\Create.cshtml" />
+    <Content Include="Views\SalesInvoices\CreateFromOrder.cshtml" />
+    <Content Include="Views\SalesInvoices\Details.cshtml" />
+    <Content Include="Views\SalesInvoices\Edit.cshtml" />
+    <Content Include="Views\SalesInvoices\Index.cshtml" />
+    <Content Include="Views\SOrder\DeliverySchedule.cshtml" />
+    <Content Include="Views\POrderPayment\Create.cshtml" />
+    <Content Include="Views\POrderPayment\Delete.cshtml" />
+    <Content Include="Views\POrderPayment\Details.cshtml" />
+    <Content Include="Views\POrderPayment\Edit.cshtml" />
+    <Content Include="Views\POrderPayment\Index.cshtml" />
+    <Content Include="Views\NormCutting\Create.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

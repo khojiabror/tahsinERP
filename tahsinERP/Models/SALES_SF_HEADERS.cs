@@ -43,5 +43,7 @@ namespace tahsinERP.Models
         public virtual SALES_INVOICES SALES_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_SF_LINES> SALES_SF_LINES { get; set; }
+        public virtual USER USER { get; set; }
+        public virtual CUSTOMER CUSTOMER { get; set; }
     }
 }

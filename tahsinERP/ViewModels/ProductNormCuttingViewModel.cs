@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace tahsinERP.ViewModels
 {
+    public class ProductNormCuttingIndexViewModel
+    {
+        public int ProductID { get; set; }
+        public string ProductCode { get; set; }
+        public string ProductName { get; set; }
+        public int NormCount { get; set; }
+    }
+
     public class ProductNormCuttingViewModel
     {
         public int ProductID { get; set; }
@@ -71,6 +79,24 @@ namespace tahsinERP.ViewModels
         public decimal SuggestedTotalWaste { get; set; }
         public decimal SuggestedTotalCost { get; set; }
         public string Message { get; set; }
+    }
+    
+    public class NormVersionItemViewModel
+    {
+        public int NormVersionID { get; set; }
+        public string Period { get; set; }
+        public DateTime? EffectiveFrom { get; set; }
+        public DateTime? EffectiveTo { get; set; }
+        public string Comment { get; set; }
+        public int LineCount { get; set; }
+    }
+    
+    public class ProductNormCuttingDetailsViewModel
+    {
+        public int ProductID { get; set; }
+        public string ProductCode { get; set; }
+        public string ProductName { get; set; }
+        public List<NormVersionItemViewModel> NormVersions { get; set; } = new List<NormVersionItemViewModel>();
     }
 }
 

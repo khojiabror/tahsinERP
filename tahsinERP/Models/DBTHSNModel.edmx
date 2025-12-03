@@ -618,6 +618,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="Month" Type="char" MaxLength="7" />
           <Property Name="CreatedByUserID" Type="int" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="Price" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="TotalAmount" Type="numeric" Precision="38" Scale="6" StoreGeneratedPattern="Computed" />
+          <Property Name="Consumption" Type="float" />
+          <Property Name="WasteAmount" Type="float" />
         </EntityType>
         <EntityType Name="NORMLINES">
           <Key>
@@ -761,6 +765,29 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="RoleID" Type="int" Nullable="false" />
           <Property Name="PermissionModuleID" Type="int" Nullable="false" />
           <Property Name="DeletePermit" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PRODUCT_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="IsRawMaterial" Type="bit" Nullable="false" />
+          <Property Name="IsFinishedGood" Type="bit" Nullable="false" />
+          <Property Name="IsComponent" Type="bit" Nullable="false" />
+          <Property Name="IsConsumable" Type="bit" Nullable="false" />
+          <Property Name="RequiresNORM" Type="bit" Nullable="false" />
+          <Property Name="RequiresCutting" Type="bit" Nullable="false" />
+          <Property Name="IncludeInMRP" Type="bit" Nullable="false" />
+          <Property Name="AllowPurchase" Type="bit" Nullable="false" />
+          <Property Name="AllowSales" Type="bit" Nullable="false" />
+          <Property Name="RawMaterialGroup" Type="nvarchar" MaxLength="100" />
+          <Property Name="RawMaterialSubGrp" Type="nvarchar" MaxLength="100" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -954,6 +981,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="CreatedByUserID" Type="int" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
           <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
+          <Property Name="CurrencyID" Type="int" />
         </EntityType>
         <EntityType Name="SALES_SF_HEADERS">
           <Key>
@@ -996,6 +1024,86 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="VATAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="TotalWithVAT" Type="decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="ExternalLineKey" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="SALES_TTNK_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TTNKNumber" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="TTNKDate" Type="date" Nullable="false" />
+          <Property Name="InvoiceID" Type="bigint" />
+          <Property Name="OrderID" Type="int" />
+          <Property Name="ContractID" Type="int" />
+          <Property Name="ShipperName" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="ShipperINN" Type="nvarchar" MaxLength="20" />
+          <Property Name="ConsigneeName" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="ConsigneeINN" Type="nvarchar" MaxLength="20" />
+          <Property Name="CarrierName" Type="nvarchar" MaxLength="250" />
+          <Property Name="CarrierINN" Type="nvarchar" MaxLength="20" />
+          <Property Name="ResponsiblePersonName" Type="nvarchar" MaxLength="200" />
+          <Property Name="ResponsiblePersonPINFL" Type="nvarchar" MaxLength="20" />
+          <Property Name="DriverName" Type="nvarchar" MaxLength="200" />
+          <Property Name="DriverPINFL" Type="nvarchar" MaxLength="20" />
+          <Property Name="TruckNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="TrailerNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="TruckModel" Type="nvarchar" MaxLength="100" />
+          <Property Name="TrailerModel" Type="nvarchar" MaxLength="100" />
+          <Property Name="DepartureAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="DepartureRegion" Type="nvarchar" MaxLength="200" />
+          <Property Name="ArrivalAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="ArrivalRegion" Type="nvarchar" MaxLength="200" />
+          <Property Name="DistanceKm" Type="decimal" Precision="10" Scale="2" />
+          <Property Name="CargoWeightGrossT" Type="decimal" Precision="18" Scale="3" />
+          <Property Name="CargoWeightNetT" Type="decimal" Precision="18" Scale="3" />
+          <Property Name="CurrencyCode" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="DeliveryCost" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="VATAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalDeliveryCost" Type="decimal" Precision="19" Scale="2" StoreGeneratedPattern="Computed" />
+          <Property Name="XmlPayload" Type="xml" />
+          <Property Name="StatusCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
+          <Property Name="IntegrationUID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ExternalSystemCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="ExternalDocKey" Type="nvarchar" MaxLength="100" />
+          <Property Name="IntegrationStatusCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="LastSyncDT" Type="datetime2" Precision="0" />
+          <Property Name="XmlSchemaVersion" Type="nvarchar" MaxLength="20" />
+          <Property Name="TaxMessageID" Type="nvarchar" MaxLength="100" />
+          <Property Name="CurrencyID" Type="int" />
+        </EntityType>
+        <EntityType Name="SALES_TTNK_INVOICES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TTNKHeaderID" Type="bigint" Nullable="false" />
+          <Property Name="InvoiceID" Type="bigint" Nullable="false" />
+          <Property Name="AmountShare" Type="decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <EntityType Name="SALES_TTNK_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TTNKHeaderID" Type="bigint" Nullable="false" />
+          <Property Name="LineNo" Type="int" Nullable="false" />
+          <Property Name="ProductID" Type="int" />
+          <Property Name="InvoiceLineID" Type="bigint" />
+          <Property Name="HSCode" Type="nvarchar" MaxLength="20" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="UnitOfMeasure" Type="nvarchar" MaxLength="50" />
+          <Property Name="Qty" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="UnitPrice" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="LineAmount" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="WeightNetT" Type="decimal" Precision="18" Scale="3" />
+          <Property Name="WeightGrossT" Type="decimal" Precision="18" Scale="3" />
+          <Property Name="PlaceCount" Type="int" />
+          <Property Name="PackageType" Type="nvarchar" MaxLength="100" />
+          <Property Name="Remark" Type="nvarchar" MaxLength="500" />
+          <Property Name="HsCodeID" Type="int" />
         </EntityType>
         <EntityType Name="SAMPLE_FILES">
           <Key>
@@ -1069,6 +1177,22 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.SHOP_PRODUCTS' does not have a pr
           <Property Name="ShopName" Type="varchar" MaxLength="50" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="SORDER_DELIVERY_SCHEDULE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SOrderProductID" Type="int" Nullable="false" />
+          <Property Name="SOrderID" Type="int" />
+          <Property Name="ProductID" Type="int" />
+          <Property Name="DeliveryDate" Type="date" Nullable="false" />
+          <Property Name="QtyPlanned" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="QtyShipped" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="StatusCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
         </EntityType>
         <EntityType Name="STD_COMPANY_STANDARDS">
           <Key>
@@ -2717,6 +2841,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PRODUCTS_CATEGORY">
+          <End Role="PRODUCT_CATEGORIES" Type="Self.PRODUCT_CATEGORIES" Multiplicity="0..1" />
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PRODUCTS">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PRODUCTS_HSCODES">
           <End Role="HSCODES" Type="Self.HSCODES" Multiplicity="0..1" />
           <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="*" />
@@ -2873,6 +3009,102 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SALES_INVOICE_LINES_Product">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
+          <End Role="SALES_INVOICE_LINES" Type="Self.SALES_INVOICE_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_CONTRACT">
+          <End Role="S_CONTRACTS" Type="Self.S_CONTRACTS" Multiplicity="0..1" />
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_CreatedBy">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_Currency">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_Customer">
+          <End Role="CUSTOMERS" Type="Self.CUSTOMERS" Multiplicity="1" />
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_ORDER">
+          <End Role="S_ORDERS" Type="Self.S_ORDERS" Multiplicity="0..1" />
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_HEADERS_CreatedBy">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_HEADERS_Customer">
+          <End Role="CUSTOMERS" Type="Self.CUSTOMERS" Multiplicity="1" />
+          <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_SALES_SF_HEADERS_Invoice">
           <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="0..1" />
           <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="*" />
@@ -2897,6 +3129,126 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SALES_SF_LINES_InvoiceLine">
+          <End Role="SALES_INVOICE_LINES" Type="Self.SALES_INVOICE_LINES" Multiplicity="0..1" />
+          <End Role="SALES_SF_LINES" Type="Self.SALES_SF_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_LINES">
+              <PropertyRef Name="InvoiceLineID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_LINES_Product">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
+          <End Role="SALES_SF_LINES" Type="Self.SALES_SF_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_LINES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_HEADERS_Currency">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_HEADERS_Invoice">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_INVOICES_Header">
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="1" />
+          <End Role="SALES_TTNK_INVOICES" Type="Self.SALES_TTNK_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_INVOICES">
+              <PropertyRef Name="TTNKHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_INVOICES_Invoice">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="1" />
+          <End Role="SALES_TTNK_INVOICES" Type="Self.SALES_TTNK_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_INVOICES">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_Header">
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="1" />
+          <End Role="SALES_TTNK_LINES" Type="Self.SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="TTNKHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_HsCode">
+          <End Role="HSCODES" Type="Self.HSCODES" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_LINES" Type="Self.SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HSCODES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="HsCodeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_InvoiceLine">
+          <End Role="SALES_INVOICE_LINES" Type="Self.SALES_INVOICE_LINES" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_LINES" Type="Self.SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="InvoiceLineID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_Product">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_LINES" Type="Self.SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_SCONTRACTS_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="1" />
           <End Role="S_CONTRACTS" Type="Self.S_CONTRACTS" Multiplicity="*" />
@@ -2906,6 +3258,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="S_CONTRACTS">
               <PropertyRef Name="CompanyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SF_HEADERS_CUSTOMER">
+          <End Role="CUSTOMERS" Type="Self.CUSTOMERS" Multiplicity="1" />
+          <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SF_HEADERS_INVOICE">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="0..1" />
+          <End Role="SALES_SF_HEADERS" Type="Self.SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="InvoiceID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2969,6 +3345,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SORDER_DELIVERY_CreatedBy">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="SORDER_DELIVERY_SCHEDULE" Type="Self.SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SORDER_DELIVERY_Product">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="0..1" />
+          <End Role="SORDER_DELIVERY_SCHEDULE" Type="Self.SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_STD_COMPANY_STANDARDS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
           <End Role="STD_COMPANY_STANDARDS" Type="Self.STD_COMPANY_STANDARDS" Multiplicity="0..1" />
@@ -2978,6 +3378,42 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="STD_COMPANY_STANDARDS">
               <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TTNK_HEADERS_CONTRACT">
+          <End Role="S_CONTRACTS" Type="Self.S_CONTRACTS" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TTNK_HEADERS_INVOICE">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TTNK_HEADERS_ORDER">
+          <End Role="S_ORDERS" Type="Self.S_ORDERS" Multiplicity="0..1" />
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="OrderID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3149,6 +3585,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Parameter Name="EffectiveFrom" Type="date" Mode="In" />
           <Parameter Name="Comment" Type="nvarchar" Mode="In" />
         </Function>
+        <Function Name="sp_SOrder_RecalcDeliveryShippedFromInvoices" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="SOrderID" Type="int" Mode="In" />
+        </Function>
         <Function Name="WeeklyCoverage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="TodayDate" Type="date" Mode="In" />
           <Parameter Name="EndDate" Type="date" Mode="In" />
@@ -3217,6 +3656,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="P_ORDERS" EntityType="Self.P_ORDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PERMISSIONMODULES" EntityType="Self.PERMISSIONMODULES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PERMISSIONS" EntityType="Self.PERMISSIONS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PRODUCT_CATEGORIES" EntityType="Self.PRODUCT_CATEGORIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PRODUCT_PRODUCTION" EntityType="Self.PRODUCT_PRODUCTION" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PRODUCT_STOCKS" EntityType="Self.PRODUCT_STOCKS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PRODUCTIMAGES" EntityType="Self.PRODUCTIMAGES" Schema="dbo" store:Type="Tables" />
@@ -3233,12 +3673,16 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="SALES_INVOICES" EntityType="Self.SALES_INVOICES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SALES_SF_HEADERS" EntityType="Self.SALES_SF_HEADERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SALES_SF_LINES" EntityType="Self.SALES_SF_LINES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_TTNK_HEADERS" EntityType="Self.SALES_TTNK_HEADERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_TTNK_INVOICES" EntityType="Self.SALES_TTNK_INVOICES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SALES_TTNK_LINES" EntityType="Self.SALES_TTNK_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SAMPLE_FILES" EntityType="Self.SAMPLE_FILES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDER_CONTRIBUTIONS" EntityType="Self.SHAREHOLDER_CONTRIBUTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDER_SHARE_PERIODS" EntityType="Self.SHAREHOLDER_SHARE_PERIODS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDERS" EntityType="Self.SHAREHOLDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOP_PLANNED_DTS" EntityType="Self.SHOP_PLANNED_DTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOPS" EntityType="Self.SHOPS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SORDER_DELIVERY_SCHEDULE" EntityType="Self.SORDER_DELIVERY_SCHEDULE" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="Self.STD_COMPANY_STANDARDS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UNITS" EntityType="Self.UNITS" Schema="dbo" store:Type="Tables" />
@@ -3793,6 +4237,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="PRODUCTPLANS" EntitySet="PRODUCTPLANS" />
           </AssociationSet>
+          <AssociationSet Name="FK_PRODUCTS_CATEGORY" Association="Self.FK_PRODUCTS_CATEGORY">
+            <End Role="PRODUCT_CATEGORIES" EntitySet="PRODUCT_CATEGORIES" />
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_PRODUCTS_HSCODES" Association="Self.FK_PRODUCTS_HSCODES">
             <End Role="HSCODES" EntitySet="HSCODES" />
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
@@ -3845,6 +4293,38 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
             <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
           </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICE_LINES_Product" Association="Self.FK_SALES_INVOICE_LINES_Product">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_CONTRACT" Association="Self.FK_SALES_INVOICES_CONTRACT">
+            <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_CreatedBy" Association="Self.FK_SALES_INVOICES_CreatedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_Currency" Association="Self.FK_SALES_INVOICES_Currency">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_Customer" Association="Self.FK_SALES_INVOICES_Customer">
+            <End Role="CUSTOMERS" EntitySet="CUSTOMERS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_ORDER" Association="Self.FK_SALES_INVOICES_ORDER">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_HEADERS_CreatedBy" Association="Self.FK_SALES_SF_HEADERS_CreatedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_HEADERS_Customer" Association="Self.FK_SALES_SF_HEADERS_Customer">
+            <End Role="CUSTOMERS" EntitySet="CUSTOMERS" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
           <AssociationSet Name="FK_SALES_SF_HEADERS_Invoice" Association="Self.FK_SALES_SF_HEADERS_Invoice">
             <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
             <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
@@ -3853,9 +4333,57 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
             <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
           </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_LINES_InvoiceLine" Association="Self.FK_SALES_SF_LINES_InvoiceLine">
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+            <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_LINES_Product" Association="Self.FK_SALES_SF_LINES_Product">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_HEADERS_Currency" Association="Self.FK_SALES_TTNK_HEADERS_Currency">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_HEADERS_Invoice" Association="Self.FK_SALES_TTNK_HEADERS_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_INVOICES_Header" Association="Self.FK_SALES_TTNK_INVOICES_Header">
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+            <End Role="SALES_TTNK_INVOICES" EntitySet="SALES_TTNK_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_INVOICES_Invoice" Association="Self.FK_SALES_TTNK_INVOICES_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_TTNK_INVOICES" EntitySet="SALES_TTNK_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_Header" Association="Self.FK_SALES_TTNK_LINES_Header">
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_HsCode" Association="Self.FK_SALES_TTNK_LINES_HsCode">
+            <End Role="HSCODES" EntitySet="HSCODES" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_InvoiceLine" Association="Self.FK_SALES_TTNK_LINES_InvoiceLine">
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_Product" Association="Self.FK_SALES_TTNK_LINES_Product">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
           <AssociationSet Name="FK_SCONTRACTS_COMPANIES" Association="Self.FK_SCONTRACTS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SF_HEADERS_CUSTOMER" Association="Self.FK_SF_HEADERS_CUSTOMER">
+            <End Role="CUSTOMERS" EntitySet="CUSTOMERS" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SF_HEADERS_INVOICE" Association="Self.FK_SF_HEADERS_INVOICE">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
           </AssociationSet>
           <AssociationSet Name="FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" Association="Self.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
@@ -3877,9 +4405,29 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="SHOPS" EntitySet="SHOPS" />
             <End Role="SHOP_PLANNED_DTS" EntitySet="SHOP_PLANNED_DTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_SORDER_DELIVERY_CreatedBy" Association="Self.FK_SORDER_DELIVERY_CreatedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SORDER_DELIVERY_Product" Association="Self.FK_SORDER_DELIVERY_Product">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
           <AssociationSet Name="FK_STD_COMPANY_STANDARDS_Document" Association="Self.FK_STD_COMPANY_STANDARDS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="STD_COMPANY_STANDARDS" EntitySet="STD_COMPANY_STANDARDS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TTNK_HEADERS_CONTRACT" Association="Self.FK_TTNK_HEADERS_CONTRACT">
+            <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TTNK_HEADERS_INVOICE" Association="Self.FK_TTNK_HEADERS_INVOICE">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TTNK_HEADERS_ORDER" Association="Self.FK_TTNK_HEADERS_ORDER">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
           </AssociationSet>
           <AssociationSet Name="FK_USER_ENTRIES_USERS" Association="Self.FK_USER_ENTRIES_USERS">
             <End Role="USERS" EntitySet="USERS" />
@@ -4030,6 +4578,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" FromRole="CURRENCy" ToRole="FIN_BALANCE_SNAPSHOTS" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CURRENCY" FromRole="CURRENCy" ToRole="FIN_TRANSACTIONS" />
           <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" FromRole="CURRENCy" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_Currency" FromRole="CURRENCy" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency" FromRole="CURRENCy" ToRole="SALES_TTNK_HEADERS" />
         </EntityType>
         <EntityType Name="CUSTOMER">
           <Key>
@@ -4049,6 +4599,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="City" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="S_CONTRACTS" Relationship="Self.FK_PCONTRACTS_CUSTOMERS" FromRole="CUSTOMERS" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="S_ORDERS" Relationship="Self.FK_S_ORDERS_CUSTOMERS" FromRole="CUSTOMERS" ToRole="S_ORDERS" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_Customer" FromRole="CUSTOMER" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_Customer" FromRole="CUSTOMER" ToRole="SALES_SF_HEADERS" />
         </EntityType>
         <EntityType Name="DAMAGED_PRODUCTS">
           <Key>
@@ -4224,6 +4776,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="P_CONTRACT_PRODUCTS" Relationship="Self.FK_P_CONTRACT_PARTS_HSCODES" FromRole="HSCODES" ToRole="P_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_HSCODES" FromRole="HSCODES" ToRole="PRODUCTS" />
+          <NavigationProperty Name="SALES_TTNK_LINES" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_HsCode" FromRole="HSCODE" ToRole="SALES_TTNK_LINES" />
         </EntityType>
         <EntityType Name="INCOME_PRODUCTS">
           <Key>
@@ -4280,6 +4833,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="USER" Relationship="Self.FK_NORM_INPUT_LINES_CreatedByUserID_USERS" FromRole="NORM_INPUT_LINES" ToRole="USERS" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_NORM_INPUT_LINES_MaterialID_PRODUCTS" FromRole="NORM_INPUT_LINES" ToRole="PRODUCTS" />
           <NavigationProperty Name="PRODUCT1" Relationship="Self.FK_NORM_INPUT_LINES_ProductID_PRODUCTS" FromRole="NORM_INPUT_LINES" ToRole="PRODUCTS" />
+          <Property Name="Price" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="TotalAmount" Type="Decimal" Precision="38" Scale="6" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="Consumption" Type="Double" />
+          <Property Name="WasteAmount" Type="Double" />
         </EntityType>
         <EntityType Name="NORMLINE">
           <Key>
@@ -4587,6 +5144,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="S_CONTRACT_PRODUCTS" Relationship="Self.FK_S_CONTRACT_PRODUCTS_PRODUCTS" FromRole="PRODUCTS" ToRole="S_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="S_ORDER_PRODUCTS" Relationship="Self.FK_S_ORDER_PRODUCTS_PRODUCTS" FromRole="PRODUCTS" ToRole="S_ORDER_PRODUCTS" />
           <NavigationProperty Name="SHOPS" Relationship="Self.SHOP_PRODUCTS" FromRole="PRODUCTS" ToRole="SHOPS" />
+          <NavigationProperty Name="PRODUCT_CATEGORIES" Relationship="DBTHSNModel.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT" ToRole="PRODUCT_CATEGORIES" />
+          <NavigationProperty Name="SALES_INVOICE_LINES" Relationship="DBTHSNModel.FK_SALES_INVOICE_LINES_Product" FromRole="PRODUCT" ToRole="SALES_INVOICE_LINES" />
+          <NavigationProperty Name="SALES_SF_LINES" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Product" FromRole="PRODUCT" ToRole="SALES_SF_LINES" />
+          <NavigationProperty Name="SALES_TTNK_LINES" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_Product" FromRole="PRODUCT" ToRole="SALES_TTNK_LINES" />
+          <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_Product" FromRole="PRODUCT" ToRole="SORDER_DELIVERY_SCHEDULE" />
         </EntityType>
         <EntityType Name="ROLE">
           <Key>
@@ -4633,6 +5195,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="CUSTOMER" Relationship="Self.FK_PCONTRACTS_CUSTOMERS" FromRole="S_CONTRACTS" ToRole="CUSTOMERS" />
           <NavigationProperty Name="S_CONTRACT_PRODUCTS" Relationship="Self.FK_S_CONTRACT_PRODUCTS_S_CONTRACTS" FromRole="S_CONTRACTS" ToRole="S_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="S_ORDERS" Relationship="Self.FK_S_ORDERS_S_CONTRACTS" FromRole="S_CONTRACTS" ToRole="S_ORDERS" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_CONTRACT" FromRole="S_CONTRACTS" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT" FromRole="S_CONTRACTS" ToRole="SALES_TTNK_HEADERS" />
         </EntityType>
         <EntityType Name="S_ORDER_PRODUCTS">
           <Key>
@@ -4670,6 +5234,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="CUSTOMER" Relationship="Self.FK_S_ORDERS_CUSTOMERS" FromRole="S_ORDERS" ToRole="CUSTOMERS" />
           <NavigationProperty Name="S_CONTRACTS" Relationship="Self.FK_S_ORDERS_S_CONTRACTS" FromRole="S_ORDERS" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="S_ORDER_PRODUCTS" Relationship="Self.FK_S_ORDER_PRODUCTS_S_ORDERS" FromRole="S_ORDERS" ToRole="S_ORDER_PRODUCTS" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_ORDER" FromRole="S_ORDERS" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_ORDER" FromRole="S_ORDERS" ToRole="SALES_TTNK_HEADERS" />
         </EntityType>
         <EntityType Name="SAMPLE_FILES">
           <Key>
@@ -4813,6 +5379,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" FromRole="USER" ToRole="FIN_BALANCE_SNAPSHOTS" />
           <NavigationProperty Name="FIN_PL_PLANS" Relationship="DBTHSNModel.FK_FIN_PL_PLANS_CREATEDBY" FromRole="USER" ToRole="FIN_PL_PLANS" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="DBTHSNModel.FK_FIN_TRANSACTIONS_CREATEDBY" FromRole="USER" ToRole="FIN_TRANSACTIONS" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_CreatedBy" FromRole="USER" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_CreatedBy" FromRole="USER" ToRole="SALES_SF_HEADERS" />
+          <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" FromRole="USER" ToRole="SORDER_DELIVERY_SCHEDULE" />
         </EntityType>
         <EntityType Name="Warehouse">
           <Key>
@@ -6938,6 +7507,106 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
             <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
           </AssociationSet>
+          <EntitySet Name="PRODUCT_CATEGORIES" EntityType="DBTHSNModel.PRODUCT_CATEGORIES" />
+          <AssociationSet Name="FK_PRODUCTS_CATEGORY" Association="DBTHSNModel.FK_PRODUCTS_CATEGORY">
+            <End Role="PRODUCT_CATEGORIES" EntitySet="PRODUCT_CATEGORIES" />
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICE_LINES_Product" Association="DBTHSNModel.FK_SALES_INVOICE_LINES_Product">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_LINES_Product" Association="DBTHSNModel.FK_SALES_SF_LINES_Product">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_LINES_InvoiceLine" Association="DBTHSNModel.FK_SALES_SF_LINES_InvoiceLine">
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+            <End Role="SALES_SF_LINES" EntitySet="SALES_SF_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_CreatedBy" Association="DBTHSNModel.FK_SALES_INVOICES_CreatedBy">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_HEADERS_CreatedBy" Association="DBTHSNModel.FK_SALES_SF_HEADERS_CreatedBy">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
+          <EntitySet Name="SALES_TTNK_HEADERS" EntityType="DBTHSNModel.SALES_TTNK_HEADERS" />
+          <EntitySet Name="SALES_TTNK_INVOICES" EntityType="DBTHSNModel.SALES_TTNK_INVOICES" />
+          <EntitySet Name="SALES_TTNK_LINES" EntityType="DBTHSNModel.SALES_TTNK_LINES" />
+          <EntitySet Name="SORDER_DELIVERY_SCHEDULE" EntityType="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" />
+          <AssociationSet Name="FK_SALES_TTNK_LINES_Product" Association="DBTHSNModel.FK_SALES_TTNK_LINES_Product">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SORDER_DELIVERY_Product" Association="DBTHSNModel.FK_SORDER_DELIVERY_Product">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_InvoiceLine" Association="DBTHSNModel.FK_SALES_TTNK_LINES_InvoiceLine">
+            <End Role="SALES_INVOICE_LINES" EntitySet="SALES_INVOICE_LINES" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_HEADERS_Invoice" Association="DBTHSNModel.FK_SALES_TTNK_HEADERS_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_INVOICES_Invoice" Association="DBTHSNModel.FK_SALES_TTNK_INVOICES_Invoice">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="SALES_TTNK_INVOICES" EntitySet="SALES_TTNK_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_INVOICES_Header" Association="DBTHSNModel.FK_SALES_TTNK_INVOICES_Header">
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+            <End Role="SALES_TTNK_INVOICES" EntitySet="SALES_TTNK_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_Header" Association="DBTHSNModel.FK_SALES_TTNK_LINES_Header">
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SORDER_DELIVERY_CreatedBy" Association="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
+          <FunctionImport Name="sp_SOrder_RecalcDeliveryShippedFromInvoices">
+          <Parameter Name="SOrderID" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <AssociationSet Name="FK_SALES_INVOICES_Currency" Association="DBTHSNModel.FK_SALES_INVOICES_Currency">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_HEADERS_Currency" Association="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_Customer" Association="DBTHSNModel.FK_SALES_INVOICES_Customer">
+            <End Role="CUSTOMER" EntitySet="CUSTOMERS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_SF_HEADERS_Customer" Association="DBTHSNModel.FK_SALES_SF_HEADERS_Customer">
+            <End Role="CUSTOMER" EntitySet="CUSTOMERS" />
+            <End Role="SALES_SF_HEADERS" EntitySet="SALES_SF_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_TTNK_LINES_HsCode" Association="DBTHSNModel.FK_SALES_TTNK_LINES_HsCode">
+            <End Role="HSCODE" EntitySet="HSCODES" />
+            <End Role="SALES_TTNK_LINES" EntitySet="SALES_TTNK_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_CONTRACT" Association="DBTHSNModel.FK_SALES_INVOICES_CONTRACT">
+            <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TTNK_HEADERS_CONTRACT" Association="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT">
+            <End Role="S_CONTRACTS" EntitySet="S_CONTRACTS" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SALES_INVOICES_ORDER" Association="DBTHSNModel.FK_SALES_INVOICES_ORDER">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TTNK_HEADERS_ORDER" Association="DBTHSNModel.FK_TTNK_HEADERS_ORDER">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetProductListPerShop_Result">
           <Property Type="String" Name="EneniAmi" Nullable="false" MaxLength="15" />
@@ -7650,6 +8319,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="TotalWithVAT" Type="Decimal" Precision="38" Scale="7" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="WarehouseOutID" Type="Int64" />
           <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice" FromRole="SALES_INVOICE_LINES" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_SALES_INVOICE_LINES_Product" FromRole="SALES_INVOICE_LINES" ToRole="PRODUCT" />
+          <NavigationProperty Name="SALES_SF_LINES" Relationship="DBTHSNModel.FK_SALES_SF_LINES_InvoiceLine" FromRole="SALES_INVOICE_LINES" ToRole="SALES_SF_LINES" />
+          <NavigationProperty Name="SALES_TTNK_LINES" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_InvoiceLine" FromRole="SALES_INVOICE_LINES" ToRole="SALES_TTNK_LINES" />
         </EntityType>
         <EntityType Name="SALES_INVOICES">
           <Key>
@@ -7672,6 +8344,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <NavigationProperty Name="SALES_INVOICE_LINES" Relationship="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice" FromRole="SALES_INVOICES" ToRole="SALES_INVOICE_LINES" />
           <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice" FromRole="SALES_INVOICES" ToRole="SALES_SF_HEADERS" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_SALES_INVOICES_CreatedBy" FromRole="SALES_INVOICES" ToRole="USER" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_SALES_TTNK_HEADERS_Invoice" FromRole="SALES_INVOICES" ToRole="SALES_TTNK_HEADERS" />
+          <NavigationProperty Name="SALES_TTNK_INVOICES" Relationship="DBTHSNModel.FK_SALES_TTNK_INVOICES_Invoice" FromRole="SALES_INVOICES" ToRole="SALES_TTNK_INVOICES" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_SALES_INVOICES_Currency" FromRole="SALES_INVOICES" ToRole="CURRENCy" />
+          <NavigationProperty Name="CUSTOMER" Relationship="DBTHSNModel.FK_SALES_INVOICES_Customer" FromRole="SALES_INVOICES" ToRole="CUSTOMER" />
+          <NavigationProperty Name="S_CONTRACTS" Relationship="DBTHSNModel.FK_SALES_INVOICES_CONTRACT" FromRole="SALES_INVOICES" ToRole="S_CONTRACTS" />
+          <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_SALES_INVOICES_ORDER" FromRole="SALES_INVOICES" ToRole="S_ORDERS" />
         </EntityType>
         <EntityType Name="SALES_SF_HEADERS">
           <Key>
@@ -7698,6 +8378,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="TaxMessageID" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice" FromRole="SALES_SF_HEADERS" ToRole="SALES_INVOICES" />
           <NavigationProperty Name="SALES_SF_LINES" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Header" FromRole="SALES_SF_HEADERS" ToRole="SALES_SF_LINES" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_CreatedBy" FromRole="SALES_SF_HEADERS" ToRole="USER" />
+          <NavigationProperty Name="CUSTOMER" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_Customer" FromRole="SALES_SF_HEADERS" ToRole="CUSTOMER" />
         </EntityType>
         <EntityType Name="SALES_SF_LINES">
           <Key>
@@ -7717,6 +8399,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="TotalWithVAT" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
           <Property Name="ExternalLineKey" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Header" FromRole="SALES_SF_LINES" ToRole="SALES_SF_HEADERS" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Product" FromRole="SALES_SF_LINES" ToRole="PRODUCT" />
+          <NavigationProperty Name="SALES_INVOICE_LINES" Relationship="DBTHSNModel.FK_SALES_SF_LINES_InvoiceLine" FromRole="SALES_SF_LINES" ToRole="SALES_INVOICE_LINES" />
         </EntityType>
         <EntityType Name="STD_COMPANY_STANDARDS">
           <Key>
@@ -7990,6 +8674,416 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="SALES_SF_LINES">
               <PropertyRef Name="SFHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PRODUCT_CATEGORIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="IsRawMaterial" Type="Boolean" Nullable="false" />
+          <Property Name="IsFinishedGood" Type="Boolean" Nullable="false" />
+          <Property Name="IsComponent" Type="Boolean" Nullable="false" />
+          <Property Name="IsConsumable" Type="Boolean" Nullable="false" />
+          <Property Name="RequiresNORM" Type="Boolean" Nullable="false" />
+          <Property Name="RequiresCutting" Type="Boolean" Nullable="false" />
+          <Property Name="IncludeInMRP" Type="Boolean" Nullable="false" />
+          <Property Name="AllowPurchase" Type="Boolean" Nullable="false" />
+          <Property Name="AllowSales" Type="Boolean" Nullable="false" />
+          <Property Name="RawMaterialGroup" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="RawMaterialSubGrp" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="PRODUCTS" Relationship="DBTHSNModel.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCT" />
+        </EntityType>
+        <Association Name="FK_PRODUCTS_CATEGORY">
+          <End Type="DBTHSNModel.PRODUCT_CATEGORIES" Role="PRODUCT_CATEGORIES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PRODUCT">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICE_LINES_Product">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_INVOICE_LINES" Role="SALES_INVOICE_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_LINES_Product">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_SF_LINES" Role="SALES_SF_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_LINES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_LINES_InvoiceLine">
+          <End Type="DBTHSNModel.SALES_INVOICE_LINES" Role="SALES_INVOICE_LINES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_SF_LINES" Role="SALES_SF_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_LINES">
+              <PropertyRef Name="InvoiceLineID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_CreatedBy">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_HEADERS_CreatedBy">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_SF_HEADERS" Role="SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="SALES_TTNK_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TTNKNumber" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TTNKDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="InvoiceID" Type="Int64" />
+          <Property Name="OrderID" Type="Int32" />
+          <Property Name="ContractID" Type="Int32" />
+          <Property Name="ShipperName" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="ShipperINN" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="ConsigneeName" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="ConsigneeINN" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="CarrierName" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="CarrierINN" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="ResponsiblePersonName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ResponsiblePersonPINFL" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="DriverName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="DriverPINFL" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TruckNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TrailerNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TruckModel" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TrailerModel" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="DepartureAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="DepartureRegion" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ArrivalAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ArrivalRegion" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="DistanceKm" Type="Decimal" Precision="10" Scale="2" />
+          <Property Name="CargoWeightGrossT" Type="Decimal" Precision="18" Scale="3" />
+          <Property Name="CargoWeightNetT" Type="Decimal" Precision="18" Scale="3" />
+          <Property Name="CurrencyCode" Type="String" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Name="DeliveryCost" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="VATAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalDeliveryCost" Type="Decimal" Precision="19" Scale="2" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="XmlPayload" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="StatusCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <Property Name="IntegrationUID" Type="Guid" Nullable="false" />
+          <Property Name="ExternalSystemCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ExternalDocKey" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="IntegrationStatusCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LastSyncDT" Type="DateTime" Precision="0" />
+          <Property Name="XmlSchemaVersion" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TaxMessageID" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_TTNK_HEADERS_Invoice" FromRole="SALES_TTNK_HEADERS" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_INVOICES" Relationship="DBTHSNModel.FK_SALES_TTNK_INVOICES_Header" FromRole="SALES_TTNK_HEADERS" ToRole="SALES_TTNK_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_LINES" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_Header" FromRole="SALES_TTNK_HEADERS" ToRole="SALES_TTNK_LINES" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency" FromRole="SALES_TTNK_HEADERS" ToRole="CURRENCy" />
+          <NavigationProperty Name="S_CONTRACTS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT" FromRole="SALES_TTNK_HEADERS" ToRole="S_CONTRACTS" />
+          <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_ORDER" FromRole="SALES_TTNK_HEADERS" ToRole="S_ORDERS" />
+        </EntityType>
+        <EntityType Name="SALES_TTNK_INVOICES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TTNKHeaderID" Type="Int64" Nullable="false" />
+          <Property Name="InvoiceID" Type="Int64" Nullable="false" />
+          <Property Name="AmountShare" Type="Decimal" Precision="18" Scale="2" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_TTNK_INVOICES_Invoice" FromRole="SALES_TTNK_INVOICES" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_SALES_TTNK_INVOICES_Header" FromRole="SALES_TTNK_INVOICES" ToRole="SALES_TTNK_HEADERS" />
+        </EntityType>
+        <EntityType Name="SALES_TTNK_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TTNKHeaderID" Type="Int64" Nullable="false" />
+          <Property Name="LineNo" Type="Int32" Nullable="false" />
+          <Property Name="ProductID" Type="Int32" />
+          <Property Name="InvoiceLineID" Type="Int64" />
+          <Property Name="HSCode" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="UnitOfMeasure" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Qty" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="LineAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="WeightNetT" Type="Decimal" Precision="18" Scale="3" />
+          <Property Name="WeightGrossT" Type="Decimal" Precision="18" Scale="3" />
+          <Property Name="PlaceCount" Type="Int32" />
+          <Property Name="PackageType" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Remark" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_Product" FromRole="SALES_TTNK_LINES" ToRole="PRODUCT" />
+          <NavigationProperty Name="SALES_INVOICE_LINES" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_InvoiceLine" FromRole="SALES_TTNK_LINES" ToRole="SALES_INVOICE_LINES" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_Header" FromRole="SALES_TTNK_LINES" ToRole="SALES_TTNK_HEADERS" />
+          <Property Name="HsCodeID" Type="Int32" />
+          <NavigationProperty Name="HSCODE1" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_HsCode" FromRole="SALES_TTNK_LINES" ToRole="HSCODE" />
+        </EntityType>
+        <EntityType Name="SORDER_DELIVERY_SCHEDULE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SOrderProductID" Type="Int32" Nullable="false" />
+          <Property Name="SOrderID" Type="Int32" />
+          <Property Name="ProductID" Type="Int32" />
+          <Property Name="DeliveryDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="QtyPlanned" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="QtyShipped" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="StatusCode" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_Product" FromRole="SORDER_DELIVERY_SCHEDULE" ToRole="PRODUCT" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" FromRole="SORDER_DELIVERY_SCHEDULE" ToRole="USER" />
+        </EntityType>
+        <Association Name="FK_SALES_TTNK_LINES_Product">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_LINES" Role="SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SORDER_DELIVERY_Product">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Role="SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_InvoiceLine">
+          <End Type="DBTHSNModel.SALES_INVOICE_LINES" Role="SALES_INVOICE_LINES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_LINES" Role="SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICE_LINES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="InvoiceLineID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_HEADERS_Invoice">
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_INVOICES_Invoice">
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_TTNK_INVOICES" Role="SALES_TTNK_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_INVOICES">
+              <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_INVOICES_Header">
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_TTNK_INVOICES" Role="SALES_TTNK_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_INVOICES">
+              <PropertyRef Name="TTNKHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_Header">
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_TTNK_LINES" Role="SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="TTNKHeaderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SORDER_DELIVERY_CreatedBy">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Role="SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_Currency">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_HEADERS_Currency">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_Customer">
+          <End Type="DBTHSNModel.CUSTOMER" Role="CUSTOMER" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_SF_HEADERS_Customer">
+          <End Type="DBTHSNModel.CUSTOMER" Role="CUSTOMER" Multiplicity="1" />
+          <End Type="DBTHSNModel.SALES_SF_HEADERS" Role="SALES_SF_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_SF_HEADERS">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_TTNK_LINES_HsCode">
+          <End Type="DBTHSNModel.HSCODE" Role="HSCODE" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_LINES" Role="SALES_TTNK_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HSCODE">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_LINES">
+              <PropertyRef Name="HsCodeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_CONTRACT">
+          <End Type="DBTHSNModel.S_CONTRACTS" Role="S_CONTRACTS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TTNK_HEADERS_CONTRACT">
+          <End Type="DBTHSNModel.S_CONTRACTS" Role="S_CONTRACTS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SALES_INVOICES_ORDER">
+          <End Type="DBTHSNModel.S_ORDERS" Role="S_ORDERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_INVOICES">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TTNK_HEADERS_ORDER">
+          <End Type="DBTHSNModel.S_ORDERS" Role="S_ORDERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="OrderID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -8293,6 +9387,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="NORM_INPUT_LINES">
             <EntityTypeMapping TypeName="DBTHSNModel.NORM_INPUT_LINES">
               <MappingFragment StoreEntitySet="NORM_INPUT_LINES">
+                <ScalarProperty Name="WasteAmount" ColumnName="WasteAmount" />
+                <ScalarProperty Name="Consumption" ColumnName="Consumption" />
+                <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+                <ScalarProperty Name="Price" ColumnName="Price" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
                 <ScalarProperty Name="MaterialID" ColumnName="MaterialID" />
@@ -9326,6 +10424,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="SALES_INVOICES">
             <EntityTypeMapping TypeName="DBTHSNModel.SALES_INVOICES">
               <MappingFragment StoreEntitySet="SALES_INVOICES">
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
                 <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
                 <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
@@ -9399,6 +10498,131 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="PRODUCT_CATEGORIES">
+            <EntityTypeMapping TypeName="DBTHSNModel.PRODUCT_CATEGORIES">
+              <MappingFragment StoreEntitySet="PRODUCT_CATEGORIES">
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="RawMaterialSubGrp" ColumnName="RawMaterialSubGrp" />
+                <ScalarProperty Name="RawMaterialGroup" ColumnName="RawMaterialGroup" />
+                <ScalarProperty Name="AllowSales" ColumnName="AllowSales" />
+                <ScalarProperty Name="AllowPurchase" ColumnName="AllowPurchase" />
+                <ScalarProperty Name="IncludeInMRP" ColumnName="IncludeInMRP" />
+                <ScalarProperty Name="RequiresCutting" ColumnName="RequiresCutting" />
+                <ScalarProperty Name="RequiresNORM" ColumnName="RequiresNORM" />
+                <ScalarProperty Name="IsConsumable" ColumnName="IsConsumable" />
+                <ScalarProperty Name="IsComponent" ColumnName="IsComponent" />
+                <ScalarProperty Name="IsFinishedGood" ColumnName="IsFinishedGood" />
+                <ScalarProperty Name="IsRawMaterial" ColumnName="IsRawMaterial" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_TTNK_HEADERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_TTNK_HEADERS">
+              <MappingFragment StoreEntitySet="SALES_TTNK_HEADERS">
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="TaxMessageID" ColumnName="TaxMessageID" />
+                <ScalarProperty Name="XmlSchemaVersion" ColumnName="XmlSchemaVersion" />
+                <ScalarProperty Name="LastSyncDT" ColumnName="LastSyncDT" />
+                <ScalarProperty Name="IntegrationStatusCode" ColumnName="IntegrationStatusCode" />
+                <ScalarProperty Name="ExternalDocKey" ColumnName="ExternalDocKey" />
+                <ScalarProperty Name="ExternalSystemCode" ColumnName="ExternalSystemCode" />
+                <ScalarProperty Name="IntegrationUID" ColumnName="IntegrationUID" />
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+                <ScalarProperty Name="XmlPayload" ColumnName="XmlPayload" />
+                <ScalarProperty Name="TotalDeliveryCost" ColumnName="TotalDeliveryCost" />
+                <ScalarProperty Name="VATAmount" ColumnName="VATAmount" />
+                <ScalarProperty Name="DeliveryCost" ColumnName="DeliveryCost" />
+                <ScalarProperty Name="CurrencyCode" ColumnName="CurrencyCode" />
+                <ScalarProperty Name="CargoWeightNetT" ColumnName="CargoWeightNetT" />
+                <ScalarProperty Name="CargoWeightGrossT" ColumnName="CargoWeightGrossT" />
+                <ScalarProperty Name="DistanceKm" ColumnName="DistanceKm" />
+                <ScalarProperty Name="ArrivalRegion" ColumnName="ArrivalRegion" />
+                <ScalarProperty Name="ArrivalAddress" ColumnName="ArrivalAddress" />
+                <ScalarProperty Name="DepartureRegion" ColumnName="DepartureRegion" />
+                <ScalarProperty Name="DepartureAddress" ColumnName="DepartureAddress" />
+                <ScalarProperty Name="TrailerModel" ColumnName="TrailerModel" />
+                <ScalarProperty Name="TruckModel" ColumnName="TruckModel" />
+                <ScalarProperty Name="TrailerNo" ColumnName="TrailerNo" />
+                <ScalarProperty Name="TruckNo" ColumnName="TruckNo" />
+                <ScalarProperty Name="DriverPINFL" ColumnName="DriverPINFL" />
+                <ScalarProperty Name="DriverName" ColumnName="DriverName" />
+                <ScalarProperty Name="ResponsiblePersonPINFL" ColumnName="ResponsiblePersonPINFL" />
+                <ScalarProperty Name="ResponsiblePersonName" ColumnName="ResponsiblePersonName" />
+                <ScalarProperty Name="CarrierINN" ColumnName="CarrierINN" />
+                <ScalarProperty Name="CarrierName" ColumnName="CarrierName" />
+                <ScalarProperty Name="ConsigneeINN" ColumnName="ConsigneeINN" />
+                <ScalarProperty Name="ConsigneeName" ColumnName="ConsigneeName" />
+                <ScalarProperty Name="ShipperINN" ColumnName="ShipperINN" />
+                <ScalarProperty Name="ShipperName" ColumnName="ShipperName" />
+                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="TTNKDate" ColumnName="TTNKDate" />
+                <ScalarProperty Name="TTNKNumber" ColumnName="TTNKNumber" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_TTNK_INVOICES">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_TTNK_INVOICES">
+              <MappingFragment StoreEntitySet="SALES_TTNK_INVOICES">
+                <ScalarProperty Name="AmountShare" ColumnName="AmountShare" />
+                <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="TTNKHeaderID" ColumnName="TTNKHeaderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SALES_TTNK_LINES">
+            <EntityTypeMapping TypeName="DBTHSNModel.SALES_TTNK_LINES">
+              <MappingFragment StoreEntitySet="SALES_TTNK_LINES">
+                <ScalarProperty Name="HsCodeID" ColumnName="HsCodeID" />
+                <ScalarProperty Name="Remark" ColumnName="Remark" />
+                <ScalarProperty Name="PackageType" ColumnName="PackageType" />
+                <ScalarProperty Name="PlaceCount" ColumnName="PlaceCount" />
+                <ScalarProperty Name="WeightGrossT" ColumnName="WeightGrossT" />
+                <ScalarProperty Name="WeightNetT" ColumnName="WeightNetT" />
+                <ScalarProperty Name="LineAmount" ColumnName="LineAmount" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="UnitOfMeasure" ColumnName="UnitOfMeasure" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="HSCode" ColumnName="HSCode" />
+                <ScalarProperty Name="InvoiceLineID" ColumnName="InvoiceLineID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="LineNo" ColumnName="LineNo" />
+                <ScalarProperty Name="TTNKHeaderID" ColumnName="TTNKHeaderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SORDER_DELIVERY_SCHEDULE">
+            <EntityTypeMapping TypeName="DBTHSNModel.SORDER_DELIVERY_SCHEDULE">
+              <MappingFragment StoreEntitySet="SORDER_DELIVERY_SCHEDULE">
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+                <ScalarProperty Name="QtyShipped" ColumnName="QtyShipped" />
+                <ScalarProperty Name="QtyPlanned" ColumnName="QtyPlanned" />
+                <ScalarProperty Name="DeliveryDate" ColumnName="DeliveryDate" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="SOrderID" ColumnName="SOrderID" />
+                <ScalarProperty Name="SOrderProductID" ColumnName="SOrderProductID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="sp_SOrder_RecalcDeliveryShippedFromInvoices" FunctionName="DBTHSNModel.Store.sp_SOrder_RecalcDeliveryShippedFromInvoices" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

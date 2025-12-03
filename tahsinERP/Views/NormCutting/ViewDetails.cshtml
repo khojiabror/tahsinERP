@@ -1,0 +1,191 @@
+@model tahsinERP.ViewModels.ProductNormCuttingViewModel
+@{
+    ViewBag.Title = "NORM Kesish Variantlari - Ko'rish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">NORM Kesish Variantlari - Ko'rish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/NormCutting">NORM Kesish</a></li>
+                                    <li class="breadcrumb-item active">Ko'rish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <h4 class="text-primary mb-3">Mahsulot ma'lumotlari</h4>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Mahsulot raqami</label>
+                                                    <input type="text" class="form-control" value="@Model.ProductCode" readonly />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Mahsulot nomi</label>
+                                                    <input type="text" class="form-control" value="@Model.ProductName" readonly />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Oy</label>
+                                                    <input type="text" class="form-control" value="@Model.Period" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Samarali sanadan</label>
+                                                    <input type="text" class="form-control" value="@(Model.EffectiveFrom?.ToString("yyyy-MM-dd") ?? "-")" readonly />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Samarali sanagacha</label>
+                                                    <input type="text" class="form-control" value="@(Model.EffectiveTo?.ToString("yyyy-MM-dd") ?? "-")" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Izoh</label>
+                                            <textarea class="form-control" rows="2" readonly>@Model.Comment</textarea>
+                                        </div>
+
+                                        <hr>
+
+                                        <h4 class="text-primary mb-3">Kesish variantlari</h4>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-bordered">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Material</th>
+                                                        <th>Material kodi</th>
+                                                        <th>Uzunlik (mm)</th>
+                                                        <th>Standart uzunlik (mm)</th>
+                                                        <th>Miqdori</th>
+                                                        <th>Sarflanish (m)</th>
+                                                        <th>Chiqindi (m)</th>
+                                                        <th>Narx</th>
+                                                        <th>Jami narx</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.CuttingLines != null && Model.CuttingLines.Any())
+                                                    {
+                                                        foreach (var line in Model.CuttingLines)
+                                                        {
+                                                            <tr>
+                                                                <td>@(line.MaterialName ?? line.MaterialCode ?? "-")</td>
+                                                                <td>@(line.MaterialCode ?? "-")</td>
+                                                                <td>@(line.CalculatedLengthMm?.ToString("F2") ?? "-")</td>
+                                                                <td>@(line.StandardLengthMm?.ToString("F2") ?? "-")</td>
+                                                                <td>@line.Quantity</td>
+                                                                <td>@line.ConsumptionPerProduct.ToString("F4")</td>
+                                                                <td>@line.WastePerProduct.ToString("F4")</td>
+                                                                <td>@(line.UnitPrice?.ToString("F2") ?? "-")</td>
+                                                                <td>@line.TotalCostPerProduct.ToString("F2")</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="9" class="text-center text-muted">Kesish variantlari topilmadi.</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <hr>
+
+                                        <h4 class="text-primary mb-3">Jami hisoblar</h4>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="card bg-light">
+                                                    <div class="card-body">
+                                                        <h6>Umumiy norma (m)</h6>
+                                                        <h4>@Model.TotalNorm.ToString("F4")</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card bg-light">
+                                                    <div class="card-body">
+                                                        <h6>Umumiy chiqindi (m)</h6>
+                                                        <h4>@Model.TotalWaste.ToString("F4")</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card bg-light">
+                                                    <div class="card-body">
+                                                        <h6>Umumiy summa</h6>
+                                                        <h4>@Model.TotalCost.ToString("F2")</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr>
+
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                                {
+                                                    <a href="@Url.Action("Edit", "NormCutting", new { normVersionId = Model.NormVersionID })" class="btn btn-primary">
+                                                        <i class="bx bx-edit"></i> Tahrirlash
+                                                    </a>
+                                                }
+                                                <a href="@Url.Action("Details", "NormCutting", new { id = Model.ProductID })" class="btn btn-secondary">
+                                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

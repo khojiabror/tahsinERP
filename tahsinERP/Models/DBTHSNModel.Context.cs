@@ -125,6 +125,11 @@ namespace tahsinERP.Models
         public virtual DbSet<SALES_SF_HEADERS> SALES_SF_HEADERS { get; set; }
         public virtual DbSet<SALES_SF_LINES> SALES_SF_LINES { get; set; }
         public virtual DbSet<STD_COMPANY_STANDARDS> STD_COMPANY_STANDARDS { get; set; }
+        public virtual DbSet<PRODUCT_CATEGORIES> PRODUCT_CATEGORIES { get; set; }
+        public virtual DbSet<SALES_TTNK_HEADERS> SALES_TTNK_HEADERS { get; set; }
+        public virtual DbSet<SALES_TTNK_INVOICES> SALES_TTNK_INVOICES { get; set; }
+        public virtual DbSet<SALES_TTNK_LINES> SALES_TTNK_LINES { get; set; }
+        public virtual DbSet<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
     
         public virtual int GetCarPlanRequirements(string optionCode)
         {
@@ -352,6 +357,15 @@ namespace tahsinERP.Models
                 new ObjectParameter("AsOfDate", typeof(System.DateTime));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_FIN_ShareholderValue_AsOf", asOfDateParameter);
+        }
+    
+        public virtual int sp_SOrder_RecalcDeliveryShippedFromInvoices(Nullable<int> sOrderID)
+        {
+            var sOrderIDParameter = sOrderID.HasValue ?
+                new ObjectParameter("SOrderID", sOrderID) :
+                new ObjectParameter("SOrderID", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_SOrder_RecalcDeliveryShippedFromInvoices", sOrderIDParameter);
         }
     }
 }

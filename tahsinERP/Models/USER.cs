@@ -28,6 +28,9 @@ namespace tahsinERP.Models
             this.FIN_BALANCE_SNAPSHOTS = new HashSet<FIN_BALANCE_SNAPSHOTS>();
             this.FIN_PL_PLANS = new HashSet<FIN_PL_PLANS>();
             this.FIN_TRANSACTIONS = new HashSet<FIN_TRANSACTIONS>();
+            this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
+            this.SALES_SF_HEADERS = new HashSet<SALES_SF_HEADERS>();
+            this.SORDER_DELIVERY_SCHEDULE = new HashSet<SORDER_DELIVERY_SCHEDULE>();
         }
     
         public int ID { get; set; }
@@ -63,5 +66,11 @@ namespace tahsinERP.Models
         public virtual ICollection<FIN_PL_PLANS> FIN_PL_PLANS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_INVOICES> SALES_INVOICES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_SF_HEADERS> SALES_SF_HEADERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -16,16 +17,93 @@ namespace tahsinERP.Controllers
 {
     public class CustomerController : Controller
     {
-        private string[] sources = ConfigurationManager.AppSettings["partTypes"].Split(',');
+        
         private string supplierName = "";
         // GET: Customer
-        public ActionResult Index()
+        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var customers = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                var query = db.CUSTOMERS.Where(x => x.IsDeleted == false);
+
+                // Search filter
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    query = query.Where(c => 
+                        c.Name.Contains(searchTerm) || 
+                        (c.Email != null && c.Email.Contains(searchTerm)) || 
+                        (c.DUNS != null && c.DUNS.Contains(searchTerm)) ||
+                        (c.Type != null && c.Type.Contains(searchTerm)));
+                }
+
+                // Sorting
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        query = query.OrderByDescending(c => c.Name);
+                        break;
+                    case "name":
+                        query = query.OrderBy(c => c.Name);
+                        break;
+                    case "email":
+                        query = query.OrderBy(c => c.Email);
+                        break;
+                    case "email_desc":
+                        query = query.OrderByDescending(c => c.Email);
+                        break;
+                    default:
+                        query = query.OrderBy(c => c.Name);
+                        break;
+                }
+
+                // Pagination
+                int currentPage = page ?? 1;
+                int itemsPerPage = pageSize ?? 25;
+                int totalItems = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+
+                var customers = await query
+                    .Skip((currentPage - 1) * itemsPerPage)
+                    .Take(itemsPerPage)
+                    .ToListAsync();
+
+                ViewBag.CurrentPage = currentPage;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.PageSize = itemsPerPage;
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.SortOrder = sortOrder;
+
                 return View(customers);
             }
+        }
+
+        // Navigation actions
+        public ActionResult ViewOrders(int? customerId)
+        {
+            if (customerId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index", "SOrder", new { customerID = customerId });
+        }
+
+        public ActionResult ViewContracts(int? customerId)
+        {
+            if (customerId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index", "SContract", new { customerID = customerId });
+        }
+
+        public ActionResult ViewInvoices(int? customerId)
+        {
+            if (customerId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index", "SalesInvoices", new { customerID = customerId });
         }
 
 
@@ -38,11 +116,23 @@ namespace tahsinERP.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
-                var customer = db.CUSTOMERS.Find(Id);
+                var customer = db.CUSTOMERS
+                    .Include(c => c.S_ORDERS)
+                    .Include(c => c.S_CONTRACTS)
+                    .FirstOrDefault(c => c.ID == Id);
                 if (customer == null)
                 {
                     return HttpNotFound();
                 }
+
+                // Get counts for navigation
+                ViewBag.OrdersCount = customer.S_ORDERS != null ? customer.S_ORDERS.Where(o => o.IsDeleted == false).Count() : 0;
+                ViewBag.ContractsCount = customer.S_CONTRACTS != null ? customer.S_CONTRACTS.Where(c => c.IsDeleted == false).Count() : 0;
+                
+                // Get invoices count
+                var invoicesCount = db.SALES_INVOICES.Where(i => i.CustomerID == Id).Count();
+                ViewBag.InvoicesCount = invoicesCount;
+
                 return View(customer);
             }
         }

@@ -251,6 +251,34 @@
         <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice" />
         <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice" />
         <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_LINES_Header" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCT_CATEGORIES" Width="1.5" PointX="11.375" PointY="1" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTS_CATEGORY" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICE_LINES_Product" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_LINES_Product" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_LINES_InvoiceLine" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_CreatedBy" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_HEADERS_CreatedBy" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_TTNK_HEADERS" Width="1.5" PointX="27.625" PointY="36.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_TTNK_INVOICES" Width="1.5" PointX="29.875" PointY="35.625" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_TTNK_LINES" Width="1.5" PointX="29.875" PointY="39.25" />
+        <EntityTypeShape EntityType="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Width="1.5" PointX="18.25" PointY="30.375" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_Product" />
+        <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_Product" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_InvoiceLine" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_HEADERS_Invoice" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_INVOICES_Invoice" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_INVOICES_Header" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_Header" />
+        <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_Currency" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_Customer" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_HEADERS_Customer" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_HsCode" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_CONTRACT" />
+        <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_ORDER" />
+        <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_ORDER" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

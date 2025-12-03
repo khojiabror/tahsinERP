@@ -236,7 +236,7 @@ namespace tahsinERP.Controllers
 
                 return Json(new List<string>());
             }
-            catch (Exception ex)
+            catch 
             {
                 return Json(new List<string>());
             }

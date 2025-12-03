@@ -1,0 +1,180 @@
+@model tahsinERP.Models.S_CONTRACTS
+@{
+    ViewBag.Title = "Manage Orders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var linkedOrders = ViewBag.LinkedOrders as List<tahsinERP.Models.S_ORDERS>;
+    var unlinkedOrders = ViewBag.UnlinkedOrders as List<tahsinERP.Models.S_ORDERS>;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SContract">Shartnomalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="@Url.Action("Details", "SContract", new { id = Model.ID })">@Model.ContractNo</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Buyurtmalarni boshqarish
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        <h4 class="text-primary">Shartnoma: @Model.ContractNo</h4>
+                                        <p class="text-muted">Mijoz: @(Model.CUSTOMER?.Name ?? "")</p>
+                                        <hr />
+
+                                        <!-- Linked Orders -->
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h5 class="text-success">Bog'langan buyurtmalar</h5>
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Buyurtma raqami</th>
+                                                                <th>Sana</th>
+                                                                <th>Summa</th>
+                                                                <th>Valyuta</th>
+                                                                <th>Amallar</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (linkedOrders != null && linkedOrders.Any())
+                                                            {
+                                                                foreach (var order in linkedOrders)
+                                                                {
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a href="@Url.Action("Details", "SOrder", new { id = order.ID })">@order.OrderNo</a>
+                                                                        </td>
+                                                                        <td>@order.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                                        <td>@(order.Amount?.ToString("N2") ?? "0.00")</td>
+                                                                        <td>@(order.CURRENCy1?.Shortname ?? "")</td>
+                                                                        <td>
+                                                                            @using (Html.BeginForm("UnlinkOrder", "SContract", FormMethod.Post, new { @class = "d-inline" }))
+                                                                            {
+                                                                                @Html.AntiForgeryToken()
+                                                                                @Html.Hidden("contractID", Model.ID)
+                                                                                @Html.Hidden("orderID", order.ID)
+                                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bu buyurtmani shartnomadan ajratishni tasdiqlaysizmi?');">
+                                                                                    <i class="bx bx-unlink"></i> Ajratish
+                                                                                </button>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <tr>
+                                                                    <td colspan="5" class="text-center text-muted">Bog'langan buyurtmalar yo'q</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <!-- Unlinked Orders -->
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <h5 class="text-info">Bog'lanmagan buyurtmalar (bir xil mijoz)</h5>
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Buyurtma raqami</th>
+                                                                <th>Sana</th>
+                                                                <th>Summa</th>
+                                                                <th>Valyuta</th>
+                                                                <th>Amallar</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (unlinkedOrders != null && unlinkedOrders.Any())
+                                                            {
+                                                                foreach (var order in unlinkedOrders)
+                                                                {
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a href="@Url.Action("Details", "SOrder", new { id = order.ID })">@order.OrderNo</a>
+                                                                        </td>
+                                                                        <td>@order.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                                        <td>@(order.Amount?.ToString("N2") ?? "0.00")</td>
+                                                                        <td>@(order.CURRENCy1?.Shortname ?? "")</td>
+                                                                        <td>
+                                                                            @using (Html.BeginForm("LinkOrder", "SContract", FormMethod.Post, new { @class = "d-inline" }))
+                                                                            {
+                                                                                @Html.AntiForgeryToken()
+                                                                                @Html.Hidden("contractID", Model.ID)
+                                                                                @Html.Hidden("orderID", order.ID)
+                                                                                <button type="submit" class="btn btn-sm btn-success">
+                                                                                    <i class="bx bx-link"></i> Bog'lash
+                                                                                </button>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <tr>
+                                                                    <td colspan="5" class="text-center text-muted">Bog'lanmagan buyurtmalar yo'q</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <a href="@Url.Action("Details", "SContract", new { id = Model.ID })" class="btn btn-secondary">
+                                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

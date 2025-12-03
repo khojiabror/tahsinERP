@@ -14,6 +14,13 @@ namespace tahsinERP.Models
     
     public partial class SALES_INVOICE_LINES
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public SALES_INVOICE_LINES()
+        {
+            this.SALES_SF_LINES = new HashSet<SALES_SF_LINES>();
+            this.SALES_TTNK_LINES = new HashSet<SALES_TTNK_LINES>();
+        }
+    
         public long ID { get; set; }
         public long InvoiceID { get; set; }
         public int LineNo { get; set; }
@@ -28,5 +35,10 @@ namespace tahsinERP.Models
         public Nullable<long> WarehouseOutID { get; set; }
     
         public virtual SALES_INVOICES SALES_INVOICES { get; set; }
+        public virtual PRODUCT PRODUCT { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_SF_LINES> SALES_SF_LINES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_TTNK_LINES> SALES_TTNK_LINES { get; set; }
     }
 }

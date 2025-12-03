@@ -73,6 +73,24 @@
                                             </div>
                                         </div>
                                         <hr>
+                                        
+                                        <!-- Navigation Links -->
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("Index", "SOrder", new { customerID = Model.ID })" class="btn btn-outline-primary">
+                                                        <i class="bx bx-list-ul"></i> Buyurtmalar (@ViewBag.OrdersCount)
+                                                    </a>
+                                                    <a href="@Url.Action("Index", "SContract", new { customerID = Model.ID })" class="btn btn-outline-primary">
+                                                        <i class="bx bx-file"></i> Shartnomalar (@ViewBag.ContractsCount)
+                                                    </a>
+                                                    <a href="@Url.Action("Index", "SalesInvoices", new { customerID = Model.ID })" class="btn btn-outline-primary">
+                                                        <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

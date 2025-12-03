@@ -51,44 +51,69 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
+                                    <!-- Search and Filter -->
+                                    <div class="users-list-filter px-1">
+                                        <div class="row border rounded py-2 mb-2">
+                                            <div class="col-12 col-sm-6 col-lg-4">
+                                                <label>Qidirish</label>
+                                                <input type="text" id="searchBox" class="form-control" placeholder="Haridor ismi, Email, DUNS..." />
+                                            </div>
+                                            <div class="col-12 col-sm-6 col-lg-2">
+                                                <label>Sahifa o'lchami</label>
+                                                <select id="pageSize" class="form-control">
+                                                    <option value="10">10</option>
+                                                    <option value="25" selected>25</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100">100</option>
+                                                    <option value="-1">Barchasi</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <!-- datatable start -->
-                                    <div class="card-datatable table-responsivetable-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                    <div class="card-datatable table-responsive">
+                                        <table id="customerDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th></th>
-                                                    <th></th>
                                                     <th>Haridor ismi</th>
                                                     <th>Elektron manzili</th>
                                                     <th>DUNS</th>
                                                     <th>Turi</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>amallar</th>
+                                                        <th>Amallar</th>
                                                     }
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (var item in Model)
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Customer", new { id = item.ID })">@(item.Name ?? "")</a>
+                                                            </td>
+                                                            <td>@(item.Email ?? "")</td>
+                                                            <td>@(item.DUNS ?? "")</td>
+                                                            <td>@(item.Type ?? "")</td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div>
+                                                                        <a href="@Url.Action("Edit", "Customer", new { id = item.ID })" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                        <a href="@Url.Action("Delete", "Customer", new { id = item.ID })" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
                                                 {
                                                     <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td>
-                                                            <a href="~/Customer/Details/@item.ID">@item.Name</a>
-                                                        </td>
-                                                        <td>@item.Email</td>
-                                                        <td>@item.DUNS</td>
-                                                        <td>@item.Type</td>
-                                                        @if (changePermit)
-                                                        {
-                                                            <td>
-                                                                <div>
-                                                                    <a href="@Url.Action("Edit", "Customer", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "Customer", new { id = item.ID })"><i class="bx bx-trash"></i></a>
-                                                                </div>
-                                                            </td>
-                                                        }
+                                                        <td colspan="@(changePermit ? 5 : 4)" class="text-center">Ma'lumot topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -103,6 +128,56 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            var tableConfig = {
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]]
+            };
+
+            @if (changePermit)
+            {
+                <text>
+            tableConfig.columnDefs = [
+                { "orderable": false, "targets": -1 }
+            ];
+                </text>
+            }
+
+            var table = $('#customerDataTable').DataTable(tableConfig);
+
+            // Custom search box
+            $('#searchBox').on('keyup', function() {
+                table.search(this.value).draw();
+            });
+
+            // Page size change
+            $('#pageSize').on('change', function() {
+                var pageSize = $(this).val();
+                if (pageSize === '-1') {
+                    table.page.len(-1).draw();
+                } else {
+                    table.page.len(parseInt(pageSize)).draw();
+                }
+            });
+        });
+    </script>
 }
 else
 {

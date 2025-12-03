@@ -27,12 +27,6 @@
                                             Yangi Xaridor qo'shish
                                         </li>
                                     </ol>
-                                    <div class="invoice-create-btn mb-1">
-                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Customer/UploadWithExcel'">
-                                            <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali xaridor qo'shish</span>
-                                        </button>
-
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -41,6 +35,11 @@
                 <div class="content-body">
                     <!-- app invoice View Page -->
                     <section class="basic-select2">
+                        <div class="invoice-create-btn mb-1">
+                            <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Customer/UploadWithExcel'">
+                                <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali xaridor qo'shish</span>
+                            </button>
+                        </div>
                         <div class="row">
                             <!-- invoice view page -->
                             <div class="col-xl-9 col-md-8 col-12">
@@ -63,7 +62,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Turi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.Type, new SelectList(ViewBag.Customer, "Select Part Type"), new { @class = "form-control round" })
+                                                        @Html.TextBoxFor(model => model.Type, new { @class = "form-control round", @placeholder = "Turi" })
                                                         @Html.ValidationMessageFor(model => model.Type, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Mamlakat</h6>

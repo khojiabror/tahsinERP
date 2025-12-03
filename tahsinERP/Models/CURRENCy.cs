@@ -30,6 +30,8 @@ namespace tahsinERP.Models
             this.FIN_BALANCE_SNAPSHOTS = new HashSet<FIN_BALANCE_SNAPSHOTS>();
             this.FIN_TRANSACTIONS = new HashSet<FIN_TRANSACTIONS>();
             this.SHAREHOLDER_CONTRIBUTIONS = new HashSet<SHAREHOLDER_CONTRIBUTIONS>();
+            this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
+            this.SALES_TTNK_HEADERS = new HashSet<SALES_TTNK_HEADERS>();
         }
     
         public int ID { get; set; }
@@ -63,5 +65,9 @@ namespace tahsinERP.Models
         public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SHAREHOLDER_CONTRIBUTIONS> SHAREHOLDER_CONTRIBUTIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_INVOICES> SALES_INVOICES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_TTNK_HEADERS> SALES_TTNK_HEADERS { get; set; }
     }
 }

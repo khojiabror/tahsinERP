@@ -53,7 +53,7 @@ namespace tahsinERP.Controllers
                         return RedirectToAction("Index");
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
                 }

@@ -1,0 +1,209 @@
+@model List<tahsinERP.Models.SALES_INVOICES>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Sotuv invoyslari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "SalesInvoices")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Yangi invoys
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Filters -->
+                    <div class="users-list-filter px-1">
+                        @using (Html.BeginForm("Index", "SalesInvoices", FormMethod.Get, new { @class = "form" }))
+                        {
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Qidirish</label>
+                                    <input type="text" name="searchTerm" class="form-control" placeholder="Invoys raqami..." value="@ViewBag.SearchTerm" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Mijoz</label>
+                                    @Html.DropDownList("customerID", ViewBag.Customers as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Buyurtma</label>
+                                    @Html.DropDownList("orderID", ViewBag.Orders as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Dan</label>
+                                    <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Gacha</label>
+                                    <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bx bx-search"></i> Qidirish
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <span class="text-muted">Jami: @ViewBag.TotalItems ta yozuv</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Invoys raqami</th>
+                                                    <th>Sana</th>
+                                                    <th>Mijoz</th>
+                                                    <th>Buyurtma</th>
+                                                    <th>Summa</th>
+                                                    <th>Valyuta</th>
+                                                    <th>Holati</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "SalesInvoices", new { id = item.ID })">@item.InvoiceNo</a>
+                                                            </td>
+                                                            <td>@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                                            <td>
+                                                                @{
+                                                                    var customer = ViewBag.Customers as SelectList;
+                                                                    var customerItem = customer?.Items.Cast<SelectListItem>().FirstOrDefault(c => c.Value == item.CustomerID.ToString());
+                                                                }
+                                                                @(customerItem?.Text ?? "")
+                                                            </td>
+                                                            <td>
+                                                                @if (item.OrderID.HasValue)
+                                                                {
+                                                                    <a href="@Url.Action("Details", "SOrder", new { id = item.OrderID })">Buyurtma #@item.OrderID</a>
+                                                                }
+                                                            </td>
+                                                            <td>@item.TotalAmount.ToString("N2")</td>
+                                                            <td>@item.CurrencyCode</td>
+                                                            <td>
+                                                                <span class="badge badge-@(item.StatusCode == "FINALIZED" ? "success" : item.StatusCode == "DRAFT" ? "warning" : "info")">
+                                                                    @item.StatusCode
+                                                                </span>
+                                                            </td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div>
+                                                                        <a href="@Url.Action("Edit", "SalesInvoices", new { id = item.ID })" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="@(changePermit ? 8 : 7)" class="text-center">Ma'lumot topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    @if (ViewBag.TotalPages > 1)
+                                    {
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <span class="text-muted">
+                                                    Sahifa @ViewBag.CurrentPage dan @ViewBag.TotalPages (@ViewBag.TotalItems ta yozuv)
+                                                </span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <nav>
+                                                    <ul class="pagination justify-content-end">
+                                                        @if (ViewBag.CurrentPage > 1)
+                                                        {
+                                                            <li class="page-item">
+                                                                <a class="page-link" href="@Url.Action("Index", "SalesInvoices", new { searchTerm = ViewBag.SearchTerm, customerID = ViewBag.CustomerID, orderID = ViewBag.OrderID, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, sortOrder = ViewBag.SortOrder, page = ViewBag.CurrentPage - 1 })">
+                                                                    Oldingi
+                                                                </a>
+                                                            </li>
+                                                        }
+                                                        @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                                                        {
+                                                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                                                <a class="page-link" href="@Url.Action("Index", "SalesInvoices", new { searchTerm = ViewBag.SearchTerm, customerID = ViewBag.CustomerID, orderID = ViewBag.OrderID, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, sortOrder = ViewBag.SortOrder, page = i })">
+                                                                    @i
+                                                                </a>
+                                                            </li>
+                                                        }
+                                                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                                        {
+                                                            <li class="page-item">
+                                                                <a class="page-link" href="@Url.Action("Index", "SalesInvoices", new { searchTerm = ViewBag.SearchTerm, customerID = ViewBag.CustomerID, orderID = ViewBag.OrderID, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, sortOrder = ViewBag.SortOrder, page = ViewBag.CurrentPage + 1 })">
+                                                                    Keyingi
+                                                                </a>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </nav>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

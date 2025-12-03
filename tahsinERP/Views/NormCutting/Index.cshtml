@@ -1,6 +1,6 @@
-@model IEnumerable<dynamic>
+@model IEnumerable<tahsinERP.ViewModels.ProductNormCuttingIndexViewModel>
 @{
-    ViewBag.Title = "NORM Kesish Variantlari";
+    ViewBag.Title = "NORM Kesish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,7 +15,7 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">NORM Kesish Variantlari</h5>
+                            <h5 class="content-header-title float-left pr-1 mb-0">NORM Kesish</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb p-0 mb-0">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -45,51 +45,17 @@
                 }
 
                 <section class="invoice-list-wrapper">
-                    @if (changePermit)
-                    {
-                        <div class="invoice-create-btn mb-1">
-                            <a href="@Url.Action("Edit", "NormCutting")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Yangi NORM qo'shish
-                            </a>
-                        </div>
-                    }
-
-                    <div class="users-list-filter px-1 mb-2">
-                        <form method="get" action="@Url.Action("Index", "NormCutting")">
-                            <div class="row border rounded py-2">
-                                <div class="col-12 col-sm-6 col-lg-4">
-                                    <label for="productId">Mahsulot</label>
-                                    <fieldset class="form-group">
-                                        @Html.DropDownList("productId", ViewBag.Products as SelectList, "Barcha mahsulotlar", new { @class = "form-control", @id = "productId" })
-                                    </fieldset>
-                                </div>
-                                <div class="col-12 col-sm-6 col-lg-4 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-search"></i> Qidirish
-                                    </button>
-                                    <a href="@Url.Action("Index", "NormCutting")" class="btn btn-secondary ml-2">
-                                        <i class="bx bx-refresh"></i> Tozalash
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table class="table table-striped table-bordered table-hover" id="normTable">
+                                        <table class="table table-striped table-bordered table-hover" id="productTable">
                                             <thead class="thead-light">
                                                 <tr>
                                                     <th>Mahsulot raqami</th>
                                                     <th>Mahsulot nomi</th>
-                                                    <th>Oy</th>
-                                                    <th>Samarali sanadan</th>
-                                                    <th>Samarali sanagacha</th>
-                                                    <th>Izoh</th>
-                                                    <th>Variantlar soni</th>
+                                                    <th>Normlar soni</th>
                                                     <th class="text-center">Amallar</th>
                                                 </tr>
                                             </thead>
@@ -99,17 +65,27 @@
                                                     foreach (var item in Model)
                                                     {
                                                         <tr>
-                                                            <td>@item.ProductCode</td>
-                                                            <td>@item.ProductName</td>
-                                                            <td>@item.Period</td>
-                                                            <td>@(item.EffectiveFrom?.ToString("yyyy-MM-dd") ?? "-")</td>
-                                                            <td>@(item.EffectiveTo?.ToString("yyyy-MM-dd") ?? "-")</td>
-                                                            <td>@(item.Comment ?? "-")</td>
-                                                            <td>@item.LineCount</td>
-                                                            <td class="text-center">
-                                                                <a href="@Url.Action("Edit", "NormCutting", new { normVersionId = item.NormVersionID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
-                                                                    <i class="bx bx-edit"></i>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "NormCutting", new { id = item.ProductID })" class="font-weight-bold text-primary">
+                                                                    @item.ProductCode
                                                                 </a>
+                                                            </td>
+                                                            <td>@item.ProductName</td>
+                                                            <td>
+                                                                <span class="badge badge-light-info">
+                                                                    @item.NormCount ta
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Details", "NormCutting", new { id = item.ProductID })" class="btn btn-sm btn-outline-primary" title="Normlarni ko'rish">
+                                                                    <i class="bx bx-show"></i> Normlar
+                                                                </a>
+                                                                @if (changePermit)
+                                                                {
+                                                                    <a href="@Url.Action("Create", "NormCutting", new { productId = item.ProductID })" class="btn btn-sm btn-outline-success" title="Yangi NORM qo'shish">
+                                                                        <i class="bx bx-plus"></i> Yangi NORM
+                                                                    </a>
+                                                                }
                                                             </td>
                                                         </tr>
                                                     }
@@ -117,7 +93,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="8" class="text-center text-muted">Ma'lumotlar topilmadi</td>
+                                                        <td colspan="4" class="text-center text-muted">Mahsulotlar topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -134,7 +110,7 @@
 
     <script>
         $(document).ready(function () {
-            $('#normTable').DataTable({
+            $('#productTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -150,7 +126,10 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[2, "desc"]]
+                "order": [[0, "asc"]],
+                "columnDefs": [
+                    { "orderable": false, "targets": -1 }
+                ]
             });
         });
     </script>
@@ -159,4 +138,3 @@ else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-

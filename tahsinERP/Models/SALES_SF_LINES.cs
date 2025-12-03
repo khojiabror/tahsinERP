@@ -29,5 +29,7 @@ namespace tahsinERP.Models
         public string ExternalLineKey { get; set; }
     
         public virtual SALES_SF_HEADERS SALES_SF_HEADERS { get; set; }
+        public virtual PRODUCT PRODUCT { get; set; }
+        public virtual SALES_INVOICE_LINES SALES_INVOICE_LINES { get; set; }
     }
 }

@@ -19,6 +19,8 @@ namespace tahsinERP.Models
         {
             this.S_CONTRACT_PRODUCTS = new HashSet<S_CONTRACT_PRODUCTS>();
             this.S_ORDERS = new HashSet<S_ORDERS>();
+            this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
+            this.SALES_TTNK_HEADERS = new HashSet<SALES_TTNK_HEADERS>();
         }
     
         public int ID { get; set; }
@@ -40,5 +42,9 @@ namespace tahsinERP.Models
         public virtual ICollection<S_CONTRACT_PRODUCTS> S_CONTRACT_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<S_ORDERS> S_ORDERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_INVOICES> SALES_INVOICES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_TTNK_HEADERS> SALES_TTNK_HEADERS { get; set; }
     }
 }

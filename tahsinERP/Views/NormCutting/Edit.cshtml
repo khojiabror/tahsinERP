@@ -105,7 +105,6 @@
                                                             <th>Uzunlik (mm)</th>
                                                             <th>Standart uzunlik (mm)</th>
                                                             <th>Miqdori</th>
-                                                            <th>Dona/bar</th>
                                                             <th>Sarflanish (m)</th>
                                                             <th>Chiqindi (m)</th>
                                                             <th>Narx</th>
@@ -122,11 +121,11 @@
                                                                     @Html.CheckBoxFor(m => m.CuttingLines[i].IsSelected, new { @class = "line-select" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.DropDownListFor(m => m.CuttingLines[i].MaterialID, ViewBag.Materials as SelectList, "Tanlang", new { @class = "form-control material-select", @required = "required" })
+                                                                    @Html.DropDownListFor(m => m.CuttingLines[i].MaterialID, ViewBag.Materials as SelectList, "Tanlang", new { @class = "form-control material-select select2", @required = "required" })
                                                                     @Html.ValidationMessageFor(m => m.CuttingLines[i].MaterialID, "", new { @class = "text-danger" })
                                                                 </td>
                                                                 <td>
-                                                                    <span class="material-code">@line.MaterialCode</span>
+                                                                    <span class="material-code">@(line.MaterialName ?? line.MaterialCode ?? "-")</span>
                                                                 </td>
                                                                 <td>
                                                                     @Html.TextBoxFor(m => m.CuttingLines[i].CalculatedLengthMm, new { @class = "form-control length-input", type = "number", step = "0.01" })
@@ -138,19 +137,18 @@
                                                                     @Html.TextBoxFor(m => m.CuttingLines[i].Quantity, new { @class = "form-control quantity-input", type = "number", min = "1", @required = "required" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].PiecesPerBar, new { @class = "form-control pieces-input", type = "number", min = "1", @required = "required" })
-                                                                </td>
-                                                                <td>
                                                                     <span class="consumption">@line.ConsumptionPerProduct.ToString("F4")</span>
+                                                                    @Html.HiddenFor(m => m.CuttingLines[i].ConsumptionPerProduct)
                                                                 </td>
                                                                 <td>
-                                                                    <span class="waste">@line.WastePerProduct.ToString("F4")</span>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].WastePerProduct, new { @class = "form-control waste-input", type = "number", step = "0.0001" })
                                                                 </td>
                                                                 <td>
                                                                     @Html.TextBoxFor(m => m.CuttingLines[i].UnitPrice, new { @class = "form-control price-input", type = "number", step = "0.01" })
                                                                 </td>
                                                                 <td>
                                                                     <span class="total-cost">@line.TotalCostPerProduct.ToString("F2")</span>
+                                                                    @Html.HiddenFor(m => m.CuttingLines[i].TotalCostPerProduct)
                                                                 </td>
                                                                 <td>
                                                                     <button type="button" class="btn btn-sm btn-danger remove-line" title="O'chirish">
@@ -231,6 +229,31 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                
+                                                <!-- Optimized Lines DataTable -->
+                                                <div class="mt-4">
+                                                    <h5 class="mb-3">Optimizatsiya qilingan pozitsiyalar</h5>
+                                                    <div class="table-responsive">
+                                                        <table id="optimizedLinesTable" class="table table-bordered table-striped" style="display: none;">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Xomashyo kodi</th>
+                                                                    <th>Xomashyo nomi</th>
+                                                                    <th>Uzunlik (mm)</th>
+                                                                    <th>Miqdori</th>
+                                                                    <th>Sarf (m)</th>
+                                                                    <th>Chiqindi (m)</th>
+                                                                    <th>Narx</th>
+                                                                    <th>Jami narx</th>
+                                                                    <th>Izoh</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <!-- Data will be populated by JavaScript -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <hr>
@@ -258,14 +281,55 @@
             </div>
         </div>
     </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
 
-    <script>
-        var lineIndex = @Model.CuttingLines.Count;
-        var materials = @Html.Raw(Json.Encode((ViewBag.Materials as SelectList)?.Items));
+@section scripts {
+    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    {
+        <script>
+            var lineIndex = @Model.CuttingLines.Count;
+            var materials = @Html.Raw(Json.Encode(ViewBag.MaterialsJson ?? new List<object>()));
 
         $(document).ready(function () {
+            console.log('Document ready, materials:', materials);
+            console.log('Line index:', lineIndex);
+            console.log('Add button exists:', $('#addLineBtn').length > 0);
+            
+            // Initialize select2 for existing material dropdowns
+            $('.material-select.select2').select2({
+                width: '100%',
+                placeholder: 'Tanlang',
+                allowClear: true
+            });
+            
+            // Load material data for existing rows
+            $('.line-row').each(function () {
+                var row = $(this);
+                var materialId = row.find('.material-select').val();
+                // Get standardLength from existing data if available
+                var existingStandardLength = row.find('.standard-length').text();
+                if (existingStandardLength && existingStandardLength !== '-') {
+                    var standardLengthValue = parseFloat(existingStandardLength) || 0;
+                    if (standardLengthValue > 0) {
+                        row.data('standard-length-mm', standardLengthValue);
+                    }
+                }
+                if (materialId) {
+                    loadMaterialData(materialId, row);
+                } else {
+                    // If no material selected, still try to recalculate with existing data
+                    recalculateRow(row);
+                }
+            });
+            
             // Add new line
-            $('#addLineBtn').click(function () {
+            $('#addLineBtn').on('click', function (e) {
+                e.preventDefault();
+                console.log('Add line button clicked');
                 var newRow = '<tr class="line-row" data-line-index="' + lineIndex + '">' +
                     '<td><input type="checkbox" name="CuttingLines[' + lineIndex + '].IsSelected" class="line-select" checked /></td>' +
                     '<td>' + getMaterialDropdown(lineIndex) + '</td>' +
@@ -273,15 +337,23 @@
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].CalculatedLengthMm" class="form-control length-input" step="0.01" /></td>' +
                     '<td><span class="standard-length">-</span></td>' +
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].Quantity" class="form-control quantity-input" min="1" value="1" required /></td>' +
-                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].PiecesPerBar" class="form-control pieces-input" min="1" value="1" required /></td>' +
                     '<td><span class="consumption">0.0000</span></td>' +
-                    '<td><span class="waste">0.0000</span></td>' +
+                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].WastePerProduct" class="form-control waste-input" value="0.0000" step="0.0001" /></td>' +
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].UnitPrice" class="form-control price-input" step="0.01" /></td>' +
                     '<td><span class="total-cost">0.00</span></td>' +
                     '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
                     '<input type="hidden" name="CuttingLines[' + lineIndex + '].ID" value="0" />' +
                     '</tr>';
-                $('#linesBody').append(newRow);
+                var $newRow = $(newRow);
+                $('#linesBody').append($newRow);
+                
+                // Initialize select2 for the new dropdown
+                $newRow.find('.material-select.select2').select2({
+                    width: '100%',
+                    placeholder: 'Tanlang',
+                    allowClear: true
+                });
+                
                 lineIndex++;
             });
 
@@ -301,7 +373,7 @@
             });
 
             // Recalculate on input change
-            $(document).on('input', '.length-input, .quantity-input, .pieces-input, .price-input', function () {
+            $(document).on('input', '.length-input, .quantity-input, .price-input', function () {
                 recalculateRow($(this).closest('tr'));
                 recalculateTotals();
             });
@@ -315,16 +387,21 @@
             $('#calculateBtn').click(function () {
                 calculateOptimization();
             });
+
+            // Apply optimized values to main table before form submit
+            $('#normForm').on('submit', function(e) {
+                applyOptimizedValuesToMainTable();
+            });
         });
 
         function getMaterialDropdown(index) {
-            var html = '<select name="CuttingLines[' + index + '].MaterialID" class="form-control material-select" required>';
+            var html = '<select name="CuttingLines[' + index + '].MaterialID" class="form-control material-select select2" required>';
             html += '<option value="">Tanlang</option>';
-            @if (ViewBag.Materials != null)
-            {
-                foreach (SelectListItem item in (ViewBag.Materials as SelectList))
-                {
-                    <text>html += '<option value="@item.Value">@item.Text</option>';</text>
+            if (materials && materials.length > 0) {
+                for (var i = 0; i < materials.length; i++) {
+                    // Format: "PNo - Name"
+                    var displayText = materials[i].name ? (materials[i].text + ' - ' + materials[i].name) : materials[i].text;
+                    html += '<option value="' + materials[i].id + '">' + displayText + '</option>';
                 }
             }
             html += '</select>';
@@ -332,24 +409,96 @@
         }
 
         function loadMaterialData(materialId, row) {
-            // Load material data via AJAX or from a data attribute
-            // For now, we'll just update the code display
+            if (!materialId) {
+                row.find('.material-code').text('-');
+                row.find('.standard-length').text('-');
+                row.find('.price-input').val('');
+                row.data('requires-cutting', false);
+                return;
+            }
+
             row.find('.material-code').text('Loading...');
-            // In a real implementation, you'd fetch this from the server
+            
+            $.ajax({
+                url: '@Url.Action("GetMaterialData", "NormCutting")',
+                type: 'GET',
+                data: { materialId: materialId },
+                success: function (response) {
+                    if (response.success) {
+                        row.find('.material-code').text(response.materialName || response.materialCode || '-');
+                        // Store requiresCutting flag in row data
+                        row.data('requires-cutting', response.requiresCutting || false);
+                        // Store standardLengthMm in row data for waste calculation
+                        var standardLength = response.standardLengthMm || 0;
+                        row.data('standard-length-mm', standardLength);
+                        if (standardLength > 0) {
+                            row.find('.standard-length').text(standardLength.toFixed(2));
+                        } else {
+                            row.find('.standard-length').text('-');
+                        }
+                        if (response.unitPrice) {
+                            row.find('.price-input').val(response.unitPrice);
+                        }
+                        // Recalculate row after loading data
+                        recalculateRow(row);
+                        recalculateTotals();
+                    } else {
+                        row.find('.material-code').text('-');
+                        row.find('.standard-length').text('-');
+                        row.data('requires-cutting', false);
+                        row.data('standard-length-mm', 0);
+                    }
+                },
+                error: function () {
+                    row.find('.material-code').text('-');
+                    row.find('.standard-length').text('-');
+                    row.data('requires-cutting', false);
+                }
+            });
         }
 
         function recalculateRow(row) {
             var length = parseFloat(row.find('.length-input').val()) || 0;
             var quantity = parseInt(row.find('.quantity-input').val()) || 1;
-            var pieces = parseInt(row.find('.pieces-input').val()) || 1;
             var price = parseFloat(row.find('.price-input').val()) || 0;
+            // Get standardLength from row data (set during material load) or from text
+            var standardLength = row.data('standard-length-mm') || parseFloat(row.find('.standard-length').text()) || 0;
+            var requiresCutting = row.data('requires-cutting') || false;
 
-            var consumption = (length / 1000.0) * quantity;
-            var waste = 0; // Calculate based on standard length if available
+            // Consumption calculation:
+            // For cutting materials (wood, cellophane, cardboard): convert mm to m
+            // For non-cutting materials: use quantity as-is (piece-based)
+            var consumption = 0;
+            if (requiresCutting && length > 0) {
+                consumption = (length / 1000.0) * quantity;
+            } else {
+                consumption = quantity;
+            }
+            
+            // Waste calculation (only for materials that require cutting):
+            // Assume 1 piece per bar (PiecesPerBar removed from UI)
+            // Total bars/sheets needed = quantity (1 piece per bar)
+            // Waste per bar = standardLength - length
+            // Total waste = waste per bar * quantity (convert mm to m)
+            var waste = 0;
+            if (requiresCutting && standardLength > 0 && length > 0) {
+                // Waste per bar = standardLength - length (1 piece per bar)
+                var wastePerBar = Math.max(0, standardLength - length);
+                // Total waste = waste per bar * quantity (convert mm to m)
+                waste = (wastePerBar / 1000.0) * quantity;
+            }
+            
             var totalCost = consumption * price;
 
             row.find('.consumption').text(consumption.toFixed(4));
-            row.find('.waste').text(waste.toFixed(4));
+            // Update waste input field (user can also manually edit it)
+            var wasteInput = row.find('.waste-input');
+            if (wasteInput.length > 0) {
+                wasteInput.val(waste.toFixed(4));
+            } else {
+                // Fallback for span (should not happen, but just in case)
+                row.find('.waste').text(waste.toFixed(4));
+            }
             row.find('.total-cost').text(totalCost.toFixed(2));
         }
 
@@ -361,7 +510,13 @@
             $('.line-row').each(function () {
                 if ($(this).find('.line-select').prop('checked')) {
                     totalNorm += parseFloat($(this).find('.consumption').text()) || 0;
-                    totalWaste += parseFloat($(this).find('.waste').text()) || 0;
+                    // Get waste from input field
+                    var wasteInput = $(this).find('.waste-input');
+                    if (wasteInput.length > 0) {
+                        totalWaste += parseFloat(wasteInput.val()) || 0;
+                    } else {
+                        totalWaste += parseFloat($(this).find('.waste').text()) || 0;
+                    }
                     totalCost += parseFloat($(this).find('.total-cost').text()) || 0;
                 }
             });
@@ -371,33 +526,322 @@
             $('#totalCost').text(totalCost.toFixed(2));
         }
 
+        var optimizedLinesDataTable = null;
+
+        function populateOptimizedLinesTable(optimizedLines) {
+            var table = $('#optimizedLinesTable');
+            var tbody = table.find('tbody');
+            tbody.empty();
+
+            if (!optimizedLines || optimizedLines.length === 0) {
+                table.hide();
+                return;
+            }
+
+            // Group by material to show which lines use waste from previous cuts
+            var materialGroups = {};
+            optimizedLines.forEach(function(line, index) {
+                var materialId = line.materialId;
+                if (!materialGroups[materialId]) {
+                    materialGroups[materialId] = [];
+                }
+                materialGroups[materialId].push(line);
+            });
+
+            // Sort materials by calculated length (descending) to show larger cuts first
+            var sortedMaterials = Object.keys(materialGroups).sort(function(a, b) {
+                var maxA = Math.max.apply(Math, materialGroups[a].map(function(l) { return l.calculatedLengthMm || 0; }));
+                var maxB = Math.max.apply(Math, materialGroups[b].map(function(l) { return l.calculatedLengthMm || 0; }));
+                return maxB - maxA;
+            });
+
+            sortedMaterials.forEach(function(materialId) {
+                var lines = materialGroups[materialId];
+                lines.sort(function(a, b) {
+                    return (b.calculatedLengthMm || 0) - (a.calculatedLengthMm || 0);
+                });
+
+                lines.forEach(function(line, lineIndex) {
+                    // Use note from server response
+                    var note = line.note || '';
+                    if (!note && lineIndex > 0 && line.wastePerProduct === 0) {
+                        note = 'Tepadagi pozitsiyaning chiqindisidan foydalanilgan';
+                    }
+
+                    var row = $('<tr>');
+                    row.append('<td>' + (line.materialCode || '-') + '</td>');
+                    row.append('<td>' + (line.materialName || '-') + '</td>');
+                    row.append('<td><input type="number" class="form-control form-control-sm opt-length" value="' + (line.calculatedLengthMm || 0) + '" step="0.01" data-line-id="' + line.id + '"></td>');
+                    row.append('<td><input type="number" class="form-control form-control-sm opt-quantity" value="' + (line.quantity || 0) + '" step="1" data-line-id="' + line.id + '"></td>');
+                    row.append('<td><input type="number" class="form-control form-control-sm opt-consumption" value="' + (line.consumptionPerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + line.id + '"></td>');
+                    row.append('<td><input type="number" class="form-control form-control-sm opt-waste" value="' + (line.wastePerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + line.id + '"></td>');
+                    row.append('<td><input type="number" class="form-control form-control-sm opt-price" value="' + (line.unitPrice || 0).toFixed(2) + '" step="0.01" data-line-id="' + line.id + '"></td>');
+                    row.append('<td class="opt-total-cost">' + (line.totalCostPerProduct || 0).toFixed(2) + '</td>');
+                    row.append('<td><small class="text-info">' + note + '</small></td>');
+                    tbody.append(row);
+                });
+            });
+
+            // Initialize or reinitialize DataTable
+            if (optimizedLinesDataTable) {
+                optimizedLinesDataTable.destroy();
+            }
+            
+            table.show();
+            optimizedLinesDataTable = table.DataTable({
+                "paging": true,
+                "pageLength": 10,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                }
+            });
+
+            // Add event listeners for editable fields
+            tbody.on('change', '.opt-length, .opt-quantity, .opt-consumption, .opt-waste, .opt-price', function() {
+                var row = $(this).closest('tr');
+                var length = parseFloat(row.find('.opt-length').val()) || 0;
+                var quantity = parseInt(row.find('.opt-quantity').val()) || 0;
+                var consumption = parseFloat(row.find('.opt-consumption').val()) || 0;
+                var waste = parseFloat(row.find('.opt-waste').val()) || 0;
+                var price = parseFloat(row.find('.opt-price').val()) || 0;
+                
+                // Recalculate total cost
+                var totalCost = consumption * price;
+                row.find('.opt-total-cost').text(totalCost.toFixed(2));
+            });
+        }
+
         function calculateOptimization() {
-            var formData = $('#normForm').serialize();
+            // Build viewModel object manually from form
+            var viewModel = {
+                ProductID: parseInt($('#ProductID').val()) || 0,
+                NormVersionID: parseInt($('#NormVersionID').val()) || 0,
+                Period: $('#Period').val() || '',
+                EffectiveFrom: $('#EffectiveFrom').val() || null,
+                EffectiveTo: $('#EffectiveTo').val() || null,
+                Comment: $('#Comment').val() || '',
+                CuttingLines: []
+            };
+            
+            // Collect all line data
+            $('.line-row').each(function (index) {
+                var row = $(this);
+                var line = {
+                    ID: parseInt(row.find('input[name*=".ID"]').val()) || 0,
+                    MaterialID: parseInt(row.find('.material-select').val()) || 0,
+                    CalculatedLengthMm: parseFloat(row.find('.length-input').val()) || 0,
+                    Quantity: parseInt(row.find('.quantity-input').val()) || 1,
+                    PiecesPerBar: 1, // Always 1 (removed from UI)
+                    UnitPrice: parseFloat(row.find('.price-input').val()) || 0,
+                    StandardLengthMm: row.data('standard-length-mm') || parseFloat(row.find('.standard-length').text()) || 0,
+                    IsSelected: row.find('.line-select').prop('checked') || false
+                };
+                
+                // Only add if MaterialID is set
+                if (line.MaterialID > 0) {
+                    viewModel.CuttingLines.push(line);
+                }
+            });
+            
+            console.log('Sending viewModel:', viewModel);
+            
+            // Show loading indicator
+            $('#calculateBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Hisoblanmoqda...');
             
             $.ajax({
                 url: '@Url.Action("Calculate", "NormCutting")',
                 type: 'POST',
-                data: formData,
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(viewModel),
                 success: function (response) {
-                    if (response.success) {
-                        $('#suggestedNorm').text(response.totalNorm.toFixed(4));
-                        $('#suggestedWaste').text(response.totalWaste.toFixed(4));
-                        $('#suggestedCost').text(response.totalCost.toFixed(2));
-                        $('#optimizationMessage').text(response.optimization.message);
+                    $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> Optimizatsiya qilish');
+                    console.log('Optimize response:', response);
+                    
+                    // Check if response is a string (needs parsing)
+                    if (typeof response === 'string') {
+                        try {
+                            response = JSON.parse(response);
+                        } catch (e) {
+                            console.error('Failed to parse response:', e);
+                            alert('Xatolik: Server javobini tahlil qilishda muammo yuz berdi.');
+                            return;
+                        }
+                    }
+                    
+                    if (response && response.success) {
+                        if (response.totalNorm !== undefined) {
+                            $('#suggestedNorm').text(parseFloat(response.totalNorm).toFixed(4));
+                        }
+                        if (response.totalWaste !== undefined) {
+                            $('#suggestedWaste').text(parseFloat(response.totalWaste).toFixed(4));
+                        }
+                        if (response.totalCost !== undefined) {
+                            $('#suggestedCost').text(parseFloat(response.totalCost).toFixed(2));
+                        }
+                        if (response.optimization && response.optimization.message) {
+                            $('#optimizationMessage').text(response.optimization.message);
+                        } else if (response.message) {
+                            $('#optimizationMessage').text(response.message);
+                        }
+                        
+                        // Populate optimized lines DataTable
+                        if (response.optimization && response.optimization.optimizedLines && response.optimization.optimizedLines.length > 0) {
+                            populateOptimizedLinesTable(response.optimization.optimizedLines);
+                        }
+                        
                         $('#optimizationSection').show();
                     } else {
-                        alert('Xatolik: ' + response.message);
+                        var errorMsg = response && response.message ? response.message : 'Noma\'lum xatolik yuz berdi.';
+                        alert('Xatolik: ' + errorMsg);
+                        console.error('Optimize error response:', response);
                     }
                 },
-                error: function () {
-                    alert('Server xatosi yuz berdi.');
+                error: function (xhr, status, error) {
+                    $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> Optimizatsiya qilish');
+                    var errorMessage = 'Server xatosi yuz berdi.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            var errorObj = JSON.parse(xhr.responseText);
+                            if (errorObj.message) {
+                                errorMessage = errorObj.message;
+                            }
+                        } catch (e) {
+                            errorMessage = 'Xatolik: ' + error;
+                        }
+                    }
+                    alert(errorMessage);
+                    console.error('AJAX Error:', { xhr: xhr, status: status, error: error });
+                    console.error('Request data:', viewModel);
                 }
             });
         }
-    </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+
+        function applyOptimizedValuesToMainTable() {
+            // Check if optimized lines table exists and has data
+            var optimizedTable = $('#optimizedLinesTable');
+            if (!optimizedTable.is(':visible') || optimizedTable.length === 0) {
+                console.log('Optimized table not visible or not found');
+                return; // No optimized values to apply
+            }
+
+            // Get all rows from optimized table
+            // If DataTable is initialized, use DataTable API to get rows
+            var optimizedRows;
+            if (typeof optimizedLinesDataTable !== 'undefined' && optimizedLinesDataTable) {
+                // Use DataTable API to get all rows (including paginated ones)
+                optimizedRows = optimizedLinesDataTable.rows().nodes();
+            } else {
+                // Fallback to regular jQuery selector
+                optimizedRows = optimizedTable.find('tbody tr');
+            }
+            
+            if (optimizedRows.length === 0) {
+                console.log('No rows in optimized table');
+                return; // No rows in optimized table
+            }
+
+            console.log('Found ' + optimizedRows.length + ' optimized rows');
+
+            // Create a map of optimized values by line ID
+            var optimizedMap = {};
+            $(optimizedRows).each(function() {
+                var row = $(this);
+                var lineId = parseInt(row.find('.opt-length').data('line-id')) || 0;
+                if (lineId > 0) {
+                    var length = parseFloat(row.find('.opt-length').val()) || 0;
+                    var quantity = parseInt(row.find('.opt-quantity').val()) || 0;
+                    var consumption = parseFloat(row.find('.opt-consumption').val()) || 0;
+                    var waste = parseFloat(row.find('.opt-waste').val()) || 0;
+                    var price = parseFloat(row.find('.opt-price').val()) || 0;
+                    var totalCost = parseFloat(row.find('.opt-total-cost').text().replace(/[^\d.-]/g, '')) || 0;
+                    
+                    optimizedMap[lineId] = {
+                        length: length,
+                        quantity: quantity,
+                        consumption: consumption,
+                        waste: waste,
+                        price: price,
+                        totalCost: totalCost
+                    };
+                    
+                    console.log('Mapped line ID ' + lineId + ':', optimizedMap[lineId]);
+                }
+            });
+            
+            if (Object.keys(optimizedMap).length === 0) {
+                console.log('No optimized values found in map');
+                return;
+            }
+
+            // Apply optimized values to main table rows
+            var appliedCount = 0;
+            $('.line-row').each(function() {
+                var mainRow = $(this);
+                // Find ID in hidden input
+                var lineIdInput = mainRow.find('input[name*=".ID"]');
+                var lineId = 0;
+                if (lineIdInput.length > 0) {
+                    lineId = parseInt(lineIdInput.val()) || 0;
+                }
+
+                if (lineId > 0 && optimizedMap[lineId]) {
+                    var optimized = optimizedMap[lineId];
+                    
+                    console.log('Applying optimized values to line ID ' + lineId, optimized);
+                    
+                    // Update input fields
+                    mainRow.find('.length-input').val(optimized.length);
+                    mainRow.find('.quantity-input').val(optimized.quantity);
+                    mainRow.find('.price-input').val(optimized.price);
+                    
+                    // Update display spans and hidden fields
+                    mainRow.find('.consumption').text(optimized.consumption.toFixed(4));
+                    var consumptionInput = mainRow.find('input[name*=".ConsumptionPerProduct"]');
+                    if (consumptionInput.length > 0) {
+                        consumptionInput.val(optimized.consumption.toFixed(4));
+                    }
+                    
+                    // Update waste input field
+                    var wasteInput = mainRow.find('.waste-input');
+                    if (wasteInput.length > 0) {
+                        wasteInput.val(optimized.waste.toFixed(4));
+                    } else {
+                        mainRow.find('.waste').text(optimized.waste.toFixed(4));
+                    }
+                    
+                    mainRow.find('.total-cost').text(optimized.totalCost.toFixed(2));
+                    var totalCostInput = mainRow.find('input[name*=".TotalCostPerProduct"]');
+                    if (totalCostInput.length > 0) {
+                        totalCostInput.val(optimized.totalCost.toFixed(2));
+                    }
+                    
+                    // Ensure the line is selected
+                    mainRow.find('.line-select').prop('checked', true);
+                    
+                    // Don't recalculate row - we want to keep the optimized values
+                    // Just update the CalculatedLengthMm hidden field if needed
+                    var lengthInput = mainRow.find('input[name*=".CalculatedLengthMm"]');
+                    if (lengthInput.length > 0) {
+                        lengthInput.val(optimized.length);
+                    }
+                    
+                    appliedCount++;
+                }
+            });
+            
+            console.log('Applied optimized values to ' + appliedCount + ' rows');
+
+            // Recalculate totals after applying optimized values
+            recalculateTotals();
+        }
+        </script>
+    }
 }
 

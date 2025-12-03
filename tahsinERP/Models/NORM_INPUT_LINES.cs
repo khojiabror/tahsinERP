@@ -22,6 +22,10 @@ namespace tahsinERP.Models
         public string Month { get; set; }
         public Nullable<int> CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public decimal Price { get; set; }
+        public Nullable<decimal> TotalAmount { get; set; }
+        public Nullable<double> Consumption { get; set; }
+        public Nullable<double> WasteAmount { get; set; }
     
         public virtual USER USER { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }

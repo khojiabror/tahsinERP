@@ -158,7 +158,7 @@ namespace tahsinERP.Controllers
                 TempData["Success"] = "Foydalanuvchi muvaffaqiyatli qo'shildi.";
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch
             {
                 ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
             }

@@ -256,13 +256,56 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- CRM - Mijozlar bilan ishlash -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SContract"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer") || 
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "SalesSF") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "SalesTTNK"))
                     {
                         <li class="navigation-header"><span>Sotuvlar (CRM)</span></li>
                         
-                        <li class="nav-item">
-                            <a href="~/Customer/Index"><i class="bx bxs-user-detail"></i><span class="menu-title">Xaridorlar</span></a>
-                        </li>
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/Customer/Index"><i class="bx bxs-user-detail"></i><span class="menu-title">Xaridorlar</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "SContract"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/SContract/Index"><i class="bx bxs-book-bookmark"></i><span class="menu-title">Shartnomalar</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/SOrder/Index"><i class="bx bxs-book"></i><span class="menu-title">Buyurtmalar</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/SalesInvoices/Index"><i class="bx bx-file"></i><span class="menu-title">Invoyslar</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesSF"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/SalesSF/Index"><i class="bx bx-receipt"></i><span class="menu-title">Счёт-фактура</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesTTNK"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/SalesTTNK/Index"><i class="bx bx-truck"></i><span class="menu-title">ТТНК</span></a>
+                            </li>
+                        }
                     }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->

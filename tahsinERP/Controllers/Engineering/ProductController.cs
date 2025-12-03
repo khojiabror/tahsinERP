@@ -165,6 +165,13 @@ namespace tahsinERP.Controllers
             ViewBag.UNIT = await GetUnitSelectListAsync();
             ViewBag.TypeList = GetProductTypeFormSelectList(PRODUCT_TYPE_FINISHED_GOOD);
             ViewBag.ShopList = await GetShopSelectListAsync();
+            
+            // Load categories for dropdown (only if IsRawMaterial is selected)
+            var categories = await db.PRODUCT_CATEGORIES
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+            ViewBag.CategoryList = new SelectList(categories, "ID", "Name", null);
+            
             return View();
         }
 

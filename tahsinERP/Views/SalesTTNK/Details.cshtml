@@ -1,0 +1,218 @@
+@model tahsinERP.Models.SALES_TTNK_HEADERS
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var customer = ViewBag.Customer as tahsinERP.Models.CUSTOMER;
+    var order = ViewBag.Order as tahsinERP.Models.S_ORDERS;
+    var products = ViewBag.Products as Dictionary<int, tahsinERP.Models.PRODUCT>;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SalesTTNK">TTNK</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        TTNK ma'lumotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        <div class="row invoice-info">
+                                            <div class="col-lg-12 col-md-12 mt-25">
+                                                <h4 class="text-primary">TTNK ma'lumotlari</h4>
+                                                <hr />
+                                                
+                                                <!-- Basic Info -->
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <span><b>TTNK raqami</b>: @Html.DisplayFor(model => model.TTNKNumber)</span><br />
+                                                        <span><b>TTNK sanasi</b>: @Model.TTNKDate.ToString("dd.MM.yyyy")</span><br />
+                                                        <span><b>Holati</b>: 
+                                                            <span class="badge badge-@(Model.StatusCode == "FINALIZED" ? "success" : Model.StatusCode == "DRAFT" ? "warning" : "info")">
+                                                                @Model.StatusCode
+                                                            </span>
+                                                        </span><br />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <span><b>Yuk tashuvchi</b>: @Html.DisplayFor(model => model.CarrierName)</span><br />
+                                                        <span><b>Yuk tashuvchi INN</b>: @Html.DisplayFor(model => model.CarrierINN)</span><br />
+                                                        <span><b>Mas'ul shaxs</b>: @Html.DisplayFor(model => model.ResponsiblePersonName)</span><br />
+                                                    </div>
+                                                </div>
+                                                <hr />
+
+                                                <!-- Logistics Info -->
+                                                <h5 class="text-primary">Logistika ma'lumotlari</h5>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <span><b>Haydovchi</b>: @Html.DisplayFor(model => model.DriverName)</span><br />
+                                                        <span><b>Haydovchi PINFL</b>: @Html.DisplayFor(model => model.DriverPINFL)</span><br />
+                                                        <span><b>Mashina raqami</b>: @Html.DisplayFor(model => model.TruckNo)</span><br />
+                                                        <span><b>Mashina modeli</b>: @Html.DisplayFor(model => model.TruckModel)</span><br />
+                                                        <span><b>Pritsep raqami</b>: @Html.DisplayFor(model => model.TrailerNo)</span><br />
+                                                        <span><b>Pritsep modeli</b>: @Html.DisplayFor(model => model.TrailerModel)</span><br />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <span><b>Jo'nash manzili</b>: @Html.DisplayFor(model => model.DepartureAddress)</span><br />
+                                                        <span><b>Jo'nash viloyati</b>: @Html.DisplayFor(model => model.DepartureRegion)</span><br />
+                                                        <span><b>Yetkazish manzili</b>: @Html.DisplayFor(model => model.ArrivalAddress)</span><br />
+                                                        <span><b>Yetkazish viloyati</b>: @Html.DisplayFor(model => model.ArrivalRegion)</span><br />
+                                                        <span><b>Masofa (km)</b>: @(Model.DistanceKm?.ToString("N2") ?? "-")</span><br />
+                                                    </div>
+                                                </div>
+                                                <hr />
+
+                                                <!-- Cargo Info -->
+                                                <h5 class="text-primary">Yuk ma'lumotlari</h5>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <span><b>Yuk og'irligi (brutto, t)</b>: @(Model.CargoWeightGrossT?.ToString("N2") ?? "-")</span><br />
+                                                        <span><b>Yuk og'irligi (netto, t)</b>: @(Model.CargoWeightNetT?.ToString("N2") ?? "-")</span><br />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <span><b>Yetkazib berish narxi</b>: @Model.DeliveryCost.ToString("N2") @Model.CurrencyCode</span><br />
+                                                        <span><b>QQS</b>: @Model.VATAmount.ToString("N2") @Model.CurrencyCode</span><br />
+                                                        <span><b>Jami</b>: @(Model.TotalDeliveryCost?.ToString("N2") ?? "0.00") @Model.CurrencyCode</span><br />
+                                                    </div>
+                                                </div>
+                                                <hr />
+
+                                                <!-- Navigation Links -->
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                                        <div class="btn-group" role="group">
+                                                            @if (Model.SALES_INVOICES != null)
+                                                            {
+                                                                <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.InvoiceID })" class="btn btn-outline-primary">
+                                                                    <i class="bx bx-receipt"></i> Invoys: @Model.SALES_INVOICES.InvoiceNo
+                                                                </a>
+                                                            }
+                                                            @if (order != null)
+                                                            {
+                                                                <a href="@Url.Action("Details", "SOrder", new { id = order.ID })" class="btn btn-outline-primary">
+                                                                    <i class="bx bx-list-ul"></i> Buyurtma: @order.OrderNo
+                                                                </a>
+                                                            }
+                                                            @if (Model.SALES_TTNK_INVOICES != null && Model.SALES_TTNK_INVOICES.Any())
+                                                            {
+                                                                foreach (var ttnkInvoice in Model.SALES_TTNK_INVOICES.Take(3))
+                                                                {
+                                                                    if (ttnkInvoice.SALES_INVOICES != null)
+                                                                    {
+                                                                        <a href="@Url.Action("Details", "SalesInvoices", new { id = ttnkInvoice.InvoiceID })" class="btn btn-outline-primary">
+                                                                            <i class="bx bx-receipt"></i> @ttnkInvoice.SALES_INVOICES.InvoiceNo
+                                                                        </a>
+                                                                    }
+                                                                }
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+
+                                        <!-- TTNK Lines -->
+                                        <section id="column-selectors">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <h4 class="card-title">TTNK qatorlari</h4>
+                                                        </div>
+                                                        <div class="card-content">
+                                                            <div class="card-body card-dashboard">
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-striped" style="width:100%">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>№</th>
+                                                                                <th>Mahsulot</th>
+                                                                                <th>Tavsif</th>
+                                                                                <th>HS Kod</th>
+                                                                                <th>Miqdor</th>
+                                                                                <th>O'lchov birligi</th>
+                                                                                <th>Og'irlik (netto, t)</th>
+                                                                                <th>Og'irlik (brutto, t)</th>
+                                                                                <th>Joylar soni</th>
+                                                                                <th>Qadoq turi</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @foreach (var line in Model.SALES_TTNK_LINES.OrderBy(l => l.LineNo))
+                                                                            {
+                                                                                var product = products != null && line.ProductID.HasValue && products.ContainsKey(line.ProductID.Value) ? products[line.ProductID.Value] : null;
+                                                                                <tr>
+                                                                                    <td>@line.LineNo</td>
+                                                                                    <td>
+                                                                                        @if (product != null)
+                                                                                        {
+                                                                                            <a href="@Url.Action("Details", "Product", new { id = line.ProductID })">@product.PNo</a>
+                                                                                        }
+                                                                                        else if (line.ProductID.HasValue)
+                                                                                        {
+                                                                                            @line.ProductID.Value
+                                                                                        }
+                                                                                    </td>
+                                                                                    <td>@(line.Description ?? "")</td>
+                                                                                    <td>@(line.HSCode ?? "")</td>
+                                                                                    <td>@line.Qty.ToString("N2")</td>
+                                                                                    <td>@(line.UnitOfMeasure ?? "")</td>
+                                                                                    <td>@(line.WeightNetT?.ToString("N2") ?? "-")</td>
+                                                                                    <td>@(line.WeightGrossT?.ToString("N2") ?? "-")</td>
+                                                                                    <td>@(line.PlaceCount?.ToString() ?? "-")</td>
+                                                                                    <td>@(line.PackageType ?? "")</td>
+                                                                                </tr>
+                                                                            }
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

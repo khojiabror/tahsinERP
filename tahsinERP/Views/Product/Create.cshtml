@@ -73,7 +73,12 @@
 
                                                     <h6 class="invoice-to">Turi</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control", @id = "ProductType" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Kategoriya</h6>
+                                                    <fieldset class="form-group" id="categoryField" style="display: none;">
+                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Sex (ishlab chiqarish bo'limi)</h6>
                                                     <fieldset class="form-group">
@@ -163,4 +168,27 @@
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Show/hide Category dropdown based on ProductType selection
+            $('#ProductType').on('change', function () {
+                var productType = $(this).val();
+                // Show category field only if Xomashyo (RAW_MATERIAL) is selected
+                if (productType === 'XOMASHYO') {
+                    $('#categoryField').show();
+                } else {
+                    $('#categoryField').hide();
+                    $('#CategoryID').val('');
+                }
+            });
+            
+            // Trigger on page load if value is already set
+            if ($('#ProductType').val() === 'XOMASHYO') {
+                $('#categoryField').show();
+            }
+        });
+    </script>
 }

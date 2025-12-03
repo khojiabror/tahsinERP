@@ -132,6 +132,7 @@ namespace tahsinERP.Models
                 return cached.ViewPermit;
 
             var permission = GetPermissionFromDb(username, moduleName, null, null, null);
+            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
             SetCache(cacheKey, permission);
             return permission.ViewPermit;
         }
@@ -150,6 +151,7 @@ namespace tahsinERP.Models
                 return cached.ViewPermit;
 
             var permission = GetPermissionFromDb(username, null, controller, action, null);
+            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
             SetCache(cacheKey, permission);
             return permission.ViewPermit;
         }
@@ -168,6 +170,7 @@ namespace tahsinERP.Models
                 return cached.ViewPermit;
 
             var permission = GetPermissionFromDb(username, null, controller, action, parameter);
+            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
             SetCache(cacheKey, permission);
             return permission.ViewPermit;
         }
@@ -186,6 +189,7 @@ namespace tahsinERP.Models
                 return cached.ChangePermit;
 
             var permission = GetPermissionFromDb(username, moduleName, null, null, null);
+            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
             SetCache(cacheKey, permission);
             return permission.ChangePermit;
         }
@@ -198,12 +202,13 @@ namespace tahsinERP.Models
             if (string.IsNullOrEmpty(username)) return false;
 
             var cacheKey = GetPermissionCacheKey(username, controller, action);
-            //var cached = GetCache(cacheKey) as PermissionCache;
+            var cached = GetCache(cacheKey) as PermissionCache;
             
-            //if (cached != null)
-            //    return cached.ChangePermit;
+            if (cached != null)
+                return cached.ChangePermit;
 
             var permission = GetPermissionFromDb(username, null, controller, action, null);
+            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
             SetCache(cacheKey, permission);
             return permission.ChangePermit;
         }
@@ -222,6 +227,7 @@ namespace tahsinERP.Models
                 return cached.ChangePermit;
 
             var permission = GetPermissionFromDb(username, null, controller, action, parameter);
+            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
             SetCache(cacheKey, permission);
             return permission.ChangePermit;
         }
@@ -281,7 +287,11 @@ namespace tahsinERP.Models
         /// </summary>
         private static PermissionCache GetPermissionFromDb(string username, string moduleName, string controller, string action, string parameter)
         {
-            var result = new PermissionCache();
+            var result = new PermissionCache
+            {
+                ViewPermit = false,
+                ChangePermit = false
+            };
 
             try
             {
@@ -332,6 +342,8 @@ namespace tahsinERP.Models
 
                     if (permission != null)
                     {
+                        // Explicitly set both properties to ensure they are set correctly
+                        // PERMISSION modelida ViewPermit va ChangePermit bool (not nullable), shuning uchun ?? false kerak emas
                         result.ViewPermit = permission.ViewPermit;
                         result.ChangePermit = permission.ChangePermit;
                     }
@@ -349,10 +361,17 @@ namespace tahsinERP.Models
         /// <summary>
         /// Permission cache uchun oddiy class
         /// </summary>
+        [Serializable]
         private class PermissionCache
         {
             public bool ViewPermit { get; set; }
             public bool ChangePermit { get; set; }
+            
+            public PermissionCache()
+            {
+                ViewPermit = false;
+                ChangePermit = false;
+            }
         }
 
         #endregion

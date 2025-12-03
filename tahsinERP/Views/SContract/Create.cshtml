@@ -49,8 +49,8 @@
                                                         @*ID auto olinishi kerak, from DB*@
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="DocNo">DocNo</label>
-                                                            @Html.TextBoxFor(model => model.ContractNo, new { @type = "text", @class = "form-control", @id = "DocNo", @placeholder = "DocNo kiriting" })
+                                                            <label for="DocNo">Hujjat raqami</label>
+                                                            @Html.TextBoxFor(model => model.ContractNo, new { @type = "text", @class = "form-control", @id = "DocNo", @placeholder = "Hujjat raqamini kiriting" })
                                                             @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
                                                         </div>
 
@@ -59,20 +59,20 @@
                                                         @*CompanyID Controller ichida 'WebConfig' dan olinishi kk*@
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="CustomerID">Customer</label>
-                                                            @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.CustomerID, new { @id = "CustomerID", @class = "form-control" })
+                                                            <label for="CustomerID">Haridor</label>
+                                                            @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.CustomerID, new { @id = "CustomerID", @class = "form-control select2", @placeholder = "Haridorni tanlang" })
                                                             @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="Currency">Currency</label>
+                                                            <label for="Currency">Valyuta</label>
                                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2", @id = "Currency", @placeholder = "Valyuta turini kiriting" })
                                                             @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="Amount">Amount</label>
-                                                            @Html.TextBoxFor(model => model.Amount, new { @type = "number", @class = "form-control", @id = "Amount", @placeholder = "Miqdorini kiriting", @disabled = "True" })
+                                                            <label for="Amount">Jami summa</label>
+                                                            @Html.TextBoxFor(model => model.Amount, new { @type = "number", @class = "form-control", @id = "Amount", @placeholder = "Jami summa", @disabled = "True", @readonly = "readonly" })
                                                             @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -82,20 +82,20 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="Incoterms">IncoTerms</label>
-                                                            @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control", @id = "Incoterms", @placeholder = "Majburiyat shartlarini kiriting" })
+                                                            <label for="Incoterms">Incoterms</label>
+                                                            @Html.TextBoxFor(model => model.Incoterms, new { @type = "text", @class = "form-control", @id = "Incoterms", @placeholder = "Incoterms shartlarini kiriting" })
                                                             @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="PaymentTerms">PaymentTerms</label>
+                                                            <label for="PaymentTerms">To'lov shartlari</label>
                                                             @Html.TextBoxFor(model => model.PaymentTerms, new { @type = "text", @class = "form-control", @id = "PaymentTerms", @placeholder = "To'lov shartlarini kiriting" })
                                                             @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
                                                         </div>
 
                                                         <div class="col-md-6 col-12 form-group">
-                                                            <label for="DueDate">Due Date</label>
-                                                            @Html.EditorFor(model => model.DueDate, new { htmlAttributes = new { @id = "DueDate", @class = "form-control pickadate-months-year" } })
+                                                            <label for="DueDate">Muddat</label>
+                                                            @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @id = "DueDate", @class = "form-control", @placeholder = "Muddatni tanlang" })
                                                             @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
@@ -105,37 +105,37 @@
                                             // S_CONTRACT_PRODUCTS
                                             <br />
                                             <h4>
-                                                Products
+                                                Maxsulotlar
                                             </h4>
-                                            <div data-repeater-list="Products">
+                                            <div data-repeater-list="ProductList">
                                                 <div data-repeater-item>
                                                     <div class="row justify-content-between">
                                                         @* ContractID ni yuqoridagi Contractning  *@
 
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="ProductID">Product</label>
-                                                            @Html.DropDownList("ProductID", (SelectList)ViewBag.Products, new { @class = "form-control" })
+                                                            <label for="ProductID">Maxsulot</label>
+                                                            @Html.DropDownList("ProductID", (SelectList)ViewBag.Products, new { @class = "form-control select2", @placeholder = "Maxsulotni tanlang" })
                                                             @Html.ValidationMessageFor(model => model.ProductList[0].ProductID, "", new { @class = "text-danger" })
 
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Unit">Unit</label>
-                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.Units, new { @class = "form-control" })
+                                                            <label for="Unit">O'lchov birligi</label>
+                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.Units, new { @class = "form-control select2", @placeholder = "O'lchov birligini tanlang" })
                                                             @Html.ValidationMessageFor(model => model.ProductList[0].UnitID, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Amount">Amount</label>
+                                                            <label for="Amount">Miqdori</label>
                                                             <input type="number" name="Amount" class="form-control" id="Amount" placeholder="Miqdori" />
                                                             @Html.ValidationMessageFor(model => model.ProductList[0].Amount, "", new { @class = "text-danger" })
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="PiecePrice">Piece Price</label>
-                                                            <input type="number" name="PiecePrice" class="form-control" id="PiecePrice" placeholder="Narxi" />
+                                                            <label for="PiecePrice">Birlik narxi</label>
+                                                            <input type="number" name="PiecePrice" class="form-control" id="PiecePrice" placeholder="Birlik narxi" />
                                                             @Html.ValidationMessageFor(model => model.ProductList[0].PiecePrice, "", new { @class = "text-danger" })
                                                         </div>
 
                                                         <div class="col-md-2 col-sm-12 form-group d-flex align-items-center pt-2">
-                                                            <button data-repeater-delete type="button" class="btn btn-danger">Delete</button>
+                                                            <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
                                                         </div>
                                                     </div>
                                                     <hr>
@@ -148,7 +148,7 @@
                                             // Save button
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item border-0 pb-0">
-                                                    <button class="open-modal btn btn-primary btn-block subtotal-preview-btn open-modal" name="create" type="button" value="Create" id="button2">
+                                                    <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
                                                         <i class='bx bx-save'></i>
                                                         Saqlash
                                                     </button>
@@ -164,6 +164,64 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Initialize flatpickr for DueDate
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr("#DueDate", {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d.m.Y",
+                    weekNumbers: true,
+                    showTodayButton: true,
+                    locale: "uz",
+                    onChange: function (selectedDates, dateStr, instance) {
+                        // Format the date to Y-m-d when it's selected
+                        if (selectedDates.length > 0) {
+                            const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                            document.getElementById("DueDate").value = formattedDate;
+                        }
+                    }
+                });
+            } else {
+                console.error('flatpickr is not loaded');
+            }
+        });
+
+        // Function to calculate total amount
+        function calculateTotalAmount() {
+            var total = 0;
+            var $items = $('div[data-repeater-item]');
+            $items.each(function() {
+                var amount = parseFloat($(this).find('input[name="Amount"]').val()) || 0;
+                var price = parseFloat($(this).find('input[name="PiecePrice"]').val()) || 0;
+                total += amount * price;
+            });
+            $('#Amount').val(Math.round(total));
+        }
+
+        // Wait for jQuery to be ready
+        $(document).ready(function () {
+            // Calculate total amount when product fields change
+            $(document).on('input change', 'input[name="Amount"], input[name="PiecePrice"]', function() {
+                calculateTotalAmount();
+            });
+
+            // Calculate total when products are added via repeater
+            $(document).on('click', '[data-repeater-create]', function() {
+                setTimeout(calculateTotalAmount, 200);
+            });
+
+            // Calculate total when products are removed via repeater
+            $(document).on('click', '[data-repeater-delete]', function() {
+                setTimeout(calculateTotalAmount, 200);
+            });
+
+            // Initial calculation
+            setTimeout(calculateTotalAmount, 100);
+        });
+    </script>
 }
 else
 {

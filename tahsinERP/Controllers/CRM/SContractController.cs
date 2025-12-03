@@ -6,6 +6,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
@@ -16,16 +17,89 @@ namespace tahsinERP.Controllers
     public class SContractController : Controller
     {
         // GET: SContract | Index
-        public ActionResult Index()
+        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                List<S_CONTRACTS> list = db.S_CONTRACTS
-                                           .Include(sc => sc.CUSTOMER)
-                                           .Where(sc => sc.IsDeleted == false)
-                                           .ToList();
+                var query = db.S_CONTRACTS
+                    .Include(sc => sc.CUSTOMER)
+                    .Include(sc => sc.CURRENCy)
+                    .Where(sc => sc.IsDeleted == false);
 
-                return View(list);
+                // Filters
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    query = query.Where(c => 
+                        c.ContractNo.Contains(searchTerm) || 
+                        (c.Incoterms != null && c.Incoterms.Contains(searchTerm)) ||
+                        (c.PaymentTerms != null && c.PaymentTerms.Contains(searchTerm)));
+                }
+
+                if (!string.IsNullOrEmpty(contractNo))
+                {
+                    query = query.Where(c => c.ContractNo.Contains(contractNo));
+                }
+
+                if (customerID.HasValue)
+                {
+                    query = query.Where(c => c.CustomerID == customerID.Value);
+                }
+
+                if (fromDate.HasValue)
+                {
+                    query = query.Where(c => c.IssuedDate >= fromDate.Value);
+                }
+
+                if (toDate.HasValue)
+                {
+                    query = query.Where(c => c.IssuedDate <= toDate.Value);
+                }
+
+                // Sorting
+                switch (sortOrder)
+                {
+                    case "contractNo_desc":
+                        query = query.OrderByDescending(c => c.ContractNo);
+                        break;
+                    case "contractNo":
+                        query = query.OrderBy(c => c.ContractNo);
+                        break;
+                    case "date_desc":
+                        query = query.OrderByDescending(c => c.IssuedDate);
+                        break;
+                    case "date":
+                        query = query.OrderBy(c => c.IssuedDate);
+                        break;
+                    default:
+                        query = query.OrderByDescending(c => c.IssuedDate);
+                        break;
+                }
+
+                // Pagination
+                int currentPage = page ?? 1;
+                int itemsPerPage = pageSize ?? 25;
+                int totalItems = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+
+                var contracts = await query
+                    .Skip((currentPage - 1) * itemsPerPage)
+                    .Take(itemsPerPage)
+                    .ToListAsync();
+
+                // ViewBag for filters
+                ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
+                ViewBag.CurrentPage = currentPage;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.PageSize = itemsPerPage;
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.ContractNo = contractNo;
+                ViewBag.CustomerID = customerID;
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.SortOrder = sortOrder;
+
+                return View(contracts);
             }
         }
         // __________
@@ -40,7 +114,7 @@ namespace tahsinERP.Controllers
                 SContractViewModel SContractViewModel = new SContractViewModel();
                 var customers = db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList();
                 ViewBag.CustomerID = new SelectList(customers, "ID", "Name");
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
 
@@ -51,19 +125,38 @@ namespace tahsinERP.Controllers
         [HttpPost]
         public ActionResult Create(SContractViewModel model)
         {
-            if (model == null)
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Shartnoma bo'sh bo'lishi mumkin emas");
-            }
+                if (model == null)
+                {
+                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
+                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                    ModelState.AddModelError("", "Shartnoma bo'sh bo'lishi mumkin emas");
+                    return View(new SContractViewModel());
+                }
 
-            if (model.ProductList == null || !model.ProductList.Any())
-            {
-                return View(model);
-            }
+                if (model.ProductList == null || !model.ProductList.Any())
+                {
+                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
+                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                    ModelState.AddModelError("", "Kamida bitta maxsulot qo'shish kerak");
+                    return View(model);
+                }
 
-            try
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
+                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                    return View(model);
+                }
+
+                try
                 {
                     // Add New S_CONTRACT
                     S_CONTRACTS newContract = new S_CONTRACTS
@@ -71,7 +164,7 @@ namespace tahsinERP.Controllers
                         ContractNo = model.ContractNo,
                         IssuedDate = DateTime.Now,
                         CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
-                        CustomerID = (int)model.CustomerID,
+                        CustomerID = model.CustomerID,
                         CurrencyID = model.CurrencyID,
                         Amount = (int)model.Amount,
                         Incoterms = model.Incoterms,
@@ -88,16 +181,13 @@ namespace tahsinERP.Controllers
                     // Yangi Contract ning ID sini olish
                     int newContractID = newContract.ID;
 
-                    // Yangi Product lar ni saqlash
+                    // Yangi Product lar ni saqlash va jami summani hisoblash
+                    decimal totalAmount = 0;
                     foreach (var item in model.ProductList)
                     {
-                        if (item == null)
+                        if (item == null || item.ProductID == 0)
                         {
-                            ModelState.AddModelError("Products", "Mahsulot bo'sh boʻlishi mumkin emas");
-                            ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
-                            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                            ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
-                            return View(model);
+                            continue;
                         }
 
                         S_CONTRACT_PRODUCTS newProduct = new S_CONTRACT_PRODUCTS
@@ -111,16 +201,29 @@ namespace tahsinERP.Controllers
 
                         db.S_CONTRACT_PRODUCTS.Add(newProduct);
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{newProduct.PRODUCT.PNo} - SContractProductni yaratdi");
+                        // Har bir product uchun price * amount ni qo'shamiz
+                        totalAmount += (decimal)(item.PiecePrice * item.Amount);
                     }
+
+                    // Barcha productlar yaratilgandan so'ng, jami summani S_CONTRACTS ga yozamiz
+                    newContract.Amount = (int)totalAmount;
 
                     db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-            } catch(Exception ex)
-            {
-                ModelState.AddModelError("", $"{ex.Message}");
-                return View(model);
+                catch (Exception ex)
+                {
+                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
+                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                    ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        ModelState.AddModelError("", $"Ichki xatolik: {ex.InnerException.Message}");
+                    }
+                    return View(model);
+                }
             }
         }
         // __________
@@ -140,6 +243,7 @@ namespace tahsinERP.Controllers
                 var contract = db.S_CONTRACTS
                                  .Include(c => c.CUSTOMER)
                                  .Include(c => c.CURRENCy)
+                                 .Include(c => c.S_ORDERS)
                                  .FirstOrDefault(p => p.ID == id);
 
                 if (contract == null)
@@ -154,6 +258,27 @@ namespace tahsinERP.Controllers
                                     .ToList();
 
                 ViewBag.ProductList = productList;
+
+                // Get linked orders
+                var linkedOrders = contract.S_ORDERS.Where(o => o.IsDeleted == false).ToList();
+                ViewBag.LinkedOrders = linkedOrders;
+                ViewBag.OrdersCount = linkedOrders.Count;
+
+                // Get invoices count
+                var invoicesCount = db.SALES_INVOICES.Where(i => i.ContractID == id).Count();
+                ViewBag.InvoicesCount = invoicesCount;
+
+                // Calculate totals: contracted vs ordered vs invoiced
+                var contractedTotal = productList.Sum(p => p.Amount);
+                var orderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
+                var invoicedTotal = db.SALES_INVOICES
+                    .Where(i => i.ContractID == id)
+                    .Sum(i => (decimal?)i.TotalAmount) ?? 0;
+
+                ViewBag.ContractedTotal = contractedTotal;
+                ViewBag.OrderedTotal = orderedTotal;
+                ViewBag.InvoicedTotal = invoicedTotal;
+
                 return View(contract);
             }
         }
@@ -174,8 +299,10 @@ namespace tahsinERP.Controllers
                 }
                 var model = new SContractViewModel
                 {
+                    ID = contract.ID,
                     ContractNo = contract.ContractNo,
                     CustomerID = (int)contract.CustomerID,
+                    IssuedDate = contract.IssuedDate,
                     DueDate = contract.DueDate,
                     Incoterms = contract.Incoterms,
                     PaymentTerms = contract.PaymentTerms,
@@ -255,7 +382,8 @@ namespace tahsinERP.Controllers
                     }
 
 
-                    // Update ProductList
+                    // Update ProductList va jami summani hisoblash
+                    decimal totalAmount = 0;
                     foreach (var product in model.ProductList)
                     {
                         var existingProduct = db.S_CONTRACT_PRODUCTS.Find(product.ID);
@@ -267,9 +395,16 @@ namespace tahsinERP.Controllers
 
                             db.Entry(existingProduct).State = EntityState.Modified;
 
+                            // Har bir product uchun price * amount ni qo'shamiz
+                            totalAmount += (decimal)(product.PiecePrice * product.Amount);
+
                             LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{existingProduct.PRODUCT.PNo} - SContractProductni tahrirladi");
                         }
                     }
+
+                    // Barcha productlar yangilangandan so'ng, jami summani S_CONTRACTS ga yozamiz
+                    contractToUpdate.Amount = (int)totalAmount;
+                    db.Entry(contractToUpdate).State = EntityState.Modified;
 
                     try
                     {
@@ -399,6 +534,81 @@ namespace tahsinERP.Controllers
                 }
 
                 return View(contractProductToDelete);
+            }
+        }
+
+        // Link/Unlink Orders
+        public ActionResult ManageOrders(int? contractID)
+        {
+            if (contractID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var contract = db.S_CONTRACTS
+                    .Include(c => c.S_ORDERS)
+                    .FirstOrDefault(c => c.ID == contractID && c.IsDeleted == false);
+
+                if (contract == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Get all orders for this customer that are not linked to this contract
+                var unlinkedOrders = db.S_ORDERS
+                    .Include(o => o.CUSTOMER)
+                    .Where(o => o.CustomerID == contract.CustomerID && 
+                                o.IsDeleted == false && 
+                                (o.ContractID == 0 || o.ContractID != contractID))
+                    .ToList();
+
+                ViewBag.Contract = contract;
+                ViewBag.LinkedOrders = contract.S_ORDERS.Where(o => o.IsDeleted == false).ToList();
+                ViewBag.UnlinkedOrders = unlinkedOrders;
+
+                return View(contract);
+            }
+        }
+
+        // POST: Link Order to Contract
+        [HttpPost]
+        public ActionResult LinkOrder(int contractID, int orderID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var order = db.S_ORDERS.Find(orderID);
+                if (order != null && order.CustomerID == db.S_CONTRACTS.Find(contractID)?.CustomerID)
+                {
+                    order.ContractID = contractID;
+                    db.SaveChanges();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"Buyurtma {order.OrderNo} ni shartnomaga bog'ladi");
+                }
+
+                return RedirectToAction("ManageOrders", new { contractID = contractID });
+            }
+        }
+
+        // POST: Unlink Order from Contract
+        [HttpPost]
+        public ActionResult UnlinkOrder(int contractID, int orderID)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var order = db.S_ORDERS.Find(orderID);
+                if (order != null && order.ContractID == contractID)
+                {
+                    // ContractID is not nullable, so we set it to 0 to indicate no contract
+                    // Note: This assumes 0 is not a valid contract ID
+                    order.ContractID = 0;
+                    db.SaveChanges();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"Buyurtma {order.OrderNo} ni shartnomadan ajratdi");
+                }
+
+                return RedirectToAction("ManageOrders", new { contractID = contractID });
             }
         }
     }
