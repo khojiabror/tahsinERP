@@ -37,9 +37,10 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "SOrder", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default" }))
+                                        @using (Html.BeginForm("Create", "SOrder", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default", @id = "orderForm" }))
                                         {
                                             @Html.AntiForgeryToken()
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                             // S_ORDERS
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
@@ -173,13 +174,17 @@ else
 
     // Wait for jQuery to be ready
     $(document).ready(function () {
+        // Store all products for fallback
+        window.allProducts = @Html.Raw(Json.Encode(((SelectList)ViewBag.ProductList).Select(x => new { Value = x.Value, Text = x.Text }).ToList()));
+
         // Load contract products when contract is selected
         $('#ContractID').on('change', function() {
             var contractId = $(this).val();
             if (contractId && contractId != '0') {
                 loadContractProducts(contractId);
             } else {
-                // Clear prices if no contract selected
+                // Reset to all products if no contract selected
+                updateProductDropdowns(window.allProducts);
                 $('.product-price').val('').prop('readonly', false);
             }
         });
@@ -193,6 +198,16 @@ else
             if (contractId && contractId != '0' && productId) {
                 loadProductPrice(contractId, productId, $row);
             }
+        });
+
+        // Update product dropdowns when new item is added via repeater
+        $(document).on('click', '[data-repeater-create]', function() {
+            setTimeout(function() {
+                var contractId = $('#ContractID').val();
+                if (contractId && contractId != '0' && window.contractProducts) {
+                    updateProductDropdowns(window.contractProducts);
+                }
+            }, 100);
         });
 
         // Calculate total amount when product fields change
@@ -212,7 +227,67 @@ else
 
         // Initial calculation
         setTimeout(calculateTotalAmount, 100);
+
+        // Handle form submission
+        $('#orderForm').on('submit', function(e) {
+            // Validate that contract is selected if products are added
+            var contractId = $('#ContractID').val();
+            var hasProducts = $('select[name="ProductID"]').filter(function() {
+                return $(this).val() && $(this).val() != '';
+            }).length > 0;
+            
+            if (hasProducts && (!contractId || contractId == '0')) {
+                e.preventDefault();
+                alert('Shartnoma tanlang!');
+                return false;
+            }
+            
+            // Validate that all products have prices
+            var hasEmptyPrice = false;
+            $('input[name="Price"]').each(function() {
+                var $productSelect = $(this).closest('[data-repeater-item]').find('select[name="ProductID"]');
+                if ($productSelect.val() && $productSelect.val() != '' && (!$(this).val() || $(this).val() == '0')) {
+                    hasEmptyPrice = true;
+                    return false;
+                }
+            });
+            
+            if (hasEmptyPrice) {
+                e.preventDefault();
+                alert('Barcha maxsulotlar uchun narx belgilanishi kerak!');
+                return false;
+            }
+        });
     });
+
+    // Function to update product dropdowns with contract products
+    function updateProductDropdowns(products) {
+        $('select[name="ProductID"]').each(function() {
+            var $select = $(this);
+            var currentValue = $select.val();
+            
+            $select.empty();
+            $select.append($('<option></option>').val('').text('Maxsulotni tanlang'));
+            
+            if (products && products.length > 0) {
+                $.each(products, function(index, product) {
+                    var value = product.ProductID || product.Value;
+                    var text = product.ProductPNo || product.ProductName || product.Text;
+                    var $option = $('<option></option>').val(value).text(text);
+                    if (value == currentValue) {
+                        $option.prop('selected', true);
+                    }
+                    $select.append($option);
+                });
+            }
+            
+            // Reinitialize select2 if it exists
+            if ($select.hasClass('select2')) {
+                $select.select2('destroy');
+                $select.select2();
+            }
+        });
+    }
 
     // Function to load contract products
     function loadContractProducts(contractId) {
@@ -224,10 +299,15 @@ else
                 if (data && data.length > 0) {
                     // Store contract products globally
                     window.contractProducts = data;
+                    // Update all product dropdowns
+                    updateProductDropdowns(data);
+                } else {
+                    alert('Shartnomada maxsulotlar topilmadi');
                 }
             },
             error: function() {
                 console.error('Shartnoma maxsulotlarini yuklashda xatolik');
+                alert('Shartnoma maxsulotlarini yuklashda xatolik yuz berdi');
             }
         });
     }
@@ -243,12 +323,15 @@ else
         }
 
         var contractProduct = window.contractProducts.find(function(cp) {
-            return cp.ProductID == productId;
+            var cpId = parseInt(cp.ProductID);
+            var prodId = parseInt(productId);
+            return cpId === prodId;
         });
 
         if (contractProduct) {
             var $priceInput = $row.find('input[name="Price"]');
-            $priceInput.val(contractProduct.PiecePrice).prop('readonly', true);
+            var price = parseFloat(contractProduct.PiecePrice) || 0;
+            $priceInput.val(price).prop('readonly', true);
             
             // Also set UnitID if available
             if (contractProduct.UnitID) {

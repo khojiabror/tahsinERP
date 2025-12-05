@@ -813,6 +813,16 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            // Check if optimization was performed (from hidden input)
+            bool isOptimized = false;
+            var isOptimizedValue = Request.Form["IsOptimized"];
+            if (!string.IsNullOrEmpty(isOptimizedValue))
+            {
+                bool.TryParse(isOptimizedValue, out isOptimized);
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Confirm action - IsOptimized: {isOptimized}");
+
             using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 try

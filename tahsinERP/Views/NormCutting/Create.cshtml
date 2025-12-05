@@ -40,6 +40,7 @@
                     @Html.AntiForgeryToken()
                     @Html.HiddenFor(m => m.ProductID)
                     @Html.HiddenFor(m => m.NormVersionID)
+                    <input type="hidden" id="IsOptimized" name="IsOptimized" value="false" />
 
                     <section class="invoice-edit-wrapper">
                         <div class="row">
@@ -249,6 +250,7 @@ else
         <script>
             var lineIndex = 0;
             var materials = @Html.Raw(Json.Encode(ViewBag.MaterialsJson ?? new List<object>()));
+            var isOptimized = false; // Flag to track if optimization was performed
 
             $(document).ready(function () {
                 // Initialize select2 for existing material dropdowns (if any)
@@ -394,11 +396,17 @@ else
                     consumption = quantity;
                 }
                 
-                // Waste calculation: assume 1 piece per bar
+                // Waste calculation: calculate how many bars are needed
                 var waste = 0;
-                if (requiresCutting && standardLength > 0 && length > 0) {
-                    var wastePerBar = Math.max(0, standardLength - length);
-                    waste = (wastePerBar / 1000.0) * quantity;
+                if (requiresCutting && standardLength > 0 && length > 0 && quantity > 0) {
+                    // Total length needed for all pieces
+                    var totalLengthNeeded = length * quantity;
+                    // Calculate how many bars are needed (round up)
+                    var barsNeeded = Math.ceil(totalLengthNeeded / standardLength);
+                    // Total material used
+                    var totalMaterialUsed = barsNeeded * standardLength;
+                    // Waste = total material used - total length needed
+                    waste = (totalMaterialUsed - totalLengthNeeded) / 1000.0; // Convert to meters
                 }
                 
                 var totalCost = consumption * price;
@@ -475,19 +483,20 @@ else
                     });
 
                     lines.forEach(function(line, lineIndex) {
-                        var note = '';
-                        if (lineIndex > 0 && line.wastePerProduct === 0) {
+                        // Use note from server response
+                        var note = line.note || '';
+                        if (!note && lineIndex > 0 && line.wastePerProduct === 0) {
                             note = 'Tepadagi pozitsiyaning chiqindisidan foydalanilgan';
                         }
 
                         var row = $('<tr>');
                         row.append('<td>' + (line.materialCode || '-') + '</td>');
                         row.append('<td>' + (line.materialName || '-') + '</td>');
-                        row.append('<td><input type="number" class="form-control form-control-sm opt-length" value="' + (line.calculatedLengthMm || 0) + '" step="0.01" data-line-id="' + line.id + '"></td>');
-                        row.append('<td><input type="number" class="form-control form-control-sm opt-quantity" value="' + (line.quantity || 0) + '" step="1" data-line-id="' + line.id + '"></td>');
-                        row.append('<td><input type="number" class="form-control form-control-sm opt-consumption" value="' + (line.consumptionPerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + line.id + '"></td>');
-                        row.append('<td><input type="number" class="form-control form-control-sm opt-waste" value="' + (line.wastePerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + line.id + '"></td>');
-                        row.append('<td><input type="number" class="form-control form-control-sm opt-price" value="' + (line.unitPrice || 0).toFixed(2) + '" step="0.01" data-line-id="' + line.id + '"></td>');
+                        row.append('<td><input type="number" class="form-control form-control-sm opt-length" value="' + (line.calculatedLengthMm || 0) + '" step="0.01" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
+                        row.append('<td><input type="number" class="form-control form-control-sm opt-quantity" value="' + (line.quantity || 0) + '" step="1" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
+                        row.append('<td><input type="number" class="form-control form-control-sm opt-consumption" value="' + (line.consumptionPerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
+                        row.append('<td><input type="number" class="form-control form-control-sm opt-waste" value="' + (line.wastePerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
+                        row.append('<td><input type="number" class="form-control form-control-sm opt-price" value="' + (line.unitPrice || 0).toFixed(2) + '" step="0.01" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
                         row.append('<td class="opt-total-cost">' + (line.totalCostPerProduct || 0).toFixed(2) + '</td>');
                         row.append('<td><small class="text-info">' + note + '</small></td>');
                         tbody.append(row);
@@ -530,10 +539,175 @@ else
 
             // Apply optimized values to main table before form submit
             $('#normForm').on('submit', function(e) {
-                console.log('Form submit - applying optimized values');
-                applyOptimizedValuesToMainTable();
+                console.log('Form submit - isOptimized:', isOptimized);
+                
+                // If optimization was performed, read data from optimized table
+                if (isOptimized && $('#optimizedLinesTable').is(':visible')) {
+                    console.log('Reading optimized data from DataTable');
+                    readOptimizedDataAndUpdateForm();
+                } else {
+                    console.log('No optimization performed, using main table data');
+                }
+                
                 // Don't prevent default - let form submit normally
             });
+            
+            // Function to read optimized data from DataTable and update form
+            function readOptimizedDataAndUpdateForm() {
+                var optimizedTable = $('#optimizedLinesTable');
+                if (!optimizedTable.is(':visible') || optimizedTable.length === 0) {
+                    console.log('Optimized table not visible');
+                    return;
+                }
+
+                // Get all rows from optimized table
+                var optimizedRows;
+                if (typeof optimizedLinesDataTable !== 'undefined' && optimizedLinesDataTable) {
+                    optimizedRows = optimizedLinesDataTable.rows().nodes();
+                } else {
+                    optimizedRows = optimizedTable.find('tbody tr');
+                }
+                
+                if (optimizedRows.length === 0) {
+                    console.log('No rows in optimized table');
+                    return;
+                }
+
+                console.log('Found ' + optimizedRows.length + ' optimized rows');
+
+                // Clear all existing rows' selection first
+                $('.line-row').each(function() {
+                    $(this).find('.line-select').prop('checked', false);
+                });
+
+                // Store optimized data
+                var optimizedData = [];
+                $(optimizedRows).each(function() {
+                    var row = $(this);
+                    var lineId = parseInt(row.find('.opt-length').data('line-id')) || 0;
+                    var materialId = parseInt(row.find('.opt-length').data('material-id')) || 0;
+                    
+                    var length = parseFloat(row.find('.opt-length').val()) || 0;
+                    var quantity = parseInt(row.find('.opt-quantity').val()) || 0;
+                    var consumption = parseFloat(row.find('.opt-consumption').val()) || 0;
+                    var waste = parseFloat(row.find('.opt-waste').val()) || 0;
+                    var price = parseFloat(row.find('.opt-price').val()) || 0;
+                    var totalCost = parseFloat(row.find('.opt-total-cost').text().replace(/[^\d.-]/g, '')) || 0;
+                    
+                    if (materialId > 0 && length > 0) {
+                        optimizedData.push({
+                            lineId: lineId,
+                            materialId: materialId,
+                            length: length,
+                            quantity: quantity,
+                            consumption: consumption,
+                            waste: waste,
+                            price: price,
+                            totalCost: totalCost
+                        });
+                    }
+                });
+                
+                console.log('Optimized data to apply:', optimizedData);
+
+                // Group by materialId and length
+                var optimizedMap = {};
+                optimizedData.forEach(function(opt) {
+                    var key = opt.materialId + '_' + opt.length.toFixed(2);
+                    if (!optimizedMap[key]) {
+                        optimizedMap[key] = [];
+                    }
+                    optimizedMap[key].push(opt);
+                });
+
+                // Apply to existing rows or create new ones
+                var appliedCount = 0;
+                
+                // First, try to match existing rows
+                $('.line-row').each(function() {
+                    var mainRow = $(this);
+                    var materialSelect = mainRow.find('.material-select');
+                    var materialId = parseInt(materialSelect.val()) || 0;
+                    var currentLength = parseFloat(mainRow.find('.length-input').val()) || 0;
+                    
+                    if (materialId > 0 && currentLength > 0) {
+                        var key = materialId + '_' + currentLength.toFixed(2);
+                        var matched = optimizedMap[key] && optimizedMap[key].length > 0 ? optimizedMap[key][0] : null;
+                        
+                        if (matched) {
+                            // Update all fields
+                            mainRow.find('.length-input').val(matched.length);
+                            mainRow.find('.quantity-input').val(matched.quantity);
+                            mainRow.find('.price-input').val(matched.price);
+                            mainRow.find('.consumption').text(matched.consumption.toFixed(4));
+                            var consumptionInput = mainRow.find('input[name*=".ConsumptionPerProduct"]');
+                            if (consumptionInput.length > 0) {
+                                consumptionInput.val(matched.consumption.toFixed(4));
+                            }
+                            var wasteInput = mainRow.find('.waste-input');
+                            if (wasteInput.length > 0) {
+                                wasteInput.val(matched.waste.toFixed(4));
+                            }
+                            mainRow.find('.total-cost').text(matched.totalCost.toFixed(2));
+                            var totalCostInput = mainRow.find('input[name*=".TotalCostPerProduct"]');
+                            if (totalCostInput.length > 0) {
+                                totalCostInput.val(matched.totalCost.toFixed(2));
+                            }
+                            mainRow.find('.line-select').prop('checked', true);
+                            var lengthInput = mainRow.find('input[name*=".CalculatedLengthMm"]');
+                            if (lengthInput.length > 0) {
+                                lengthInput.val(matched.length);
+                            }
+                            
+                            optimizedMap[key].shift();
+                            if (optimizedMap[key].length === 0) {
+                                delete optimizedMap[key];
+                            }
+                            appliedCount++;
+                        }
+                    }
+                });
+
+                // Add new rows for remaining optimized data
+                Object.keys(optimizedMap).forEach(function(key) {
+                    var opts = optimizedMap[key];
+                    opts.forEach(function(opt) {
+                        if (opt.materialId > 0) {
+                            var material = materials.find(function(m) { return m.id === opt.materialId; });
+                            if (material) {
+                                var newRowIndex = lineIndex++;
+                                var newRow = '<tr class="line-row" data-line-index="' + newRowIndex + '">' +
+                                    '<td><input type="checkbox" name="CuttingLines[' + newRowIndex + '].IsSelected" class="line-select" checked /></td>' +
+                                    '<td>' + getMaterialDropdown(newRowIndex) + '</td>' +
+                                    '<td><span class="material-code">' + (material.text || '-') + '</span></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].CalculatedLengthMm" class="form-control length-input" step="0.01" value="' + opt.length + '" /></td>' +
+                                    '<td><span class="standard-length">-</span></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].Quantity" class="form-control quantity-input" min="1" value="' + opt.quantity + '" required /></td>' +
+                                    '<td><span class="consumption">' + opt.consumption.toFixed(4) + '</span><input type="hidden" name="CuttingLines[' + newRowIndex + '].ConsumptionPerProduct" value="' + opt.consumption.toFixed(4) + '" /></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].WastePerProduct" class="form-control waste-input" value="' + opt.waste.toFixed(4) + '" step="0.0001" /></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].UnitPrice" class="form-control price-input" step="0.01" value="' + opt.price + '" /></td>' +
+                                    '<td><span class="total-cost">' + opt.totalCost.toFixed(2) + '</span><input type="hidden" name="CuttingLines[' + newRowIndex + '].TotalCostPerProduct" value="' + opt.totalCost.toFixed(2) + '" /></td>' +
+                                    '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
+                                    '<input type="hidden" name="CuttingLines[' + newRowIndex + '].ID" value="0" />' +
+                                    '</tr>';
+                                
+                                var $newRow = $(newRow);
+                                $('#linesBody').append($newRow);
+                                $newRow.find('.material-select').val(opt.materialId).trigger('change');
+                                $newRow.find('.material-select.select2').select2({
+                                    width: '100%',
+                                    placeholder: 'Tanlang',
+                                    allowClear: true
+                                });
+                                loadMaterialData(opt.materialId, $newRow);
+                                appliedCount++;
+                            }
+                        }
+                    });
+                });
+
+                console.log('Applied ' + appliedCount + ' optimized rows to form');
+            }
 
             function calculateOptimization() {
                 var viewModel = {
@@ -605,6 +779,9 @@ else
                             // Populate optimized lines DataTable
                             if (response.optimization && response.optimization.optimizedLines && response.optimization.optimizedLines.length > 0) {
                                 populateOptimizedLinesTable(response.optimization.optimizedLines);
+                                // Set optimization flag
+                                isOptimized = true;
+                                $('#IsOptimized').val('true');
                             }
                             
                             $('#optimizationSection').show();
@@ -639,6 +816,7 @@ else
                 // Check if optimized lines table exists and has data
                 var optimizedTable = $('#optimizedLinesTable');
                 if (!optimizedTable.is(':visible') || optimizedTable.length === 0) {
+                    console.log('Optimized table not visible or not found');
                     return; // No optimized values to apply
                 }
 
@@ -661,13 +839,11 @@ else
                 console.log('Found ' + optimizedRows.length + ' optimized rows');
 
                 // Store optimized data with materialId and length as key
-                // We need to get materialId from the optimized response data
                 var optimizedData = [];
                 $(optimizedRows).each(function() {
                     var row = $(this);
                     var lineId = parseInt(row.find('.opt-length').data('line-id')) || 0;
-                    // Get material code from first column
-                    var materialCode = row.find('td').eq(0).text().trim();
+                    var materialId = parseInt(row.find('.opt-length').data('material-id')) || 0;
                     
                     var length = parseFloat(row.find('.opt-length').val()) || 0;
                     var quantity = parseInt(row.find('.opt-quantity').val()) || 0;
@@ -678,7 +854,7 @@ else
                     
                     optimizedData.push({
                         lineId: lineId,
-                        materialCode: materialCode,
+                        materialId: materialId,
                         length: length,
                         quantity: quantity,
                         consumption: consumption,
@@ -690,30 +866,38 @@ else
                 
                 console.log('Optimized data:', optimizedData);
 
-                // Apply optimized values to main table rows
+                // First, clear all existing rows' selection
+                $('.line-row').each(function() {
+                    $(this).find('.line-select').prop('checked', false);
+                });
+
+                // Group optimized data by materialId and length to handle multiple lines
+                var optimizedMap = {};
+                optimizedData.forEach(function(opt) {
+                    var key = opt.materialId + '_' + opt.length.toFixed(2);
+                    if (!optimizedMap[key]) {
+                        optimizedMap[key] = [];
+                    }
+                    optimizedMap[key].push(opt);
+                });
+
+                // Apply optimized values to main table rows or create new rows
+                var appliedCount = 0;
+                var processedKeys = {};
+
+                // First, try to match existing rows
                 $('.line-row').each(function() {
                     var mainRow = $(this);
                     var materialSelect = mainRow.find('.material-select');
                     var materialId = parseInt(materialSelect.val()) || 0;
                     var currentLength = parseFloat(mainRow.find('.length-input').val()) || 0;
                     
-                    if (materialId > 0) {
-                        // Find material code from select option
-                        var materialText = materialSelect.find('option:selected').text();
-                        var materialCode = materialText.split(' - ')[0]; // Get code part before " - "
-                        
-                        // Find matching optimized row by material code and length (with tolerance)
-                        var matched = null;
-                        for (var i = 0; i < optimizedData.length; i++) {
-                            var opt = optimizedData[i];
-                            if (opt.materialCode === materialCode && Math.abs(opt.length - currentLength) < 0.01) {
-                                matched = opt;
-                                break;
-                            }
-                        }
+                    if (materialId > 0 && currentLength > 0) {
+                        var key = materialId + '_' + currentLength.toFixed(2);
+                        var matched = optimizedMap[key] && optimizedMap[key].length > 0 ? optimizedMap[key][0] : null;
                         
                         if (matched) {
-                            console.log('Matched optimized row for material:', materialCode, matched);
+                            console.log('Matched existing row for materialId:', materialId, 'length:', currentLength, matched);
                             
                             // Update input fields
                             mainRow.find('.length-input').val(matched.length);
@@ -744,15 +928,76 @@ else
                             // Ensure the line is selected
                             mainRow.find('.line-select').prop('checked', true);
                             
-                            // Don't recalculate row - we want to keep the optimized values
-                            // Just update the CalculatedLengthMm hidden field if needed
+                            // Update the CalculatedLengthMm hidden field
                             var lengthInput = mainRow.find('input[name*=".CalculatedLengthMm"]');
                             if (lengthInput.length > 0) {
                                 lengthInput.val(matched.length);
                             }
+                            
+                            processedKeys[key] = true;
+                            appliedCount++;
+                            
+                            // Remove from map if used
+                            if (optimizedMap[key]) {
+                                optimizedMap[key].shift(); // Remove first item
+                                if (optimizedMap[key].length === 0) {
+                                    delete optimizedMap[key];
+                                }
+                            }
                         }
                     }
                 });
+
+                // Now, add new rows for any remaining optimized data
+                Object.keys(optimizedMap).forEach(function(key) {
+                    var opts = optimizedMap[key];
+                    opts.forEach(function(opt) {
+                        if (opt.materialId > 0) {
+                            console.log('Adding new row for materialId:', opt.materialId, 'length:', opt.length);
+                            
+                            // Find material in materials list
+                            var material = materials.find(function(m) { return m.id === opt.materialId; });
+                            if (material) {
+                                // Add new row
+                                var newRowIndex = lineIndex++;
+                                var newRow = '<tr class="line-row" data-line-index="' + newRowIndex + '">' +
+                                    '<td><input type="checkbox" name="CuttingLines[' + newRowIndex + '].IsSelected" class="line-select" checked /></td>' +
+                                    '<td>' + getMaterialDropdown(newRowIndex) + '</td>' +
+                                    '<td><span class="material-code">' + (material.text || '-') + '</span></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].CalculatedLengthMm" class="form-control length-input" step="0.01" value="' + opt.length + '" /></td>' +
+                                    '<td><span class="standard-length">-</span></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].Quantity" class="form-control quantity-input" min="1" value="' + opt.quantity + '" required /></td>' +
+                                    '<td><span class="consumption">' + opt.consumption.toFixed(4) + '</span><input type="hidden" name="CuttingLines[' + newRowIndex + '].ConsumptionPerProduct" value="' + opt.consumption.toFixed(4) + '" /></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].WastePerProduct" class="form-control waste-input" value="' + opt.waste.toFixed(4) + '" step="0.0001" /></td>' +
+                                    '<td><input type="number" name="CuttingLines[' + newRowIndex + '].UnitPrice" class="form-control price-input" step="0.01" value="' + opt.price + '" /></td>' +
+                                    '<td><span class="total-cost">' + opt.totalCost.toFixed(2) + '</span><input type="hidden" name="CuttingLines[' + newRowIndex + '].TotalCostPerProduct" value="' + opt.totalCost.toFixed(2) + '" /></td>' +
+                                    '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
+                                    '<input type="hidden" name="CuttingLines[' + newRowIndex + '].ID" value="0" />' +
+                                    '</tr>';
+                                
+                                var $newRow = $(newRow);
+                                $('#linesBody').append($newRow);
+                                
+                                // Set material select value
+                                $newRow.find('.material-select').val(opt.materialId).trigger('change');
+                                
+                                // Initialize select2 for new dropdown
+                                $newRow.find('.material-select.select2').select2({
+                                    width: '100%',
+                                    placeholder: 'Tanlang',
+                                    allowClear: true
+                                });
+                                
+                                // Load material data
+                                loadMaterialData(opt.materialId, $newRow);
+                                
+                                appliedCount++;
+                            }
+                        }
+                    });
+                });
+
+                console.log('Applied optimized values to ' + appliedCount + ' rows');
 
                 // Recalculate totals after applying optimized values
                 recalculateTotals();

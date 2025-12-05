@@ -279,7 +279,7 @@ namespace tahsinERP.Controllers
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani yaratdi");
 
-                        return RedirectToAction("Details", new { id = order.ID });
+                        return RedirectToAction("DeliverySchedule", new { orderID = order.ID });
                     }
                     catch (Exception ex)
                     {
@@ -708,10 +708,13 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var contractProducts = db.S_CONTRACT_PRODUCTS
+                    .Include(cp => cp.PRODUCT)
                     .Where(cp => cp.ContractID == contractId)
                     .Select(cp => new
                     {
                         ProductID = cp.ProductID,
+                        ProductPNo = cp.PRODUCT.PNo,
+                        ProductName = cp.PRODUCT.Name,
                         PiecePrice = cp.PiecePrice,
                         UnitID = cp.UnitID,
                         Amount = cp.Amount
