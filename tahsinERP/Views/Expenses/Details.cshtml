@@ -1,0 +1,178 @@
+@model tahsinERP.Models.EXPENS
+@{
+    ViewBag.Title = "Chiqim hujjati tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses", "Details"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Expenses/Index">Ombor chiqimlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tafsilotlar
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Chiqim hujjati ma'lumotlari</h4>
+                                <div class="heading-elements">
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses") && Model.SendStatus != true)
+                                    {
+                                        <a href="@Url.Action("Edit", "Expenses", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("Index", "Expenses")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Hujjat raqami:</th>
+                                                    <td>@Model.DocNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana va vaqt:</th>
+                                                    <td>@Model.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Yuboruvchi ombor:</th>
+                                                    <td>@(Model.Warehouse?.WHName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Qabul qiluvchi ombor:</th>
+                                                    <td>@(Model.Warehouse1?.WHName ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Valyuta:</th>
+                                                    <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami miqdor:</th>
+                                                    <td>@(Model.Amount?.ToString("N2") ?? "0.00")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami summa:</th>
+                                                    <td><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Status:</th>
+                                                    <td>
+                                                        @if (Model.SendStatus == true)
+                                                        {
+                                                            <span class="badge badge-success">Yuborilgan</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Izoh:</th>
+                                                    <td>@(Model.Description ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <h5>Chiqim mahsulotlari</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mahsulot kodi</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Miqdor</th>
+                                                    <th>Birlik</th>
+                                                    <th>Dona narxi</th>
+                                                    <th>Jami</th>
+                                                    <th>Izoh</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.EXPENSE_PRODUCTS != null && Model.EXPENSE_PRODUCTS.Any())
+                                                {
+                                                    foreach (var product in Model.EXPENSE_PRODUCTS)
+                                                    {
+                                                        <tr>
+                                                            <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                            <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                            <td>@product.Amount.ToString("N2")</td>
+                                                            <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                            <td>@product.PiecePrice.ToString("N2")</td>
+                                                            <td>@product.TotalPrice.ToString("N2")</td>
+                                                            <td>@(product.Comment ?? "-")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="7" class="text-center">Mahsulotlar topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    @if (Model.WRHS_EXPENSE_DOCS != null && Model.WRHS_EXPENSE_DOCS.Any())
+                                    {
+                                        <hr />
+                                        <h5>Chiqim hujjatlari</h5>
+                                        <ul>
+                                            @foreach (var doc in Model.WRHS_EXPENSE_DOCS)
+                                            {
+                                                <li>
+                                                    <a href="@Url.Action("DownloadDoc", "Expenses", new { id = doc.ID })" target="_blank">
+                                                        <i class="bx bx-file"></i> Hujjat #@doc.ID
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

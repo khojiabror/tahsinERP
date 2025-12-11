@@ -1,19 +1,226 @@
-﻿@model tahsinERP.ViewModels.Home.StatisticsVM
 @{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Bosh sahifa - Dashboard";
 }
 <!-- BEGIN: Content-->
 <div class="app-content content">
     <div class="content-overlay"></div>
     <div class="content-wrapper">
         <div class="content-header row">
+            <div class="content-header-left col-12 mb-2">
+                <div class="row breadcrumbs-top">
+                    @*<div class="col-12">
+                        <h2 class="content-header-title float-left mb-0">Dashboard</h2>
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb p-0 mb-0">
+                                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item active">Dashboard</li>
+                            </ol>
+                        </div>
+                    </div>*@
+                </div>
+            </div>
         </div>
         <div class="content-body">
             <!-- Dashboard Analytics Start -->
             <section id="dashboard-ecommerce">
+                <!-- Statistics Cards -->
                 <div class="row">
-                    <div class="col-xl-4 col-12 dashboard-users">
-                        <div class="row  ">
+                    <!-- Finance Statistics -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-start pb-0">
+                                <div>
+                                    <h2 class="font-weight-bolder mb-0" id="finance-total">0</h2>
+                                    <p class="card-text">Moliya (Jami)</p>
+                                </div>
+                                <div class="avatar bg-rgba-primary p-50 m-0">
+                                    <div class="avatar-content">
+                                        <i class="bx bx-dollar font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CRM Statistics -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-start pb-0">
+                                <div>
+                                    <h2 class="font-weight-bolder mb-0" id="crm-orders">0</h2>
+                                    <p class="card-text">CRM (Buyurtmalar)</p>
+                                </div>
+                                <div class="avatar bg-rgba-success p-50 m-0">
+                                    <div class="avatar-content">
+                                        <i class="bx bx-cart font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- SRM Statistics -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-start pb-0">
+                                <div>
+                                    <h2 class="font-weight-bolder mb-0" id="srm-materials">0</h2>
+                                    <p class="card-text">SRM (Materiallar)</p>
+                                </div>
+                                <div class="avatar bg-rgba-warning p-50 m-0">
+                                    <div class="avatar-content">
+                                        <i class="bx bx-package font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- MES Statistics -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-start pb-0">
+                                <div>
+                                    <h2 class="font-weight-bolder mb-0" id="mes-plans">0</h2>
+                                    <p class="card-text">MES (Rejalar)</p>
+                                </div>
+                                <div class="avatar bg-rgba-danger p-50 m-0">
+                                    <div class="avatar-content">
+                                        <i class="bx bx-cog font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finance Module Charts -->
+                <div class="row match-height">
+                    <!-- Finance Plan vs Fact Chart -->
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Moliya - Reja vs Haqiqat</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="finance-plan-vs-fact-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Finance Cash Summary Chart -->
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Moliya - Naqd pul hisoboti</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="finance-cash-summary-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CRM Module Charts -->
+                <div class="row match-height">
+                    <!-- CRM Sales Orders Chart -->
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">CRM - Sotuv buyurtmalari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="crm-sales-orders-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CRM Customers Statistics -->
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">CRM - Mijozlar statistikasi</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="crm-customers-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SRM Module Charts -->
+                <div class="row match-height">
+                    <!-- SRM Product Stocks Chart -->
+                    <div class="col-lg-12 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">SRM - Maxsulot qoldiqlari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="srm-material-requirements-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MES Module Charts -->
+                <div class="row match-height">
+                    <!-- MES Production Plans Chart -->
+                    <div class="col-lg-12 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">MES - Ishlab chiqarish rejalari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="mes-production-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HR, Tasks, Documents Statistics -->
+                <div class="row match-height">
+                    <div class="col-lg-4 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">HR Moduli</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="hr-stats-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Vazifalar Moduli</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="tasks-stats-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Hujjatlar Moduli</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="documents-stats-chart"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -23,11 +230,333 @@
             @if (ViewBag.ShowCookieConsent)
             {
                 <script>
-    $(document).ready(function () {
+                    $(document).ready(function () {
                         $("#cookieConsent").modal('show');
-                    });</script>
+                    });
+                </script>
             }
         </div>
     </div>
 </div>
 <!-- END: Content-->
+
+<!-- BEGIN: Page Vendor JS-->
+<script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+<!-- END: Page Vendor JS-->
+<!-- BEGIN: Page JS-->
+<script src="~/app-assets/js/scripts/pages/dashboard-ecommerce.js"></script>
+<!-- END: Page JS-->
+
+<script>
+    $(window).on("load", function () {
+        var $primary = '#5A8DEE';
+        var $danger = '#FF5B5C';
+        var $warning = '#FDAC41';
+        var $info = '#00CFDD';
+        var $success = '#39DA8A';
+        var $secondary = '#828D99';
+
+        // Finance Plan vs Fact Chart
+        $.get('/Home/GetFinancePlanVsFact', function (data) {
+            if (data && data.length > 0) {
+                var periods = data.map(x => x.period);
+                var planData = data.map(x => x.plan);
+                var factData = data.map(x => x.fact);
+
+                var financePlanVsFactOptions = {
+                    chart: {
+                        height: 350,
+                        type: 'line',
+                        zoom: { enabled: false }
+                    },
+                    colors: [$primary, $success],
+                    dataLabels: { enabled: false },
+                    stroke: { curve: 'smooth', width: 3 },
+                    series: [
+                        { name: 'Reja', data: planData },
+                        { name: 'Haqiqat', data: factData }
+                    ],
+                    title: { text: 'Moliya - Reja vs Haqiqat', align: 'left' },
+                    grid: { row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } },
+                    xaxis: { categories: periods },
+                    yaxis: { title: { text: 'Summa' } },
+                    legend: { position: 'top', horizontalAlign: 'right' }
+                };
+
+                var financePlanVsFactChart = new ApexCharts(
+                    document.querySelector("#finance-plan-vs-fact-chart"),
+                    financePlanVsFactOptions
+                );
+                financePlanVsFactChart.render();
+            }
+        });
+
+        // Finance Cash Summary Chart
+        $.get('/Home/GetFinanceCashSummary', function (data) {
+            if (data && data.length > 0) {
+                var accountNames = data.map(x => x.accountName);
+                var closingBalances = data.map(x => x.closingBalance);
+
+                var financeCashSummaryOptions = {
+                    chart: {
+                        height: 350,
+                        type: 'bar'
+                    },
+                    colors: [$info],
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        }
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { show: true, width: 2, colors: ['transparent'] },
+                    series: [{ name: 'Yopilish balansi', data: closingBalances }],
+                    xaxis: { categories: accountNames },
+                    yaxis: { title: { text: 'Summa' } },
+                    fill: { opacity: 1 },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val.toLocaleString() + " so'm"
+                            }
+                        }
+                    }
+                };
+
+                var financeCashSummaryChart = new ApexCharts(
+                    document.querySelector("#finance-cash-summary-chart"),
+                    financeCashSummaryOptions
+                );
+                financeCashSummaryChart.render();
+            }
+        });
+
+        // CRM Sales Orders Chart
+        $.get('/Home/GetCRMSalesOrdersStats', function (data) {
+            if (data && data.length > 0) {
+                var periods = data.map(x => x.period);
+                var orderCounts = data.map(x => x.orderCount);
+                var totalAmounts = data.map(x => x.totalAmount);
+
+                var crmSalesOrdersOptions = {
+                    chart: {
+                        height: 350,
+                        type: 'bar'
+                    },
+                    colors: [$success, $primary],
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        }
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { show: true, width: 2, colors: ['transparent'] },
+                    series: [
+                        { name: 'Buyurtmalar soni', data: orderCounts },
+                        { name: 'Jami summa', data: totalAmounts }
+                    ],
+                    xaxis: { categories: periods },
+                    yaxis: { title: { text: 'Qiymat' } },
+                    fill: { opacity: 1 },
+                    legend: { position: 'top', horizontalAlign: 'right' }
+                };
+
+                var crmSalesOrdersChart = new ApexCharts(
+                    document.querySelector("#crm-sales-orders-chart"),
+                    crmSalesOrdersOptions
+                );
+                crmSalesOrdersChart.render();
+            }
+        });
+
+        // CRM Customers Statistics
+        $.get('/Home/GetCRMCustomersStats', function (data) {
+            if (data) {
+                var crmCustomersOptions = {
+                    chart: {
+                        height: 350,
+                        type: 'radialBar'
+                    },
+                    colors: [$success, $primary, $warning],
+                    series: [data.totalCustomers, data.activeCustomers, data.totalOrders],
+                    plotOptions: {
+                        radialBar: {
+                            offsetY: -10,
+                            hollow: { size: '40%' },
+                            track: { margin: 10, background: '#fff' },
+                            dataLabels: {
+                                name: { fontSize: '15px', offsetY: 25 },
+                                value: { fontSize: '30px', offsetY: -15 }
+                            }
+                        }
+                    },
+                    stroke: { lineCap: 'round' },
+                    labels: ['Jami mijozlar', 'Faol mijozlar', 'Buyurtmalar']
+                };
+
+                var crmCustomersChart = new ApexCharts(
+                    document.querySelector("#crm-customers-chart"),
+                    crmCustomersOptions
+                );
+                crmCustomersChart.render();
+
+                $('#crm-orders').text(data.totalOrders);
+            }
+        });
+
+        // SRM Product Stocks Chart
+        $.get('/Home/GetSRMMaterialRequirements', function (data) {
+            if (data && data.length > 0) {
+                var productNos = data.map(x => x.productNo);
+                var stocks = data.map(x => x.totalStock);
+
+                var srmMaterialRequirementsOptions = {
+                    chart: {
+                        height: 350,
+                        type: 'bar',
+                        horizontal: true
+                    },
+                    colors: [$warning],
+                    plotOptions: {
+                        bar: { horizontal: true }
+                    },
+                    dataLabels: { enabled: false },
+                    series: [{ name: 'Qoldiq', data: stocks }],
+                    xaxis: { categories: productNos, tickAmount: 5 },
+                    title: { text: 'Top 10 Maxsulot qoldiqlari', align: 'left' },
+                    yaxis: { title: { text: 'Miqdor' } }
+                };
+
+                var srmMaterialRequirementsChart = new ApexCharts(
+                    document.querySelector("#srm-material-requirements-chart"),
+                    srmMaterialRequirementsOptions
+                );
+                srmMaterialRequirementsChart.render();
+
+                $('#srm-materials').text(data.length);
+            }
+        });
+
+        // MES Production Plans Chart
+        $.get('/Home/GetMESProductionStats', function (data) {
+            if (data && data.length > 0) {
+                var periods = data.map(x => x.period);
+                var planCounts = data.map(x => x.planCount);
+                var totalQuantities = data.map(x => x.totalQuantity);
+
+                var mesProductionOptions = {
+                    chart: {
+                        height: 350,
+                        type: 'area',
+                        zoom: { enabled: false }
+                    },
+                    colors: [$danger, $primary],
+                    dataLabels: { enabled: false },
+                    stroke: { curve: 'smooth', width: 3 },
+                    series: [
+                        { name: 'Rejalar soni', data: planCounts },
+                        { name: 'Jami miqdor', data: totalQuantities }
+                    ],
+                    xaxis: { categories: periods },
+                    yaxis: { title: { text: 'Qiymat' } },
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.9 } },
+                    legend: { position: 'top', horizontalAlign: 'right' }
+                };
+
+                var mesProductionChart = new ApexCharts(
+                    document.querySelector("#mes-production-chart"),
+                    mesProductionOptions
+                );
+                mesProductionChart.render();
+
+                $('#mes-plans').text(data.reduce((sum, x) => sum + x.planCount, 0));
+            }
+        });
+
+        // HR Statistics
+        $.get('/Home/GetHRStats', function (data) {
+            if (data) {
+                var hrStatsOptions = {
+                    chart: {
+                        height: 250,
+                        type: 'donut'
+                    },
+                    colors: [$primary, $success, $warning],
+                    series: [data.totalEmployees, data.activeEmployees, data.totalDepartments],
+                    labels: ['Jami xodimlar', 'Faol xodimlar', 'Bo\'limlar'],
+                    legend: { position: 'bottom' }
+                };
+
+                var hrStatsChart = new ApexCharts(
+                    document.querySelector("#hr-stats-chart"),
+                    hrStatsOptions
+                );
+                hrStatsChart.render();
+            }
+        });
+
+        // Tasks Statistics
+        $.get('/Home/GetTasksStats', function (data) {
+            if (data) {
+                var tasksStatsOptions = {
+                    chart: {
+                        height: 250,
+                        type: 'donut'
+                    },
+                    colors: [$info, $success, $warning],
+                    series: [data.totalTasks, data.completedTasks, data.pendingTasks],
+                    labels: ['Jami vazifalar', 'Bajarilgan', 'Kutilayotgan'],
+                    legend: { position: 'bottom' }
+                };
+
+                var tasksStatsChart = new ApexCharts(
+                    document.querySelector("#tasks-stats-chart"),
+                    tasksStatsOptions
+                );
+                tasksStatsChart.render();
+            }
+        });
+
+        // Documents Statistics
+        $.get('/Home/GetDocumentsStats', function (data) {
+            if (data) {
+                var documentsStatsOptions = {
+                    chart: {
+                        height: 250,
+                        type: 'radialBar'
+                    },
+                    colors: [$secondary],
+                    series: [data.totalDocuments],
+                    plotOptions: {
+                        radialBar: {
+                            hollow: { size: '70%' },
+                            dataLabels: {
+                                name: { fontSize: '16px', offsetY: -10 },
+                                value: { fontSize: '24px', offsetY: 10 }
+                            }
+                        }
+                    },
+                    labels: ['Jami hujjatlar']
+                };
+
+                var documentsStatsChart = new ApexCharts(
+                    document.querySelector("#documents-stats-chart"),
+                    documentsStatsOptions
+                );
+                documentsStatsChart.render();
+            }
+        });
+
+        // Update Finance Total
+        $.get('/Home/GetFinancePlanVsFact', function (data) {
+            if (data && data.length > 0) {
+                var total = data.reduce((sum, x) => sum + x.fact, 0);
+                $('#finance-total').text(total.toLocaleString());
+            }
+        });
+    });
+</script>

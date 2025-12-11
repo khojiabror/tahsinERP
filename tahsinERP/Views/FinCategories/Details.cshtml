@@ -1,0 +1,100 @@
+@model tahsinERP.Models.FIN_CATEGORIES
+
+@{
+    ViewBag.Title = "Kategoriya tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories");
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinCategories">Kategoriyalar</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Kategoriya tafsilotlari</h4>
+                                @if (changePermit)
+                                {
+                                    <div class="heading-elements">
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Nomi:</dt>
+                                        <dd class="col-sm-8">@Model.Name</dd>
+                                        
+                                        <dt class="col-sm-4">Turi:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.Type == 1)
+                                            { <span class="badge badge-success">Daromad</span> }
+                                            else if (Model.Type == 2)
+                                            { <span class="badge badge-danger">Chiqim</span> }
+                                            else
+                                            { <span class="badge badge-secondary">Boshqa</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Ota kategoriya:</dt>
+                                        <dd class="col-sm-8">@(Model.FIN_CATEGORIES2?.Name ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Tartib raqami:</dt>
+                                        <dd class="col-sm-8">@Model.SortOrder</dd>
+                                        
+                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.IsActive)
+                                            { <span class="badge badge-success">Faol</span> }
+                                            else
+                                            { <span class="badge badge-danger">Nofaol</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Tranzaksiyalar soni:</dt>
+                                        <dd class="col-sm-8">@ViewBag.TransactionCount ta</dd>
+                                    </dl>
+                                    
+                                    @if (ViewBag.ChildCategories != null && ((List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.ChildCategories).Any())
+                                    {
+                                        <h5 class="mt-3">Kichik kategoriyalar:</h5>
+                                        <ul>
+                                            @foreach (var child in (List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.ChildCategories)
+                                            {
+                                                <li><a href="@Url.Action("Details", new { id = child.ID })">@child.Name</a></li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

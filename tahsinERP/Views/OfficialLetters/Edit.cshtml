@@ -1,0 +1,224 @@
+@model tahsinERP.ViewModels.OfficialLetterEditVm
+@{
+    ViewBag.Title = "Maktubni Tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Rasmiy Maktublar</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Edit", "OfficialLetters", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.DocumentId)
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.LetterNo, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.LetterNo, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.LetterNo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.LetterDate, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.LetterDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
+                                                    @Html.ValidationMessageFor(m => m.LetterDate, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.DirectionCode, new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.DirectionCode, Model.Directions, "Tanlang", new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.DirectionCode, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ChannelCode, new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.ChannelCode, Model.Channels, "Tanlang", new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.ChannelCode, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ExternalCompanyName, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ExternalCompanyName, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.ExternalCompanyName, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ExternalContactName, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ExternalContactName, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.ExternalContactName, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.OurRefNo, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.OurRefNo, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.OurRefNo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.TheirRefNo, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.TheirRefNo, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.TheirRefNo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Topic, new { @class = "control-label" })
+                                            @Html.TextBoxFor(m => m.Topic, new { @class = "form-control", @id = "TopicInput" })
+                                            @Html.ValidationMessageFor(m => m.Topic, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label">Salomlashish</label>
+                                            @Html.TextBoxFor(m => m.GreetingLine, new { @class = "form-control", @id = "GreetingInput" })
+                                            @Html.ValidationMessageFor(m => m.GreetingLine, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label">Asosiy matn</label>
+                                            <div class="input-group">
+                                                @Html.TextAreaFor(m => m.BodyText, new { @class = "form-control", @rows = "10", @id = "BodyTextArea" })
+                                                <div class="input-group-append">
+                                                    <button type="button" class="btn btn-info" id="btnSuggestText">
+                                                        <i class="bx bx-bulb"></i> Matn taklif qilish
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @Html.ValidationMessageFor(m => m.BodyText, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ItemName, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ItemName, new { @class = "form-control" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ItemSize, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ItemSize, new { @class = "form-control" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ItemPrice, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ItemPrice, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ItemPriceWithVAT, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ItemPriceWithVAT, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save"></i> Saqlash
+                                            </button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#btnSuggestText').click(function() {
+                var directionCode = $('#DirectionCode').val();
+                var externalCompanyName = $('#ExternalCompanyName').val();
+                var externalContactName = $('#ExternalContactName').val();
+                var topic = $('#TopicInput').val();
+                var letterDate = $('#LetterDate').val();
+                var ourRefNo = $('#OurRefNo').val();
+                var theirRefNo = $('#TheirRefNo').val();
+
+                $.ajax({
+                    url: '@Url.Action("SuggestText", "OfficialLetters")',
+                    type: 'POST',
+                    data: {
+                        directionCode: directionCode,
+                        externalCompanyName: externalCompanyName,
+                        externalContactName: externalContactName,
+                        topic: topic,
+                        letterDate: letterDate,
+                        ourRefNo: ourRefNo,
+                        theirRefNo: theirRefNo
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#BodyTextArea').val(response.text);
+                            if (externalContactName) {
+                                $('#GreetingInput').val('Hurmatli ' + externalContactName + '!');
+                            }
+                        } else {
+                            alert('Xatolik: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Xatolik yuz berdi');
+                    }
+                });
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

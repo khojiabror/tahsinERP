@@ -1,0 +1,357 @@
+@model tahsinERP.Controllers.InventoryDashboardViewModel
+@{
+    ViewBag.Title = "Ombor hisobotlari - DOH Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Ombor hisobotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <!-- Filters -->
+                    <div class="users-list-filter px-1">
+                        @using (Html.BeginForm("Dashboard", "InventoryReports", FormMethod.Get, new { @class = "form" }))
+                        {
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Ombor</label>
+                                    @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Kategoriya</label>
+                                    @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Dan</label>
+                                    <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Gacha</label>
+                                    <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bx bx-search"></i> Qidirish
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row">
+                        <!-- High DOH Items -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title text-warning">Yuqori DOH (Ortiqcha zaxira)</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Ombor</th>
+                                                        <th>Qoldiq</th>
+                                                        <th>DOH (kun)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.HighDOHItems != null && Model.HighDOHItems.Any())
+                                                    {
+                                                        foreach (var item in Model.HighDOHItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ProductPNo - @item.ProductName</td>
+                                                                <td>@item.WarehouseName</td>
+                                                                <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
+                                                                <td><strong>@(item.DOH?.ToString("N1") ?? "-")</strong></td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Low DOH Items -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title text-danger">Past DOH (Zaxira xavfi)</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Ombor</th>
+                                                        <th>Qoldiq</th>
+                                                        <th>DOH (kun)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.LowDOHItems != null && Model.LowDOHItems.Any())
+                                                    {
+                                                        foreach (var item in Model.LowDOHItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ProductPNo - @item.ProductName</td>
+                                                                <td>@item.WarehouseName</td>
+                                                                <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
+                                                                <td><strong class="text-danger">@(item.DOH?.ToString("N1") ?? "-")</strong></td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <!-- Stock Distribution by Category -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Kategoriya bo'yicha zaxira taqsimoti</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <canvas id="categoryChart" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inbound/Outbound Trends -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Kirim/Chiqim tendentsiyasi</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <canvas id="trendChart" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full Stock Table -->
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Barcha mahsulotlar DOH jadvali</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table id="dohTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot kodi</th>
+                                                        <th>Mahsulot nomi</th>
+                                                        <th>Kategoriya</th>
+                                                        <th>Ombor</th>
+                                                        <th>Joriy qoldiq</th>
+                                                        <th>O'rtacha kunlik sarf</th>
+                                                        <th>DOH (kun)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.StockItems != null && Model.StockItems.Any())
+                                                    {
+                                                        foreach (var item in Model.StockItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ProductPNo</td>
+                                                                <td>@item.ProductName</td>
+                                                                <td>@item.CategoryName</td>
+                                                                <td>@item.WarehouseName</td>
+                                                                <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
+                                                                <td>@item.AverageDailyConsumption.ToString("N2") @item.UnitName</td>
+                                                                <td>
+                                                                    @if (item.DOH.HasValue)
+                                                                    {
+                                                                        if (item.DOH.Value < 30)
+                                                                        {
+                                                                            <span class="badge badge-danger">@item.DOH.Value.ToString("N1")</span>
+                                                                        }
+                                                                        else if (item.DOH.Value > 60)
+                                                                        {
+                                                                            <span class="badge badge-warning">@item.DOH.Value.ToString("N1")</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="badge badge-success">@item.DOH.Value.ToString("N1")</span>
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">-</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            $('#dohTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[6, "desc"]]
+            });
+
+            // Category Distribution Chart
+            var categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            var categoryData = @Html.Raw(Json.Encode(Model.StockByCategory.Select(c => new { CategoryName = c.CategoryName, TotalStock = c.TotalStock })));
+            
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(c => c.CategoryName),
+                    datasets: [{
+                        data: categoryData.map(c => c.TotalStock),
+                        backgroundColor: [
+                            'rgba(115, 103, 240, 0.8)',
+                            'rgba(40, 199, 111, 0.8)',
+                            'rgba(255, 159, 64, 0.8)',
+                            'rgba(234, 84, 85, 0.8)',
+                            'rgba(0, 207, 232, 0.8)',
+                            'rgba(255, 99, 132, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Trend Chart
+            var trendCtx = document.getElementById('trendChart').getContext('2d');
+            var inboundData = @Html.Raw(Json.Encode(Model.InboundTrends.Select(t => new { Date = t.Date.ToString("yyyy-MM-dd"), Amount = t.Amount })));
+            var outboundData = @Html.Raw(Json.Encode(Model.OutboundTrends.Select(t => new { Date = t.Date.ToString("yyyy-MM-dd"), Amount = t.Amount })));
+            
+            // Group by date
+            var dates = [...new Set([...inboundData.map(d => d.Date), ...outboundData.map(d => d.Date)])].sort();
+            var inboundAmounts = dates.map(date => {
+                var item = inboundData.find(d => d.Date === date);
+                return item ? item.Amount : 0;
+            });
+            var outboundAmounts = dates.map(date => {
+                var item = outboundData.find(d => d.Date === date);
+                return item ? item.Amount : 0;
+            });
+
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Kirim',
+                            data: inboundAmounts,
+                            borderColor: 'rgba(40, 199, 111, 1)',
+                            backgroundColor: 'rgba(40, 199, 111, 0.2)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Chiqim',
+                            data: outboundAmounts,
+                            borderColor: 'rgba(234, 84, 85, 1)',
+                            backgroundColor: 'rgba(234, 84, 85, 0.2)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

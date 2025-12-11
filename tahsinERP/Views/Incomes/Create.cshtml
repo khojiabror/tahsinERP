@@ -1,0 +1,255 @@
+@model tahsinERP.Controllers.IncomeCreateViewModel
+@{
+    ViewBag.Title = "Yangi ombor kirimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Incomes/Index">Ombor kirimlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Yangi kirim
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Create", "Incomes", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "incomeForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="DocNo">Hujjat raqami</label>
+                                                    @Html.TextBoxFor(model => model.DocNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                    @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
+                                                    <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IssueDateTime">Sana va vaqt</label>
+                                                    @Html.TextBoxFor(model => model.IssueDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssueDateTime, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="InvoiceID">Invoys</label>
+                                                    @Html.DropDownListFor(model => model.InvoiceID, ViewBag.Invoices as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "invoiceSelect" })
+                                                    @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <button type="button" class="btn btn-outline-primary mt-2" id="loadInvoiceBtn" style="display:none;">
+                                                        <i class="bx bx-refresh"></i> Invoys mahsulotlarini yuklash
+                                                    </button>
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="ReceivingWHID">Qabul qiluvchi ombor</label>
+                                                    @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.ReceivingWHID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CurrencyID">Valyuta</label>
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-6 col-12 form-group">
+                                                    <label for="Description">Izoh</label>
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
+                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-6 col-12 form-group">
+                                                    <label for="incomeFile">Kirim hujjati (PDF)</label>
+                                                    <input type="file" name="incomeFile" id="incomeFile" class="form-control" accept=".pdf" />
+                                                </div>
+                                            </div>
+
+                                            <br />
+                                            <h5>Kirim mahsulotlari</h5>
+                                            
+                                            <div class="table-responsive">
+                                                <table id="incomeProductsTable" class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot kodi</th>
+                                                            <th>Mahsulot nomi</th>
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Dona narxi</th>
+                                                            <th>Jami</th>
+                                                            <th>Izoh</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="5" class="text-right"><strong>Jami:</strong></td>
+                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                            <td colspan="2"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                        <i class="bx bx-plus"></i> Qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "Incomes")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2();
+
+            var productRowIndex = 0;
+            var allProducts = []; // Will be loaded via AJAX when needed
+
+            $('#invoiceSelect').on('change', function () {
+                if ($(this).val()) {
+                    $('#loadInvoiceBtn').show();
+                } else {
+                    $('#loadInvoiceBtn').hide();
+                }
+            });
+
+            $('#loadInvoiceBtn').click(function () {
+                var invoiceId = $('#invoiceSelect').val();
+                if (!invoiceId) {
+                    alert('Invoysni tanlang');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("LoadInvoiceProducts", "Incomes")',
+                    type: 'POST',
+                    data: { invoiceId: invoiceId },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#incomeProductsTable tbody').empty();
+                            productRowIndex = 0;
+
+                            response.data.forEach(function (item) {
+                                addProductRow(item.ProductID, item.ProductPNo, item.ProductName, 
+                                             item.Amount, item.UnitID, item.PiecePrice, item.TotalPrice, '');
+                            });
+
+                            updateTotal();
+                            alert('Invoys mahsulotlari muvaffaqiyatli yuklandi');
+                        } else {
+                            alert('Xatolik: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Server xatoligi yuz berdi');
+                    }
+                });
+            });
+
+            $('#addRowBtn').click(function () {
+                addProductRow(null, '', '', 0, null, 0, 0, '');
+            });
+
+            function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment) {
+                // For manual addition, we'll need to load products list
+                // For now, using a simple input approach
+                var row = '<tr data-row-index="' + productRowIndex + '">' +
+                    '<td>' +
+                        '<input type="text" name="IncomeProducts[' + productRowIndex + '].ProductPNo" class="form-control product-pno" value="' + (productPNo || '') + '" placeholder="Mahsulot kodi" required />' +
+                        '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductID" class="product-id" value="' + (productId || '') + '" />' +
+                    '</td>' +
+                    '<td>' +
+                        '<input type="text" name="IncomeProducts[' + productRowIndex + '].ProductName" class="form-control product-name" value="' + (productName || '') + '" placeholder="Mahsulot nomi" readonly />' +
+                    '</td>' +
+                    '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + (amount || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].UnitID" class="form-control unit-id" value="' + (unitId || '') + '" placeholder="Birlik ID" required /></td>' +
+                    '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].PiecePrice" class="form-control price-input" value="' + (piecePrice || 0) + '" step="0.01" min="0" /></td>' +
+                    '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="' + (totalPrice || 0) + '" readonly /></td>' +
+                    '<td><input type="text" name="IncomeProducts[' + productRowIndex + '].Comment" class="form-control" value="' + (comment || '') + '" /></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                    '</tr>';
+
+                $('#incomeProductsTable tbody').append(row);
+                productRowIndex++;
+            }
+
+            $(document).on('click', '.remove-row', function () {
+                $(this).closest('tr').remove();
+                updateTotal();
+            });
+
+            $(document).on('input', '.amount-input, .price-input', function () {
+                var $row = $(this).closest('tr');
+                var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                var price = parseFloat($row.find('.price-input').val()) || 0;
+                var total = amount * price;
+                $row.find('.total-price').val(total.toFixed(2));
+                updateTotal();
+            });
+
+            function updateTotal() {
+                var total = 0;
+                $('.total-price').each(function () {
+                    total += parseFloat($(this).val()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+            }
+
+            $('#incomeForm').submit(function (e) {
+                if ($('#incomeProductsTable tbody tr').length === 0) {
+                    e.preventDefault();
+                    alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                    return false;
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

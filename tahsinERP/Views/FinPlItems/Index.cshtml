@@ -1,0 +1,139 @@
+@model List<tahsinERP.Controllers.Finance.PlItemTreeItem>
+
+@{
+    ViewBag.Title = "P&L elementlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems");
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">P&L elementlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/FinPlItems/Create';">
+                                <span class="align-middle ml-25">P&L element qo'shish</span>
+                            </button>
+                        </div>
+                    }
+                    
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <input type="text" name="searchTerm" class="form-control" placeholder="Qidirish..." value="@ViewBag.SearchTerm" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary">Qidirish</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                
+                                <div class="table-responsive">
+                                    <table id="plItemsTable" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Kod</th>
+                                                <th>Nomi</th>
+                                                <th>Belgi</th>
+                                                <th>Ota element</th>
+                                                <th>Tartib</th>
+                                                <th>Holati</th>
+                                                @if (changePermit)
+                                                {
+                                                    <th>Amallar</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var treeItem in Model)
+                                            {
+                                                @RenderItemRow(treeItem, 0, changePermit)
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@helper RenderItemRow(tahsinERP.Controllers.Finance.PlItemTreeItem treeItem, int level, bool changePermit)
+{
+    var item = treeItem.Item;
+    var indent = level * 20;
+    <tr>
+        <td style="padding-left: @(indent)px;">
+            @if (level > 0)
+            {
+                <i class="bx bx-right-arrow-alt"></i>
+            }
+            @item.Code
+        </td>
+        <td>
+            <a href="@Url.Action("Details", new { id = item.ID })">@item.Name</a>
+        </td>
+        <td>
+            @if (item.Sign == 1)
+            { <span class="badge badge-success">+ (Musbat)</span> }
+            else
+            { <span class="badge badge-danger">- (Manfiy)</span> }
+        </td>
+        <td>@(item.FIN_PL_ITEMS2?.Name ?? "-")</td>
+        <td>@item.SortOrder</td>
+        <td>
+            @if (item.IsActive)
+            { <span class="badge badge-success">Faol</span> }
+            else
+            { <span class="badge badge-danger">Nofaol</span> }
+        </td>
+        @if (changePermit)
+        {
+            <td>
+                <a href="@Url.Action("Details", new { id = item.ID })"><i class="bx bx-show"></i></a>
+                <a href="@Url.Action("Edit", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
+                <a href="@Url.Action("Delete", new { id = item.ID })"><i class="bx bx-trash"></i></a>
+                <a href="@Url.Action("MapCategories", new { id = item.ID })" title="Kategoriyalarni bog'lash"><i class="bx bx-link"></i></a>
+                <a href="@Url.Action("Create", new { parentID = item.ID })" title="Kichik element qo'shish"><i class="bx bx-plus-circle"></i></a>
+            </td>
+        }
+    </tr>
+    if (treeItem.Children != null && treeItem.Children.Any())
+    {
+        foreach (var child in treeItem.Children)
+        {
+            @RenderItemRow(child, level + 1, changePermit)
+        }
+    }
+}

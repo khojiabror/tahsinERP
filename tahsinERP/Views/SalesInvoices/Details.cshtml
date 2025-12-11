@@ -64,6 +64,11 @@
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = order.ID })">@order.OrderNo</a>
                                                             </span><br />
                                                         }
+                                                        <div class="mt-2">
+                                                            <a href="@Url.Action("Print", new { id = Model.ID })" target="_blank" class="btn btn-primary">
+                                                                <i class="bx bx-printer"></i> Chop etish
+                                                            </a>
+                                                        </div>
                                                         @if (contract != null)
                                                         {
                                                             <span><b>Shartnoma</b>: 

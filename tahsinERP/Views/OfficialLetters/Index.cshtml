@@ -1,0 +1,165 @@
+@model List<tahsinERP.ViewModels.OfficialLetterIndexVm>
+@{
+    ViewBag.Title = "Rasmiy Maktublar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Rasmiy Maktublar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "OfficialLetters")" class="btn btn-success bg-light invoice-create" role="button">
+                                <i class="bx bx-plus"></i> Yangi Maktub
+                            </a>
+                        </div>
+                    }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        </div>
+                    }
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <!-- Search and Filter -->
+                                    <div class="users-list-filter px-1">
+                                        <form method="get" action="@Url.Action("Index")">
+                                            <div class="row border rounded py-2 mb-2">
+                                                <div class="col-12 col-sm-6 col-lg-3">
+                                                    <label>Qidirish</label>
+                                                    <input type="text" name="topicSearch" class="form-control" value="@ViewBag.TopicSearch" placeholder="Mavzu, kompaniya..." />
+                                                </div>
+                                                <div class="col-12 col-sm-6 col-lg-2">
+                                                    <label>Yil</label>
+                                                    @Html.DropDownList("year", ViewBag.Years as SelectList, "Barchasi", new { @class = "form-control" })
+                                                </div>
+                                                <div class="col-12 col-sm-6 col-lg-2">
+                                                    <label>Yo'nalish</label>
+                                                    @Html.DropDownList("directionCode", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
+                                                </div>
+                                                <div class="col-12 col-sm-6 col-lg-1">
+                                                    <label>&nbsp;</label>
+                                                    <button type="submit" class="btn btn-primary btn-block">Qidirish</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <!-- datatable start -->
+                                    <div class="card-datatable table-responsive">
+                                        <table id="officialLettersTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Raqam</th>
+                                                    <th>Sana</th>
+                                                    <th>Yo'nalish</th>
+                                                    <th>Kompaniya</th>
+                                                    <th>Kontakt</th>
+                                                    <th>Mavzu</th>
+                                                    <th>Holat</th>
+                                                    <th>Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>@item.LetterNo</td>
+                                                            <td>@item.LetterDate.ToString("dd.MM.yyyy")</td>
+                                                            <td><span class="badge badge-@(item.DirectionCode == "OUT" ? "primary" : "secondary")">@(item.DirectionCode == "OUT" ? "Chiqish" : "Kirish")</span></td>
+                                                            <td>@(item.ExternalCompanyName ?? "-")</td>
+                                                            <td>@(item.ExternalContactName ?? "-")</td>
+                                                            <td>@item.Topic</td>
+                                                            <td><span class="badge badge-info">@item.StatusName</span></td>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", new { id = item.DocumentId })" class="btn btn-sm btn-info" title="Ko'rish">
+                                                                    <i class="bx bx-show"></i>
+                                                                </a>
+                                                                @if (changePermit)
+                                                                {
+                                                                    <a href="@Url.Action("Edit", new { id = item.DocumentId })" class="btn btn-sm btn-warning" title="Tahrirlash">
+                                                                        <i class="bx bx-edit"></i>
+                                                                    </a>
+                                                                    @using (Html.BeginForm("Delete", "OfficialLetters", new { id = item.DocumentId }, FormMethod.Post, new { @style = "display:inline;" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-danger" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?');">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    }
+                                                                    <a href="@Url.Action("GenerateDoc", new { id = item.DocumentId })" class="btn btn-sm btn-success" title="Hujjat yaratish" onclick="return confirm('Hujjat yaratilsinmi?');">
+                                                                        <i class="bx bx-file"></i>
+                                                                    </a>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#officialLettersTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                },
+                "order": [[1, "desc"]],
+                "pageLength": 25
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

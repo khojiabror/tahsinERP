@@ -1,0 +1,231 @@
+@model tahsinERP.ViewModels.UserManualPageViewModel
+@{
+    ViewBag.Title = "Foydalanuvchi qo'llanmasi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Foydalanuvchi qo'llanmasi
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <div class="row">
+                <!-- Left Sidebar: Chapters List -->
+                <div class="col-md-3 col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Bo'limlar</h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- Search Box -->
+                            <div class="form-group">
+                                <input type="text" id="chapterSearch" class="form-control" placeholder="Bo'limlar bo'yicha qidirish..." />
+                            </div>
+                            <!-- Chapters List -->
+                            <ul class="list-group list-group-flush" id="chaptersList">
+                                @foreach (var chapter in Model.Chapters)
+                                {
+                                    <li class="list-group-item chapter-item @(chapter.Id == Model.InitialChapterId ? "active" : "")" 
+                                        data-chapter-id="@chapter.Id" 
+                                        style="cursor: pointer;">
+                                        <i class="bx bx-book-open mr-1"></i>
+                                        <span class="chapter-title">@chapter.Title</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Chapter Content -->
+                <div class="col-md-9 col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title" id="chapterTitle">@Model.Chapters.FirstOrDefault(c => c.Id == Model.InitialChapterId)?.Title</h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="chapterContent" class="user-manual-content">
+                                @Html.Raw(Model.Chapters.FirstOrDefault(c => c.Id == Model.InitialChapterId)?.ContentHtml)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Store chapters data for JavaScript -->
+<script type="text/javascript">
+    var chaptersData = @Html.Raw(Json.Encode(Model.Chapters.ToDictionary(c => c.Id, c => new { id = c.Id, title = c.Title, content = c.ContentHtml })));
+    var initialChapterId = "@Model.InitialChapterId";
+</script>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Chapter switching
+            $('.chapter-item').on('click', function () {
+                var chapterId = $(this).data('chapter-id');
+                loadChapter(chapterId);
+            });
+
+            // Search functionality
+            $('#chapterSearch').on('input', function () {
+                var searchText = $(this).val().toLowerCase();
+                filterChapters(searchText);
+            });
+
+            function loadChapter(chapterId) {
+                if (!chaptersData[chapterId]) {
+                    return;
+                }
+
+                var chapter = chaptersData[chapterId];
+
+                // Update active state
+                $('.chapter-item').removeClass('active');
+                $('.chapter-item[data-chapter-id="' + chapterId + '"]').addClass('active');
+
+                // Update content
+                $('#chapterTitle').text(chapter.title);
+                $('#chapterContent').html(chapter.content);
+
+                // Scroll to top
+                $('html, body').animate({
+                    scrollTop: $('.content-body').offset().top
+                }, 300);
+            }
+
+            function filterChapters(searchText) {
+                if (!searchText || searchText.trim() === '') {
+                    // Show all chapters
+                    $('.chapter-item').show();
+                } else {
+                    // Filter chapters
+                    $('.chapter-item').each(function () {
+                        var title = $(this).find('.chapter-title').text().toLowerCase();
+                        if (title.indexOf(searchText) !== -1) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }
+            }
+
+            // Initialize with initial chapter
+            if (initialChapterId) {
+                loadChapter(initialChapterId);
+            }
+        });
+    </script>
+
+    <style>
+        .user-manual-content {
+            line-height: 1.8;
+        }
+
+        .user-manual-content h2 {
+            color: #5e50ee;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .user-manual-content h3 {
+            color: #6c757d;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .user-manual-content h4 {
+            color: #6c757d;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .user-manual-content ul, .user-manual-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-manual-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .user-manual-content p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .user-manual-content code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .user-manual-content pre {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        .user-manual-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .chapter-item {
+            transition: all 0.2s ease;
+        }
+
+        .chapter-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .chapter-item.active {
+            background-color: #5e50ee;
+            color: white;
+        }
+
+        .chapter-item.active .chapter-title {
+            color: white;
+        }
+
+        .chapter-item.active i {
+            color: white;
+        }
+
+        #chapterSearch {
+            border-radius: 5px;
+        }
+    </style>
+}

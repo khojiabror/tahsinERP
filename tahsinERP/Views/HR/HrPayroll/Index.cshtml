@@ -1,0 +1,143 @@
+@model List<tahsinERP.ViewModels.HR.HrPayrollHeaderViewModel>
+@{
+    ViewBag.Title = "Расчет заработной платы";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Расчет заработной платы</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Расчет заработной платы</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (changePermit)
+                {
+                    <div class="invoice-create-btn mb-1">
+                        <a href="@Url.Action("Generate")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Создать расчет
+                        </a>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input type="number" name="year" class="form-control" value="@ViewBag.Year" placeholder="Год" min="2000" max="2100" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="month" class="form-control">
+                                            <option value="">Все месяцы</option>
+                                            @for (int i = 1; i <= 12; i++)
+                                            {
+                                                <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Все подразделения", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="status" class="form-control">
+                                            <option value="">Все статусы</option>
+                                            <option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>Черновик</option>
+                                            <option value="Approved" @(ViewBag.Status == "Approved" ? "selected" : "")>Утвержден</option>
+                                            <option value="Posted" @(ViewBag.Status == "Posted" ? "selected" : "")>Проведен</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="submit" class="btn btn-primary">Фильтр</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table id="payrollTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Год</th>
+                                            <th>Месяц</th>
+                                            <th>Подразделение</th>
+                                            <th>Статус</th>
+                                            <th>Сумма к выплате</th>
+                                            <th>Создан</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td>@item.Year</td>
+                                                <td>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month)</td>
+                                                <td>@(item.OrgUnitName ?? "Вся компания")</td>
+                                                <td>
+                                                    <span class="badge badge-@(item.Status == "Approved" ? "success" : item.Status == "Posted" ? "info" : "warning")">
+                                                        @(item.Status == "Draft" ? "Черновик" : item.Status == "Approved" ? "Утвержден" : "Проведен")
+                                                    </span>
+                                                </td>
+                                                <td>@item.TotalNetSalary.ToString("N2")</td>
+                                                <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
+                                                <td>
+                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Export", new { id = item.ID })" class="btn btn-sm btn-success">
+                                                        <i class="bx bx-export"></i>
+                                                    </a>
+                                                    @if (changePermit && item.Status == "Draft")
+                                                    {
+                                                        <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Утвердить расчет?');">
+                                                            <i class="bx bx-check"></i>
+                                                        </a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#payrollTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                },
+                "pageLength": 25,
+                "order": [[0, "desc"], [1, "desc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

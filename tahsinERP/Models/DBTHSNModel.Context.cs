@@ -90,8 +90,6 @@ namespace tahsinERP.Models
         public virtual DbSet<WRHS_EXPENSE_DOCS> WRHS_EXPENSE_DOCS { get; set; }
         public virtual DbSet<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual DbSet<BOMS_AND_NORMS> BOMS_AND_NORMS { get; set; }
-        public virtual DbSet<CarPlanRequirement> CarPlanRequirements { get; set; }
-        public virtual DbSet<MaterialRequirement> MaterialRequirements { get; set; }
         public virtual DbSet<FIN_ACCOUNTS> FIN_ACCOUNTS { get; set; }
         public virtual DbSet<FIN_BALANCE_CATEGORIES> FIN_BALANCE_CATEGORIES { get; set; }
         public virtual DbSet<FIN_BALANCE_SNAPSHOTS> FIN_BALANCE_SNAPSHOTS { get; set; }
@@ -130,6 +128,15 @@ namespace tahsinERP.Models
         public virtual DbSet<SALES_TTNK_INVOICES> SALES_TTNK_INVOICES { get; set; }
         public virtual DbSet<SALES_TTNK_LINES> SALES_TTNK_LINES { get; set; }
         public virtual DbSet<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
+        public virtual DbSet<F_CONTRACT_TARIFFS> F_CONTRACT_TARIFFS { get; set; }
+        public virtual DbSet<F_WAYBILL_PAYMENT_SPLITS> F_WAYBILL_PAYMENT_SPLITS { get; set; }
+        public virtual DbSet<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }
+        public virtual DbSet<HR_PAYROLL_HEADERS> HR_PAYROLL_HEADERS { get; set; }
+        public virtual DbSet<HR_PAYROLL_LINES> HR_PAYROLL_LINES { get; set; }
+        public virtual DbSet<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS { get; set; }
+        public virtual DbSet<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
+        public virtual DbSet<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
     
         public virtual int GetCarPlanRequirements(string optionCode)
         {

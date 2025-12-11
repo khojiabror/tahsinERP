@@ -1,0 +1,251 @@
+@model tahsinERP.Controllers.PContractCreateViewModel
+@{
+    ViewBag.Title = "Yangi xarid shartnomasi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/PContracts/Index">Xarid shartnomalari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Yangi shartnoma
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Create", "PContracts", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "contractForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="ContractNo">Shartnoma raqami</label>
+                                                    @Html.TextBoxFor(model => model.ContractNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                    @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
+                                                    <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IssuedDate">Sana</label>
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CompanyID">Korxona</label>
+                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="SupplierID">Ta'minotchi</label>
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CurrencyID">Valyuta</label>
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="DueDate">Muddat</label>
+                                                    @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="Incoterms">Incoterms</label>
+                                                    @Html.TextBoxFor(model => model.Incoterms, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(model => model.Incoterms, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="PaymentTerms">To'lov shartlari</label>
+                                                    @Html.TextBoxFor(model => model.PaymentTerms, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(model => model.PaymentTerms, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IDN">IDN</label>
+                                                    @Html.TextBoxFor(model => model.IDN, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(model => model.IDN, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-9 col-12 form-group">
+                                                    <label for="contractFile">Shartnoma hujjati (PDF)</label>
+                                                    <input type="file" name="contractFile" id="contractFile" class="form-control" accept=".pdf" />
+                                                </div>
+                                            </div>
+
+                                            <br />
+                                            <h5>Shartnoma mahsulotlari</h5>
+                                            
+                                            <div class="table-responsive">
+                                                <table id="contractProductsTable" class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot</th>
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Narx</th>
+                                                            <th>Jami</th>
+                                                            <th>MOQ</th>
+                                                            <th>HS Code</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="4" class="text-right"><strong>Jami:</strong></td>
+                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                            <td colspan="3"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                        <i class="bx bx-plus"></i> Qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "PContracts")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2();
+
+            var productRowIndex = 0;
+            var purchasableProducts = @Html.Raw(Json.Encode((ViewBag.PurchasableProducts as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+            var units = @Html.Raw(Json.Encode((ViewBag.Units as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+            var hsCodes = @Html.Raw(Json.Encode((ViewBag.HSCodes as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+
+            $('#addRowBtn').click(function () {
+                addProductRow(null, 0, null, 0, null, null);
+            });
+
+            function addProductRow(productId, quantity, unitId, price, moq, hsCodeId) {
+                var row = '<tr data-row-index="' + productRowIndex + '">' +
+                    '<td>' +
+                        '<select name="ContractProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                
+                purchasableProducts.forEach(function (product) {
+                    var selected = product.Value == productId ? 'selected' : '';
+                    row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
+                });
+                
+                row += '</select></td>' +
+                    '<td><input type="number" name="ContractProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td>' +
+                        '<select name="ContractProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                
+                units.forEach(function (unit) {
+                    var selected = unit.Value == unitId ? 'selected' : '';
+                    row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                });
+                
+                row += '</select></td>' +
+                    '<td><input type="number" name="ContractProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td><input type="number" name="ContractProducts[' + productRowIndex + '].Amount" class="form-control total-price" value="0" readonly /></td>' +
+                    '<td><input type="number" name="ContractProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
+                    '<td>' +
+                        '<select name="ContractProducts[' + productRowIndex + '].HSCodeID" class="form-control hs-code-select">' +
+                        '<option value="">---Tanlang---</option>';
+                
+                hsCodes.forEach(function (hsCode) {
+                    var selected = hsCode.Value == hsCodeId ? 'selected' : '';
+                    row += '<option value="' + hsCode.Value + '" ' + selected + '>' + hsCode.Text + '</option>';
+                });
+                
+                row += '</select></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                    '</tr>';
+
+                $('#contractProductsTable tbody').append(row);
+                
+                $('select.product-select').last().select2();
+                $('select.unit-select').last().select2();
+                $('select.hs-code-select').last().select2();
+
+                productRowIndex++;
+            }
+
+            $(document).on('click', '.remove-row', function () {
+                $(this).closest('tr').remove();
+                updateTotal();
+            });
+
+            $(document).on('input', '.quantity-input, .price-input', function () {
+                var $row = $(this).closest('tr');
+                var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                var price = parseFloat($row.find('.price-input').val()) || 0;
+                var total = quantity * price;
+                $row.find('.total-price').val(total.toFixed(2));
+                updateTotal();
+            });
+
+            function updateTotal() {
+                var total = 0;
+                $('.total-price').each(function () {
+                    total += parseFloat($(this).val()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+            }
+
+            $('#contractForm').submit(function (e) {
+                if ($('#contractProductsTable tbody tr').length === 0) {
+                    e.preventDefault();
+                    alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                    return false;
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

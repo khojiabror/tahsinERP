@@ -1,0 +1,325 @@
+@{
+    ViewBag.Title = "Logistika Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Logistika Dashboard
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <!-- Filters -->
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <form method="get" action="@Url.Action("Index", "LogisticsDashboard")">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>Boshlanish sanasi</label>
+                                    <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Tugash sanasi</label>
+                                    <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Forwarder</label>
+                                    @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Yo'nalish</label>
+                                    @Html.DropDownList("direction", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Jami xarajat</h6>
+                                        <h3 class="mb-0">@ViewBag.TotalCost.ToString("N2")</h3>
+                                    </div>
+                                    <div class="avatar bg-light-primary">
+                                        <i class="bx bx-dollar font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Jami reyslar</h6>
+                                        <h3 class="mb-0">@ViewBag.TotalTrips</h3>
+                                    </div>
+                                    <div class="avatar bg-light-success">
+                                        <i class="bx bx-truck font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">1 ton uchun</h6>
+                                        <h3 class="mb-0">@ViewBag.CostPerTon.ToString("N2")</h3>
+                                    </div>
+                                    <div class="avatar bg-light-warning">
+                                        <i class="bx bx-package font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Qarz</h6>
+                                        <h3 class="mb-0">@ViewBag.UnpaidAmount.ToString("N2")</h3>
+                                    </div>
+                                    <div class="avatar bg-light-danger">
+                                        <i class="bx bx-money font-medium-5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direction Breakdown -->
+                <div class="row mt-2">
+                    <div class="col-xl-4 col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Yo'nalish bo'yicha xarajat</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <h4 class="text-info">@ViewBag.InboundCost.ToString("N2")</h4>
+                                        <p class="mb-0">Kirim</p>
+                                    </div>
+                                    <div class="col-4">
+                                        <h4 class="text-success">@ViewBag.OutboundCost.ToString("N2")</h4>
+                                        <p class="mb-0">Chiqim</p>
+                                    </div>
+                                    <div class="col-4">
+                                        <h4 class="text-secondary">@ViewBag.InternalCost.ToString("N2")</h4>
+                                        <p class="mb-0">Ichki</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>O'rtacha ko'rsatkichlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>1 km uchun:</td>
+                                        <td><strong>@ViewBag.CostPerKm.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>1 reys uchun:</td>
+                                        <td><strong>@ViewBag.CostPerTrip.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>1 CBM uchun:</td>
+                                        <td><strong>@ViewBag.CostPerCBM.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sotuvdan %:</td>
+                                        <td><strong>@ViewBag.LogisticsCostPercent.ToString("N2")%</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Yuk statistikasi</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Jami tonnaj:</td>
+                                        <td><strong>@ViewBag.TotalTonnage.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Jami CBM:</td>
+                                        <td><strong>@ViewBag.TotalCBM.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Jami masofa:</td>
+                                        <td><strong>@ViewBag.TotalDistance.ToString("N2") km</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forwarder Performance -->
+                @if (ViewBag.ForwarderStats != null)
+                {
+                    <div class="row mt-2">
+                        <div class="col-xl-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Forwarderlar bo'yicha reyting</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Forwarder</th>
+                                                    <th>Reyslar soni</th>
+                                                    <th>Jami tonnaj</th>
+                                                    <th>Jami xarajat</th>
+                                                    <th>1 ton uchun</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var forwarder in ViewBag.ForwarderStats)
+                                                {
+                                                    <tr>
+                                                        <td>@forwarder.ForwarderName</td>
+                                                        <td>@forwarder.TripCount</td>
+                                                        <td>@forwarder.TotalTonnage.ToString("N2")</td>
+                                                        <td>@forwarder.TotalCost.ToString("N2")</td>
+                                                        <td>@((forwarder.TotalTonnage > 0 ? forwarder.TotalCost / forwarder.TotalTonnage : 0).ToString("N2"))</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Lane Performance -->
+                @if (ViewBag.LaneStats != null)
+                {
+                    <div class="row mt-2">
+                        <div class="col-xl-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5>Eng ko'p ishlatilgan marshrutlar</h5>
+                                    <a href="@Url.Action("LanePerformance", "LogisticsDashboard")" class="btn btn-sm btn-outline-primary">
+                                        Batafsil
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Qayerdan</th>
+                                                    <th>Qayerga</th>
+                                                    <th>Reyslar</th>
+                                                    <th>Tonnaj</th>
+                                                    <th>Jami xarajat</th>
+                                                    <th>1 ton uchun</th>
+                                                    <th>1 km uchun</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var lane in ViewBag.LaneStats)
+                                                {
+                                                    <tr>
+                                                        <td>@lane.FromLocation</td>
+                                                        <td>@lane.ToLocation</td>
+                                                        <td>@lane.TripCount</td>
+                                                        <td>@lane.TotalTonnage.ToString("N2")</td>
+                                                        <td>@lane.TotalCost.ToString("N2")</td>
+                                                        <td>@lane.AvgCostPerTon.ToString("N2")</td>
+                                                        <td>@lane.AvgCostPerKm.ToString("N2")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Quick Links -->
+                <div class="row mt-2">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Hisobotlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <a href="@Url.Action("LanePerformance", "LogisticsDashboard")" class="btn btn-outline-primary btn-block">
+                                            <i class="bx bx-map"></i> Lane Performance
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <a href="@Url.Action("Reconciliation", "LogisticsDashboard")" class="btn btn-outline-warning btn-block">
+                                            <i class="bx bx-check-circle"></i> Reconciliation
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <a href="@Url.Action("ForwarderComparison", "LogisticsDashboard")" class="btn btn-outline-info btn-block">
+                                            <i class="bx bx-bar-chart"></i> Forwarder Comparison
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,45 @@
+@model tahsinERP.ViewModels.HR.HrOrgUnitViewModel
+
+<div class="org-unit-details">
+    <h5>@Model.Name</h5>
+    <dl class="row">
+        <dt class="col-sm-4">Код:</dt>
+        <dd class="col-sm-8">@Model.Code</dd>
+
+        <dt class="col-sm-4">Родительское подразделение:</dt>
+        <dd class="col-sm-8">@(Model.ParentName ?? "Корневое")</dd>
+
+        <dt class="col-sm-4">Уровень:</dt>
+        <dd class="col-sm-8">@Model.LevelNo</dd>
+
+        <dt class="col-sm-4">Плановое количество:</dt>
+        <dd class="col-sm-8">@Model.PlannedHeadcount</dd>
+
+        <dt class="col-sm-4">Фактическое количество:</dt>
+        <dd class="col-sm-8">
+            <span class="badge badge-@(Model.ActualHeadcount >= Model.PlannedHeadcount ? "success" : "warning")">
+                @Model.ActualHeadcount
+            </span>
+        </dd>
+
+        <dt class="col-sm-4">Статус:</dt>
+        <dd class="col-sm-8">
+            <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
+                @(Model.IsActive ? "Активен" : "Неактивен")
+            </span>
+        </dd>
+    </dl>
+
+    <div class="mt-3">
+        <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-sm btn-info">
+            <i class="bx bx-show"></i> Подробнее
+        </a>
+        @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
+        {
+            <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                <i class="bx bx-edit"></i> Редактировать
+            </a>
+        }
+    </div>
+</div>
+

@@ -1,0 +1,100 @@
+@model tahsinERP.Models.FIN_ACCOUNTS
+
+@{
+    ViewBag.Title = "Hisob tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts");
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinAccounts">Hisoblar</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Hisob tafsilotlari</h4>
+                                @if (changePermit)
+                                {
+                                    <div class="heading-elements">
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Kod:</dt>
+                                        <dd class="col-sm-8">@Model.Code</dd>
+                                        
+                                        <dt class="col-sm-4">Nomi:</dt>
+                                        <dd class="col-sm-8">@Model.Name</dd>
+                                        
+                                        <dt class="col-sm-4">Egasi:</dt>
+                                        <dd class="col-sm-8">@(Model.OwnerName ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Valyuta:</dt>
+                                        <dd class="col-sm-8">@(Model.CURRENCy != null ? $"{Model.CURRENCy.Name} ({Model.CURRENCy.Shortname})" : "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Turi:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.IsCash)
+                                            { <span class="badge badge-success">Naqd pul</span> }
+                                            else if (Model.IsBank)
+                                            { <span class="badge badge-info">Bank</span> }
+                                            else
+                                            { <span class="badge badge-secondary">Boshqa</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.IsActive)
+                                            { <span class="badge badge-success">Faol</span> }
+                                            else
+                                            { <span class="badge badge-danger">Nofaol</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Tranzaksiyalar soni:</dt>
+                                        <dd class="col-sm-8">
+                                            <a href="@Url.Action("Transactions", new { id = Model.ID })">@ViewBag.TransactionCount ta</a>
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Yaratilgan:</dt>
+                                        <dd class="col-sm-8">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
+                                        
+                                        <dt class="col-sm-4">Yaratgan foydalanuvchi:</dt>
+                                        <dd class="col-sm-8">@(Model.USER != null ? Model.USER.FullName : "-")</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

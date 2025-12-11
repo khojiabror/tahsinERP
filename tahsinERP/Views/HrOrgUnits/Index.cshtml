@@ -1,0 +1,273 @@
+@model List<tahsinERP.ViewModels.HR.HrOrgUnitViewModel>
+@{
+    ViewBag.Title = "Tashkiliy tuzilma";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tashkiliy tuzilma</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Tashkiliy tuzilma</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <a href="@Url.Action("OrgChart")" class="btn btn-info">
+                            <i class="bx bx-sitemap"></i> Tashkiliy sxema
+                        </a>
+                        @if (changePermit)
+                        {
+                            <a href="@Url.Action("Create")" class="btn btn-success">
+                                <i class="bx bx-plus"></i> Bo'lim qo'shish
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Bo'limlar daraxti</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="orgTree" class="org-tree-container">
+                                    @if (Model != null && Model.Any())
+                                    {
+                                        @RenderTree(Model.Where(m => m.ParentID == null).OrderBy(m => m.SortOrder).ToList(), 0, changePermit)
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Bo'lim tafsilotlari</h4>
+                            </div>
+                            <div class="card-body" id="orgUnitDetails">
+                                <p class="text-muted">Tafsilotlarni ko'rish uchun daraxtdan bo'limni tanlang</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @helper RenderTree(List<tahsinERP.ViewModels.HR.HrOrgUnitViewModel> nodes, int level, bool changePermit)
+    {
+        <ul class="org-tree" data-level="@level">
+            @foreach (var node in nodes)
+            {
+                <li data-id="@node.ID" data-parent-id="@(node.ParentID ?? 0)" class="org-tree-node @(node.Children.Any() ? "has-children" : "")">
+                    <div class="org-tree-item" onclick="selectOrgUnit(@node.ID)">
+                        <span class="org-tree-toggle @(node.Children.Any() ? "" : "hidden")">
+                            <i class="bx bx-chevron-right"></i>
+                        </span>
+                        <span class="org-tree-content">
+                            <strong>@node.Code</strong> - @node.Name
+                            <small class="text-muted">(Reja: @node.PlannedHeadcount, Fakt: @node.ActualHeadcount)</small>
+                        </span>
+                        @if (changePermit)
+                        {
+                            <span class="org-tree-actions">
+                                <button class="btn btn-sm btn-primary" onclick="addChild(@node.ID)" title="Qo'shish">
+                                    <i class="bx bx-plus"></i>
+                                </button>
+                                <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="Tahrirlash">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                            </span>
+                        }
+                    </div>
+                    @if (node.Children.Any())
+                    {
+                        @RenderTree(node.Children.OrderBy(c => c.SortOrder).ToList(), level + 1, changePermit)
+                    }
+                </li>
+            }
+        </ul>
+    }
+
+    <style>
+        .org-tree-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .org-tree {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .org-tree ul {
+            list-style: none;
+            padding-left: 30px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .org-tree li.has-children > ul {
+            display: block;
+        }
+
+        .org-tree-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 2px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .org-tree-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .org-tree-item.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .org-tree-toggle {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 20px;
+            text-align: center;
+        }
+
+        .org-tree-toggle.hidden {
+            visibility: hidden;
+        }
+
+        .org-tree-content {
+            flex: 1;
+        }
+
+        .org-tree-actions {
+            margin-left: auto;
+        }
+
+        .org-tree-actions .btn {
+            margin-left: 4px;
+            padding: 2px 8px;
+        }
+    </style>
+
+    <script>
+        var selectedOrgUnitId = null;
+
+        function selectOrgUnit(id) {
+            selectedOrgUnitId = id;
+            $('.org-tree-item').removeClass('selected');
+            $(`.org-tree-item[onclick*="${id}"]`).addClass('selected');
+
+            // Load details via AJAX
+            $.get('@Url.Action("Details")', { id: id }, function(data) {
+                $('#orgUnitDetails').html(data);
+            }).fail(function() {
+                $('#orgUnitDetails').html('<p class="text-danger">Ma\'lumotlarni yuklashda xatolik</p>');
+            });
+        }
+
+        function addChild(parentId) {
+            window.location.href = '@Url.Action("Create")?parentId=' + parentId;
+        }
+
+        $(document).ready(function() {
+            // Toggle children on click
+            $('.org-tree-toggle').click(function(e) {
+                e.stopPropagation();
+                var $ul = $(this).closest('li').find('> ul');
+                var $icon = $(this).find('i');
+                
+                if ($ul.is(':visible')) {
+                    $ul.slideUp();
+                    $icon.removeClass('bx-chevron-down').addClass('bx-chevron-right');
+                } else {
+                    $ul.slideDown();
+                    $icon.removeClass('bx-chevron-right').addClass('bx-chevron-down');
+                }
+            });
+
+            // Make tree items draggable
+            $('.org-tree-node').each(function() {
+                var $node = $(this);
+                $node.attr('draggable', true);
+                
+                $node.on('dragstart', function(e) {
+                    e.originalEvent.dataTransfer.setData('text/plain', $node.data('id'));
+                });
+            });
+
+            // Make tree items drop targets
+            $('.org-tree-node').on('dragover', function(e) {
+                e.preventDefault();
+                $(this).addClass('drag-over');
+            });
+
+            $('.org-tree-node').on('dragleave', function(e) {
+                $(this).removeClass('drag-over');
+            });
+
+            $('.org-tree-node').on('drop', function(e) {
+                e.preventDefault();
+                $(this).removeClass('drag-over');
+                
+                var draggedId = e.originalEvent.dataTransfer.getData('text/plain');
+                var newParentId = $(this).data('id');
+                
+                if (draggedId != newParentId) {
+                    if (confirm('Bo\'limni ko\'chirish?')) {
+                        $.post('@Url.Action("UpdateParent")', {
+                            id: draggedId,
+                            newParentId: newParentId
+                        }, function(result) {
+                            if (result.success) {
+                                location.reload();
+                            } else {
+                                alert('Xatolik: ' + result.message);
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

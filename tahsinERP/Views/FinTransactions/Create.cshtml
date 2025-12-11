@@ -1,0 +1,145 @@
+@model tahsinERP.Models.FIN_TRANSACTIONS
+
+@{
+    ViewBag.Title = "Yangi tranzaksiya qo'shish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinTransactions">Tranzaksiyalar</a></li>
+                                    <li class="breadcrumb-item active">Yangi tranzaksiya</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Yangi tranzaksiya qo'shish</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Create", "FinTransactions", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.TxnDate, "Sana *", new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.TxnDate, new { @class = "form-control", type = "date", required = "required", @Value = Model.TxnDate.ToString("yyyy-MM-dd") })
+                                                    @Html.ValidationMessageFor(m => m.TxnDate, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.AccountID, "Hisob *", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountID as SelectList, "Tanlang...", new { @class = "form-control", required = "required", onchange = "loadAccountCurrency()" })
+                                                    @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CategoryID, "Kategoriya *", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoryID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                                    @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.Direction, "Yo'nalish *", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.Direction, ViewBag.DirectionList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                                    @Html.ValidationMessageFor(m => m.Direction, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.Amount, "Summa *", new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.Amount, new { @class = "form-control", type = "number", step = "0.01", required = "required" })
+                                                    @Html.ValidationMessageFor(m => m.Amount, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CurrencyID, "Valyuta *", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                                    @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CounterpartyType, "Kontragent turi", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CounterpartyName, "Kontragent nomi", new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.CounterpartyName, new { @class = "form-control" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Purpose, "Maqsad", new { @class = "control-label" })
+                                            @Html.TextBoxFor(m => m.Purpose, new { @class = "form-control" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Comment, "Izoh", new { @class = "control-label" })
+                                            @Html.TextAreaFor(m => m.Comment, new { @class = "form-control", rows = 3 })
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function loadAccountCurrency() {
+            var accountId = $('#AccountID').val();
+            if (accountId) {
+                // Load currency from account via AJAX if needed
+                // For now, currency is set in controller
+            }
+        }
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

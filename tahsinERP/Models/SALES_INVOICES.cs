@@ -21,6 +21,7 @@ namespace tahsinERP.Models
             this.SALES_SF_HEADERS = new HashSet<SALES_SF_HEADERS>();
             this.SALES_TTNK_HEADERS = new HashSet<SALES_TTNK_HEADERS>();
             this.SALES_TTNK_INVOICES = new HashSet<SALES_TTNK_INVOICES>();
+            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
         }
     
         public long ID { get; set; }
@@ -53,5 +54,7 @@ namespace tahsinERP.Models
         public virtual CUSTOMER CUSTOMER { get; set; }
         public virtual S_CONTRACTS S_CONTRACTS { get; set; }
         public virtual S_ORDERS S_ORDERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
     }
 }

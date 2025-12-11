@@ -1,0 +1,190 @@
+@model tahsinERP.Models.P_INVOICES
+@{
+    ViewBag.Title = "Invoys tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Details"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/PInvoices/Index">Xarid invoyslari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tafsilotlar
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Invoys ma'lumotlari</h4>
+                                <div class="heading-elements">
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
+                                    {
+                                        <a href="@Url.Action("Edit", "PInvoices", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("Index", "PInvoices")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Invoys raqami:</th>
+                                                    <td>@Model.InvoiceNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana:</th>
+                                                    <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Korxona:</th>
+                                                    <td>@(Model.COMPANy?.Name ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ta'minotchi:</th>
+                                                    <td>
+                                                        @if (Model.SUPPLIER != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })">@Model.SUPPLIER.Name</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>-</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Buyurtma:</th>
+                                                    <td>
+                                                        @if (Model.P_ORDERS != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "POrders", new { id = Model.OrderID })">@Model.P_ORDERS.OrderNo</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>-</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Valyuta:</th>
+                                                    <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami summa:</th>
+                                                    <td><strong>@Model.Amount.ToString("N2")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Shartnoma:</th>
+                                                    <td>
+                                                        @if (Model.P_ORDERS != null && Model.P_ORDERS.P_CONTRACTS != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "PContracts", new { id = Model.P_ORDERS.ContractID })">@Model.P_ORDERS.P_CONTRACTS.ContractNo</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>-</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <h5>Invoys mahsulotlari</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mahsulot kodi</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Miqdor</th>
+                                                    <th>Birlik</th>
+                                                    <th>Narx</th>
+                                                    <th>Jami</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.P_INVOICE_PRODUCTS != null && Model.P_INVOICE_PRODUCTS.Any())
+                                                {
+                                                    foreach (var product in Model.P_INVOICE_PRODUCTS)
+                                                    {
+                                                        <tr>
+                                                            <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                            <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                            <td>@product.Quantity.ToString("N2")</td>
+                                                            <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                            <td>@product.Price.ToString("N2")</td>
+                                                            <td>@product.TotalPrice.ToString("N2")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="6" class="text-center">Mahsulotlar topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    @if (Model.P_INVOICE_DOCS != null && Model.P_INVOICE_DOCS.Any())
+                                    {
+                                        <hr />
+                                        <h5>Invoys hujjatlari</h5>
+                                        <ul>
+                                            @foreach (var doc in Model.P_INVOICE_DOCS)
+                                            {
+                                                <li>
+                                                    <a href="@Url.Action("DownloadDoc", "PInvoices", new { id = doc.ID })" target="_blank">
+                                                        <i class="bx bx-file"></i> Invoys hujjati #@doc.ID
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

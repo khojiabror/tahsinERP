@@ -1,138 +1,103 @@
-﻿@model  tahsinERP.ViewModels.ProductPlanVM
+﻿@model tahsinERP.ViewModels.ProductPlanViewModel
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Yangi Ishlab Chiqarish Rejasi";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<body>
-    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Create", "ProductPlan", FormMethod.Post))
     {
-        using (Html.BeginForm("Create", "ProductPlan", FormMethod.Post, new { enctype = "multipart/form-data" }))
-        {
-            @Html.AntiForgeryToken()
-            <div class="app-content content">
-                <div class="content-overlay"></div>
-                <div class="content-wrapper">
-                    <div class="content-header row">
-                        <div class="content-header-left col-12 mb-2 mt-1">
-                            <div class="row breadcrumbs-top">
-                                <div class="col-12">
-                                    <div class="breadcrumb-wrapper col-12">
-                                        <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                            <li class="breadcrumb-item">
-                                                <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                            </li>
-                                            <li class="breadcrumb-item">
-                                                <a href="~/ProductPlan/Index">Rejalashtirish</a>
-                                            </li>
-                                            <li class="breadcrumb-item active">
-                                                Bir maxsulotga reja berish
-                                            </li>
-                                        </ol>
-                                        <div class="invoice-create-btn mb-1">
-                                            <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/ProductPlan/UploadWithExcel'">
-                                                <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali maxsulotlar qo'shish</span>
-                                            </button>
-                                        </div>
-                                    </div>
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/ProductPlan/Index">Ishlab Chiqarish Rejasi</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">Yangi Reja</li>
+                                    </ol>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="content-body">
-                        <section class="basic-select2">
-                            <div class="row">
-                                <div class="col-xl-9 col-md-8 col-12">
-                                    <div class="card">
-                                        <div class="card-content">
-                                            <div class="card-body pb-0 mx-25">
-                                                <div class="row">
-                                                    <div class="col-lg-12 col-md-6 mt-25">
-                                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                        <h6 class="invoice-to">Maxsulotni tanlang</h6>
-                                                        <fieldset class="invoice-address form-group">
-                                                            @Html.DropDownList("ProductID", (SelectList)ViewBag.ProductList, "--tanlang--", new { @class = "form-control" })
-                                                            @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <h6 class="invoice-to">Rejadagi mahsulot miqdori</h6>
-                                                        <fieldset class="form-group">
-                                                            @Html.EditorFor(model => model.Amount, new { htmlAttributes = new { @class = "form-control" } })
-                                                            @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <h6 class="invoice-to">Tuzilgan sana</h6>
-                                                        <fieldset class="invoice-address form-group">
-                                                            @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", @id = "startDateInput", @placeholder = "Boshlanish sanasi" } })
-                                                            @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <h6 class="invoice-to">Muddati tugaydigan sana </h6>
-                                                        <fieldset class="invoice-address form-group">
-                                                            @Html.EditorFor(model => model.DueDate, new { htmlAttributes = new { @class = "form-control", @id = "dueDateInput", @placeholder = "Tugash sanasi" } })
-                                                            @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
-                                                        </fieldset>
-                                                        <fieldset class="invoice-address form-group">
-                                                            <div class="checkbox checkbox-secondary checkbox-glow">
-                                                                @Html.CheckBoxFor(model => model.IsTwoShiftPlan, new { @type = "checkbox", @id = "checkboxGlow2" })
-                                                                <label for="checkboxGlow2">2 ta smenalik rejaga bo'lsinmi?</label>
-                                                            </div>
-                                                        </fieldset>
-                                                        <ul class="list-group list-group-flush">
-                                                            <li class="list-group-item border-0 pb-0">
-                                                                <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
-                                                                    <i class='bx bx-save'></i>
-                                                                    Save
-                                                                </button>
-                                                            </li>
-                                                        </ul>
+                </div>
+                <div class="content-body">
+                    <section class="basic-select2">
+                        <div class="row">
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                    <hr>
+                                                    
+                                                    <h6 class="invoice-to">Mahsulot *</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, "Mahsulotni tanlang", new { @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <h6 class="invoice-to">Reja miqdori (Jami) *</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.TotalQty, new { @class = "form-control", @type = "number", @step = "0.01", @min = "0.01", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.TotalQty, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <h6 class="invoice-to">Boshlanish sanasi *</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <h6 class="invoice-to">Tugash sanasi *</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <div class="alert alert-info mt-2">
+                                                        <i class="bx bx-info-circle"></i> 
+                                                        Reja yaratilgandan so'ng, har bir kun uchun avtomatik ravishda kunlik reja yaratiladi. 
+                                                        Keyinchalik kunlik rejalarni tahrirlash mumkin.
                                                     </div>
                                                 </div>
-                                                <hr>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </section>
-                    </div>
+                        </div>
+                        <div class="invoice-action">
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary mr-1">
+                                        <i class="bx bx-save"></i> Saqlash
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="bx bx-x"></i> Bekor qilish
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
-        }
+        </div>
     }
-    else
-    {
-        Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-    }
-</body>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        flatpickr("#startDateInput", {
-            dateFormat: "d.m.Y", // You can customize the date format
-            maxDate: "today",// Optional: restricts the selection to today's date or later
-            altInput: true, // Optional: creates an alternate input (more user-friendly)
-            altFormat: "F j, Y", // Format displayed in alt input
-            weekNumbers: true,
-            showTodayButton: true,
-            locale: "en",
-            onChange: function (selectedDates, dateStr, instance) {
-                // Format the date to Y-m-d when it's selected
-                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
-                document.getElementById("startDateInput").value = formattedDate;  // Update the input field with the formatted date
-            }
-        });
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        flatpickr("#dueDateInput", {
-            dateFormat: "d.m.Y", // You can customize the date format
-            altInput: true, // Optional: creates an alternate input (more user-friendly)
-            altFormat: "F j, Y", // Format displayed in alt input
-            weekNumbers: true,
-            showTodayButton: true,
-            locale: "en",
-            onChange: function (selectedDates, dateStr, instance) {
-                // Format the date to Y-m-d when it's selected
-                const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
-                document.getElementById("dueDateInput").value = formattedDate;  // Update the input field with the formatted date
-            }
-        });
-    });
-</script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

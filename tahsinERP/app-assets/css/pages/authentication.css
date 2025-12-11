@@ -1,17 +1,20 @@
 /* Authentication page css */
 /*-------------------------*/
 .bg-authentication {
-  background-color: #F2F4F4;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .bg-authentication #icon-arrow {
   position: absolute;
-  top: 11px;
-  right: 15px;
+  top: 50%;
+  right: 1.5rem;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
 }
 
 .bg-authentication .brand-text {
-  color: #5A8DEE;
+  color: #4D80F0;
   font-weight: 600;
   letter-spacing: 0.01rem;
 }

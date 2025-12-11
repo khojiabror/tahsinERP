@@ -22,7 +22,7 @@ HSCode
 Log
 Manual
 Norma
-NormCutting
+Norm
 PackingList
 Part
 PartPack

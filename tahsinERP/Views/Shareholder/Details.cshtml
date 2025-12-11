@@ -1,0 +1,126 @@
+@model tahsinERP.Models.SHAREHOLDER
+
+@{
+    ViewBag.Title = "Aksiyador tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder");
+    var contributions = ViewBag.Contributions as List<tahsinERP.Models.SHAREHOLDER_CONTRIBUTIONS> ?? new List<tahsinERP.Models.SHAREHOLDER_CONTRIBUTIONS>();
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Shareholder">Aksiyadorlar</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Aksiyador tafsilotlari</h4>
+                                @if (changePermit)
+                                {
+                                    <div class="heading-elements">
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
+                                        <a href="@Url.Action("ManageSharePeriods", new { id = Model.ID })" class="btn btn-sm btn-info">Ulushlarni boshqarish</a>
+                                        <a href="@Url.Action("AddContribution", new { id = Model.ID })" class="btn btn-sm btn-success">Hissa qo'shish</a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">To'liq ism:</dt>
+                                        <dd class="col-sm-8">@Model.FullName</dd>
+                                        
+                                        <dt class="col-sm-4">Telefon:</dt>
+                                        <dd class="col-sm-8">@(Model.Phone ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Joriy ulush:</dt>
+                                        <dd class="col-sm-8"><strong>@ViewBag.CurrentSharePercent%</strong></dd>
+                                        
+                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.IsActive)
+                                            { <span class="badge badge-success">Faol</span> }
+                                            else
+                                            { <span class="badge badge-danger">Nofaol</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Izoh:</dt>
+                                        <dd class="col-sm-8">@(Model.Notes ?? "-")</dd>
+                                    </dl>
+                                    
+                                    <h5 class="mt-4">Hissalar:</h5>
+                                    @if (contributions.Any())
+                                    {
+                                        <div class="table-responsive mt-2">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sana</th>
+                                                        <th>Summa</th>
+                                                        <th>Valyuta</th>
+                                                        <th>Turi</th>
+                                                        <th>Tavsif</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var contrib in contributions)
+                                                    {
+                                                        <tr>
+                                                            <td>@contrib.ContributionDate.ToString("dd.MM.yyyy")</td>
+                                                            <td>@contrib.Amount.ToString("N2")</td>
+                                                            <td>@(contrib.CURRENCy != null ? contrib.CURRENCy.Shortname : "-")</td>
+                                                            <td>
+                                                                @if (contrib.ContributionType == 1)
+                                                                { <span class="badge badge-success">Naqd pul</span> }
+                                                                else if (contrib.ContributionType == 2)
+                                                                { <span class="badge badge-info">Tovarlar</span> }
+                                                                else if (contrib.ContributionType == 3)
+                                                                { <span class="badge badge-warning">Xomashyo</span> }
+                                                                else if (contrib.ContributionType == 4)
+                                                                { <span class="badge badge-primary">Tayyor mahsulot</span> }
+                                                                else
+                                                                { <span class="badge badge-secondary">Boshqa</span> }
+                                                            </td>
+                                                            <td>@(contrib.Description ?? "-")</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Hissalar mavjud emas</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,88 @@
+@model List<Dictionary<string, object>>
+@{
+    ViewBag.Title = "Import ko'rib chiqish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Import ko'rib chiqish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Shtat jadvali</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Import")">Import</a></li>
+                                    <li class="breadcrumb-item active">Ko'rib chiqish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Import qilingan ma'lumotlar (@Model.Count ta qator)</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-body">
+                            @using (Html.BeginForm("ImportConfirm", "HrStaffingPlan", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>№</th>
+                                                <th>Tab.№</th>
+                                                <th>F.I.O.</th>
+                                                <th>Lavozim</th>
+                                                <th>Maosh</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Model.Count; i++)
+                                            {
+                                                var row = Model[i];
+                                                <tr>
+                                                    <td>@(i + 1)</td>
+                                                    <td>@row["TabNo"]</td>
+                                                    <td>@row["FullName"]</td>
+                                                    <td>@row["Position"]</td>
+                                                    <td>@row["BaseSalary"]</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="form-actions mt-3">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bx bx-check"></i> Tasdiqlash va saqlash
+                                    </button>
+                                    <a href="@Url.Action("Import")" class="btn btn-secondary">
+                                        <i class="bx bx-x"></i> Bekor qilish
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

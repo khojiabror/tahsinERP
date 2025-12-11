@@ -1,0 +1,138 @@
+@model List<tahsinERP.Models.PRODUCT_STOCKS>
+@{
+    ViewBag.Title = "Ombor qoldiqlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Ombor qoldiqlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <!-- Filters -->
+                    <div class="users-list-filter px-1">
+                        @using (Html.BeginForm("Index", "Inventory", FormMethod.Get, new { @class = "form" }))
+                        {
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label>Ombor</label>
+                                    @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label>Kategoriya</label>
+                                    @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Mahsulot turi</label>
+                                    <select name="isFinishedGood" class="form-control">
+                                        <option value="">Barchasi</option>
+                                        <option value="true" @(ViewBag.IsFinishedGood == true ? "selected" : "")>Tayyor mahsulot</option>
+                                        <option value="false" @(ViewBag.IsFinishedGood == false ? "selected" : "")>Xom ashyo</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Xom ashyo</label>
+                                    <select name="isRawMaterial" class="form-control">
+                                        <option value="">Barchasi</option>
+                                        <option value="true" @(ViewBag.IsRawMaterial == true ? "selected" : "")>Faqat xom ashyo</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bx bx-search"></i> Qidirish
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="inventoryTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ombor</th>
+                                                    <th>Mahsulot kodi</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Kategoriya</th>
+                                                    <th>Miqdor</th>
+                                                    <th>Birlik</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>@(item.Warehouse?.WHName ?? "-")</td>
+                                                            <td>@(item.PRODUCT?.PNo ?? "-")</td>
+                                                            <td>@(item.PRODUCT?.Name ?? "-")</td>
+                                                            <td>@(item.PRODUCT?.PRODUCT_CATEGORIES?.Name ?? "-")</td>
+                                                            <td>@item.Amount.ToString("N2")</td>
+                                                            <td>@(item.UNIT?.ShortName ?? "-")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#inventoryTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"], [1, "asc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

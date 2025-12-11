@@ -1,0 +1,254 @@
+@model tahsinERP.Controllers.PInvoiceEditViewModel
+@{
+    ViewBag.Title = "Invoysni tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/PInvoices/Index">Xarid invoyslari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tahrirlash
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Edit", "PInvoices", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "invoiceForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.HiddenFor(model => model.ID)
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="InvoiceNo">Invoys raqami</label>
+                                                    @Html.TextBoxFor(model => model.InvoiceNo, new { @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.InvoiceNo, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="InvoiceDate">Sana</label>
+                                                    @Html.TextBoxFor(model => model.InvoiceDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="OrderID">Buyurtma</label>
+                                                    @Html.DropDownListFor(model => model.OrderID, ViewBag.POrders as SelectList, "---Tanlang---", new { @class = "form-control select2" })
+                                                    @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="SupplierID">Ta'minotchi</label>
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CompanyID">Korxona</label>
+                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2" })
+                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CurrencyID">Valyuta</label>
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-9 col-12 form-group">
+                                                    <label for="invoiceFile">Yangi invoys hujjati (PDF) - mavjud hujjat o'rniga qo'yiladi</label>
+                                                    <input type="file" name="invoiceFile" id="invoiceFile" class="form-control" accept=".pdf" />
+                                                </div>
+                                            </div>
+
+                                            <br />
+                                            <h5>Invoys mahsulotlari</h5>
+                                            
+                                            <div class="table-responsive">
+                                                <table id="invoiceProductsTable" class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot</th>
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Narx</th>
+                                                            <th>Jami</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (Model.InvoiceProducts != null)
+                                                        {
+                                                            for (int i = 0; i < Model.InvoiceProducts.Count; i++)
+                                                            {
+                                                                var product = Model.InvoiceProducts[i];
+                                                                <tr data-row-index="@i">
+                                                                    <td>
+                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control product-select", @required = "required" })
+                                                                        @Html.HiddenFor(m => m.InvoiceProducts[i].ID)
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.InvoiceProducts[i].Quantity, new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.InvoiceProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.InvoiceProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="4" class="text-right"><strong>Jami:</strong></td>
+                                                            <td id="totalAmount" class="text-right"><strong>@Model.Amount.ToString("N2")</strong></td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                        <i class="bx bx-plus"></i> Qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "PInvoices")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2();
+
+            var productRowIndex = @(Model.InvoiceProducts?.Count ?? 0);
+            var purchasableProducts = @Html.Raw(Json.Encode((ViewBag.PurchasableProducts as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+            var units = @Html.Raw(Json.Encode((ViewBag.Units as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+
+            // Calculate totals for existing rows
+            $('.quantity-input, .price-input').each(function () {
+                var $row = $(this).closest('tr');
+                var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                var price = parseFloat($row.find('.price-input').val()) || 0;
+                var total = quantity * price;
+                $row.find('.total-price').val(total.toFixed(2));
+            });
+            updateTotal();
+
+            $('#addRowBtn').click(function () {
+                addProductRow(null, 0, null, 0);
+            });
+
+            function addProductRow(productId, quantity, unitId, price) {
+                var row = '<tr data-row-index="' + productRowIndex + '">' +
+                    '<td>' +
+                        '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                
+                purchasableProducts.forEach(function (product) {
+                    var selected = product.Value == productId ? 'selected' : '';
+                    row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
+                });
+                
+                row += '</select>' +
+                    '<input type="hidden" name="InvoiceProducts[' + productRowIndex + '].ID" value="" />' +
+                    '</td>' +
+                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td>' +
+                        '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                
+                units.forEach(function (unit) {
+                    var selected = unit.Value == unitId ? 'selected' : '';
+                    row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                });
+                
+                row += '</select></td>' +
+                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                    '</tr>';
+
+                $('#invoiceProductsTable tbody').append(row);
+                
+                $('select.product-select').last().select2();
+                $('select.unit-select').last().select2();
+
+                productRowIndex++;
+            }
+
+            $(document).on('click', '.remove-row', function () {
+                $(this).closest('tr').remove();
+                updateTotal();
+            });
+
+            $(document).on('input', '.quantity-input, .price-input', function () {
+                var $row = $(this).closest('tr');
+                var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                var price = parseFloat($row.find('.price-input').val()) || 0;
+                var total = quantity * price;
+                $row.find('.total-price').val(total.toFixed(2));
+                updateTotal();
+            });
+
+            function updateTotal() {
+                var total = 0;
+                $('.total-price').each(function () {
+                    total += parseFloat($(this).val()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

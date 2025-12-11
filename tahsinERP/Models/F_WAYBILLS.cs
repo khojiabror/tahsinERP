@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         {
             this.F_WAYBILL_DOCS = new HashSet<F_WAYBILL_DOCS>();
             this.F_WAYBILL_PAYMENTS = new HashSet<F_WAYBILL_PAYMENTS>();
+            this.F_WAYBILL_PAYMENT_SPLITS = new HashSet<F_WAYBILL_PAYMENT_SPLITS>();
         }
     
         public int ID { get; set; }
@@ -32,6 +33,31 @@ namespace tahsinERP.Models
         public Nullable<bool> IsDeleted { get; set; }
         public Nullable<double> Amount { get; set; }
         public Nullable<System.DateTime> IssueDate { get; set; }
+        public Nullable<byte> Direction { get; set; }
+        public string FromLocation { get; set; }
+        public string ToLocation { get; set; }
+        public Nullable<double> DistanceKm { get; set; }
+        public Nullable<byte> FreightBasis { get; set; }
+        public Nullable<double> Rate { get; set; }
+        public Nullable<int> CurrencyID { get; set; }
+        public Nullable<byte> PayerType { get; set; }
+        public Nullable<int> PayerID { get; set; }
+        public Nullable<long> SalesInvoiceID { get; set; }
+        public Nullable<int> ForwarderID { get; set; }
+        public string TruckNo { get; set; }
+        public string TrailerNo { get; set; }
+        public string TruckModel { get; set; }
+        public string TrailerModel { get; set; }
+        public string DriverName { get; set; }
+        public string DriverPINFL { get; set; }
+        public Nullable<double> NetWeight { get; set; }
+        public Nullable<int> PalletsCount { get; set; }
+        public string ManualCorrectionReason { get; set; }
+        public Nullable<System.DateTime> PlannedDeliveryDate { get; set; }
+        public Nullable<System.DateTime> ActualDeliveryDate { get; set; }
+        public Nullable<long> TTNKID { get; set; }
+        public Nullable<int> SalesOrderID { get; set; }
+        public Nullable<int> PurchaseOrderID { get; set; }
     
         public virtual F_CONTRACTS F_CONTRACTS { get; set; }
         public virtual F_TRANSPORT_TYPES F_TRANSPORT_TYPES { get; set; }
@@ -40,5 +66,13 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
         public virtual P_INVOICES P_INVOICES { get; set; }
+        public virtual CURRENCy CURRENCy { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILL_PAYMENT_SPLITS> F_WAYBILL_PAYMENT_SPLITS { get; set; }
+        public virtual FORWARDER FORWARDER { get; set; }
+        public virtual P_ORDERS P_ORDERS { get; set; }
+        public virtual S_ORDERS S_ORDERS { get; set; }
+        public virtual SALES_INVOICES SALES_INVOICES { get; set; }
+        public virtual SALES_TTNK_HEADERS SALES_TTNK_HEADERS { get; set; }
     }
 }

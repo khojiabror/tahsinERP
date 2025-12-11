@@ -1,0 +1,119 @@
+@{
+    ViewBag.Title = "Balans";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var balanceData = ViewBag.BalanceData as List<tahsinERP.Controllers.Finance.BalanceCategoryData> ?? new List<tahsinERP.Controllers.Finance.BalanceCategoryData>();
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">Balans</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Balans - @ViewBag.AsOfDate?.ToString("dd.MM.yyyy")</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("BalanceSheet")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label class="control-label">Sana:</label>
+                                                <input type="date" name="asOfDate" class="form-control" value="@(ViewBag.AsOfDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>Aktivlar</h5>
+                                            <div class="table-responsive">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Kategoriya</th>
+                                                            <th class="text-right">Summa</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in balanceData.Where(b => b.Category.Type == 1))
+                                                        {
+                                                            <tr>
+                                                                <td>@item.Category.Name</td>
+                                                                <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <th>Jami aktivlar:</th>
+                                                            <th class="text-right">@balanceData.Where(b => b.Category.Type == 1).Sum(b => b.Amount).ToString("N2")</th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Passivlar va Kapital</h5>
+                                            <div class="table-responsive">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Kategoriya</th>
+                                                            <th class="text-right">Summa</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in balanceData.Where(b => b.Category.Type == 2 || b.Category.Type == 3))
+                                                        {
+                                                            <tr>
+                                                                <td>@item.Category.Name</td>
+                                                                <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <th>Jami passivlar va kapital:</th>
+                                                            <th class="text-right">@balanceData.Where(b => b.Category.Type == 2 || b.Category.Type == 3).Sum(b => b.Amount).ToString("N2")</th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

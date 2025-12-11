@@ -1,4 +1,4 @@
-﻿@model tahsinERP.Models.P_ORDERS
+@model tahsinERP.ViewModels.SOrderViewModel
 @{
     ViewBag.Title = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -6,7 +6,6 @@
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -20,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/POrder/Index">Buyurtmalar</a>
+                                        <a href="~/SOrder/Index">Buyurtmalar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Buyurtma sahifasi
+                                        Buyurtma tahrirlash
                                     </li>
                                 </ol>
                             </div>
@@ -32,131 +31,236 @@
                 </div>
             </div>
             <div class="content-body">
-                <div class="row">
-                    <!-- invoice view page -->
-                    <div class="col-xl-11 col-md-8 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                @using (Html.BeginForm("Edit", "POrder", FormMethod.Post, new { enctype = "multipart/form-data" }))
-                                {
-                                    <div class="card-body pb-0 mx-25">
-                                        @Html.AntiForgeryToken()
-                                        <div class="row">
-                                            <div class="col-lg-12 col-md-6 mt-25">
-                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <hr>
-                                                <h6 class="invoice-to">Buyurtma raqami</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control round", @placeholder = "Buyurtma raqami" })
-                                                    @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
-                                                </fieldset>
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Edit", "SOrder", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default", @id = "orderForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                                <h6 class="invoice-to">Ta'minotchi</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Supplier as SelectList, new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
-                                                </fieldset>
-
-                                                <h6 class="invoice-to">Shartnoma raqami</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.PContract as SelectList, new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                </fieldset>
-
-                                                <h6 class="invoice-to">Sanasi</h6>
-                                                <fieldset class="form-group position-relative has-icon-left">
-                                                    @Html.TextBoxFor(model => model.IssuedDate, new { @class = "form-control pickadate-months-year round", @placeholder = "Buyurtma muddati" })
-                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
-                                                    <div class="form-control-position">
-                                                        <i class='bx bx-calendar'></i>
-                                                    </div>
-                                                </fieldset>
-                                                <h6 class="invoice-to">Valyuta</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList , new { @class = "form-control select2", @placeholder = "Foydalanilgan pul birligi" })
-                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
-                                                </fieldset>
-
-                                                <h6 class="invoice-to">Batafsil ma`lumot</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = "Qisqacha tavsifi" })
-                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
-                                                </fieldset>
-
-                                            </div>
-                                        </div>
-                                        <section id="column-selectors">
                                             <div class="row">
-                                                <div class="col-12">
-                                                    <div class="card">
-                                                        <div class="card-header">
-                                                            <h4 class="card-title">Buyurtma predmeti</h4>
-                                                        </div>
-                                                        <div class="card-content">
-                                                            <div class="card-body card-dashboard">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-striped dataex-html5-selectors" style="width:100%">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Detal raqami</th>
-                                                                                <th>Detal nomi</th>
-                                                                                <th>Birlik narxi</th>
-                                                                                <th>O'lchov birligi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>MOQ</th>
-                                                                                <th>Amallar</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach (var item in ViewBag.partList)
-                                                                            {
-                                                                                <tr>
-                                                                                    <td>
-                                                                                        <a href="~/Part/Details/@item.PartID">@item.PART.PNo</a>
-                                                                                    </td>
-                                                                                    <td>@item.PART.PName</td>
-                                                                                    <td>@item.Price</td>
-                                                                                    <td>@item.UnitID</td>
-                                                                                    <td>@item.Amount</td>
-                                                                                    <td>@item.MOQ</td>
-                                                                                    <td>
-                                                                                        <!-- Delete button -->
-                                                                                        <a href="@Url.Action("EditPart", "POrder", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                                        <a href="~/POrder/DeletePart/@item.ID" onclick="return confirm('Ushbu detalni  o`chirib yuborishga ishonchingiz komilmi?')">
-                                                                                            <i class="bx bx-trash"></i>
-                                                                                        </a>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            }
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="OrderNo">Buyurtma raqami</label>
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @type = "text", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CustomerID">Haridor</label>
+                                                    @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @id = "CustomerID", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="ContractID">Shartnoma raqami</label>
+                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID" })
+                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IssuedDate">Buyurtma berilgan sanasi</label>
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-12 col-12 form-group">
+                                                    <label for="Description">Qisqacha tavsifi</label>
+                                                    @Html.TextAreaFor(model => model.Description, new { @type = "text", @class = "form-control", @placeholder = "Qisqacha tavsif kiriting", @rows = "2" })
+                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
-                                        </section>
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item border-0 pb-0">
-                                                <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
-                                                    <i class='bx bx-save'></i>
-                                                    Saqlash
-                                                </button>
-                                            </li>
-                                        </ul>
 
-                                        <hr>
+                                            <br />
+                                            <h4>Buyurtma maxsulotlari</h4>
+                                            <div data-repeater-list="Parts">
+                                                @if (Model.Products != null && Model.Products.Any())
+                                                {
+                                                    foreach (var product in Model.Products)
+                                                    {
+                                                        <div data-repeater-item>
+                                                            <div class="row justify-content-between">
+                                                                <div class="col-md-2 col-sm-12 form-group">
+                                                                    <label>Maxsulot</label>
+                                                                    <select name="ProductID" class="form-control select2 product-select" required>
+                                                                        <option value="">---Tanlang---</option>
+                                                                        @foreach (var p in ((SelectList)ViewBag.ProductList))
+                                                                        {
+                                                                            <option value="@p.Value" @(p.Value == product.ProductID.ToString() ? "selected" : "")>@p.Text</option>
+                                                                        }
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-2 col-sm-12 form-group">
+                                                                    <label>O'lchov birligi</label>
+                                                                    <select name="UnitID" class="form-control select2 unit-select" required>
+                                                                        <option value="">---Tanlang---</option>
+                                                                        @foreach (var unit in ((SelectList)ViewBag.Units))
+                                                                        {
+                                                                            <option value="@unit.Value" @(unit.Value == product.UnitID.ToString() ? "selected" : "")>@unit.Text</option>
+                                                                        }
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-2 col-sm-12 form-group">
+                                                                    <label>Miqdori</label>
+                                                                    <input type="number" name="Amount" class="form-control product-amount" value="@product.Amount" step="0.01" min="0.01" required />
+                                                                </div>
+                                                                <div class="col-md-2 col-sm-12 form-group">
+                                                                    <label>Birlik narxi</label>
+                                                                    <input type="number" name="Price" class="form-control product-price" value="@product.Price" step="0.01" min="0" required />
+                                                                </div>
+                                                                <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                                                                    <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
+                                                                </div>
+                                                            </div>
+                                                            <hr>
+                                                        </div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <div data-repeater-item>
+                                                        <div class="row justify-content-between">
+                                                            <div class="col-md-2 col-sm-12 form-group">
+                                                                <label>Maxsulot</label>
+                                                                <select name="ProductID" class="form-control select2 product-select" required>
+                                                                    <option value="">---Tanlang---</option>
+                                                                    @foreach (var product in ((SelectList)ViewBag.ProductList))
+                                                                    {
+                                                                        <option value="@product.Value">@product.Text</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-2 col-sm-12 form-group">
+                                                                <label>O'lchov birligi</label>
+                                                                <select name="UnitID" class="form-control select2 unit-select" required>
+                                                                    <option value="">---Tanlang---</option>
+                                                                    @foreach (var unit in ((SelectList)ViewBag.Units))
+                                                                    {
+                                                                        <option value="@unit.Value">@unit.Text</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-2 col-sm-12 form-group">
+                                                                <label>Miqdori</label>
+                                                                <input type="number" name="Amount" class="form-control product-amount" placeholder="Miqdori" step="0.01" min="0.01" required />
+                                                            </div>
+                                                            <div class="col-md-2 col-sm-12 form-group">
+                                                                <label>Birlik narxi</label>
+                                                                <input type="number" name="Price" class="form-control product-price" placeholder="Birlik narxi" step="0.01" min="0" required />
+                                                            </div>
+                                                            <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
+                                                                <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
+                                                            </div>
+                                                        </div>
+                                                        <hr>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi maxsulot qo'shish</button>
+
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item border-0 pb-0">
+                                                    <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
+                                                        <i class='bx bx-save'></i>
+                                                        Saqlash
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        }
                                     </div>
-                                }
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     </div>
 
+    <script>
+        $(document).ready(function () {
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr("#IssuedDate", {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d.m.Y",
+                    locale: "uz"
+                });
+            }
+
+            window.contractProducts = null;
+
+            $('#ContractID').on('change', function () {
+                var contractId = $(this).val();
+                if (contractId && contractId != '0' && contractId != '') {
+                    loadContractProducts(contractId);
+                } else {
+                    window.contractProducts = null;
+                }
+            });
+
+            $(document).on('change', '.product-select', function () {
+                var $row = $(this).closest('[data-repeater-item]');
+                var productId = $(this).val();
+                var contractId = $('#ContractID').val();
+
+                if (contractId && contractId != '0' && contractId != '' && productId && productId != '0' && productId != '') {
+                    loadProductPriceFromContract(contractId, parseInt(productId), $row);
+                }
+            });
+
+            function loadContractProducts(contractId) {
+                $.ajax({
+                    url: '@Url.Action("GetContractProducts", "SOrder")',
+                    type: 'GET',
+                    data: { contractId: contractId },
+                    success: function (data) {
+                        if (data && data.length > 0) {
+                            window.contractProducts = data;
+                        }
+                    },
+                    error: function () {
+                        window.contractProducts = null;
+                    }
+                });
+            }
+
+            function loadProductPriceFromContract(contractId, productId, $row) {
+                if (!window.contractProducts) {
+                    loadContractProducts(contractId);
+                    setTimeout(function () {
+                        loadProductPriceFromContract(contractId, productId, $row);
+                    }, 500);
+                    return;
+                }
+
+                var contractProduct = window.contractProducts.find(function (cp) {
+                    return parseInt(cp.ProductID) === productId;
+                });
+
+                if (contractProduct) {
+                    var $priceInput = $row.find('.product-price');
+                    var price = parseFloat(contractProduct.PiecePrice) || 0;
+                    $priceInput.val(price);
+
+                    if (contractProduct.UnitID) {
+                        var $unitSelect = $row.find('.unit-select');
+                        $unitSelect.val(contractProduct.UnitID);
+                        if ($unitSelect.hasClass('select2')) {
+                            $unitSelect.select2('destroy');
+                            $unitSelect.select2();
+                        }
+                    }
+                }
+            }
+
+            // Load contract products if contract is already selected
+            var contractId = $('#ContractID').val();
+            if (contractId && contractId != '0' && contractId != '') {
+                loadContractProducts(contractId);
+            }
+        });
+    </script>
 }
 else
 {

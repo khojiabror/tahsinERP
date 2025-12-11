@@ -1,0 +1,186 @@
+@model tahsinERP.Models.SALES_INVOICES
+@{
+    ViewBag.Title = "Print Invoice";
+    Layout = null; // No layout for print
+}
+@{
+    var customer = ViewBag.Customer as tahsinERP.Models.CUSTOMER;
+    var order = ViewBag.Order as tahsinERP.Models.S_ORDERS;
+    var contract = ViewBag.Contract as tahsinERP.Models.S_CONTRACTS;
+    var products = ViewBag.Products as Dictionary<int, tahsinERP.Models.PRODUCT>;
+    var company = ViewBag.Company as tahsinERP.Models.COMPANy;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Invoys - @Model.InvoiceNo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .company-info {
+            float: left;
+            width: 50%;
+        }
+        .invoice-info {
+            float: right;
+            width: 45%;
+            text-align: right;
+        }
+        .clear {
+            clear: both;
+        }
+        .customer-info {
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total-section {
+            margin-top: 20px;
+            float: right;
+            width: 300px;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.print()" class="btn btn-primary">Chop etish</button>
+        <button onclick="window.close()" class="btn btn-secondary">Yopish</button>
+    </div>
+
+    <div class="header">
+        <div class="company-info">
+            <h2>@(company?.Name ?? "Korxona")</h2>
+            @if (company != null)
+            {
+                <p>@company.Address</p>
+                <p>Tel: @company.Phone</p>
+                <p>Email: @company.Email</p>
+            }
+        </div>
+        <div class="invoice-info">
+            <h2>INVOYS</h2>
+            <p><strong>Raqami:</strong> @Model.InvoiceNo</p>
+            <p><strong>Sana:</strong> @Model.InvoiceDate.ToString("dd.MM.yyyy")</p>
+            @if (Model.DueDate.HasValue)
+            {
+                <p><strong>Muddat:</strong> @Model.DueDate.Value.ToString("dd.MM.yyyy")</p>
+            }
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div class="customer-info">
+        <h3>Mijoz ma'lumotlari:</h3>
+        @if (customer != null)
+        {
+            <p><strong>Nomi:</strong> @customer.Name</p>
+            <p><strong>Manzil:</strong> @customer.Address</p>
+            <p><strong>Tel:</strong> @customer.Phone</p>
+            <p><strong>Email:</strong> @customer.Email</p>
+        }
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Mahsulot</th>
+                <th>Tavsif</th>
+                <th class="text-right">Miqdor</th>
+                <th class="text-right">Narx</th>
+                <th class="text-right">Summa</th>
+                <th class="text-right">QQS %</th>
+                <th class="text-right">QQS</th>
+                <th class="text-right">Jami</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int lineNo = 1; }
+            @foreach (var line in Model.SALES_INVOICE_LINES.OrderBy(l => l.LineNo))
+            {
+                var product = products != null && products.ContainsKey(line.ProductID) ? products[line.ProductID] : null;
+                <tr>
+                    <td>@lineNo</td>
+                    <td>@(product?.PNo ?? line.ProductID.ToString())</td>
+                    <td>@(line.Description ?? product?.Name ?? "")</td>
+                    <td class="text-right">@line.Qty.ToString("N3")</td>
+                    <td class="text-right">@line.UnitPrice.ToString("N4")</td>
+                    <td class="text-right">@(line.LineAmount?.ToString("N2") ?? "0.00")</td>
+                    <td class="text-right">@line.VATRate.ToString("N2")</td>
+                    <td class="text-right">@line.VATAmount.ToString("N2")</td>
+                    <td class="text-right">@(line.TotalWithVAT?.ToString("N2") ?? "0.00")</td>
+                </tr>
+                lineNo++;
+            }
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <table>
+            <tr>
+                <td><strong>Jami summa:</strong></td>
+                <td class="text-right">@Model.TotalAmount.ToString("N2") @Model.CurrencyCode</td>
+            </tr>
+            <tr>
+                <td><strong>Jami QQS:</strong></td>
+                <td class="text-right">@Model.TotalVAT.ToString("N2") @Model.CurrencyCode</td>
+            </tr>
+            <tr>
+                <td><strong>Jami (QQS bilan):</strong></td>
+                <td class="text-right"><strong>@(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @Model.CurrencyCode</strong></td>
+            </tr>
+        </table>
+    </div>
+    <div class="clear"></div>
+
+    <div class="footer">
+        <p>Invoys @Model.InvoiceNo - @Model.InvoiceDate.ToString("dd.MM.yyyy")</p>
+        <p>Yaratilgan: @Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Auto print option (can be disabled)
+            // window.print();
+        }
+    </script>
+</body>
+</html>
+

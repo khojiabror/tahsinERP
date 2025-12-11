@@ -1,0 +1,141 @@
+@model List<tahsinERP.Models.FIN_ACCOUNTS>
+
+@{
+    ViewBag.Title = "Moliya hisoblari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts");
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">Hisoblar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/FinAccounts/Create';">
+                                <span class="align-middle ml-25">Hisob qo'shish</span>
+                            </button>
+                        </div>
+                    }
+                    
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <input type="text" name="searchTerm" class="form-control" placeholder="Qidirish..." value="@ViewBag.SearchTerm" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            @Html.DropDownList("currencyID", ViewBag.CurrencyList as SelectList, "Barcha valyutalar", new { @class = "form-control" })
+                                        </div>
+                                        <div class="col-md-2">
+                                            @Html.DropDownList("accountType", ViewBag.AccountTypeList as SelectList, new { @class = "form-control" })
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary">Qidirish</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                
+                                <div class="table-responsive">
+                                    <table id="accountsTable" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Kod</th>
+                                                <th>Nomi</th>
+                                                <th>Egasi</th>
+                                                <th>Valyuta</th>
+                                                <th>Turi</th>
+                                                <th>Holati</th>
+                                                @if (changePermit)
+                                                {
+                                                    <th>Amallar</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td><a href="@Url.Action("Details", new { id = item.ID })">@item.Code</a></td>
+                                                    <td>@item.Name</td>
+                                                    <td>@(item.OwnerName ?? "-")</td>
+                                                    <td>@(item.CURRENCy != null ? item.CURRENCy.Shortname : "-")</td>
+                                                    <td>
+                                                        @if (item.IsCash)
+                                                        { <span class="badge badge-success">Naqd pul</span> }
+                                                        else if (item.IsBank)
+                                                        { <span class="badge badge-info">Bank</span> }
+                                                        else
+                                                        { <span class="badge badge-secondary">Boshqa</span> }
+                                                    </td>
+                                                    <td>
+                                                        @if (item.IsActive)
+                                                        { <span class="badge badge-success">Faol</span> }
+                                                        else
+                                                        { <span class="badge badge-danger">Nofaol</span> }
+                                                    </td>
+                                                    @if (changePermit)
+                                                    {
+                                                        <td>
+                                                            <a href="@Url.Action("Edit", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
+                                                            <a href="@Url.Action("Delete", new { id = item.ID })"><i class="bx bx-trash"></i></a>
+                                                            <a href="@Url.Action("Transactions", new { id = item.ID })" title="Tranzaksiyalar"><i class="bx bx-list-ul"></i></a>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                @if (ViewBag.TotalRecords > ViewBag.PageSize)
+                                {
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <div>Jami: @ViewBag.TotalRecords ta yozuv</div>
+                                        <div>
+                                            @if (ViewBag.CurrentPage > 1)
+                                            {
+                                                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, pageSize = ViewBag.PageSize, searchTerm = ViewBag.SearchTerm, currencyID = ViewBag.CurrencyID, accountType = ViewBag.AccountType, sortOrder = ViewBag.SortOrder })" class="btn btn-sm btn-outline-primary">Oldingi</a>
+                                            }
+                                            <span class="mx-2">Sahifa @ViewBag.CurrentPage</span>
+                                            @if (ViewBag.CurrentPage * ViewBag.PageSize < ViewBag.TotalRecords)
+                                            {
+                                                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, pageSize = ViewBag.PageSize, searchTerm = ViewBag.SearchTerm, currencyID = ViewBag.CurrencyID, accountType = ViewBag.AccountType, sortOrder = ViewBag.SortOrder })" class="btn btn-sm btn-outline-primary">Keyingi</a>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -18,6 +18,7 @@ namespace tahsinERP.Models
         public DEFECT_TYPES()
         {
             this.DAMAGED_PRODUCTS = new HashSet<DAMAGED_PRODUCTS>();
+            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
         }
     
         public int ID { get; set; }
@@ -27,5 +28,7 @@ namespace tahsinERP.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DAMAGED_PRODUCTS> DAMAGED_PRODUCTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
     }
 }

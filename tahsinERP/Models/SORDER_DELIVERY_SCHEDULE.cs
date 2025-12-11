@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class SORDER_DELIVERY_SCHEDULE
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public SORDER_DELIVERY_SCHEDULE()
+        {
+            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
+        }
+    
         public long ID { get; set; }
         public int SOrderProductID { get; set; }
         public Nullable<int> SOrderID { get; set; }
@@ -28,5 +34,8 @@ namespace tahsinERP.Models
     
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual USER USER { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
+        public virtual S_ORDERS S_ORDERS { get; set; }
     }
 }

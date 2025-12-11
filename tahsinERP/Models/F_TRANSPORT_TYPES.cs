@@ -18,6 +18,7 @@ namespace tahsinERP.Models
         public F_TRANSPORT_TYPES()
         {
             this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
+            this.F_CONTRACT_TARIFFS = new HashSet<F_CONTRACT_TARIFFS>();
         }
     
         public int ID { get; set; }
@@ -35,5 +36,7 @@ namespace tahsinERP.Models
         public virtual UNIT UNIT { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_CONTRACT_TARIFFS> F_CONTRACT_TARIFFS { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿@using tahsinERP.Models;
+@using tahsinERP.Models;
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -113,6 +113,35 @@
                 <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- Dashboard - Barcha modullar dashboardlari -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <li class="nav-item">
+                        <a href="~/Home"><i class="bx bx-home"></i><span class="menu-title">Bosh sahifa</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Dashboard</span></a>
+                        <ul class="menu-content">
+                            <li><a href="~/Home"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Umumiy Dashboard</span></a></li>
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+                            {
+                                <li><a href="/FinDashboard/Cashflow"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Moliya Dashboard</span></a></li>
+                            }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
+                            {
+                                <li><a href="~/HrDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">HR Dashboard</span></a></li>
+                            }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "MESDashboard"))
+                            {
+                                <li><a href="~/MESDashboard/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">MES Dashboard</span></a></li>
+                            }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
+                            {
+                                <li><a href="~/InventoryReports/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor Dashboard</span></a></li>
+                            }
+                        </ul>
+                    </li>
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- SRM - Ta'minot zanjiri boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
@@ -123,22 +152,28 @@
                             <a href="~/Supplier"><i class="bx bxs-factory"></i><span class="menu-title">Ta'minotchilar</span></a>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PContract"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts"))
                     {
                         <li class="nav-item">
-                            <a href="~/PContract"><i class="bx bxs-book-bookmark"></i><span class="menu-title">Shartnomalar</span></a>
+                            <a href="~/PContracts"><i class="bx bxs-book-bookmark"></i><span class="menu-title">Xarid shartnomalari</span></a>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "POrder"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "POrders"))
                     {
                         <li class="nav-item">
-                            <a href="~/POrder"><i class="bx bxs-book"></i><span class="menu-title">Buyurtmalar</span></a>
+                            <a href="~/POrders"><i class="bx bxs-book"></i><span class="menu-title">Xarid buyurtmalari</span></a>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoice"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices"))
                     {
                         <li class="nav-item">
-                            <a href="~/PInvoice"><i class="bx bx-file"></i><span class="menu-title">Invoyslar</span></a>
+                            <a href="~/PInvoices"><i class="bx bx-file"></i><span class="menu-title">Xarid invoyslari</span></a>
+                        </li>
+                    }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tender"))
+                    {
+                        <li class="nav-item">
+                            <a href="~/Tender"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Tender taqqoslash</span></a>
                         </li>
                     }
 
@@ -152,10 +187,11 @@
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-truck"></i><span class="menu-title">Yuk tashish</span></a>
                             <ul class="menu-content">
-                                <li><a href="~/Forwarder/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Forwarderlar</span></a></li>
+                                <li><a href="~/Forwarder/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tashuvchi kompaniyalar</span></a></li>
                                 <li><a href="~/FContract/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Shartnomalar</span></a></li>
                                 <li><a href="~/Waybill/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Yo'l varaqalari</span></a></li>
                                 <li><a href="~/FTransportType/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Transport turlari</span></a></li>
+                                <li><a href="~/TransportLoadSimulation"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Transport yuklash simulyatsiyasi</span></a></li>
                             </ul>
                         </li>
                     }
@@ -163,17 +199,37 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Omborxona -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse") || 
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
                     {
                         <li class="navigation-header"><span>Omborxona</span></li>
                         
                         <li class="nav-item">
                             <a href="#"><i class="bx bxs-home"></i><span class="menu-title">Ombor operatsiyalari</span></a>
                             <ul class="menu-content">
-                                <li><a href="~/PartStock/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Qoldiq</span></a></li>
-                                <li><a href="~/WhIncome/"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kirim</span></a></li>
-                                <li><a href="~/WhExpense/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Chiqim</span></a></li>
-                                <li><a href="~/Partwrhs/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor ma'lumotlari</span></a></li>
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory"))
+                                {
+                                    <li><a href="~/Inventory"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor qoldiqlari</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes"))
+                                {
+                                    <li><a href="~/Incomes"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor kirimlari</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses"))
+                                {
+                                    <li><a href="~/Expenses"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor chiqimlari</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
+                                {
+                                    <li><a href="~/InventoryReports/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">DOH Dashboard</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse"))
+                                {
+                                    <li><a href="~/Warehouse"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Omborlar</span></a></li>
+                                }
                             </ul>
                         </li>
                     }
@@ -198,19 +254,84 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Moliya -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") || 
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
                     {
                         <li class="navigation-header"><span>Moliya</span></li>
                         
-                        <li class="nav-item">
-                            <a href="/POrderPayment/Index"><i class="bx bx-money"></i><span class="menu-title">To'lovlar</span></a>
-                        </li>
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") || 
+                             RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions") ||
+                             RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
+                        {
+                            <li class="nav-item">
+                                <a href="#"><i class="bx bx-wallet"></i><span class="menu-title">Moliya boshqaruvi</span></a>
+                                <ul class="menu-content">
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
+                                    {
+                                        <li><a href="/FinAccounts"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisoblar</span></a></li>
+                                    }
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
+                                    {
+                                        <li><a href="/FinTransactions"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tranzaksiyalar</span></a></li>
+                                    }
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
+                                    {
+                                        <li><a href="/FinCategories"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kategoriyalar</span></a></li>
+                                    }
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinBalanceCategories"))
+                                    {
+                                        <li><a href="/FinBalanceCategories"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans kategoriyalari</span></a></li>
+                                    }
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
+                                    {
+                                        <li><a href="/FinPlItems"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">P&L elementlar</span></a></li>
+                                    }
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))
+                                    {
+                                        <li><a href="/FinPlPlans"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">P&L rejalar</span></a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+                        {
+                            <li class="nav-item">
+                                <a href="#"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Hisobotlar</span></a>
+                                <ul class="menu-content">
+                                    <li><a href="/FinDashboard/Cashflow"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kassa oqimi</span></a></li>
+                                    <li><a href="/FinDashboard/PL"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Foyda va zarar</span></a></li>
+                                    <li><a href="/FinDashboard/BalanceSheet"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans</span></a></li>
+                                </ul>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
+                        {
+                            <li class="nav-item">
+                                <a href="#"><i class="bx bx-group"></i><span class="menu-title">Aksiyadorlar</span></a>
+                                <ul class="menu-content">
+                                    <li><a href="/Shareholder"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Aksiyadorlar ro'yxati</span></a></li>
+                                    <li><a href="/FinDashboard/ShareholderValue"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kompaniya qiymati</span></a></li>
+                                </ul>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
+                        {
+                            <li class="nav-item">
+                                <a href="/POrderPayment/Index"><i class="bx bx-money"></i><span class="menu-title">To'lovlar</span></a>
+                            </li>
+                        }
                     }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Engineering -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM") || RoleHelper.IsViewPermitted(User.Identity.Name, "NormCutting"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM") || RoleHelper.IsViewPermitted(User.Identity.Name, "Norm"))
                     {
                         <li class="navigation-header"><span>Engineering</span></li>
                         
@@ -219,11 +340,11 @@
                             <ul class="menu-content">
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
                                 {
-                                    <li><a href="~/BOM?IsParentProduct=true"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">BOM ro'yxati</span></a></li>
+                                    <li><a href="~/Bom"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">BOM</span></a></li>
                                 }
-                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "NormCutting"))
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Norm"))
                                 {
-                                    <li><a href="~/NormCutting"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">NORM Kesish</span></a></li>
+                                    <li><a href="~/Norm"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Norma-sarf</span></a></li>
                                 }
                             </ul>
                         </li>
@@ -242,15 +363,42 @@
                     }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    <!-- Ishlab chiqarish rejasi -->
+                    <!-- MES - Ishlab chiqarish boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") || 
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "MESDashboard"))
                     {
-                        <li class="navigation-header"><span>Ishlab chiqarish</span></li>
+                        <li class="navigation-header"><span>MES - Ishlab chiqarish</span></li>
                         
-                        <li class="nav-item">
-                            <a href="~/ProductPlan/Index"><i class="bx bx-line-chart"></i><span class="menu-title">Rejalashtirish</span></a>
-                        </li>
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "MESDashboard"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/MESDashboard/Dashboard"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">MES Dashboard</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/ProductPlan/Index"><i class="bx bx-line-chart"></i><span class="menu-title">Ishlab chiqarish rejasi</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/ProductProduction/Index"><i class="bx bx-cog"></i><span class="menu-title">Kunlik ishlab chiqarish</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/QualityInspection/Index"><i class="bx bx-check-circle"></i><span class="menu-title">Sifat nazorati</span></a>
+                            </li>
+                        }
                     }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -309,6 +457,100 @@
                     }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- HR - Kadrlar bo'limi -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "HrPositions") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
+                    {
+                        <li class="navigation-header"><span>Kadrlar (HR)</span></li>
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/HrDashboard"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">HR Dashboard</span></a>
+                            </li>
+                        }
+                        
+                        <li class="nav-item">
+                            <a href="#"><i class="bx bx-group"></i><span class="menu-title">Kadrlar boshqaruvi</span></a>
+                            <ul class="menu-content">
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits"))
+                                {
+                                    <li><a href="~/HrOrgUnits"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tashkiliy struktura</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPositions"))
+                                {
+                                    <li><a href="~/HrPositions"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Lavozimlar</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
+                                {
+                                    <li><a href="~/HrEmployees"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xodimlar</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrSalaryGrades"))
+                                {
+                                    <li><a href="~/HrSalaryGrades"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tariflar</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrStaffingPlan"))
+                                {
+                                    <li><a href="~/HrStaffingPlan"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Shtat jadvali</span></a></li>
+                                }
+                            </ul>
+                        </li>
+                        
+                       if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/HrTimesheets"><i class="bx bx-time"></i><span class="menu-title">Tabel</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/HrPayroll"><i class="bx bx-money"></i><span class="menu-title">Ish haqi</span></a>
+                            </li>
+                        }
+                    }
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- Tasks / Vazifalar -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tasks"))
+                    {
+                        <li class="navigation-header"><span>Tasks / Vazifalar</span></li>
+                        <li class="nav-item">
+                            <a href="~/Tasks"><i class="bx bx-task"></i><span class="menu-title">Tasks / Vazifalar</span></a>
+                        </li>
+                    }
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- Hujjatlar boshqaruvi -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index") || 
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
+                    {
+                        <li class="navigation-header"><span>Hujjatlar</span></li>
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/CompanyOrders"><i class="bx bx-file-blank"></i><span class="menu-title">Kompaniya Buyruqlari</span></a>
+                            </li>
+                        }
+                        
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/OfficialLetters"><i class="bx bx-envelope"></i><span class="menu-title">Rasmiy Maktublar</span></a>
+                            </li>
+                        }
+                    }
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Sozlamalar -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <li class="navigation-header"><span>Sozlamalar</span></li>
@@ -326,6 +568,14 @@
                         <a href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
                             <i class="bx bx-user-circle"></i><span class="menu-title">Profil sozlamalari</span>
                         </a>
+                    </li>
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- Yordam / Qo'llanma -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <li class="navigation-header"><span>Yordam</span></li>
+                    <li class="nav-item">
+                        <a href="~/UserManual"><i class="bx bx-book"></i><span class="menu-title">Foydalanuvchi qo'llanmasi</span></a>
                     </li>
 
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
@@ -407,6 +657,98 @@
                     }
                 });
                 $('.select').select2({ width: '100%' });
+            });
+        </script>
+        
+        <!-- Menu Active State Handler -->
+        <script>
+            $(document).ready(function () {
+                var currentPath = window.location.pathname.toLowerCase();
+                var currentController = '@ViewContext.RouteData.Values["controller"]'.toLowerCase();
+                var currentAction = '@ViewContext.RouteData.Values["action"]'.toLowerCase();
+                
+                // Helper function to normalize URL
+                function normalizeUrl(url) {
+                    if (!url) return '';
+                    url = url.toLowerCase().replace(/^~/, '').replace(/\/$/, '');
+                    // Remove /index from end
+                    if (url.endsWith('/index')) {
+                        url = url.replace('/index', '');
+                    }
+                    return url;
+                }
+                
+                // Helper function to check if URLs match
+                function urlsMatch(current, link) {
+                    var normalizedLink = normalizeUrl(link);
+                    var normalizedCurrent = normalizeUrl(current);
+                    
+                    // Exact match
+                    if (normalizedCurrent === normalizedLink && normalizedLink !== '') {
+                        return true;
+                    }
+                    
+                    // Controller match
+                    if (normalizedLink.indexOf('/' + currentController) !== -1 || 
+                        normalizedLink.indexOf(currentController + '/') !== -1) {
+                        return true;
+                    }
+                    
+                    // Path contains link
+                    if (normalizedCurrent.indexOf(normalizedLink) !== -1 && normalizedLink !== '') {
+                        return true;
+                    }
+                    
+                    return false;
+                }
+                
+                // Barcha menu linklarini tekshirish
+                var foundMatch = false;
+                $('#main-menu-navigation a').each(function () {
+                    var $link = $(this);
+                    var href = $link.attr('href');
+                    
+                    if (href && urlsMatch(currentPath, href)) {
+                        var $li = $link.closest('li');
+                        $li.addClass('active');
+                        foundMatch = true;
+                        
+                        // Parent menu item'larni ham open qilish
+                        var $parentUl = $li.closest('ul');
+                        if ($parentUl.length > 0 && $parentUl.attr('class') === 'menu-content') {
+                            var $parentLi = $parentUl.closest('li');
+                            if ($parentLi.length > 0) {
+                                $parentLi.addClass('open active');
+                            }
+                        }
+                    }
+                });
+                
+                // Agar hech qanday match topilmasa, controller nomiga qarab qidirish
+                if (!foundMatch && currentController) {
+                    $('#main-menu-navigation a').each(function () {
+                        var $link = $(this);
+                        var href = $link.attr('href') || '';
+                        href = normalizeUrl(href);
+                        
+                        // Controller nomini tekshirish
+                        if (href.indexOf('/' + currentController) !== -1 || 
+                            href.indexOf(currentController + '/') !== -1 ||
+                            href === '/' + currentController) {
+                            var $li = $link.closest('li');
+                            $li.addClass('active');
+                            
+                            // Parent menu item'larni ham open qilish
+                            var $parentUl = $li.closest('ul');
+                            if ($parentUl.length > 0 && $parentUl.attr('class') === 'menu-content') {
+                                var $parentLi = $parentUl.closest('li');
+                                if ($parentLi.length > 0) {
+                                    $parentLi.addClass('open active');
+                                }
+                            }
+                        }
+                    });
+                }
             });
         </script>
     }

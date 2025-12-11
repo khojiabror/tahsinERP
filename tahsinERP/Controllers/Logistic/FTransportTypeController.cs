@@ -1,4 +1,4 @@
-﻿using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Infrastructure;
 using System.Net;
 using System;
 using System.Web.Mvc;
@@ -6,6 +6,8 @@ using tahsinERP.Models;
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using tahsinERP.ViewModels;
+using System.Data.Entity;
+using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers
 {
@@ -14,9 +16,29 @@ namespace tahsinERP.Controllers
         // GET: FTransportType
         public ActionResult Index()
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.F_TRANSPORT_TYPES.ToList();
+                var list = db.F_TRANSPORT_TYPES
+                    .Include(t => t.UNIT)
+                    .ToList();
+                
+                // Calculate CBM for each transport type
+                foreach (var item in list)
+                {
+                    if (item.IntLgth > 0 && item.IntWdth > 0 && item.IntHght > 0)
+                    {
+                        double lengthM = item.IntLgth / 100.0;
+                        double widthM = item.IntWdth / 100.0;
+                        double heightM = item.IntHght / 100.0;
+                        ViewData[$"CBM_{item.ID}"] = lengthM * widthM * heightM;
+                    }
+                }
+                
                 return View(list);
             }
         }
@@ -110,12 +132,38 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-
                 var transportType = db.F_TRANSPORT_TYPES.Find(id);
                 if (transportType == null)
                     return HttpNotFound();
 
                 db.Entry(transportType).Reference(x => x.UNIT).Load();
+
+                // Calculate CBM capacity (internal dimensions in meters)
+                double? cbmCapacity = null;
+                if (transportType.IntLgth > 0 && transportType.IntWdth > 0 && transportType.IntHght > 0)
+                {
+                    // Convert to meters if needed (assuming dimensions are in cm, adjust as needed)
+                    double lengthM = transportType.IntLgth / 100.0;
+                    double widthM = transportType.IntWdth / 100.0;
+                    double heightM = transportType.IntHght / 100.0;
+                    cbmCapacity = lengthM * widthM * heightM;
+                }
+
+                // Calculate possible pallet count (assuming standard pallet size: 120cm x 100cm)
+                int? palletCount = null;
+                if (transportType.IntLgth > 0 && transportType.IntWdth > 0)
+                {
+                    // Standard pallet: 120cm x 100cm
+                    int palletsLength = (int)(transportType.IntLgth / 120);
+                    int palletsWidth = (int)(transportType.IntWdth / 100);
+                    palletCount = palletsLength * palletsWidth;
+                }
+
+                ViewBag.CBMCapacity = cbmCapacity;
+                ViewBag.PalletCount = palletCount;
+                ViewBag.ExternalCBM = transportType.ExtLgth > 0 && transportType.ExtWdth > 0 && transportType.ExtHght > 0 ?
+                    (transportType.ExtLgth / 100.0) * (transportType.ExtWdth / 100.0) * (transportType.ExtHght / 100.0) : (double?)null;
+
                 return View(transportType);
             }
         }

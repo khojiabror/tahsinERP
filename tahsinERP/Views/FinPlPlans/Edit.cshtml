@@ -1,0 +1,84 @@
+@model tahsinERP.Models.FIN_PL_PLANS
+
+@{
+    ViewBag.Title = "P&L rejasini tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinPlPlans">P&L rejalar</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">P&L rejasini tahrirlash</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Edit", "FinPlPlans", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.ID)
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Year, "Yil *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.Year, ViewBag.YearList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.Year, "", new { @class = "text-danger" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Month, "Oy *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.Month, ViewBag.MonthList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.Month, "", new { @class = "text-danger" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.ItemID, "P&L Element *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.ItemID, ViewBag.ItemID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.ItemID, "", new { @class = "text-danger" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.AmountPlan, "Reja summasi *", new { @class = "control-label" })
+                                            @Html.TextBoxFor(m => m.AmountPlan, new { @class = "form-control", type = "number", step = "0.01", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.AmountPlan, "", new { @class = "text-danger" })
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                                            <a href="@Url.Action("Index", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">Bekor qilish</a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

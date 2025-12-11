@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class PRODUCT_PRODUCTION
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public PRODUCT_PRODUCTION()
+        {
+            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
+        }
+    
         public int ID { get; set; }
         public int ProductID { get; set; }
         public int ShopID { get; set; }
@@ -25,5 +31,7 @@ namespace tahsinERP.Models
     
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual SHOP SHOP { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
     }
 }

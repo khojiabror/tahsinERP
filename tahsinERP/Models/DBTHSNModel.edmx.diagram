@@ -68,8 +68,6 @@
         <EntityTypeShape EntityType="DBTHSNModel.WRHS_EXPENSE_DOCS" Width="1.5" PointX="6" PointY="22.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.WRHS_INCOME_DOCS" Width="1.5" PointX="3" PointY="41.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.BOMS_AND_NORMS" Width="1.5" PointX="15.5" PointY="55" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.CarPlanRequirement" Width="1.5" PointX="5.75" PointY="1.25" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.MaterialRequirement" Width="1.5" PointX="6.75" PointY="4.25" IsExpanded="true" />
         <AssociationConnector Association="DBTHSNModel.FK_BOM_HEADER_PRODUCTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_BOM_LINES_BOMID_BOM_HEADERS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_BOM_LINES_ComponentID_PRODUCTS" ManuallyRouted="false" />
@@ -279,6 +277,56 @@
         <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT" />
         <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_ORDER" />
         <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_ORDER" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACT_TARIFFS" Width="1.5" PointX="6.25" PointY="58.5" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS" Width="1.5" PointX="8.5" PointY="53.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_EMPLOYEES" Width="1.5" PointX="30.625" PointY="5.375" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PAYROLL_HEADERS" Width="1.5" PointX="30.625" PointY="14.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PAYROLL_LINES" Width="1.5" PointX="32.875" PointY="29.625" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_TIMESHEET_HEADERS" Width="1.5" PointX="25.625" PointY="3.875" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_TIMESHEET_LINES" Width="1.5" PointX="33.875" PointY="2.5" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CURRENCIES" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_CURRENCIES" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_LINES_CURRENCIES" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CONTRACTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_FORWARDERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_P_ORDERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_S_ORDERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_SALES_INVOICES" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_TTNK" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_ORG_UNITS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_POSITIONS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_SALARY_GRADES" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Approved" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Created" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Approved" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Created" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" />
+        <EntityTypeShape EntityType="DBTHSNModel.QUALITY_INSPECTION" Width="1.5" PointX="21.5" PointY="37.125" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_DEFECT_TYPES" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_S_ORDERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_ApprovedBy" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_InspectedBy" />
+        <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Width="1.5" PointX="22.625" PointY="30.375" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

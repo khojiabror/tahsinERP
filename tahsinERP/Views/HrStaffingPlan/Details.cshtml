@@ -1,0 +1,105 @@
+@model tahsinERP.ViewModels.HR.HrStaffingPlanViewModel
+@{
+    ViewBag.Title = "Shtat jadvali tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrStaffingPlan"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Shtat jadvali tafsilotlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Shtat jadvali</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Bo'lim:</dt>
+                                <dd class="col-sm-9">@Model.OrgUnitName</dd>
+
+                                <dt class="col-sm-3">Lavozim:</dt>
+                                <dd class="col-sm-9">@Model.PositionName</dd>
+
+                                <dt class="col-sm-3">Tarif tarmog'i:</dt>
+                                <dd class="col-sm-9">@(Model.SalaryGradeName ?? "-")</dd>
+
+                                <dt class="col-sm-3">Rejalashtirilgan soni:</dt>
+                                <dd class="col-sm-9">@Model.PlannedHeadcount</dd>
+
+                                <dt class="col-sm-3">Faktik soni:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-@(Model.ActualHeadcount >= Model.PlannedHeadcount ? "success" : "warning")">
+                                        @Model.ActualHeadcount
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-3">To'lov turi:</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.IsFixedSalary)
+                                    {
+                                        <span class="badge badge-info">Belgilangan</span>
+                                    }
+                                    @if (Model.IsHourly)
+                                    {
+                                        <span class="badge badge-primary">Soatbay</span>
+                                    }
+                                    @if (Model.IsPieceRate)
+                                    {
+                                        <span class="badge badge-secondary">Parcha</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Amal qiladi:</dt>
+                                <dd class="col-sm-9">@Model.EffectiveFrom.ToString("dd.MM.yyyy")</dd>
+
+                                <dt class="col-sm-3">Amal qiladi (to):</dt>
+                                <dd class="col-sm-9">@(Model.EffectiveTo?.ToString("dd.MM.yyyy") ?? "-")</dd>
+
+                                <dt class="col-sm-3">Holat:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
+                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                    </span>
+                                </dd>
+                            </dl>
+
+                            <div class="form-actions mt-3">
+                                @if (changePermit)
+                                {
+                                    <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                        <i class="bx bx-edit"></i> Tahrirlash
+                                    </a>
+                                }
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">Ro'yxatga qaytish</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

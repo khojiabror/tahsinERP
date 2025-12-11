@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -15,6 +15,7 @@
     <RootNamespace>tahsinERP</RootNamespace>
     <AssemblyName>tahsinERP</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>9.0</LangVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
@@ -147,6 +148,7 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Packaging, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IO.Packaging.8.0.0\lib\net462\System.IO.Packaging.dll</HintPath>
     </Reference>
@@ -274,6 +276,12 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-0be35864-1cd4-482e-add6-81c3139c77b3.png" />
+    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-171b759d-a840-41f4-96da-b4d52aff00a9.png" />
+    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-228275a6-d730-4d8d-a891-b1de698f7adb.png" />
+    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-484e5147-caf6-4992-9d39-aa96bafadb93.png" />
+    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-b271860b-e9f2-48f8-b160-6c24df9fc8cc.png" />
+    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-fcb5b63b-44ef-4456-8410-02aa9f45cba9.png" />
     <Content Include="assets\manual\bootstrap.min.css" />
     <Content Include="assets\manual\images\.3.png" />
     <Content Include="assets\manual\images\.4.png" />
@@ -468,11 +476,36 @@
     <Content Include="assets\manual\popper.min.js" />
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
+    <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
+    <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
+    <Compile Include="Controllers\CompanyOrdersController.cs" />
     <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
-    <Compile Include="Controllers\Engineering\NormCuttingController.cs" />
+    <Compile Include="Controllers\Engineering\NormController.cs" />
+    <Compile Include="Controllers\Finance\FinAccountsController.cs" />
+    <Compile Include="Controllers\Finance\FinBalanceCategoriesController.cs" />
+    <Compile Include="Controllers\Finance\FinCategoriesController.cs" />
+    <Compile Include="Controllers\Finance\FinDashboardController.cs" />
+    <Compile Include="Controllers\Finance\FinPlItemsController.cs" />
+    <Compile Include="Controllers\Finance\FinPlPlansController.cs" />
+    <Compile Include="Controllers\Finance\FinTransactionsController.cs" />
+    <Compile Include="Controllers\Finance\ShareholderController.cs" />
+    <Compile Include="Controllers\HR\HrDashboardController.cs" />
+    <Compile Include="Controllers\HR\HrEmployeesController.cs" />
+    <Compile Include="Controllers\HR\HrOrgUnitsController.cs" />
+    <Compile Include="Controllers\HR\HrPayrollController.cs" />
+    <Compile Include="Controllers\HR\HrPositionsController.cs" />
+    <Compile Include="Controllers\HR\HrSalaryGradesController.cs" />
+    <Compile Include="Controllers\HR\HrStaffingPlanController.cs" />
+    <Compile Include="Controllers\HR\HrTimesheetsController.cs" />
+    <Compile Include="Controllers\Logistic\LogisticsDashboardController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
+    <Compile Include="Controllers\MES\DailyPlanUpdateItem.cs" />
+    <Compile Include="Controllers\MES\MESDashboardController.cs" />
+    <Compile Include="Controllers\MES\ProductProductionController.cs" />
+    <Compile Include="Controllers\MES\QualityInspectionController.cs" />
+    <Compile Include="Controllers\OfficialLettersController.cs" />
     <Compile Include="Controllers\Settings\CompanyController.cs" />
     <Compile Include="Controllers\Settings\CurrencyController.cs" />
     <Compile Include="Controllers\Settings\UnitController.cs" />
@@ -488,20 +521,25 @@
     <Compile Include="Controllers\Logistic\FContractController.cs" />
     <Compile Include="Controllers\Logistic\ForwarderController.cs" />
     <Compile Include="Controllers\Logistic\FTransportTypeController.cs" />
+    <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
+    <Compile Include="Controllers\SRM\ExpensesController.cs" />
     <Compile Include="Controllers\SRM\HSCodeController.cs" />
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
-    <Compile Include="Controllers\AdminSetting\ManualController.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
+    <Compile Include="Controllers\SRM\IncomesController.cs" />
+    <Compile Include="Controllers\SRM\InventoryController.cs" />
+    <Compile Include="Controllers\SRM\InventoryReportsController.cs" />
+    <Compile Include="Controllers\SRM\PContractsController.cs" />
+    <Compile Include="Controllers\SRM\PInvoicesController.cs" />
+    <Compile Include="Controllers\SRM\POrdersController.cs" />
     <Compile Include="Controllers\SRM\ProductStockController.cs" />
+    <Compile Include="Controllers\SRM\TenderController.cs" />
     <Compile Include="Controllers\SRM\WarehouseController.cs" />
-    <Compile Include="Controllers\SRM\PContractController.cs" />
     <Compile Include="Controllers\AdminSetting\ErrorController.cs" />
     <Compile Include="Controllers\AdminSetting\Helper.cs" />
     <Compile Include="Controllers\AdminSetting\HomeController.cs" />
     <Compile Include="Controllers\AdminSetting\PermissionController.cs" />
-    <Compile Include="Controllers\SRM\PInvoiceController.cs" />
     <Compile Include="Controllers\AdminSetting\PModuleController.cs" />
-    <Compile Include="Controllers\SRM\POrderController.cs" />
     <Compile Include="Controllers\Engineering\ProductController.cs" />
     <Compile Include="Controllers\ProductionProcessController.cs" />
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
@@ -515,8 +553,7 @@
     <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
-    <Compile Include="Controllers\SRM\ExpenseController.cs" />
-    <Compile Include="Controllers\SRM\WhIncomeController.cs" />
+    <Compile Include="Controllers\TasksController.cs" />
     <Compile Include="Models\ADM_COMPANY_ORDERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -543,9 +580,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\BOM_LINES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\CarPlanRequirement.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\COMPANy.cs">
@@ -639,6 +673,9 @@
     <Compile Include="Models\F_CONTRACT_DOCS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\F_CONTRACT_TARIFFS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\F_TRANSPORT_TYPES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -651,13 +688,28 @@
     <Compile Include="Models\F_WAYBILL_PAYMENTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\F_WAYBILL_PAYMENT_SPLITS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\GetProductListPerShop_Result.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_EMPLOYEES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_JOB_DESCRIPTIONS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_ORG_UNITS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_PAYROLL_HEADERS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_PAYROLL_LINES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_PIECE_RATE_TARIFFS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_POSITIONS.cs">
@@ -669,6 +721,12 @@
     <Compile Include="Models\HR_STAFFING_PLAN.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\HR_TIMESHEET_HEADERS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_TIMESHEET_LINES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\HSCODE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -676,9 +734,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\INCOME_PRODUCTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\MaterialRequirement.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\NORMLINE.cs">
@@ -742,6 +797,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\P_ORDER_PRODUCTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QUALITY_INSPECTION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ROLE.cs">
@@ -859,20 +917,46 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewModels\BOM\BOMCreateProductViewModel.cs" />
-    <Compile Include="ViewModels\BOM\BOMCreateViewModel.cs" />
-    <Compile Include="ViewModels\BOM\BomEditViewModels.cs" />
-    <Compile Include="ViewModels\BOM\BomViewModel.cs" />
-    <Compile Include="ViewModels\BOM\BoomViewModel.cs" />
-    <Compile Include="ViewModels\BOM\IndexViewModel.cs" />
+    <Compile Include="Services\DocumentTemplateService.cs" />
+    <Compile Include="Services\FinancePostingService.cs" />
+    <Compile Include="Services\IDocumentTemplateService.cs" />
+    <Compile Include="Services\ITextSuggestionService.cs" />
+    <Compile Include="Services\IUserActionLogger.cs" />
+    <Compile Include="Services\TextSuggestionService.cs" />
+    <Compile Include="Services\TransportLoadCalculator.cs" />
+    <Compile Include="Services\UserActionLogger.cs" />
+    <Compile Include="Services\UserManualProvider.cs" />
+    <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />
+    <Compile Include="ViewModels\BOM\BomIndexViewModel.cs" />
+    <Compile Include="ViewModels\BOM\BomTreeNodeViewModel.cs" />
+    <Compile Include="ViewModels\CompanyOrderCreateVm.cs" />
+    <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
+    <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
+    <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
-    <Compile Include="ViewModels\NormCuttingLineViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrDashboardViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrEmployeeViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrOrgUnitViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrPayrollViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrSalaryGradeViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrStaffingPlanViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrTimesheetViewModel.cs" />
+    <Compile Include="ViewModels\HR\OrgChartNodeViewModel.cs" />
+    <Compile Include="ViewModels\MESDashboardViewModel.cs" />
+    <Compile Include="ViewModels\NormLineViewModel.cs" />
+    <Compile Include="ViewModels\OfficialLetterCreateVm.cs" />
+    <Compile Include="ViewModels\OfficialLetterEditVm.cs" />
+    <Compile Include="ViewModels\OfficialLetterIndexVm.cs" />
     <Compile Include="ViewModels\PContractSViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
-    <Compile Include="ViewModels\ProductNormCuttingViewModel.cs" />
+    <Compile Include="ViewModels\ProductNormViewModel.cs" />
+    <Compile Include="ViewModels\ProductPlanDailyViewModel.cs" />
+    <Compile Include="ViewModels\ProductPlanViewModel.cs" />
+    <Compile Include="ViewModels\ProductProductionViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
+    <Compile Include="ViewModels\QualityInspectionViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
@@ -881,10 +965,15 @@
     <Compile Include="ViewModels\PContractViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderViewModel.cs" />
-    <Compile Include="ViewModels\ProductPlanVM.cs" />
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
+    <Compile Include="ViewModels\TaskViewModel.cs" />
+    <Compile Include="ViewModels\TransportLoadResult.cs" />
+    <Compile Include="ViewModels\ProductSelectItem.cs" />
+    <Compile Include="ViewModels\TransportSelectItem.cs" />
+    <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
+    <Compile Include="ViewModels\UserManualPageViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
     <Compile Include="ViewModels\WrhsExpenseViewModel.cs" />
     <Compile Include="ViewModels\WrhsIncomeEditViewModel.cs" />
@@ -2710,37 +2799,15 @@
     <Content Include="Views\Product\Index.cshtml" />
     <Content Include="Views\Supplier\Edit.cshtml" />
     <Content Include="Views\Supplier\Delete.cshtml" />
-    <Content Include="Views\PContract\Index.cshtml" />
-    <Content Include="Views\PContract\Create.cshtml" />
-    <Content Include="Views\PContract\Details.cshtml" />
-    <Content Include="Views\PContract\Edit.cshtml" />
-    <Content Include="Views\PContract\Delete.cshtml" />
-    <Content Include="Views\PContract\UploadWithExcel.cshtml" />
     <Content Include="Views\Supplier\UploadWithExcel.cshtml" />
     <Content Include="Views\Product\Create.cshtml" />
     <Content Include="Views\Product\Details.cshtml" />
     <Content Include="Views\Product\Delete.cshtml" />
     <Content Include="Views\Product\Edit.cshtml" />
-    <Content Include="Views\POrder\Index.cshtml" />
-    <Content Include="Views\POrder\Create.cshtml" />
-    <Content Include="Views\POrder\Details.cshtml" />
-    <Content Include="Views\POrder\UploadWithExcel.cshtml" />
-    <Content Include="Views\POrder\Delete.cshtml" />
-    <Content Include="Views\POrder\Edit.cshtml" />
-    <Content Include="Views\POrder\EditPart.cshtml" />
     <Content Include="Views\Product\UploadWithExcel.cshtml" />
-    <Content Include="Views\PInvoice\Index.cshtml" />
-    <Content Include="Views\PInvoice\Create.cshtml" />
-    <Content Include="Views\PInvoice\UploadWithExcel.cshtml" />
     <Content Include="Views\ComingSoon\Index.cshtml" />
-    <Content Include="Views\PInvoice\Details.cshtml" />
-    <Content Include="Views\PInvoice\Delete.cshtml" />
     <Content Include="Views\WhIncome\Index.cshtml" />
-    <Content Include="Views\BOM\Index.cshtml" />
-    <Content Include="Views\BOM\Details.cshtml" />
     <Content Include="Views\WhIncome\Create.cshtml" />
-    <Content Include="Views\PInvoice\Edit.cshtml" />
-    <Content Include="Views\PInvoice\EditPart.cshtml" />
     <Content Include="Views\Shop\Index.cshtml" />
     <Content Include="Views\Shop\Create.cshtml" />
     <Content Include="Views\Shop\Delete.cshtml" />
@@ -2770,12 +2837,10 @@
     <Content Include="Views\PartWRHS\Details.cshtml" />
     <Content Include="Views\PartWRHS\Delete.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\PContract\EditPart.cshtml" />
     <Content Include="Views\Forwarder\Create.cshtml" />
     <Content Include="Views\Forwarder\Details.cshtml" />
     <Content Include="Views\Forwarder\Edit.cshtml" />
     <Content Include="Views\Forwarder\Delete.cshtml" />
-    <Content Include="Views\BOM\Create.cshtml" />
     <Content Include="Views\ProductionProcess\Index.cshtml" />
     <Content Include="Views\ProductionProcess\Create.cshtml" />
     <Content Include="Views\ProductionProcess\Details.cshtml" />
@@ -2791,7 +2856,6 @@
     <Content Include="Views\Waybill\Details.cshtml" />
     <Content Include="Views\Waybill\Edit.cshtml" />
     <Content Include="Views\Waybill\Delete.cshtml" />
-    <Content Include="Views\BOM\CreateWizard.cshtml" />
     <Content Include="Views\FContract\Index.cshtml" />
     <Content Include="Views\FContract\Create.cshtml" />
     <Content Include="Views\FContract\Details.cshtml" />
@@ -2812,16 +2876,8 @@
     <Content Include="Views\HSCode\Details.cshtml" />
     <Content Include="Views\HSCode\Delete.cshtml" />
     <Content Include="Views\HSCode\Edit.cshtml" />
-    <Content Include="Views\BOM\_BomTreePartial.cshtml" />
-    <Content Include="Views\BOM\CompletionStatus.cshtml" />
-    <Content Include="Views\BOM\BomCreate.cshtml" />
-    <Content Include="Views\BOM\BomCreateDetails.cshtml" />
     <Content Include="Views\SOrder\Index.cshtml" />
     <Content Include="Views\SOrder\Create.cshtml" />
-    <Content Include="Views\BOM\OldCompletionStatus.cshtml" />
-    <Content Include="Views\BOM\EditBom.cshtml" />
-    <Content Include="Views\POrder\CreateSteel.cshtml" />
-    <Content Include="Views\BOM\Delete.cshtml" />
     <Content Include="Views\SOrder\Delete.cshtml" />
     <Content Include="Views\SOrder\Details.cshtml" />
     <Content Include="Views\SOrder\Edit.cshtml" />
@@ -2837,8 +2893,6 @@
     <Content Include="Views\DamagedProduct\Details.cshtml" />
     <Content Include="Views\PartStock\Index.cshtml" />
     <Content Include="Views\Log\Index.cshtml" />
-    <Content Include="Views\BOM\UploadWithExcel.cshtml" />
-    <Content Include="Views\BOM\Edit.cshtml" />
     <Content Include="Views\Reports\InTransit.cshtml" />
     <Content Include="Views\Reports\PartRequirement.cshtml" />
     <Content Include="Views\Reports\Coverage.cshtml" />
@@ -2851,8 +2905,6 @@
     <Content Include="Views\WaybillPayment\Details.cshtml" />
     <Content Include="Views\WaybillPayment\Delete.cshtml" />
     <Content Include="Views\WaybillPayment\Edit.cshtml" />
-    <Content Include="Views\PContract\CreateSteel.cshtml" />
-    <Content Include="Views\PContract\UploadWithExcelSteel.cshtml" />
     <Content Include="Views\Unit\Index.cshtml" />
     <Content Include="Views\Unit\Create.cshtml" />
     <Content Include="Views\Unit\Details.cshtml" />
@@ -2867,11 +2919,11 @@
     <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
     <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
     <Content Include="Views\Product\_ProductTable.cshtml" />
-    <Content Include="Views\NormCutting\Edit.cshtml" />
-    <Content Include="Views\NormCutting\Index.cshtml" />
+    <Content Include="Views\Norm\Edit.cshtml" />
+    <Content Include="Views\Norm\Index.cshtml" />
     <Content Include="Views\UserEntries\Index.cshtml" />
-    <Content Include="Views\NormCutting\Details.cshtml" />
-    <Content Include="Views\NormCutting\ViewDetails.cshtml" />
+    <Content Include="Views\Norm\Details.cshtml" />
+    <Content Include="Views\Norm\ViewDetails.cshtml" />
     <Content Include="Views\SContract\ManageOrders.cshtml" />
     <Content Include="Views\SalesTTNK\CreateFromInvoices.cshtml" />
     <Content Include="Views\SalesTTNK\Details.cshtml" />
@@ -2892,7 +2944,169 @@
     <Content Include="Views\POrderPayment\Details.cshtml" />
     <Content Include="Views\POrderPayment\Edit.cshtml" />
     <Content Include="Views\POrderPayment\Index.cshtml" />
-    <Content Include="Views\NormCutting\Create.cshtml" />
+    <Content Include="Views\Norm\Create.cshtml" />
+    <Content Include="Views\BOM\_BomTreeNode.cshtml" />
+    <Content Include="Views\BOM\Details.cshtml" />
+    <Content Include="Views\BOM\Index.cshtml" />
+    <Content Include="Views\CompanyOrders\Create.cshtml" />
+    <Content Include="Views\CompanyOrders\Details.cshtml" />
+    <Content Include="Views\CompanyOrders\Edit.cshtml" />
+    <Content Include="Views\CompanyOrders\Index.cshtml" />
+    <Content Include="Views\Expenses\Create.cshtml" />
+    <Content Include="Views\Expenses\Delete.cshtml" />
+    <Content Include="Views\Expenses\Details.cshtml" />
+    <Content Include="Views\Expenses\Edit.cshtml" />
+    <Content Include="Views\Expenses\Index.cshtml" />
+    <Content Include="Views\FinDashboard\BalanceSheet.cshtml" />
+    <Content Include="Views\FinDashboard\Cashflow.cshtml" />
+    <Content Include="Views\FinDashboard\PL.cshtml" />
+    <Content Include="Views\FinDashboard\ShareholderValue.cshtml" />
+    <Content Include="Views\FinAccounts\Create.cshtml" />
+    <Content Include="Views\FinAccounts\Delete.cshtml" />
+    <Content Include="Views\FinAccounts\Details.cshtml" />
+    <Content Include="Views\FinAccounts\Edit.cshtml" />
+    <Content Include="Views\FinAccounts\Index.cshtml" />
+    <Content Include="Views\FinBalanceCategories\Create.cshtml" />
+    <Content Include="Views\FinBalanceCategories\Delete.cshtml" />
+    <Content Include="Views\FinBalanceCategories\Details.cshtml" />
+    <Content Include="Views\FinBalanceCategories\Edit.cshtml" />
+    <Content Include="Views\FinBalanceCategories\Index.cshtml" />
+    <Content Include="Views\FinCategories\Create.cshtml" />
+    <Content Include="Views\FinCategories\Delete.cshtml" />
+    <Content Include="Views\FinCategories\Details.cshtml" />
+    <Content Include="Views\FinCategories\Edit.cshtml" />
+    <Content Include="Views\FinCategories\Index.cshtml" />
+    <Content Include="Views\FinPlItems\Create.cshtml" />
+    <Content Include="Views\FinPlItems\Delete.cshtml" />
+    <Content Include="Views\FinPlItems\Details.cshtml" />
+    <Content Include="Views\FinPlItems\Edit.cshtml" />
+    <Content Include="Views\FinPlItems\Index.cshtml" />
+    <Content Include="Views\FinPlItems\MapCategories.cshtml" />
+    <Content Include="Views\FinPlPlans\BulkEdit.cshtml" />
+    <Content Include="Views\FinPlPlans\Create.cshtml" />
+    <Content Include="Views\FinPlPlans\Delete.cshtml" />
+    <Content Include="Views\FinPlPlans\Edit.cshtml" />
+    <Content Include="Views\FinPlPlans\Index.cshtml" />
+    <Content Include="Views\FinTransactions\Create.cshtml" />
+    <Content Include="Views\FinTransactions\Delete.cshtml" />
+    <Content Include="Views\FinTransactions\Details.cshtml" />
+    <Content Include="Views\FinTransactions\Edit.cshtml" />
+    <Content Include="Views\FinTransactions\Index.cshtml" />
+    <Content Include="Views\Shareholder\AddContribution.cshtml" />
+    <Content Include="Views\Shareholder\Create.cshtml" />
+    <Content Include="Views\Shareholder\Delete.cshtml" />
+    <Content Include="Views\Shareholder\Details.cshtml" />
+    <Content Include="Views\Shareholder\Edit.cshtml" />
+    <Content Include="Views\Shareholder\Index.cshtml" />
+    <Content Include="Views\Shareholder\ManageSharePeriods.cshtml" />
+    <Content Include="Views\HrDashboard\Index.cshtml" />
+    <Content Include="Views\HrEmployees\Create.cshtml" />
+    <Content Include="Views\HrEmployees\Details.cshtml" />
+    <Content Include="Views\HrEmployees\Edit.cshtml" />
+    <Content Include="Views\HrEmployees\Index.cshtml" />
+    <Content Include="Views\HrOrgUnits\Create.cshtml" />
+    <Content Include="Views\HrOrgUnits\Details.cshtml" />
+    <Content Include="Views\HrOrgUnits\Edit.cshtml" />
+    <Content Include="Views\HrOrgUnits\Index.cshtml" />
+    <Content Include="Views\HrOrgUnits\OrgChart.cshtml" />
+    <Content Include="Views\HrOrgUnits\_OrgUnitDetails.cshtml" />
+    <Content Include="Views\HrPayroll\Edit.cshtml" />
+    <Content Include="Views\HrPayroll\Generate.cshtml" />
+    <Content Include="Views\HrPayroll\Index.cshtml" />
+    <Content Include="Views\HrPositions\Create.cshtml" />
+    <Content Include="Views\HrPositions\Delete.cshtml" />
+    <Content Include="Views\HrPositions\Details.cshtml" />
+    <Content Include="Views\HrPositions\Edit.cshtml" />
+    <Content Include="Views\HrPositions\Index.cshtml" />
+    <Content Include="Views\HrReports\PayrollReport.cshtml" />
+    <Content Include="Views\HrReports\TimesheetReport.cshtml" />
+    <Content Include="Views\HrSalaryGrades\Create.cshtml" />
+    <Content Include="Views\HrSalaryGrades\Details.cshtml" />
+    <Content Include="Views\HrSalaryGrades\Edit.cshtml" />
+    <Content Include="Views\HrSalaryGrades\Index.cshtml" />
+    <Content Include="Views\HrStaffingPlan\Create.cshtml" />
+    <Content Include="Views\HrStaffingPlan\Details.cshtml" />
+    <Content Include="Views\HrStaffingPlan\Edit.cshtml" />
+    <Content Include="Views\HrStaffingPlan\GenerateFromEmployees.cshtml" />
+    <Content Include="Views\HrStaffingPlan\Import.cshtml" />
+    <Content Include="Views\HrStaffingPlan\ImportPreview.cshtml" />
+    <Content Include="Views\HrStaffingPlan\Index.cshtml" />
+    <Content Include="Views\HrTimesheets\Create.cshtml" />
+    <Content Include="Views\HrTimesheets\Edit.cshtml" />
+    <Content Include="Views\HrTimesheets\Import.cshtml" />
+    <Content Include="Views\HrTimesheets\Index.cshtml" />
+    <Content Include="Views\Incomes\Create.cshtml" />
+    <Content Include="Views\Incomes\Delete.cshtml" />
+    <Content Include="Views\Incomes\Details.cshtml" />
+    <Content Include="Views\Incomes\Edit.cshtml" />
+    <Content Include="Views\Incomes\Index.cshtml" />
+    <Content Include="Views\Inventory\Index.cshtml" />
+    <Content Include="Views\InventoryReports\Dashboard.cshtml" />
+    <Content Include="Views\LogisticsDashboard\Index.cshtml" />
+    <Content Include="Views\MESDashboard\Dashboard.cshtml" />
+    <Content Include="Views\OfficialLetters\Create.cshtml" />
+    <Content Include="Views\OfficialLetters\Details.cshtml" />
+    <Content Include="Views\OfficialLetters\Edit.cshtml" />
+    <Content Include="Views\OfficialLetters\Index.cshtml" />
+    <Content Include="Views\PContracts\Create.cshtml" />
+    <Content Include="Views\PContracts\Delete.cshtml" />
+    <Content Include="Views\PContracts\Details.cshtml" />
+    <Content Include="Views\PContracts\Edit.cshtml" />
+    <Content Include="Views\PContracts\Index.cshtml" />
+    <Content Include="Views\PInvoices\Create.cshtml" />
+    <Content Include="Views\PInvoices\Delete.cshtml" />
+    <Content Include="Views\PInvoices\Details.cshtml" />
+    <Content Include="Views\PInvoices\Edit.cshtml" />
+    <Content Include="Views\PInvoices\Index.cshtml" />
+    <Content Include="Views\POrders\Create.cshtml" />
+    <Content Include="Views\POrders\Delete.cshtml" />
+    <Content Include="Views\POrders\Details.cshtml" />
+    <Content Include="Views\POrders\Edit.cshtml" />
+    <Content Include="Views\POrders\Index.cshtml" />
+    <Content Include="Views\ProductProduction\Create.cshtml" />
+    <Content Include="Views\ProductProduction\Details.cshtml" />
+    <Content Include="Views\ProductProduction\Index.cshtml" />
+    <Content Include="Views\QualityInspection\Create.cshtml" />
+    <Content Include="Views\QualityInspection\Details.cshtml" />
+    <Content Include="Views\QualityInspection\Index.cshtml" />
+    <Content Include="Views\Tender\Index.cshtml" />
+    <Content Include="Views\UserManual\Index.cshtml" />
+    <Content Include="Views\Tasks\Create.cshtml" />
+    <Content Include="Views\Tasks\Details.cshtml" />
+    <Content Include="Views\Tasks\Edit.cshtml" />
+    <Content Include="Views\Tasks\Index.cshtml" />
+    <Content Include="Views\HR\HrDashboard\Index.cshtml" />
+    <Content Include="Views\HR\HrEmployees\Create.cshtml" />
+    <Content Include="Views\HR\HrEmployees\Details.cshtml" />
+    <Content Include="Views\HR\HrEmployees\Edit.cshtml" />
+    <Content Include="Views\HR\HrEmployees\Index.cshtml" />
+    <Content Include="Views\HR\HrOrgUnits\Create.cshtml" />
+    <Content Include="Views\HR\HrOrgUnits\Details.cshtml" />
+    <Content Include="Views\HR\HrOrgUnits\Edit.cshtml" />
+    <Content Include="Views\HR\HrOrgUnits\Index.cshtml" />
+    <Content Include="Views\HR\HrOrgUnits\OrgChart.cshtml" />
+    <Content Include="Views\HR\HrOrgUnits\_OrgUnitDetails.cshtml" />
+    <Content Include="Views\HR\HrPayroll\Edit.cshtml" />
+    <Content Include="Views\HR\HrPayroll\Generate.cshtml" />
+    <Content Include="Views\HR\HrPayroll\Index.cshtml" />
+    <Content Include="Views\HR\HrReports\PayrollReport.cshtml" />
+    <Content Include="Views\HR\HrReports\TimesheetReport.cshtml" />
+    <Content Include="Views\HR\HrSalaryGrades\Create.cshtml" />
+    <Content Include="Views\HR\HrSalaryGrades\Details.cshtml" />
+    <Content Include="Views\HR\HrSalaryGrades\Edit.cshtml" />
+    <Content Include="Views\HR\HrSalaryGrades\Index.cshtml" />
+    <Content Include="Views\HR\HrStaffingPlan\Create.cshtml" />
+    <Content Include="Views\HR\HrStaffingPlan\Details.cshtml" />
+    <Content Include="Views\HR\HrStaffingPlan\Edit.cshtml" />
+    <Content Include="Views\HR\HrStaffingPlan\GenerateFromEmployees.cshtml" />
+    <Content Include="Views\HR\HrStaffingPlan\Import.cshtml" />
+    <Content Include="Views\HR\HrStaffingPlan\Index.cshtml" />
+    <Content Include="Views\HR\HrTimesheets\Create.cshtml" />
+    <Content Include="Views\HR\HrTimesheets\Edit.cshtml" />
+    <Content Include="Views\HR\HrTimesheets\Import.cshtml" />
+    <Content Include="Views\HR\HrTimesheets\Index.cshtml" />
+    <Content Include="Views\ProductPlan\_DailyGridPartial.cshtml" />
+    <Content Include="Views\Logistic\TransportLoadSimulation\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

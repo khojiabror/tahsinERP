@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
 {
     public class SOrderController : Controller
     {
-        // GET: SOrder
+        // GET: SOrder | Index
         public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -131,7 +131,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Get delivery schedule
                 var deliverySchedule = db.SORDER_DELIVERY_SCHEDULE
                     .Include(d => d.PRODUCT)
                     .Where(d => d.SOrderID == id)
@@ -140,7 +139,6 @@ namespace tahsinERP.Controllers
 
                 ViewBag.DeliverySchedule = deliverySchedule;
 
-                // Calculate delivery schedule summary per product
                 var scheduleSummary = deliverySchedule
                     .GroupBy(d => d.SOrderProductID)
                     .Select(g => new
@@ -152,10 +150,7 @@ namespace tahsinERP.Controllers
                     .ToDictionary(s => s.SOrderProductID, s => s);
 
                 ViewBag.ScheduleSummary = scheduleSummary;
-
-                // Get invoices count
-                var invoicesCount = db.SALES_INVOICES.Where(i => i.OrderID == id).Count();
-                ViewBag.InvoicesCount = invoicesCount;
+                ViewBag.InvoicesCount = db.SALES_INVOICES.Where(i => i.OrderID == id).Count();
 
                 return View(order);
             }
@@ -173,17 +168,26 @@ namespace tahsinERP.Controllers
                     Products = new List<SOrderProduct>()
                 };
 
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", customerID);
-                ViewBag.SContract = new SelectList(db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", contractID);
+                // Dropdowns with "---Tanlang---" option
+                var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", customerID.HasValue && customerID.Value > 0 ? customerID.Value.ToString() : "0");
+
+                var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", contractID.HasValue && contractID.Value > 0 ? contractID.Value.ToString() : "0");
+
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                 ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
 
-                if (customerID.HasValue)
+                if (customerID.HasValue && customerID.Value > 0)
                 {
                     model.CustomerID = customerID.Value;
                 }
 
-                if (contractID.HasValue)
+                if (contractID.HasValue && contractID.Value > 0)
                 {
                     model.ContractID = contractID.Value;
                 }
@@ -197,115 +201,148 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(SOrderViewModel model, FormCollection form)
         {
-            // Handle repeater form data (Parts[0].ProductID, Parts[1].ProductID, etc.)
-            if (model.Products == null || !model.Products.Any())
-            {
-                var parts = new List<SOrderProduct>();
-                int index = 0;
-                while (form[$"Parts[{index}].ProductID"] != null)
-                {
-                    var productID = int.Parse(form[$"Parts[{index}].ProductID"]);
-                    var price = float.Parse(form[$"Parts[{index}].Price"] ?? "0");
-                    var amount = float.Parse(form[$"Parts[{index}].Amount"] ?? "0");
-                    var moq = float.Parse(form[$"Parts[{index}].MOQ"] ?? "0");
-                    var unitID = int.Parse(form[$"Parts[{index}].UnitID"]);
-
-                    parts.Add(new SOrderProduct
-                    {
-                        ProductID = productID,
-                        Price = price,
-                        Amount = amount,
-                        MOQ = moq,
-                        UnitID = unitID
-                    });
-                    index++;
-                }
-                model.Products = parts;
-            }
-
-            if (ModelState.IsValid && model.Products != null && model.Products.Any())
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    try
-                    {
-                        // Get CurrencyID from contract if contract is selected
-                        int currencyID = 0;
-                        if (model.ContractID > 0)
-                        {
-                            var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
-                            if (contract != null)
-                            {
-                                currencyID = contract.CurrencyID;
-                            }
-                        }
-
-                        var order = new S_ORDERS
-                        {
-                            OrderNo = model.OrderNo,
-                            IssuedDate = model.IssuedDate,
-                            CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
-                            CustomerID = model.CustomerID,
-                            ContractID = model.ContractID > 0 ? model.ContractID : 0,
-                            CurrencyID = currencyID,
-                            Description = model.Description,
-                            IsDeleted = false,
-                            Amount = 0
-                        };
-
-                        db.S_ORDERS.Add(order);
-                        db.SaveChanges();
-
-                        // Add products
-                        double totalAmount = 0;
-                        foreach (var product in model.Products)
-                        {
-                            var orderProduct = new S_ORDER_PRODUCTS
-                            {
-                                OrderID = order.ID,
-                                ProductID = product.ProductID,
-                                Price = product.Price,
-                                Amount = product.Amount,
-                                MOQ = 0,
-                                UnitID = product.UnitID,
-                                TotalPrice = product.Price * product.Amount
-                            };
-                            totalAmount += orderProduct.TotalPrice;
-                            db.S_ORDER_PRODUCTS.Add(orderProduct);
-                        }
-
-                        order.Amount = totalAmount;
-                        db.SaveChanges();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani yaratdi");
-
-                        return RedirectToAction("DeliverySchedule", new { orderID = order.ID });
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
-                    }
-                }
-            }
-            else
-            {
-                if (model.Products == null || !model.Products.Any())
-                {
-                    ModelState.AddModelError("", "Kamida bitta mahsulot qo'shish kerak");
-                }
-            }
-
-            // Reload ViewBag on error
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                ViewBag.SContract = new SelectList(db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", model.ContractID);
-                ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
-                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-            }
+                // Parse products from form repeater
+                if (model.Products == null || !model.Products.Any())
+                {
+                    model.Products = new List<SOrderProduct>();
+                    int index = 0;
+                    while (form[$"Parts[{index}].ProductID"] != null)
+                    {
+                        var productIDStr = form[$"Parts[{index}].ProductID"];
+                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
+                        {
+                            var productID = int.Parse(productIDStr);
+                            var price = float.Parse(form[$"Parts[{index}].Price"] ?? "0");
+                            var amount = float.Parse(form[$"Parts[{index}].Amount"] ?? "0");
+                            var unitIDStr = form[$"Parts[{index}].UnitID"];
+                            var unitID = !string.IsNullOrEmpty(unitIDStr) && unitIDStr != "0" ? int.Parse(unitIDStr) : 0;
 
-            return View(model);
+                            if (productID > 0 && amount > 0 && price > 0)
+                            {
+                                model.Products.Add(new SOrderProduct
+                                {
+                                    ProductID = productID,
+                                    Price = price,
+                                    Amount = amount,
+                                    UnitID = unitID,
+                                    MOQ = 0
+                                });
+                            }
+                        }
+                        index++;
+                    }
+                }
+
+                // Validation
+                if (model.Products == null || !model.Products.Any())
+                {
+                    var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                    var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                    ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+
+                    var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                    var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                    ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ModelState.AddModelError("", "Kamida bitta mahsulot qo'shish kerak");
+                    return View(model);
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                    var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                    ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+
+                    var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                    var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                    ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    return View(model);
+                }
+
+                try
+                {
+                    // Get CurrencyID from contract if contract is selected
+                    int currencyID = 0;
+                    if (model.ContractID > 0)
+                    {
+                        var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
+                        if (contract != null)
+                        {
+                            currencyID = contract.CurrencyID;
+                        }
+                    }
+
+                    var order = new S_ORDERS
+                    {
+                        OrderNo = model.OrderNo,
+                        IssuedDate = model.IssuedDate,
+                        CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
+                        CustomerID = model.CustomerID,
+                        ContractID = model.ContractID > 0 ? model.ContractID : 0,
+                        CurrencyID = currencyID,
+                        Description = model.Description,
+                        IsDeleted = false,
+                        Amount = 0
+                    };
+
+                    db.S_ORDERS.Add(order);
+                    db.SaveChanges();
+
+                    // Add products
+                    double totalAmount = 0;
+                    foreach (var product in model.Products)
+                    {
+                        var orderProduct = new S_ORDER_PRODUCTS
+                        {
+                            OrderID = order.ID,
+                            ProductID = product.ProductID,
+                            Price = product.Price,
+                            Amount = product.Amount,
+                            MOQ = 0,
+                            UnitID = product.UnitID,
+                            TotalPrice = product.Price * product.Amount
+                        };
+                        totalAmount += orderProduct.TotalPrice;
+                        db.S_ORDER_PRODUCTS.Add(orderProduct);
+                    }
+
+                    order.Amount = totalAmount;
+                    db.SaveChanges();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani yaratdi");
+
+                    return RedirectToAction("DeliverySchedule", new { orderID = order.ID });
+                }
+                catch (Exception ex)
+                {
+                    var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                    var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                    ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+
+                    var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                    var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                    ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    return View(model);
+                }
+            }
         }
 
         // GET: Edit
@@ -346,8 +383,16 @@ namespace tahsinERP.Controllers
                     }).ToList()
                 };
 
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", order.CustomerID);
-                ViewBag.SContract = new SelectList(db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", order.ContractID);
+                var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", order.CustomerID > 0 ? order.CustomerID.ToString() : "0");
+
+                var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", order.ContractID > 0 ? order.ContractID.ToString() : "0");
+
                 ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                 ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
                 ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", order.CurrencyID);
@@ -361,35 +406,79 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, SOrderViewModel model, FormCollection form)
         {
-            // Handle repeater form data (Parts[0].ProductID, Parts[1].ProductID, etc.)
-            if (model.Products == null || !model.Products.Any())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var parts = new List<SOrderProduct>();
-                int index = 0;
-                while (form[$"Parts[{index}].ProductID"] != null)
+                // Parse products from form
+                if (model.Products == null || !model.Products.Any())
                 {
-                    var productID = int.Parse(form[$"Parts[{index}].ProductID"]);
-                    var price = float.Parse(form[$"Parts[{index}].Price"] ?? "0");
-                    var amount = float.Parse(form[$"Parts[{index}].Amount"] ?? "0");
-                    var moq = float.Parse(form[$"Parts[{index}].MOQ"] ?? "0");
-                    var unitID = int.Parse(form[$"Parts[{index}].UnitID"]);
-
-                    parts.Add(new SOrderProduct
+                    model.Products = new List<SOrderProduct>();
+                    int index = 0;
+                    while (form[$"Parts[{index}].ProductID"] != null)
                     {
-                        ProductID = productID,
-                        Price = price,
-                        Amount = amount,
-                        MOQ = moq,
-                        UnitID = unitID
-                    });
-                    index++;
-                }
-                model.Products = parts;
-            }
+                        var productIDStr = form[$"Parts[{index}].ProductID"];
+                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
+                        {
+                            var productID = int.Parse(productIDStr);
+                            var price = float.Parse(form[$"Parts[{index}].Price"] ?? "0");
+                            var amount = float.Parse(form[$"Parts[{index}].Amount"] ?? "0");
+                            var unitIDStr = form[$"Parts[{index}].UnitID"];
+                            var unitID = !string.IsNullOrEmpty(unitIDStr) && unitIDStr != "0" ? int.Parse(unitIDStr) : 0;
 
-            if (ModelState.IsValid && model.Products != null && model.Products.Any())
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
+                            if (productID > 0 && amount > 0 && price > 0)
+                            {
+                                model.Products.Add(new SOrderProduct
+                                {
+                                    ProductID = productID,
+                                    Price = price,
+                                    Amount = amount,
+                                    UnitID = unitID,
+                                    MOQ = 0
+                                });
+                            }
+                        }
+                        index++;
+                    }
+                }
+
+                // Validation
+                if (model.Products == null || !model.Products.Any())
+                {
+                    var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                    var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                    ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+
+                    var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                    var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                    ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
+                    ModelState.AddModelError("", "Kamida bitta mahsulot qo'shish kerak");
+                    return View(model);
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                    var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                    ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+
+                    var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                    var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                    ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
+                    return View(model);
+                }
+
+                try
                 {
                     var order = db.S_ORDERS
                         .Include(o => o.S_ORDER_PRODUCTS)
@@ -400,82 +489,73 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    try
+                    order.OrderNo = model.OrderNo;
+                    order.IssuedDate = model.IssuedDate;
+                    order.CustomerID = model.CustomerID;
+                    order.ContractID = model.ContractID > 0 ? model.ContractID : 0;
+                    order.Description = model.Description;
+
+                    // Get CurrencyID from contract if contract is selected
+                    if (model.ContractID > 0)
                     {
-                        order.OrderNo = model.OrderNo;
-                        order.IssuedDate = model.IssuedDate;
-                        order.CustomerID = model.CustomerID;
-                        order.ContractID = model.ContractID > 0 ? model.ContractID : 0;
-                        
-                        // Get CurrencyID from contract if contract is selected
-                        if (model.ContractID > 0)
+                        var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
+                        if (contract != null)
                         {
-                            var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
-                            if (contract != null)
-                            {
-                                order.CurrencyID = contract.CurrencyID;
-                            }
+                            order.CurrencyID = contract.CurrencyID;
                         }
-                        
-                        order.Description = model.Description;
-
-                        // Remove existing products
-                        var existingProducts = db.S_ORDER_PRODUCTS.Where(p => p.OrderID == id).ToList();
-                        foreach (var product in existingProducts)
-                        {
-                            db.S_ORDER_PRODUCTS.Remove(product);
-                        }
-
-                        // Add updated products
-                        double totalAmount = 0;
-                        foreach (var product in model.Products)
-                        {
-                            var orderProduct = new S_ORDER_PRODUCTS
-                            {
-                                OrderID = order.ID,
-                                ProductID = product.ProductID,
-                                Price = product.Price,
-                                Amount = product.Amount,
-                                MOQ = 0,
-                                UnitID = product.UnitID,
-                                TotalPrice = product.Price * product.Amount
-                            };
-                            totalAmount += orderProduct.TotalPrice;
-                            db.S_ORDER_PRODUCTS.Add(orderProduct);
-                        }
-
-                        order.Amount = totalAmount;
-                        db.SaveChanges();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani tahrirladi");
-
-                        return RedirectToAction("Details", new { id = order.ID });
                     }
-                    catch (Exception ex)
+
+                    // Remove existing products
+                    var existingProducts = db.S_ORDER_PRODUCTS.Where(p => p.OrderID == id).ToList();
+                    foreach (var product in existingProducts)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        db.S_ORDER_PRODUCTS.Remove(product);
                     }
+
+                    // Add updated products
+                    double totalAmount = 0;
+                    foreach (var product in model.Products)
+                    {
+                        var orderProduct = new S_ORDER_PRODUCTS
+                        {
+                            OrderID = order.ID,
+                            ProductID = product.ProductID,
+                            Price = product.Price,
+                            Amount = product.Amount,
+                            MOQ = 0,
+                            UnitID = product.UnitID,
+                            TotalPrice = product.Price * product.Amount
+                        };
+                        totalAmount += orderProduct.TotalPrice;
+                        db.S_ORDER_PRODUCTS.Add(orderProduct);
+                    }
+
+                    order.Amount = totalAmount;
+                    db.SaveChanges();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani tahrirladi");
+
+                    return RedirectToAction("Details", new { id = order.ID });
                 }
-            }
-            else
-            {
-                if (model.Products == null || !model.Products.Any())
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Kamida bitta mahsulot qo'shish kerak");
+                    var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList();
+                    var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
+                    ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+
+                    var contractsList = db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList();
+                    var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
+                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
+                    ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+
+                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
+                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
+                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
+                    ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    return View(model);
                 }
             }
-
-            // Reload ViewBag on error
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                ViewBag.SContract = new SelectList(db.S_CONTRACTS.Where(x => x.IsDeleted == false).ToList(), "ID", "ContractNo", model.ContractID);
-                ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(x => x.IsDeleted == false && x.IsFinishedGood == true).ToList(), "ID", "PNo");
-                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-            }
-
-            return View(model);
         }
 
         // GET: Delete
@@ -516,10 +596,8 @@ namespace tahsinERP.Controllers
                 {
                     order.IsDeleted = true;
                     db.SaveChanges();
-
                     LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani o'chirdi");
                 }
-
                 return RedirectToAction("Index");
             }
         }
@@ -545,7 +623,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Load delivery schedule
                 var deliverySchedule = db.SORDER_DELIVERY_SCHEDULE
                     .Include(d => d.PRODUCT)
                     .Where(d => d.SOrderID == orderID)
@@ -556,7 +633,6 @@ namespace tahsinERP.Controllers
                 ViewBag.OrderProducts = order.S_ORDER_PRODUCTS.ToList();
                 ViewBag.DeliverySchedule = deliverySchedule;
 
-                // Calculate totals per product
                 var scheduleSummary = deliverySchedule
                     .GroupBy(d => d.SOrderProductID)
                     .Select(g => new
@@ -588,7 +664,6 @@ namespace tahsinERP.Controllers
                         return Json(new { success = false, message = "Buyurtma mahsuloti topilmadi" });
                     }
 
-                    // Validate total planned quantity
                     var existingPlanned = db.SORDER_DELIVERY_SCHEDULE
                         .Where(d => d.SOrderProductID == orderProductID)
                         .Sum(d => (decimal?)d.QtyPlanned) ?? 0;
@@ -639,7 +714,6 @@ namespace tahsinERP.Controllers
                         return Json(new { success = false, message = "Reja topilmadi" });
                     }
 
-                    // Validate total planned quantity
                     var orderProduct = db.S_ORDER_PRODUCTS.Find(scheduleItem.SOrderProductID);
                     if (orderProduct != null)
                     {
@@ -686,12 +760,9 @@ namespace tahsinERP.Controllers
                     {
                         db.SORDER_DELIVERY_SCHEDULE.Remove(scheduleItem);
                         db.SaveChanges();
-
                         LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"Yetkazib berish rejasi o'chirildi (ID: {scheduleID})");
-
                         return Json(new { success = true, message = "Muvaffaqiyatli o'chirildi" });
                     }
-
                     return Json(new { success = false, message = "Reja topilmadi" });
                 }
                 catch (Exception ex)
@@ -701,7 +772,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: GetContractProducts - AJAX endpoint to get contract products
+        // GET: GetContractProducts - AJAX endpoint to get contract products with prices
         [HttpGet]
         public ActionResult GetContractProducts(int contractId)
         {
@@ -709,6 +780,7 @@ namespace tahsinERP.Controllers
             {
                 var contractProducts = db.S_CONTRACT_PRODUCTS
                     .Include(cp => cp.PRODUCT)
+                    .Include(cp => cp.UNIT)
                     .Where(cp => cp.ContractID == contractId)
                     .Select(cp => new
                     {
@@ -717,6 +789,7 @@ namespace tahsinERP.Controllers
                         ProductName = cp.PRODUCT.Name,
                         PiecePrice = cp.PiecePrice,
                         UnitID = cp.UnitID,
+                        UnitName = cp.UNIT.ShortName,
                         Amount = cp.Amount
                     })
                     .ToList();

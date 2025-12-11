@@ -1,0 +1,82 @@
+@model tahsinERP.Models.HR_POSITIONS
+@{
+    ViewBag.Title = "Lavozimni o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPositions"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Lavozimni o'chirish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Lavozimlar</a></li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="alert alert-warning">
+                    <strong>Diqqat!</strong> Bu lavozimni o'chirishni tasdiqlaysizmi?
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Kod:</dt>
+                                <dd class="col-sm-9">@Model.Code</dd>
+
+                                <dt class="col-sm-3">Nomi:</dt>
+                                <dd class="col-sm-9">@Model.Name</dd>
+
+                                <dt class="col-sm-3">Rahbariyat lavozimi:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-@(Model.IsManager ? "info" : "secondary")">
+                                        @(Model.IsManager ? "Ha" : "Yo'q")
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-3">Holat:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
+                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                    </span>
+                                </dd>
+                            </dl>
+
+                            @using (Html.BeginForm("Delete", "HrPositions", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.HiddenFor(model => model.ID)
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bx bx-trash"></i> O'chirish
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         {
             this.F_CONTRACTS = new HashSet<F_CONTRACTS>();
             this.F_WAYBILL_PAYMENTS = new HashSet<F_WAYBILL_PAYMENTS>();
+            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
         }
     
         public int ID { get; set; }
@@ -32,5 +33,7 @@ namespace tahsinERP.Models
         public virtual ICollection<F_CONTRACTS> F_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
     }
 }

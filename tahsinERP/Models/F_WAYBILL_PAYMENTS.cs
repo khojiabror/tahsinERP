@@ -21,6 +21,7 @@ namespace tahsinERP.Models
         public bool IsDeleted { get; set; }
         public string Comment { get; set; }
         public Nullable<int> CurrencyID { get; set; }
+        public Nullable<System.DateTime> PaymentDate { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual FORWARDER FORWARDER { get; set; }

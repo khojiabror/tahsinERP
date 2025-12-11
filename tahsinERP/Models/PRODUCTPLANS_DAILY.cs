@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class PRODUCTPLANS_DAILY
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public PRODUCTPLANS_DAILY()
+        {
+            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
+        }
+    
         public int ID { get; set; }
         public int PlanID { get; set; }
         public System.DateTime Day { get; set; }
@@ -22,5 +28,7 @@ namespace tahsinERP.Models
         public double Total { get; set; }
     
         public virtual PRODUCTPLAN PRODUCTPLAN { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
     }
 }

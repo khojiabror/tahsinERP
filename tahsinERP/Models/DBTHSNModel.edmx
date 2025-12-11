@@ -319,6 +319,25 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="ContractID" Type="int" />
           <Property Name="Doc" Type="varbinary(max)" />
         </EntityType>
+        <EntityType Name="F_CONTRACT_TARIFFS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ContractID" Type="int" Nullable="false" />
+          <Property Name="FromRegion" Type="nvarchar" MaxLength="100" />
+          <Property Name="FromCity" Type="nvarchar" MaxLength="100" />
+          <Property Name="ToRegion" Type="nvarchar" MaxLength="100" />
+          <Property Name="ToCity" Type="nvarchar" MaxLength="100" />
+          <Property Name="TransportTypeID" Type="int" />
+          <Property Name="FreightBasis" Type="tinyint" Nullable="false" />
+          <Property Name="Rate" Type="float" Nullable="false" />
+          <Property Name="MinimumCharge" Type="float" />
+          <Property Name="CurrencyID" Type="int" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="F_CONTRACTS">
           <Key>
             <PropertyRef Name="ID" />
@@ -358,6 +377,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="WaybillID" Type="int" Nullable="false" />
           <Property Name="Doc" Type="varbinary(max)" />
         </EntityType>
+        <EntityType Name="F_WAYBILL_PAYMENT_SPLITS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="WaybillID" Type="int" Nullable="false" />
+          <Property Name="PayerType" Type="tinyint" Nullable="false" />
+          <Property Name="PayerID" Type="int" />
+          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="CurrencyID" Type="int" />
+          <Property Name="Comment" Type="nvarchar" MaxLength="500" />
+        </EntityType>
         <EntityType Name="F_WAYBILL_PAYMENTS">
           <Key>
             <PropertyRef Name="ID" />
@@ -369,6 +400,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="Comment" Type="text" Nullable="false" />
           <Property Name="CurrencyID" Type="int" />
+          <Property Name="PaymentDate" Type="datetime" />
         </EntityType>
         <EntityType Name="F_WAYBILLS">
           <Key>
@@ -385,6 +417,31 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="Amount" Type="float" />
           <Property Name="IssueDate" Type="datetime" />
+          <Property Name="Direction" Type="tinyint" />
+          <Property Name="FromLocation" Type="nvarchar" MaxLength="200" />
+          <Property Name="ToLocation" Type="nvarchar" MaxLength="200" />
+          <Property Name="DistanceKm" Type="float" />
+          <Property Name="FreightBasis" Type="tinyint" />
+          <Property Name="Rate" Type="float" />
+          <Property Name="CurrencyID" Type="int" />
+          <Property Name="PayerType" Type="tinyint" />
+          <Property Name="PayerID" Type="int" />
+          <Property Name="SalesInvoiceID" Type="bigint" />
+          <Property Name="ForwarderID" Type="int" />
+          <Property Name="TruckNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="TrailerNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="TruckModel" Type="nvarchar" MaxLength="100" />
+          <Property Name="TrailerModel" Type="nvarchar" MaxLength="100" />
+          <Property Name="DriverName" Type="nvarchar" MaxLength="200" />
+          <Property Name="DriverPINFL" Type="nvarchar" MaxLength="50" />
+          <Property Name="NetWeight" Type="float" />
+          <Property Name="PalletsCount" Type="int" />
+          <Property Name="ManualCorrectionReason" Type="nvarchar" MaxLength="500" />
+          <Property Name="PlannedDeliveryDate" Type="datetime" />
+          <Property Name="ActualDeliveryDate" Type="datetime" />
+          <Property Name="TTNKID" Type="bigint" />
+          <Property Name="SalesOrderID" Type="int" />
+          <Property Name="PurchaseOrderID" Type="int" />
         </EntityType>
         <EntityType Name="FIN_ACCOUNTS">
           <Key>
@@ -504,6 +561,24 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
         </EntityType>
+        <EntityType Name="HR_EMPLOYEES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TabNo" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="FullName" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="OrgUnitID" Type="int" />
+          <Property Name="PositionID" Type="int" />
+          <Property Name="BaseSalary" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="SalaryGradeID" Type="int" />
+          <Property Name="EmploymentDate" Type="date" />
+          <Property Name="DismissalDate" Type="date" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime2" Precision="7" />
+        </EntityType>
         <EntityType Name="HR_JOB_DESCRIPTIONS">
           <Key>
             <PropertyRef Name="DocumentID" />
@@ -526,6 +601,55 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
+        <EntityType Name="HR_PAYROLL_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Year" Type="int" Nullable="false" />
+          <Property Name="Month" Type="int" Nullable="false" />
+          <Property Name="OrgUnitID" Type="int" />
+          <Property Name="Status" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ApprovedByUserID" Type="int" />
+          <Property Name="ApprovedDT" Type="datetime2" Precision="7" />
+          <Property Name="TimesheetID" Type="int" />
+        </EntityType>
+        <EntityType Name="HR_PAYROLL_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="PayrollID" Type="int" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+          <Property Name="BaseSalary" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="HoursWorked" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="PieceQty" Type="decimal" Precision="10" Scale="2" />
+          <Property Name="HourlyRate" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="GrossSalary" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="Bonuses" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="Penalties" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="NetSalary" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="CurrencyID" Type="int" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="HR_PIECE_RATE_TARIFFS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="PositionID" Type="int" />
+          <Property Name="RatePerUnit" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="EffectiveFrom" Type="date" Nullable="false" />
+          <Property Name="EffectiveTo" Type="date" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="ModifiedByUserID" Type="int" />
+          <Property Name="ModifiedDT" Type="datetime" />
         </EntityType>
         <EntityType Name="HR_POSITIONS">
           <Key>
@@ -566,6 +690,97 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="EffectiveFrom" Type="date" Nullable="false" />
           <Property Name="EffectiveTo" Type="date" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="HR_TIMESHEET_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Year" Type="int" Nullable="false" />
+          <Property Name="Month" Type="int" Nullable="false" />
+          <Property Name="OrgUnitID" Type="int" />
+          <Property Name="Status" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ApprovedByUserID" Type="int" />
+          <Property Name="ApprovedDT" Type="datetime2" Precision="7" />
+        </EntityType>
+        <EntityType Name="HR_TIMESHEET_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TimesheetID" Type="int" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+          <Property Name="Day01Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day02Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day03Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day04Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day05Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day06Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day07Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day08Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day09Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day10Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day11Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day12Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day13Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day14Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day15Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day16Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day17Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day18Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day19Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day20Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day21Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day22Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day23Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day24Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day25Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day26Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day27Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day28Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day29Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day30Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Day31Hours" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="TotalWorkedDays" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="TotalWorkedHours" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="OvertimeHours" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="AbsentDays" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="ProductID" Type="int" />
+          <Property Name="Day01Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day02Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day03Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day04Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day05Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day06Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day07Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day08Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day09Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day10Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day11Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day12Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day13Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day14Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day15Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day16Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day17Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day18Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day19Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day20Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day21Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day22Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day23Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day24Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day25Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day26Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day27Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day28Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day29Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day30Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Day31Quantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="TotalQuantity" Type="decimal" Precision="18" Scale="4" />
         </EntityType>
         <EntityType Name="HSCODES">
           <Key>
@@ -879,6 +1094,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="ShopID" Type="int" Nullable="false" />
           <Property Name="StandardLengthMm" Type="float" />
           <Property Name="OptimizationType" Type="tinyint" />
+        </EntityType>
+        <EntityType Name="QUALITY_INSPECTION">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SOrderID" Type="int" />
+          <Property Name="DeliveryScheduleID" Type="bigint" />
+          <Property Name="ProductPlanDailyID" Type="int" />
+          <Property Name="ProductionID" Type="int" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="QtyInspected" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="QtyAccepted" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="QtyRejected" Type="decimal" Precision="18" Scale="3" Nullable="false" />
+          <Property Name="DefectTypeID" Type="int" />
+          <Property Name="StatusCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="InspectedByUserID" Type="int" />
+          <Property Name="ApprovedByUserID" Type="int" />
+          <Property Name="InspectionDate" Type="datetime" Nullable="false" />
+          <Property Name="ApprovalDate" Type="datetime" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="UpdatedDT" Type="datetime" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="ROLES">
           <Key>
@@ -1340,32 +1579,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.USERROLES' does not have a primar
           <Property Name="Doc" Type="varbinary(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.CarPlanRequirements' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="CarPlanRequirements">
-          <Key>
-            <PropertyRef Name="OptionCode" />
-            <PropertyRef Name="PNo" />
-            <PropertyRef Name="StartDate" />
-            <PropertyRef Name="DueDate" />
-          </Key>
-          <Property Name="OptionCode" Type="varchar" MaxLength="15" Nullable="false" />
-          <Property Name="PNo" Type="varchar" MaxLength="15" Nullable="false" />
-          <Property Name="Requirement" Type="float" />
-          <Property Name="StartDate" Type="date" Nullable="false" />
-          <Property Name="DueDate" Type="date" Nullable="false" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.MaterialRequirement' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="MaterialRequirement">
-          <Key>
-            <PropertyRef Name="ProductNo" />
-            <PropertyRef Name="PartNo" />
-          </Key>
-          <Property Name="ProductNo" Type="varchar" MaxLength="15" Nullable="false" />
-          <Property Name="PartNo" Type="varchar" MaxLength="20" Nullable="false" />
-          <Property Name="TotalConsumption" Type="float" />
-        </EntityType>
-        <!--Errors Found During Generation:
 warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="V_FIN_PL_FACT_MONTHLY">
           <Key>
@@ -1797,6 +2010,42 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_F_CONTRACT_TARIFFS_CONTRACTS">
+          <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="1" />
+          <End Role="F_CONTRACT_TARIFFS" Type="Self.F_CONTRACT_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_CONTRACT_TARIFFS">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_CONTRACT_TARIFFS_CURRENCIES">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="F_CONTRACT_TARIFFS" Type="Self.F_CONTRACT_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_CONTRACT_TARIFFS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES">
+          <End Role="F_TRANSPORT_TYPES" Type="Self.F_TRANSPORT_TYPES" Multiplicity="0..1" />
+          <End Role="F_CONTRACT_TARIFFS" Type="Self.F_CONTRACT_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_TRANSPORT_TYPES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_CONTRACT_TARIFFS">
+              <PropertyRef Name="TransportTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_F_CONTRACTS_COMPANIES">
           <End Role="COMPANIES" Type="Self.COMPANIES" Multiplicity="1" />
           <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="*" />
@@ -1869,6 +2118,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="F_WAYBILL_PAYMENT_SPLITS" Type="Self.F_WAYBILL_PAYMENT_SPLITS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENT_SPLITS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS">
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="1" />
+          <End Role="F_WAYBILL_PAYMENT_SPLITS" Type="Self.F_WAYBILL_PAYMENT_SPLITS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_WAYBILLS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENT_SPLITS">
+              <PropertyRef Name="WaybillID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_F_WAYBILL_PAYMENTS_WAYBILLS">
           <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="1" />
           <End Role="F_WAYBILL_PAYMENTS" Type="Self.F_WAYBILL_PAYMENTS" Multiplicity="*" />
@@ -1878,6 +2151,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="F_WAYBILL_PAYMENTS">
               <PropertyRef Name="WaybillID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_CURRENCIES">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="CurrencyID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1905,6 +2190,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_F_WAYBILLS_FORWARDERS">
+          <End Role="FORWARDERS" Type="Self.FORWARDERS" Multiplicity="0..1" />
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FORWARDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="ForwarderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_F_WAYBILLS_P_INVOICES">
           <End Role="P_INVOICES" Type="Self.P_INVOICES" Multiplicity="0..1" />
           <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
@@ -1914,6 +2211,54 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="F_WAYBILLS">
               <PropertyRef Name="InvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_P_ORDERS">
+          <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="0..1" />
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="PurchaseOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_S_ORDERS">
+          <End Role="S_ORDERS" Type="Self.S_ORDERS" Multiplicity="0..1" />
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="SalesOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_SALES_INVOICES">
+          <End Role="SALES_INVOICES" Type="Self.SALES_INVOICES" Multiplicity="0..1" />
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="SalesInvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_TTNK">
+          <End Role="SALES_TTNK_HEADERS" Type="Self.SALES_TTNK_HEADERS" Multiplicity="0..1" />
+          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="TTNKID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2109,6 +2454,54 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_HR_EMPLOYEES_HR_ORG_UNITS">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_HR_POSITIONS">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_HR_SALARY_GRADES">
+          <End Role="HR_SALARY_GRADES" Type="Self.HR_SALARY_GRADES" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_SALARY_GRADES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="SalaryGradeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_JOB_DESCRIPTIONS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
           <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
@@ -2157,6 +2550,140 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_PAYROLL_HEADERS" Type="Self.HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS">
+          <End Role="HR_TIMESHEET_HEADERS" Type="Self.HR_TIMESHEET_HEADERS" Multiplicity="0..1" />
+          <End Role="HR_PAYROLL_HEADERS" Type="Self.HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="TimesheetID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_USERS_Approved">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PAYROLL_HEADERS" Type="Self.HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_USERS_Created">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PAYROLL_HEADERS" Type="Self.HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_LINES_CURRENCIES">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="HR_PAYROLL_LINES" Type="Self.HR_PAYROLL_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_LINES">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_LINES_HR_EMPLOYEES">
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="1" />
+          <End Role="HR_PAYROLL_LINES" Type="Self.HR_PAYROLL_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_LINES">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS">
+          <End Role="HR_PAYROLL_HEADERS" Type="Self.HR_PAYROLL_HEADERS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="HR_PAYROLL_LINES" Type="Self.HR_PAYROLL_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_LINES">
+              <PropertyRef Name="PayrollID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_POSITIONS">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_PRODUCTS">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
+          <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_STAFFING_PLAN_Grade">
           <End Role="HR_SALARY_GRADES" Type="Self.HR_SALARY_GRADES" Multiplicity="0..1" />
           <End Role="HR_STAFFING_PLAN" Type="Self.HR_STAFFING_PLAN" Multiplicity="*" />
@@ -2190,6 +2717,80 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="HR_STAFFING_PLAN">
               <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_TIMESHEET_HEADERS" Type="Self.HR_TIMESHEET_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_HEADERS_USERS_Approved">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_TIMESHEET_HEADERS" Type="Self.HR_TIMESHEET_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_HEADERS_USERS_Created">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_TIMESHEET_HEADERS" Type="Self.HR_TIMESHEET_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_LINES_HR_EMPLOYEES">
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="1" />
+          <End Role="HR_TIMESHEET_LINES" Type="Self.HR_TIMESHEET_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_LINES">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS">
+          <End Role="HR_TIMESHEET_HEADERS" Type="Self.HR_TIMESHEET_HEADERS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="HR_TIMESHEET_LINES" Type="Self.HR_TIMESHEET_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_LINES">
+              <PropertyRef Name="TimesheetID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_LINES_PRODUCTS">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="0..1" />
+          <End Role="HR_TIMESHEET_LINES" Type="Self.HR_TIMESHEET_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_LINES">
+              <PropertyRef Name="ProductID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2889,6 +3490,102 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_QUALITY_INSPECTION_DEFECT_TYPES">
+          <End Role="DEFECT_TYPES" Type="Self.DEFECT_TYPES" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DEFECT_TYPES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="DefectTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION">
+          <End Role="PRODUCT_PRODUCTION" Type="Self.PRODUCT_PRODUCTION" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT_PRODUCTION">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ProductionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY">
+          <End Role="PRODUCTPLANS_DAILY" Type="Self.PRODUCTPLANS_DAILY" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTPLANS_DAILY">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ProductPlanDailyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_PRODUCTS">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_S_ORDERS">
+          <End Role="S_ORDERS" Type="Self.S_ORDERS" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="SOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE">
+          <End Role="SORDER_DELIVERY_SCHEDULE" Type="Self.SORDER_DELIVERY_SCHEDULE" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="DeliveryScheduleID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_USERS_ApprovedBy">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_USERS_InspectedBy">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="QUALITY_INSPECTION" Type="Self.QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="InspectedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_S_CONTRACT_PRODUCTS_PRODUCTS">
           <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
           <End Role="S_CONTRACT_PRODUCTS" Type="Self.S_CONTRACT_PRODUCTS" Multiplicity="*" />
@@ -3369,6 +4066,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS">
+          <End Role="S_ORDERS" Type="Self.S_ORDERS" Multiplicity="0..1" />
+          <End Role="SORDER_DELIVERY_SCHEDULE" Type="Self.SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="SOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_STD_COMPANY_STANDARDS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
           <End Role="STD_COMPANY_STANDARDS" Type="Self.STD_COMPANY_STANDARDS" Multiplicity="0..1" />
@@ -3525,30 +4234,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Function Name="GetCarPlanRequirements" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="OptionCode" Type="varchar" Mode="In" />
-        </Function>
-        <Function Name="GetPartsInfo" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
-        <Function Name="GetPartsInfo_by_supplierID" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="SupplierID" Type="int" Mode="In" />
-        </Function>
-        <Function Name="GetPartsInfo_by_type" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="Type" Type="varchar" Mode="In" />
-        </Function>
-        <Function Name="GetPartsInfo_by_type_and_supplierID" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="Type" Type="varchar" Mode="In" />
-          <Parameter Name="SupplierID" Type="int" Mode="In" />
-        </Function>
-        <Function Name="GetProductListPerShop" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ShopID" Type="int" Mode="In" />
-        </Function>
-        <Function Name="GetSupplierParts" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="SupplierID" Type="int" Mode="In" />
-        </Function>
-        <Function Name="InTransitView" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="TodayDate" Type="date" Mode="In" />
-          <Parameter Name="EndDate" Type="date" Mode="In" />
-        </Function>
         <Function Name="sp_Fin_AddTransaction" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="TxnDate" Type="date" Mode="In" />
           <Parameter Name="AccountID" Type="int" Mode="In" />
@@ -3588,14 +4273,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
         <Function Name="sp_SOrder_RecalcDeliveryShippedFromInvoices" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="SOrderID" Type="int" Mode="In" />
         </Function>
-        <Function Name="WeeklyCoverage" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="TodayDate" Type="date" Mode="In" />
-          <Parameter Name="EndDate" Type="date" Mode="In" />
-        </Function>
-        <Function Name="WeeklyPartRequirement" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="TodayDate" Type="date" Mode="In" />
-          <Parameter Name="EndDate" Type="date" Mode="In" />
-        </Function>
         <EntityContainer Name="DBTHSNModelStoreContainer">
           <EntitySet Name="ADM_COMPANY_ORDERS" EntityType="Self.ADM_COMPANY_ORDERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="APP_TASK_PRIORITY_REF" EntityType="Self.APP_TASK_PRIORITY_REF" Schema="dbo" store:Type="Tables" />
@@ -3621,9 +4298,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="EXPENSE_PRODUCTS" EntityType="Self.EXPENSE_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="EXPENSES" EntityType="Self.EXPENSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_CONTRACT_DOCS" EntityType="Self.F_CONTRACT_DOCS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="F_CONTRACT_TARIFFS" EntityType="Self.F_CONTRACT_TARIFFS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_CONTRACTS" EntityType="Self.F_CONTRACTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_TRANSPORT_TYPES" EntityType="Self.F_TRANSPORT_TYPES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILL_DOCS" EntityType="Self.F_WAYBILL_DOCS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="F_WAYBILL_PAYMENT_SPLITS" EntityType="Self.F_WAYBILL_PAYMENT_SPLITS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILL_PAYMENTS" EntityType="Self.F_WAYBILL_PAYMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_ACCOUNTS" EntityType="Self.FIN_ACCOUNTS" Schema="dbo" store:Type="Tables" />
@@ -3635,11 +4314,17 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="FIN_PL_PLANS" EntityType="Self.FIN_PL_PLANS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_TRANSACTIONS" EntityType="Self.FIN_TRANSACTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FORWARDERS" EntityType="Self.FORWARDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_EMPLOYEES" EntityType="Self.HR_EMPLOYEES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_JOB_DESCRIPTIONS" EntityType="Self.HR_JOB_DESCRIPTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_ORG_UNITS" EntityType="Self.HR_ORG_UNITS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_PAYROLL_HEADERS" EntityType="Self.HR_PAYROLL_HEADERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_PAYROLL_LINES" EntityType="Self.HR_PAYROLL_LINES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_PIECE_RATE_TARIFFS" EntityType="Self.HR_PIECE_RATE_TARIFFS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_POSITIONS" EntityType="Self.HR_POSITIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_SALARY_GRADES" EntityType="Self.HR_SALARY_GRADES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_STAFFING_PLAN" EntityType="Self.HR_STAFFING_PLAN" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_TIMESHEET_HEADERS" EntityType="Self.HR_TIMESHEET_HEADERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_TIMESHEET_LINES" EntityType="Self.HR_TIMESHEET_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HSCODES" EntityType="Self.HSCODES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOME_PRODUCTS" EntityType="Self.INCOME_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOMES" EntityType="Self.INCOMES" Schema="dbo" store:Type="Tables" />
@@ -3664,6 +4349,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="PRODUCTPLANS" EntityType="Self.PRODUCTPLANS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PRODUCTPLANS_DAILY" EntityType="Self.PRODUCTPLANS_DAILY" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PRODUCTS" EntityType="Self.PRODUCTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="QUALITY_INSPECTION" EntityType="Self.QUALITY_INSPECTION" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ROLES" EntityType="Self.ROLES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_CONTRACT_PRODUCTS" EntityType="Self.S_CONTRACT_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="S_CONTRACTS" EntityType="Self.S_CONTRACTS" Schema="dbo" store:Type="Tables" />
@@ -3715,22 +4401,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
     [USERROLES].[UserID] AS [UserID], 
     [USERROLES].[RoleID] AS [RoleID]
     FROM [dbo].[USERROLES] AS [USERROLES]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="CarPlanRequirements" EntityType="Self.CarPlanRequirements" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [CarPlanRequirements].[OptionCode] AS [OptionCode], 
-    [CarPlanRequirements].[PNo] AS [PNo], 
-    [CarPlanRequirements].[Requirement] AS [Requirement], 
-    [CarPlanRequirements].[StartDate] AS [StartDate], 
-    [CarPlanRequirements].[DueDate] AS [DueDate]
-    FROM [dbo].[CarPlanRequirements] AS [CarPlanRequirements]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="MaterialRequirement" EntityType="Self.MaterialRequirement" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [MaterialRequirement].[ProductNo] AS [ProductNo], 
-    [MaterialRequirement].[PartNo] AS [PartNo], 
-    [MaterialRequirement].[TotalConsumption] AS [TotalConsumption]
-    FROM [dbo].[MaterialRequirement] AS [MaterialRequirement]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -3889,6 +4559,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
             <End Role="F_CONTRACT_DOCS" EntitySet="F_CONTRACT_DOCS" />
           </AssociationSet>
+          <AssociationSet Name="FK_F_CONTRACT_TARIFFS_CONTRACTS" Association="Self.FK_F_CONTRACT_TARIFFS_CONTRACTS">
+            <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
+            <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_CONTRACT_TARIFFS_CURRENCIES" Association="Self.FK_F_CONTRACT_TARIFFS_CURRENCIES">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" Association="Self.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES">
+            <End Role="F_TRANSPORT_TYPES" EntitySet="F_TRANSPORT_TYPES" />
+            <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
+          </AssociationSet>
           <AssociationSet Name="FK_F_CONTRACTS_COMPANIES" Association="Self.FK_F_CONTRACTS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
@@ -3913,9 +4595,21 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="FORWARDERS" EntitySet="FORWARDERS" />
             <End Role="F_WAYBILL_PAYMENTS" EntitySet="F_WAYBILL_PAYMENTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" Association="Self.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="F_WAYBILL_PAYMENT_SPLITS" EntitySet="F_WAYBILL_PAYMENT_SPLITS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" Association="Self.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS">
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+            <End Role="F_WAYBILL_PAYMENT_SPLITS" EntitySet="F_WAYBILL_PAYMENT_SPLITS" />
+          </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILL_PAYMENTS_WAYBILLS" Association="Self.FK_F_WAYBILL_PAYMENTS_WAYBILLS">
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
             <End Role="F_WAYBILL_PAYMENTS" EntitySet="F_WAYBILL_PAYMENTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_CURRENCIES" Association="Self.FK_F_WAYBILLS_CURRENCIES">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
           </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILLS_F_CONTRACTS" Association="Self.FK_F_WAYBILLS_F_CONTRACTS">
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
@@ -3925,8 +4619,28 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="F_TRANSPORT_TYPES" EntitySet="F_TRANSPORT_TYPES" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
           </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_FORWARDERS" Association="Self.FK_F_WAYBILLS_FORWARDERS">
+            <End Role="FORWARDERS" EntitySet="FORWARDERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILLS_P_INVOICES" Association="Self.FK_F_WAYBILLS_P_INVOICES">
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_P_ORDERS" Association="Self.FK_F_WAYBILLS_P_ORDERS">
+            <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_S_ORDERS" Association="Self.FK_F_WAYBILLS_S_ORDERS">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_SALES_INVOICES" Association="Self.FK_F_WAYBILLS_SALES_INVOICES">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_TTNK" Association="Self.FK_F_WAYBILLS_TTNK">
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
           </AssociationSet>
           <AssociationSet Name="FK_FIN_ACCOUNTS_CREATEDBY" Association="Self.FK_FIN_ACCOUNTS_CREATEDBY">
@@ -3993,6 +4707,22 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
             <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
           </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_HR_ORG_UNITS" Association="Self.FK_HR_EMPLOYEES_HR_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_HR_POSITIONS" Association="Self.FK_HR_EMPLOYEES_HR_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_HR_SALARY_GRADES" Association="Self.FK_HR_EMPLOYEES_HR_SALARY_GRADES">
+            <End Role="HR_SALARY_GRADES" EntitySet="HR_SALARY_GRADES" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_USERS" Association="Self.FK_HR_EMPLOYEES_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
           <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Document" Association="Self.FK_HR_JOB_DESCRIPTIONS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
@@ -4009,6 +4739,50 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
             <End Role="HR_ORG_UNITS1" EntitySet="HR_ORG_UNITS" />
           </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" Association="Self.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS" Association="Self.FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS">
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_USERS_Approved" Association="Self.FK_HR_PAYROLL_HEADERS_USERS_Approved">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_USERS_Created" Association="Self.FK_HR_PAYROLL_HEADERS_USERS_Created">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_LINES_CURRENCIES" Association="Self.FK_HR_PAYROLL_LINES_CURRENCIES">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_LINES_HR_EMPLOYEES" Association="Self.FK_HR_PAYROLL_LINES_HR_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" Association="Self.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS">
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+            <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_POSITIONS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
           <AssociationSet Name="FK_HR_STAFFING_PLAN_Grade" Association="Self.FK_HR_STAFFING_PLAN_Grade">
             <End Role="HR_SALARY_GRADES" EntitySet="HR_SALARY_GRADES" />
             <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
@@ -4020,6 +4794,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_HR_STAFFING_PLAN_Position" Association="Self.FK_HR_STAFFING_PLAN_Position">
             <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
             <End Role="HR_STAFFING_PLAN" EntitySet="HR_STAFFING_PLAN" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" Association="Self.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_HEADERS_USERS_Approved" Association="Self.FK_HR_TIMESHEET_HEADERS_USERS_Approved">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_HEADERS_USERS_Created" Association="Self.FK_HR_TIMESHEET_HEADERS_USERS_Created">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" Association="Self.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" Association="Self.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS">
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+            <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_LINES_PRODUCTS" Association="Self.FK_HR_TIMESHEET_LINES_PRODUCTS">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
           </AssociationSet>
           <AssociationSet Name="FK_INCOMES_InvoiceID_P_INVOICES" Association="Self.FK_INCOMES_InvoiceID_P_INVOICES">
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
@@ -4253,6 +5051,38 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_DEFECT_TYPES" Association="Self.FK_QUALITY_INSPECTION_DEFECT_TYPES">
+            <End Role="DEFECT_TYPES" EntitySet="DEFECT_TYPES" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" Association="Self.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION">
+            <End Role="PRODUCT_PRODUCTION" EntitySet="PRODUCT_PRODUCTION" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" Association="Self.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY">
+            <End Role="PRODUCTPLANS_DAILY" EntitySet="PRODUCTPLANS_DAILY" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_PRODUCTS" Association="Self.FK_QUALITY_INSPECTION_PRODUCTS">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_S_ORDERS" Association="Self.FK_QUALITY_INSPECTION_S_ORDERS">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE" Association="Self.FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE">
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_USERS_ApprovedBy" Association="Self.FK_QUALITY_INSPECTION_USERS_ApprovedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_USERS_InspectedBy" Association="Self.FK_QUALITY_INSPECTION_USERS_InspectedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
           <AssociationSet Name="FK_S_CONTRACT_PRODUCTS_PRODUCTS" Association="Self.FK_S_CONTRACT_PRODUCTS_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="S_CONTRACT_PRODUCTS" EntitySet="S_CONTRACT_PRODUCTS" />
@@ -4411,6 +5241,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           </AssociationSet>
           <AssociationSet Name="FK_SORDER_DELIVERY_Product" Association="Self.FK_SORDER_DELIVERY_Product">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS" Association="Self.FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
             <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
           </AssociationSet>
           <AssociationSet Name="FK_STD_COMPANY_STANDARDS_Document" Association="Self.FK_STD_COMPANY_STANDARDS_Document">
@@ -4580,6 +5414,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" FromRole="CURRENCy" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
           <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_Currency" FromRole="CURRENCy" ToRole="SALES_INVOICES" />
           <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency" FromRole="CURRENCy" ToRole="SALES_TTNK_HEADERS" />
+          <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CURRENCIES" FromRole="CURRENCy" ToRole="F_CONTRACT_TARIFFS" />
+          <NavigationProperty Name="F_WAYBILL_PAYMENT_SPLITS" Relationship="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" FromRole="CURRENCy" ToRole="F_WAYBILL_PAYMENT_SPLITS" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_CURRENCIES" FromRole="CURRENCy" ToRole="F_WAYBILLS" />
+          <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_CURRENCIES" FromRole="CURRENCy" ToRole="HR_PAYROLL_LINES" />
         </EntityType>
         <EntityType Name="CUSTOMER">
           <Key>
@@ -4624,6 +5462,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="DAMAGED_PRODUCTS" Relationship="Self.FK_DAMAGED_PRODUCTS_DEFECT_TYPES" FromRole="DEFECT_TYPES" ToRole="DAMAGED_PRODUCTS" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_DEFECT_TYPES" FromRole="DEFECT_TYPES" ToRole="QUALITY_INSPECTION" />
         </EntityType>
         <EntityType Name="EXPENSE_PRODUCTS">
           <Key>
@@ -4690,6 +5529,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="F_CONTRACT_DOCS" Relationship="Self.FK_F_CONTRACT_DOCS_F_CONTRACTS" FromRole="F_CONTRACTS" ToRole="F_CONTRACT_DOCS" />
           <NavigationProperty Name="FORWARDER" Relationship="Self.FK_F_CONTRACTS_FORWARDERS" FromRole="F_CONTRACTS" ToRole="FORWARDERS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_F_CONTRACTS" FromRole="F_CONTRACTS" ToRole="F_WAYBILLS" />
+          <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CONTRACTS" FromRole="F_CONTRACTS" ToRole="F_CONTRACT_TARIFFS" />
         </EntityType>
         <EntityType Name="F_TRANSPORT_TYPES">
           <Key>
@@ -4708,6 +5548,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_F_TRANSPORT_TYPES_UNITS" FromRole="F_TRANSPORT_TYPES" ToRole="UNITS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_F_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_WAYBILLS" />
+          <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="DBTHSNModel.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_CONTRACT_TARIFFS" />
         </EntityType>
         <EntityType Name="F_WAYBILL_DOCS">
           <Key>
@@ -4732,6 +5573,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK__F_WAYBILL__Curre__4979DDF4" FromRole="F_WAYBILL_PAYMENTS" ToRole="CURRENCIES" />
           <NavigationProperty Name="FORWARDER" Relationship="Self.FK_F_WAYBILL_FORWARDERS" FromRole="F_WAYBILL_PAYMENTS" ToRole="FORWARDERS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILL_PAYMENTS_WAYBILLS" FromRole="F_WAYBILL_PAYMENTS" ToRole="F_WAYBILLS" />
+          <Property Name="PaymentDate" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="F_WAYBILLS">
           <Key>
@@ -4753,6 +5595,38 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="F_WAYBILL_DOCS" Relationship="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_DOCS" />
           <NavigationProperty Name="F_WAYBILL_PAYMENTS" Relationship="Self.FK_F_WAYBILL_PAYMENTS_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_PAYMENTS" />
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_F_WAYBILLS_P_INVOICES" FromRole="F_WAYBILLS" ToRole="P_INVOICES" />
+          <Property Name="Direction" Type="Byte" />
+          <Property Name="FromLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ToLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="DistanceKm" Type="Double" />
+          <Property Name="FreightBasis" Type="Byte" />
+          <Property Name="Rate" Type="Double" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="PayerType" Type="Byte" />
+          <Property Name="PayerID" Type="Int32" />
+          <Property Name="SalesInvoiceID" Type="Int64" />
+          <Property Name="ForwarderID" Type="Int32" />
+          <Property Name="TruckNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TrailerNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TruckModel" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TrailerModel" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="DriverName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="DriverPINFL" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NetWeight" Type="Double" />
+          <Property Name="PalletsCount" Type="Int32" />
+          <Property Name="ManualCorrectionReason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="PlannedDeliveryDate" Type="DateTime" Precision="3" />
+          <Property Name="ActualDeliveryDate" Type="DateTime" Precision="3" />
+          <Property Name="TTNKID" Type="Int64" />
+          <Property Name="SalesOrderID" Type="Int32" />
+          <Property Name="PurchaseOrderID" Type="Int32" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_F_WAYBILLS_CURRENCIES" FromRole="F_WAYBILLS" ToRole="CURRENCy" />
+          <NavigationProperty Name="F_WAYBILL_PAYMENT_SPLITS" Relationship="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_PAYMENT_SPLITS" />
+          <NavigationProperty Name="FORWARDER" Relationship="DBTHSNModel.FK_F_WAYBILLS_FORWARDERS" FromRole="F_WAYBILLS" ToRole="FORWARDER" />
+          <NavigationProperty Name="P_ORDERS" Relationship="DBTHSNModel.FK_F_WAYBILLS_P_ORDERS" FromRole="F_WAYBILLS" ToRole="P_ORDERS" />
+          <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_F_WAYBILLS_S_ORDERS" FromRole="F_WAYBILLS" ToRole="S_ORDERS" />
+          <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_F_WAYBILLS_SALES_INVOICES" FromRole="F_WAYBILLS" ToRole="SALES_INVOICES" />
+          <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_F_WAYBILLS_TTNK" FromRole="F_WAYBILLS" ToRole="SALES_TTNK_HEADERS" />
         </EntityType>
         <EntityType Name="FORWARDER">
           <Key>
@@ -4766,6 +5640,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_CONTRACTS_FORWARDERS" FromRole="FORWARDERS" ToRole="F_CONTRACTS" />
           <NavigationProperty Name="F_WAYBILL_PAYMENTS" Relationship="Self.FK_F_WAYBILL_FORWARDERS" FromRole="FORWARDERS" ToRole="F_WAYBILL_PAYMENTS" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_FORWARDERS" FromRole="FORWARDER" ToRole="F_WAYBILLS" />
         </EntityType>
         <EntityType Name="HSCODE">
           <Key>
@@ -4996,6 +5871,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_P_INVOICES_P_ORDERS" FromRole="P_ORDERS" ToRole="P_INVOICES" />
           <NavigationProperty Name="P_ORDER_PRODUCTS" Relationship="Self.FK_P_ORDER_PARTS_P_ORDERS" FromRole="P_ORDERS" ToRole="P_ORDER_PRODUCTS" />
           <NavigationProperty Name="SUPPLIER" Relationship="Self.FK_P_ORDERS_SUPPLIERS" FromRole="P_ORDERS" ToRole="SUPPLIERS" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_P_ORDERS" FromRole="P_ORDERS" ToRole="F_WAYBILLS" />
         </EntityType>
         <EntityType Name="PERMISSIONMODULE">
           <Key>
@@ -5035,6 +5911,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_PRODUCT_PRODUCTION_PRODUCTS" FromRole="PRODUCT_PRODUCTION" ToRole="PRODUCTS" />
           <NavigationProperty Name="SHOP" Relationship="Self.FK_PRODUCT_PRODUCTION_SHOPS" FromRole="PRODUCT_PRODUCTION" ToRole="SHOPS" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" FromRole="PRODUCT_PRODUCTION" ToRole="QUALITY_INSPECTION" />
         </EntityType>
         <EntityType Name="PRODUCT_STOCKS">
           <Key>
@@ -5094,6 +5971,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="NightShift" Type="Double" Nullable="false" />
           <Property Name="Total" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <NavigationProperty Name="PRODUCTPLAN" Relationship="Self.FK_PRODUCTPLANS_DAILY_PRODUCTPLANS" FromRole="PRODUCTPLANS_DAILY" ToRole="PRODUCTPLANS" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" FromRole="PRODUCTPLANS_DAILY" ToRole="QUALITY_INSPECTION" />
         </EntityType>
         <EntityType Name="PRODUCT">
           <Key>
@@ -5149,6 +6027,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="SALES_SF_LINES" Relationship="DBTHSNModel.FK_SALES_SF_LINES_Product" FromRole="PRODUCT" ToRole="SALES_SF_LINES" />
           <NavigationProperty Name="SALES_TTNK_LINES" Relationship="DBTHSNModel.FK_SALES_TTNK_LINES_Product" FromRole="PRODUCT" ToRole="SALES_TTNK_LINES" />
           <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_Product" FromRole="PRODUCT" ToRole="SORDER_DELIVERY_SCHEDULE" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTS" FromRole="PRODUCT" ToRole="QUALITY_INSPECTION" />
+          <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" FromRole="PRODUCT" ToRole="HR_PIECE_RATE_TARIFFS" />
+          <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS" FromRole="PRODUCT" ToRole="HR_TIMESHEET_LINES" />
         </EntityType>
         <EntityType Name="ROLE">
           <Key>
@@ -5236,6 +6117,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="S_ORDER_PRODUCTS" Relationship="Self.FK_S_ORDER_PRODUCTS_S_ORDERS" FromRole="S_ORDERS" ToRole="S_ORDER_PRODUCTS" />
           <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_ORDER" FromRole="S_ORDERS" ToRole="SALES_INVOICES" />
           <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_ORDER" FromRole="S_ORDERS" ToRole="SALES_TTNK_HEADERS" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_S_ORDERS" FromRole="S_ORDERS" ToRole="F_WAYBILLS" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_S_ORDERS" FromRole="S_ORDERS" ToRole="QUALITY_INSPECTION" />
+          <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS" FromRole="S_ORDERS" ToRole="SORDER_DELIVERY_SCHEDULE" />
         </EntityType>
         <EntityType Name="SAMPLE_FILES">
           <Key>
@@ -5382,6 +6266,15 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="SALES_INVOICES" Relationship="DBTHSNModel.FK_SALES_INVOICES_CreatedBy" FromRole="USER" ToRole="SALES_INVOICES" />
           <NavigationProperty Name="SALES_SF_HEADERS" Relationship="DBTHSNModel.FK_SALES_SF_HEADERS_CreatedBy" FromRole="USER" ToRole="SALES_SF_HEADERS" />
           <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" FromRole="USER" ToRole="SORDER_DELIVERY_SCHEDULE" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_USERS" FromRole="USER" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_PAYROLL_HEADERS" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Approved" FromRole="USER" ToRole="HR_PAYROLL_HEADERS" />
+          <NavigationProperty Name="HR_PAYROLL_HEADERS1" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Created" FromRole="USER" ToRole="HR_PAYROLL_HEADERS" />
+          <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Approved" FromRole="USER" ToRole="HR_TIMESHEET_HEADERS" />
+          <NavigationProperty Name="HR_TIMESHEET_HEADERS1" Relationship="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Created" FromRole="USER" ToRole="HR_TIMESHEET_HEADERS" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_ApprovedBy" FromRole="USER" ToRole="QUALITY_INSPECTION" />
+          <NavigationProperty Name="QUALITY_INSPECTION1" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_InspectedBy" FromRole="USER" ToRole="QUALITY_INSPECTION" />
+          <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_TARIFFS" />
+          <NavigationProperty Name="HR_PIECE_RATE_TARIFFS1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_TARIFFS" />
         </EntityType>
         <EntityType Name="Warehouse">
           <Key>
@@ -5457,28 +6350,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IssuedDT" Type="DateTime" Nullable="false" Precision="3" />
           <NavigationProperty Name="BOM" Relationship="Self.FK_BOMS_AND_NORMS_BOMS" FromRole="BOMS_AND_NORMS" ToRole="BOMS" />
           <NavigationProperty Name="NORMVERSION" Relationship="Self.FK_BOMS_AND_NORMS_NormID_NORMVERSIONS" FromRole="BOMS_AND_NORMS" ToRole="NORMVERSIONS" />
-        </EntityType>
-        <EntityType Name="CarPlanRequirement">
-          <Key>
-            <PropertyRef Name="OptionCode" />
-            <PropertyRef Name="PNo" />
-            <PropertyRef Name="StartDate" />
-            <PropertyRef Name="DueDate" />
-          </Key>
-          <Property Name="OptionCode" Type="String" MaxLength="15" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="PNo" Type="String" MaxLength="15" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Requirement" Type="Double" />
-          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="0" />
-          <Property Name="DueDate" Type="DateTime" Nullable="false" Precision="0" />
-        </EntityType>
-        <EntityType Name="MaterialRequirement">
-          <Key>
-            <PropertyRef Name="ProductNo" />
-            <PropertyRef Name="PartNo" />
-          </Key>
-          <Property Name="ProductNo" Type="String" MaxLength="15" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="PartNo" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="TotalConsumption" Type="Double" />
         </EntityType>
         <Association Name="FK_BOM_HEADER_PRODUCTS">
           <End Role="PRODUCTS" Type="Self.PRODUCT" Multiplicity="0..1" />
@@ -6812,8 +7683,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="WRHS_EXPENSE_DOCS" EntityType="Self.WRHS_EXPENSE_DOCS" />
           <EntitySet Name="WRHS_INCOME_DOCS" EntityType="Self.WRHS_INCOME_DOCS" />
           <EntitySet Name="BOMS_AND_NORMS" EntityType="Self.BOMS_AND_NORMS" />
-          <EntitySet Name="CarPlanRequirements" EntityType="Self.CarPlanRequirement" />
-          <EntitySet Name="MaterialRequirements" EntityType="Self.MaterialRequirement" />
           <AssociationSet Name="FK_BOM_HEADER_PRODUCTS" Association="Self.FK_BOM_HEADER_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="BOM_HEADERS" EntitySet="BOM_HEADERS" />
@@ -7607,6 +8476,179 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="S_ORDERS" EntitySet="S_ORDERS" />
             <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
           </AssociationSet>
+          <EntitySet Name="F_CONTRACT_TARIFFS" EntityType="DBTHSNModel.F_CONTRACT_TARIFFS" />
+          <EntitySet Name="F_WAYBILL_PAYMENT_SPLITS" EntityType="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS" />
+          <EntitySet Name="HR_EMPLOYEES" EntityType="DBTHSNModel.HR_EMPLOYEES" />
+          <EntitySet Name="HR_PAYROLL_HEADERS" EntityType="DBTHSNModel.HR_PAYROLL_HEADERS" />
+          <EntitySet Name="HR_PAYROLL_LINES" EntityType="DBTHSNModel.HR_PAYROLL_LINES" />
+          <EntitySet Name="HR_TIMESHEET_HEADERS" EntityType="DBTHSNModel.HR_TIMESHEET_HEADERS" />
+          <EntitySet Name="HR_TIMESHEET_LINES" EntityType="DBTHSNModel.HR_TIMESHEET_LINES" />
+          <AssociationSet Name="FK_F_CONTRACT_TARIFFS_CURRENCIES" Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CURRENCIES">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="F_WAYBILL_PAYMENT_SPLITS" EntitySet="F_WAYBILL_PAYMENT_SPLITS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_CURRENCIES" Association="DBTHSNModel.FK_F_WAYBILLS_CURRENCIES">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_LINES_CURRENCIES" Association="DBTHSNModel.FK_HR_PAYROLL_LINES_CURRENCIES">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_CONTRACT_TARIFFS_CONTRACTS" Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CONTRACTS">
+            <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
+            <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES">
+            <End Role="F_TRANSPORT_TYPES" EntitySet="F_TRANSPORT_TYPES" />
+            <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS">
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+            <End Role="F_WAYBILL_PAYMENT_SPLITS" EntitySet="F_WAYBILL_PAYMENT_SPLITS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_FORWARDERS" Association="DBTHSNModel.FK_F_WAYBILLS_FORWARDERS">
+            <End Role="FORWARDER" EntitySet="FORWARDERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_P_ORDERS" Association="DBTHSNModel.FK_F_WAYBILLS_P_ORDERS">
+            <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_S_ORDERS" Association="DBTHSNModel.FK_F_WAYBILLS_S_ORDERS">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_SALES_INVOICES" Association="DBTHSNModel.FK_F_WAYBILLS_SALES_INVOICES">
+            <End Role="SALES_INVOICES" EntitySet="SALES_INVOICES" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_F_WAYBILLS_TTNK" Association="DBTHSNModel.FK_F_WAYBILLS_TTNK">
+            <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
+            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_HR_ORG_UNITS" Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_HR_POSITIONS" Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_HR_SALARY_GRADES" Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_SALARY_GRADES">
+            <End Role="HR_SALARY_GRADES" EntitySet="HR_SALARY_GRADES" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEES_USERS" Association="DBTHSNModel.FK_HR_EMPLOYEES_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_LINES_HR_EMPLOYEES" Association="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS" Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS">
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_USERS_Approved" Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Approved">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_HEADERS_USERS_Created" Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Created">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" Association="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS">
+            <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+            <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_HEADERS_USERS_Approved" Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Approved">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_HEADERS_USERS_Created" Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Created">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS">
+            <End Role="HR_TIMESHEET_HEADERS" EntitySet="HR_TIMESHEET_HEADERS" />
+            <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
+          </AssociationSet>
+          <EntitySet Name="QUALITY_INSPECTION" EntityType="DBTHSNModel.QUALITY_INSPECTION" />
+          <AssociationSet Name="FK_QUALITY_INSPECTION_DEFECT_TYPES" Association="DBTHSNModel.FK_QUALITY_INSPECTION_DEFECT_TYPES">
+            <End Role="DEFECT_TYPES" EntitySet="DEFECT_TYPES" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION">
+            <End Role="PRODUCT_PRODUCTION" EntitySet="PRODUCT_PRODUCTION" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY">
+            <End Role="PRODUCTPLANS_DAILY" EntitySet="PRODUCTPLANS_DAILY" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_PRODUCTS" Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTS">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_S_ORDERS" Association="DBTHSNModel.FK_QUALITY_INSPECTION_S_ORDERS">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE" Association="DBTHSNModel.FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE">
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_USERS_ApprovedBy" Association="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_ApprovedBy">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QUALITY_INSPECTION_USERS_InspectedBy" Association="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_InspectedBy">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="QUALITY_INSPECTION" EntitySet="QUALITY_INSPECTION" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS" Association="DBTHSNModel.FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS">
+            <End Role="S_ORDERS" EntitySet="S_ORDERS" />
+            <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
+          <EntitySet Name="HR_PIECE_RATE_TARIFFS" EntityType="DBTHSNModel.HR_PIECE_RATE_TARIFFS" />
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_POSITIONS" Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_TIMESHEET_LINES_PRODUCTS" Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetProductListPerShop_Result">
           <Property Type="String" Name="EneniAmi" Nullable="false" MaxLength="15" />
@@ -8254,6 +9296,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="HR_ORG_UNITS1" Relationship="DBTHSNModel.FK_HR_ORG_UNITS_Parent" FromRole="HR_ORG_UNITS" ToRole="HR_ORG_UNITS1" />
           <NavigationProperty Name="HR_ORG_UNITS2" Relationship="DBTHSNModel.FK_HR_ORG_UNITS_Parent" FromRole="HR_ORG_UNITS1" ToRole="HR_ORG_UNITS" />
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_OrgUnit" FromRole="HR_ORG_UNITS" ToRole="HR_STAFFING_PLAN" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_HR_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_PAYROLL_HEADERS" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_PAYROLL_HEADERS" />
+          <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_TIMESHEET_HEADERS" />
         </EntityType>
         <EntityType Name="HR_POSITIONS">
           <Key>
@@ -8268,6 +9313,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="DBTHSNModel.FK_DOC_DOCUMENTS_Position" FromRole="HR_POSITIONS" ToRole="DOC_DOCUMENTS" />
           <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Position" FromRole="HR_POSITIONS" ToRole="HR_JOB_DESCRIPTIONS" />
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_Position" FromRole="HR_POSITIONS" ToRole="HR_STAFFING_PLAN" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_HR_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_PIECE_RATE_TARIFFS" />
         </EntityType>
         <EntityType Name="HR_SALARY_GRADES">
           <Key>
@@ -8282,6 +9329,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="EffectiveFrom" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="EffectiveTo" Type="DateTime" Precision="0" />
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="DBTHSNModel.FK_HR_STAFFING_PLAN_Grade" FromRole="HR_SALARY_GRADES" ToRole="HR_STAFFING_PLAN" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_HR_SALARY_GRADES" FromRole="HR_SALARY_GRADES" ToRole="HR_EMPLOYEES" />
         </EntityType>
         <EntityType Name="HR_STAFFING_PLAN">
           <Key>
@@ -8352,6 +9400,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="CUSTOMER" Relationship="DBTHSNModel.FK_SALES_INVOICES_Customer" FromRole="SALES_INVOICES" ToRole="CUSTOMER" />
           <NavigationProperty Name="S_CONTRACTS" Relationship="DBTHSNModel.FK_SALES_INVOICES_CONTRACT" FromRole="SALES_INVOICES" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_SALES_INVOICES_ORDER" FromRole="SALES_INVOICES" ToRole="S_ORDERS" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_SALES_INVOICES" FromRole="SALES_INVOICES" ToRole="F_WAYBILLS" />
         </EntityType>
         <EntityType Name="SALES_SF_HEADERS">
           <Key>
@@ -8827,6 +9876,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency" FromRole="SALES_TTNK_HEADERS" ToRole="CURRENCy" />
           <NavigationProperty Name="S_CONTRACTS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT" FromRole="SALES_TTNK_HEADERS" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_TTNK_HEADERS_ORDER" FromRole="SALES_TTNK_HEADERS" ToRole="S_ORDERS" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_TTNK" FromRole="SALES_TTNK_HEADERS" ToRole="F_WAYBILLS" />
         </EntityType>
         <EntityType Name="SALES_TTNK_INVOICES">
           <Key>
@@ -8882,6 +9932,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_Product" FromRole="SORDER_DELIVERY_SCHEDULE" ToRole="PRODUCT" />
           <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" FromRole="SORDER_DELIVERY_SCHEDULE" ToRole="USER" />
+          <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE" FromRole="SORDER_DELIVERY_SCHEDULE" ToRole="QUALITY_INSPECTION" />
+          <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS" FromRole="SORDER_DELIVERY_SCHEDULE" ToRole="S_ORDERS" />
         </EntityType>
         <Association Name="FK_SALES_TTNK_LINES_Product">
           <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="0..1" />
@@ -9084,6 +10136,754 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="SALES_TTNK_HEADERS">
               <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="F_CONTRACT_TARIFFS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ContractID" Type="Int32" Nullable="false" />
+          <Property Name="FromRegion" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="FromCity" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ToRegion" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ToCity" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TransportTypeID" Type="Int32" />
+          <Property Name="FreightBasis" Type="Byte" Nullable="false" />
+          <Property Name="Rate" Type="Double" Nullable="false" />
+          <Property Name="MinimumCharge" Type="Double" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CURRENCIES" FromRole="F_CONTRACT_TARIFFS" ToRole="CURRENCy" />
+          <NavigationProperty Name="F_CONTRACTS" Relationship="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CONTRACTS" FromRole="F_CONTRACT_TARIFFS" ToRole="F_CONTRACTS" />
+          <NavigationProperty Name="F_TRANSPORT_TYPES" Relationship="DBTHSNModel.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" FromRole="F_CONTRACT_TARIFFS" ToRole="F_TRANSPORT_TYPES" />
+        </EntityType>
+        <EntityType Name="F_WAYBILL_PAYMENT_SPLITS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="WaybillID" Type="Int32" Nullable="false" />
+          <Property Name="PayerType" Type="Byte" Nullable="false" />
+          <Property Name="PayerID" Type="Int32" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="Comment" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" FromRole="F_WAYBILL_PAYMENT_SPLITS" ToRole="CURRENCy" />
+          <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" FromRole="F_WAYBILL_PAYMENT_SPLITS" ToRole="F_WAYBILLS" />
+        </EntityType>
+        <EntityType Name="HR_EMPLOYEES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TabNo" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="FullName" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="PositionID" Type="Int32" />
+          <Property Name="BaseSalary" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="SalaryGradeID" Type="Int32" />
+          <Property Name="EmploymentDate" Type="DateTime" Precision="0" />
+          <Property Name="DismissalDate" Type="DateTime" Precision="0" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="7" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_HR_ORG_UNITS" FromRole="HR_EMPLOYEES" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_HR_POSITIONS" FromRole="HR_EMPLOYEES" ToRole="HR_POSITIONS" />
+          <NavigationProperty Name="HR_SALARY_GRADES" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_HR_SALARY_GRADES" FromRole="HR_EMPLOYEES" ToRole="HR_SALARY_GRADES" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_USERS" FromRole="HR_EMPLOYEES" ToRole="USER" />
+          <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_PAYROLL_LINES" />
+          <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_TIMESHEET_LINES" />
+        </EntityType>
+        <EntityType Name="HR_PAYROLL_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Year" Type="Int32" Nullable="false" />
+          <Property Name="Month" Type="Int32" Nullable="false" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="Status" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="ApprovedByUserID" Type="Int32" />
+          <Property Name="ApprovedDT" Type="DateTime" Precision="7" />
+          <Property Name="TimesheetID" Type="Int32" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" FromRole="HR_PAYROLL_HEADERS" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS" FromRole="HR_PAYROLL_HEADERS" ToRole="HR_TIMESHEET_HEADERS" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Approved" FromRole="HR_PAYROLL_HEADERS" ToRole="USER" />
+          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Created" FromRole="HR_PAYROLL_HEADERS" ToRole="USER" />
+          <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" FromRole="HR_PAYROLL_HEADERS" ToRole="HR_PAYROLL_LINES" />
+        </EntityType>
+        <EntityType Name="HR_PAYROLL_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="PayrollID" Type="Int32" Nullable="false" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="BaseSalary" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="HoursWorked" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="PieceQty" Type="Decimal" Precision="10" Scale="2" />
+          <Property Name="HourlyRate" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="GrossSalary" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Bonuses" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Penalties" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="NetSalary" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_CURRENCIES" FromRole="HR_PAYROLL_LINES" ToRole="CURRENCy" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" FromRole="HR_PAYROLL_LINES" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_PAYROLL_HEADERS" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" FromRole="HR_PAYROLL_LINES" ToRole="HR_PAYROLL_HEADERS" />
+        </EntityType>
+        <EntityType Name="HR_TIMESHEET_HEADERS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Year" Type="Int32" Nullable="false" />
+          <Property Name="Month" Type="Int32" Nullable="false" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="Status" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="ApprovedByUserID" Type="Int32" />
+          <Property Name="ApprovedDT" Type="DateTime" Precision="7" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" FromRole="HR_TIMESHEET_HEADERS" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_PAYROLL_HEADERS" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS" FromRole="HR_TIMESHEET_HEADERS" ToRole="HR_PAYROLL_HEADERS" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Approved" FromRole="HR_TIMESHEET_HEADERS" ToRole="USER" />
+          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Created" FromRole="HR_TIMESHEET_HEADERS" ToRole="USER" />
+          <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" FromRole="HR_TIMESHEET_HEADERS" ToRole="HR_TIMESHEET_LINES" />
+        </EntityType>
+        <EntityType Name="HR_TIMESHEET_LINES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TimesheetID" Type="Int32" Nullable="false" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="Day01Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day02Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day03Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day04Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day05Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day06Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day07Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day08Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day09Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day10Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day11Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day12Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day13Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day14Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day15Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day16Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day17Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day18Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day19Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day20Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day21Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day22Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day23Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day24Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day25Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day26Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day27Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day28Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day29Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day30Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Day31Hours" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="TotalWorkedDays" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="TotalWorkedHours" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="OvertimeHours" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="AbsentDays" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" FromRole="HR_TIMESHEET_LINES" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" FromRole="HR_TIMESHEET_LINES" ToRole="HR_TIMESHEET_HEADERS" />
+          <Property Name="ProductID" Type="Int32" />
+          <Property Name="Day01Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day02Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day03Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day04Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day05Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day06Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day07Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day08Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day09Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day10Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day11Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day12Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day13Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day14Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day15Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day16Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day17Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day18Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day19Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day20Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day21Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day22Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day23Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day24Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day25Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day26Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day27Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day28Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day29Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day30Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Day31Quantity" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="TotalQuantity" Type="Decimal" Precision="18" Scale="4" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS" FromRole="HR_TIMESHEET_LINES" ToRole="PRODUCT" />
+        </EntityType>
+        <Association Name="FK_F_CONTRACT_TARIFFS_CURRENCIES">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_CONTRACT_TARIFFS" Role="F_CONTRACT_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_CONTRACT_TARIFFS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS" Role="F_WAYBILL_PAYMENT_SPLITS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENT_SPLITS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_CURRENCIES">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_LINES_CURRENCIES">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PAYROLL_LINES" Role="HR_PAYROLL_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_LINES">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_CONTRACT_TARIFFS_CONTRACTS">
+          <End Type="DBTHSNModel.F_CONTRACTS" Role="F_CONTRACTS" Multiplicity="1" />
+          <End Type="DBTHSNModel.F_CONTRACT_TARIFFS" Role="F_CONTRACT_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_CONTRACTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_CONTRACT_TARIFFS">
+              <PropertyRef Name="ContractID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES">
+          <End Type="DBTHSNModel.F_TRANSPORT_TYPES" Role="F_TRANSPORT_TYPES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_CONTRACT_TARIFFS" Role="F_CONTRACT_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_TRANSPORT_TYPES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_CONTRACT_TARIFFS">
+              <PropertyRef Name="TransportTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS">
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="1" />
+          <End Type="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS" Role="F_WAYBILL_PAYMENT_SPLITS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="F_WAYBILLS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILL_PAYMENT_SPLITS">
+              <PropertyRef Name="WaybillID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_FORWARDERS">
+          <End Type="DBTHSNModel.FORWARDER" Role="FORWARDER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FORWARDER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="ForwarderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_P_ORDERS">
+          <End Type="DBTHSNModel.P_ORDERS" Role="P_ORDERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="PurchaseOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_S_ORDERS">
+          <End Type="DBTHSNModel.S_ORDERS" Role="S_ORDERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="SalesOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_SALES_INVOICES">
+          <End Type="DBTHSNModel.SALES_INVOICES" Role="SALES_INVOICES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_INVOICES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="SalesInvoiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_F_WAYBILLS_TTNK">
+          <End Type="DBTHSNModel.SALES_TTNK_HEADERS" Role="SALES_TTNK_HEADERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.F_WAYBILLS" Role="F_WAYBILLS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SALES_TTNK_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="F_WAYBILLS">
+              <PropertyRef Name="TTNKID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_HR_ORG_UNITS">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_HR_POSITIONS">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_HR_SALARY_GRADES">
+          <End Type="DBTHSNModel.HR_SALARY_GRADES" Role="HR_SALARY_GRADES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_SALARY_GRADES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="SalaryGradeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEES_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEES">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_LINES_HR_EMPLOYEES">
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_PAYROLL_LINES" Role="HR_PAYROLL_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_LINES">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_LINES_HR_EMPLOYEES">
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_TIMESHEET_LINES" Role="HR_TIMESHEET_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_LINES">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PAYROLL_HEADERS" Role="HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_TIMESHEET_HEADERS" Role="HR_TIMESHEET_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS">
+          <End Type="DBTHSNModel.HR_TIMESHEET_HEADERS" Role="HR_TIMESHEET_HEADERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PAYROLL_HEADERS" Role="HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="TimesheetID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_USERS_Approved">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PAYROLL_HEADERS" Role="HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_HEADERS_USERS_Created">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PAYROLL_HEADERS" Role="HR_PAYROLL_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS">
+          <End Type="DBTHSNModel.HR_PAYROLL_HEADERS" Role="HR_PAYROLL_HEADERS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="DBTHSNModel.HR_PAYROLL_LINES" Role="HR_PAYROLL_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PAYROLL_LINES">
+              <PropertyRef Name="PayrollID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_HEADERS_USERS_Approved">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_TIMESHEET_HEADERS" Role="HR_TIMESHEET_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_HEADERS_USERS_Created">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_TIMESHEET_HEADERS" Role="HR_TIMESHEET_HEADERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS">
+          <End Type="DBTHSNModel.HR_TIMESHEET_HEADERS" Role="HR_TIMESHEET_HEADERS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="DBTHSNModel.HR_TIMESHEET_LINES" Role="HR_TIMESHEET_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_TIMESHEET_HEADERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_LINES">
+              <PropertyRef Name="TimesheetID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="QUALITY_INSPECTION">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SOrderID" Type="Int32" />
+          <Property Name="DeliveryScheduleID" Type="Int64" />
+          <Property Name="ProductPlanDailyID" Type="Int32" />
+          <Property Name="ProductionID" Type="Int32" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="QtyInspected" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="QtyAccepted" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="QtyRejected" Type="Decimal" Nullable="false" Precision="18" Scale="3" />
+          <Property Name="DefectTypeID" Type="Int32" />
+          <Property Name="StatusCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="InspectedByUserID" Type="Int32" />
+          <Property Name="ApprovedByUserID" Type="Int32" />
+          <Property Name="InspectionDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ApprovalDate" Type="DateTime" Precision="3" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="UpdatedDT" Type="DateTime" Precision="3" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="DEFECT_TYPES" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_DEFECT_TYPES" FromRole="QUALITY_INSPECTION" ToRole="DEFECT_TYPES" />
+          <NavigationProperty Name="PRODUCT_PRODUCTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" FromRole="QUALITY_INSPECTION" ToRole="PRODUCT_PRODUCTION" />
+          <NavigationProperty Name="PRODUCTPLANS_DAILY" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" FromRole="QUALITY_INSPECTION" ToRole="PRODUCTPLANS_DAILY" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTS" FromRole="QUALITY_INSPECTION" ToRole="PRODUCT" />
+          <NavigationProperty Name="S_ORDERS" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_S_ORDERS" FromRole="QUALITY_INSPECTION" ToRole="S_ORDERS" />
+          <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE" FromRole="QUALITY_INSPECTION" ToRole="SORDER_DELIVERY_SCHEDULE" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_ApprovedBy" FromRole="QUALITY_INSPECTION" ToRole="USER" />
+          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_InspectedBy" FromRole="QUALITY_INSPECTION" ToRole="USER" />
+        </EntityType>
+        <Association Name="FK_QUALITY_INSPECTION_DEFECT_TYPES">
+          <End Type="DBTHSNModel.DEFECT_TYPES" Role="DEFECT_TYPES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DEFECT_TYPES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="DefectTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION">
+          <End Type="DBTHSNModel.PRODUCT_PRODUCTION" Role="PRODUCT_PRODUCTION" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT_PRODUCTION">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ProductionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY">
+          <End Type="DBTHSNModel.PRODUCTPLANS_DAILY" Role="PRODUCTPLANS_DAILY" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTPLANS_DAILY">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ProductPlanDailyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_PRODUCTS">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_S_ORDERS">
+          <End Type="DBTHSNModel.S_ORDERS" Role="S_ORDERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="SOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE">
+          <End Type="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Role="SORDER_DELIVERY_SCHEDULE" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="DeliveryScheduleID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_USERS_ApprovedBy">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QUALITY_INSPECTION_USERS_InspectedBy">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.QUALITY_INSPECTION" Role="QUALITY_INSPECTION" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="QUALITY_INSPECTION">
+              <PropertyRef Name="InspectedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS">
+          <End Type="DBTHSNModel.S_ORDERS" Role="S_ORDERS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Role="SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="S_ORDERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="SOrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="HR_PIECE_RATE_TARIFFS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="PositionID" Type="Int32" />
+          <Property Name="RatePerUnit" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="EffectiveFrom" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="EffectiveTo" Type="DateTime" Precision="0" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ModifiedByUserID" Type="Int32" />
+          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="USER" />
+          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="USER" />
+          <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="HR_POSITIONS" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="PRODUCT" />
+        </EntityType>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Role="HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Role="HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_POSITIONS">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Role="HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="PositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_PRODUCTS">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Role="HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_TIMESHEET_LINES_PRODUCTS">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_TIMESHEET_LINES" Role="HR_TIMESHEET_LINES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_TIMESHEET_LINES">
+              <PropertyRef Name="ProductID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -9303,6 +11103,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="F_WAYBILL_PAYMENTS">
             <EntityTypeMapping TypeName="DBTHSNModel.F_WAYBILL_PAYMENTS">
               <MappingFragment StoreEntitySet="F_WAYBILL_PAYMENTS">
+                <ScalarProperty Name="PaymentDate" ColumnName="PaymentDate" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ForwarderID" ColumnName="ForwarderID" />
                 <ScalarProperty Name="WaybillID" ColumnName="WaybillID" />
@@ -9316,6 +11117,31 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="F_WAYBILLS">
             <EntityTypeMapping TypeName="DBTHSNModel.F_WAYBILLS">
               <MappingFragment StoreEntitySet="F_WAYBILLS">
+                <ScalarProperty Name="PurchaseOrderID" ColumnName="PurchaseOrderID" />
+                <ScalarProperty Name="SalesOrderID" ColumnName="SalesOrderID" />
+                <ScalarProperty Name="TTNKID" ColumnName="TTNKID" />
+                <ScalarProperty Name="ActualDeliveryDate" ColumnName="ActualDeliveryDate" />
+                <ScalarProperty Name="PlannedDeliveryDate" ColumnName="PlannedDeliveryDate" />
+                <ScalarProperty Name="ManualCorrectionReason" ColumnName="ManualCorrectionReason" />
+                <ScalarProperty Name="PalletsCount" ColumnName="PalletsCount" />
+                <ScalarProperty Name="NetWeight" ColumnName="NetWeight" />
+                <ScalarProperty Name="DriverPINFL" ColumnName="DriverPINFL" />
+                <ScalarProperty Name="DriverName" ColumnName="DriverName" />
+                <ScalarProperty Name="TrailerModel" ColumnName="TrailerModel" />
+                <ScalarProperty Name="TruckModel" ColumnName="TruckModel" />
+                <ScalarProperty Name="TrailerNo" ColumnName="TrailerNo" />
+                <ScalarProperty Name="TruckNo" ColumnName="TruckNo" />
+                <ScalarProperty Name="ForwarderID" ColumnName="ForwarderID" />
+                <ScalarProperty Name="SalesInvoiceID" ColumnName="SalesInvoiceID" />
+                <ScalarProperty Name="PayerID" ColumnName="PayerID" />
+                <ScalarProperty Name="PayerType" ColumnName="PayerType" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="Rate" ColumnName="Rate" />
+                <ScalarProperty Name="FreightBasis" ColumnName="FreightBasis" />
+                <ScalarProperty Name="DistanceKm" ColumnName="DistanceKm" />
+                <ScalarProperty Name="ToLocation" ColumnName="ToLocation" />
+                <ScalarProperty Name="FromLocation" ColumnName="FromLocation" />
+                <ScalarProperty Name="Direction" ColumnName="Direction" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="WaybillNo" ColumnName="WaybillNo" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
@@ -9904,26 +11730,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="CarPlanRequirements">
-            <EntityTypeMapping TypeName="DBTHSNModel.CarPlanRequirement">
-              <MappingFragment StoreEntitySet="CarPlanRequirements">
-                <ScalarProperty Name="OptionCode" ColumnName="OptionCode" />
-                <ScalarProperty Name="PNo" ColumnName="PNo" />
-                <ScalarProperty Name="Requirement" ColumnName="Requirement" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="DueDate" ColumnName="DueDate" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="MaterialRequirements">
-            <EntityTypeMapping TypeName="DBTHSNModel.MaterialRequirement">
-              <MappingFragment StoreEntitySet="MaterialRequirement">
-                <ScalarProperty Name="ProductNo" ColumnName="ProductNo" />
-                <ScalarProperty Name="PartNo" ColumnName="PartNo" />
-                <ScalarProperty Name="TotalConsumption" ColumnName="TotalConsumption" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <AssociationSetMapping Name="SHOP_PRODUCTS" TypeName="DBTHSNModel.SHOP_PRODUCTS" StoreEntitySet="SHOP_PRODUCTS">
             <EndProperty Name="SHOPS">
               <ScalarProperty Name="ID" ColumnName="ShopID" />
@@ -9940,26 +11746,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               <ScalarProperty Name="ID" ColumnName="UserID" />
             </EndProperty>
           </AssociationSetMapping>
-          <FunctionImportMapping FunctionImportName="GetCarPlanRequirements" FunctionName="DBTHSNModel.Store.GetCarPlanRequirements" />
-          <FunctionImportMapping FunctionImportName="GetPartsInfo" FunctionName="DBTHSNModel.Store.GetPartsInfo" />
-          <FunctionImportMapping FunctionImportName="GetPartsInfo_by_supplierID" FunctionName="DBTHSNModel.Store.GetPartsInfo_by_supplierID" />
-          <FunctionImportMapping FunctionImportName="GetPartsInfo_by_type" FunctionName="DBTHSNModel.Store.GetPartsInfo_by_type" />
-          <FunctionImportMapping FunctionImportName="GetPartsInfo_by_type_and_supplierID" FunctionName="DBTHSNModel.Store.GetPartsInfo_by_type_and_supplierID" />
-          <FunctionImportMapping FunctionImportName="GetProductListPerShop" FunctionName="DBTHSNModel.Store.GetProductListPerShop">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="DBTHSNModel.GetProductListPerShop_Result">
-                <ScalarProperty Name="EneniAmi" ColumnName="EneniAmi" />
-                <ScalarProperty Name="ID" ColumnName="ID" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="DueDate" ColumnName="DueDate" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="GetSupplierParts" FunctionName="DBTHSNModel.Store.GetSupplierParts" />
-          <FunctionImportMapping FunctionImportName="InTransitView" FunctionName="DBTHSNModel.Store.InTransitView" />
           <FunctionImportMapping FunctionImportName="sp_GenerateMaterialRequirement_FromSalesOrders" FunctionName="DBTHSNModel.Store.sp_GenerateMaterialRequirement_FromSalesOrders" />
           <FunctionImportMapping FunctionImportName="sp_Norm_PreviewCutMaterial" FunctionName="DBTHSNModel.Store.sp_Norm_PreviewCutMaterial">
             <ResultMapping>
@@ -9976,8 +11762,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </ResultMapping>
           </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_Norm_SaveCutMaterials" FunctionName="DBTHSNModel.Store.sp_Norm_SaveCutMaterials" />
-          <FunctionImportMapping FunctionImportName="WeeklyCoverage" FunctionName="DBTHSNModel.Store.WeeklyCoverage" />
-          <FunctionImportMapping FunctionImportName="WeeklyPartRequirement" FunctionName="DBTHSNModel.Store.WeeklyPartRequirement" />
           <EntitySetMapping Name="FIN_ACCOUNTS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_ACCOUNTS">
               <MappingFragment StoreEntitySet="FIN_ACCOUNTS">
@@ -10623,6 +12407,228 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </EntityTypeMapping>
           </EntitySetMapping>
           <FunctionImportMapping FunctionImportName="sp_SOrder_RecalcDeliveryShippedFromInvoices" FunctionName="DBTHSNModel.Store.sp_SOrder_RecalcDeliveryShippedFromInvoices" />
+          <EntitySetMapping Name="F_CONTRACT_TARIFFS">
+            <EntityTypeMapping TypeName="DBTHSNModel.F_CONTRACT_TARIFFS">
+              <MappingFragment StoreEntitySet="F_CONTRACT_TARIFFS">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="MinimumCharge" ColumnName="MinimumCharge" />
+                <ScalarProperty Name="Rate" ColumnName="Rate" />
+                <ScalarProperty Name="FreightBasis" ColumnName="FreightBasis" />
+                <ScalarProperty Name="TransportTypeID" ColumnName="TransportTypeID" />
+                <ScalarProperty Name="ToCity" ColumnName="ToCity" />
+                <ScalarProperty Name="ToRegion" ColumnName="ToRegion" />
+                <ScalarProperty Name="FromCity" ColumnName="FromCity" />
+                <ScalarProperty Name="FromRegion" ColumnName="FromRegion" />
+                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="F_WAYBILL_PAYMENT_SPLITS">
+            <EntityTypeMapping TypeName="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS">
+              <MappingFragment StoreEntitySet="F_WAYBILL_PAYMENT_SPLITS">
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="PayerID" ColumnName="PayerID" />
+                <ScalarProperty Name="PayerType" ColumnName="PayerType" />
+                <ScalarProperty Name="WaybillID" ColumnName="WaybillID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_EMPLOYEES">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_EMPLOYEES">
+              <MappingFragment StoreEntitySet="HR_EMPLOYEES">
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="DismissalDate" ColumnName="DismissalDate" />
+                <ScalarProperty Name="EmploymentDate" ColumnName="EmploymentDate" />
+                <ScalarProperty Name="SalaryGradeID" ColumnName="SalaryGradeID" />
+                <ScalarProperty Name="BaseSalary" ColumnName="BaseSalary" />
+                <ScalarProperty Name="PositionID" ColumnName="PositionID" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
+                <ScalarProperty Name="TabNo" ColumnName="TabNo" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_PAYROLL_HEADERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_PAYROLL_HEADERS">
+              <MappingFragment StoreEntitySet="HR_PAYROLL_HEADERS">
+                <ScalarProperty Name="TimesheetID" ColumnName="TimesheetID" />
+                <ScalarProperty Name="ApprovedDT" ColumnName="ApprovedDT" />
+                <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_PAYROLL_LINES">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_PAYROLL_LINES">
+              <MappingFragment StoreEntitySet="HR_PAYROLL_LINES">
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="NetSalary" ColumnName="NetSalary" />
+                <ScalarProperty Name="Penalties" ColumnName="Penalties" />
+                <ScalarProperty Name="Bonuses" ColumnName="Bonuses" />
+                <ScalarProperty Name="GrossSalary" ColumnName="GrossSalary" />
+                <ScalarProperty Name="HourlyRate" ColumnName="HourlyRate" />
+                <ScalarProperty Name="PieceQty" ColumnName="PieceQty" />
+                <ScalarProperty Name="HoursWorked" ColumnName="HoursWorked" />
+                <ScalarProperty Name="BaseSalary" ColumnName="BaseSalary" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="PayrollID" ColumnName="PayrollID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_TIMESHEET_HEADERS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_TIMESHEET_HEADERS">
+              <MappingFragment StoreEntitySet="HR_TIMESHEET_HEADERS">
+                <ScalarProperty Name="ApprovedDT" ColumnName="ApprovedDT" />
+                <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_TIMESHEET_LINES">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_TIMESHEET_LINES">
+              <MappingFragment StoreEntitySet="HR_TIMESHEET_LINES">
+                <ScalarProperty Name="TotalQuantity" ColumnName="TotalQuantity" />
+                <ScalarProperty Name="Day31Quantity" ColumnName="Day31Quantity" />
+                <ScalarProperty Name="Day30Quantity" ColumnName="Day30Quantity" />
+                <ScalarProperty Name="Day29Quantity" ColumnName="Day29Quantity" />
+                <ScalarProperty Name="Day28Quantity" ColumnName="Day28Quantity" />
+                <ScalarProperty Name="Day27Quantity" ColumnName="Day27Quantity" />
+                <ScalarProperty Name="Day26Quantity" ColumnName="Day26Quantity" />
+                <ScalarProperty Name="Day25Quantity" ColumnName="Day25Quantity" />
+                <ScalarProperty Name="Day24Quantity" ColumnName="Day24Quantity" />
+                <ScalarProperty Name="Day23Quantity" ColumnName="Day23Quantity" />
+                <ScalarProperty Name="Day22Quantity" ColumnName="Day22Quantity" />
+                <ScalarProperty Name="Day21Quantity" ColumnName="Day21Quantity" />
+                <ScalarProperty Name="Day20Quantity" ColumnName="Day20Quantity" />
+                <ScalarProperty Name="Day19Quantity" ColumnName="Day19Quantity" />
+                <ScalarProperty Name="Day18Quantity" ColumnName="Day18Quantity" />
+                <ScalarProperty Name="Day17Quantity" ColumnName="Day17Quantity" />
+                <ScalarProperty Name="Day16Quantity" ColumnName="Day16Quantity" />
+                <ScalarProperty Name="Day15Quantity" ColumnName="Day15Quantity" />
+                <ScalarProperty Name="Day14Quantity" ColumnName="Day14Quantity" />
+                <ScalarProperty Name="Day13Quantity" ColumnName="Day13Quantity" />
+                <ScalarProperty Name="Day12Quantity" ColumnName="Day12Quantity" />
+                <ScalarProperty Name="Day11Quantity" ColumnName="Day11Quantity" />
+                <ScalarProperty Name="Day10Quantity" ColumnName="Day10Quantity" />
+                <ScalarProperty Name="Day09Quantity" ColumnName="Day09Quantity" />
+                <ScalarProperty Name="Day08Quantity" ColumnName="Day08Quantity" />
+                <ScalarProperty Name="Day07Quantity" ColumnName="Day07Quantity" />
+                <ScalarProperty Name="Day06Quantity" ColumnName="Day06Quantity" />
+                <ScalarProperty Name="Day05Quantity" ColumnName="Day05Quantity" />
+                <ScalarProperty Name="Day04Quantity" ColumnName="Day04Quantity" />
+                <ScalarProperty Name="Day03Quantity" ColumnName="Day03Quantity" />
+                <ScalarProperty Name="Day02Quantity" ColumnName="Day02Quantity" />
+                <ScalarProperty Name="Day01Quantity" ColumnName="Day01Quantity" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="AbsentDays" ColumnName="AbsentDays" />
+                <ScalarProperty Name="OvertimeHours" ColumnName="OvertimeHours" />
+                <ScalarProperty Name="TotalWorkedHours" ColumnName="TotalWorkedHours" />
+                <ScalarProperty Name="TotalWorkedDays" ColumnName="TotalWorkedDays" />
+                <ScalarProperty Name="Day31Hours" ColumnName="Day31Hours" />
+                <ScalarProperty Name="Day30Hours" ColumnName="Day30Hours" />
+                <ScalarProperty Name="Day29Hours" ColumnName="Day29Hours" />
+                <ScalarProperty Name="Day28Hours" ColumnName="Day28Hours" />
+                <ScalarProperty Name="Day27Hours" ColumnName="Day27Hours" />
+                <ScalarProperty Name="Day26Hours" ColumnName="Day26Hours" />
+                <ScalarProperty Name="Day25Hours" ColumnName="Day25Hours" />
+                <ScalarProperty Name="Day24Hours" ColumnName="Day24Hours" />
+                <ScalarProperty Name="Day23Hours" ColumnName="Day23Hours" />
+                <ScalarProperty Name="Day22Hours" ColumnName="Day22Hours" />
+                <ScalarProperty Name="Day21Hours" ColumnName="Day21Hours" />
+                <ScalarProperty Name="Day20Hours" ColumnName="Day20Hours" />
+                <ScalarProperty Name="Day19Hours" ColumnName="Day19Hours" />
+                <ScalarProperty Name="Day18Hours" ColumnName="Day18Hours" />
+                <ScalarProperty Name="Day17Hours" ColumnName="Day17Hours" />
+                <ScalarProperty Name="Day16Hours" ColumnName="Day16Hours" />
+                <ScalarProperty Name="Day15Hours" ColumnName="Day15Hours" />
+                <ScalarProperty Name="Day14Hours" ColumnName="Day14Hours" />
+                <ScalarProperty Name="Day13Hours" ColumnName="Day13Hours" />
+                <ScalarProperty Name="Day12Hours" ColumnName="Day12Hours" />
+                <ScalarProperty Name="Day11Hours" ColumnName="Day11Hours" />
+                <ScalarProperty Name="Day10Hours" ColumnName="Day10Hours" />
+                <ScalarProperty Name="Day09Hours" ColumnName="Day09Hours" />
+                <ScalarProperty Name="Day08Hours" ColumnName="Day08Hours" />
+                <ScalarProperty Name="Day07Hours" ColumnName="Day07Hours" />
+                <ScalarProperty Name="Day06Hours" ColumnName="Day06Hours" />
+                <ScalarProperty Name="Day05Hours" ColumnName="Day05Hours" />
+                <ScalarProperty Name="Day04Hours" ColumnName="Day04Hours" />
+                <ScalarProperty Name="Day03Hours" ColumnName="Day03Hours" />
+                <ScalarProperty Name="Day02Hours" ColumnName="Day02Hours" />
+                <ScalarProperty Name="Day01Hours" ColumnName="Day01Hours" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="TimesheetID" ColumnName="TimesheetID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="QUALITY_INSPECTION">
+            <EntityTypeMapping TypeName="DBTHSNModel.QUALITY_INSPECTION">
+              <MappingFragment StoreEntitySet="QUALITY_INSPECTION">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="ApprovalDate" ColumnName="ApprovalDate" />
+                <ScalarProperty Name="InspectionDate" ColumnName="InspectionDate" />
+                <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
+                <ScalarProperty Name="InspectedByUserID" ColumnName="InspectedByUserID" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+                <ScalarProperty Name="DefectTypeID" ColumnName="DefectTypeID" />
+                <ScalarProperty Name="QtyRejected" ColumnName="QtyRejected" />
+                <ScalarProperty Name="QtyAccepted" ColumnName="QtyAccepted" />
+                <ScalarProperty Name="QtyInspected" ColumnName="QtyInspected" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="ProductionID" ColumnName="ProductionID" />
+                <ScalarProperty Name="ProductPlanDailyID" ColumnName="ProductPlanDailyID" />
+                <ScalarProperty Name="DeliveryScheduleID" ColumnName="DeliveryScheduleID" />
+                <ScalarProperty Name="SOrderID" ColumnName="SOrderID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_PIECE_RATE_TARIFFS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_TARIFFS">
+              <MappingFragment StoreEntitySet="HR_PIECE_RATE_TARIFFS">
+                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
+                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="EffectiveTo" ColumnName="EffectiveTo" />
+                <ScalarProperty Name="EffectiveFrom" ColumnName="EffectiveFrom" />
+                <ScalarProperty Name="RatePerUnit" ColumnName="RatePerUnit" />
+                <ScalarProperty Name="PositionID" ColumnName="PositionID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

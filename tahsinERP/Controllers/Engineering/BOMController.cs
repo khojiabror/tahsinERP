@@ -1,485 +1,401 @@
-﻿using Newtonsoft.Json;
-using OfficeOpenXml;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Data;
-using System.IO;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.UI.WebControls;
 using tahsinERP.Models;
 using tahsinERP.ViewModels.BOM;
-using static tahsinERP.ViewModels.BOM.BOMCreateProductViewModel;
-namespace tahsinERP.Controllers
-{
-    public class BOMController : Controller
-    {
-        List<string> missingParts = new List<string>();
-        List<string> missingProducts = new List<string>();
-        public ActionResult Index(IndexViewModel viewModel)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (viewModel.IsParentProduct == true)
-                {
-                    //var results = db.BOMS.Where(bom => bom.IsParentProduct == true).GroupBy(bom => bom.ParentPNo).Select(group => group.FirstOrDefault()).ToList();
-                    List<IndexViewModel> result = db.BOMS
-                                                    .Where(x => x.IsDeleted == false)
-                                                    .Join(db.PRODUCTS, bom => bom.ParentPNo, product => product.PNo, (bom, product) =>
-                    new IndexViewModel
-                    {
-                        ParentPNo = bom.ParentPNo,
-                        ProductName = product.Name,
-                        ProductID = product.ID,
-                        IsParentProduct = true,
-                        ID = product.ID
-                    }).GroupBy(item => new { item.ParentPNo, item.ID })
-                      .Select(group => group.FirstOrDefault())
-                      .ToList();
 
-                    ViewBag.IsParentProduct = true;
-                    return View(result);
+namespace tahsinERP.Controllers.Engineering
+{
+    [Authorize]
+    public class BomController : Controller
+    {
+        private DBTHSNEntities db = new DBTHSNEntities();
+
+        // GET: Bom
+        public async Task<ActionResult> Index()
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Query finished goods that are not deleted
+            var finishedGoods = await db.PRODUCTS
+                .Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                .ToListAsync();
+
+            // Get the latest BOM version for each product
+            var bomIndexList = new List<BomIndexViewModel>();
+
+            foreach (var product in finishedGoods)
+            {
+                // Get the latest active BOM header for this product
+                // Sort by VersionNo as date (YYYY-MM format) descending, then by CreatedAt
+                var latestBomHeader = await db.BOM_HEADERS
+                    .Where(bh => bh.ProductID == product.ID && bh.IsActive == true)
+                    .ToListAsync();
+
+                // Parse VersionNo as date for proper sorting (YYYY-MM format)
+                // VersionNo format: '2024-12' (year-month)
+                var sortedBomHeaders = latestBomHeader
+                    .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
+                    .OrderByDescending(bh =>
+                    {
+                        // Try to parse VersionNo as YYYY-MM date
+                        string versionNo = bh.VersionNo.Trim();
+                        if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                        {
+                            return parsedDate;
+                        }
+                        // If parsing fails, try to extract year and month manually
+                        var parts = versionNo.Split('-');
+                        if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
+                        {
+                            if (month >= 1 && month <= 12 && year > 1900 && year < 2100)
+                            {
+                                return new DateTime(year, month, 1);
+                            }
+                        }
+                        // Fallback to minimum date
+                        return DateTime.MinValue;
+                    })
+                    .ThenByDescending(bh => bh.CreatedAt)
+                    .FirstOrDefault();
+
+                // If no BOM with VersionNo found, fallback to latest by CreatedAt
+                if (sortedBomHeaders == null)
+                {
+                    sortedBomHeaders = latestBomHeader
+                        .OrderByDescending(bh => bh.CreatedAt)
+                        .FirstOrDefault();
+                }
+
+                if (sortedBomHeaders != null)
+                {
+                    bomIndexList.Add(new BomIndexViewModel
+                    {
+                        ProductId = product.ID,
+                        ProductPno = product.PNo,
+                        ProductName = product.Name,
+                        NormVersion = sortedBomHeaders.VersionNo ?? "N/A"
+                    });
+                }
+            }
+
+            // Order by product number
+            bomIndexList = bomIndexList.OrderBy(b => b.ProductPno).ToList();
+
+            return View(bomIndexList);
+        }
+
+        // GET: Bom/Details/5
+        public async Task<ActionResult> Details(int productId, int? bomHeaderId = null)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Find the product
+            var product = await db.PRODUCTS
+                .FirstOrDefaultAsync(p => p.ID == productId && p.IsDeleted == false);
+
+            if (product == null)
+            {
+                TempData["Error"] = "Mahsulot topilmadi.";
+                return RedirectToAction("Index");
+            }
+
+            // Find the BOM header
+            BOM_HEADERS bomHeader = null;
+
+            if (bomHeaderId.HasValue)
+            {
+                // Load specific BOM header
+                bomHeader = await db.BOM_HEADERS
+                    .Include(bh => bh.PRODUCT)
+                    .FirstOrDefaultAsync(bh => bh.ID == bomHeaderId.Value);
+            }
+            else
+            {
+                // Load latest active BOM header for this product
+                // Sort by VersionNo as date (YYYY-MM format) descending
+                var bomHeaders = await db.BOM_HEADERS
+                    .Include(bh => bh.PRODUCT)
+                    .Where(bh => bh.ProductID == productId && bh.IsActive == true)
+                    .ToListAsync();
+
+                var bomHeaderWithVersion = bomHeaders
+                    .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
+                    .OrderByDescending(bh =>
+                    {
+                        // Try to parse VersionNo as YYYY-MM date
+                        string versionNo = bh.VersionNo.Trim();
+                        if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                        {
+                            return parsedDate;
+                        }
+                        // If parsing fails, try to extract year and month manually
+                        var parts = versionNo.Split('-');
+                        if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
+                        {
+                            if (month >= 1 && month <= 12 && year > 1900 && year < 2100)
+                            {
+                                return new DateTime(year, month, 1);
+                            }
+                        }
+                        // Fallback to minimum date
+                        return DateTime.MinValue;
+                    })
+                    .ThenByDescending(bh => bh.CreatedAt)
+                    .FirstOrDefault();
+
+                // If no BOM with VersionNo found, fallback to latest by CreatedAt
+                if (bomHeaderWithVersion == null)
+                {
+                    bomHeader = bomHeaders
+                        .OrderByDescending(bh => bh.CreatedAt)
+                        .FirstOrDefault();
                 }
                 else
                 {
-                    List<IndexViewModel> result = db.BOMS
-                                                    .Where(x => x.IsDeleted == false)
-                                                    .Join(db.PRODUCTS, bom => bom.ParentPNo, product => product.PNo, (bom, product) =>
-                    new IndexViewModel
-                    {
-                        ParentPNo = bom.ParentPNo,
-                        ProductName = product.Name,
-                        ProductID = product.ID,
-                        IsParentProduct = false,
-                        ID = product.ID
-                    }).GroupBy(item => new { item.ParentPNo, item.ID })
-                      .Select(group => group.FirstOrDefault())
-                      .ToList();
-
-                    ViewBag.IsParentProduct = false;
-                    return View(result);
+                    bomHeader = bomHeaderWithVersion;
                 }
             }
-        }
-        public ActionResult Details(int ID, bool isParent)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PRODUCT product = db.PRODUCTS
-                                    .Where(p => p.ID == ID && p.IsDeleted == false)
-                                    .FirstOrDefault();
-                PRODUCT part = db.PRODUCTS
-                              .Where(p => p.ID == ID && p.IsDeleted == false)
-                              .FirstOrDefault();
 
-                try
-                {
-                    if (product != null)
-                    {
-                        var rootItem = GetBomTree(product.PNo);
-                        return View(rootItem);
-                    }
-                    else if (part != null)
-                    {
-                        var rootItem = GetBomTree(part.PNo);
-                        return View(rootItem);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(string.Empty, ex);
-                }
-                return View();
+            if (bomHeader == null)
+            {
+                TempData["Error"] = "Bu mahsulot uchun BOM topilmadi.";
+                return RedirectToAction("Index");
             }
-        }
-        private BoomViewModel GetBomTree(string parentPno)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var parentItems = db.BOMS.Where(b => b.ParentPNo == parentPno && b.IsDeleted == false).ToList();
 
-                if (!parentItems.Any())
+            // Load all BOM lines with related products and units
+            var bomLines = await db.BOM_LINES
+                .Include(bl => bl.PRODUCT)
+                .Include(bl => bl.UNIT)
+                .Where(bl => bl.BOMID == bomHeader.ID)
+                .ToListAsync();
+
+            // Build hierarchical tree
+            var rootNode = BuildBomTree(productId, bomLines, product);
+
+            // Load product image
+            string imageUrl = null;
+            var productImage = await db.PRODUCTIMAGES
+                .Where(pi => pi.ProdID == productId && (pi.IsDeleted == null || pi.IsDeleted == false))
+                .FirstOrDefaultAsync();
+
+            if (productImage != null && productImage.Image != null)
+            {
+                imageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(productImage.Image);
+            }
+
+            var viewModel = new BomDetailsViewModel
+            {
+                ProductId = product.ID,
+                ProductPno = product.PNo,
+                ProductName = product.Name,
+                NormVersion = bomHeader.VersionNo ?? "N/A",
+                ImageUrl = imageUrl,
+                RootNode = rootNode
+            };
+
+            return View(viewModel);
+        }
+
+        /// <summary>
+        /// Builds a hierarchical BOM tree starting from the root product
+        /// </summary>
+        private BomTreeNodeViewModel BuildBomTree(int parentProductId, List<BOM_LINES> bomLines, PRODUCT parentProduct)
+        {
+            // Load product image for root
+            string rootImageUrl = null;
+            var rootProductImage = db.PRODUCTIMAGES
+                .Where(pi => pi.ProdID == parentProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
+                .FirstOrDefault();
+
+            if (rootProductImage != null && rootProductImage.Image != null)
+            {
+                rootImageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(rootProductImage.Image);
+            }
+
+            var node = new BomTreeNodeViewModel
+            {
+                ProductId = parentProduct.ID,
+                ProductPno = parentProduct.PNo,
+                ProductName = parentProduct.Name,
+                Quantity = 1, // Root always has quantity 1
+                ImageUrl = rootImageUrl,
+                Children = new List<BomTreeNodeViewModel>()
+            };
+
+            // All bomLines passed here are direct children of the root
+            // BOM_LINES.ComponentID is the child component
+            foreach (var bomLine in bomLines)
+            {
+                if (!bomLine.ComponentID.HasValue) continue;
+
+                var childProduct = bomLine.PRODUCT;
+                if (childProduct == null || childProduct.IsDeleted) continue;
+
+                // Load child product image
+                string childImageUrl = null;
+                var childProductImage = db.PRODUCTIMAGES
+                    .Where(pi => pi.ProdID == childProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
+                    .FirstOrDefault();
+
+                if (childProductImage != null && childProductImage.Image != null)
                 {
-                    return null;
+                    childImageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(childProductImage.Image);
                 }
 
-                var root = new BoomViewModel()
+                var childNode = new BomTreeNodeViewModel
                 {
-                    ParentPNo = parentPno,
-                    ParentImageBase64 = GetParentImage(parentPno),
-                    Children = parentItems.Select(b => new BoomViewModel
-                    {
-                        ParentPNo = b.ParentPNo,
-                        ChildPNo = b.ChildPNo,
-                        ChildImageBase64 = GetChildImage(b.ChildPNo),
-                        Consumption = b.Consumption,
-                        ConsumptionUnit = "",
-                        Children = GetBomTree(b.ChildPNo)?.Children
-                    }).ToList()
+                    ProductId = childProduct.ID,
+                    ProductPno = childProduct.PNo,
+                    ProductName = childProduct.Name,
+                    Quantity = bomLine.Qty ?? 0,
+                    UnitShortname = bomLine.UNIT?.ShortName ?? "",
+                    ImageUrl = childImageUrl,
+                    Children = new List<BomTreeNodeViewModel>()
                 };
 
-                return root;
-            }
-        }
-        private string GetParentImage(string PNo)
-        {
-            string Base64String = "";
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var product = db.PRODUCTS.Where(p => p.PNo.CompareTo(PNo) == 0).FirstOrDefault();
-                var part = db.PRODUCTS.Where(p => p.PNo.CompareTo(PNo) == 0 && p.IsRawMaterial == true).FirstOrDefault();
-                if (product != null)
-                {
-                    var productImage = db.PRODUCTIMAGES.FirstOrDefault(pi => pi.ProdID == product.ID);
-                    if (productImage != null)
+                // Check if this child component has its own BOM (i.e., it's an assembly)
+                var childBomHeaders = db.BOM_HEADERS
+                    .Where(bh => bh.ProductID == childProduct.ID && bh.IsActive == true)
+                    .ToList();
+
+                var childBomHeader = childBomHeaders
+                    .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
+                    .OrderByDescending(bh =>
                     {
-                        Base64String = "data:image/jpeg;base64," + Convert.ToBase64String(productImage.Image);
-                    }
-                }
-                else
-                {
-                    var partImage = db.PRODUCTIMAGES.FirstOrDefault(pi => pi.ProdID == part.ID);
-                    if (partImage != null)
-                    {
-                        Base64String = "data:image/jpeg;base64," + Convert.ToBase64String(partImage.Image);
-                    }
-                }
-                return Base64String;
-            }
-        }
-        private string GetChildImage(string PNo)
-        {
-
-            string Base64String = "";
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-
-                var part = db.PRODUCTS.Where(p => p.PNo.CompareTo(PNo) == 0).FirstOrDefault();
-                var partImage = db.PRODUCTIMAGES.FirstOrDefault(pi => pi.ProdID == part.ID);
-                if (partImage != null)
-                {
-                    Base64String = "data:image/jpeg;base64," + Convert.ToBase64String(partImage.Image);
-                }
-                return Base64String;
-            }
-        }
-        public ActionResult Create()
-        {
-            return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(BOMCreateProductViewModel model, BoomViewModel vmodel)
-        {
-            return RedirectToAction("CompletionStatus", vmodel);
-        }
-        private int? GetUserID(string username)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                USER currentUser = db.USERS
-                                     .FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
-
-                return currentUser?.ID;
-            }
-        }
-        private void DeleteBomTree(string parentPno)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var parentItems = db.BOMS.Where(b => b.ParentPNo == parentPno && b.IsDeleted == false).ToList();
-
-                foreach (var item in parentItems)
-                {
-                    DeleteBomTree(item.ChildPNo);
-                    item.IsDeleted = true;
-                }
-                db.SaveChanges();
-            }
-        }
-        [HttpPost]
-        public ActionResult Delete(int ID, FormCollection fmc)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PRODUCT product = db.PRODUCTS.Where(p => p.ID == ID && p.IsDeleted == false).FirstOrDefault();
-                PRODUCT part = db.PRODUCTS.Where(p => p.ID == ID && p.IsDeleted == false && p.IsRawMaterial == true).FirstOrDefault();
-
-                try
-                {
-                    if (product != null)
-                    {
-                        DeleteBomTree(product.PNo);
-
-                        product.IsDeleted = true;
-                        db.SaveChanges();
-
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "BOMController", $"{ID} ID ga ega Maxsulotni o'chirdi");
-                    }
-                    else if (part != null)
-                    {
-                        DeleteBomTree(part.PNo);
-
-                        part.IsDeleted = true;
-                        db.SaveChanges();
-
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "BOMController", $"{ID} ID ga ega Qismni o'chirdi");
-                    }
-
-                    return RedirectToAction("Index");
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(string.Empty, ex);
-                }
-
-                return View();
-            }
-        }
-        public ActionResult Download()
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                SAMPLE_FILES detal = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("boms.xlsx") == 0).FirstOrDefault();
-                if (detal != null)
-                    return File(detal.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                return View();
-            }
-        }
-        public ActionResult UploadWithExcel()
-        {
-            ViewBag.IsFileUploaded = false;
-            return View();
-        }
-        [HttpPost]
-        public ActionResult UploadWithExcel(HttpPostedFileBase file)
-        {
-            if (file != null && file.ContentLength > 0)
-            {
-                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
-                {
-                    try
-                    {
-                        var dataTable = new System.Data.DataTable();
-                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-                        using (var package = new ExcelPackage(file.InputStream))
+                        string versionNo = bh.VersionNo.Trim();
+                        if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
                         {
-                            var worksheet = package.Workbook.Worksheets[0];
-                            var rowCount = worksheet.Dimension.Rows;
-                            var colCount = worksheet.Dimension.Columns;
-
-                            for (int col = 1; col <= colCount; col++)
+                            return parsedDate;
+                        }
+                        var parts = versionNo.Split('-');
+                        if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
+                        {
+                            if (month >= 1 && month <= 12 && year > 1900 && year < 2100)
                             {
-                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
-                            }
-
-                            for (int row = 2; row <= rowCount; row++)
-                            {
-                                var dataRow = dataTable.NewRow();
-                                for (int col = 1; col <= colCount; col++)
-                                {
-                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
-                                }
-                                dataTable.Rows.Add(dataRow);
+                                return new DateTime(year, month, 1);
                             }
                         }
-                        if (CheckForExistenceOfProducts(dataTable))
-                        {
-                            if (CheckForExistenceOfParts(dataTable))
-                            {
-                                ViewBag.DataTable = dataTable;
-                                ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
-                                ViewBag.IsFileUploaded = true;
+                        return DateTime.MinValue;
+                    })
+                    .ThenByDescending(bh => bh.CreatedAt)
+                    .FirstOrDefault();
 
-                                using (DBTHSNEntities db = new DBTHSNEntities())
-                                {
-                                    foreach (DataRow row in dataTable.Rows)
-                                    {
-                                        string ParentPNo = row["ParentPNo"].ToString();
-                                        string ChildPNo = row["ChildPNo"].ToString();
-                                        string ConsumptionUnit = row["ConsumptionUnit"].ToString();
-                                        string Consumption = row["Consumption"].ToString();
-                                        string IsParentProduct = row["IsParentProduct?"].ToString();
-
-                                        BOM existBom = db.BOMS.Where(p => p.ParentPNo.CompareTo(ParentPNo) == 0 && p.ChildPNo.CompareTo(ChildPNo) == 0 && p.IsDeleted == false).FirstOrDefault();
-
-                                        if (existBom != null)
-                                        {
-                                            ViewBag.ExistingRecordsCount = 1;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                var message = "";
-                                foreach (var word in missingParts)
-                                {
-                                    message += word + ", ";
-                                }
-                                ViewBag.Message = "Ushbu BOM faylda kiritilgan ehtiyot qismlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Ehtiyot qismlar bazasiga kiritib keyin qayta urining.";
-                                return View("UploadWithExcel");
-                            }
-                        }
-                        else
-                        {
-                            var message = "";
-                            foreach (var word in missingProducts)
-                            {
-                                message += word + ", ";
-                            }
-                            ViewBag.Message = "Ushbu BOM faylda kiritilgan maxsulotlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Maxsulotlar bazasiga kiritib keyin qayta urining.";
-                            return View("UploadWithExcel");
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
-                        return View("UploadWithExcel");
-                    }
-                }
-                else
+                if (childBomHeader != null)
                 {
-                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
-                    return View("UploadWithExcel");
+                    // Load child BOM lines
+                    var childBomLines = db.BOM_LINES
+                        .Include(bl => bl.PRODUCT)
+                        .Include(bl => bl.UNIT)
+                        .Where(bl => bl.BOMID == childBomHeader.ID)
+                        .ToList();
+
+                    // Recursively build children
+                    childNode.Children = BuildBomTreeChildren(childProduct.ID, childBomLines);
                 }
+
+                node.Children.Add(childNode);
             }
-            else
+
+            return node;
+        }
+
+        /// <summary>
+        /// Recursively builds children for a node
+        /// </summary>
+        private List<BomTreeNodeViewModel> BuildBomTreeChildren(int parentProductId, List<BOM_LINES> bomLines)
+        {
+            var children = new List<BomTreeNodeViewModel>();
+
+            foreach (var bomLine in bomLines)
             {
-                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
-                return View("UploadWithExcel");
-            }
+                if (!bomLine.ComponentID.HasValue) continue;
 
-            return View("UploadWithExcel");
-        }
-        private bool CheckForExistenceOfParts(DataTable dataTable)
-        {
-            bool flag = false;
-            if (dataTable != null)
-                using (DBTHSNEntities db = new DBTHSNEntities())
+                var childProduct = bomLine.PRODUCT;
+                if (childProduct == null || childProduct.IsDeleted) continue;
+
+                // Load child product image
+                string childImageUrl = null;
+                var childProductImage = db.PRODUCTIMAGES
+                    .Where(pi => pi.ProdID == childProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
+                    .FirstOrDefault();
+
+                if (childProductImage != null && childProductImage.Image != null)
                 {
-                    foreach (DataRow row in dataTable.Rows)
-                    {
-                        string childPNo = row["ChildPNo"].ToString();
-                        if (db.PRODUCTS.Where(p => p.PNo.CompareTo(childPNo) == 0).Any())
-                            flag = true;
-                        else
-                        {
-                            if (!missingParts.Contains(childPNo))
-                                missingParts.Add(childPNo);
-                        }
-                    }
-                    if (missingParts.Count > 0)
-                        return false;
-                    else
-                        return flag;
+                    childImageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(childProductImage.Image);
                 }
-            else
-                return flag;
-        }
-        private bool CheckForExistenceOfProducts(DataTable dataTable)
-        {
-            bool flag = false;
-            if (dataTable != null)
-                using (DBTHSNEntities db = new DBTHSNEntities())
+
+                var childNode = new BomTreeNodeViewModel
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    ProductId = childProduct.ID,
+                    ProductPno = childProduct.PNo,
+                    ProductName = childProduct.Name,
+                    Quantity = bomLine.Qty ?? 0,
+                    UnitShortname = bomLine.UNIT?.ShortName ?? "",
+                    ImageUrl = childImageUrl,
+                    Children = new List<BomTreeNodeViewModel>()
+                };
+
+                // Check if this child has its own BOM
+                var childBomHeaders = db.BOM_HEADERS
+                    .Where(bh => bh.ProductID == childProduct.ID && bh.IsActive == true)
+                    .ToList();
+
+                var childBomHeader = childBomHeaders
+                    .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
+                    .OrderByDescending(bh =>
                     {
-                        string parentPNo = row["ParentPNo"].ToString();
-                        if (db.PRODUCTS.Where(p => p.PNo.CompareTo(parentPNo) == 0).Any())
-                            flag = true;
-                        else
+                        string versionNo = bh.VersionNo.Trim();
+                        if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
                         {
-                            if (!missingProducts.Contains(parentPNo))
-                                missingProducts.Add(parentPNo);
+                            return parsedDate;
                         }
-                    }
-                    if (missingProducts.Count > 0)
-                        return false;
-                    else
-                        return flag;
-                }
-            else
-                return flag;
-
-        }
-        [HttpPost]
-        public ActionResult ClearDataTable()
-        {
-            // Clear the DataTable and related ViewBag properties
-            ViewBag.DataTable = null;
-            ViewBag.DataTableModel = null;
-            ViewBag.IsFileUploaded = false;
-            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
-            // Return the UploadWithExcel view
-            return View("UploadWithExcel");
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> Save(string dataTableModel)
-        {
-            if (!string.IsNullOrEmpty(dataTableModel))
-            {
-                await Task.Run(() =>
-                {
-                    var tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
-
-                    try
-                    {
-                        using (DBTHSNEntities db = new DBTHSNEntities())
+                        var parts = versionNo.Split('-');
+                        if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
                         {
-                            foreach (DataRow row in tableModel.Rows)
+                            if (month >= 1 && month <= 12 && year > 1900 && year < 2100)
                             {
-                                string ParentPNo = row["ParentPNo"].ToString();
-                                string ChildPNo = row["ChildPNo"].ToString();
-                                string ConsumptionUnit = row["ConsumptionUnit"].ToString();
-                                string Consumption = row["Consumption"].ToString();
-                                string IsParentProduct = row["IsParentProduct?"].ToString();
-
-                                BOM bom = new BOM();
-                                bom.Consumption = Convert.ToDouble(Consumption);
-                                bom.ParentPNo = ParentPNo;
-                                bom.ChildPNo = ChildPNo;
-                                bom.IsDeleted = false;
-                                if (IsParentProduct.CompareTo("Yes") == 0)
-                                    bom.IsParentProduct = true;
-                                else
-                                    bom.IsParentProduct = false;
-
-                                db.BOMS.Add(bom);
-                                db.SaveChanges();
-
-                                var userEmail = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail, "BOMController", $"{bom.ID} ID ga ega BOM ni Excell orqali qo'shdi");
+                                return new DateTime(year, month, 1);
                             }
-
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", ex.Message);
-                    }
-                });
+                        return DateTime.MinValue;
+                    })
+                    .ThenByDescending(bh => bh.CreatedAt)
+                    .FirstOrDefault();
+
+                if (childBomHeader != null)
+                {
+                    var childBomLines = db.BOM_LINES
+                        .Include(bl => bl.PRODUCT)
+                        .Include(bl => bl.UNIT)
+                        .Where(bl => bl.BOMID == childBomHeader.ID)
+                        .ToList();
+
+                    childNode.Children = BuildBomTreeChildren(childProduct.ID, childBomLines);
+                }
+
+                children.Add(childNode);
             }
 
-            return RedirectToAction("Index");
+            return children;
         }
-        public ActionResult Edit(int ID, BoomViewModel model)
+
+        protected override void Dispose(bool disposing)
         {
-            return View();
-        }
-        [HttpPost]
-        public ActionResult Edit(BomEditViewModels model)
-        {
-            return RedirectToAction("Index");
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
-

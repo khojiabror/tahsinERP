@@ -1,0 +1,265 @@
+@model tahsinERP.ViewModels.MESDashboardViewModel
+@{
+    ViewBag.Title = "MES Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">MES Dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <!-- KPI Cards -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="media-body text-left">
+                                            <h3 class="primary">@Model.TodayPlanned.ToString("N2")</h3>
+                                            <span>Bugungi reja</span>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-calendar primary font-large-2 float-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="media-body text-left">
+                                            <h3 class="success">@Model.TodayActual.ToString("N2")</h3>
+                                            <span>Bugungi fakt</span>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-check-circle success font-large-2 float-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="media-body text-left">
+                                            <h3 class="@(Model.TodayPlanVsActualPercent >= 100 ? "success" : "warning")">@Model.TodayPlanVsActualPercent.ToString("N1")%</h3>
+                                            <span>Bugungi reja/fakt</span>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-trending-up @(Model.TodayPlanVsActualPercent >= 100 ? "success" : "warning") font-large-2 float-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="media-body text-left">
+                                            <h3 class="@(Model.MonthPlanVsActualPercent >= 100 ? "success" : "warning")">@Model.MonthPlanVsActualPercent.ToString("N1")%</h3>
+                                            <span>Oylik reja/fakt</span>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-bar-chart-alt-2 @(Model.MonthPlanVsActualPercent >= 100 ? "success" : "warning") font-large-2 float-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-xl-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Kunlik Reja vs Fakt (So'nggi 30 kun)</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <canvas id="planVsActualChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Ishlab chiqarish bo'yicha sexlar</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <canvas id="productionByShopChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality Summary and Bottlenecks -->
+                <div class="row">
+                    <div class="col-xl-6 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Sifat Nazorati Xulosa</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p><strong>Jami tekshiruvlar:</strong> @Model.TotalInspections</p>
+                                            <p><strong>Tasdiqlangan:</strong> <span class="text-success">@Model.ApprovedInspections</span></p>
+                                            <p><strong>Rad etilgan:</strong> <span class="text-danger">@Model.RejectedInspections</span></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p><strong>Qabul qilingan miqdor:</strong> @Model.TotalAcceptedQty.ToString("N3")</p>
+                                            <p><strong>Rad etilgan miqdor:</strong> @Model.TotalRejectedQty.ToString("N3")</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Buyurtma To'siqlari (Top 10)</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Buyurtma</th>
+                                                    <th>Mahsulot</th>
+                                                    <th>Qoldiq</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var bottleneck in Model.OrderBottlenecks)
+                                                {
+                                                    <tr>
+                                                        <td>@bottleneck.OrderNo</td>
+                                                        <td>@bottleneck.ProductNo</td>
+                                                        <td><strong>@bottleneck.RemainingQty.ToString("N3")</strong></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Plan vs Actual Chart
+        var planVsActualCtx = document.getElementById('planVsActualChart').getContext('2d');
+        var planVsActualChart = new Chart(planVsActualCtx, {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.DailyPlanVsActual.Select(d => $"'{d.Date:dd.MM}'")))],
+                datasets: [{
+                    label: 'Reja',
+                    data: [@string.Join(",", Model.DailyPlanVsActual.Select(d => d.Planned))],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }, {
+                    label: 'Fakt',
+                    data: [@string.Join(",", Model.DailyPlanVsActual.Select(d => d.Actual))],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Production by Shop Chart
+        var productionByShopCtx = document.getElementById('productionByShopChart').getContext('2d');
+        var productionByShopChart = new Chart(productionByShopCtx, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.ProductionByShop.Select(s => $"'{s.ShopName}'")))],
+                datasets: [{
+                    label: 'Ishlab chiqarish',
+                    data: [@string.Join(",", Model.ProductionByShop.Select(s => s.TotalProduction))],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

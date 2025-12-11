@@ -41,26 +41,26 @@
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                            // S_ORDERS
+
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="OrderNo">Buyurtma raqami</label>
-                                                    @Html.TextBoxFor(model => model.OrderNo, new { @type = "text", @class = "form-control", @placeholder = "Buyurtma raqamini kiriting" })
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @type = "text", @class = "form-control", @placeholder = "Buyurtma raqamini kiriting", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="CustomerID">Haridor</label>
-                                                    @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @placeholder = "Haridorni tanlang", @id = "CustomerID" })
+                                                    @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @id = "CustomerID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="ContractID">Shartnoma raqami</label>
-                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @placeholder = "Shartnomani tanlang", @id = "ContractID" })
+                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID" })
                                                     @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="IssuedDate">Buyurtma berilgan sanasi</label>
-                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @placeholder = "Sanani tanlang" })
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-12 col-12 form-group">
@@ -70,34 +70,38 @@
                                                 </div>
                                             </div>
 
-                                            // S_ORDER_PRODUCTS
                                             <br />
-                                            <h4>
-                                                Buyurtma maxsulotlari
-                                            </h4>
+                                            <h4>Buyurtma maxsulotlari</h4>
                                             <div data-repeater-list="Parts">
                                                 <div data-repeater-item>
                                                     <div class="row justify-content-between">
-                                                        <input type="hidden" name="ID" />
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="ProductID">Maxsulot</label>
-                                                            @Html.DropDownList("ProductID", (SelectList)ViewBag.ProductList, new { @class = "form-control select2", @placeholder = "Maxsulotni tanlang" })
-                                                            @Html.ValidationMessageFor(model => model.Products[0].ProductID, "", new { @class = "text-danger" })
+                                                            <label>Maxsulot</label>
+                                                            <select name="ProductID" class="form-control select2 product-select" required>
+                                                                <option value="">---Tanlang---</option>
+                                                                @foreach (var product in ((SelectList)ViewBag.ProductList))
+                                                                {
+                                                                    <option value="@product.Value">@product.Text</option>
+                                                                }
+                                                            </select>
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="UnitID">O'lchov birligi</label>
-                                                            @Html.DropDownList("UnitID", (SelectList)ViewBag.Units, new { @class = "form-control select2", @placeholder = "O'lchov birligini tanlang" })
-                                                            @Html.ValidationMessageFor(model => model.Products[0].UnitID, "", new { @class = "text-danger" })
+                                                            <label>O'lchov birligi</label>
+                                                            <select name="UnitID" class="form-control select2 unit-select" required>
+                                                                <option value="">---Tanlang---</option>
+                                                                @foreach (var unit in ((SelectList)ViewBag.Units))
+                                                                {
+                                                                    <option value="@unit.Value">@unit.Text</option>
+                                                                }
+                                                            </select>
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Amount">Miqdori</label>
-                                                            <input type="number" name="Amount" class="form-control" id="Part_Amount" placeholder="Miqdori" step="0.01" />
-                                                            @Html.ValidationMessageFor(model => model.Products[0].Amount, "", new { @class = "text-danger" })
+                                                            <label>Miqdori</label>
+                                                            <input type="number" name="Amount" class="form-control product-amount" placeholder="Miqdori" step="0.01" min="0.01" required />
                                                         </div>
                                                         <div class="col-md-2 col-sm-12 form-group">
-                                                            <label for="Price">Birlik narxi</label>
-                                                            <input type="number" name="Price" step="0.01" class="form-control product-price" placeholder="Birlik narxi" readonly />
-                                                            @Html.ValidationMessageFor(model => model.Products[0].Price, "", new { @class = "text-danger" })
+                                                            <label>Birlik narxi</label>
+                                                            <input type="number" name="Price" class="form-control product-price" placeholder="Birlik narxi" step="0.01" min="0" readonly required />
                                                         </div>
                                                         <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
                                                             <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
@@ -109,11 +113,9 @@
 
                                             <button data-repeater-create type="button" class="btn btn-primary">Yangi maxsulot qo'shish</button>
 
-
-                                            // Save button
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item border-0 pb-0">
-                                                    <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
+                                                    <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
                                                         <i class='bx bx-save'></i>
                                                         Saqlash
                                                     </button>
@@ -129,216 +131,195 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize flatpickr
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr("#IssuedDate", {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d.m.Y",
+                    locale: "uz"
+                });
+            }
+
+            // Store contract products globally
+            window.contractProducts = null;
+
+            // Load contract products when contract is selected
+            $('#ContractID').on('change', function () {
+                var contractId = $(this).val();
+                if (contractId && contractId != '0' && contractId != '') {
+                    loadContractProducts(contractId);
+                } else {
+                    window.contractProducts = null;
+                    // Reset all product dropdowns to show all products
+                    $('.product-select').each(function () {
+                        var $select = $(this);
+                        var currentValue = $select.val();
+                        $select.empty();
+                        $select.append($('<option></option>').val('').text('---Tanlang---'));
+                        @foreach (var product in ((SelectList)ViewBag.ProductList))
+                        {
+                            <text>
+                            var $option = $('<option></option>').val('@product.Value').text('@product.Text');
+                            if ('@product.Value' == currentValue) {
+                                $option.prop('selected', true);
+                            }
+                            $select.append($option);
+                            </text>
+                        }
+                        if ($select.hasClass('select2')) {
+                            $select.select2('destroy');
+                            $select.select2();
+                        }
+                    });
+                    $('.product-price').val('').prop('readonly', false);
+                }
+            });
+
+            // When product is selected, load price from contract
+            $(document).on('change', '.product-select', function () {
+                var $row = $(this).closest('[data-repeater-item]');
+                var productId = $(this).val();
+                var contractId = $('#ContractID').val();
+
+                if (contractId && contractId != '0' && contractId != '' && productId && productId != '0' && productId != '') {
+                    loadProductPriceFromContract(contractId, parseInt(productId), $row);
+                } else {
+                    $row.find('.product-price').val('').prop('readonly', false);
+                }
+            });
+
+            // Update product dropdowns when new item is added
+            $(document).on('click', '[data-repeater-create]', function () {
+                setTimeout(function () {
+                    var contractId = $('#ContractID').val();
+                    if (contractId && contractId != '0' && contractId != '' && window.contractProducts) {
+                        updateProductDropdowns(window.contractProducts);
+                    }
+                }, 100);
+            });
+
+            // Function to load contract products
+            function loadContractProducts(contractId) {
+                $.ajax({
+                    url: '@Url.Action("GetContractProducts", "SOrder")',
+                    type: 'GET',
+                    data: { contractId: contractId },
+                    success: function (data) {
+                        if (data && data.length > 0) {
+                            window.contractProducts = data;
+                            updateProductDropdowns(data);
+                        } else {
+                            alert('Shartnomada maxsulotlar topilmadi');
+                            window.contractProducts = null;
+                        }
+                    },
+                    error: function () {
+                        console.error('Shartnoma maxsulotlarini yuklashda xatolik');
+                        alert('Shartnoma maxsulotlarini yuklashda xatolik yuz berdi');
+                        window.contractProducts = null;
+                    }
+                });
+            }
+
+            // Function to update product dropdowns with contract products
+            function updateProductDropdowns(products) {
+                $('.product-select').each(function () {
+                    var $select = $(this);
+                    var currentValue = $select.val();
+
+                    $select.empty();
+                    $select.append($('<option></option>').val('').text('---Tanlang---'));
+
+                    $.each(products, function (index, product) {
+                        var $option = $('<option></option>')
+                            .val(product.ProductID)
+                            .text(product.ProductPNo + ' - ' + product.ProductName);
+                        if (product.ProductID == currentValue) {
+                            $option.prop('selected', true);
+                        }
+                        $select.append($option);
+                    });
+
+                    if ($select.hasClass('select2')) {
+                        $select.select2('destroy');
+                        $select.select2();
+                    }
+                });
+            }
+
+            // Function to load product price from contract
+            function loadProductPriceFromContract(contractId, productId, $row) {
+                if (!window.contractProducts) {
+                    loadContractProducts(contractId);
+                    setTimeout(function () {
+                        loadProductPriceFromContract(contractId, productId, $row);
+                    }, 500);
+                    return;
+                }
+
+                var contractProduct = window.contractProducts.find(function (cp) {
+                    return parseInt(cp.ProductID) === productId;
+                });
+
+                if (contractProduct) {
+                    var $priceInput = $row.find('.product-price');
+                    var price = parseFloat(contractProduct.PiecePrice) || 0;
+                    $priceInput.val(price).prop('readonly', true);
+
+                    // Also set UnitID if available
+                    if (contractProduct.UnitID) {
+                        var $unitSelect = $row.find('.unit-select');
+                        $unitSelect.val(contractProduct.UnitID);
+                        if ($unitSelect.hasClass('select2')) {
+                            $unitSelect.select2('destroy');
+                            $unitSelect.select2();
+                        }
+                    }
+                } else {
+                    $row.find('.product-price').val('').prop('readonly', false);
+                }
+            }
+
+            // Form validation
+            $('#orderForm').on('submit', function (e) {
+                var hasProducts = false;
+                $('.product-select').each(function () {
+                    if ($(this).val() && $(this).val() != '0' && $(this).val() != '') {
+                        hasProducts = true;
+                        return false;
+                    }
+                });
+
+                if (!hasProducts) {
+                    e.preventDefault();
+                    alert('Kamida bitta mahsulot qo\'shish kerak');
+                    return false;
+                }
+
+                // Validate that all products have prices
+                var hasEmptyPrice = false;
+                $('.product-price').each(function () {
+                    var $productSelect = $(this).closest('[data-repeater-item]').find('.product-select');
+                    if ($productSelect.val() && $productSelect.val() != '' && (!$(this).val() || $(this).val() == '0')) {
+                        hasEmptyPrice = true;
+                        return false;
+                    }
+                });
+
+                if (hasEmptyPrice) {
+                    e.preventDefault();
+                    alert('Barcha maxsulotlar uchun narx belgilanishi kerak!');
+                    return false;
+                }
+            });
+        });
+    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-
-<script>
-    // Initialize flatpickr for IssuedDate
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof flatpickr !== 'undefined') {
-            flatpickr("#IssuedDate", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d.m.Y",
-                weekNumbers: true,
-                showTodayButton: true,
-                locale: "uz",
-                onChange: function (selectedDates, dateStr, instance) {
-                    // Format the date to Y-m-d when it's selected
-                    if (selectedDates.length > 0) {
-                        const formattedDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
-                        document.getElementById("IssuedDate").value = formattedDate;
-                    }
-                }
-            });
-        } else {
-            console.error('flatpickr is not loaded');
-        }
-    });
-
-    // Function to calculate total amount
-    function calculateTotalAmount() {
-        var total = 0;
-        var $items = $('div[data-repeater-item]');
-        $items.each(function() {
-            var amount = parseFloat($(this).find('input[name="Amount"]').val()) || 0;
-            var price = parseFloat($(this).find('input[name="Price"]').val()) || 0;
-            total += amount * price;
-        });
-        // Display total (if you have a total field in UI)
-        console.log('Jami summa: ' + total.toFixed(2));
-    }
-
-    // Wait for jQuery to be ready
-    $(document).ready(function () {
-        // Store all products for fallback
-        window.allProducts = @Html.Raw(Json.Encode(((SelectList)ViewBag.ProductList).Select(x => new { Value = x.Value, Text = x.Text }).ToList()));
-
-        // Load contract products when contract is selected
-        $('#ContractID').on('change', function() {
-            var contractId = $(this).val();
-            if (contractId && contractId != '0') {
-                loadContractProducts(contractId);
-            } else {
-                // Reset to all products if no contract selected
-                updateProductDropdowns(window.allProducts);
-                $('.product-price').val('').prop('readonly', false);
-            }
-        });
-
-        // When product is selected in repeater, load price from contract
-        $(document).on('change', 'select[name="ProductID"]', function() {
-            var $row = $(this).closest('[data-repeater-item]');
-            var productId = $(this).val();
-            var contractId = $('#ContractID').val();
-            
-            if (contractId && contractId != '0' && productId) {
-                loadProductPrice(contractId, productId, $row);
-            }
-        });
-
-        // Update product dropdowns when new item is added via repeater
-        $(document).on('click', '[data-repeater-create]', function() {
-            setTimeout(function() {
-                var contractId = $('#ContractID').val();
-                if (contractId && contractId != '0' && window.contractProducts) {
-                    updateProductDropdowns(window.contractProducts);
-                }
-            }, 100);
-        });
-
-        // Calculate total amount when product fields change
-        $(document).on('input change', 'input[name="Amount"], input[name="Price"]', function() {
-            calculateTotalAmount();
-        });
-
-        // Calculate total when products are added via repeater
-        $(document).on('click', '[data-repeater-create]', function() {
-            setTimeout(calculateTotalAmount, 200);
-        });
-
-        // Calculate total when products are removed via repeater
-        $(document).on('click', '[data-repeater-delete]', function() {
-            setTimeout(calculateTotalAmount, 200);
-        });
-
-        // Initial calculation
-        setTimeout(calculateTotalAmount, 100);
-
-        // Handle form submission
-        $('#orderForm').on('submit', function(e) {
-            // Validate that contract is selected if products are added
-            var contractId = $('#ContractID').val();
-            var hasProducts = $('select[name="ProductID"]').filter(function() {
-                return $(this).val() && $(this).val() != '';
-            }).length > 0;
-            
-            if (hasProducts && (!contractId || contractId == '0')) {
-                e.preventDefault();
-                alert('Shartnoma tanlang!');
-                return false;
-            }
-            
-            // Validate that all products have prices
-            var hasEmptyPrice = false;
-            $('input[name="Price"]').each(function() {
-                var $productSelect = $(this).closest('[data-repeater-item]').find('select[name="ProductID"]');
-                if ($productSelect.val() && $productSelect.val() != '' && (!$(this).val() || $(this).val() == '0')) {
-                    hasEmptyPrice = true;
-                    return false;
-                }
-            });
-            
-            if (hasEmptyPrice) {
-                e.preventDefault();
-                alert('Barcha maxsulotlar uchun narx belgilanishi kerak!');
-                return false;
-            }
-        });
-    });
-
-    // Function to update product dropdowns with contract products
-    function updateProductDropdowns(products) {
-        $('select[name="ProductID"]').each(function() {
-            var $select = $(this);
-            var currentValue = $select.val();
-            
-            $select.empty();
-            $select.append($('<option></option>').val('').text('Maxsulotni tanlang'));
-            
-            if (products && products.length > 0) {
-                $.each(products, function(index, product) {
-                    var value = product.ProductID || product.Value;
-                    var text = product.ProductPNo || product.ProductName || product.Text;
-                    var $option = $('<option></option>').val(value).text(text);
-                    if (value == currentValue) {
-                        $option.prop('selected', true);
-                    }
-                    $select.append($option);
-                });
-            }
-            
-            // Reinitialize select2 if it exists
-            if ($select.hasClass('select2')) {
-                $select.select2('destroy');
-                $select.select2();
-            }
-        });
-    }
-
-    // Function to load contract products
-    function loadContractProducts(contractId) {
-        $.ajax({
-            url: '@Url.Action("GetContractProducts", "SOrder")',
-            type: 'GET',
-            data: { contractId: contractId },
-            success: function(data) {
-                if (data && data.length > 0) {
-                    // Store contract products globally
-                    window.contractProducts = data;
-                    // Update all product dropdowns
-                    updateProductDropdowns(data);
-                } else {
-                    alert('Shartnomada maxsulotlar topilmadi');
-                }
-            },
-            error: function() {
-                console.error('Shartnoma maxsulotlarini yuklashda xatolik');
-                alert('Shartnoma maxsulotlarini yuklashda xatolik yuz berdi');
-            }
-        });
-    }
-
-    // Function to load product price from contract
-    function loadProductPrice(contractId, productId, $row) {
-        if (!window.contractProducts) {
-            loadContractProducts(contractId);
-            setTimeout(function() {
-                loadProductPrice(contractId, productId, $row);
-            }, 500);
-            return;
-        }
-
-        var contractProduct = window.contractProducts.find(function(cp) {
-            var cpId = parseInt(cp.ProductID);
-            var prodId = parseInt(productId);
-            return cpId === prodId;
-        });
-
-        if (contractProduct) {
-            var $priceInput = $row.find('input[name="Price"]');
-            var price = parseFloat(contractProduct.PiecePrice) || 0;
-            $priceInput.val(price).prop('readonly', true);
-            
-            // Also set UnitID if available
-            if (contractProduct.UnitID) {
-                $row.find('select[name="UnitID"]').val(contractProduct.UnitID).trigger('change');
-            }
-        } else {
-            $row.find('input[name="Price"]').val('').prop('readonly', false);
-        }
-    }
-</script>

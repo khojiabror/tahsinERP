@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         {
             this.P_INVOICES = new HashSet<P_INVOICES>();
             this.P_ORDER_PRODUCTS = new HashSet<P_ORDER_PRODUCTS>();
+            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
         }
     
         public int ID { get; set; }
@@ -40,5 +41,7 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
         public virtual SUPPLIER SUPPLIER { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
     }
 }

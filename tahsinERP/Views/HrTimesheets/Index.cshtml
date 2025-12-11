@@ -1,0 +1,152 @@
+@model List<tahsinERP.Models.HR_TIMESHEET_HEADERS>
+@{
+    ViewBag.Title = "Tabel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tabel</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Tabel</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (changePermit)
+                {
+                    <div class="invoice-create-btn mb-1">
+                        <a href="@Url.Action("Create")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Tabel yaratish
+                        </a>
+                        <a href="@Url.Action("Import")" class="btn btn-info">
+                            <i class="bx bx-import"></i> Exceldan import
+                        </a>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input type="number" name="year" class="form-control" value="@ViewBag.Year" placeholder="Yil" min="2000" max="2100" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="month" class="form-control">
+                                            <option value="">Barcha oylar</option>
+                                            @for (int i = 1; i <= 12; i++)
+                                            {
+                                                <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="status" class="form-control">
+                                            <option value="">Barcha holatlar</option>
+                                            <option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>Qoralama</option>
+                                            <option value="Approved" @(ViewBag.Status == "Approved" ? "selected" : "")>Tasdiqlangan</option>
+                                            <option value="Closed" @(ViewBag.Status == "Closed" ? "selected" : "")>Yopilgan</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="submit" class="btn btn-primary">Filtr</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table id="timesheetsTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Yil</th>
+                                            <th>Oy</th>
+                                            <th>Bo'lim</th>
+                                            <th>Holat</th>
+                                            <th>Yaratilgan</th>
+                                            <th>Tasdiqlangan</th>
+                                            <th>Amallar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td>@item.Year</td>
+                                                <td>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month)</td>
+                                                <td>@(item.HR_ORG_UNITS?.Name ?? "Butun kompaniya")</td>
+                                                <td>
+                                                    <span class="badge badge-@(item.Status == "Approved" ? "success" : item.Status == "Closed" ? "info" : "warning")">
+                                                        @(item.Status == "Draft" ? "Qoralama" : item.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
+                                                    </span>
+                                                </td>
+                                                <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
+                                                <td>@(item.ApprovedDT?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                <td>
+                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Export", new { id = item.ID })" class="btn btn-sm btn-success">
+                                                        <i class="bx bx-export"></i>
+                                                    </a>
+                                                    @if (changePermit && item.Status == "Draft")
+                                                    {
+                                                        <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Tabelni tasdiqlash?');">
+                                                            <i class="bx bx-check"></i>
+                                                        </a>
+                                                    }
+                                                    @if (changePermit && item.Status == "Approved")
+                                                    {
+                                                        <a href="@Url.Action("Close", new { id = item.ID })" class="btn btn-sm btn-secondary" onclick="return confirm('Tabelni yopish?');">
+                                                            <i class="bx bx-lock"></i>
+                                                        </a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#timesheetsTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                },
+                "pageLength": 25,
+                "order": [[0, "desc"], [1, "desc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

@@ -23,7 +23,7 @@
 16. **Blanking** - Blanking norma
 17. **BOM** - Bill of Materials (Mahsulot tarkibi)
 18. **Norma** - Norma boshqaruvi
-19. **NormCutting** - NORM Kesish variantlari (YANGI)
+19. **Norm** - Norma kiritish (YANGI)
 20. **Part** - Qismlar (Parts)
 21. **Product** - Maxsulotlar
 22. **ProductPack** - Maxsulot paketlari
@@ -87,5 +87,5 @@
 ### Eslatma:
 - Barcha controller nomlari "Controller" qismini olib tashlab ko'rsatilgan
 - Masalan: `AccountController` → **Account**
-- Yangi qo'shilgan: **NormCutting** (NORM Kesish variantlari)
+- Yangi qo'shilgan: **Norm** (Norma kiritish)
 

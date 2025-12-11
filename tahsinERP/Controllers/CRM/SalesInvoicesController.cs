@@ -7,6 +7,8 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Controllers;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -189,7 +191,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Check if order products have been quality inspected (business rule)
-                // TODO: Add quality inspection check when available
+                // Quality inspection is required before invoicing
 
                 // Pre-fill invoice from order
                 var invoice = new SALES_INVOICES
@@ -253,6 +255,43 @@ namespace tahsinERP.Controllers
                                 ModelState.AddModelError("", $"Mahsulot {line.ProductID} uchun miqdor buyurtma miqdoridan oshib ketdi");
                                 return View(invoice);
                             }
+
+                            // QUALITY INSPECTION GATING: Check if quality inspection is approved and has enough accepted qty
+                            var totalAccepted = db.QUALITY_INSPECTION
+                                .Where(q => q.ProductID == line.ProductID 
+                                    && q.StatusCode == "APPROVED" 
+                                    && q.IsDeleted == false)
+                                .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
+
+                            var totalAlreadyInvoicedForProduct = db.SALES_INVOICE_LINES
+                                .Where(l => l.ProductID == line.ProductID)
+                                .Sum(l => (decimal?)l.Qty) ?? 0;
+
+                            var availableQty = totalAccepted - totalAlreadyInvoicedForProduct;
+
+                            if (line.Qty > availableQty)
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("", 
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun sifat nazorati qabul qilingan miqdor yetarli emas. " +
+                                    $"Mavjud: {availableQty}, Talab qilinmoqda: {line.Qty}, Jami qabul qilingan: {totalAccepted}, " +
+                                    $"Allaqachon fakturalangan: {totalAlreadyInvoicedForProduct}");
+                                return View(invoice);
+                            }
+
+                            // Check if product has been produced
+                            var totalProduced = db.PRODUCT_PRODUCTION
+                                .Where(p => p.ProductID == line.ProductID)
+                                .Sum(p => (double?)p.Total) ?? 0;
+
+                            if (totalProduced < (double)line.Qty)
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("", 
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarilgan miqdor yetarli emas. " +
+                                    $"Ishlab chiqarilgan: {totalProduced}, Talab qilinmoqda: {line.Qty}");
+                                return View(invoice);
+                            }
                         }
 
                         // Calculate totals
@@ -297,6 +336,21 @@ namespace tahsinERP.Controllers
                         }
 
                         db.SaveChanges();
+
+                        // Post to finance if invoice is created with FINALIZED or APPROVED status
+                        if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
+                        {
+                            try
+                            {
+                                var userId = UserHelper.GetUserId(User.Identity.Name);
+                                FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder", 
+                                    $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
+                            }
+                        }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{invoice.InvoiceNo} - Invoysni yaratdi (Buyurtma: {order.OrderNo})");
 
@@ -375,6 +429,57 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
+                        // Validate quality inspection for each line
+                        foreach (var line in lines)
+                        {
+                            // QUALITY INSPECTION GATING: Check if quality inspection is approved and has enough accepted qty
+                            var totalAccepted = db.QUALITY_INSPECTION
+                                .Where(q => q.ProductID == line.ProductID 
+                                    && q.StatusCode == "APPROVED" 
+                                    && q.IsDeleted == false)
+                                .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
+
+                            var totalAlreadyInvoicedForProduct = db.SALES_INVOICE_LINES
+                                .Where(l => l.ProductID == line.ProductID)
+                                .Sum(l => (decimal?)l.Qty) ?? 0;
+
+                            var availableQty = totalAccepted - totalAlreadyInvoicedForProduct;
+
+                            if (line.Qty > availableQty)
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("", 
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun sifat nazorati qabul qilingan miqdor yetarli emas. " +
+                                    $"Mavjud: {availableQty}, Talab qilinmoqda: {line.Qty}, Jami qabul qilingan: {totalAccepted}, " +
+                                    $"Allaqachon fakturalangan: {totalAlreadyInvoicedForProduct}");
+                                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
+                                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
+                                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
+                                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                                return View(invoice);
+                            }
+
+                            // Check if product has been produced
+                            var totalProduced = db.PRODUCT_PRODUCTION
+                                .Where(p => p.ProductID == line.ProductID)
+                                .Sum(p => (double?)p.Total) ?? 0;
+
+                            if (totalProduced < (double)line.Qty)
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("", 
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarilgan miqdor yetarli emas. " +
+                                    $"Ishlab chiqarilgan: {totalProduced}, Talab qilinmoqda: {line.Qty}");
+                                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
+                                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
+                                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
+                                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                                return View(invoice);
+                            }
+                        }
+
                         // Calculate totals
                         decimal totalAmount = 0;
                         decimal totalVAT = 0;
@@ -417,6 +522,21 @@ namespace tahsinERP.Controllers
                         }
 
                         db.SaveChanges();
+
+                        // Post to finance if invoice is created with FINALIZED or APPROVED status
+                        if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
+                        {
+                            try
+                            {
+                                var userId = UserHelper.GetUserId(User.Identity.Name);
+                                FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create", 
+                                    $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
+                            }
+                        }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{invoice.InvoiceNo} - Invoysni yaratdi");
 
@@ -550,12 +670,32 @@ namespace tahsinERP.Controllers
                                 db.SALES_INVOICE_LINES.Add(invoiceLine);
                             }
 
-                            existingInvoice.TotalAmount = totalAmount;
-                            existingInvoice.TotalVAT = totalVAT;
-                            existingInvoice.TotalWithVAT = totalAmount + totalVAT;
+                        existingInvoice.TotalAmount = totalAmount;
+                        existingInvoice.TotalVAT = totalVAT;
+                        existingInvoice.TotalWithVAT = totalAmount + totalVAT;
                         }
 
+                        // Check if status changed to FINALIZED or APPROVED - post to finance
+                        bool statusChangedToFinalized = (existingInvoice.StatusCode != "FINALIZED" && existingInvoice.StatusCode != "APPROVED") 
+                            && (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED");
+
                         db.SaveChanges();
+
+                        // Post to finance if status changed to finalized/approved
+                        if (statusChangedToFinalized)
+                        {
+                            try
+                            {
+                                var userId = UserHelper.GetUserId(User.Identity.Name);
+                                FinancePostingService.PostSalesInvoice((int)existingInvoice.ID, db, userId);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log error but don't fail the invoice save
+                                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit", 
+                                    $"Finance posting error for invoice {existingInvoice.ID}: {ex.Message}");
+                            }
+                        }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{existingInvoice.InvoiceNo} - Invoysni tahrirladi");
 
@@ -584,8 +724,62 @@ namespace tahsinERP.Controllers
         // Helper method to get current user ID
         private int? GetCurrentUserID()
         {
-            // TODO: Implement user ID retrieval from authentication
-            return null;
+            try
+            {
+                return UserHelper.GetUserId(User.Identity.Name);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // GET: SalesInvoices/Print/5
+        public ActionResult Print(long? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var invoice = db.SALES_INVOICES
+                    .Include(i => i.SALES_INVOICE_LINES)
+                    .FirstOrDefault(i => i.ID == id);
+
+                if (invoice == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Load customer
+                ViewBag.Customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == invoice.CustomerID);
+
+                // Get related order and contract
+                if (invoice.OrderID.HasValue)
+                {
+                    ViewBag.Order = db.S_ORDERS
+                        .Include(o => o.CUSTOMER)
+                        .FirstOrDefault(o => o.ID == invoice.OrderID.Value);
+                }
+
+                if (invoice.ContractID.HasValue)
+                {
+                    ViewBag.Contract = db.S_CONTRACTS
+                        .Include(c => c.CUSTOMER)
+                        .FirstOrDefault(c => c.ID == invoice.ContractID.Value);
+                }
+
+                // Load products for invoice lines
+                var productIDs = invoice.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList();
+                ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+
+                // Load company info
+                ViewBag.Company = db.COMPANIES.FirstOrDefault();
+
+                return View(invoice);
+            }
         }
     }
 

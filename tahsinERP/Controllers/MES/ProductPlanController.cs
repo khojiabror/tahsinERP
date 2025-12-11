@@ -1,166 +1,277 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using Newtonsoft.Json;
-using OfficeOpenXml;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
-using System.Diagnostics.Contracts;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.UI.WebControls.WebParts;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
+using tahsinERP.Controllers;
 
-namespace tahsinERP.Controllers
+namespace tahsinERP.Controllers.MES
 {
     public class ProductPlanController : Controller
     {
         // GET: ProductPlan
-        private List<string> missingParts = new List<string>();
-        private string[] sources;
-        private string productNo = "", amount = "", startDate = "", dueDate = "";
-        public ActionResult Index(int? shopID)
+        public async Task<ActionResult> Index(int? productID, DateTime? fromDate, DateTime? toDate)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var shops = db.SHOPS.Where(s => s.IsDeleted == false).ToList();
-                if (shopID.HasValue)
+                var query = db.PRODUCTPLANS
+                    .Include(p => p.PRODUCT)
+                    .Where(p => p.IsDeleted == false)
+                    .AsQueryable();
+
+                if (productID.HasValue)
                 {
-                    ViewBag.shopIsNotSelected = false;
-                    ViewBag.productList = db.Database.SqlQuery<GetProductListPerShop_Result>("EXEC GetProductListPerShop @ShopID", new SqlParameter("@ShopID", shopID)).ToList();
-                    ViewBag.ShopList = new SelectList(shops, "ID", "ShopName", shopID);
+                    query = query.Where(p => p.ProductID == productID.Value);
                 }
-                else
+
+                if (fromDate.HasValue)
                 {
-                    ViewBag.shopIsNotSelected = true;
-                    ViewBag.productList = db.PRODUCTPLANS.Include(pp => pp.PRODUCT).Where(x => x.IsDeleted == false).ToList();
-                    ViewBag.ShopList = new SelectList(shops, "ID", "ShopName");
+                    query = query.Where(p => p.StartDate >= fromDate.Value);
                 }
-                return View();
+
+                if (toDate.HasValue)
+                {
+                    query = query.Where(p => p.DueDate <= toDate.Value);
+                }
+
+                var plans = await query
+                    .OrderByDescending(p => p.StartDate)
+                    .ThenBy(p => p.PRODUCT.PNo)
+                    .ToListAsync();
+
+                var viewModel = new ProductPlanListViewModel
+                {
+                    Plans = plans.Select(p => new ProductPlanViewModel
+                    {
+                        ID = p.ID,
+                        ProductID = p.ProductID,
+                        TotalQty = p.Amount,
+                        StartDate = p.StartDate,
+                        EndDate = p.DueDate,
+                        IsDeleted = p.IsDeleted,
+                        Product = p.PRODUCT
+                    }).ToList(),
+                    ProductID = productID,
+                    FromDate = fromDate ?? DateTime.Now.AddMonths(-3),
+                    ToDate = toDate ?? DateTime.Now.AddMonths(3)
+                };
+
+                ViewBag.Products = new SelectList(
+                    await db.PRODUCTS.Where(pr => pr.IsDeleted == false).OrderBy(pr => pr.PNo).ToListAsync(),
+                    "ID", "PNo", productID);
+
+                return View(viewModel);
             }
         }
+
+        // GET: ProductPlan/Details/5
         public ActionResult Details(int? id)
         {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                var plan = db.PRODUCTPLANS
+                    .Include(p => p.PRODUCT)
+                    .FirstOrDefault(p => p.ID == id);
 
-                if (id == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-
-                PRODUCTPLAN productPlan = db.PRODUCTPLANS
-                                           .Include(pp => pp.PRODUCT)
-                                           .FirstOrDefault(pp => pp.ID == id);
-
-                if (productPlan == null)
+                if (plan == null)
                 {
                     return HttpNotFound();
                 }
 
-                ViewBag.dailyPlan = db.PRODUCTPLANS_DAILY.Where(p => p.PlanID == productPlan.ID).ToList();
+                // Get daily plans
+                var dailyPlans = db.PRODUCTPLANS_DAILY
+                    .Where(d => d.PlanID == plan.ID)
+                    .OrderBy(d => d.Day)
+                    .ToList();
 
-                return View(productPlan);
+                // Get actual production data for comparison
+                var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
+                var actualProductions = db.PRODUCT_PRODUCTION
+                    .Where(p => p.ProductID == plan.ProductID && planDates.Contains(p.Date.Date))
+                    .GroupBy(p => p.Date.Date)
+                    .Select(g => new
+                    {
+                        Date = g.Key,
+                        DayShift = g.Sum(p => p.DayShift),
+                        NightShift = g.Sum(p => p.NightShift),
+                        Total = g.Sum(p => p.Total)
+                    })
+                    .ToDictionary(x => x.Date, x => x);
 
+                // Create daily plan view models with actual data
+                var dailyPlanViewModels = dailyPlans.Select(d => new ProductPlanDailyViewModel
+                {
+                    ID = d.ID,
+                    PlanID = d.PlanID,
+                    Day = d.Day,
+                    DayShift = d.DayShift,
+                    NightShift = d.NightShift,
+                    Total = d.Total,
+                    ActualDayShift = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].DayShift : (double?)null,
+                    ActualNightShift = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].NightShift : (double?)null,
+                    ActualTotal = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].Total : (double?)null
+                }).ToList();
+
+                // Link to delivery schedules if product matches
+                var linkedSchedules = db.SORDER_DELIVERY_SCHEDULE
+                    .Include(s => s.PRODUCT)
+                    .Include(s => s.S_ORDERS)
+                    .Where(s => s.ProductID == plan.ProductID
+                        && s.DeliveryDate >= plan.StartDate
+                        && s.DeliveryDate <= plan.DueDate)
+                    .OrderBy(s => s.DeliveryDate)
+                    .ToList();
+
+                var viewModel = new ProductPlanViewModel
+                {
+                    ID = plan.ID,
+                    ProductID = plan.ProductID,
+                    TotalQty = plan.Amount,
+                    StartDate = plan.StartDate,
+                    EndDate = plan.DueDate,
+                    IsDeleted = plan.IsDeleted,
+                    Product = plan.PRODUCT,
+                    DailyPlans = dailyPlanViewModels,
+                    LinkedDeliverySchedules = linkedSchedules
+                };
+
+                return View(viewModel);
             }
         }
+
+        // GET: ProductPlan/Create
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
-                return View();
+                var viewModel = new ProductPlanViewModel();
+                ViewBag.Products = new SelectList(
+                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    "ID", "PNo");
+                return View(viewModel);
             }
         }
+
+        // POST: ProductPlan/Create
         [HttpPost]
-        public ActionResult Create(ProductPlanVM productPlan)
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(ProductPlanViewModel viewModel)
         {
-            int dayCount = 0;
-            double dayPlanAmount;
-            DateTime startDate;
-            if (!CheckForPlanExistencePerProduct(productPlan))
+            if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     try
                     {
-                        if (ModelState.IsValid)
+                        // Validate date range
+                        if (viewModel.EndDate < viewModel.StartDate)
                         {
-                            PRODUCTPLAN plan = new PRODUCTPLAN();
-                            plan.ProductID = productPlan.ProductID;
-                            plan.Amount = productPlan.Amount;
-                            plan.StartDate = productPlan.StartDate;
-                            plan.DueDate = productPlan.DueDate;
-                            plan.IsDeleted = false;
-
-                            db.PRODUCTPLANS.Add(plan);
-                            db.SaveChanges();
-
-                            LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"{productPlan.ID} ID ga ega ProductPlanni yaratdi");
-
-                            dayCount = productPlan.DueDate.Subtract(productPlan.StartDate).Days;
-                            dayPlanAmount = Math.Ceiling(plan.Amount / dayCount);
-                            startDate = productPlan.StartDate;
-                            for (int i = 0; i < dayCount; i++)
-                            {
-                                PRODUCTPLANS_DAILY dailyPlan = new PRODUCTPLANS_DAILY();
-                                if (!productPlan.IsTwoShiftPlan)
-                                    dailyPlan.DayShift = dayPlanAmount;
-                                else
-                                {
-                                    dailyPlan.DayShift = Math.Ceiling(dayPlanAmount / 2);
-                                    dailyPlan.NightShift = dayPlanAmount - dailyPlan.DayShift;
-                                }
-                                dailyPlan.PlanID = plan.ID;
-                                dailyPlan.Day = startDate;
-                                startDate = startDate.AddDays(1);
-                                db.PRODUCTPLANS_DAILY.Add(dailyPlan);
-
-                                LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"{dailyPlan.ID} ID ga ega ProductPlanDailyni yaratdi");
-                            }
-
-                            db.SaveChanges();
-                            return RedirectToAction("Index");
+                            ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
+                            ViewBag.Products = new SelectList(
+                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
                         }
+
+                        // Check for overlapping plans
+                        var overlappingPlan = db.PRODUCTPLANS
+                            .FirstOrDefault(p => p.ProductID == viewModel.ProductID
+                                && p.IsDeleted == false
+                                && ((p.StartDate <= viewModel.StartDate && p.DueDate >= viewModel.StartDate)
+                                    || (p.StartDate <= viewModel.EndDate && p.DueDate >= viewModel.EndDate)
+                                    || (p.StartDate >= viewModel.StartDate && p.DueDate <= viewModel.EndDate)));
+
+                        if (overlappingPlan != null)
+                        {
+                            ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud");
+                            ViewBag.Products = new SelectList(
+                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
+                        }
+
+                        // Create plan
+                        var plan = new PRODUCTPLAN
+                        {
+                            ProductID = viewModel.ProductID,
+                            Amount = viewModel.TotalQty,
+                            StartDate = viewModel.StartDate,
+                            DueDate = viewModel.EndDate,
+                            IsDeleted = false
+                        };
+
+                        db.PRODUCTPLANS.Add(plan);
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan yaratildi: ID {plan.ID}, ProductID {plan.ProductID}");
+
+                        // Auto-generate PRODUCTPLANS_DAILY rows for each day
+                        var dayCount = (viewModel.EndDate - viewModel.StartDate).Days + 1;
+                        var dailyQty = Math.Ceiling(viewModel.TotalQty / dayCount);
+                        var currentDate = viewModel.StartDate;
+
+                        for (int i = 0; i < dayCount; i++)
+                        {
+                            var dailyPlan = new PRODUCTPLANS_DAILY
+                            {
+                                PlanID = plan.ID,
+                                Day = currentDate,
+                                DayShift = dailyQty,
+                                NightShift = 0,
+                                Total = dailyQty
+                            };
+
+                            db.PRODUCTPLANS_DAILY.Add(dailyPlan);
+                            currentDate = currentDate.AddDays(1);
+                        }
+
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlanDaily yaratildi: Plan ID {plan.ID}, {dayCount} kunlik reja");
+
+                        // Link to SORDER_DELIVERY_SCHEDULE automatically if product matches
+                        var matchingSchedules = db.SORDER_DELIVERY_SCHEDULE
+                            .Where(s => s.ProductID == viewModel.ProductID
+                                && s.DeliveryDate >= viewModel.StartDate
+                                && s.DeliveryDate <= viewModel.EndDate)
+                            .ToList();
+
+                        if (matchingSchedules.Any())
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", 
+                                $"ProductPlan ID {plan.ID} ga {matchingSchedules.Count} ta delivery schedule bog'landi");
+                        }
+
+                        TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli yaratildi";
+                        return RedirectToAction("Details", new { id = plan.ID });
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Error: " + ex.Message);
+                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
                     }
-                    ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "Name", productPlan.ProductID);
-
-                    return View(productPlan);
                 }
             }
-            else
-            {
-                ModelState.AddModelError("", "Ushbu maxsulotga kiritlgan muddatlarda reja berilgan, iltimos tekshirib qaytadan urinib ko'ring!");
-                return RedirectToAction("Create", productPlan);
-            }
-        }
-        private bool CheckForPlanExistencePerProduct(ProductPlanVM productPlan)
-        {
-            DateTime startDate = productPlan.StartDate.Date;
-            DateTime endDate = productPlan.DueDate.Date;
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                PRODUCTPLAN plan = db.PRODUCTPLANS.Where(p => ((p.StartDate <= productPlan.StartDate) || (p.StartDate <= productPlan.DueDate))
-                                                                                                     && p.ProductID == productPlan.ProductID
-                                                                                                     && p.IsDeleted == false).FirstOrDefault();
-                if (plan != null)
-                    return true;
-                else
-                    return false;
+                ViewBag.Products = new SelectList(
+                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    "ID", "PNo", viewModel.ProductID);
             }
+
+            return View(viewModel);
         }
+
+        // GET: ProductPlan/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -170,312 +281,237 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                PRODUCTPLAN productPlan = db.PRODUCTPLANS.Find(id);
-                if (productPlan == null)
+                var plan = db.PRODUCTPLANS.Find(id);
+                if (plan == null)
                 {
                     return HttpNotFound();
                 }
 
-                ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "Name", productPlan.ProductID);
-                return View(productPlan);
+                var viewModel = new ProductPlanViewModel
+                {
+                    ID = plan.ID,
+                    ProductID = plan.ProductID,
+                    TotalQty = plan.Amount,
+                    StartDate = plan.StartDate,
+                    EndDate = plan.DueDate,
+                    IsDeleted = plan.IsDeleted
+                };
+
+                ViewBag.Products = new SelectList(
+                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    "ID", "PNo", viewModel.ProductID);
+
+                return View(viewModel);
             }
         }
+
+        // POST: ProductPlan/Edit/5
         [HttpPost]
-        public ActionResult Edit([Bind(Include = "ID,ProductID,PlannedQty,Label,IssueDate,DueDate,IsDeleted")] PRODUCTPLAN productPlan)
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                try
+                using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    using (DBTHSNEntities db = new DBTHSNEntities())
+                    var plan = db.PRODUCTPLANS.Find(viewModel.ID);
+                    if (plan == null)
                     {
-                        var existingProductPlan = db.PRODUCTPLANS.Find(productPlan.ID);
-                        if (existingProductPlan != null)
+                        return HttpNotFound();
+                    }
+
+                    try
+                    {
+                        // Validate date range
+                        if (viewModel.EndDate < viewModel.StartDate)
                         {
-                            existingProductPlan.ProductID = productPlan.ProductID;
-                            existingProductPlan.Amount = productPlan.Amount;
-                            existingProductPlan.StartDate = productPlan.StartDate;
-                            existingProductPlan.DueDate = productPlan.DueDate;
-                            existingProductPlan.IsDeleted = false;
-
-                            db.Entry(existingProductPlan).State = EntityState.Modified;
-                            db.SaveChanges();
-
-                            LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"{productPlan.ID} ID ga ega ProductPlanni tahrirladi");
+                            ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
+                            ViewBag.Products = new SelectList(
+                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
                         }
 
-                        return RedirectToAction("Index");
+                        // Check for overlapping plans (excluding current plan)
+                        var overlappingPlan = db.PRODUCTPLANS
+                            .FirstOrDefault(p => p.ID != viewModel.ID
+                                && p.ProductID == viewModel.ProductID
+                                && p.IsDeleted == false
+                                && ((p.StartDate <= viewModel.StartDate && p.DueDate >= viewModel.StartDate)
+                                    || (p.StartDate <= viewModel.EndDate && p.DueDate >= viewModel.EndDate)
+                                    || (p.StartDate >= viewModel.StartDate && p.DueDate <= viewModel.EndDate)));
+
+                        if (overlappingPlan != null)
+                        {
+                            ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud");
+                            ViewBag.Products = new SelectList(
+                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
+                        }
+
+                        // Update plan
+                        plan.ProductID = viewModel.ProductID;
+                        plan.Amount = viewModel.TotalQty;
+                        plan.StartDate = viewModel.StartDate;
+                        plan.DueDate = viewModel.EndDate;
+
+                        db.Entry(plan).State = EntityState.Modified;
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan tahrirlandi: ID {viewModel.ID}");
+
+                        TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli yangilandi";
+                        return RedirectToAction("Details", new { id = viewModel.ID });
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", "Tasdiqlanmadi: " + ex.Message);
-                }
             }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "Name", productPlan.ProductID);
+                ViewBag.Products = new SelectList(
+                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    "ID", "PNo", viewModel.ProductID);
             }
-            return View(productPlan);
+
+            return View(viewModel);
         }
+
+        // GET: ProductPlan/Delete/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                PRODUCTPLAN productPlan = db.PRODUCTPLANS.Find(id);
-                if (productPlan == null)
+                var plan = db.PRODUCTPLANS
+                    .Include(p => p.PRODUCT)
+                    .FirstOrDefault(p => p.ID == id);
+
+                if (plan == null)
                 {
                     return HttpNotFound();
                 }
 
-                ViewBag.ProductList = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "Name", productPlan.ProductID);
-                return View(productPlan);
+                return View(plan);
             }
         }
-        [HttpPost]
-        public ActionResult Delete(int id)
+
+        // POST: ProductPlan/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id)
         {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var plan = db.PRODUCTPLANS.Find(id);
+                if (plan == null)
+                {
+                    return HttpNotFound();
+                }
+
+                plan.IsDeleted = true;
+                db.Entry(plan).State = EntityState.Modified;
+                db.SaveChanges();
+
+                LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan o'chirildi: ID {id}");
+
+                TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli o'chirildi";
+                return RedirectToAction("Index");
+            }
+        }
+
+        // POST: ProductPlan/UpdateDailyPlan - Inline editable daily grid
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UpdateDailyPlan(int planID, List<ProductPlanDailyViewModel> dailyPlans)
+        {
+            if (dailyPlans == null || !dailyPlans.Any())
+            {
+                return Json(new { success = false, message = "Ma'lumotlar topilmadi" });
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 try
                 {
-                    PRODUCTPLAN productPlan = db.PRODUCTPLANS.Find(id);
-                    if (productPlan == null)
+                    foreach (var item in dailyPlans)
                     {
-                        return HttpNotFound();
+                        var dailyPlan = db.PRODUCTPLANS_DAILY.Find(item.ID);
+                        if (dailyPlan != null && dailyPlan.PlanID == planID)
+                        {
+                            dailyPlan.DayShift = item.DayShift;
+                            dailyPlan.NightShift = item.NightShift;
+                            dailyPlan.Total = item.DayShift + item.NightShift; // Auto-calculate
+                            db.Entry(dailyPlan).State = EntityState.Modified;
+                        }
                     }
 
-                    productPlan.IsDeleted = true;
-                    db.Entry(productPlan).State = EntityState.Modified;
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"{productPlan.ID} ID ga ega ProductPlanni o'chirdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"Kunlik reja yangilandi: Plan ID {planID}");
 
-                    return RedirectToAction("Index");
+                    return Json(new { success = true, message = "Kunlik reja muvaffaqiyatli yangilandi" });
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception
-                    ModelState.AddModelError("", ex.Message);
-                    return View();
+                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
                 }
             }
         }
-        public async Task<ActionResult> Download()
+
+        // GET: ProductPlan/GetDailyGridPartial/5 - Partial view for daily grid
+        public ActionResult GetDailyGridPartial(int planID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                SAMPLE_FILES contract = await db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("productplan.xlsx") == 0).FirstOrDefaultAsync();
-                if (contract != null)
-                    return File(contract.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-
-                return View();
-            }
-        }
-        public ActionResult UploadWithExcel()
-        {
-            ViewBag.IsFileUploaded = false;
-            return View();
-        }
-        [HttpPost]
-        public ActionResult UploadWithExcel(HttpPostedFileBase file)
-        {
-            if (file != null && file.ContentLength > 0)
-            {
-                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
+                var plan = db.PRODUCTPLANS.Find(planID);
+                if (plan == null)
                 {
-                    try
+                    return HttpNotFound();
+                }
+
+                var dailyPlans = db.PRODUCTPLANS_DAILY
+                    .Where(d => d.PlanID == planID)
+                    .OrderBy(d => d.Day)
+                    .ToList();
+
+                // Get actual production data
+                var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
+                var actualProductions = db.PRODUCT_PRODUCTION
+                    .Where(p => p.ProductID == plan.ProductID && planDates.Contains(p.Date.Date))
+                    .GroupBy(p => p.Date.Date)
+                    .Select(g => new
                     {
-                        var dataTable = new System.Data.DataTable();
-                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                        Date = g.Key,
+                        DayShift = g.Sum(p => p.DayShift),
+                        NightShift = g.Sum(p => p.NightShift),
+                        Total = g.Sum(p => p.Total)
+                    })
+                    .ToDictionary(x => x.Date, x => x);
 
-                        using (var package = new ExcelPackage(file.InputStream))
-                        {
-                            var worksheet = package.Workbook.Worksheets[0];
-                            var rowCount = worksheet.Dimension.Rows;
-                            var colCount = 4; // ma'lumot uchun qo'shilgan columnlarni olmasligi uchun qo'lda yozildi
-
-                            for (int col = 1; col <= colCount; col++)
-                            {
-                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
-                            }
-                            // Iterate over the rows and columns
-                            for (int row = 2; row <= rowCount; row++)
-                            {
-                                var dataRow = dataTable.NewRow();
-                                for (int col = 1; col <= colCount; col++)
-                                {
-                                    var cellValue = worksheet.Cells[row, col].Value;
-
-                                    // Check if the cell contains a DateTime value
-                                    if (cellValue is DateTime date)
-                                    {
-                                        // If it is a date, format it as "dd.MM.yyyy"
-                                        dataRow[col - 1] = date.ToString("dd.MM.yyyy");
-                                    }
-                                    else
-                                    {
-                                        // Otherwise, store the value as is
-                                        dataRow[col - 1] = cellValue?.ToString();
-                                    }
-                                }
-                                dataTable.Rows.Add(dataRow);
-                            }
-                        }
-
-                        if (CheckForExistenceOfProducts(dataTable))
-                        {
-                            ViewBag.DataTable = dataTable;
-                            ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
-                            ViewBag.IsFileUploaded = true;
-                        }
-                        else
-                        {
-                            var message = "";
-                            foreach (var word in missingParts)
-                            {
-                                message += word + ", ";
-                            }
-                            ViewBag.Message = "Ushbu reja faylida kiritilgan maxsulotlar: " + message + " tizim bazasida mavjud emas. Qaytadan tekshiring, avval Maxsulotlar bazasiga kiritib keyin qayta urining.";
-                            return View("UploadWithExcel");
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
-                        return View("UploadWithExcel");
-                    }
-                }
-                else
+                var dailyPlanViewModels = dailyPlans.Select(d => new ProductPlanDailyViewModel
                 {
-                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
-                    return View("UploadWithExcel");
-                }
+                    ID = d.ID,
+                    PlanID = d.PlanID,
+                    Day = d.Day,
+                    DayShift = d.DayShift,
+                    NightShift = d.NightShift,
+                    Total = d.Total,
+                    ActualDayShift = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].DayShift : (double?)null,
+                    ActualNightShift = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].NightShift : (double?)null,
+                    ActualTotal = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].Total : (double?)null
+                }).ToList();
+
+                return PartialView("_DailyGridPartial", dailyPlanViewModels);
             }
-            else
-            {
-                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
-                return View("UploadWithExcel");
-            }
-            return View("UploadWithExcel");
-        }
-        private bool CheckForExistenceOfProducts(System.Data.DataTable dataTable)
-        {
-            bool flag = false;
-            if (dataTable != null)
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    foreach (DataRow row in dataTable.Rows)
-                    {
-                        string prodPNo = row["Maxsulot raqami"].ToString();
-                        if (db.PRODUCTS.Where(p => p.PNo.CompareTo(prodPNo) == 0).Any())
-                            flag = true;
-                        else
-                        {
-                            if (!missingParts.Contains(prodPNo))
-                                missingParts.Add(prodPNo);
-                        }
-                    }
-                    if (missingParts.Count > 0)
-                        return false;
-                    else
-                        return flag;
-                }
-            else
-                return flag;
-        }
-        public ActionResult ClearDataTable()
-        {
-            // Clear the DataTable and related ViewBag properties
-            ViewBag.DataTable = null;
-            ViewBag.DataTableModel = null;
-            ViewBag.IsFileUploaded = false;
-            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
-            // Return the UploadWithExcel view
-            return View("UploadWithExcel");
-        }
-        [HttpPost]
-        public ActionResult Save(string dataTableModel)
-        {
-            int dayCount = 0;
-            double dayPlanAmount;
-            DateTime startD;
-            if (!string.IsNullOrEmpty(dataTableModel))
-            {
-                var tableModel = JsonConvert.DeserializeObject<System.Data.DataTable>(dataTableModel);
-
-                try
-                {
-                    using (DBTHSNEntities db = new DBTHSNEntities())
-                    {
-                        foreach (DataRow row in tableModel.Rows)
-                        {
-                            productNo = row["Maxsulot raqami"].ToString();
-                            amount = row["Reja"].ToString();
-
-                            startDate = row["Boshlanish sanasi"].ToString();
-                            dueDate = row["Tugash sanasi"].ToString();
-                            DateTime d1 = DateTime.ParseExact(startDate, "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
-                            DateTime d2 = DateTime.ParseExact(dueDate, "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
-
-                            PRODUCT product = db.PRODUCTS.Where(p => p.PNo.CompareTo(productNo) == 0 && p.IsDeleted == false).FirstOrDefault();
-                            PRODUCTPLAN checkPlan = db.PRODUCTPLANS.Where(pp => pp.ProductID == product.ID &&
-                                                    DbFunctions.TruncateTime(pp.StartDate) == DbFunctions.TruncateTime(d1) &&
-                                                    DbFunctions.TruncateTime(pp.DueDate) == DbFunctions.TruncateTime(d2))
-                                                    .FirstOrDefault();
-
-                            if (checkPlan == null)
-                            {
-                                PRODUCTPLAN plan = new PRODUCTPLAN();
-                                plan.ProductID = product.ID;
-                                plan.Amount = Convert.ToDouble(amount);
-                                plan.StartDate = d1;
-                                plan.DueDate = d2;
-                                plan.IsDeleted = false;
-
-                                db.PRODUCTPLANS.Add(plan);
-                                db.SaveChanges();
-
-                                var userEmail1 = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail1, "Maxsulotga reja", $"{productNo} ga {amount} rejasini Maxsulotga reja berish oynasi orqali qo'shdi");
-
-                                dayCount = (int)(plan.DueDate - plan.StartDate).TotalDays;
-                                dayPlanAmount = Math.Ceiling(plan.Amount / dayCount);
-                                startD = plan.StartDate;
-
-                                for (int i = 0; i < dayCount; i++)
-                                {
-                                    PRODUCTPLANS_DAILY dailyPlan = new PRODUCTPLANS_DAILY();
-                                    //if (!productPlan.IsTwoShiftPlan)
-                                    dailyPlan.DayShift = dayPlanAmount;
-                                    //else
-                                    //{
-                                    //    dailyPlan.DayShift = Math.Ceiling(dayPlanAmount / 2);
-                                    //    dailyPlan.NightShift = dayPlanAmount - dailyPlan.DayShift;
-                                    //}
-                                    dailyPlan.PlanID = plan.ID;
-                                    dailyPlan.Day = startD;
-                                    startD = startD.AddDays(1);
-                                    db.PRODUCTPLANS_DAILY.Add(dailyPlan);
-                                }
-                                db.SaveChanges();
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
-                    ModelState.AddModelError("", ex.Message);
-                }
-            }
-
-            return RedirectToAction("Index");
         }
     }
 }

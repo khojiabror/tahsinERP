@@ -1,0 +1,96 @@
+@model tahsinERP.Models.HR_ORG_UNITS
+@{
+    ViewBag.Title = "Добавить подразделение";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Добавить подразделение</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Организационная структура</a></li>
+                                    <li class="breadcrumb-item active">Добавить</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @using (Html.BeginForm("Create", "HrOrgUnits", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(model => model.ParentID)
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.Code, new { @class = "control-label" })
+                                            <span class="text-danger">*</span>
+                                            @Html.TextBoxFor(model => model.Code, new { @class = "form-control", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.Code, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.Name, new { @class = "control-label" })
+                                            <span class="text-danger">*</span>
+                                            @Html.TextBoxFor(model => model.Name, new { @class = "form-control", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.ParentID, new { @class = "control-label" })
+                                            @Html.DropDownListFor(model => model.ParentID, ViewBag.ParentID as SelectList, "Корневое подразделение", new { @class = "form-control select2" })
+                                            @Html.ValidationMessageFor(model => model.ParentID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="checkbox checkbox-secondary">
+                                                @Html.CheckBoxFor(model => model.IsActive, new { @id = "checkboxActive", @checked = "checked" })
+                                                <label for="checkboxActive">Активен</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-save"></i> Сохранить
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Отмена</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({ width: '100%' });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

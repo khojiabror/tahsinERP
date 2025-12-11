@@ -1,104 +1,275 @@
-﻿﻿@model tahsinERP.ViewModels.BOM.BoomViewModel
+@model tahsinERP.ViewModels.BOM.BomDetailsViewModel
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "BOM Tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" type="text/css" href="~/app-assets/css/list/list.css" />
-
-<div class="app-content content">
-    <div class="content-overlay"></div>
-    <div class="content-wrapper">
-        <div class="content-header row">
-            <div class="content-header-left col-12 mb-2 mt-1">
-                <div class="row breadcrumbs-top">
-                    <div class="col-12">
-                        <div class="breadcrumb-wrapper col-12">
-                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                <li class="breadcrumb-item">
-                                    <a href="/Home"><i class="bx bx-home-alt"></i></a>
-                                </li>
-                                <li class="breadcrumb-item">
-                                    <a href="~/BOM">BOM</a>
-                                </li>
-                                <li class="breadcrumb-item active">
-                                    Bir maxsulot BOMi
-                                </li>
-                            </ol>
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">BOM Tafsilotlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Bom">BOM</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <button id="generatePDF" class="btn btn-outline-danger buttons-pdf buttons-html5">
-            <i class='bx bx-save'></i>
-            PDF
-        </button>
-        <br />
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
 
-
-        <div id="treeview">
-            @if (Model != null)
-            {
-                <ol class="wtree" id="toPDF">
-                    <li class="li">
-                        <div style="display: flex; align-items: center;">
-                            @if (Model.ParentImageBase64 != null)
-                            {
-                                <a href="@Model.ParentImageBase64" target="_blank">
-                                    <img src="@Model.ParentImageBase64" alt="Product Image"
-                                         style="width: 150px; height: 150px; object-fit: cover; margin-right: 5px;" />
-                                </a>
-                            }
-                            <span class="span">
-                                @Model.ParentPNo
-                            </span>
+                @if (Model != null)
+                {
+                    <!-- PDF Export Button -->
+                    <div class="row mb-2">
+                        <div class="col-12 text-right">
+                            <button id="generatePDF" class="btn btn-outline-danger">
+                                <i class='bx bx-save'></i> PDF
+                            </button>
                         </div>
-                        <ol class="wtree">
-                            @Html.Partial("_BomTreePartial", Model)
-                        </ol>
-                    </li>
-                </ol>
-            }
+                    </div>
+
+                    <div id="bomContent">
+                    <div class="row">
+                        <!-- Product Info Card -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Mahsulot ma'lumotlari</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                        {
+                                            <div class="col-md-3 text-center mb-3">
+                                                <img src="@Model.ImageUrl" alt="@Model.ProductName" class="img-fluid rounded" style="max-height: 200px; object-fit: contain;" />
+                                            </div>
+                                        }
+                                        <div class="@(string.IsNullOrEmpty(Model.ImageUrl) ? "col-md-12" : "col-md-9")">
+                                            <dl class="row">
+                                                <dt class="col-sm-3">Mahsulot raqami:</dt>
+                                                <dd class="col-sm-9"><strong>@Model.ProductPno</strong></dd>
+
+                                                <dt class="col-sm-3">Mahsulot nomi:</dt>
+                                                <dd class="col-sm-9">@Model.ProductName</dd>
+
+                                                <dt class="col-sm-3">Norm versiyasi:</dt>
+                                                <dd class="col-sm-9">
+                                                    <span class="badge badge-light-info">@Model.NormVersion</span>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOM Tree -->
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">BOM Strukturasi</h4>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.RootNode != null)
+                                    {
+                                        <div class="bom-tree-container">
+                                            <ul class="bom-tree">
+                                                @{
+                                                    ViewBag.IsRoot = true;
+                                                }
+                                                @Html.Partial("_BomTreeNode", Model.RootNode)
+                                            </ul>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info">
+                                            <i class="bx bx-info-circle"></i> Bu mahsulot uchun BOM komponentlari topilmadi.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div> <!-- End bomContent -->
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bx bx-error"></i> BOM ma'lumotlari topilmadi.
+                    </div>
+                }
+            </div>
         </div>
     </div>
-</div>
 
-<!-- TreeView -->
-<!--<script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var treeItems = document.querySelectorAll('.wtree .li div .span');
 
-            treeItems.forEach(function (item) {
-                item.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    var parentLi = this.closest('.li');
-                    var subUl = parentLi.querySelector('ol');
+    <style>
+        .bom-tree-container {
+            padding: 20px;
+        }
 
-                    if (subUl) {
-                        if (subUl.style.display === 'none' || subUl.style.display === '') {
-                            subUl.style.display = 'block';
-                        } else {
-                            subUl.style.display = 'none';
-                        }
-                    } else {
-                        if (subUl.style.display === 'none' || subUl.style.display === '') {
-                            subUl.style.display = 'block';
-                        } else {
-                            subUl.style.display = '';
-                        }
+        .bom-tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .bom-tree ul {
+            list-style: none;
+            padding-left: 30px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .bom-tree ul:before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+
+        .bom-tree li {
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .bom-tree li:before {
+            content: "";
+            position: absolute;
+            left: -15px;
+            top: 15px;
+            width: 15px;
+            height: 2px;
+            background: #ddd;
+        }
+
+        .bom-node {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: 500;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .bom-node-root {
+            background-color: #28a745;
+            color: white;
+            font-size: 1.1em;
+            padding: 12px 20px;
+        }
+
+        .bom-node-component {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .bom-quantity {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .bom-image-box {
+            flex-shrink: 0;
+        }
+    </style>
+
+    <!-- html2pdf.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // Wait for html2pdf to be fully loaded
+            function waitForHtml2Pdf(callback, maxAttempts) {
+                var attempts = 0;
+                var checkInterval = setInterval(function() {
+                    attempts++;
+                    if (typeof html2pdf !== 'undefined') {
+                        clearInterval(checkInterval);
+                        callback();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(checkInterval);
+                        alert('PDF kutubxonasi yuklanmadi. Iltimos, sahifani yangilang.');
+                    }
+                }, 100);
+            }
+            
+            $('#generatePDF').click(function (e) {
+                e.preventDefault();
+                
+                var btn = $(this);
+                var originalText = btn.html();
+                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> PDF yaratilmoqda...');
+
+                waitForHtml2Pdf(function() {
+                    var element = document.getElementById('bomContent');
+                    if (!element) {
+                        alert('PDF uchun kontent topilmadi. Element ID: bomContent');
+                        btn.prop('disabled', false).html(originalText);
+                        return;
                     }
 
-                    // Close all other open sub-lists
-                    var allSubUls = document.querySelectorAll('.wtree ol');
-                    allSubUls.forEach(function (otherSubUl) {
-                        if (otherSubUl !== subUl && !otherSubUl.contains(subUl)) {
-                            otherSubUl.style.display = 'none';
+                    var productPno = '@(Model?.ProductPno ?? "BOM")';
+                    var timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
+                    
+                    var opt = {
+                        margin: [0.5, 0.5, 0.5, 0.5],
+                        filename: productPno + '_BOM_' + timestamp + '.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { 
+                            scale: 2,
+                            useCORS: true,
+                            logging: true,
+                            windowWidth: element.scrollWidth,
+                            windowHeight: element.scrollHeight
+                        },
+                        jsPDF: { 
+                            unit: 'in', 
+                            format: 'a4', 
+                            orientation: 'portrait' 
                         }
+                    };
+
+                    html2pdf().set(opt).from(element).save().then(function() {
+                        btn.prop('disabled', false).html(originalText);
+                    }).catch(function(error) {
+                        console.error('PDF yaratishda xatolik:', error);
+                        alert('PDF yaratishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+                        btn.prop('disabled', false).html(originalText);
                     });
-                });
+                }, 50);
             });
         });
-</script>-->
-<!-- __________ -->
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

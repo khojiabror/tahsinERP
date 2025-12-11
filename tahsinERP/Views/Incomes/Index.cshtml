@@ -1,0 +1,159 @@
+@model List<tahsinERP.Models.INCOME>
+@{
+    ViewBag.Title = "Ombor kirimlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
+{
+    bool changePermit = false;
+    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
+    {
+        changePermit = true;
+    }
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Ombor kirimlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "Incomes")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Yangi kirim
+                            </a>
+                        </div>
+                    }
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="incomesTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Hujjat raqami</th>
+                                                    <th>Invoys raqami</th>
+                                                    <th>Ombor</th>
+                                                    <th>Jami summa</th>
+                                                    <th>Status</th>
+                                                    <th>Sana</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Incomes", new { id = item.ID })">@item.DocNo</a>
+                                                            </td>
+                                                            <td>
+                                                                @if (item.P_INVOICES != null)
+                                                                {
+                                                                    <a href="@Url.Action("Details", "PInvoices", new { id = item.InvoiceID })">@item.P_INVOICES.InvoiceNo</a>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                            <td>@(item.Warehouse?.WHName ?? "-")</td>
+                                                            <td>@(item.TotalPrice?.ToString("N2") ?? "0.00")</td>
+                                                            <td>
+                                                                @if (item.RecieveStatus == true)
+                                                                {
+                                                                    <span class="badge badge-success">Qabul qilingan</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-warning">Kutilmoqda</span>
+                                                                }
+                                                            </td>
+                                                            <td>@item.IssueDateTime.ToString("dd.MM.yyyy")</td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <a href="@Url.Action("Details", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
+                                                                            <i class="bx bx-show"></i>
+                                                                        </a>
+                                                                        @if (item.RecieveStatus != true)
+                                                                        {
+                                                                            <a href="@Url.Action("Edit", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
+                                                                                <i class="bx bx-edit-alt"></i>
+                                                                            </a>
+                                                                        }
+                                                                        <a href="@Url.Action("Delete", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu kirim hujjatini o\'chirishni tasdiqlaysizmi?');">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#incomesTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[5, "desc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

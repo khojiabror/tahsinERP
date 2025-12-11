@@ -6,7 +6,7 @@ namespace tahsinERP.Controllers
 {
     public static class LogHelper
     {
-        public static void LogToDatabase(string userEmail, string controllerName, string actionName)
+        public static void LogToDatabase(string userEmail, string controllerName, string actionName, string details = null)
         {
             using (var db = new DBTHSNEntities())
             {

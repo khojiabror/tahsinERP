@@ -1,8 +1,9 @@
 ﻿@model tahsinERP.Models.PRODUCTPLAN
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "Ishlab Chiqarish Rejasini O'chirish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
     <div class="app-content content">
@@ -18,11 +19,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/ProductPlan/Index">Product Plans</a>
+                                        <a href="~/ProductPlan/Index">Ishlab Chiqarish Rejasi</a>
                                     </li>
-                                    <li class="breadcrumb-item active">
-                                        Rejadagi mahsulot malumotlari ochirish
-                                    </li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
                                 </ol>
                             </div>
                         </div>
@@ -32,42 +31,44 @@
             <div class="content-body">
                 <section class="invoice-edit-wrapper">
                     <div class="row">
-                        <div class="col-xl-9 col-md-8 col-12">
+                        <div class="col-xl-12 col-md-12 col-12">
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
-                                            <div class="col-lg-12 col-md-6 mt-25">
-                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <hr>
-                                                <h6 class="invoice-to">Mahsulotni rejadagi miqdori</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DisplayFor(model => model.Amount, new { @class = "form-control" })
-                                                </fieldset>
-                                                <h6 class="invoice-to">Boshlangan sana</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DisplayFor(model => model.StartDate, new { @class = "form-control" })
-                                                </fieldset>
-                                                <h6 class="invoice-to">Muddati</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DisplayFor(model => model.DueDate, new { @class = "form-control" })
-                                                </fieldset>
-                                                <h6 class="invoice-to">Product nomi</h6>
-                                                <fieldset class="invoice-address form-group">
-                                                    @Html.DisplayFor(model => model.PRODUCT.Name, new { @class = "form-control" })
-                                                </fieldset>
+                                            <div class="col-lg-12 col-md-12 mt-25">
+                                                <h4 class="text-danger">Ishlab Chiqarish Rejasini O'chirish</h4>
                                                 <hr />
-                                                <h6>Haqiqatan ham ushbu modul va uning ruxsatnomalarini oʻchirib tashlamoqchimisiz?</h6>
-                                                @using (Html.BeginForm("Delete", "ProductPlan", FormMethod.Post))
+                                                <div class="alert alert-warning">
+                                                    <i class="bx bx-error"></i> 
+                                                    Siz haqiqatan ham ushbu rejani o'chirmoqchimisiz?
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><strong>Mahsulot:</strong> @(Model.PRODUCT?.PNo ?? Model.ProductID.ToString())</p>
+                                                        <p><strong>Reja miqdori:</strong> @Model.Amount.ToString("N2")</p>
+                                                        <p><strong>Boshlanish sanasi:</strong> @Model.StartDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>Tugash sanasi:</strong> @Model.DueDate.ToString("dd.MM.yyyy")</p>
+                                                    </div>
+                                                </div>
+                                                <hr />
+                                                @using (Html.BeginForm("Delete", "ProductPlan", new { id = Model.ID }, FormMethod.Post))
                                                 {
                                                     @Html.AntiForgeryToken()
-                                                    @Html.HiddenFor(model => model.ID)
-                                                    <input type="submit" value="Delete" class="btn btn-danger" />
-                                                    <a href="~/ProductPlan" class="btn btn-secondary">Cancel</a>
+                                                    
+                                                    <div class="row mt-3">
+                                                        <div class="col-12">
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                                            </button>
+                                                            <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-secondary">
+                                                                <i class="bx bx-x"></i> Bekor qilish
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 }
                                             </div>
                                         </div>
-                                        <hr />
                                     </div>
                                 </div>
                             </div>

@@ -1,0 +1,87 @@
+@model tahsinERP.Models.FIN_CATEGORIES
+
+@{
+    ViewBag.Title = "Kategoriyani o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinCategories">Kategoriyalar</a></li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title text-danger">Kategoriyani o'chirish</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="alert alert-warning">
+                                        <h5>Diqqat!</h5>
+                                        <p>Ushbu kategoriyani o'chirishni tasdiqlaysizmi?</p>
+                                        @if (ViewBag.HasChildren)
+                                        {
+                                            <p class="text-danger"><strong>Bu kategoriyada kichik kategoriyalar mavjud.</strong></p>
+                                        }
+                                        @if (ViewBag.HasTransactions)
+                                        {
+                                            <p class="text-danger"><strong>Bu kategoriyada tranzaksiyalar mavjud. O'chirilganda faollikdan chiqariladi.</strong></p>
+                                        }
+                                    </div>
+                                    
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Nomi:</dt>
+                                        <dd class="col-sm-8">@Model.Name</dd>
+                                        
+                                        <dt class="col-sm-4">Turi:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.Type == 1)
+                                            { <span class="badge badge-success">Daromad</span> }
+                                            else if (Model.Type == 2)
+                                            { <span class="badge badge-danger">Chiqim</span> }
+                                            else
+                                            { <span class="badge badge-secondary">Boshqa</span> }
+                                        </dd>
+                                    </dl>
+                                    
+                                    @using (Html.BeginForm("Delete", "FinCategories", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("id", Model.ID)
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

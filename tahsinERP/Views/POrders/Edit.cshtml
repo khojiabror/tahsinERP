@@ -1,0 +1,277 @@
+@model tahsinERP.ViewModels.POrder.POrderEditViewModel
+@{
+    ViewBag.Title = "Buyurtmani tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/POrders/Index">Xarid buyurtmalari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tahrirlash
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Edit", "POrders", FormMethod.Post, new { @class = "form", @id = "orderForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.HiddenFor(model => model.ID)
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <!-- Order Header -->
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="OrderNo">Buyurtma raqami</label>
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IssuedDate">Sana</label>
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CompanyID">Korxona</label>
+                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="SupplierID">Ta'minotchi</label>
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CurrencyID">Valyuta</label>
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-9 col-12 form-group">
+                                                    <label for="Description">Izoh</label>
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2", @placeholder = "Qisqacha izoh" })
+                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <br />
+                                            <h5>Buyurtma mahsulotlari</h5>
+                                            
+                                            <!-- Editable Products Table -->
+                                            <div class="table-responsive">
+                                                <table id="orderProductsTable" class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot kodi</th>
+                                                            <th>Mahsulot nomi</th>
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Narx</th>
+                                                            <th>Jami</th>
+                                                            <th>MOQ</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (Model.OrderProducts != null)
+                                                        {
+                                                            for (int i = 0; i < Model.OrderProducts.Count; i++)
+                                                            {
+                                                                var product = Model.OrderProducts[i];
+                                                                <tr data-row-index="@i">
+                                                                    <td>
+                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control product-select", @required = "required" })
+                                                                        @Html.HiddenFor(m => m.OrderProducts[i].ID)
+                                                                        @Html.HiddenFor(m => m.OrderProducts[i].ProductPNo, new { @class = "product-pno" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.OrderProducts[i].ProductName, new { @class = "form-control product-name", @readonly = "readonly" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.OrderProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.OrderProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.OrderProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.OrderProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="5" class="text-right"><strong>Jami:</strong></td>
+                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                            <td colspan="2"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                        <i class="bx bx-plus"></i> Qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "POrders")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2();
+
+            var productRowIndex = @(Model.OrderProducts?.Count ?? 0);
+            var purchasableProducts = @Html.Raw(Json.Encode((ViewBag.PurchasableProducts as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+            var units = @Html.Raw(Json.Encode((ViewBag.Units as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+
+            // Calculate totals for existing rows
+            $('.amount-input, .price-input').each(function () {
+                var $row = $(this).closest('tr');
+                var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                var price = parseFloat($row.find('.price-input').val()) || 0;
+                var total = amount * price;
+                $row.find('.total-price').val(total.toFixed(2));
+            });
+            updateTotal();
+
+            // Add new row manually
+            $('#addRowBtn').click(function () {
+                addProductRow(null, '', '', 0, null, null, null);
+            });
+
+            function addProductRow(productId, productPNo, productName, amount, unitId, price, moq) {
+                var row = '<tr data-row-index="' + productRowIndex + '">' +
+                    '<td>' +
+                        '<select name="OrderProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                
+                purchasableProducts.forEach(function (product) {
+                    var selected = product.Value == productId ? 'selected' : '';
+                    row += '<option value="' + product.Value + '" ' + selected + ' data-pno="' + product.Text + '">' + product.Text + '</option>';
+                });
+                
+                row += '</select>' +
+                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].ID" value="" />' +
+                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + (productPNo || '') + '" />' +
+                    '</td>' +
+                    '<td><input type="text" name="OrderProducts[' + productRowIndex + '].ProductName" class="form-control product-name" value="' + (productName || '') + '" readonly /></td>' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + (amount || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td>' +
+                        '<select name="OrderProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                
+                units.forEach(function (unit) {
+                    var selected = unit.Value == unitId ? 'selected' : '';
+                    row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                });
+                
+                row += '</select></td>' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                    '</tr>';
+
+                $('#orderProductsTable tbody').append(row);
+                
+                // Initialize Select2 for new row
+                $('select.product-select').last().select2();
+                $('select.unit-select').last().select2();
+
+                productRowIndex++;
+            }
+
+            // Remove row
+            $(document).on('click', '.remove-row', function () {
+                $(this).closest('tr').remove();
+                updateTotal();
+            });
+
+            // Calculate totals on input change
+            $(document).on('input', '.amount-input, .price-input', function () {
+                var $row = $(this).closest('tr');
+                var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                var price = parseFloat($row.find('.price-input').val()) || 0;
+                var total = amount * price;
+                $row.find('.total-price').val(total.toFixed(2));
+                updateTotal();
+            });
+
+            function updateTotal() {
+                var total = 0;
+                $('.total-price').each(function () {
+                    total += parseFloat($(this).val()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+            }
+
+            // Form submission validation
+            $('#orderForm').submit(function (e) {
+                if ($('#orderProductsTable tbody tr').length === 0) {
+                    e.preventDefault();
+                    alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                    return false;
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

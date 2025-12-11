@@ -31,6 +31,15 @@ namespace tahsinERP.Models
             this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
             this.SALES_SF_HEADERS = new HashSet<SALES_SF_HEADERS>();
             this.SORDER_DELIVERY_SCHEDULE = new HashSet<SORDER_DELIVERY_SCHEDULE>();
+            this.HR_EMPLOYEES = new HashSet<HR_EMPLOYEES>();
+            this.HR_PAYROLL_HEADERS = new HashSet<HR_PAYROLL_HEADERS>();
+            this.HR_PAYROLL_HEADERS1 = new HashSet<HR_PAYROLL_HEADERS>();
+            this.HR_TIMESHEET_HEADERS = new HashSet<HR_TIMESHEET_HEADERS>();
+            this.HR_TIMESHEET_HEADERS1 = new HashSet<HR_TIMESHEET_HEADERS>();
+            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
+            this.QUALITY_INSPECTION1 = new HashSet<QUALITY_INSPECTION>();
+            this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
+            this.HR_PIECE_RATE_TARIFFS1 = new HashSet<HR_PIECE_RATE_TARIFFS>();
         }
     
         public int ID { get; set; }
@@ -72,5 +81,23 @@ namespace tahsinERP.Models
         public virtual ICollection<SALES_SF_HEADERS> SALES_SF_HEADERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PAYROLL_HEADERS> HR_PAYROLL_HEADERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PAYROLL_HEADERS> HR_PAYROLL_HEADERS1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS1 { get; set; }
     }
 }

@@ -1,0 +1,167 @@
+@model tahsinERP.ViewModels.ProductNormDetailsViewModel
+@{
+    ViewBag.Title = "Norma kiritish - Mahsulot normlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Norma kiritish - @ViewBag.ProductCode</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Norm")">Norma kiritish</a></li>
+                                    <li class="breadcrumb-item active">@ViewBag.ProductCode - Normalar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="mb-1"><strong>Mahsulot:</strong> @ViewBag.ProductCode - @ViewBag.ProductName</h6>
+                                    @if (changePermit)
+                                    {
+                                        <a href="@Url.Action("Create", "Norm", new { productId = ViewBag.ProductID })" class="btn btn-success btn-sm mt-2">
+                                            <i class="bx bx-plus"></i> Yangi NORMA qo'shish
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="normTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Norma oyi</th>
+                                                    <th>Umumiy sarf bo'yicha summa</th>
+                                                    <th>Umumiy chiqindi bo'yicha summa</th>
+                                                    <th>Umumiy summa</th>
+                                                    <th class="text-center">Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.NormVersions != null && Model.NormVersions.Any())
+                                                {
+                                                    foreach (var norm in Model.NormVersions)
+                                                    {
+                                                        <tr>
+                                                            <td>@norm.Period</td>
+                                                            <td>@norm.TotalSarfSumma.ToString("F2")</td>
+                                                            <td>@norm.TotalChiqindiSumma.ToString("F2")</td>
+                                                            <td>@norm.UmumiySumma.ToString("F2")</td>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("ViewDetails", "Norm", new { normVersionId = norm.NormVersionID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
+                                                                    <i class="bx bx-show"></i>
+                                                                </a>
+                                                                @if (changePermit)
+                                                                {
+                                                                    <a href="@Url.Action("Edit", "Norm", new { normVersionId = norm.NormVersionID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                        <i class="bx bx-edit"></i>
+                                                                    </a>
+                                                                    <form method="post" action="@Url.Action("Delete", "Norm", new { normVersionId = norm.NormVersionID })" style="display: inline;" onsubmit="return confirm('Bu NORM ni o\'chirishni tasdiqlaysizmi?');">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="5" class="text-center text-muted">
+                                                            Bu mahsulot uchun normalar topilmadi.
+                                                            @if (changePermit)
+                                                            {
+                                                                <br />
+                                                                <a href="@Url.Action("Create", "Norm", new { productId = ViewBag.ProductID })" class="btn btn-success btn-sm mt-2">
+                                                                    <i class="bx bx-plus"></i> Birinchi NORMA ni qo'shish
+                                                                </a>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#normTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    { "orderable": false, "targets": -1 }
+                ]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

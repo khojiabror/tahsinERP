@@ -32,6 +32,10 @@ namespace tahsinERP.Models
             this.SHAREHOLDER_CONTRIBUTIONS = new HashSet<SHAREHOLDER_CONTRIBUTIONS>();
             this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
             this.SALES_TTNK_HEADERS = new HashSet<SALES_TTNK_HEADERS>();
+            this.F_CONTRACT_TARIFFS = new HashSet<F_CONTRACT_TARIFFS>();
+            this.F_WAYBILL_PAYMENT_SPLITS = new HashSet<F_WAYBILL_PAYMENT_SPLITS>();
+            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
+            this.HR_PAYROLL_LINES = new HashSet<HR_PAYROLL_LINES>();
         }
     
         public int ID { get; set; }
@@ -69,5 +73,13 @@ namespace tahsinERP.Models
         public virtual ICollection<SALES_INVOICES> SALES_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_TTNK_HEADERS> SALES_TTNK_HEADERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_CONTRACT_TARIFFS> F_CONTRACT_TARIFFS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILL_PAYMENT_SPLITS> F_WAYBILL_PAYMENT_SPLITS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PAYROLL_LINES> HR_PAYROLL_LINES { get; set; }
     }
 }

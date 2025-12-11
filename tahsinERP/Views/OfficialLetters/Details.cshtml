@@ -1,0 +1,167 @@
+@model tahsinERP.Models.DOC_DOCUMENTS
+@{
+    ViewBag.Title = "Maktub Tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+    var letter = Model.COM_OFFICIAL_LETTERS;
+    var files = Model.DOC_FILES?.Where(f => f.IsMain).OrderByDescending(f => f.VersionNo).ToList();
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Rasmiy Maktublar</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <h4>Maktub: @letter.LetterNo</h4>
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            @if (changePermit)
+                                            {
+                                                <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                                    <i class="bx bx-edit"></i> Tahrirlash
+                                                </a>
+                                                @using (Html.BeginForm("GenerateDoc", "OfficialLetters", new { id = Model.ID }, FormMethod.Post, new { @style = "display:inline;" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-file"></i> Hujjat yaratish
+                                                    </button>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th>Raqam</th>
+                                                    <td>@letter.LetterNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana</th>
+                                                    <td>@letter.LetterDate.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Yo'nalish</th>
+                                                    <td><span class="badge badge-@(letter.DirectionCode == "OUT" ? "primary" : "secondary")">@(letter.DirectionCode == "OUT" ? "Chiqish" : "Kirish")</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Kompaniya</th>
+                                                    <td>@(letter.ExternalCompanyName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Kontakt shaxs</th>
+                                                    <td>@(letter.ExternalContactName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Bizning havola</th>
+                                                    <td>@(letter.OurRefNo ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ularning havola</th>
+                                                    <td>@(letter.TheirRefNo ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Kanal</th>
+                                                    <td>@(letter.ChannelCode ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Holat</th>
+                                                    <td><span class="badge badge-info">@(Model.DOC_DOCUMENT_STATUS_REF?.Name ?? "-")</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Mavzu</th>
+                                                    <td>@Model.Title</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Matn</h5>
+                                            <div class="border p-3" style="min-height: 200px;">
+                                                @Html.Raw(Model.Title?.Replace("\n", "<br/>"))
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if (files != null && files.Any())
+                                    {
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <h5>Yaratilgan hujjatlar</h5>
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Versiya</th>
+                                                            <th>Fayl nomi</th>
+                                                            <th>Yaratilgan</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var file in files)
+                                                        {
+                                                            <tr>
+                                                                <td>@file.VersionNo</td>
+                                                                <td>@file.FileName</td>
+                                                                <td>@file.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
+                                                                <td>
+                                                                    <a href="@Url.Action("DownloadFile", new { fileId = file.ID })" class="btn btn-sm btn-primary">
+                                                                        <i class="bx bx-download"></i> Yuklab olish
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
