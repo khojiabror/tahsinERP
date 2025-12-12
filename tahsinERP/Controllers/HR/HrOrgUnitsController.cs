@@ -245,10 +245,49 @@ namespace tahsinERP.Controllers.HR
             return View(orgUnit);
         }
 
+        // GET: HR/OrgUnits/Delete/5
+        public async Task<ActionResult> Delete(int? id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var orgUnit = await db.HR_ORG_UNITS.FindAsync(id);
+            if (orgUnit == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Check if has children
+            var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id);
+            if (hasChildren)
+            {
+                TempData["Error"] = "Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
+                return RedirectToAction("Index");
+            }
+
+            // Check if has employees
+            var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive);
+            if (hasEmployees)
+            {
+                TempData["Error"] = "Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
+                return RedirectToAction("Index");
+            }
+
+            return View(orgUnit);
+        }
+
         // POST: HR/OrgUnits/Delete/5
         [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
             {
@@ -265,7 +304,7 @@ namespace tahsinERP.Controllers.HR
             var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id);
             if (hasChildren)
             {
-                TempData["Error"] = "Нельзя удалить подразделение, у которого есть дочерние подразделения";
+                TempData["Error"] = "Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
                 return RedirectToAction("Index");
             }
 
@@ -273,7 +312,7 @@ namespace tahsinERP.Controllers.HR
             var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive);
             if (hasEmployees)
             {
-                TempData["Error"] = "Нельзя удалить подразделение, в котором есть сотрудники";
+                TempData["Error"] = "Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
                 return RedirectToAction("Index");
             }
 

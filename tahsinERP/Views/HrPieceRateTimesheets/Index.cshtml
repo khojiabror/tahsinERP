@@ -31,11 +31,8 @@
                 @if (changePermit)
                 {
                     <div class="invoice-create-btn mb-1">
-                        <a href="@Url.Action("Create")" class="btn btn-success">
-                            <i class="bx bx-plus"></i> Ishbay tabel yaratish
-                        </a>
-                        <a href="@Url.Action("CreateSimple", "HrTimesheets")" class="btn btn-warning">
-                            <i class="bx bx-plus-circle"></i> Ishbay ma'lumot kiritish
+                        <a href="@Url.Action("CreateSimple")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Ishbay ma'lumot kiritish
                         </a>
                     </div>
                 }
@@ -57,18 +54,10 @@
                                             }
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
-                                        <select name="status" class="form-control">
-                                            <option value="">Barcha holatlar</option>
-                                            <option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>Qoralama</option>
-                                            <option value="Approved" @(ViewBag.Status == "Approved" ? "selected" : "")>Tasdiqlangan</option>
-                                            <option value="Closed" @(ViewBag.Status == "Closed" ? "selected" : "")>Yopilgan</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
                                         <button type="submit" class="btn btn-primary">Filtr</button>
                                     </div>
                                 </div>
@@ -89,47 +78,35 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in Model)
+                                        @if (Model != null)
                                         {
-                                            <tr>
-                                                <td>@item.Timesheet.Year</td>
-                                                <td>@item.MonthName</td>
-                                                <td>@(item.Timesheet.HR_ORG_UNITS?.Name ?? "Butun kompaniya")</td>
-                                                <td>
-                                                    <span class="badge badge-@(item.Timesheet.Status == "Approved" ? "success" : item.Timesheet.Status == "Closed" ? "info" : "warning")">
-                                                        @(item.Timesheet.Status == "Draft" ? "Qoralama" : item.Timesheet.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
-                                                    </span>
-                                                </td>
-                                                <td>@item.CalculatedAmount.ToString("N2")</td>
-                                                <td>@item.Timesheet.CreatedDT.ToString("dd.MM.yyyy")</td>
-                                                <td>@(item.Timesheet.ApprovedDT?.ToString("dd.MM.yyyy") ?? "-")</td>
-                                                <td>
-                                                    <a href="@Url.Action("Edit", new { id = item.Timesheet.ID })" class="btn btn-sm btn-info">
-                                                        <i class="bx bx-edit"></i>
-                                                    </a>
-                                                    <a href="@Url.Action("Export", new { id = item.Timesheet.ID })" class="btn btn-sm btn-success">
-                                                        <i class="bx bx-export"></i>
-                                                    </a>
-                                                    @if (changePermit && item.Timesheet.Status == "Draft")
-                                                    {
-                                                        <a href="@Url.Action("Approve", new { id = item.Timesheet.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Tabelni tasdiqlash?');">
-                                                            <i class="bx bx-check"></i>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>@item.Year</td>
+                                                    <td>@item.MonthName</td>
+                                                    <td>@item.OrgUnitName</td>
+                                                    <td>
+                                                        <span class="badge badge-info">
+                                                            @item.EntryCount ta yozuv
+                                                        </span>
+                                                    </td>
+                                                    <td>@item.CalculatedAmount.ToString("N2")</td>
+                                                    <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <a href="@Url.Action("Details", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-info">
+                                                            <i class="bx bx-show"></i>
                                                         </a>
-                                                    }
-                                                    @if (changePermit && item.Timesheet.Status == "Approved")
-                                                    {
-                                                        <a href="@Url.Action("Close", new { id = item.Timesheet.ID })" class="btn btn-sm btn-secondary" onclick="return confirm('Tabelni yopish?');">
-                                                            <i class="bx bx-lock"></i>
-                                                        </a>
-                                                    }
-                                                    @if (changePermit && item.Timesheet.Status == "Draft")
-                                                    {
-                                                        <a href="@Url.Action("Delete", new { id = item.Timesheet.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Tabelni o\'chirish?');">
-                                                            <i class="bx bx-trash"></i>
-                                                        </a>
-                                                    }
-                                                </td>
-                                            </tr>
+                                                        @if (changePermit)
+                                                        {
+                                                            <a href="@Url.Action("DeleteEntries", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-danger" onclick="return confirm('Bu oy uchun barcha ishbay ma\'lumotlarni o\'chirish?');">
+                                                                <i class="bx bx-trash"></i>
+                                                            </a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
                                         }
                                     </tbody>
                                 </table>

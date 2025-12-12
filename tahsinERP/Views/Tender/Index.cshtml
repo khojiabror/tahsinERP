@@ -142,30 +142,49 @@
 
             // Lock material after first offer
             $('#materialSelect').on('change', function () {
-                if (!materialLocked && $(this).val()) {
-                    selectedMaterialId = $(this).val();
-                    materialLocked = true;
-                    $(this).prop('disabled', true);
-                    $('#materialLocked').show();
+                var materialId = $(this).val();
+                if (materialId && materialId !== '') {
+                    if (!materialLocked) {
+                        selectedMaterialId = materialId;
+                        materialLocked = true;
+                        $(this).prop('disabled', true);
+                        $('#materialLocked').show();
+                    } else {
+                        selectedMaterialId = materialId;
+                    }
                 }
             });
 
             // Add offer
-            $('#addOfferBtn').click(function () {
-                if (!selectedMaterialId) {
+            $('#addOfferBtn').on('click', function (e) {
+                e.preventDefault();
+                
+                // Check if material is selected
+                var currentMaterialId = $('#materialSelect').val();
+                if (!currentMaterialId || currentMaterialId === '' || currentMaterialId === null) {
                     alert('Avval materialni tanlang');
-                    return;
+                    $('#materialSelect').focus();
+                    return false;
                 }
 
-                var supplierName = $('#supplierName').val();
+                // If material not locked yet, lock it now
+                if (!materialLocked) {
+                    selectedMaterialId = currentMaterialId;
+                    materialLocked = true;
+                    $('#materialSelect').prop('disabled', true);
+                    $('#materialLocked').show();
+                }
+
+                var supplierName = $('#supplierName').val().trim();
                 var offeredPrice = parseFloat($('#offeredPrice').val()) || 0;
                 var moq = parseFloat($('#moq').val()) || 0;
                 var leadTime = parseInt($('#leadTime').val()) || 0;
-                var paymentTerms = $('#paymentTerms').val() || '';
+                var paymentTerms = $('#paymentTerms').val().trim() || '';
 
                 if (!supplierName) {
                     alert('Ta\'minotchi nomini kiriting');
-                    return;
+                    $('#supplierName').focus();
+                    return false;
                 }
 
                 var offer = {
@@ -183,6 +202,8 @@
                 updateChart();
                 clearOfferForm();
                 $('#exportPdfBtn').prop('disabled', false);
+                
+                return false;
             });
 
             function renderOffersTable() {

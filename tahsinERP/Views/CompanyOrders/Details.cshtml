@@ -46,13 +46,12 @@
                                                 <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
                                                     <i class="bx bx-edit"></i> Tahrirlash
                                                 </a>
-                                                @using (Html.BeginForm("GenerateDoc", "CompanyOrders", new { id = Model.ID }, FormMethod.Post, new { @style = "display:inline;" }))
-                                                {
+                                                <form method="post" action="@Url.Action("GenerateDoc", "CompanyOrders", new { id = Model.ID })" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <button type="submit" class="btn btn-success">
                                                         <i class="bx bx-file"></i> Hujjat yaratish
                                                     </button>
-                                                }
+                                                </form>
                                             }
                                         </div>
                                     </div>
@@ -94,11 +93,11 @@
                                         </div>
                                     </div>
 
-                                    @if (files != null && files.Any())
-                                    {
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <h5>Yaratilgan hujjatlar</h5>
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h5>Yaratilgan hujjatlar</h5>
+                                            @if (files != null && files.Any())
+                                            {
                                                 <table class="table">
                                                     <thead>
                                                         <tr>
@@ -124,9 +123,15 @@
                                                         }
                                                     </tbody>
                                                 </table>
-                                            </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="alert alert-danger" role="alert">
+                                                    <i class="bx bx-error"></i> <strong>Fayl yo'q</strong> - Bu buyruq uchun hujjat yaratilmagan.
+                                                </div>
+                                            }
                                         </div>
-                                    }
+                                    </div>
 
                                     <div class="row mt-3">
                                         <div class="col-12">

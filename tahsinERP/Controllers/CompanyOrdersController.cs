@@ -516,7 +516,7 @@ namespace tahsinERP.Controllers
 
         // AJAX: Suggest text
         [HttpPost]
-        public JsonResult SuggestText(string orderTypeCode, DateTime? orderDate, int? orgUnitId, string topic, string[] employeeNames)
+        public JsonResult SuggestText(string orderTypeCode, string orderDate, int? orgUnitId, string topic, string[] employeeNames)
         {
             try
             {
@@ -530,37 +530,60 @@ namespace tahsinERP.Controllers
                     }
                 }
 
+                DateTime parsedDate = DateTime.Now;
+                if (!string.IsNullOrEmpty(orderDate))
+                {
+                    if (DateTime.TryParse(orderDate, out DateTime tempDate))
+                    {
+                        parsedDate = tempDate;
+                    }
+                }
+
                 var meta = new CompanyOrderMeta
                 {
-                    OrderTypeCode = orderTypeCode,
-                    OrderDate = orderDate ?? DateTime.Now,
+                    OrderTypeCode = orderTypeCode ?? string.Empty,
+                    OrderDate = parsedDate,
                     OrgUnitName = orgUnitName,
                     ResponsibleEmployeeNames = employeeNames?.ToList() ?? new List<string>(),
-                    Topic = topic
+                    Topic = topic ?? string.Empty
                 };
 
                 var suggestedText = _textSuggestionService.SuggestOrderBody(meta);
-                return Json(new { success = true, text = suggestedText });
+                return Json(new { success = true, text = suggestedText }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = ex.Message });
+                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
         private string GenerateNextOrderNo(DBTHSNEntities db)
         {
-            var lastOrder = db.ADM_COMPANY_ORDERS
-                .Where(o => o.OrderNo.StartsWith(DateTime.Now.Year.ToString()))
-                .OrderByDescending(o => o.OrderNo)
-                .FirstOrDefault();
+            // Get all order numbers and find the maximum numeric value
+            var allOrders = db.ADM_COMPANY_ORDERS
+                .Select(o => o.OrderNo)
+                .ToList();
 
-            if (lastOrder != null && int.TryParse(lastOrder.OrderNo.Substring(4), out int lastNum))
+            int maxOrderNo = 0;
+            
+            foreach (var orderNo in allOrders)
             {
-                return $"{DateTime.Now.Year}{(lastNum + 1):D4}";
+                // Try to parse as pure number (e.g., "0001", "0043")
+                if (int.TryParse(orderNo, out int num))
+                {
+                    if (num > maxOrderNo)
+                        maxOrderNo = num;
+                }
+                // Try to parse as year + number (e.g., "20250001")
+                else if (orderNo.Length >= 4 && int.TryParse(orderNo.Substring(4), out int yearNum))
+                {
+                    if (yearNum > maxOrderNo)
+                        maxOrderNo = yearNum;
+                }
             }
 
-            return $"{DateTime.Now.Year}0001";
+            // Return next number in format "0044", "0045", etc.
+            return (maxOrderNo + 1).ToString("D4");
         }
     }
 }

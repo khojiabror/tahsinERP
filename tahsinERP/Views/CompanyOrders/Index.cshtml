@@ -74,9 +74,11 @@
                                                     <label>Buyruq turi</label>
                                                     @Html.DropDownList("orderTypeCode", ViewBag.OrderTypes as SelectList, "Barchasi", new { @class = "form-control" })
                                                 </div>
-                                                <div class="col-12 col-sm-6 col-lg-1">
+                                                <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>&nbsp;</label>
-                                                    <button type="submit" class="btn btn-primary btn-block">Qidirish</button>
+                                                    <button type="submit" class="btn btn-primary btn-block">
+                                                        <i class="bx bx-search"></i> Qidirish
+                                                    </button>
                                                 </div>
                                             </div>
                                         </form>
@@ -126,9 +128,12 @@
                                                                             <i class="bx bx-trash"></i>
                                                                         </button>
                                                                     }
-                                                                    <a href="@Url.Action("GenerateDoc", new { id = item.DocumentId })" class="btn btn-sm btn-success" title="Hujjat yaratish" onclick="return confirm('Hujjat yaratilsinmi?');">
-                                                                        <i class="bx bx-file"></i>
-                                                                    </a>
+                                                                    <form method="post" action="@Url.Action("GenerateDoc", "CompanyOrders", new { id = item.DocumentId })" style="display:inline;" onsubmit="return confirm('Hujjat yaratilsinmi?');">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-success" title="Hujjat yaratish">
+                                                                            <i class="bx bx-file"></i>
+                                                                        </button>
+                                                                    </form>
                                                                 }
                                                             </td>
                                                         </tr>
@@ -150,10 +155,40 @@
         $(document).ready(function() {
             $('#companyOrdersTable').DataTable({
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json",
+                    "lengthMenu": "Har sahifada _MENU_ ta yozuv ko'rsatish",
+                    "zeroRecords": "Hech qanday yozuv topilmadi",
+                    "info": "_START_ dan _END_ gacha, jami _TOTAL_ ta yozuv",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(_MAX_ ta yozuvdan filtrlangan)",
+                    "search": "Qidirish:",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    }
                 },
                 "order": [[1, "desc"]],
-                "pageLength": 25
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "paging": true,
+                "pagingType": "full_numbers",
+                "info": true,
+                "searching": true,
+                "responsive": true,
+                "processing": true,
+                "dom": '<"top"lf>rt<"bottom"ip><"clear">',
+                "drawCallback": function(settings) {
+                    // Pagination styling
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+                    if (pageInfo.pages <= 1) {
+                        $(api.table().container()).find('.dataTables_paginate').hide();
+                    } else {
+                        $(api.table().container()).find('.dataTables_paginate').show();
+                    }
+                }
             });
         });
     </script>

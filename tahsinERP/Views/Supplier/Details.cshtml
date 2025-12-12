@@ -1,11 +1,15 @@
-﻿@model tahsinERP.Models.SUPPLIER
+@model tahsinERP.Models.SUPPLIER
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Ta'minotchi tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Details"))
 {
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier") ||
+                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Suppliers") ||
+                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier", "Edit");
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -18,7 +22,7 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item ">
+                                    <li class="breadcrumb-item">
                                         <a href="~/Supplier">Ta'minotchilar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
@@ -31,58 +35,281 @@
                 </div>
             </div>
             <div class="content-body">
-                <!-- app invoice View Page -->
-                <section class="invoice-edit-wrapper">
-                    <div class="row">
-                        <!-- invoice view page -->
-                        <div class="col-xl-12 col-md-12 col-12">
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="card-body pb-0 mx-25">
-                                        <div class="row invoice-info">
-                                            <div class="col-lg-12 col-md-12 mt-25">
-                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <h4 class="text-primary">Korxona ma'lumotlari</h4>
-                                                <hr />
-                                                <span><b>Nomi</b>: @Html.DisplayFor(model => model.Name, new { @class = "form-control" })</span>
-                                                <br />
-                                                <span><b>DUNS</b>: @Html.DisplayFor(model => model.DUNS, new { @class = "form-control" })</span>
-                                                <br />
-                                                <span><b>Turi</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
-                                                <hr />
-                                                <section>
-                                                    <div>
-                                                        <h6 class="text-primary">Geografik ma'lumotlari</h6>
-                                                        <span><b>Mamlakati</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
-                                                        <br />
-                                                        <span><b>Shaxri</b>: @Html.DisplayFor(model => model.City, new { @class = "form-control" })</span>
-                                                        <br />
-                                                        <span><b>Manzili</b>: @Html.DisplayFor(model => model.Address, new { @class = "form-control" })</span>
-                                                        <br />
-                                                        <hr />
-                                                    </div>
-                                                </section>
-                                                <h6 class="text-primary">Murojaat uchun</h6>
-                                                <span><b>Rahbari</b>: @Html.DisplayFor(model => model.DirectorName, new { @class = "form-control" })</span>
-                                                <br />
-                                                <span><b>Ma'sul xodimi</b>: @Html.DisplayFor(model => model.ContactPersonName, new { @class = "form-control" })</span>
-                                                <br />
-                                                <span><b>E-mail</b>: @Html.DisplayFor(model => model.Email, new { @class = "form-control" })</span>
-                                                <br />
-                                                <span><b>Telefon raqami:</b>: @Html.DisplayFor(model => model.Telephone, new { @class = "form-control" })</span>
-                                                <br />
-                                            </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Ta'minotchi ma'lumotlari</h4>
+                                <div class="heading-elements">
+                                    @if (changePermit)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="openEditModal(@Model.ID)">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </button>
+                                    }
+                                    <a href="@Url.Action("Index", "Supplier")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Asosiy ma'lumotlar</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Nomi:</th>
+                                                    <td><strong>@Model.Name</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>DUNS:</th>
+                                                    <td>@(Model.DUNS ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Turi:</th>
+                                                    <td>@(Model.Type ?? "-")</td>
+                                                </tr>
+                                            </table>
                                         </div>
-                                        <hr>
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Geografik ma'lumotlar</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Mamlakat:</th>
+                                                    <td>@(Model.Country ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Shahar:</th>
+                                                    <td>@(Model.City ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Manzil:</th>
+                                                    <td>@(Model.Address ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Murojaat ma'lumotlari</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Direktor:</th>
+                                                    <td>@(Model.DirectorName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Aloqa shaxsi:</th>
+                                                    <td>@(Model.ContactPersonName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Telefon:</th>
+                                                    <td>@(Model.Telephone ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Email:</th>
+                                                    <td>@(Model.Email ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Supplier Modal (reuse from Index) -->
+    <div class="modal fade text-left" id="supplierModal" tabindex="-1" role="dialog" aria-labelledby="supplierModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="supplierModalLabel">Ta'minotchini tahrirlash</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="bx bx-x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="supplierForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="supplierId" name="ID" value="0" />
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="Name">Nomi <span class="text-danger">*</span></label>
+                                <input type="text" id="Name" name="Name" class="form-control" required />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="Type">Turi</label>
+                                <input type="text" id="Type" name="Type" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="Country">Davlati</label>
+                                <input type="text" id="Country" name="Country" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="City">Shahri</label>
+                                <input type="text" id="City" name="City" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 form-group">
+                                <label for="Address">Manzil</label>
+                                <textarea id="Address" name="Address" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="Telephone">Telefon</label>
+                                <input type="text" id="Telephone" name="Telephone" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="Email">Email</label>
+                                <input type="email" id="Email" name="Email" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="ContactPersonName">Aloqa shaxsi</label>
+                                <input type="text" id="ContactPersonName" name="ContactPersonName" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="DirectorName">Direktor nomi</label>
+                                <input type="text" id="DirectorName" name="DirectorName" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="DUNS">DUNS</label>
+                                <input type="text" id="DUNS" name="DUNS" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="alert alert-danger" id="supplierError" style="display:none;"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-secondary" data-dismiss="modal">
+                        <i class="bx bx-x d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">Bekor qilish</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveSupplierBtn" onclick="saveSupplier()">
+                        <i class="bx bx-check d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">Saqlash</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var isEditMode = false;
+
+        function openEditModal(id) {
+            isEditMode = true;
+            $('#supplierModalLabel').text('Ta\'minotchini tahrirlash');
+            $('#supplierError').hide();
+            $('#supplierForm')[0].reset();
+
+            $.ajax({
+                url: '@Url.Action("GetSupplier", "Supplier")',
+                type: 'GET',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        var data = response.data;
+                        $('#supplierId').val(data.ID);
+                        $('#Name').val(data.Name);
+                        $('#Type').val(data.Type || '');
+                        $('#Country').val(data.Country || '');
+                        $('#City').val(data.City || '');
+                        $('#Address').val(data.Address || '');
+                        $('#Telephone').val(data.Telephone || '');
+                        $('#Email').val(data.Email || '');
+                        $('#ContactPersonName').val(data.ContactPersonName || '');
+                        $('#DirectorName').val(data.DirectorName || '');
+                        $('#DUNS').val(data.DUNS || '');
+                        $('#supplierModal').modal('show');
+                    } else {
+                        alert('Xatolik: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Server xatoligi yuz berdi');
+                }
+            });
+        }
+
+        function saveSupplier() {
+            if (!$('#supplierForm')[0].checkValidity()) {
+                $('#supplierForm')[0].reportValidity();
+                return;
+            }
+
+            var formData = {
+                ID: parseInt($('#supplierId').val()) || 0,
+                Name: $('#Name').val(),
+                Type: $('#Type').val(),
+                Country: $('#Country').val(),
+                City: $('#City').val(),
+                Address: $('#Address').val(),
+                Telephone: $('#Telephone').val(),
+                Email: $('#Email').val(),
+                ContactPersonName: $('#ContactPersonName').val(),
+                DirectorName: $('#DirectorName').val(),
+                DUNS: $('#DUNS').val()
+            };
+
+            var url = '@Url.Action("Edit", "Supplier")';
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $('#saveSupplierBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Saqlanmoqda...');
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: $.extend(formData, { __RequestVerificationToken: token }),
+                success: function (response) {
+                    if (response.success) {
+                        $('#supplierModal').modal('hide');
+                        location.reload();
+                    } else {
+                        $('#supplierError').text(response.message).show();
+                        $('#saveSupplierBtn').prop('disabled', false).html('<span class="d-none d-sm-block">Saqlash</span>');
+                    }
+                },
+                error: function (xhr) {
+                    var errorMsg = 'Server xatoligi yuz berdi';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    $('#supplierError').text(errorMsg).show();
+                    $('#saveSupplierBtn').prop('disabled', false).html('<span class="d-none d-sm-block">Saqlash</span>');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $('#supplierModal').on('hidden.bs.modal', function () {
+                $('#supplierForm')[0].reset();
+                $('#supplierError').hide();
+                $('#saveSupplierBtn').prop('disabled', false).html('<span class="d-none d-sm-block">Saqlash</span>');
+            });
+        });
+    </script>
 }
 else
 {

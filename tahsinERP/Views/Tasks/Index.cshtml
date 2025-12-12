@@ -11,6 +11,12 @@
     {
         changePermit = true;
     }
+    
+    // Check if user is Admin or Developer
+    var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+    bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
+        r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+        r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -54,10 +60,13 @@
                                                     <label>Qidirish</label>
                                                     <input type="text" name="searchTerm" class="form-control" placeholder="Title, Description, Key..." value="@ViewBag.SearchTerm" />
                                                 </div>
-                                                <div class="col-12 col-sm-6 col-lg-2">
-                                                    <label>Assignee</label>
-                                                    @Html.DropDownList("assigneeUserID", (SelectList)ViewBag.AssigneeUserID, "All", new { @class = "form-control" })
-                                                </div>
+                                                @if (isAdminOrDeveloper)
+                                                {
+                                                    <div class="col-12 col-sm-6 col-lg-2">
+                                                        <label>Assignee</label>
+                                                        @Html.DropDownList("assigneeUserID", (SelectList)ViewBag.AssigneeUserID, "All", new { @class = "form-control" })
+                                                    </div>
+                                                }
                                                 <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>Status</label>
                                                     @Html.DropDownList("statusID", (SelectList)ViewBag.StatusID, "All", new { @class = "form-control" })

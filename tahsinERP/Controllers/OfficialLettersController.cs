@@ -457,27 +457,36 @@ namespace tahsinERP.Controllers
 
         // AJAX: Suggest text
         [HttpPost]
-        public JsonResult SuggestText(string directionCode, string externalCompanyName, string externalContactName, string topic, DateTime? letterDate, string ourRefNo, string theirRefNo)
+        public JsonResult SuggestText(string directionCode, string externalCompanyName, string externalContactName, string topic, string letterDate, string ourRefNo, string theirRefNo)
         {
             try
             {
+                DateTime parsedDate = DateTime.Now;
+                if (!string.IsNullOrEmpty(letterDate))
+                {
+                    if (DateTime.TryParse(letterDate, out DateTime tempDate))
+                    {
+                        parsedDate = tempDate;
+                    }
+                }
+
                 var meta = new OfficialLetterMeta
                 {
-                    DirectionCode = directionCode,
-                    ExternalCompanyName = externalCompanyName,
-                    ExternalContactName = externalContactName,
-                    Topic = topic,
-                    LetterDate = letterDate ?? DateTime.Now,
-                    OurRefNo = ourRefNo,
-                    TheirRefNo = theirRefNo
+                    DirectionCode = directionCode ?? "OUT",
+                    ExternalCompanyName = externalCompanyName ?? string.Empty,
+                    ExternalContactName = externalContactName ?? string.Empty,
+                    Topic = topic ?? string.Empty,
+                    LetterDate = parsedDate,
+                    OurRefNo = ourRefNo ?? string.Empty,
+                    TheirRefNo = theirRefNo ?? string.Empty
                 };
 
                 var suggestedText = _textSuggestionService.SuggestLetterBody(meta);
-                return Json(new { success = true, text = suggestedText });
+                return Json(new { success = true, text = suggestedText }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = ex.Message });
+                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -485,17 +494,31 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                var lastLetter = db.COM_OFFICIAL_LETTERS
-                    .Where(l => l.LetterNo.StartsWith(DateTime.Now.Year.ToString()))
-                    .OrderByDescending(l => l.LetterNo)
-                    .FirstOrDefault();
+                // Get all letter numbers and find the maximum numeric value
+                var allLetters = db.COM_OFFICIAL_LETTERS
+                    .Select(l => l.LetterNo)
+                    .ToList();
 
-                if (lastLetter != null && int.TryParse(lastLetter.LetterNo.Substring(4), out int lastNum))
+                int maxLetterNo = 0;
+                
+                foreach (var letterNo in allLetters)
                 {
-                    return $"{DateTime.Now.Year}{(lastNum + 1):D4}";
+                    // Try to parse as pure number (e.g., "0005", "0122")
+                    if (int.TryParse(letterNo, out int num))
+                    {
+                        if (num > maxLetterNo)
+                            maxLetterNo = num;
+                    }
+                    // Try to parse as year + number (e.g., "20250005")
+                    else if (letterNo.Length >= 4 && int.TryParse(letterNo.Substring(4), out int yearNum))
+                    {
+                        if (yearNum > maxLetterNo)
+                            maxLetterNo = yearNum;
+                    }
                 }
 
-                return $"{DateTime.Now.Year}0001";
+                // Return next number in format "0123", "0124", etc.
+                return (maxLetterNo + 1).ToString("D4");
             }
         }
     }

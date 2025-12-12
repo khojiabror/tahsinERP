@@ -104,6 +104,9 @@
                                 <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="Tahrirlash">
                                     <i class="bx bx-edit"></i>
                                 </a>
+                                <a href="@Url.Action("Delete", new { id = node.ID })" class="btn btn-sm btn-danger" title="O'chirish" onclick="return confirm('Bu bo\'limni o\'chirishni tasdiqlaysizmi?');">
+                                    <i class="bx bx-trash"></i>
+                                </a>
                             </span>
                         }
                     </div>

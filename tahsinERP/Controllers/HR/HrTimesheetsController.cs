@@ -1044,6 +1044,14 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
+            // Check if there are related payroll records
+            var hasPayrolls = await db.HR_PAYROLL_HEADERS.AnyAsync(p => p.TimesheetID == id);
+            if (hasPayrolls)
+            {
+                TempData["Error"] = "Bu tabelga bog'liq ish haqi hisobotlari mavjud. Avval ish haqi hisobotlarini o'chiring.";
+                return RedirectToAction("Index");
+            }
+
             // Delete timesheet lines first
             var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
             foreach (var line in lines)

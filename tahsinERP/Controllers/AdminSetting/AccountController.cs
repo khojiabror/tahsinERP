@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Configuration;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -136,35 +136,18 @@ namespace tahsinERP.Controllers
         {
             try
             {
-                string ip = "127.0.0.1";
+                // Get client IP address from HTTP request
+                string clientIp = NetworkHelper.GetClientIpAddress(Request);
+                
+                // MAC address cannot be retrieved from client in web applications
+                // MAC addresses are layer 2 and not transmitted over the internet
                 string macAddress = "00:00:00:00:00:00";
-
-                try
-                {
-                    IPHostEntry ipEntry = Dns.GetHostEntry(Dns.GetHostName());
-                    IPAddress[] addr = ipEntry.AddressList;
-                    if (addr.Length > 1)
-                    {
-                        ip = addr[1].ToString();
-
-                        int ldest = inet_addr(ip);
-                        long macInfo = 0;
-                        int len = 6;
-                        int result = SendARP(ldest, 0, ref macInfo, ref len);
-                        string macSrc = macInfo.ToString("X").PadLeft(12, '0');
-                        macAddress = string.Join(":", Enumerable.Range(0, 6).Select(i => macSrc.Substring(i * 2, 2)));
-                    }
-                }
-                catch
-                {
-                    // Use default values if network info can't be retrieved
-                }
 
                 var userEntry = new USER_ENTRIES
                 {
                     UserID = userID,
                     DateTime = DateTime.Now,
-                    IP = ip,
+                    IP = clientIp,
                     MAC = macAddress
                 };
 
@@ -326,7 +309,7 @@ namespace tahsinERP.Controllers
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "AccountController", 
-                        $"{User.Identity.Name} foydalanuvchi ma'lumotlarini saqladi");
+                        $"{User.Identity.Name} foydalanuvchi ma'lumotlarini saqladi", null, HttpContext);
 
                     return RedirectToAction("Index", "Home");
                 }

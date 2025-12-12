@@ -29,6 +29,217 @@
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="~/assets/css/app.css" />
     <link rel="stylesheet" type="text/css" href="~/Content/flatpickr.css" />
+    
+    <!-- Custom Styles for iPack Branding - Green Theme -->
+    <style>
+        /* To'q yashil rang - iPack korxonasi rangi */
+        :root {
+            --ipack-green: #198754;
+            --ipack-green-light: rgba(25, 135, 84, 0.15);
+            --ipack-green-hover: #157347;
+            --ipack-green-dark: #146c43;
+        }
+        
+        /* tahsinERP yozuvini to'q yashil rangga o'zgartirish */
+        .main-menu .navbar-header .navbar-brand .brand-text {
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Active menu item text color - yashil rang */
+        .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a {
+            color: var(--ipack-green) !important;
+        }
+        
+        .main-menu.menu-light .navigation > li ul .active > a {
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Active menu item icon rangi - yashil */
+        .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a i,
+        .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a .menu-livicon,
+        .main-menu.menu-light .navigation > li ul .active > a i,
+        .main-menu.menu-light .navigation > li ul .active > a .menu-livicon {
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Active menu item background - yashil rang bilan */
+        .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a {
+            background: var(--ipack-green-light) !important;
+        }
+        
+        .main-menu.menu-light .navigation > li ul .active {
+            background: var(--ipack-green-light) !important;
+        }
+        
+        /* Buttonlar - yashil rang */
+        .btn-primary,
+        button.btn-primary,
+        input[type="submit"].btn-primary,
+        input[type="button"].btn-primary {
+            background-color: var(--ipack-green) !important;
+            border-color: var(--ipack-green-dark) !important;
+            color: #fff !important;
+        }
+        
+        .btn-primary:hover,
+        .btn-primary.hover,
+        button.btn-primary:hover,
+        input[type="submit"].btn-primary:hover {
+            background-color: var(--ipack-green-hover) !important;
+            border-color: var(--ipack-green-dark) !important;
+            color: #fff !important;
+        }
+        
+        .btn-primary:focus,
+        .btn-primary:active,
+        .btn-primary.active,
+        button.btn-primary:focus,
+        button.btn-primary:active {
+            background-color: var(--ipack-green-dark) !important;
+            border-color: var(--ipack-green-dark) !important;
+            color: #fff !important;
+        }
+        
+        /* Outline buttons */
+        .btn-outline-primary {
+            border-color: var(--ipack-green) !important;
+            color: var(--ipack-green) !important;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--ipack-green) !important;
+            color: #fff !important;
+        }
+        
+        /* Primary color classes */
+        .primary,
+        .text-primary {
+            color: var(--ipack-green) !important;
+        }
+        
+        .bg-primary,
+        .bg-rgba-primary {
+            background-color: var(--ipack-green) !important;
+        }
+        
+        .bg-rgba-primary {
+            background: var(--ipack-green-light) !important;
+        }
+        
+        /* Badges */
+        .badge-primary,
+        .badge.badge-primary {
+            background-color: var(--ipack-green) !important;
+        }
+        
+        .badge-light-primary,
+        .badge.badge-light-primary {
+            background-color: var(--ipack-green-light) !important;
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Borders */
+        .border-primary {
+            border-color: var(--ipack-green) !important;
+        }
+        
+        /* Active page elements */
+        .card-header.bg-primary,
+        .card-footer.bg-primary {
+            background-color: var(--ipack-green) !important;
+        }
+        
+        /* Summary boxes va boshqa primary elementlar */
+        .bg-primary-light,
+        .bg-light-primary {
+            background-color: var(--ipack-green-light) !important;
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Progress bars */
+        .progress-bar.bg-primary {
+            background-color: var(--ipack-green) !important;
+        }
+        
+        /* Links */
+        a.primary,
+        a.text-primary {
+            color: var(--ipack-green) !important;
+        }
+        
+        a.primary:hover,
+        a.text-primary:hover {
+            color: var(--ipack-green-hover) !important;
+        }
+        
+        /* Breadcrumb - Page Name (Rasmiy Maktublar va boshqalar) */
+        .breadcrumb.breadcrumb-divider .breadcrumb-item.active {
+            background-color: var(--ipack-green) !important;
+            color: #FFFFFF !important;
+        }
+        
+        .breadcrumb .breadcrumb-item.active {
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Breadcrumb link hover */
+        .breadcrumb-wrapper .breadcrumb .breadcrumb-item a:hover,
+        .breadcrumb-wrapper .breadcrumb .breadcrumb-item a i:hover {
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Breadcrumb rounded pill active */
+        .breadcrumb.rounded-pill.breadcrumb-divider .breadcrumb-item.active {
+            background-color: var(--ipack-green) !important;
+            color: #FFFFFF !important;
+        }
+        
+        /* Barcha linklar (a tag) - yashil rang */
+        a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active) {
+            color: var(--ipack-green) !important;
+        }
+        
+        /* Link hover state */
+        a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):hover {
+            color: var(--ipack-green-hover) !important;
+        }
+        
+        /* Link visited state */
+        a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):visited {
+            color: var(--ipack-green-dark) !important;
+        }
+        
+        /* Table ichidagi linklar */
+        table a,
+        .table a,
+        .dataTable a {
+            color: var(--ipack-green) !important;
+        }
+        
+        table a:hover,
+        .table a:hover,
+        .dataTable a:hover {
+            color: var(--ipack-green-hover) !important;
+        }
+        
+        /* Card ichidagi linklar */
+        .card a:not(.btn) {
+            color: var(--ipack-green) !important;
+        }
+        
+        .card a:not(.btn):hover {
+            color: var(--ipack-green-hover) !important;
+        }
+        
+        /* Navigation linklar (menu ichida emas) */
+        .content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link) {
+            color: var(--ipack-green) !important;
+        }
+        
+        .content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link):hover {
+            color: var(--ipack-green-hover) !important;
+        }
+    </style>
 </head>
 
 <body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 2-columns navbar-sticky footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
@@ -521,7 +732,7 @@
                             </ul>
                         </li>
                         
-                        @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets") ||
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets") ||
                              RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets") ||
                              RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
                         {

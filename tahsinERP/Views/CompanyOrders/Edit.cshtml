@@ -112,30 +112,38 @@
     <script>
         $(document).ready(function() {
             $('#btnSuggestText').click(function() {
-                var orderTypeCode = $('#OrderTypeCode').val();
-                var orderDate = $('#OrderDate').val();
-                var orgUnitId = $('#OrgUnitId').val();
-                var topic = $('#TopicInput').val();
+                var $btn = $(this);
+                var originalText = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
+
+                var orderTypeCode = $('#OrderTypeCode').val() || '';
+                var orderDate = $('#OrderDate').val() || '';
+                var orgUnitId = $('#OrgUnitId').val() || null;
+                var topic = $('#TopicInput').val() || '';
 
                 $.ajax({
                     url: '@Url.Action("SuggestText", "CompanyOrders")',
                     type: 'POST',
                     data: {
                         orderTypeCode: orderTypeCode,
-                        orderDate: orderDate,
+                        orderDate: orderDate || null,
                         orgUnitId: orgUnitId,
                         topic: topic,
                         employeeNames: []
                     },
                     success: function(response) {
-                        if (response.success) {
+                        if (response && response.success) {
                             $('#BodyTextArea').val(response.text);
                         } else {
-                            alert('Xatolik: ' + response.error);
+                            alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
                         }
                     },
-                    error: function() {
-                        alert('Xatolik yuz berdi');
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        alert('Xatolik yuz berdi: ' + error);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalText);
                     }
                 });
             });

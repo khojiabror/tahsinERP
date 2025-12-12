@@ -1,16 +1,17 @@
-﻿@model List<tahsinERP.Models.SUPPLIER>
+@model List<tahsinERP.Models.SUPPLIER>
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Ta'minotchilar";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var type = ViewBag.Type;
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Index"))
 {
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Suppliers"))
-    {
-        changePermit = true;
-    }
+    // Try multiple permission names
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier") ||
+                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Suppliers") ||
+                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier", "Create");
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -23,9 +24,6 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item ">
-                                        Sahifalar
-                                    </li>
                                     <li class="breadcrumb-item active">
                                         Ta'minotchilar
                                     </li>
@@ -36,118 +34,415 @@
                 </div>
             </div>
             <div class="content-body">
-                <!-- users list start -->
                 <section class="invoice-list-wrapper">
-                    @if (changePermit)
-                    {
-                        <div class="invoice-create-btn mb-1">
-                            <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/Supplier/Create';">
-                                <span class="align-middle ml-25">Ta'minotchini qo'shish</span>
+                    <div class="invoice-create-btn mb-1">
+                        @if (changePermit)
+                        {
+                            <button type="button" class="btn btn-success bg-light invoice-create" id="addSupplierBtn">
+                                <i class="bx bx-plus"></i> Yangi ta'minotchi
                             </button>
-                            <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Supplier/UploadWithExcel'">
-                                <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali ta'minotchilarni qo'shish</span>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-success bg-light invoice-create" id="addSupplierBtn" disabled title="Ruxsat yo'q">
+                                <i class="bx bx-plus"></i> Yangi ta'minotchi
                             </button>
-                        </div>
-                    }
+                        }
+                        <a href="~/Supplier/UploadWithExcel" class="btn btn-outline-primary mr-1 mb-1">
+                            <i class="bx bx-file"></i> Excel orqali qo'shish
+                        </a>
+                    </div>
+
                     <div class="users-list-filter px-1">
                         <form>
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="users-list-role">Turi</label>
+                                    <label for="SourceID">Turi</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("SourceID",ViewBag.SourceList as SelectList, new { @class = "form-control", onchange = "refreshDataTable()" })
+                                        @Html.DropDownList("SourceID", ViewBag.SourceList as SelectList, "Barchasi", new { @class = "form-control", @id = "typeFilter", onchange = "refreshDataTable()" })
                                     </fieldset>
                                 </div>
                                 <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
                                     <a href="~/Supplier" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
-                                        Ro'yxatni yangilash
+                                        <i class="bx bx-refresh"></i> Ro'yxatni yangilash
                                     </a>
                                 </div>
                             </div>
                         </form>
                     </div>
+
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <!-- datatable start -->
-                                    <div class="table-responsive table-responsivetable-responsive">
-                                        <table id="myDataTable" class="table table-striped table-bordered complex-headers" style="width:100%">
+                                    <div class="table-responsive">
+                                        <table id="suppliersTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th colspan="2" class="align-top">Nomi</th>
-                                                    <th colspan="3">Davlati</th>
-                                                    <th colspan="1"></th>
-                                                </tr>
-                                                <tr>
                                                     <th>Nomi</th>
                                                     <th>Aloqa uchun</th>
                                                     <th>Turi</th>
                                                     <th>Davlati</th>
                                                     <th>Shahri</th>
-                                                    @if (changePermit)
-                                                    {
-                                                        <th>amallar</th>
-                                                    }
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                               @foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td>
-                                                            <a href="~/Supplier/Details/@item.ID">@item.Name</a>
-                                                        </td>
-                                                        <td><a href="~/Supplier/Details/@item.ID">@item.ContactPersonName</a></td>
-                                                        <td>@item.Type</td>
-                                                        <td>@item.Country</td>
-                                                        <td>@item.City</td>
-
-                                                        @if (changePermit)
-                                                        {
-                                                            <td>
-                                                                <div>
-                                                                    <a href="@Url.Action("Edit", "Supplier", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "Supplier", new { id = item.ID })"><i class="bx bx-trash"></i></a>
-                                                                </div>
-                                                            </td>
-                                                        }
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <th>Nomi</th>
-                                                    <th>Aloqa uchun</th>
-                                                    <th>Turi</th>
-                                                    <th>Davlati</th>
-                                                    <th>Shahri</th>
+                                                    <th>Telefon</th>
+                                                    <th>Email</th>
                                                     @if (changePermit)
                                                     {
                                                         <th>Amallar</th>
                                                     }
                                                 </tr>
-                                            </tfoot>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Supplier", new { id = item.ID })">@item.Name</a>
+                                                            </td>
+                                                            <td>@(item.ContactPersonName ?? "-")</td>
+                                                            <td>@(item.Type ?? "-")</td>
+                                                            <td>@(item.Country ?? "-")</td>
+                                                            <td>@(item.City ?? "-")</td>
+                                                            <td>@(item.Telephone ?? "-")</td>
+                                                            <td>@(item.Email ?? "-")</td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-primary mr-1" onclick="openEditModal(@item.ID)" title="Tahrirlash">
+                                                                            <i class="bx bx-edit-alt"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplier(@item.ID, '@item.Name')" title="O'chirish">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
                                         </table>
                                     </div>
-                                    <!-- datatable ends -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
-                <!-- users list ends -->
             </div>
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript">
-        function refreshDataTable() {
-            const source = document.getElementById("SourceID").value;
+    <!-- Supplier Modal -->
+    <div class="modal fade text-left" id="supplierModal" tabindex="-1" role="dialog" aria-labelledby="supplierModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="supplierModalLabel">Yangi ta'minotchi</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="bx bx-x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="supplierForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="supplierId" name="ID" value="0" />
 
-            window.location.href = '@Url.Action("Index", "Supplier")?type=' + source;
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="Name">Nomi <span class="text-danger">*</span></label>
+                                <input type="text" id="Name" name="Name" class="form-control" required />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="Type">Turi</label>
+                                <input type="text" id="Type" name="Type" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="Country">Davlati</label>
+                                <input type="text" id="Country" name="Country" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="City">Shahri</label>
+                                <input type="text" id="City" name="City" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 form-group">
+                                <label for="Address">Manzil</label>
+                                <textarea id="Address" name="Address" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="Telephone">Telefon</label>
+                                <input type="text" id="Telephone" name="Telephone" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="Email">Email</label>
+                                <input type="email" id="Email" name="Email" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="ContactPersonName">Aloqa shaxsi</label>
+                                <input type="text" id="ContactPersonName" name="ContactPersonName" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="DirectorName">Direktor nomi</label>
+                                <input type="text" id="DirectorName" name="DirectorName" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="DUNS">DUNS</label>
+                                <input type="text" id="DUNS" name="DUNS" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="alert alert-danger" id="supplierError" style="display:none;"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-secondary" data-dismiss="modal">
+                        <i class="bx bx-x d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">Bekor qilish</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveSupplierBtn" onclick="saveSupplier()">
+                        <i class="bx bx-check d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">Saqlash</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var isEditMode = false;
+
+        function refreshDataTable() {
+            const source = document.getElementById("typeFilter").value;
+            window.location.href = '@Url.Action("Index", "Supplier")?type=' + (source || '');
         }
+
+        function openCreateModal() {
+            try {
+                isEditMode = false;
+                $('#supplierModalLabel').text('Yangi ta\'minotchi');
+                $('#supplierForm')[0].reset();
+                $('#supplierId').val('0');
+                $('#supplierError').hide();
+                
+                var modal = $('#supplierModal');
+                if (modal.length === 0) {
+                    alert('Modal topilmadi. Sahifani yangilang.');
+                    return;
+                }
+                
+                // Use Bootstrap modal if available
+                if (typeof $.fn.modal !== 'undefined') {
+                    modal.modal('show');
+                } else {
+                    // Fallback: show modal manually
+                    modal.css('display', 'block');
+                    modal.addClass('show');
+                    $('body').addClass('modal-open');
+                }
+            } catch (err) {
+                console.error('Error in openCreateModal:', err);
+                alert('Modal ochishda xatolik: ' + err.message);
+            }
+        }
+
+        function openEditModal(id) {
+            isEditMode = true;
+            $('#supplierModalLabel').text('Ta\'minotchini tahrirlash');
+            $('#supplierError').hide();
+            $('#supplierForm')[0].reset();
+
+            $.ajax({
+                url: '@Url.Action("GetSupplier", "Supplier")',
+                type: 'GET',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        var data = response.data;
+                        $('#supplierId').val(data.ID);
+                        $('#Name').val(data.Name);
+                        $('#Type').val(data.Type || '');
+                        $('#Country').val(data.Country || '');
+                        $('#City').val(data.City || '');
+                        $('#Address').val(data.Address || '');
+                        $('#Telephone').val(data.Telephone || '');
+                        $('#Email').val(data.Email || '');
+                        $('#ContactPersonName').val(data.ContactPersonName || '');
+                        $('#DirectorName').val(data.DirectorName || '');
+                        $('#DUNS').val(data.DUNS || '');
+                        $('#supplierModal').modal('show');
+                    } else {
+                        alert('Xatolik: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Server xatoligi yuz berdi');
+                }
+            });
+        }
+
+        function saveSupplier() {
+            if (!$('#supplierForm')[0].checkValidity()) {
+                $('#supplierForm')[0].reportValidity();
+                return;
+            }
+
+            var formData = {
+                ID: parseInt($('#supplierId').val()) || 0,
+                Name: $('#Name').val(),
+                Type: $('#Type').val(),
+                Country: $('#Country').val(),
+                City: $('#City').val(),
+                Address: $('#Address').val(),
+                Telephone: $('#Telephone').val(),
+                Email: $('#Email').val(),
+                ContactPersonName: $('#ContactPersonName').val(),
+                DirectorName: $('#DirectorName').val(),
+                DUNS: $('#DUNS').val()
+            };
+
+            var url = isEditMode ? '@Url.Action("Edit", "Supplier")' : '@Url.Action("Create", "Supplier")';
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $('#saveSupplierBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Saqlanmoqda...');
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: $.extend(formData, { __RequestVerificationToken: token }),
+                success: function (response) {
+                    if (response.success) {
+                        $('#supplierModal').modal('hide');
+                        location.reload();
+                    } else {
+                        $('#supplierError').text(response.message).show();
+                        $('#saveSupplierBtn').prop('disabled', false).html('<span class="d-none d-sm-block">Saqlash</span>');
+                    }
+                },
+                error: function (xhr) {
+                    var errorMsg = 'Server xatoligi yuz berdi';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    $('#supplierError').text(errorMsg).show();
+                    $('#saveSupplierBtn').prop('disabled', false).html('<span class="d-none d-sm-block">Saqlash</span>');
+                }
+            });
+        }
+
+        function deleteSupplier(id, name) {
+            if (!confirm('"' + name + '" ta\'minotchini o\'chirishni tasdiqlaysizmi?')) {
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Supplier")',
+                type: 'POST',
+                data: { id: id, __RequestVerificationToken: token },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Xatolik: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Server xatoligi yuz berdi');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            // Add supplier button click handler - ensure it works
+            var addBtn = $('#addSupplierBtn');
+            if (addBtn.length > 0) {
+                // Remove any existing handlers
+                addBtn.off('click');
+                
+                // Add new handler
+                addBtn.on('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if ($(this).prop('disabled')) {
+                        alert('Ruxsat yo\'q. Iltimos, administratorga murojaat qiling.');
+                        return false;
+                    }
+                    
+                    try {
+                        openCreateModal();
+                    } catch (err) {
+                        console.error('Error opening modal:', err);
+                        alert('Modal ochishda xatolik yuz berdi. Qayta urinib ko\'ring.');
+                    }
+                    return false;
+                });
+                
+                // Also use delegated event as backup
+                $(document).off('click', '#addSupplierBtn').on('click', '#addSupplierBtn', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if ($(this).prop('disabled')) {
+                        return false;
+                    }
+                    
+                    try {
+                        openCreateModal();
+                    } catch (err) {
+                        console.error('Error opening modal:', err);
+                    }
+                    return false;
+                });
+            } else {
+                console.warn('Add Supplier button not found!');
+            }
+
+            $('#suppliersTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]]
+            });
+
+            // Reset form when modal is closed
+            $('#supplierModal').on('hidden.bs.modal', function () {
+                $('#supplierForm')[0].reset();
+                $('#supplierError').hide();
+                $('#saveSupplierBtn').prop('disabled', false).html('<span class="d-none d-sm-block">Saqlash</span>');
+            });
+        });
     </script>
 }
 else

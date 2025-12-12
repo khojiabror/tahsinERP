@@ -12,7 +12,7 @@ namespace tahsinERP.Controllers
         public ActionResult Index()
         {
             var userEmail = User.Identity.Name;
-            if (CookieHelper.IsConfirmed(userEmail) == false)
+            if (CookieHelper.IsConfirmed(userEmail, HttpContext) == false)
             {
                 Session["HasSeenCookieConsent"] = true;
                 ViewBag.ShowCookieConsent = true;
@@ -41,13 +41,24 @@ namespace tahsinERP.Controllers
 
                     var data = query.OrderBy(x => x.PeriodStartDate).ThenBy(x => x.SortOrder).ToList();
                     
+                    // Ma'lumotlarni memory'ga yuklab, keyin formatlash
                     var result = data.GroupBy(x => new { x.Year, x.Month, x.PeriodStartDate })
                         .Select(g => new
                         {
-                            period = g.Key.PeriodStartDate?.ToString("yyyy-MM") ?? $"{g.Key.Year}-{g.Key.Month:D2}",
+                            Year = g.Key.Year,
+                            Month = g.Key.Month,
+                            PeriodStartDate = g.Key.PeriodStartDate,
                             plan = g.Sum(x => (double?)x.AmountPlan) ?? 0,
                             fact = g.Sum(x => (double?)x.AmountFact) ?? 0,
                             delta = g.Sum(x => (double?)x.Delta) ?? 0
+                        })
+                        .ToList()
+                        .Select(g => new
+                        {
+                            period = g.PeriodStartDate?.ToString("yyyy-MM") ?? string.Format("{0}-{1:D2}", g.Year, g.Month),
+                            plan = g.plan,
+                            fact = g.fact,
+                            delta = g.delta
                         }).ToList();
 
                     return Json(result, JsonRequestBehavior.AllowGet);
@@ -171,13 +182,23 @@ namespace tahsinERP.Controllers
                     if (toDate.HasValue)
                         query = query.Where(x => x.IssuedDate <= toDate.Value);
 
+                    // Avval ma'lumotlarni memory'ga yuklash
                     var data = query
                         .GroupBy(x => new { Year = x.IssuedDate.Year, Month = x.IssuedDate.Month })
                         .Select(g => new
                         {
-                            period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                            Year = g.Key.Year,
+                            Month = g.Key.Month,
                             orderCount = g.Count(),
                             totalAmount = g.Sum(x => (double?)x.Amount) ?? 0
+                        })
+                        .ToList()
+                        // Keyin string formatlash (memory'da)
+                        .Select(g => new
+                        {
+                            period = string.Format("{0}-{1:D2}", g.Year, g.Month),
+                            orderCount = g.orderCount,
+                            totalAmount = g.totalAmount
                         })
                         .OrderBy(x => x.period)
                         .ToList();
@@ -234,13 +255,23 @@ namespace tahsinERP.Controllers
                     if (toDate.HasValue)
                         query = query.Where(x => x.StartDate <= toDate.Value);
 
+                    // Avval ma'lumotlarni memory'ga yuklash
                     var data = query
                         .GroupBy(x => new { Year = x.StartDate.Year, Month = x.StartDate.Month })
                         .Select(g => new
                         {
-                            period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                            Year = g.Key.Year,
+                            Month = g.Key.Month,
                             planCount = g.Count(),
                             totalQuantity = g.Sum(x => (double?)x.Amount) ?? 0
+                        })
+                        .ToList()
+                        // Keyin string formatlash (memory'da)
+                        .Select(g => new
+                        {
+                            period = string.Format("{0}-{1:D2}", g.Year, g.Month),
+                            planCount = g.planCount,
+                            totalQuantity = g.totalQuantity
                         })
                         .OrderBy(x => x.period)
                         .ToList();
@@ -262,10 +293,9 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Add HR-specific statistics based on available tables
-                    var totalEmployees = 0; // Adjust based on HR tables
-                    var activeEmployees = 0;
-                    var totalDepartments = 0;
+                    var totalEmployees = db.HR_EMPLOYEES.Count();
+                    var activeEmployees = db.HR_EMPLOYEES.Count(e => e.IsActive);
+                    var totalDepartments = db.HR_ORG_UNITS.Count(d => d.IsActive);
 
                     return Json(new
                     {
@@ -289,10 +319,10 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Add Tasks-specific statistics based on available tables
-                    var totalTasks = 0;
-                    var completedTasks = 0;
-                    var pendingTasks = 0;
+                    var totalTasks = db.APP_TASKS.Count(t => t.IsDeleted == false);
+                    var completedTasks = db.APP_TASKS.Count(t => t.IsDeleted == false && 
+                        t.APP_TASK_STATUS_REF != null && t.APP_TASK_STATUS_REF.Code == "DONE");
+                    var pendingTasks = totalTasks - completedTasks;
 
                     return Json(new
                     {
@@ -316,9 +346,12 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Add Documents-specific statistics based on available tables
-                    var totalDocuments = 0;
-                    var recentDocuments = 0;
+                    // Date'ni query'dan tashqarida hisoblash
+                    var oneMonthAgo = DateTime.Now.AddMonths(-1);
+                    
+                    var totalDocuments = db.DOC_DOCUMENTS.Count();
+                    var recentDocuments = db.DOC_DOCUMENTS.Count(d => 
+                        d.CreatedDT >= oneMonthAgo);
 
                     return Json(new
                     {
@@ -337,7 +370,7 @@ namespace tahsinERP.Controllers
             try
             {
                 var userEmail = User.Identity.Name;
-                CookieHelper.Confirm(userEmail);
+                CookieHelper.Confirm(userEmail, HttpContext);
 
                 return Json(new { success = true });
             }

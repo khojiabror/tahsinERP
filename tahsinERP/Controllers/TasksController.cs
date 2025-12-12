@@ -20,6 +20,19 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            // Oddiy user uchun faqat o'z tasklarini ko'rsatish
+            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
+                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+            
+            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            if (!isAdminOrDeveloper)
+            {
+                // Oddiy user - faqat o'z tasklarini ko'rsatish
+                assigneeUserID = currentUserId;
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.APP_TASKS
@@ -154,6 +167,13 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            // Oddiy user uchun faqat o'z tasklarini ko'rish
+            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
+                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var task = await db.APP_TASKS
@@ -165,6 +185,13 @@ namespace tahsinERP.Controllers
                 if (task == null)
                 {
                     return HttpNotFound();
+                }
+
+                // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
+                if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                {
+                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
+                    return RedirectToAction("Index");
                 }
 
                 var viewModel = new TaskViewModel
@@ -322,12 +349,26 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            // Oddiy user uchun faqat o'z tasklarini tahrirlash
+            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
+                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var task = await db.APP_TASKS.FindAsync(id);
                 if (task == null || task.IsDeleted)
                 {
                     return HttpNotFound();
+                }
+
+                // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
+                if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                {
+                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
+                    return RedirectToAction("Index");
                 }
 
                 var viewModel = new TaskViewModel
@@ -364,6 +405,13 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            // Oddiy user uchun faqat o'z tasklarini tahrirlash
+            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
+                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -374,13 +422,26 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
+                    // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
+                    if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                    {
+                        TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
+                        return RedirectToAction("Index");
+                    }
+
                     try
                     {
                         task.Title = viewModel.Title;
                         task.Description = viewModel.Description;
                         task.StatusID = viewModel.StatusID;
                         task.PriorityID = viewModel.PriorityID;
-                        task.AssigneeUserID = viewModel.AssigneeUserID;
+                        
+                        // Oddiy user faqat statusni o'zgartira oladi, assignee'ni emas
+                        if (isAdminOrDeveloper)
+                        {
+                            task.AssigneeUserID = viewModel.AssigneeUserID;
+                        }
+                        
                         task.DueDate = viewModel.DueDate;
                         task.ProjectID = viewModel.ProjectID;
                         task.UpdatedDT = DateTime.Now;

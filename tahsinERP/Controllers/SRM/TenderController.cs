@@ -20,13 +20,11 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Get purchasable materials
+                // Get purchasable materials - only where IsFinishedGood == false
                 var materials = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();

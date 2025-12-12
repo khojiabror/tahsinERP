@@ -1,0 +1,266 @@
+@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
+@{
+    ViewBag.Title = "Ishbay tabelni tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int daysInMonth = DateTime.DaysInMonth(Model.Year, Model.Month);
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Ishbay tabel @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month) @Model.Year</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ishbay tabel</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="importFromProduction()">
+                                <i class="bx bx-import"></i> Ishlab chiqarishdan import qilish
+                            </button>
+                            @if (Model.Status == "Draft")
+                            {
+                                <a href="@Url.Action("Approve", new { id = Model.ID })" class="btn btn-sm btn-warning" onclick="return confirm('Tabelni tasdiqlash?');">
+                                    <i class="bx bx-check"></i> Tasdiqlash
+                                </a>
+                            }
+                        </div>
+                        <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Closed" ? "info" : "warning") ml-2">
+                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                <table class="table table-bordered table-striped" id="timesheetGrid">
+                                    <thead class="thead-light" style="position: sticky; top: 0; z-index: 10; background: white;">
+                                        <tr>
+                                            <th rowspan="2" style="min-width: 50px;">№</th>
+                                            <th rowspan="2" style="min-width: 80px;">Tab.№</th>
+                                            <th rowspan="2" style="min-width: 200px;">F.I.O.</th>
+                                            <th rowspan="2" style="min-width: 150px;">Lavozim</th>
+                                            <th rowspan="2" style="min-width: 150px;">Maxsulot</th>
+                                            <th colspan="@daysInMonth" style="text-align: center;">Oy kunlari</th>
+                                            <th rowspan="2" style="min-width: 80px;">Jami miqdor</th>
+                                        </tr>
+                                        <tr>
+                                            @for (int day = 1; day <= daysInMonth; day++)
+                                            {
+                                                <th style="min-width: 50px; text-align: center;">@day</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int rowNum = 1; }
+                                        @foreach (var line in Model.Lines)
+                                        {
+                                            <tr data-employee-id="@line.EmployeeID">
+                                                <td>@rowNum</td>
+                                                <td>@line.EmployeeTabNo</td>
+                                                <td>@line.EmployeeFullName</td>
+                                                <td>@line.PositionName</td>
+                                                <td>
+                                                    @Html.DropDownList("ProductID_" + line.ID, 
+                                                        ViewBag.FinishedGoods as SelectList, 
+                                                        "Maxsulotni tanlang", 
+                                                        new { 
+                                                            @class = "form-control form-control-sm piece-rate-product", 
+                                                            @data_line_id = line.ID,
+                                                            @data_employee_id = line.EmployeeID,
+                                                            @disabled = Model.Status != "Draft" ? "disabled" : null
+                                                        })
+                                                </td>
+                                                @for (int day = 1; day <= daysInMonth; day++)
+                                                {
+                                                    var quantityPropertyName = $"Day{day:D2}Quantity";
+                                                    var quantityProperty = typeof(tahsinERP.ViewModels.HR.HrTimesheetLineViewModel).GetProperty(quantityPropertyName);
+                                                    var quantity = quantityProperty?.GetValue(line) as decimal?;
+                                                    <td>
+                                                        <input type="number" 
+                                                               class="form-control form-control-sm day-quantity" 
+                                                               data-line-id="@line.ID" 
+                                                               data-day="@day"
+                                                               data-employee-id="@line.EmployeeID"
+                                                               value="@(quantity?.ToString("F2") ?? "0")" 
+                                                               step="0.01" 
+                                                               min="0"
+                                                               placeholder="Miqdor"
+                                                               style="width: 60px; text-align: center;"
+                                                               @(Model.Status != "Draft" ? "readonly" : "") />
+                                                    </td>
+                                                }
+                                                <td class="total-quantity">@(line.TotalQuantity?.ToString("F2") ?? "0")</td>
+                                            </tr>
+                                            rowNum++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #timesheetGrid {
+            font-size: 12px;
+        }
+        #timesheetGrid th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        #timesheetGrid .day-quantity {
+            padding: 2px 4px;
+        }
+        #timesheetGrid .day-quantity:focus {
+            background-color: #fff3cd;
+        }
+        #timesheetGrid tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        #timesheetGrid tbody tr.table-active {
+            background-color: #cfe2ff;
+        }
+    </style>
+
+    <script>
+        var timesheetId = @Model.ID;
+        var daysInMonth = @daysInMonth;
+
+        $(document).ready(function() {
+            // Handle quantity input changes
+            $('.day-quantity').on('change blur', function() {
+                var $input = $(this);
+                var lineId = $input.data('line-id');
+                var day = $input.data('day');
+                var quantity = parseFloat($input.val()) || 0;
+
+                if (quantity < 0) quantity = 0;
+                $input.val(quantity.toFixed(2));
+
+                // Get product ID from dropdown
+                var $row = $input.closest('tr');
+                var productId = $row.find('.piece-rate-product').val();
+
+                // Update via AJAX
+                $.post('@Url.Action("UpdateQuantity", "HrPieceRateTimesheets")', {
+                    lineId: lineId,
+                    day: day,
+                    quantity: quantity,
+                    productId: productId
+                }, function(result) {
+                    if (result.success) {
+                        // Recalculate row totals
+                        recalculateRow($row);
+                    } else {
+                        alert('Xatolik: ' + result.message);
+                    }
+                });
+            });
+
+            // Handle product selection change
+            $('.piece-rate-product').on('change', function() {
+                var $select = $(this);
+                var lineId = $select.data('line-id');
+                var productId = $select.val();
+
+                if (productId) {
+                    // Update product ID for all days
+                    $.post('@Url.Action("UpdateQuantity", "HrPieceRateTimesheets")', {
+                        lineId: lineId,
+                        day: 1,
+                        quantity: null,
+                        productId: productId
+                    }, function(result) {
+                        if (!result.success) {
+                            alert('Xatolik: ' + result.message);
+                        }
+                    });
+                }
+            });
+
+            // Select row on click
+            $('#timesheetGrid tbody tr').on('click', function(e) {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+                    $(this).toggleClass('table-active');
+                }
+            });
+        });
+
+        function recalculateRow($row) {
+            var totalQuantity = 0;
+
+            // Calculate total quantity
+            $row.find('.day-quantity').each(function() {
+                var quantity = parseFloat($(this).val()) || 0;
+                if (quantity > 0) {
+                    totalQuantity += quantity;
+                }
+            });
+
+            $row.find('.total-quantity').text(totalQuantity.toFixed(2));
+        }
+
+        function importFromProduction() {
+            var selectedRows = $('#timesheetGrid tbody tr.table-active');
+            if (selectedRows.length === 0) {
+                alert('Iltimos, kamida bitta xodimni tanlang');
+                return;
+            }
+
+            if (!confirm('Tanlangan xodimlar uchun ishlab chiqarish ma\'lumotlarini import qilishni xohlaysizmi?')) {
+                return;
+            }
+
+            selectedRows.each(function() {
+                var employeeId = $(this).data('employee-id');
+                $.post('@Url.Action("ImportFromProduction", "HrPieceRateTimesheets")', {
+                    timesheetId: timesheetId,
+                    employeeId: employeeId,
+                    year: @Model.Year,
+                    month: @Model.Month
+                }, function(result) {
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert('Xatolik: ' + result.message);
+                    }
+                });
+            });
+        }
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

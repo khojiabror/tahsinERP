@@ -230,9 +230,22 @@
             @if (ViewBag.ShowCookieConsent)
             {
                 <script>
-                    $(document).ready(function () {
-                        $("#cookieConsent").modal('show');
-                    });
+                    (function() {
+                        function showCookieConsent() {
+                            if (typeof jQuery !== 'undefined') {
+                                jQuery(document).ready(function () {
+                                    jQuery("#cookieConsent").modal('show');
+                                });
+                            } else {
+                                setTimeout(showCookieConsent, 100);
+                            }
+                        }
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', showCookieConsent);
+                        } else {
+                            showCookieConsent();
+                        }
+                    })();
                 </script>
             }
         </div>
@@ -244,12 +257,23 @@
 <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
 <!-- END: Page Vendor JS-->
 <!-- BEGIN: Page JS-->
-<script src="~/app-assets/js/scripts/pages/dashboard-ecommerce.js"></script>
+<!-- dashboard-ecommerce.js o'chirildi - o'z chart kodlarimiz ishlatilmoqda va bu fayl jQuery xatosiga sabab bo'lmoqda -->
+<!-- <script src="~/app-assets/js/scripts/pages/dashboard-ecommerce.js"></script> -->
 <!-- END: Page JS-->
 
 <script>
-    $(window).on("load", function () {
-        var $primary = '#5A8DEE';
+    // jQuery yuklanguncha kutish
+    (function() {
+        function initCharts() {
+            if (typeof jQuery === 'undefined' || typeof ApexCharts === 'undefined') {
+                setTimeout(initCharts, 100);
+                return;
+            }
+            
+            var $ = jQuery;
+            
+            $(window).on("load", function () {
+                var $primary = '#5A8DEE';
         var $danger = '#FF5B5C';
         var $warning = '#FDAC41';
         var $info = '#00CFDD';
@@ -558,5 +582,14 @@
                 $('#finance-total').text(total.toLocaleString());
             }
         });
-    });
+            });
+        }
+        
+        // DOM yuklangandan keyin ishga tushirish
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initCharts);
+        } else {
+            initCharts();
+        }
+    })();
 </script>

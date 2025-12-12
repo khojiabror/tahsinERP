@@ -33,10 +33,20 @@
                         <div class="card">
                             <div class="card-body">
                                 <form method="get" action="@Url.Action("Index")" class="row">
-                                    <div class="col-md-6">
-                                        <label>Foydalanuvchi</label>
-                                        @Html.DropDownList("userId", ViewBag.UserID as SelectList, "Barcha foydalanuvchilar", new { @class = "form-control", @onchange = "this.form.submit()" })
-                                    </div>
+                                    @if (ViewBag.IsAdminOrDeveloper == true)
+                                    {
+                                        <div class="col-md-6">
+                                            <label>Foydalanuvchi</label>
+                                            @Html.DropDownList("userId", ViewBag.UserID as SelectList, "Barcha foydalanuvchilar", new { @class = "form-control", @onchange = "this.form.submit()" })
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-md-6">
+                                            <label>Foydalanuvchi</label>
+                                            <input type="text" class="form-control" value="@Model.UserName" readonly />
+                                        </div>
+                                    }
                                     <div class="col-md-6">
                                         <label>&nbsp;</label>
                                         <div>
@@ -204,182 +214,241 @@
             </div>
         </div>
     </div>
-
-    <!-- ApexCharts Script -->
-    <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Status Pie Chart
-            var statusData = [
-                @foreach (var stat in Model.StatusStatistics)
-                {
-                    <text>
-                    {
-                        name: '@stat.StatusName',
-                        value: @stat.Count
-                    },
-                    </text>
-                }
-            ];
-
-            var statusPieOptions = {
-                chart: {
-                    type: 'pie',
-                    height: 350
-                },
-                labels: [
-                    @foreach (var stat in Model.StatusStatistics)
-                    {
-                        <text>'@stat.StatusName (@stat.Count)',</text>
-                    }
-                ],
-                series: [
-                    @foreach (var stat in Model.StatusStatistics)
-                    {
-                        <text>@stat.Count,</text>
-                    }
-                ],
-                colors: ['#5A8DEE', '#39DA8A', '#FF5B5C', '#FDAC41', '#00CFDD'],
-                legend: {
-                    position: 'bottom'
-                },
-                responsive: [{
-                    breakpoint: 480,
-                    options: {
-                        chart: {
-                            width: 200
-                        },
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }]
-            };
-
-            var statusPieChart = new ApexCharts(document.querySelector("#statusPieChart"), statusPieOptions);
-            statusPieChart.render();
-
-            // Priority Bar Chart
-            var priorityCategories = [
-                @foreach (var stat in Model.PriorityStatistics)
-                {
-                    <text>'@stat.PriorityName',</text>
-                }
-            ];
-
-            var priorityBarOptions = {
-                chart: {
-                    type: 'bar',
-                    height: 350
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '55%',
-                        endingShape: 'rounded'
-                    }
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    show: true,
-                    width: 2,
-                    colors: ['transparent']
-                },
-                series: [{
-                    name: 'Jami',
-                    data: [
-                        @foreach (var stat in Model.PriorityStatistics)
-                        {
-                            <text>@stat.TotalCount,</text>
-                        }
-                    ]
-                }, {
-                    name: 'Bajarildi',
-                    data: [
-                        @foreach (var stat in Model.PriorityStatistics)
-                        {
-                            <text>@stat.DoneCount,</text>
-                        }
-                    ]
-                }],
-                xaxis: {
-                    categories: priorityCategories
-                },
-                yaxis: {
-                    title: {
-                        text: 'Vazifalar soni'
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                colors: ['#5A8DEE', '#39DA8A'],
-                legend: {
-                    position: 'top'
-                }
-            };
-
-            var priorityBarChart = new ApexCharts(document.querySelector("#priorityBarChart"), priorityBarOptions);
-            priorityBarChart.render();
-
-            // Priority Stacked Chart
-            var priorityStackedOptions = {
-                chart: {
-                    type: 'bar',
-                    height: 400,
-                    stacked: true,
-                    stackType: '100%'
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false
-                    }
-                },
-                series: [{
-                    name: 'Rejada',
-                    data: [
-                        @foreach (var stat in Model.PriorityStatistics)
-                        {
-                            <text>@stat.TodoCount,</text>
-                        }
-                    ]
-                }, {
-                    name: 'Jarayonda',
-                    data: [
-                        @foreach (var stat in Model.PriorityStatistics)
-                        {
-                            <text>@stat.InProgressCount,</text>
-                        }
-                    ]
-                }, {
-                    name: 'Bajarildi',
-                    data: [
-                        @foreach (var stat in Model.PriorityStatistics)
-                        {
-                            <text>@stat.DoneCount,</text>
-                        }
-                    ]
-                }],
-                xaxis: {
-                    categories: priorityCategories
-                },
-                colors: ['#00CFDD', '#FDAC41', '#39DA8A'],
-                legend: {
-                    position: 'top'
-                },
-                fill: {
-                    opacity: 1
-                }
-            };
-
-            var priorityStackedChart = new ApexCharts(document.querySelector("#priorityStackedChart"), priorityStackedOptions);
-            priorityStackedChart.render();
-        });
-    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
+    <!-- ApexCharts Script -->
+    <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            console.log('Task Dashboard script loaded');
+            
+            // Check if jQuery is loaded
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded!');
+                document.getElementById('statusPieChart').innerHTML = '<p class="text-center text-danger">jQuery kutubxonasi yuklanmagan!</p>';
+                return;
+            }
+            
+            // Check if ApexCharts is loaded
+            if (typeof ApexCharts === 'undefined') {
+                console.error('ApexCharts library is not loaded!');
+                $('#statusPieChart, #priorityBarChart, #priorityStackedChart').html('<p class="text-center text-danger">ApexCharts kutubxonasi yuklanmagan!</p>');
+                return;
+            }
+            
+            console.log('ApexCharts loaded successfully');
+
+            // Status Pie Chart
+            @if (Model.StatusStatistics != null && Model.StatusStatistics.Any())
+            {
+                <text>
+                var statusLabels = [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        var label = stat.StatusName + " (" + stat.Count + ")";
+                        <text>'@label.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                var statusSeries = [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        <text>@stat.Count,</text>
+                    }
+                ];
+
+                console.log('Status Labels:', statusLabels);
+                console.log('Status Series:', statusSeries);
+
+                var statusPieOptions = {
+                    chart: {
+                        type: 'pie',
+                        height: 350
+                    },
+                    labels: statusLabels,
+                    series: statusSeries,
+                    colors: ['#5A8DEE', '#39DA8A', '#FF5B5C', '#FDAC41', '#00CFDD'],
+                    legend: {
+                        position: 'bottom'
+                    },
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: 200
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                };
+
+                try {
+                    var statusPieChart = new ApexCharts(document.querySelector("#statusPieChart"), statusPieOptions);
+                    statusPieChart.render();
+                    console.log('Status Pie Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Status Pie Chart:', e);
+                    document.querySelector("#statusPieChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No status statistics available');
+                document.querySelector("#statusPieChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                </text>
+            }
+
+            // Priority Bar Chart
+            @if (Model.PriorityStatistics != null && Model.PriorityStatistics.Any())
+            {
+                <text>
+                var priorityCategories = [
+                    @foreach (var stat in Model.PriorityStatistics)
+                    {
+                        <text>'@stat.PriorityName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+
+                var priorityBarOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: 350
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: 'Jami',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.TotalCount,</text>
+                            }
+                        ]
+                    }, {
+                        name: 'Bajarildi',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.DoneCount,</text>
+                            }
+                        ]
+                    }],
+                    xaxis: {
+                        categories: priorityCategories
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Vazifalar soni'
+                        }
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    colors: ['#5A8DEE', '#39DA8A'],
+                    legend: {
+                        position: 'top'
+                    }
+                };
+
+                try {
+                    var priorityBarChart = new ApexCharts(document.querySelector("#priorityBarChart"), priorityBarOptions);
+                    priorityBarChart.render();
+                    console.log('Priority Bar Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Priority Bar Chart:', e);
+                    document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+
+                // Priority Stacked Chart
+                var priorityStackedOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: 400,
+                        stacked: true,
+                        stackType: '100%'
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false
+                        }
+                    },
+                    series: [{
+                        name: 'Rejada',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.TodoCount,</text>
+                            }
+                        ]
+                    }, {
+                        name: 'Jarayonda',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.InProgressCount,</text>
+                            }
+                        ]
+                    }, {
+                        name: 'Bajarildi',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.DoneCount,</text>
+                            }
+                        ]
+                    }],
+                    xaxis: {
+                        categories: priorityCategories
+                    },
+                    colors: ['#00CFDD', '#FDAC41', '#39DA8A'],
+                    legend: {
+                        position: 'top'
+                    },
+                    fill: {
+                        opacity: 1
+                    }
+                };
+
+                try {
+                    var priorityStackedChart = new ApexCharts(document.querySelector("#priorityStackedChart"), priorityStackedOptions);
+                    priorityStackedChart.render();
+                    console.log('Priority Stacked Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Priority Stacked Chart:', e);
+                    document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No priority statistics available');
+                document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                </text>
+            }
+        });
+    </script>
 }

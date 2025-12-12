@@ -95,8 +95,13 @@ namespace tahsinERP.Controllers.MES
 
                 // Get actual production data for comparison
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
-                var actualProductions = db.PRODUCT_PRODUCTION
-                    .Where(p => p.ProductID == plan.ProductID && planDates.Contains(p.Date.Date))
+                // Load production data first, then filter in memory
+                var allProductions = db.PRODUCT_PRODUCTION
+                    .Where(p => p.ProductID == plan.ProductID)
+                    .ToList();
+
+                var actualProductions = allProductions
+                    .Where(p => planDates.Contains(p.Date.Date))
                     .GroupBy(p => p.Date.Date)
                     .Select(g => new
                     {
@@ -485,8 +490,13 @@ namespace tahsinERP.Controllers.MES
 
                 // Get actual production data
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
-                var actualProductions = db.PRODUCT_PRODUCTION
-                    .Where(p => p.ProductID == plan.ProductID && planDates.Contains(p.Date.Date))
+                // Load production data first, then filter in memory
+                var allProductions = db.PRODUCT_PRODUCTION
+                    .Where(p => p.ProductID == plan.ProductID)
+                    .ToList();
+
+                var actualProductions = allProductions
+                    .Where(p => planDates.Contains(p.Date.Date))
                     .GroupBy(p => p.Date.Date)
                     .Select(g => new
                     {

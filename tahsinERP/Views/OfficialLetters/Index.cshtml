@@ -74,9 +74,11 @@
                                                     <label>Yo'nalish</label>
                                                     @Html.DropDownList("directionCode", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
                                                 </div>
-                                                <div class="col-12 col-sm-6 col-lg-1">
+                                                <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>&nbsp;</label>
-                                                    <button type="submit" class="btn btn-primary btn-block">Qidirish</button>
+                                                    <button type="submit" class="btn btn-primary btn-block">
+                                                        <i class="bx bx-search"></i> Qidirish
+                                                    </button>
                                                 </div>
                                             </div>
                                         </form>
@@ -126,9 +128,12 @@
                                                                             <i class="bx bx-trash"></i>
                                                                         </button>
                                                                     }
-                                                                    <a href="@Url.Action("GenerateDoc", new { id = item.DocumentId })" class="btn btn-sm btn-success" title="Hujjat yaratish" onclick="return confirm('Hujjat yaratilsinmi?');">
-                                                                        <i class="bx bx-file"></i>
-                                                                    </a>
+                                                                    <form method="post" action="@Url.Action("GenerateDoc", "OfficialLetters", new { id = item.DocumentId })" style="display:inline;" onsubmit="return confirm('Hujjat yaratilsinmi?');">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-success" title="Hujjat yaratish">
+                                                                            <i class="bx bx-file"></i>
+                                                                        </button>
+                                                                    </form>
                                                                 }
                                                             </td>
                                                         </tr>
@@ -153,7 +158,14 @@
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
                 },
                 "order": [[1, "desc"]],
-                "pageLength": 25
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "paging": true,
+                "pagingType": "full_numbers",
+                "info": true,
+                "searching": true,
+                "responsive": true,
+                "dom": '<"top"lf>rt<"bottom"ip><"clear">'
             });
         });
     </script>

@@ -179,13 +179,17 @@
     <script>
         $(document).ready(function() {
             $('#btnSuggestText').click(function() {
-                var directionCode = $('#DirectionCode').val();
-                var externalCompanyName = $('#ExternalCompanyName').val();
-                var externalContactName = $('#ExternalContactName').val();
-                var topic = $('#TopicInput').val();
-                var letterDate = $('#LetterDate').val();
-                var ourRefNo = $('#OurRefNo').val();
-                var theirRefNo = $('#TheirRefNo').val();
+                var $btn = $(this);
+                var originalText = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
+
+                var directionCode = $('#DirectionCode').val() || 'OUT';
+                var externalCompanyName = $('#ExternalCompanyName').val() || '';
+                var externalContactName = $('#ExternalContactName').val() || '';
+                var topic = $('#TopicInput').val() || '';
+                var letterDate = $('#LetterDate').val() || null;
+                var ourRefNo = $('#OurRefNo').val() || '';
+                var theirRefNo = $('#TheirRefNo').val() || '';
 
                 $.ajax({
                     url: '@Url.Action("SuggestText", "OfficialLetters")',
@@ -200,17 +204,21 @@
                         theirRefNo: theirRefNo
                     },
                     success: function(response) {
-                        if (response.success) {
+                        if (response && response.success) {
                             $('#BodyTextArea').val(response.text);
                             if (externalContactName) {
                                 $('#GreetingInput').val('Hurmatli ' + externalContactName + '!');
                             }
                         } else {
-                            alert('Xatolik: ' + response.error);
+                            alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
                         }
                     },
-                    error: function() {
-                        alert('Xatolik yuz berdi');
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        alert('Xatolik yuz berdi: ' + error);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalText);
                     }
                 });
             });
