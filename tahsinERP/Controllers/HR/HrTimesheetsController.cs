@@ -36,8 +36,21 @@ namespace tahsinERP.Controllers.HR
             year = year ?? DateTime.Now.Year;
             month = month ?? DateTime.Now.Month;
 
+            // Get only hourly employees (non-piece-rate)
+            var hourlyPositionIds = await db.HR_STAFFING_PLAN
+                .Where(sp => sp.IsActive && sp.IsPieceRate == false)
+                .Select(sp => sp.PositionID)
+                .Distinct()
+                .ToListAsync();
+
+            var hourlyEmployeeIds = await db.HR_EMPLOYEES
+                .Where(e => e.IsActive && (e.PositionID == null || hourlyPositionIds.Contains(e.PositionID ?? 0)))
+                .Select(e => e.ID)
+                .ToListAsync();
+
             IQueryable<HR_TIMESHEET_HEADERS> query = db.HR_TIMESHEET_HEADERS
-                .Include(t => t.HR_ORG_UNITS);
+                .Include(t => t.HR_ORG_UNITS)
+                .Where(t => t.HR_TIMESHEET_LINES.Any(l => hourlyEmployeeIds.Contains(l.EmployeeID)));
 
             if (year.HasValue)
             {
@@ -900,6 +913,149 @@ namespace tahsinERP.Controllers.HR
             ViewBag.OrgUnitID = new SelectList(
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name", viewModel.OrgUnitID);
+        }
+
+        // GET: HR/Timesheets/CreateSimple
+        public async Task<ActionResult> CreateSimple()
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Get active employees
+            ViewBag.EmployeeID = new SelectList(
+                await db.HR_EMPLOYEES.Where(e => e.IsActive).OrderBy(e => e.FullName).ToListAsync(),
+                "ID", "FullName");
+
+            // Get finished goods
+            ViewBag.ProductID = new SelectList(
+                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                    .OrderBy(p => p.PNo).ToListAsync(),
+                "ID", "PNo");
+
+            // Get operations
+            ViewBag.OperationID = new SelectList(
+                await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
+                "ID", "Name");
+
+            return View();
+        }
+
+        // POST: HR/Timesheets/CreateSimple
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CreateSimple(int EmployeeID, int ProductID, int OperationID, DateTime WorkDate, decimal Quantity, string Notes)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            try
+            {
+                var workEntry = new HR_PIECE_RATE_WORK_ENTRIES
+                {
+                    EmployeeID = EmployeeID,
+                    ProductID = ProductID,
+                    OperationID = OperationID,
+                    WorkDate = WorkDate,
+                    Quantity = Quantity,
+                    Notes = Notes,
+                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                    CreatedDT = DateTime.Now
+                };
+
+                db.HR_PIECE_RATE_WORK_ENTRIES.Add(workEntry);
+                await db.SaveChangesAsync();
+
+                logger.Log("HrTimesheets", "CreateSimple", $"EntryID: {workEntry.ID}, EmployeeID: {EmployeeID}, ProductID: {ProductID}, OperationID: {OperationID}, Quantity: {Quantity}");
+
+                TempData["Success"] = "Ishbay ma'lumotlari muvaffaqiyatli kiritildi.";
+                return RedirectToAction("CreateSimple");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+
+                // Repopulate ViewBags
+                ViewBag.EmployeeID = new SelectList(
+                    await db.HR_EMPLOYEES.Where(e => e.IsActive).OrderBy(e => e.FullName).ToListAsync(),
+                    "ID", "FullName", EmployeeID);
+
+                ViewBag.ProductID = new SelectList(
+                    await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                        .OrderBy(p => p.PNo).ToListAsync(),
+                    "ID", "PNo", ProductID);
+
+                ViewBag.OperationID = new SelectList(
+                    await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
+                    "ID", "Name", OperationID);
+
+                return View();
+            }
+        }
+
+        // GET: HR/Timesheets/Delete/5
+        public async Task<ActionResult> Delete(int? id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var timesheet = await db.HR_TIMESHEET_HEADERS
+                .Include(t => t.HR_ORG_UNITS)
+                .FirstOrDefaultAsync(t => t.ID == id);
+
+            if (timesheet == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(timesheet);
+        }
+
+        // POST: HR/Timesheets/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteConfirmed(int id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var timesheet = await db.HR_TIMESHEET_HEADERS.FindAsync(id);
+            if (timesheet == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Check if timesheet is approved or closed - cannot delete
+            if (timesheet.Status == "Approved" || timesheet.Status == "Closed")
+            {
+                TempData["Error"] = "Tasdiqlangan yoki yopilgan tabelni o'chirib bo'lmaydi";
+                return RedirectToAction("Index");
+            }
+
+            // Delete timesheet lines first
+            var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
+            foreach (var line in lines)
+            {
+                db.HR_TIMESHEET_LINES.Remove(line);
+            }
+
+            db.HR_TIMESHEET_HEADERS.Remove(timesheet);
+            await db.SaveChangesAsync();
+
+            logger.Log("HrTimesheets", "Delete", $"ID: {id}");
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)

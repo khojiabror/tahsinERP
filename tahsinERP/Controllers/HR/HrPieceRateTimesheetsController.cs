@@ -74,6 +74,14 @@ namespace tahsinERP.Controllers.HR
 
             var timesheets = await query.OrderByDescending(t => t.Year).ThenByDescending(t => t.Month).ToListAsync();
 
+            // Calculate piece-rate payroll amounts for each timesheet
+            var viewModel = timesheets.Select(t => new
+            {
+                Timesheet = t,
+                MonthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(t.Month),
+                CalculatedAmount = CalculatePieceRateAmount(t.Year, t.Month)
+            }).ToList();
+
             ViewBag.Year = year;
             ViewBag.Month = month;
             ViewBag.OrgUnitID = new SelectList(
@@ -81,7 +89,40 @@ namespace tahsinERP.Controllers.HR
                 "ID", "Name", orgUnitId);
 
             logger.Log("HrPieceRateTimesheets", "Index");
-            return View(timesheets);
+            return View(viewModel);
+        }
+
+        private decimal CalculatePieceRateAmount(int year, int month)
+        {
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            // Get all work entries for this month
+            var workEntries = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate)
+                .ToList();
+
+            decimal totalAmount = 0;
+
+            foreach (var entry in workEntries)
+            {
+                // Get tariff for this product and operation
+                var tariff = db.HR_PIECE_RATE_TARIFFS
+                    .Where(t => t.ProductID == entry.ProductID &&
+                               (t.PositionID == entry.HR_EMPLOYEES.PositionID || t.PositionID == null) &&
+                               t.IsActive &&
+                               t.EffectiveFrom <= entry.WorkDate &&
+                               (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
+                    .OrderByDescending(t => t.PositionID) // Prefer position-specific
+                    .FirstOrDefault();
+
+                if (tariff != null)
+                {
+                    totalAmount += entry.Quantity * tariff.RatePerUnit;
+                }
+            }
+
+            return totalAmount;
         }
 
         // GET: HR/PieceRateTimesheets/Create
@@ -525,6 +566,68 @@ namespace tahsinERP.Controllers.HR
             ViewBag.OrgUnitID = new SelectList(
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name", viewModel.OrgUnitID);
+        }
+
+        // GET: HR/PieceRateTimesheets/Delete/5
+        public async Task<ActionResult> Delete(int? id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var timesheet = await db.HR_TIMESHEET_HEADERS
+                .Include(t => t.HR_ORG_UNITS)
+                .FirstOrDefaultAsync(t => t.ID == id);
+
+            if (timesheet == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(timesheet);
+        }
+
+        // POST: HR/PieceRateTimesheets/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteConfirmed(int id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var timesheet = await db.HR_TIMESHEET_HEADERS.FindAsync(id);
+            if (timesheet == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Check if timesheet is approved or closed - cannot delete
+            if (timesheet.Status == "Approved" || timesheet.Status == "Closed")
+            {
+                TempData["Error"] = "Tasdiqlangan yoki yopilgan tabelni o'chirib bo'lmaydi";
+                return RedirectToAction("Index");
+            }
+
+            // Delete timesheet lines first
+            var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
+            foreach (var line in lines)
+            {
+                db.HR_TIMESHEET_LINES.Remove(line);
+            }
+
+            db.HR_TIMESHEET_HEADERS.Remove(timesheet);
+            await db.SaveChangesAsync();
+
+            logger.Log("HrPieceRateTimesheets", "Delete", $"ID: {id}");
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)

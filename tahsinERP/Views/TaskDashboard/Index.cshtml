@@ -1,0 +1,385 @@
+@model tahsinERP.ViewModels.TaskDashboardViewModel
+@{
+    ViewBag.Title = "Task Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Task Dashboard</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tasks">Tasks</a></li>
+                                    <li class="breadcrumb-item active">Dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <!-- Filters -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("Index")" class="row">
+                                    <div class="col-md-6">
+                                        <label>Foydalanuvchi</label>
+                                        @Html.DropDownList("userId", ViewBag.UserID as SelectList, "Barcha foydalanuvchilar", new { @class = "form-control", @onchange = "this.form.submit()" })
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>&nbsp;</label>
+                                        <div>
+                                            <a href="@Url.Action("Index", "Tasks")" class="btn btn-secondary">
+                                                <i class="bx bx-list-ul"></i> Barcha vazifalar
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-task primary font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserTaskCount</h3>
+                                            <span>Jami vazifalar (@Model.UserName)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-check-circle success font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserDoneCount</h3>
+                                            <span>Bajarildi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-time-five warning font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserInProgressCount</h3>
+                                            <span>Jarayonda</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-list-ul info font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserTodoCount</h3>
+                                            <span>Rejada</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Stats -->
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-calendar-x danger font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.OverdueCount</h3>
+                                            <span>Muddati o'tgan</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-time info font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.RecentTasksCount</h3>
+                                            <span>So'nggi 7 kun</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <!-- Status Pie Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Status bo'yicha taqsimot</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="statusPieChart" style="min-height: 350px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Prioritet bo'yicha taqsimot</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="priorityBarChart" style="min-height: 350px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Details Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Prioritet bo'yicha batafsil statistika</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="priorityStackedChart" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ApexCharts Script -->
+    <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Status Pie Chart
+            var statusData = [
+                @foreach (var stat in Model.StatusStatistics)
+                {
+                    <text>
+                    {
+                        name: '@stat.StatusName',
+                        value: @stat.Count
+                    },
+                    </text>
+                }
+            ];
+
+            var statusPieOptions = {
+                chart: {
+                    type: 'pie',
+                    height: 350
+                },
+                labels: [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        <text>'@stat.StatusName (@stat.Count)',</text>
+                    }
+                ],
+                series: [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        <text>@stat.Count,</text>
+                    }
+                ],
+                colors: ['#5A8DEE', '#39DA8A', '#FF5B5C', '#FDAC41', '#00CFDD'],
+                legend: {
+                    position: 'bottom'
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            var statusPieChart = new ApexCharts(document.querySelector("#statusPieChart"), statusPieOptions);
+            statusPieChart.render();
+
+            // Priority Bar Chart
+            var priorityCategories = [
+                @foreach (var stat in Model.PriorityStatistics)
+                {
+                    <text>'@stat.PriorityName',</text>
+                }
+            ];
+
+            var priorityBarOptions = {
+                chart: {
+                    type: 'bar',
+                    height: 350
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                series: [{
+                    name: 'Jami',
+                    data: [
+                        @foreach (var stat in Model.PriorityStatistics)
+                        {
+                            <text>@stat.TotalCount,</text>
+                        }
+                    ]
+                }, {
+                    name: 'Bajarildi',
+                    data: [
+                        @foreach (var stat in Model.PriorityStatistics)
+                        {
+                            <text>@stat.DoneCount,</text>
+                        }
+                    ]
+                }],
+                xaxis: {
+                    categories: priorityCategories
+                },
+                yaxis: {
+                    title: {
+                        text: 'Vazifalar soni'
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                colors: ['#5A8DEE', '#39DA8A'],
+                legend: {
+                    position: 'top'
+                }
+            };
+
+            var priorityBarChart = new ApexCharts(document.querySelector("#priorityBarChart"), priorityBarOptions);
+            priorityBarChart.render();
+
+            // Priority Stacked Chart
+            var priorityStackedOptions = {
+                chart: {
+                    type: 'bar',
+                    height: 400,
+                    stacked: true,
+                    stackType: '100%'
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false
+                    }
+                },
+                series: [{
+                    name: 'Rejada',
+                    data: [
+                        @foreach (var stat in Model.PriorityStatistics)
+                        {
+                            <text>@stat.TodoCount,</text>
+                        }
+                    ]
+                }, {
+                    name: 'Jarayonda',
+                    data: [
+                        @foreach (var stat in Model.PriorityStatistics)
+                        {
+                            <text>@stat.InProgressCount,</text>
+                        }
+                    ]
+                }, {
+                    name: 'Bajarildi',
+                    data: [
+                        @foreach (var stat in Model.PriorityStatistics)
+                        {
+                            <text>@stat.DoneCount,</text>
+                        }
+                    ]
+                }],
+                xaxis: {
+                    categories: priorityCategories
+                },
+                colors: ['#00CFDD', '#FDAC41', '#39DA8A'],
+                legend: {
+                    position: 'top'
+                },
+                fill: {
+                    opacity: 1
+                }
+            };
+
+            var priorityStackedChart = new ApexCharts(document.querySelector("#priorityStackedChart"), priorityStackedOptions);
+            priorityStackedChart.render();
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

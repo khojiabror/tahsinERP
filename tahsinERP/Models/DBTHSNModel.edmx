@@ -616,6 +616,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="ApprovedByUserID" Type="int" />
           <Property Name="ApprovedDT" Type="datetime2" Precision="7" />
           <Property Name="TimesheetID" Type="int" />
+          <Property Name="PayrollType" Type="nvarchar" MaxLength="20" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_LINES">
           <Key>
@@ -635,6 +636,21 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="CurrencyID" Type="int" />
           <Property Name="Notes" Type="nvarchar(max)" />
         </EntityType>
+        <EntityType Name="HR_PIECE_RATE_OPERATIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="ModifiedByUserID" Type="int" />
+          <Property Name="ModifiedDT" Type="datetime" />
+        </EntityType>
         <EntityType Name="HR_PIECE_RATE_TARIFFS">
           <Key>
             <PropertyRef Name="ID" />
@@ -646,6 +662,24 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.BOMS_AND_NORMS' does not have a p
           <Property Name="EffectiveFrom" Type="date" Nullable="false" />
           <Property Name="EffectiveTo" Type="date" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="ModifiedByUserID" Type="int" />
+          <Property Name="ModifiedDT" Type="datetime" />
+          <Property Name="OperationID" Type="int" />
+          <Property Name="CurrencyID" Type="int" />
+        </EntityType>
+        <EntityType Name="HR_PIECE_RATE_WORK_ENTRIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="OperationID" Type="int" Nullable="false" />
+          <Property Name="WorkDate" Type="date" Nullable="false" />
+          <Property Name="Quantity" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="Notes" Type="nvarchar" MaxLength="500" />
           <Property Name="CreatedByUserID" Type="int" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
           <Property Name="ModifiedByUserID" Type="int" />
@@ -2636,6 +2670,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_OPERATIONS" Type="Self.HR_PIECE_RATE_OPERATIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_OPERATIONS" Type="Self.HR_PIECE_RATE_OPERATIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
           <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
           <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
@@ -2648,6 +2706,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_CURRENCIES">
+          <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS">
           <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
           <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
@@ -2657,6 +2727,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="HR_PIECE_RATE_TARIFFS">
               <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_OPERATIONS">
+          <End Role="HR_PIECE_RATE_OPERATIONS" Type="Self.HR_PIECE_RATE_OPERATIONS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TARIFFS" Type="Self.HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="OperationID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2680,6 +2762,66 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_WORK_ENTRIES" Type="Self.HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES">
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="1" />
+          <End Role="HR_PIECE_RATE_WORK_ENTRIES" Type="Self.HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_WORK_ENTRIES" Type="Self.HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS">
+          <End Role="HR_PIECE_RATE_OPERATIONS" Type="Self.HR_PIECE_RATE_OPERATIONS" Multiplicity="1" />
+          <End Role="HR_PIECE_RATE_WORK_ENTRIES" Type="Self.HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="OperationID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
+          <End Role="HR_PIECE_RATE_WORK_ENTRIES" Type="Self.HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
               <PropertyRef Name="ProductID" />
             </Dependent>
           </ReferentialConstraint>
@@ -4319,7 +4461,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="HR_ORG_UNITS" EntityType="Self.HR_ORG_UNITS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_PAYROLL_HEADERS" EntityType="Self.HR_PAYROLL_HEADERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_PAYROLL_LINES" EntityType="Self.HR_PAYROLL_LINES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_PIECE_RATE_OPERATIONS" EntityType="Self.HR_PIECE_RATE_OPERATIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_PIECE_RATE_TARIFFS" EntityType="Self.HR_PIECE_RATE_TARIFFS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_PIECE_RATE_WORK_ENTRIES" EntityType="Self.HR_PIECE_RATE_WORK_ENTRIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_POSITIONS" EntityType="Self.HR_POSITIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_SALARY_GRADES" EntityType="Self.HR_SALARY_GRADES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_STAFFING_PLAN" EntityType="Self.HR_STAFFING_PLAN" Schema="dbo" store:Type="Tables" />
@@ -4767,12 +4911,28 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
             <End Role="HR_PAYROLL_LINES" EntitySet="HR_PAYROLL_LINES" />
           </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+          </AssociationSet>
           <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
           </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_CURRENCIES" Association="Self.FK_HR_PIECE_RATE_TARIFFS_CURRENCIES">
+            <End Role="CURRENCIES" EntitySet="CURRENCIES" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
           <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS">
             <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_OPERATIONS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_OPERATIONS">
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
             <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
           </AssociationSet>
           <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_POSITIONS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_POSITIONS">
@@ -4782,6 +4942,26 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" Association="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS" Association="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS">
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" Association="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
           </AssociationSet>
           <AssociationSet Name="FK_HR_STAFFING_PLAN_Grade" Association="Self.FK_HR_STAFFING_PLAN_Grade">
             <End Role="HR_SALARY_GRADES" EntitySet="HR_SALARY_GRADES" />
@@ -5418,6 +5598,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="F_WAYBILL_PAYMENT_SPLITS" Relationship="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" FromRole="CURRENCy" ToRole="F_WAYBILL_PAYMENT_SPLITS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="DBTHSNModel.FK_F_WAYBILLS_CURRENCIES" FromRole="CURRENCy" ToRole="F_WAYBILLS" />
           <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_CURRENCIES" FromRole="CURRENCy" ToRole="HR_PAYROLL_LINES" />
+          <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CURRENCIES" FromRole="CURRENCy" ToRole="HR_PIECE_RATE_TARIFFS" />
         </EntityType>
         <EntityType Name="CUSTOMER">
           <Key>
@@ -6030,6 +6211,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="QUALITY_INSPECTION" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTS" FromRole="PRODUCT" ToRole="QUALITY_INSPECTION" />
           <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" FromRole="PRODUCT" ToRole="HR_PIECE_RATE_TARIFFS" />
           <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS" FromRole="PRODUCT" ToRole="HR_TIMESHEET_LINES" />
+          <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" FromRole="PRODUCT" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
         </EntityType>
         <EntityType Name="ROLE">
           <Key>
@@ -6275,6 +6457,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="QUALITY_INSPECTION1" Relationship="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_InspectedBy" FromRole="USER" ToRole="QUALITY_INSPECTION" />
           <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_TARIFFS" />
           <NavigationProperty Name="HR_PIECE_RATE_TARIFFS1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_TARIFFS" />
+          <NavigationProperty Name="HR_PIECE_RATE_OPERATIONS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_OPERATIONS" />
+          <NavigationProperty Name="HR_PIECE_RATE_OPERATIONS1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_OPERATIONS" />
+          <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
+          <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" FromRole="USER" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
         </EntityType>
         <EntityType Name="Warehouse">
           <Key>
@@ -8649,6 +8835,44 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="PRODUCT" EntitySet="PRODUCTS" />
             <End Role="HR_TIMESHEET_LINES" EntitySet="HR_TIMESHEET_LINES" />
           </AssociationSet>
+          <EntitySet Name="HR_PIECE_RATE_OPERATIONS" EntityType="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" />
+          <EntitySet Name="HR_PIECE_RATE_WORK_ENTRIES" EntityType="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" />
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS" Association="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" Association="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS" Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS">
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS">
+            <End Role="PRODUCT" EntitySet="PRODUCTS" />
+            <End Role="HR_PIECE_RATE_WORK_ENTRIES" EntitySet="HR_PIECE_RATE_WORK_ENTRIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_CURRENCIES" Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CURRENCIES">
+            <End Role="CURRENCy" EntitySet="CURRENCIES" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_OPERATIONS" Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_OPERATIONS">
+            <End Role="HR_PIECE_RATE_OPERATIONS" EntitySet="HR_PIECE_RATE_OPERATIONS" />
+            <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="GetProductListPerShop_Result">
           <Property Type="String" Name="EneniAmi" Nullable="false" MaxLength="15" />
@@ -10198,6 +10422,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_EMPLOYEES_USERS" FromRole="HR_EMPLOYEES" ToRole="USER" />
           <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_PAYROLL_LINES" />
           <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_TIMESHEET_LINES" />
+          <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_HEADERS">
           <Key>
@@ -10218,6 +10443,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Approved" FromRole="HR_PAYROLL_HEADERS" ToRole="USER" />
           <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Created" FromRole="HR_PAYROLL_HEADERS" ToRole="USER" />
           <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" FromRole="HR_PAYROLL_HEADERS" ToRole="HR_PAYROLL_LINES" />
+          <Property Name="PayrollType" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_LINES">
           <Key>
@@ -10826,6 +11052,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="USER" />
           <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="HR_POSITIONS" />
           <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="PRODUCT" />
+          <Property Name="OperationID" Type="Int32" />
+          <Property Name="CurrencyID" Type="Int32" />
+          <NavigationProperty Name="CURRENCy" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CURRENCIES" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="CURRENCy" />
+          <NavigationProperty Name="HR_PIECE_RATE_OPERATIONS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_OPERATIONS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="HR_PIECE_RATE_OPERATIONS" />
         </EntityType>
         <Association Name="FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS">
           <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
@@ -10884,6 +11114,154 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="HR_TIMESHEET_LINES">
               <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="HR_PIECE_RATE_OPERATIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ModifiedByUserID" Type="Int32" />
+          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS" FromRole="HR_PIECE_RATE_OPERATIONS" ToRole="USER" />
+          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" FromRole="HR_PIECE_RATE_OPERATIONS" ToRole="USER" />
+          <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS" FromRole="HR_PIECE_RATE_OPERATIONS" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
+          <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_OPERATIONS" FromRole="HR_PIECE_RATE_OPERATIONS" ToRole="HR_PIECE_RATE_TARIFFS" />
+        </EntityType>
+        <EntityType Name="HR_PIECE_RATE_WORK_ENTRIES">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="OperationID" Type="Int32" Nullable="false" />
+          <Property Name="WorkDate" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Quantity" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="Notes" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ModifiedByUserID" Type="Int32" />
+          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_PIECE_RATE_OPERATIONS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="HR_PIECE_RATE_OPERATIONS" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="USER" />
+          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="USER" />
+          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="PRODUCT" />
+        </EntityType>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES">
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Role="HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" Role="HR_PIECE_RATE_OPERATIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" Role="HR_PIECE_RATE_OPERATIONS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS">
+          <End Type="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" Role="HR_PIECE_RATE_OPERATIONS" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Role="HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="OperationID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Role="HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Role="HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS">
+          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Role="HR_PIECE_RATE_WORK_ENTRIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_WORK_ENTRIES">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_CURRENCIES">
+          <End Type="DBTHSNModel.CURRENCy" Role="CURRENCy" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Role="HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CURRENCy">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TARIFFS_OPERATIONS">
+          <End Type="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" Role="HR_PIECE_RATE_OPERATIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Role="HR_PIECE_RATE_TARIFFS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_PIECE_RATE_OPERATIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TARIFFS">
+              <PropertyRef Name="OperationID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -12462,6 +12840,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="HR_PAYROLL_HEADERS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PAYROLL_HEADERS">
               <MappingFragment StoreEntitySet="HR_PAYROLL_HEADERS">
+                <ScalarProperty Name="PayrollType" ColumnName="PayrollType" />
                 <ScalarProperty Name="TimesheetID" ColumnName="TimesheetID" />
                 <ScalarProperty Name="ApprovedDT" ColumnName="ApprovedDT" />
                 <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
@@ -12615,6 +12994,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySetMapping Name="HR_PIECE_RATE_TARIFFS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_TARIFFS">
               <MappingFragment StoreEntitySet="HR_PIECE_RATE_TARIFFS">
+                <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="OperationID" ColumnName="OperationID" />
                 <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
                 <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
@@ -12625,6 +13006,39 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="RatePerUnit" ColumnName="RatePerUnit" />
                 <ScalarProperty Name="PositionID" ColumnName="PositionID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_PIECE_RATE_OPERATIONS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_OPERATIONS">
+              <MappingFragment StoreEntitySet="HR_PIECE_RATE_OPERATIONS">
+                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
+                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_PIECE_RATE_WORK_ENTRIES">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES">
+              <MappingFragment StoreEntitySet="HR_PIECE_RATE_WORK_ENTRIES">
+                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
+                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+                <ScalarProperty Name="WorkDate" ColumnName="WorkDate" />
+                <ScalarProperty Name="OperationID" ColumnName="OperationID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
               </MappingFragment>
             </EntityTypeMapping>

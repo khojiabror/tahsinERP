@@ -1,0 +1,81 @@
+@model tahsinERP.Models.APP_TASK_STATUS_REF
+@{
+    ViewBag.Title = "Status o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Delete", "TaskStatus", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.ID)
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/TaskStatus">Statuslar</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Status o'chirish
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="basic-select2">
+                        <div class="row">
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    <h4 class="text-danger">Statusni o'chirish</h4>
+                                                    <hr>
+                                                    <p><b>Kod:</b> @Model.Code</p>
+                                                    <p><b>Nomi:</b> @Model.Name</p>
+                                                    <div class="alert alert-warning">
+                                                        <strong>Diqqat!</strong> Bu statusni o'chirishni xohlaysizmi? Agar bu status vazifalarda ishlatilgan bo'lsa, o'chirish mumkin emas.
+                                                    </div>
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item border-0 pb-0">
+                                                            <button class="btn btn-danger btn-block subtotal-preview-btn" type="submit">
+                                                                <i class='bx bx-trash'></i>
+                                                                O'chirish
+                                                            </button>
+                                                            <a href="@Url.Action("Index", "TaskStatus")" class="btn btn-secondary btn-block mt-2">
+                                                                <i class='bx bx-x'></i>
+                                                                Bekor qilish
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

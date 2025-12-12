@@ -30,6 +30,7 @@ namespace tahsinERP.Models
         public Nullable<int> ApprovedByUserID { get; set; }
         public Nullable<System.DateTime> ApprovedDT { get; set; }
         public Nullable<int> TimesheetID { get; set; }
+        public string PayrollType { get; set; }
     
         public virtual HR_ORG_UNITS HR_ORG_UNITS { get; set; }
         public virtual HR_TIMESHEET_HEADERS HR_TIMESHEET_HEADERS { get; set; }

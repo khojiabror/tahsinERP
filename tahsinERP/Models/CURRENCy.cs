@@ -36,6 +36,7 @@ namespace tahsinERP.Models
             this.F_WAYBILL_PAYMENT_SPLITS = new HashSet<F_WAYBILL_PAYMENT_SPLITS>();
             this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
             this.HR_PAYROLL_LINES = new HashSet<HR_PAYROLL_LINES>();
+            this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
         }
     
         public int ID { get; set; }
@@ -81,5 +82,7 @@ namespace tahsinERP.Models
         public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_PAYROLL_LINES> HR_PAYROLL_LINES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
     }
 }

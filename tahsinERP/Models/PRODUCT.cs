@@ -43,6 +43,7 @@ namespace tahsinERP.Models
             this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
             this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
             this.HR_TIMESHEET_LINES = new HashSet<HR_TIMESHEET_LINES>();
+            this.HR_PIECE_RATE_WORK_ENTRIES = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
         }
     
         public int ID { get; set; }
@@ -125,5 +126,7 @@ namespace tahsinERP.Models
         public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
     }
 }

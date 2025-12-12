@@ -222,70 +222,65 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        let scene, camera, renderer, controls;
-        let currentData = null;
-        let showingAlternative = false;
+        // Global variables for Three.js
+        var scene, camera, renderer, controls;
+        var currentData = null;
+        var showingAlternative = false;
 
-        $(document).ready(function () {
-            // Initialize Select2 if available
-            if ($.fn.select2) {
-                $('#productSelect, #transportSelect').select2();
-            }
+        // Store AJAX URL from Razor
+        var calculateApiUrl = '@Url.Action("Calculate", "TransportLoadApi")';
+        if (!calculateApiUrl || calculateApiUrl === '') {
+            calculateApiUrl = '/TransportLoadApi/Calculate';
+        }
 
-            // Simulate button click
-            $('#simulateBtn').on('click', function () {
-                const productId = $('#productSelect').val();
-                const transportId = $('#transportSelect').val();
-
-                if (!productId || !transportId) {
-                    alert('Iltimos, mahsulot va transport turini tanlang');
-                    return;
-                }
-
-                performSimulation(productId, transportId);
-            });
-
-            // Toggle orientation button
-            $('#toggleOrientationBtn').on('click', function () {
-                if (currentData) {
-                    showingAlternative = !showingAlternative;
-                    renderVisualization(currentData, showingAlternative);
-                }
-            });
-        });
-
-        function performSimulation(productId, transportId) {
+        // Define all functions globally FIRST (before initialization)
+        window.performSimulation = function(productId, transportId) {
+            console.log('Simulation started', { productId: productId, transportId: transportId });
+            var $ = jQuery;
+            
             $('#loadingIndicator').show();
             $('#resultsPanel').hide();
 
+            console.log('AJAX URL:', calculateApiUrl);
+
             $.ajax({
-                url: '@Url.Action("Calculate", "TransportLoadApi")',
+                url: calculateApiUrl,
                 type: 'GET',
                 data: {
                     productId: productId,
                     transportId: transportId
                 },
                 success: function (response) {
+                    console.log('AJAX Success:', response);
                     $('#loadingIndicator').hide();
-                    if (response.success) {
+                    if (response && response.success) {
                         currentData = response.data;
                         showingAlternative = false;
-                        displayResults(response.data);
-                        initializeThreeJS();
-                        renderVisualization(response.data, false);
+                        window.displayResults(response.data);
+                        window.initializeThreeJS();
+                        window.renderVisualization(response.data, false);
                         $('#resultsPanel').show();
                     } else {
-                        alert('Xatolik: ' + response.error);
+                        var errorMsg = response && response.error ? response.error : 'Noma\'lum xatolik';
+                        alert('Xatolik: ' + errorMsg);
+                        console.error('Response error:', response);
                     }
                 },
                 error: function (xhr, status, error) {
+                    console.error('AJAX Error:', { xhr: xhr, status: status, error: error, responseText: xhr.responseText });
                     $('#loadingIndicator').hide();
-                    alert('Xatolik yuz berdi: ' + error);
+                    var errorMessage = 'Xatolik yuz berdi: ' + error;
+                    if (xhr.responseText) {
+                        errorMessage += '\n\nJavob: ' + xhr.responseText.substring(0, 200);
+                    }
+                    alert(errorMessage);
                 }
             });
-        }
+        };
 
-        function displayResults(data) {
+        window.displayResults = function(data) {
+            var $ = jQuery;
+            
             // Product info
             $('#productName').text(data.ProductName || '-');
             $('#productPNo').text(data.ProductPNo || '-');
@@ -329,9 +324,9 @@
                 data.CountLength + ' × ' + data.CountWidth + ' × ' + data.CountHeight + 
                 ' (' + data.BestOrientation + ' orientatsiyada)'
             );
-        }
+        };
 
-        function initializeThreeJS() {
+        window.initializeThreeJS = function() {
             const container = document.getElementById('threejsContainer');
             
             // Clear previous scene if exists
@@ -357,10 +352,9 @@
             container.innerHTML = '';
             container.appendChild(renderer.domElement);
 
-            // Simple mouse controls (fallback if OrbitControls not available)
+            // Simple mouse controls
             let isDragging = false;
             let previousMousePosition = { x: 0, y: 0 };
-            let mouseX = 0, mouseY = 0;
             let targetRotationX = 0, targetRotationY = 0;
             let targetRadius = 3000;
             
@@ -389,18 +383,17 @@
                 targetRadius = Math.max(500, Math.min(8000, targetRadius));
             });
             
-            // Simple mouse controls (works without OrbitControls)
+            // Simple mouse controls
             controls = {
+                target: { x: 0, y: 0, z: 0 },
                 update: function() {
-                    // Smooth interpolation for better UX
                     const currentRadius = camera.position.length();
                     const newRadius = currentRadius + (targetRadius - currentRadius) * 0.1;
                     
-                    // Spherical rotation
                     camera.position.x = Math.sin(targetRotationY) * Math.cos(targetRotationX) * newRadius;
                     camera.position.y = Math.sin(targetRotationX) * newRadius;
                     camera.position.z = Math.cos(targetRotationY) * Math.cos(targetRotationX) * newRadius;
-                    camera.lookAt(0, 0, 0);
+                    camera.lookAt(this.target.x, this.target.y, this.target.z);
                 }
             };
 
@@ -422,10 +415,10 @@
             scene.add(axesHelper);
 
             // Handle window resize
-            window.addEventListener('resize', onWindowResize, false);
-        }
+            window.addEventListener('resize', window.onWindowResize, false);
+        };
 
-        function renderVisualization(data, useAlternative) {
+        window.renderVisualization = function(data, useAlternative) {
             if (!scene || !camera || !renderer) return;
 
             // Clear existing objects (except lights, grid, axes)
@@ -453,13 +446,13 @@
                 BestOrientation: data.BestOrientation
             };
 
-            // Scale factor to fit in view (normalize to reasonable size)
+            // Scale factor to fit in view
             const maxDim = Math.max(
                 data.TransportLengthMm,
                 data.TransportWidthMm,
                 data.TransportHeightMm
             );
-            const scale = 2000 / maxDim; // Scale to fit in ~2000 unit space
+            const scale = 2000 / maxDim;
 
             // Transport container (wireframe)
             const transportGeometry = new THREE.BoxGeometry(
@@ -532,30 +525,210 @@
                 centerY + maxDim * scale * 1.5,
                 centerZ + maxDim * scale * 1.5
             );
-            controls.target.set(centerX, centerY, centerZ);
+            controls.target = { x: centerX, y: centerY, z: centerZ };
             controls.update();
 
-            animate();
-        }
+            if (window.animate) window.animate();
+        };
 
-        function animate() {
-            requestAnimationFrame(animate);
+        window.animate = function() {
+            requestAnimationFrame(window.animate);
             if (controls) {
                 controls.update();
             }
             if (renderer && scene && camera) {
                 renderer.render(scene, camera);
             }
-        }
+        };
 
-        function onWindowResize() {
+        window.onWindowResize = function() {
             const container = document.getElementById('threejsContainer');
             if (container && camera && renderer) {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(container.clientWidth, container.clientHeight);
             }
-        }
+        };
+
+        // Wait for jQuery to be available
+        (function() {
+            function initTransportLoadSimulation() {
+                // Check if jQuery is available
+                if (typeof jQuery === 'undefined') {
+                    console.error('jQuery is not loaded! Retrying...');
+                    setTimeout(initTransportLoadSimulation, 100);
+                    return;
+                }
+
+                var $ = jQuery;
+                console.log('Transport Load Simulation initialized');
+                console.log('jQuery version:', $.fn.jquery);
+                console.log('API URL:', calculateApiUrl);
+
+                // Wait for DOM to be ready
+                $(document).ready(function () {
+                    console.log('Document ready - jQuery version:', $.fn.jquery);
+                    console.log('Simulate button exists:', $('#simulateBtn').length > 0);
+            
+                    // Initialize Select2 if available
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('#productSelect, #transportSelect').select2();
+                    }
+
+                    // Simulate button click - use direct event binding
+                    $('#simulateBtn').off('click').on('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Simulate button clicked');
+                        
+                        var productId = $('#productSelect').val();
+                        var transportId = $('#transportSelect').val();
+
+                        console.log('Selected values:', { productId: productId, transportId: transportId });
+
+                        if (!productId || !transportId) {
+                            alert('Iltimos, mahsulot va transport turini tanlang');
+                            return false;
+                        }
+
+                        if (window.performSimulation) {
+                            window.performSimulation(productId, transportId);
+                        } else {
+                            console.error('performSimulation function not available');
+                        }
+                        return false;
+                    });
+
+                    // Also try direct onclick as fallback
+                    var btn = document.getElementById('simulateBtn');
+                    if (btn) {
+                        btn.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Direct onclick handler triggered');
+                            var productId = $('#productSelect').val();
+                            var transportId = $('#transportSelect').val();
+
+                            if (!productId || !transportId) {
+                                alert('Iltimos, mahsulot va transport turini tanlang');
+                                return false;
+                            }
+
+                            if (window.performSimulation) {
+                                window.performSimulation(productId, transportId);
+                            } else {
+                                console.error('performSimulation function not available');
+                            }
+                            return false;
+                        };
+                    }
+
+                    // Toggle orientation button
+                    $('#toggleOrientationBtn').on('click', function () {
+                        if (currentData && window.renderVisualization) {
+                            showingAlternative = !showingAlternative;
+                            window.renderVisualization(currentData, showingAlternative);
+                        }
+                    });
+                });
+            }
+
+            // Start initialization when page loads
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTransportLoadSimulation);
+            } else {
+                // DOM already loaded
+                initTransportLoadSimulation();
+            }
+        })();
+                // Check if jQuery is available
+                if (typeof jQuery === 'undefined') {
+                    console.error('jQuery is not loaded! Retrying...');
+                    setTimeout(initTransportLoadSimulation, 100);
+                    return;
+                }
+
+                var $ = jQuery;
+                console.log('Transport Load Simulation initialized');
+                console.log('jQuery version:', $.fn.jquery);
+                console.log('API URL:', calculateApiUrl);
+
+                // Wait for DOM to be ready
+                $(document).ready(function () {
+                    console.log('Document ready - jQuery version:', $.fn.jquery);
+                    console.log('Simulate button exists:', $('#simulateBtn').length > 0);
+            
+                    // Initialize Select2 if available
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('#productSelect, #transportSelect').select2();
+                    }
+
+                    // Simulate button click - use direct event binding
+                    $('#simulateBtn').off('click').on('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Simulate button clicked');
+                        
+                        var productId = $('#productSelect').val();
+                        var transportId = $('#transportSelect').val();
+
+                        console.log('Selected values:', { productId: productId, transportId: transportId });
+
+                        if (!productId || !transportId) {
+                            alert('Iltimos, mahsulot va transport turini tanlang');
+                            return false;
+                        }
+
+                        if (window.performSimulation) {
+                            window.performSimulation(productId, transportId);
+                        } else {
+                            console.error('performSimulation function not available');
+                        }
+                        return false;
+                    });
+
+                    // Also try direct onclick as fallback
+                    var btn = document.getElementById('simulateBtn');
+                    if (btn) {
+                        btn.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Direct onclick handler triggered');
+                            var productId = $('#productSelect').val();
+                            var transportId = $('#transportSelect').val();
+
+                            if (!productId || !transportId) {
+                                alert('Iltimos, mahsulot va transport turini tanlang');
+                                return false;
+                            }
+
+                            if (window.performSimulation) {
+                                window.performSimulation(productId, transportId);
+                            } else {
+                                console.error('performSimulation function not available');
+                            }
+                            return false;
+                        };
+                    }
+
+                    // Toggle orientation button
+                    $('#toggleOrientationBtn').on('click', function () {
+                        if (currentData && window.renderVisualization) {
+                            showingAlternative = !showingAlternative;
+                            window.renderVisualization(currentData, showingAlternative);
+                        }
+                    });
+                });
+            }
+
+            // Start initialization when page loads
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTransportLoadSimulation);
+            } else {
+                // DOM already loaded
+                initTransportLoadSimulation();
+            }
+        })();
     </script>
 
     <style>

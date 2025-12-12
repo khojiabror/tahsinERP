@@ -327,6 +327,17 @@
         <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" />
         <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" />
         <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" Width="1.5" PointX="30.625" PointY="19.875" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Width="1.5" PointX="32.875" PointY="24.625" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CURRENCIES" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_OPERATIONS" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

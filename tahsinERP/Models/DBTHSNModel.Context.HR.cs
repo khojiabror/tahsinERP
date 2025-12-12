@@ -18,6 +18,8 @@ namespace tahsinERP.Models
         public virtual DbSet<HR_PAYROLL_HEADERS> HR_PAYROLL_HEADERS { get; set; }
         public virtual DbSet<HR_PAYROLL_LINES> HR_PAYROLL_LINES { get; set; }
         public virtual DbSet<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_OPERATIONS> HR_PIECE_RATE_OPERATIONS { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
     }
 }
 

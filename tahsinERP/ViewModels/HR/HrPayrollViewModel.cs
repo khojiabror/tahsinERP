@@ -23,6 +23,9 @@ namespace tahsinERP.ViewModels.HR
         [Display(Name = "Статус")]
         public string Status { get; set; }
         
+        [Display(Name = "Тип расчета")]
+        public string PayrollType { get; set; }
+        
         public int? TimesheetID { get; set; }
         public string TimesheetInfo { get; set; }
         

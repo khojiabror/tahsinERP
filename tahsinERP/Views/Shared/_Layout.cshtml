@@ -78,6 +78,26 @@
                                     <a class="dropdown-item" href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
                                         <i class="bx bx-user mr-50"></i> Profil sozlamalari
                                     </a>
+                                    @{
+                                        int userTaskCount = 0;
+                                        try
+                                        {
+                                            using (var db = new tahsinERP.Models.DBTHSNEntities())
+                                            {
+                                                var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                                                userTaskCount = db.APP_TASKS.Count(t => t.AssigneeUserID == userId && t.IsDeleted == false && 
+                                                    (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE"));
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                    <a class="dropdown-item" href="~/Tasks?assigneeUserID=@tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name)">
+                                        <i class="bx bx-task mr-50"></i> Topshiriqlar
+                                        @if (userTaskCount > 0)
+                                        {
+                                            <span class="badge badge-danger badge-pill float-right">@userTaskCount</span>
+                                        }
+                                    </a>
                                     <div class="dropdown-divider mb-0"></div>
                                     <a class="dropdown-item" href="~/Account/Logout">
                                         <i class="bx bx-power-off mr-50"></i> Tizimdan chiqish
@@ -501,10 +521,35 @@
                             </ul>
                         </li>
                         
-                       if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
+                        @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets") ||
+                             RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets") ||
+                             RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
                         {
                             <li class="nav-item">
-                                <a href="~/HrTimesheets"><i class="bx bx-time"></i><span class="menu-title">Tabel</span></a>
+                                <a href="#"><i class="bx bx-time"></i><span class="menu-title">Tabel</span></a>
+                                <ul class="menu-content">
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
+                                    {
+                                        <li><a href="~/HrTimesheets"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Soatbay tabel</span></a></li>
+                                    }
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets") ||
+                                         RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
+                                    {
+                                        <li>
+                                            <a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ishbay tabel</span></a>
+                                            <ul class="menu-content">
+                                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+                                                {
+                                                    <li><a href="~/HrPieceRateTimesheets"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ishbay tabel</span></a></li>
+                                                }
+                                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
+                                                {
+                                                    <li><a href="~/HrPieceRateTariffs"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ishbay tariflari</span></a></li>
+                                                }
+                                            </ul>
+                                        </li>
+                                    }
+                                </ul>
                             </li>
                         }
                         
@@ -519,11 +564,46 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Tasks / Vazifalar -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tasks"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tasks") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "TaskStatus") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "TaskPriority") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "TaskProject"))
                     {
                         <li class="navigation-header"><span>Tasks / Vazifalar</span></li>
+                        
                         <li class="nav-item">
-                            <a href="~/Tasks"><i class="bx bx-task"></i><span class="menu-title">Tasks / Vazifalar</span></a>
+                            <a href="#"><i class="bx bx-task"></i><span class="menu-title">Tasks / Vazifalar</span></a>
+                            <ul class="menu-content">
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskDashboard"))
+                                {
+                                    <li><a href="~/TaskDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Dashboard</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tasks"))
+                                {
+                                    <li><a href="~/Tasks"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Vazifalar</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskStatus") ||
+                                     RoleHelper.IsViewPermitted(User.Identity.Name, "TaskPriority") ||
+                                     RoleHelper.IsViewPermitted(User.Identity.Name, "TaskProject"))
+                                {
+                                    <li><a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Task Sozlamalari</span></a>
+                                        <ul class="menu-content">
+                                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskStatus"))
+                                            {
+                                                <li><a href="~/TaskStatus"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Statuslar</span></a></li>
+                                            }
+                                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskPriority"))
+                                            {
+                                                <li><a href="~/TaskPriority"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Prioritetlar</span></a></li>
+                                            }
+                                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskProject"))
+                                            {
+                                                <li><a href="~/TaskProject"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Loyihalar</span></a></li>
+                                            }
+                                        </ul>
+                                    </li>
+                                }
+                            </ul>
                         </li>
                     }
 

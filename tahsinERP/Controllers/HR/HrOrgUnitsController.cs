@@ -7,7 +7,6 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
-using System.Collections.Generic;
 
 namespace tahsinERP.Controllers.HR
 {

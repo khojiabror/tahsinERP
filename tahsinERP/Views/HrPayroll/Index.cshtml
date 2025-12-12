@@ -31,8 +31,11 @@
                 @if (changePermit)
                 {
                     <div class="invoice-create-btn mb-1">
-                        <a href="@Url.Action("Generate")" class="btn btn-success">
-                            <i class="bx bx-plus"></i> Hisob yaratish
+                        <a href="@Url.Action("GenerateHourly")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Soatbay hisob yaratish
+                        </a>
+                        <a href="@Url.Action("GeneratePieceRate")" class="btn btn-warning">
+                            <i class="bx bx-plus"></i> Ishbay hisob yaratish
                         </a>
                     </div>
                 }
@@ -65,7 +68,14 @@
                                             <option value="Posted" @(ViewBag.Status == "Posted" ? "selected" : "")>O'tkazilgan</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
+                                        <select name="payrollType" class="form-control">
+                                            <option value="">Barcha turlar</option>
+                                            <option value="Hourly" @(ViewBag.PayrollType == "Hourly" ? "selected" : "")>Soatbay</option>
+                                            <option value="PieceRate" @(ViewBag.PayrollType == "PieceRate" ? "selected" : "")>Ishbay</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
                                         <button type="submit" class="btn btn-primary">Filtr</button>
                                     </div>
                                 </div>
@@ -78,6 +88,7 @@
                                             <th>Yil</th>
                                             <th>Oy</th>
                                             <th>Bo'lim</th>
+                                            <th>Tur</th>
                                             <th>Holat</th>
                                             <th>To'lov summasi</th>
                                             <th>Yaratilgan</th>
@@ -91,6 +102,11 @@
                                                 <td>@item.Year</td>
                                                 <td>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month)</td>
                                                 <td>@(item.OrgUnitName ?? "Butun kompaniya")</td>
+                                                <td>
+                                                    <span class="badge badge-@(item.PayrollType == "PieceRate" ? "warning" : "info")">
+                                                        @(item.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay")
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <span class="badge badge-@(item.Status == "Approved" ? "success" : item.Status == "Posted" ? "info" : "warning")">
                                                         @(item.Status == "Draft" ? "Qoralama" : item.Status == "Approved" ? "Tasdiqlangan" : "O'tkazilgan")
@@ -109,6 +125,9 @@
                                                     {
                                                         <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Hisobni tasdiqlash?');">
                                                             <i class="bx bx-check"></i>
+                                                        </a>
+                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Hisobni o\'chirish?');">
+                                                            <i class="bx bx-trash"></i>
                                                         </a>
                                                     }
                                                 </td>

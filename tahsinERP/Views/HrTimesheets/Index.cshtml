@@ -15,11 +15,11 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Tabel</h5>
+                            <h5 class="content-header-title float-left pr-1 mb-0">Soatbay tabel</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb p-0 mb-0">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Tabel</li>
+                                    <li class="breadcrumb-item active">Soatbay tabel</li>
                                 </ol>
                             </div>
                         </div>
@@ -118,6 +118,12 @@
                                                     {
                                                         <a href="@Url.Action("Close", new { id = item.ID })" class="btn btn-sm btn-secondary" onclick="return confirm('Tabelni yopish?');">
                                                             <i class="bx bx-lock"></i>
+                                                        </a>
+                                                    }
+                                                    @if (changePermit && item.Status == "Draft")
+                                                    {
+                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Tabelni o\'chirish?');">
+                                                            <i class="bx bx-trash"></i>
                                                         </a>
                                                     }
                                                 </td>

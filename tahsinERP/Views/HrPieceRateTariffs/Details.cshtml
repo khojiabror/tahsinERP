@@ -1,0 +1,103 @@
+@model tahsinERP.Models.HR_PIECE_RATE_TARIFFS
+@{
+    ViewBag.Title = "Ishbay tarif tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTariffs");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Ishbay tarif tafsilotlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ishbay tariflari</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Maxsulot:</dt>
+                                <dd class="col-sm-9">@(Model.PRODUCT?.PNo ?? "-")</dd>
+
+                                <dt class="col-sm-3">Lavozim:</dt>
+                                <dd class="col-sm-9">@(Model.HR_POSITIONS?.Name ?? "Barcha lavozimlar")</dd>
+
+                                <dt class="col-sm-3">Operatsiya:</dt>
+                                <dd class="col-sm-9">@(Model.HR_PIECE_RATE_OPERATIONS?.Name ?? "-")</dd>
+
+                                <dt class="col-sm-3">Valyuta:</dt>
+                                <dd class="col-sm-9">@(Model.CURRENCy?.Shortname ?? "-")</dd>
+
+                                <dt class="col-sm-3">Tarif (birlik uchun):</dt>
+                                <dd class="col-sm-9">@Model.RatePerUnit.ToString("N4") @(Model.CURRENCy?.Shortname ?? "")</dd>
+
+                                <dt class="col-sm-3">Amal qilishdan:</dt>
+                                <dd class="col-sm-9">@Model.EffectiveFrom.ToString("dd.MM.yyyy")</dd>
+
+                                <dt class="col-sm-3">Amal qilishgacha:</dt>
+                                <dd class="col-sm-9">@(Model.EffectiveTo?.ToString("dd.MM.yyyy") ?? "Cheksiz")</dd>
+
+                                <dt class="col-sm-3">Holat:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-@(Model.IsActive ? "success" : "secondary")">
+                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-3">Yaratgan:</dt>
+                                <dd class="col-sm-9">@(Model.USER?.FullName ?? "-")</dd>
+
+                                <dt class="col-sm-3">Yaratilgan:</dt>
+                                <dd class="col-sm-9">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                                @if (Model.ModifiedDT.HasValue)
+                                {
+                                    <dt class="col-sm-3">O'zgartirgan:</dt>
+                                    <dd class="col-sm-9">@(Model.USER1?.FullName ?? "-")</dd>
+
+                                    <dt class="col-sm-3">O'zgartirilgan:</dt>
+                                    <dd class="col-sm-9">@Model.ModifiedDT.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                                }
+                            </dl>
+
+                            <div class="form-actions mt-3">
+                                @if (changePermit)
+                                {
+                                    <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                        <i class="bx bx-edit"></i> Tahrirlash
+                                    </a>
+                                    <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-danger">
+                                        <i class="bx bx-trash"></i> O'chirish
+                                    </a>
+                                }
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">Ro'yxatga qaytish</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

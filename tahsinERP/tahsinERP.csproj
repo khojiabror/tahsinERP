@@ -495,6 +495,7 @@
     <Compile Include="Controllers\HR\HrEmployeesController.cs" />
     <Compile Include="Controllers\HR\HrOrgUnitsController.cs" />
     <Compile Include="Controllers\HR\HrPayrollController.cs" />
+    <Compile Include="Controllers\HR\HrPieceRateTimesheetsController.cs" />
     <Compile Include="Controllers\HR\HrPositionsController.cs" />
     <Compile Include="Controllers\HR\HrSalaryGradesController.cs" />
     <Compile Include="Controllers\HR\HrStaffingPlanController.cs" />
@@ -553,7 +554,11 @@
     <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
+    <Compile Include="Controllers\TaskDashboardController.cs" />
     <Compile Include="Controllers\TasksController.cs" />
+    <Compile Include="Controllers\TaskSettings\TaskPriorityController.cs" />
+    <Compile Include="Controllers\TaskSettings\TaskProjectController.cs" />
+    <Compile Include="Controllers\TaskSettings\TaskStatusController.cs" />
     <Compile Include="Models\ADM_COMPANY_ORDERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -709,7 +714,13 @@
     <Compile Include="Models\HR_PAYROLL_LINES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\HR_PIECE_RATE_OPERATIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\HR_PIECE_RATE_TARIFFS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_PIECE_RATE_WORK_ENTRIES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_POSITIONS.cs">
@@ -968,6 +979,7 @@
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
+    <Compile Include="ViewModels\TaskDashboardViewModel.cs" />
     <Compile Include="ViewModels\TaskViewModel.cs" />
     <Compile Include="ViewModels\TransportLoadResult.cs" />
     <Compile Include="ViewModels\ProductSelectItem.cs" />
@@ -2918,7 +2930,6 @@
     <Content Include="Views\Company\Index.cshtml" />
     <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
     <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
-    <Content Include="Views\Product\_ProductTable.cshtml" />
     <Content Include="Views\Norm\Edit.cshtml" />
     <Content Include="Views\Norm\Index.cshtml" />
     <Content Include="Views\UserEntries\Index.cshtml" />
@@ -3032,9 +3043,16 @@
     <Content Include="Views\HrStaffingPlan\ImportPreview.cshtml" />
     <Content Include="Views\HrStaffingPlan\Index.cshtml" />
     <Content Include="Views\HrTimesheets\Create.cshtml" />
+    <Content Include="Views\HrTimesheets\CreateSimple.cshtml" />
     <Content Include="Views\HrTimesheets\Edit.cshtml" />
     <Content Include="Views\HrTimesheets\Import.cshtml" />
     <Content Include="Views\HrTimesheets\Index.cshtml" />
+    <Content Include="Views\HrPieceRateTimesheets\Index.cshtml" />
+    <Content Include="Views\HrPieceRateTariffs\Create.cshtml" />
+    <Content Include="Views\HrPieceRateTariffs\Delete.cshtml" />
+    <Content Include="Views\HrPieceRateTariffs\Details.cshtml" />
+    <Content Include="Views\HrPieceRateTariffs\Edit.cshtml" />
+    <Content Include="Views\HrPieceRateTariffs\Index.cshtml" />
     <Content Include="Views\Incomes\Create.cshtml" />
     <Content Include="Views\Incomes\Delete.cshtml" />
     <Content Include="Views\Incomes\Details.cshtml" />
@@ -3107,6 +3125,22 @@
     <Content Include="Views\HR\HrTimesheets\Index.cshtml" />
     <Content Include="Views\ProductPlan\_DailyGridPartial.cshtml" />
     <Content Include="Views\Logistic\TransportLoadSimulation\Index.cshtml" />
+    <Content Include="Views\TaskPriority\Create.cshtml" />
+    <Content Include="Views\TaskPriority\Delete.cshtml" />
+    <Content Include="Views\TaskPriority\Details.cshtml" />
+    <Content Include="Views\TaskPriority\Edit.cshtml" />
+    <Content Include="Views\TaskPriority\Index.cshtml" />
+    <Content Include="Views\TaskProject\Create.cshtml" />
+    <Content Include="Views\TaskProject\Delete.cshtml" />
+    <Content Include="Views\TaskProject\Details.cshtml" />
+    <Content Include="Views\TaskProject\Edit.cshtml" />
+    <Content Include="Views\TaskProject\Index.cshtml" />
+    <Content Include="Views\TaskStatus\Create.cshtml" />
+    <Content Include="Views\TaskStatus\Delete.cshtml" />
+    <Content Include="Views\TaskStatus\Details.cshtml" />
+    <Content Include="Views\TaskStatus\Edit.cshtml" />
+    <Content Include="Views\TaskStatus\Index.cshtml" />
+    <Content Include="Views\TaskDashboard\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -40,6 +40,10 @@ namespace tahsinERP.Models
             this.QUALITY_INSPECTION1 = new HashSet<QUALITY_INSPECTION>();
             this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
             this.HR_PIECE_RATE_TARIFFS1 = new HashSet<HR_PIECE_RATE_TARIFFS>();
+            this.HR_PIECE_RATE_OPERATIONS = new HashSet<HR_PIECE_RATE_OPERATIONS>();
+            this.HR_PIECE_RATE_OPERATIONS1 = new HashSet<HR_PIECE_RATE_OPERATIONS>();
+            this.HR_PIECE_RATE_WORK_ENTRIES = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
+            this.HR_PIECE_RATE_WORK_ENTRIES1 = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
         }
     
         public int ID { get; set; }
@@ -99,5 +103,13 @@ namespace tahsinERP.Models
         public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_OPERATIONS> HR_PIECE_RATE_OPERATIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_OPERATIONS> HR_PIECE_RATE_OPERATIONS1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES1 { get; set; }
     }
 }

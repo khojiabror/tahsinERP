@@ -137,6 +137,8 @@ namespace tahsinERP.Models
         public virtual DbSet<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
         public virtual DbSet<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
         public virtual DbSet<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_OPERATIONS> HR_PIECE_RATE_OPERATIONS { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
     
         public virtual int GetCarPlanRequirements(string optionCode)
         {
