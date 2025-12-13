@@ -1,4 +1,4 @@
-﻿@model List<tahsinERP.Models.CUSTOMER>
+@model List<tahsinERP.Models.CUSTOMER>
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -51,28 +51,7 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <!-- Search and Filter -->
-                                    <div class="users-list-filter px-1">
-                                        <div class="row border rounded py-2 mb-2">
-                                            <div class="col-12 col-sm-6 col-lg-4">
-                                                <label>Qidirish</label>
-                                                <input type="text" id="searchBox" class="form-control" placeholder="Haridor ismi, Email, DUNS..." />
-                                            </div>
-                                            <div class="col-12 col-sm-6 col-lg-2">
-                                                <label>Sahifa o'lchami</label>
-                                                <select id="pageSize" class="form-control">
-                                                    <option value="10">10</option>
-                                                    <option value="25" selected>25</option>
-                                                    <option value="50">50</option>
-                                                    <option value="100">100</option>
-                                                    <option value="-1">Barchasi</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- datatable start -->
-                                    <div class="card-datatable table-responsive">
+                                    <div class="table-responsive">
                                         <table id="customerDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
@@ -82,7 +61,7 @@
                                                     <th>Turi</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th class="text-center">Amallar</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -93,33 +72,41 @@
                                                     {
                                                         <tr>
                                                             <td>
-                                                                <a href="@Url.Action("Details", "Customer", new { id = item.ID })">@(item.Name ?? "")</a>
+                                                                <a href="@Url.Action("Details", "Customer", new { id = item.ID })" class="font-weight-bold">
+                                                                    @(item.Name ?? "")
+                                                                </a>
                                                             </td>
-                                                            <td>@(item.Email ?? "")</td>
-                                                            <td>@(item.DUNS ?? "")</td>
-                                                            <td>@(item.Type ?? "")</td>
+                                                            <td>@(item.Email ?? "-")</td>
+                                                            <td>@(item.DUNS ?? "-")</td>
+                                                            <td>
+                                                                @if (!string.IsNullOrEmpty(item.Type))
+                                                                {
+                                                                    <span class="badge badge-light-info">@item.Type</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
                                                             @if (changePermit)
                                                             {
-                                                                <td>
-                                                                    <div>
-                                                                        <a href="@Url.Action("Edit", "Customer", new { id = item.ID })" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                                        <a href="@Url.Action("Delete", "Customer", new { id = item.ID })" title="O'chirish"><i class="bx bx-trash"></i></a>
-                                                                    </div>
+                                                                <td class="text-center">
+                                                                    <a href="@Url.Action("Edit", "Customer", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                        <i class="bx bx-edit"></i>
+                                                                    </a>
+                                                                    <a href="@Url.Action("Delete", "Customer", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                        <i class="bx bx-trash"></i>
+                                                                    </a>
                                                                 </td>
                                                             }
                                                         </tr>
                                                     }
                                                 }
-                                                else
-                                                {
-                                                    <tr>
-                                                        <td colspan="@(changePermit ? 5 : 4)" class="text-center">Ma'lumot topilmadi</td>
-                                                    </tr>
-                                                }
                                             </tbody>
                                         </table>
                                     </div>
-                                    <!-- datatable ends -->
                                 </div>
                             </div>
                         </div>
@@ -130,9 +117,15 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            // Initialize DataTable
-            var tableConfig = {
+        $(document).ready(function () {
+            var changePermit = @(changePermit ? "true" : "false");
+            
+            var columnDefs = [];
+            if (changePermit) {
+                columnDefs.push({ "orderable": false, "targets": -1 });
+            }
+            
+            $('#customerDataTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -148,33 +141,67 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[0, "asc"]]
-            };
-
-            @if (changePermit)
-            {
-                <text>
-            tableConfig.columnDefs = [
-                { "orderable": false, "targets": -1 }
-            ];
-                </text>
-            }
-
-            var table = $('#customerDataTable').DataTable(tableConfig);
-
-            // Custom search box
-            $('#searchBox').on('keyup', function() {
-                table.search(this.value).draw();
-            });
-
-            // Page size change
-            $('#pageSize').on('change', function() {
-                var pageSize = $(this).val();
-                if (pageSize === '-1') {
-                    table.page.len(-1).draw();
-                } else {
-                    table.page.len(parseInt(pageSize)).draw();
-                }
+                "order": [[0, "asc"]],
+                "columnDefs": columnDefs,
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Haridorlar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Haridorlar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        title: 'Haridorlar ro\'yxati',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
+                    }
+                ],
+                "scrollX": true
             });
         });
     </script>

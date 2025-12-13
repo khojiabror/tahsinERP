@@ -1,4 +1,4 @@
-﻿@model tahsinERP.Models.S_ORDERS
+@model tahsinERP.Models.S_ORDERS
 @{
     ViewBag.Title = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -124,6 +124,7 @@
                                                                             @foreach (var item in Model.S_ORDER_PRODUCTS)
                                                                             {
                                                                                 var scheduleSummary = ViewBag.ScheduleSummary as Dictionary<int, dynamic>;
+                                                                                // Ensure we check the correct key - SOrderProductID should match S_ORDER_PRODUCTS.ID
                                                                                 var summary = scheduleSummary != null && scheduleSummary.ContainsKey(item.ID) ? scheduleSummary[item.ID] : null;
                                                                                 <tr>
                                                                                     <td>

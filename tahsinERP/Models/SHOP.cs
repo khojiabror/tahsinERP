@@ -21,7 +21,6 @@ namespace tahsinERP.Models
             this.PRODUCTS = new HashSet<PRODUCT>();
             this.SHOP_PLANNED_DTS = new HashSet<SHOP_PLANNED_DTS>();
             this.WAREHOUSES = new HashSet<Warehouse>();
-            this.PRODUCTS1 = new HashSet<PRODUCT>();
         }
     
         public int ID { get; set; }
@@ -39,7 +38,5 @@ namespace tahsinERP.Models
         public virtual ICollection<SHOP_PLANNED_DTS> SHOP_PLANNED_DTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Warehouse> WAREHOUSES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PRODUCT> PRODUCTS1 { get; set; }
     }
 }

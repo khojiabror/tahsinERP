@@ -39,51 +39,307 @@ namespace tahsinERP.Controllers
 
             try
             {
-                // Check for IP in X-Forwarded-For header (for proxies/load balancers)
+                // Get server IP addresses to filter them out
+                string[] serverIps = GetServerIpAddresses();
+                
+                string ipAddress = null;
+
+                // Priority 1: Check for IP in X-Forwarded-For header (for proxies/load balancers)
+                // This is usually the most reliable for getting client IP behind proxies
                 string xForwardedFor = request.Headers["X-Forwarded-For"];
+                if (string.IsNullOrEmpty(xForwardedFor))
+                {
+                    xForwardedFor = request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                }
+                
                 if (!string.IsNullOrEmpty(xForwardedFor))
                 {
-                    // X-Forwarded-For can contain multiple IPs, take the first one
+                    // X-Forwarded-For can contain multiple IPs, the first one is usually the original client
                     string[] ips = xForwardedFor.Split(',');
-                    if (ips.Length > 0)
+                    foreach (string ip in ips)
                     {
-                        string ip = ips[0].Trim();
-                        if (!string.IsNullOrEmpty(ip))
-                            return ip;
+                        string trimmedIp = ip.Trim();
+                        if (!string.IsNullOrEmpty(trimmedIp) && 
+                            !IsLoopback(trimmedIp) && 
+                            !IsServerIp(trimmedIp, serverIps))
+                        {
+                            ipAddress = trimmedIp;
+                            break;
+                        }
                     }
                 }
 
-                // Check for X-Real-IP header
-                string xRealIp = request.Headers["X-Real-IP"];
-                if (!string.IsNullOrEmpty(xRealIp))
-                {
-                    return xRealIp.Trim();
-                }
-
-                // Fall back to UserHostAddress
-                if (!string.IsNullOrEmpty(request.UserHostAddress))
-                {
-                    return request.UserHostAddress;
-                }
-
-                // Last resort: try to get from server variables
-                string ipAddress = request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                // Priority 2: Check for X-Real-IP header (Nginx, etc.)
                 if (string.IsNullOrEmpty(ipAddress))
                 {
-                    ipAddress = request.ServerVariables["REMOTE_ADDR"];
+                    string xRealIp = request.Headers["X-Real-IP"];
+                    if (string.IsNullOrEmpty(xRealIp))
+                    {
+                        xRealIp = request.ServerVariables["HTTP_X_REAL_IP"];
+                    }
+                    if (!string.IsNullOrEmpty(xRealIp))
+                    {
+                        string trimmedIp = xRealIp.Trim();
+                        if (!IsLoopback(trimmedIp) && !IsServerIp(trimmedIp, serverIps))
+                        {
+                            ipAddress = trimmedIp;
+                        }
+                    }
                 }
 
+                // Priority 3: Check CF-Connecting-IP (Cloudflare)
+                if (string.IsNullOrEmpty(ipAddress))
+                {
+                    string cfIp = request.Headers["CF-Connecting-IP"];
+                    if (!string.IsNullOrEmpty(cfIp))
+                    {
+                        string trimmedIp = cfIp.Trim();
+                        if (!IsLoopback(trimmedIp) && !IsServerIp(trimmedIp, serverIps))
+                        {
+                            ipAddress = trimmedIp;
+                        }
+                    }
+                }
+
+                // Priority 4: Check True-Client-IP (Akamai, Cloudflare Enterprise)
+                if (string.IsNullOrEmpty(ipAddress))
+                {
+                    string trueClientIp = request.Headers["True-Client-IP"];
+                    if (string.IsNullOrEmpty(trueClientIp))
+                    {
+                        trueClientIp = request.ServerVariables["HTTP_TRUE_CLIENT_IP"];
+                    }
+                    if (!string.IsNullOrEmpty(trueClientIp))
+                    {
+                        string trimmedIp = trueClientIp.Trim();
+                        if (!IsLoopback(trimmedIp) && !IsServerIp(trimmedIp, serverIps))
+                        {
+                            ipAddress = trimmedIp;
+                        }
+                    }
+                }
+
+                // Priority 5: Check X-Client-IP
+                if (string.IsNullOrEmpty(ipAddress))
+                {
+                    string xClientIp = request.Headers["X-Client-IP"];
+                    if (!string.IsNullOrEmpty(xClientIp))
+                    {
+                        string trimmedIp = xClientIp.Trim();
+                        if (!IsLoopback(trimmedIp) && !IsServerIp(trimmedIp, serverIps))
+                        {
+                            ipAddress = trimmedIp;
+                        }
+                    }
+                }
+
+                // Priority 6: Check REMOTE_ADDR (but filter out server IPs)
+                // This is usually the proxy IP, not the client IP, but we check it anyway
+                if (string.IsNullOrEmpty(ipAddress))
+                {
+                    string remoteAddr = request.ServerVariables["REMOTE_ADDR"];
+                    if (!string.IsNullOrEmpty(remoteAddr))
+                    {
+                        string trimmedIp = remoteAddr.Trim();
+                        if (!IsLoopback(trimmedIp) && !IsServerIp(trimmedIp, serverIps))
+                        {
+                            ipAddress = trimmedIp;
+                        }
+                    }
+                }
+
+                // Priority 7: Fall back to UserHostAddress (but filter out server IPs)
+                // This is usually the proxy IP, not the client IP
+                if (string.IsNullOrEmpty(ipAddress))
+                {
+                    if (!string.IsNullOrEmpty(request.UserHostAddress))
+                    {
+                        string userHostIp = request.UserHostAddress.Trim();
+                        if (!IsLoopback(userHostIp) && !IsServerIp(userHostIp, serverIps))
+                        {
+                            ipAddress = userHostIp;
+                        }
+                    }
+                }
+
+                // Last resort: If we still don't have a valid IP, use REMOTE_ADDR even if it might be server IP
+                // But only if it's not loopback
+                if (string.IsNullOrEmpty(ipAddress))
+                {
+                    string remoteAddr = request.ServerVariables["REMOTE_ADDR"];
+                    if (!string.IsNullOrEmpty(remoteAddr))
+                    {
+                        string trimmedIp = remoteAddr.Trim();
+                        if (!IsLoopback(trimmedIp))
+                        {
+                            // Check if it's server IP - if yes, log warning
+                            if (IsServerIp(trimmedIp, serverIps))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"WARNING: GetClientIpAddress - REMOTE_ADDR appears to be server IP: {trimmedIp}. Headers checked: X-Forwarded-For={request.Headers["X-Forwarded-For"]}, X-Real-IP={request.Headers["X-Real-IP"]}");
+                            }
+                            ipAddress = trimmedIp;
+                        }
+                    }
+                }
+                
+                // Debug: Log what we found
                 if (!string.IsNullOrEmpty(ipAddress))
                 {
-                    return ipAddress.Split(',')[0].Trim();
+                    System.Diagnostics.Debug.WriteLine($"GetClientIpAddress found: {ipAddress} (X-Forwarded-For: {request.Headers["X-Forwarded-For"]}, REMOTE_ADDR: {request.ServerVariables["REMOTE_ADDR"]})");
+                }
+
+                // Prefer IPv4 over IPv6 if we have both
+                if (!string.IsNullOrEmpty(ipAddress))
+                {
+                    // If it's IPv6, try to find IPv4 alternative
+                    if (ipAddress.Contains(":") && !ipAddress.StartsWith("::"))
+                    {
+                        // Try to get IPv4 from other sources
+                        string ipv4 = GetIPv4FromRequest(request, serverIps);
+                        if (!string.IsNullOrEmpty(ipv4))
+                        {
+                            return ipv4;
+                        }
+                    }
+                    return ipAddress;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail
+                System.Diagnostics.Debug.WriteLine($"GetClientIpAddress error: {ex.Message}");
+            }
+
+            return "127.0.0.1";
+        }
+
+        /// <summary>
+        /// Gets server IP addresses to filter them out
+        /// </summary>
+        private static string[] GetServerIpAddresses()
+        {
+            try
+            {
+                var serverIps = new System.Collections.Generic.List<string>();
+                
+                // Get local machine IPs
+                IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (IPAddress ip in hostEntry.AddressList)
+                {
+                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        serverIps.Add(ip.ToString());
+                    }
+                }
+                
+                // Add common local IPs
+                serverIps.Add("127.0.0.1");
+                serverIps.Add("::1");
+                serverIps.Add("localhost");
+                
+                return serverIps.ToArray();
+            }
+            catch
+            {
+                return new string[] { "127.0.0.1", "::1", "localhost" };
+            }
+        }
+
+        /// <summary>
+        /// Checks if an IP address is a server IP
+        /// </summary>
+        private static bool IsServerIp(string ip, string[] serverIps)
+        {
+            if (string.IsNullOrEmpty(ip) || serverIps == null)
+                return false;
+
+            ip = ip.Trim();
+            
+            foreach (string serverIp in serverIps)
+            {
+                if (ip.Equals(serverIp, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if an IP address is a loopback address
+        /// </summary>
+        private static bool IsLoopback(string ip)
+        {
+            if (string.IsNullOrEmpty(ip))
+                return true;
+
+            ip = ip.Trim();
+            
+            // Check for IPv4 loopback
+            if (ip == "127.0.0.1" || ip == "localhost" || ip.StartsWith("127."))
+                return true;
+
+            // Check for IPv6 loopback
+            if (ip == "::1" || ip == "::ffff:127.0.0.1" || ip == "0:0:0:0:0:0:0:1")
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get IPv4 address from request
+        /// </summary>
+        private static string GetIPv4FromRequest(HttpRequestBase request, string[] serverIps = null)
+        {
+            try
+            {
+                if (serverIps == null)
+                {
+                    serverIps = GetServerIpAddresses();
+                }
+
+                // Check all headers for IPv4
+                foreach (string headerName in request.Headers.AllKeys)
+                {
+                    string headerValue = request.Headers[headerName];
+                    if (!string.IsNullOrEmpty(headerValue) && headerValue.Contains(".") && !headerValue.Contains(":"))
+                    {
+                        // Looks like IPv4
+                        IPAddress ip;
+                        string ipString = headerValue.Split(',')[0].Trim();
+                        if (IPAddress.TryParse(ipString, out ip) && 
+                            ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                            !IsLoopback(ipString) &&
+                            !IsServerIp(ipString, serverIps))
+                        {
+                            return ip.ToString();
+                        }
+                    }
+                }
+
+                // Check server variables
+                foreach (string key in request.ServerVariables.AllKeys)
+                {
+                    string value = request.ServerVariables[key];
+                    if (!string.IsNullOrEmpty(value) && value.Contains(".") && !value.Contains(":"))
+                    {
+                        IPAddress ip;
+                        string ipString = value.Split(',')[0].Trim();
+                        if (IPAddress.TryParse(ipString, out ip) && 
+                            ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                            !IsLoopback(ipString) &&
+                            !IsServerIp(ipString, serverIps))
+                        {
+                            return ip.ToString();
+                        }
+                    }
                 }
             }
             catch
             {
-                // If anything fails, return default
+                // Ignore errors
             }
 
-            return "127.0.0.1";
+            return null;
         }
 
         /// <summary>

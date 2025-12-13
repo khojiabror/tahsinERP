@@ -337,18 +337,50 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        // Post to finance if invoice is created with FINALIZED or APPROVED status
+                        // Post to finance and decrease stock if invoice is created with FINALIZED or APPROVED status
                         if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
                         {
                             try
                             {
                                 var userId = UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+
+                                // Decrease stock in Sales Warehouse for each invoice line
+                                foreach (var line in lines)
+                                {
+                                    try
+                                    {
+                                        WarehouseFlowService.DecreaseSalesStock(
+                                            line.ProductID,
+                                            line.Qty,
+                                            db,
+                                            User.Identity.Name,
+                                            invoice.ID,
+                                            invoice.InvoiceNo ?? invoice.ID.ToString()
+                                        );
+                                    }
+                                    catch (Exception stockEx)
+                                    {
+                                        // Log stock error but don't fail the invoice creation
+                                        LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder",
+                                            $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
+                                        // Re-throw if it's a critical stock shortage
+                                        if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
+                                        {
+                                            throw;
+                                        }
+                                    }
+                                }
                             }
                             catch (Exception ex)
                             {
                                 LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder", 
-                                    $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
+                                    $"Finance posting or stock decrease error for invoice {invoice.ID}: {ex.Message}");
+                                // Re-throw if it's a stock shortage
+                                if (ex.Message.Contains("yetarli mahsulot yo'q"))
+                                {
+                                    throw;
+                                }
                             }
                         }
 
@@ -358,7 +390,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -523,18 +562,50 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        // Post to finance if invoice is created with FINALIZED or APPROVED status
+                        // Post to finance and decrease stock if invoice is created with FINALIZED or APPROVED status
                         if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
                         {
                             try
                             {
                                 var userId = UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+
+                                // Decrease stock in Sales Warehouse for each invoice line
+                                foreach (var line in lines)
+                                {
+                                    try
+                                    {
+                                        WarehouseFlowService.DecreaseSalesStock(
+                                            line.ProductID,
+                                            line.Qty,
+                                            db,
+                                            User.Identity.Name,
+                                            invoice.ID,
+                                            invoice.InvoiceNo ?? invoice.ID.ToString()
+                                        );
+                                    }
+                                    catch (Exception stockEx)
+                                    {
+                                        // Log stock error but don't fail the invoice creation
+                                        LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create",
+                                            $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
+                                        // Re-throw if it's a critical stock shortage
+                                        if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
+                                        {
+                                            throw;
+                                        }
+                                    }
+                                }
                             }
                             catch (Exception ex)
                             {
                                 LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create", 
-                                    $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
+                                    $"Finance posting or stock decrease error for invoice {invoice.ID}: {ex.Message}");
+                                // Re-throw if it's a stock shortage
+                                if (ex.Message.Contains("yetarli mahsulot yo'q"))
+                                {
+                                    throw;
+                                }
                             }
                         }
 
@@ -544,7 +615,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -675,25 +753,60 @@ namespace tahsinERP.Controllers
                         existingInvoice.TotalWithVAT = totalAmount + totalVAT;
                         }
 
-                        // Check if status changed to FINALIZED or APPROVED - post to finance
+                        // Check if status changed to FINALIZED or APPROVED - post to finance and decrease stock
                         bool statusChangedToFinalized = (existingInvoice.StatusCode != "FINALIZED" && existingInvoice.StatusCode != "APPROVED") 
                             && (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED");
 
                         db.SaveChanges();
 
-                        // Post to finance if status changed to finalized/approved
+                        // Post to finance and decrease stock if status changed to finalized/approved
                         if (statusChangedToFinalized)
                         {
                             try
                             {
                                 var userId = UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostSalesInvoice((int)existingInvoice.ID, db, userId);
+
+                                // Decrease stock in Sales Warehouse for each invoice line
+                                if (lines != null && lines.Any())
+                                {
+                                    foreach (var line in lines)
+                                    {
+                                        try
+                                        {
+                                            WarehouseFlowService.DecreaseSalesStock(
+                                                line.ProductID,
+                                                line.Qty,
+                                                db,
+                                                User.Identity.Name,
+                                                existingInvoice.ID,
+                                                existingInvoice.InvoiceNo ?? existingInvoice.ID.ToString()
+                                            );
+                                        }
+                                        catch (Exception stockEx)
+                                        {
+                                            // Log stock error but don't fail the invoice save
+                                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit",
+                                                $"Stock decrease error for product {line.ProductID} in invoice {existingInvoice.ID}: {stockEx.Message}");
+                                            // Re-throw if it's a critical stock shortage
+                                            if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
+                                            {
+                                                throw;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             catch (Exception ex)
                             {
-                                // Log error but don't fail the invoice save
+                                // Log error but don't fail the invoice save (unless it's stock shortage)
                                 LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit", 
-                                    $"Finance posting error for invoice {existingInvoice.ID}: {ex.Message}");
+                                    $"Finance posting or stock decrease error for invoice {existingInvoice.ID}: {ex.Message}");
+                                // Re-throw if it's a stock shortage
+                                if (ex.Message.Contains("yetarli mahsulot yo'q"))
+                                {
+                                    throw;
+                                }
                             }
                         }
 
@@ -703,7 +816,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }

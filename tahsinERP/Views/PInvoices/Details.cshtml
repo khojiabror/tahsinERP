@@ -129,36 +129,108 @@
                                                 <tr>
                                                     <th>Mahsulot kodi</th>
                                                     <th>Mahsulot nomi</th>
-                                                    <th>Miqdor</th>
+                                                    <th>Miqdor (Invoys)</th>
                                                     <th>Birlik</th>
+                                                    <th>CBM (ekvivalent)</th>
                                                     <th>Narx</th>
                                                     <th>Jami</th>
+                                                    @if (Model.P_ORDERS?.ContractID.HasValue == true)
+                                                    {
+                                                        <th>Shartnoma balansi</th>
+                                                        <th>Bajarilish %</th>
+                                                    }
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @if (Model.P_INVOICE_PRODUCTS != null && Model.P_INVOICE_PRODUCTS.Any())
                                                 {
+                                                    var contractBalances = ViewBag.ContractBalances as Dictionary<int, tahsinERP.Services.ContractBalanceInfo>;
+                                                    var productCBMInfo = ViewBag.ProductCBMInfo as Dictionary<int, decimal>;
+                                                    
                                                     foreach (var product in Model.P_INVOICE_PRODUCTS)
                                                     {
+                                                        var productId = product.ProductID;
+                                                        var requiresCutting = product.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                                                        var cbm = productCBMInfo != null && productCBMInfo.ContainsKey(productId) ? productCBMInfo[productId] : (decimal?)null;
+                                                        var balance = contractBalances != null && contractBalances.ContainsKey(productId) ? contractBalances[productId] : null;
+                                                        
                                                         <tr>
                                                             <td>@(product.PRODUCT?.PNo ?? "-")</td>
                                                             <td>@(product.PRODUCT?.Name ?? "-")</td>
                                                             <td>@product.Quantity.ToString("N2")</td>
                                                             <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                            <td>
+                                                                @if (requiresCutting && cbm.HasValue)
+                                                                {
+                                                                    <span class="badge badge-info">@cbm.Value.ToString("N3") m³</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
                                                             <td>@product.Price.ToString("N2")</td>
                                                             <td>@product.TotalPrice.ToString("N2")</td>
+                                                            @if (Model.P_ORDERS?.ContractID.HasValue == true)
+                                                            {
+                                                                <td>
+                                                                    @if (balance != null)
+                                                                    {
+                                                                        <div>
+                                                                            <small class="text-muted">Qoldiq:</small>
+                                                                            <strong class="text-@(balance.RemainingQuantityCBM >= 0 ? "success" : "danger")">
+                                                                                @balance.RemainingQuantityCBM.ToString("N3") m³
+                                                                            </strong>
+                                                                        </div>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">-</span>
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    @if (balance != null)
+                                                                    {
+                                                                        <div class="progress" style="height: 20px;">
+                                                                            <div class="progress-bar @(balance.FulfillmentPercentage >= 100 ? "bg-success" : balance.FulfillmentPercentage >= 50 ? "bg-warning" : "bg-info")" 
+                                                                                 role="progressbar" 
+                                                                                 style="width: @(Math.Min(100, balance.FulfillmentPercentage))%"
+                                                                                 aria-valuenow="@balance.FulfillmentPercentage" 
+                                                                                 aria-valuemin="0" 
+                                                                                 aria-valuemax="100">
+                                                                                @balance.FulfillmentPercentage.ToString("N1")%
+                                                                            </div>
+                                                                        </div>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">-</span>
+                                                                    }
+                                                                </td>
+                                                            }
                                                         </tr>
                                                     }
                                                 }
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="6" class="text-center">Mahsulotlar topilmadi</td>
+                                                        <td colspan="@(Model.P_ORDERS?.ContractID.HasValue == true ? "9" : "7")" class="text-center">Mahsulotlar topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
+                                    
+                                    @if (Model.P_ORDERS?.ContractID.HasValue == true)
+                                    {
+                                        <div class="alert alert-info mt-2">
+                                            <h6><i class="bx bx-info-circle"></i> Shartnoma balansi ma'lumotlari</h6>
+                                            <small>
+                                                CBM (kubik metr) ekvivalentlari faqat kesish talab qilinadigan mahsulotlar uchun ko'rsatiladi.
+                                                Shartnoma balansi dinamik ravishda hisoblanadi va barcha invoyslar asosida yangilanadi.
+                                            </small>
+                                        </div>
+                                    }
 
                                     @if (Model.P_INVOICE_DOCS != null && Model.P_INVOICE_DOCS.Any())
                                     {

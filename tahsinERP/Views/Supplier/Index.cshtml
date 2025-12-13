@@ -36,18 +36,9 @@
             <div class="content-body">
                 <section class="invoice-list-wrapper">
                     <div class="invoice-create-btn mb-1">
-                        @if (changePermit)
-                        {
-                            <button type="button" class="btn btn-success bg-light invoice-create" id="addSupplierBtn">
-                                <i class="bx bx-plus"></i> Yangi ta'minotchi
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-success bg-light invoice-create" id="addSupplierBtn" disabled title="Ruxsat yo'q">
-                                <i class="bx bx-plus"></i> Yangi ta'minotchi
-                            </button>
-                        }
+                        <button type="button" class="btn btn-success bg-light invoice-create" id="addSupplierBtn" data-has-permission="@(changePermit ? "true" : "false")">
+                            <i class="bx bx-plus"></i> Yangi ta'minotchi
+                        </button>
                         <a href="~/Supplier/UploadWithExcel" class="btn btn-outline-primary mr-1 mb-1">
                             <i class="bx bx-file"></i> Excel orqali qo'shish
                         </a>
@@ -82,10 +73,7 @@
                                                     <th>Nomi</th>
                                                     <th>Aloqa uchun</th>
                                                     <th>Turi</th>
-                                                    <th>Davlati</th>
-                                                    <th>Shahri</th>
                                                     <th>Telefon</th>
-                                                    <th>Email</th>
                                                     @if (changePermit)
                                                     {
                                                         <th>Amallar</th>
@@ -103,10 +91,7 @@
                                                             </td>
                                                             <td>@(item.ContactPersonName ?? "-")</td>
                                                             <td>@(item.Type ?? "-")</td>
-                                                            <td>@(item.Country ?? "-")</td>
-                                                            <td>@(item.City ?? "-")</td>
                                                             <td>@(item.Telephone ?? "-")</td>
-                                                            <td>@(item.Email ?? "-")</td>
                                                             @if (changePermit)
                                                             {
                                                                 <td>
@@ -236,27 +221,38 @@
 
         function openCreateModal() {
             try {
+                console.log('openCreateModal called');
                 isEditMode = false;
-                $('#supplierModalLabel').text('Yangi ta\'minotchi');
-                $('#supplierForm')[0].reset();
-                $('#supplierId').val('0');
-                $('#supplierError').hide();
                 
                 var modal = $('#supplierModal');
+                console.log('Modal element found:', modal.length);
+                
                 if (modal.length === 0) {
                     alert('Modal topilmadi. Sahifani yangilang.');
                     return;
                 }
                 
+                $('#supplierModalLabel').text('Yangi ta\'minotchi');
+                $('#supplierForm')[0].reset();
+                $('#supplierId').val('0');
+                $('#supplierError').hide();
+                
                 // Use Bootstrap modal if available
                 if (typeof $.fn.modal !== 'undefined') {
+                    console.log('Using Bootstrap modal');
                     modal.modal('show');
                 } else {
+                    console.log('Bootstrap modal not available, using fallback');
                     // Fallback: show modal manually
                     modal.css('display', 'block');
                     modal.addClass('show');
                     $('body').addClass('modal-open');
+                    // Add backdrop
+                    if ($('.modal-backdrop').length === 0) {
+                        $('body').append('<div class="modal-backdrop fade show"></div>');
+                    }
                 }
+                console.log('Modal should be visible now');
             } catch (err) {
                 console.error('Error in openCreateModal:', err);
                 alert('Modal ochishda xatolik: ' + err.message);
@@ -372,50 +368,47 @@
         }
 
         $(document).ready(function () {
-            // Add supplier button click handler - ensure it works
-            var addBtn = $('#addSupplierBtn');
-            if (addBtn.length > 0) {
-                // Remove any existing handlers
-                addBtn.off('click');
-                
-                // Add new handler
-                addBtn.on('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if ($(this).prop('disabled')) {
-                        alert('Ruxsat yo\'q. Iltimos, administratorga murojaat qiling.');
-                        return false;
-                    }
-                    
-                    try {
-                        openCreateModal();
-                    } catch (err) {
-                        console.error('Error opening modal:', err);
-                        alert('Modal ochishda xatolik yuz berdi. Qayta urinib ko\'ring.');
-                    }
-                    return false;
-                });
-                
-                // Also use delegated event as backup
-                $(document).off('click', '#addSupplierBtn').on('click', '#addSupplierBtn', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if ($(this).prop('disabled')) {
-                        return false;
-                    }
-                    
-                    try {
-                        openCreateModal();
-                    } catch (err) {
-                        console.error('Error opening modal:', err);
-                    }
-                    return false;
-                });
-            } else {
-                console.warn('Add Supplier button not found!');
+            // Check if jQuery is loaded
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded!');
+                alert('jQuery yuklanmagan. Sahifani yangilang.');
+                return;
             }
+
+            // Add supplier button click handler - simple and direct
+            function handleAddSupplierClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Add Supplier button clicked');
+                
+                var $btn = $('#addSupplierBtn');
+                var hasPermission = $btn.data('has-permission') === 'true' || $btn.data('has-permission') === true;
+                
+                if (!hasPermission) {
+                    alert('Ruxsat yo\'q. Iltimos, administratorga murojaat qiling.');
+                    return false;
+                }
+                
+                try {
+                    console.log('Opening create modal...');
+                    openCreateModal();
+                } catch (err) {
+                    console.error('Error opening modal:', err);
+                    alert('Modal ochishda xatolik: ' + err.message);
+                }
+                return false;
+            }
+
+            // Use delegated event (works even if button is added dynamically)
+            $(document).on('click', '#addSupplierBtn', handleAddSupplierClick);
+
+            // Also bind directly when document is ready (backup)
+            $('#addSupplierBtn').on('click', handleAddSupplierClick);
+            
+            // Debug: Log button existence
+            console.log('Add Supplier button found:', $('#addSupplierBtn').length > 0);
+            console.log('Button permission:', $('#addSupplierBtn').data('has-permission'));
 
             $('#suppliersTable').DataTable({
                 "language": {

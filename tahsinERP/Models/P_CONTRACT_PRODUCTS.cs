@@ -16,7 +16,7 @@ namespace tahsinERP.Models
     {
         public int ID { get; set; }
         public int ContractID { get; set; }
-        public int PartID { get; set; }
+        public int ProductID { get; set; }
         public double Price { get; set; }
         public double Quantity { get; set; }
         public double Amount { get; set; }
@@ -26,8 +26,8 @@ namespace tahsinERP.Models
         public Nullable<int> HSCodeID { get; set; }
     
         public virtual HSCODE HSCODE { get; set; }
-        public virtual P_CONTRACTS P_CONTRACTS { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
+        public virtual P_CONTRACTS P_CONTRACTS { get; set; }
         public virtual UNIT UNIT { get; set; }
     }
 }

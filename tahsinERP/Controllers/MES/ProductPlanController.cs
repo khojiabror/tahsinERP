@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -61,7 +62,7 @@ namespace tahsinERP.Controllers.MES
                 };
 
                 ViewBag.Products = new SelectList(
-                    await db.PRODUCTS.Where(pr => pr.IsDeleted == false).OrderBy(pr => pr.PNo).ToListAsync(),
+                    await db.PRODUCTS.Where(pr => pr.IsDeleted == false && pr.IsFinishedGood == true).OrderBy(pr => pr.PNo).ToListAsync(),
                     "ID", "PNo", productID);
 
                 return View(viewModel);
@@ -160,7 +161,7 @@ namespace tahsinERP.Controllers.MES
             {
                 var viewModel = new ProductPlanViewModel();
                 ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                     "ID", "PNo");
                 return View(viewModel);
             }
@@ -182,7 +183,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
                             ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);
                             return View(viewModel);
                         }
@@ -199,7 +200,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud");
                             ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);
                             return View(viewModel);
                         }
@@ -261,7 +262,14 @@ namespace tahsinERP.Controllers.MES
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -269,7 +277,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                     "ID", "PNo", viewModel.ProductID);
             }
 
@@ -303,7 +311,7 @@ namespace tahsinERP.Controllers.MES
                 };
 
                 ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                     "ID", "PNo", viewModel.ProductID);
 
                 return View(viewModel);
@@ -332,7 +340,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
                             ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);
                             return View(viewModel);
                         }
@@ -350,7 +358,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud");
                             ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);
                             return View(viewModel);
                         }
@@ -371,7 +379,14 @@ namespace tahsinERP.Controllers.MES
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -379,7 +394,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false).OrderBy(p => p.PNo).ToList(),
+                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                     "ID", "PNo", viewModel.ProductID);
             }
 
@@ -521,6 +536,79 @@ namespace tahsinERP.Controllers.MES
                 }).ToList();
 
                 return PartialView("_DailyGridPartial", dailyPlanViewModels);
+            }
+        }
+
+        // POST: ProductPlan/CalculateRequiredRawMaterials
+        [HttpPost]
+        public async Task<ActionResult> CalculateRequiredRawMaterials(int planId)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var plan = await db.PRODUCTPLANS
+                    .Include(p => p.PRODUCT)
+                    .FirstOrDefaultAsync(p => p.ID == planId && p.IsDeleted == false);
+
+                if (plan == null)
+                {
+                    return Json(new { success = false, message = "Reja topilmadi" });
+                }
+
+                try
+                {
+                    var consumptionService = new ProductionConsumptionService(db);
+                    var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
+                        plan.ProductID, plan.Amount);
+
+                    var result = requirements.Select(r => new
+                    {
+                        MaterialID = r.MaterialID,
+                        MaterialPNo = r.MaterialPNo,
+                        MaterialName = r.MaterialName,
+                        RequiredQtyPieces = Math.Round(r.RequiredQtyPieces, 2),
+                        RequiredQtyMeters = Math.Round(r.RequiredQtyMeters, 2),
+                        WasteQty = Math.Round(r.WasteQty, 2),
+                        TotalConsumption = Math.Round(r.TotalConsumption, 2),
+                        UnitID = r.UnitID,
+                        RequiresCutting = r.RequiresCutting
+                    }).ToList();
+
+                    return Json(new { success = true, data = result, planQty = plan.Amount });
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
+                }
+            }
+        }
+
+        // GET: ProductPlan/RawMaterialsPreview/5
+        public async Task<ActionResult> RawMaterialsPreview(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var plan = await db.PRODUCTPLANS
+                    .Include(p => p.PRODUCT)
+                    .FirstOrDefaultAsync(p => p.ID == id && p.IsDeleted == false);
+
+                if (plan == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var consumptionService = new ProductionConsumptionService(db);
+                var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
+                    plan.ProductID, plan.Amount);
+
+                ViewBag.Plan = plan;
+                ViewBag.Requirements = requirements;
+
+                return View(requirements);
             }
         }
     }

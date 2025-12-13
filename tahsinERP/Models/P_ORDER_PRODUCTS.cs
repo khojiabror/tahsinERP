@@ -16,15 +16,15 @@ namespace tahsinERP.Models
     {
         public int ID { get; set; }
         public int OrderID { get; set; }
-        public int PartID { get; set; }
+        public int ProductID { get; set; }
         public double Price { get; set; }
         public double Amount { get; set; }
         public double TotalPrice { get; set; }
         public Nullable<double> MOQ { get; set; }
         public Nullable<int> UnitID { get; set; }
     
-        public virtual P_ORDERS P_ORDERS { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
+        public virtual P_ORDERS P_ORDERS { get; set; }
         public virtual UNIT UNIT { get; set; }
     }
 }

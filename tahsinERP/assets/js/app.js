@@ -6,27 +6,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const successBtn = document.querySelector(".success-btn")
     let formToSubmit = null;
 
+    // Elementlar mavjudligini tekshirish
+    if (!popup) {
+        return; // Agar popup mavjud bo'lmasa, script'ni to'xtatish
+    }
+
     function openPopup() {
-        popup.classList.add('show');
+        if (popup) {
+            popup.classList.add('show');
+        }
     }
 
     function closePopup() {
-        popup.classList.remove('show');
+        if (popup) {
+            popup.classList.remove('show');
+        }
     }
 
-    openButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            formToSubmit = button.closest('form');
-            openPopup();
+    if (openButtons && openButtons.length > 0) {
+        openButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                formToSubmit = button.closest('form');
+                openPopup();
+            });
         });
-    });
+    }
 
-    closeButton.addEventListener('click', closePopup);
-    confirmButton.addEventListener('click', () => {
-        if (formToSubmit) {
-            formToSubmit.submit();
-        }
-        closePopup();
-    });
+    if (closeButton) {
+        closeButton.addEventListener('click', closePopup);
+    }
+    
+    if (confirmButton) {
+        confirmButton.addEventListener('click', () => {
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+            closePopup();
+        });
+    }
 });

@@ -1231,14 +1231,44 @@ namespace tahsinERP.Controllers.Engineering
                     {
                         var materialId = group.Key;
                         var lines = group.ToList();
-                        var material = await db.PRODUCTS.FindAsync(materialId);
+                        
+                        // Load material with category to check RequiresCutting
+                        var material = await db.PRODUCTS
+                            .Include(p => p.PRODUCT_CATEGORIES)
+                            .FirstOrDefaultAsync(p => p.ID == materialId);
+
+                        if (material == null) continue;
+
+                        // Determine UnitID based on category's RequiresCutting flag
+                        int unitId;
+                        
+                        // Check if material has a category and if it requires cutting
+                        if (material.CategoryID.HasValue && material.PRODUCT_CATEGORIES != null)
+                        {
+                            // If category requires cutting, use meter (UnitID = 5)
+                            if (material.PRODUCT_CATEGORIES.RequiresCutting)
+                            {
+                                unitId = 5; // meter (m)
+                            }
+                            else
+                            {
+                                // If not requiring cutting, use dona (UnitID = 1) or material's default unit
+                                // Use material's UnitID if it's valid, otherwise default to dona
+                                unitId = (material.UnitID > 0) ? material.UnitID : 1; // Default to dona if UnitID is 0 or invalid
+                            }
+                        }
+                        else
+                        {
+                            // If no category assigned, use material's UnitID or default to dona
+                            unitId = (material.UnitID > 0) ? material.UnitID : 1;
+                        }
 
                         var bomLine = new BOM_LINES
                         {
                             BOMID = bomHeader.ID,
                             ComponentID = materialId,
                             Qty = lines.Sum(l => l.ConsumptionPerProduct),
-                            UnitID = material?.UnitID ?? 1
+                            UnitID = unitId
                         };
 
                         db.BOM_LINES.Add(bomLine);

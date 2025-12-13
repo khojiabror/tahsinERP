@@ -18,7 +18,6 @@ namespace tahsinERP.Models
         public NORMVERSION()
         {
             this.NORMLINES = new HashSet<NORMLINE>();
-            this.BOMS_AND_NORMS = new HashSet<BOMS_AND_NORMS>();
         }
     
         public int ID { get; set; }
@@ -29,8 +28,6 @@ namespace tahsinERP.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NORMLINE> NORMLINES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<BOMS_AND_NORMS> BOMS_AND_NORMS { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
     }
 }

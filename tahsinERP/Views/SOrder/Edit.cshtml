@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.SOrderViewModel
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Buyurtmani tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,8 +21,11 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/SOrder/Index">Buyurtmalar</a>
                                     </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SOrder/Details/@Model.ID">Buyurtma ma'lumotlari</a>
+                                    </li>
                                     <li class="breadcrumb-item active">
-                                        Buyurtma tahrirlash
+                                        Tahrirlash
                                     </li>
                                 </ol>
                             </div>
@@ -31,141 +34,122 @@
                 </div>
             </div>
             <div class="content-body">
-                <section id="form-repeater-wrapper">
+                <section id="order-edit-wrapper">
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Edit", "SOrder", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default", @id = "orderForm" }))
+                                        @using (Html.BeginForm("Edit", "SOrder", FormMethod.Post, new { @id = "orderForm" }))
                                         {
                                             @Html.AntiForgeryToken()
+                                            @Html.HiddenFor(model => model.ID)
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
+                                            <h4 class="mb-2">Asosiy ma'lumotlar</h4>
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="OrderNo">Buyurtma raqami</label>
-                                                    @Html.TextBoxFor(model => model.OrderNo, new { @type = "text", @class = "form-control", @required = "required" })
+                                                    <label for="OrderNo">Buyurtma raqami <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="CustomerID">Haridor</label>
+                                                    <label for="IssuedDate">Buyurtma sanasi <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @type = "date", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CustomerID">Haridor <span class="text-danger">*</span></label>
                                                     @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @id = "CustomerID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContractID">Shartnoma raqami</label>
-                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID" })
+                                                    <label for="ContractID">Shartnoma raqami <span class="text-danger">*</span></label>
+                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="IssuedDate">Buyurtma berilgan sanasi</label>
-                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">Shartnoma tanlang, maxsulotlar avtomatik yuklanadi</small>
                                                 </div>
                                                 <div class="col-md-12 col-12 form-group">
                                                     <label for="Description">Qisqacha tavsifi</label>
-                                                    @Html.TextAreaFor(model => model.Description, new { @type = "text", @class = "form-control", @placeholder = "Qisqacha tavsif kiriting", @rows = "2" })
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
 
-                                            <br />
-                                            <h4>Buyurtma maxsulotlari</h4>
-                                            <div data-repeater-list="Parts">
-                                                @if (Model.Products != null && Model.Products.Any())
-                                                {
-                                                    foreach (var product in Model.Products)
-                                                    {
-                                                        <div data-repeater-item>
-                                                            <div class="row justify-content-between">
-                                                                <div class="col-md-2 col-sm-12 form-group">
-                                                                    <label>Maxsulot</label>
-                                                                    <select name="ProductID" class="form-control select2 product-select" required>
-                                                                        <option value="">---Tanlang---</option>
-                                                                        @foreach (var p in ((SelectList)ViewBag.ProductList))
-                                                                        {
-                                                                            <option value="@p.Value" @(p.Value == product.ProductID.ToString() ? "selected" : "")>@p.Text</option>
-                                                                        }
-                                                                    </select>
-                                                                </div>
-                                                                <div class="col-md-2 col-sm-12 form-group">
-                                                                    <label>O'lchov birligi</label>
-                                                                    <select name="UnitID" class="form-control select2 unit-select" required>
-                                                                        <option value="">---Tanlang---</option>
-                                                                        @foreach (var unit in ((SelectList)ViewBag.Units))
-                                                                        {
-                                                                            <option value="@unit.Value" @(unit.Value == product.UnitID.ToString() ? "selected" : "")>@unit.Text</option>
-                                                                        }
-                                                                    </select>
-                                                                </div>
-                                                                <div class="col-md-2 col-sm-12 form-group">
-                                                                    <label>Miqdori</label>
-                                                                    <input type="number" name="Amount" class="form-control product-amount" value="@product.Amount" step="0.01" min="0.01" required />
-                                                                </div>
-                                                                <div class="col-md-2 col-sm-12 form-group">
-                                                                    <label>Birlik narxi</label>
-                                                                    <input type="number" name="Price" class="form-control product-price" value="@product.Price" step="0.01" min="0" required />
-                                                                </div>
-                                                                <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
-                                                                    <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
-                                                                </div>
-                                                            </div>
-                                                            <hr>
-                                                        </div>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <div data-repeater-item>
-                                                        <div class="row justify-content-between">
-                                                            <div class="col-md-2 col-sm-12 form-group">
-                                                                <label>Maxsulot</label>
-                                                                <select name="ProductID" class="form-control select2 product-select" required>
-                                                                    <option value="">---Tanlang---</option>
-                                                                    @foreach (var product in ((SelectList)ViewBag.ProductList))
-                                                                    {
-                                                                        <option value="@product.Value">@product.Text</option>
-                                                                    }
-                                                                </select>
-                                                            </div>
-                                                            <div class="col-md-2 col-sm-12 form-group">
-                                                                <label>O'lchov birligi</label>
-                                                                <select name="UnitID" class="form-control select2 unit-select" required>
-                                                                    <option value="">---Tanlang---</option>
-                                                                    @foreach (var unit in ((SelectList)ViewBag.Units))
-                                                                    {
-                                                                        <option value="@unit.Value">@unit.Text</option>
-                                                                    }
-                                                                </select>
-                                                            </div>
-                                                            <div class="col-md-2 col-sm-12 form-group">
-                                                                <label>Miqdori</label>
-                                                                <input type="number" name="Amount" class="form-control product-amount" placeholder="Miqdori" step="0.01" min="0.01" required />
-                                                            </div>
-                                                            <div class="col-md-2 col-sm-12 form-group">
-                                                                <label>Birlik narxi</label>
-                                                                <input type="number" name="Price" class="form-control product-price" placeholder="Birlik narxi" step="0.01" min="0" required />
-                                                            </div>
-                                                            <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
-                                                                <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
-                                                            </div>
-                                                        </div>
-                                                        <hr>
-                                                    </div>
-                                                }
+                                            <hr class="my-2" />
+
+                                            <h4 class="mb-2">Shartnoma maxsulotlari</h4>
+                                            <div id="productsContainer">
+                                                <div class="alert alert-info">
+                                                    <i class="bx bx-info-circle"></i> Faqat buyurtma miqdorini kiriting. Narxlar shartnomadan avtomatik olinadi.
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table id="productsTable" class="table table-bordered table-striped">
+                                                        <thead class="thead-light">
+                                                            <tr>
+                                                                <th width="5%">№</th>
+                                                                <th width="15%">Maxsulot kodi</th>
+                                                                <th width="25%">Maxsulot nomi</th>
+                                                                <th width="10%">O'lchov birligi</th>
+                                                                <th width="12%">Shartnoma miqdori</th>
+                                                                <th width="12%">Birlik narxi</th>
+                                                                <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
+                                                                <th width="10%">Jami</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="productsTableBody">
+                                                            @if (Model.ProductQuantities != null && Model.ProductQuantities.Any())
+                                                            {
+                                                                int index = 0;
+                                                                foreach (var product in Model.ProductQuantities)
+                                                                {
+                                                                    <tr>
+                                                                        <td>@(index + 1)</td>
+                                                                        <td>@product.ProductPNo</td>
+                                                                        <td>@product.ProductName</td>
+                                                                        <td>@product.UnitName</td>
+                                                                        <td class="text-right">@product.ContractAmount.ToString("N2")</td>
+                                                                        <td class="text-right">@product.PiecePrice.ToString("N2")</td>
+                                                                        <td>
+                                                                            <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
+                                                                            <input type="number" 
+                                                                                   name="ProductQuantities[@index].OrderQuantity" 
+                                                                                   class="form-control order-quantity" 
+                                                                                   value="@product.OrderQuantity.ToString("N2")" 
+                                                                                   step="0.01" 
+                                                                                   min="0.01" 
+                                                                                   data-price="@product.PiecePrice"
+                                                                                   required />
+                                                                        </td>
+                                                                        <td class="text-right total-price">@((product.OrderQuantity * product.PiecePrice).ToString("N2"))</td>
+                                                                    </tr>
+                                                                    index++;
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                        <tfoot>
+                                                            <tr class="font-weight-bold">
+                                                                <td colspan="7" class="text-right">Jami summa:</td>
+                                                                <td class="text-right" id="grandTotal">@(Model.Amount?.ToString("N2") ?? "0.00")</td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
                                             </div>
 
-                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi maxsulot qo'shish</button>
-
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item border-0 pb-0">
-                                                    <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
-                                                        <i class='bx bx-save'></i>
-                                                        Saqlash
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-primary btn-lg">
+                                                        <i class="bx bx-save"></i> Saqlash
                                                     </button>
-                                                </li>
-                                            </ul>
+                                                    <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-secondary btn-lg">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
                                         }
                                     </div>
                                 </div>
@@ -178,88 +162,118 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            if (typeof flatpickr !== 'undefined') {
-                flatpickr("#IssuedDate", {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d.m.Y",
-                    locale: "uz"
-                });
-            }
+        (function($) {
+            $(document).ready(function () {
+                $('#CustomerID, #ContractID').select2({ width: '100%' });
 
-            window.contractProducts = null;
-
-            $('#ContractID').on('change', function () {
-                var contractId = $(this).val();
-                if (contractId && contractId != '0' && contractId != '') {
-                    loadContractProducts(contractId);
-                } else {
-                    window.contractProducts = null;
-                }
-            });
-
-            $(document).on('change', '.product-select', function () {
-                var $row = $(this).closest('[data-repeater-item]');
-                var productId = $(this).val();
-                var contractId = $('#ContractID').val();
-
-                if (contractId && contractId != '0' && contractId != '' && productId && productId != '0' && productId != '') {
-                    loadProductPriceFromContract(contractId, parseInt(productId), $row);
-                }
-            });
-
-            function loadContractProducts(contractId) {
-                $.ajax({
-                    url: '@Url.Action("GetContractProducts", "SOrder")',
-                    type: 'GET',
-                    data: { contractId: contractId },
-                    success: function (data) {
-                        if (data && data.length > 0) {
-                            window.contractProducts = data;
-                        }
-                    },
-                    error: function () {
-                        window.contractProducts = null;
+                // Filter contracts when customer changes
+                $('#CustomerID').on('change', function () {
+                    var customerId = $(this).val();
+                    if (customerId && customerId != '0' && customerId != '') {
+                        $.ajax({
+                            url: '@Url.Action("GetContractsByCustomer", "SOrder")',
+                            type: 'GET',
+                            data: { customerId: customerId },
+                            success: function (data) {
+                                var $contractSelect = $('#ContractID');
+                                var currentValue = $contractSelect.val();
+                                $contractSelect.empty();
+                                $contractSelect.append($('<option></option>').val('0').text('---Tanlang---'));
+                                
+                                if (data && data.length > 0) {
+                                    $.each(data, function (index, contract) {
+                                        var $option = $('<option></option>')
+                                            .val(contract.ID)
+                                            .text(contract.ContractNo);
+                                        if (contract.ID == currentValue) {
+                                            $option.prop('selected', true);
+                                        }
+                                        $contractSelect.append($option);
+                                    });
+                                }
+                                
+                                $contractSelect.select2('destroy');
+                                $contractSelect.select2({ width: '100%' });
+                            }
+                        });
                     }
                 });
-            }
 
-            function loadProductPriceFromContract(contractId, productId, $row) {
-                if (!window.contractProducts) {
-                    loadContractProducts(contractId);
-                    setTimeout(function () {
-                        loadProductPriceFromContract(contractId, productId, $row);
-                    }, 500);
-                    return;
-                }
-
-                var contractProduct = window.contractProducts.find(function (cp) {
-                    return parseInt(cp.ProductID) === productId;
+                // Load contract products when contract changes
+                $('#ContractID').on('change', function () {
+                    var contractId = $(this).val();
+                    if (contractId && contractId != '0' && contractId != '') {
+                        loadContractProducts(contractId);
+                    }
                 });
 
-                if (contractProduct) {
-                    var $priceInput = $row.find('.product-price');
-                    var price = parseFloat(contractProduct.PiecePrice) || 0;
-                    $priceInput.val(price);
+                // Calculate totals
+                $(document).on('input', '.order-quantity', function () {
+                    var $row = $(this).closest('tr');
+                    var quantity = parseFloat($(this).val()) || 0;
+                    var price = parseFloat($(this).data('price')) || 0;
+                    var total = quantity * price;
+                    $row.find('.total-price').text(total.toFixed(2));
+                    calculateGrandTotal();
+                });
 
-                    if (contractProduct.UnitID) {
-                        var $unitSelect = $row.find('.unit-select');
-                        $unitSelect.val(contractProduct.UnitID);
-                        if ($unitSelect.hasClass('select2')) {
-                            $unitSelect.select2('destroy');
-                            $unitSelect.select2();
+                function loadContractProducts(contractId) {
+                    $.ajax({
+                        url: '@Url.Action("GetContractProducts", "SOrder")',
+                        type: 'GET',
+                        data: { contractId: contractId },
+                        success: function (data) {
+                            if (data && data.length > 0) {
+                                var tbody = $('#productsTableBody');
+                                var existingQuantities = {};
+                                tbody.find('tr').each(function() {
+                                    var productId = $(this).find('input[name*=".ProductID"]').val();
+                                    var qty = $(this).find('.order-quantity').val();
+                                    if (productId && qty) {
+                                        existingQuantities[productId] = qty;
+                                    }
+                                });
+                                
+                                tbody.empty();
+                                $.each(data, function (index, product) {
+                                    var existingQty = existingQuantities[product.ProductID] || 0;
+                                    var row = '<tr>' +
+                                        '<td>' + (index + 1) + '</td>' +
+                                        '<td>' + product.ProductPNo + '</td>' +
+                                        '<td>' + product.ProductName + '</td>' +
+                                        '<td>' + product.UnitName + '</td>' +
+                                        '<td class="text-right">' + parseFloat(product.ContractAmount).toFixed(2) + '</td>' +
+                                        '<td class="text-right">' + parseFloat(product.PiecePrice).toFixed(2) + '</td>' +
+                                        '<td>' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].ContractProductID" value="' + product.ContractProductID + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + product.ProductID + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].PiecePrice" value="' + product.PiecePrice + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].UnitID" value="' + product.UnitID + '" />' +
+                                        '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="' + existingQty + '" step="0.01" min="0.01" data-price="' + product.PiecePrice + '" required />' +
+                                        '</td>' +
+                                        '<td class="text-right total-price">' + (existingQty * product.PiecePrice).toFixed(2) + '</td>' +
+                                        '</tr>';
+                                    tbody.append(row);
+                                });
+                                
+                                calculateGrandTotal();
+                            }
                         }
-                    }
+                    });
                 }
-            }
 
-            // Load contract products if contract is already selected
-            var contractId = $('#ContractID').val();
-            if (contractId && contractId != '0' && contractId != '') {
-                loadContractProducts(contractId);
-            }
-        });
+                function calculateGrandTotal() {
+                    var total = 0;
+                    $('.total-price').each(function () {
+                        total += parseFloat($(this).text()) || 0;
+                    });
+                    $('#grandTotal').text(total.toFixed(2));
+                }
+
+                // Initial calculation
+                calculateGrandTotal();
+            });
+        })(jQuery);
     </script>
 }
 else

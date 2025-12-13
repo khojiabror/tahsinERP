@@ -1,4 +1,5 @@
 @model tahsinERP.Models.INCOME
+@using System.Linq
 @{
     ViewBag.Title = "Kirim hujjati tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -37,7 +38,13 @@
                             <div class="card-header">
                                 <h4 class="card-title">Kirim hujjati ma'lumotlari</h4>
                                 <div class="heading-elements">
-                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes") && Model.RecieveStatus != true)
+                                    @{
+                                        var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+                                        bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
+                                        bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+                                        bool canEdit = !isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes") && Model.RecieveStatus != true;
+                                    }
+                                    @if (canEdit)
                                     {
                                         <a href="@Url.Action("Edit", "Incomes", new { id = Model.ID })" class="btn btn-sm btn-warning">
                                             <i class="bx bx-edit-alt"></i> Tahrirlash
@@ -76,12 +83,27 @@
                                                         {
                                                             <a href="@Url.Action("Details", "PInvoices", new { id = Model.InvoiceID })">@Model.P_INVOICES.InvoiceNo</a>
                                                         }
+                                                        else if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Auto-linked from Expense"))
+                                                        {
+                                                            <span class="badge badge-info">Avtomatik yaratilgan (Expense dan)</span>
+                                                            @* Extract Expense DocNo from Description if needed *@
+                                                        }
                                                         else
                                                         {
                                                             <span>-</span>
                                                         }
                                                     </td>
                                                 </tr>
+                                                @if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Auto-linked from Expense"))
+                                                {
+                                                    <tr>
+                                                        <th>Manbasi:</th>
+                                                        <td>
+                                                            <span class="badge badge-info">Avtomatik yaratilgan</span>
+                                                            <small class="text-muted">SRM modulidan Expense yaratilganda avtomatik yaratilgan</small>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             </table>
                                         </div>
                                         <div class="col-md-6">

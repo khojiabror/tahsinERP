@@ -524,6 +524,7 @@
     <Compile Include="Controllers\Logistic\ForwarderController.cs" />
     <Compile Include="Controllers\Logistic\FTransportTypeController.cs" />
     <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
+    <Compile Include="Controllers\Settings\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\ExpensesController.cs" />
     <Compile Include="Controllers\SRM\HSCodeController.cs" />
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
@@ -534,6 +535,8 @@
     <Compile Include="Controllers\SRM\PContractsController.cs" />
     <Compile Include="Controllers\SRM\PInvoicesController.cs" />
     <Compile Include="Controllers\SRM\POrdersController.cs" />
+    <Compile Include="Controllers\SRM\ProductionControlController.cs" />
+    <Compile Include="Controllers\SRM\ProductionToSalesTransferController.cs" />
     <Compile Include="Controllers\SRM\ProductStockController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
     <Compile Include="Controllers\SRM\WarehouseController.cs" />
@@ -575,13 +578,7 @@
     <Compile Include="Models\APP_TASK_STATUS_REF.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\BOM.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\BomIsParentProduct.cs" />
-    <Compile Include="Models\BOMS_AND_NORMS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\BOM_HEADERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -695,9 +692,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\F_WAYBILL_PAYMENT_SPLITS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\GetProductListPerShop_Result.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_EMPLOYEES.cs">
@@ -929,15 +923,23 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
     <Compile Include="Services\ITextSuggestionService.cs" />
     <Compile Include="Services\IUserActionLogger.cs" />
+    <Compile Include="Services\MaterialConsumptionService.cs" />
+    <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />
+    <Compile Include="Services\POrderGenerationService.cs" />
+    <Compile Include="Services\ProductionConsumptionService.cs" />
     <Compile Include="Services\TextSuggestionService.cs" />
     <Compile Include="Services\TransportLoadCalculator.cs" />
+    <Compile Include="Services\UnitConversionService.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
+    <Compile Include="Services\WarehouseFlowService.cs" />
+    <Compile Include="Services\WasteHandlingService.cs" />
     <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomIndexViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomTreeNodeViewModel.cs" />
@@ -945,6 +947,7 @@
     <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
     <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
+    <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\HR\HrDashboardViewModel.cs" />
@@ -955,6 +958,7 @@
     <Compile Include="ViewModels\HR\HrStaffingPlanViewModel.cs" />
     <Compile Include="ViewModels\HR\HrTimesheetViewModel.cs" />
     <Compile Include="ViewModels\HR\OrgChartNodeViewModel.cs" />
+    <Compile Include="ViewModels\IncomeViewModel.cs" />
     <Compile Include="ViewModels\MESDashboardViewModel.cs" />
     <Compile Include="ViewModels\NormLineViewModel.cs" />
     <Compile Include="ViewModels\OfficialLetterCreateVm.cs" />
@@ -988,9 +992,6 @@
     <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
-    <Compile Include="ViewModels\WrhsExpenseViewModel.cs" />
-    <Compile Include="ViewModels\WrhsIncomeEditViewModel.cs" />
-    <Compile Include="ViewModels\WrhsIncomeViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
     <Compile Include="ViewModels\UserViewModel.cs" />
     <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
@@ -3150,6 +3151,15 @@
     <Content Include="Views\TaskStatus\Edit.cshtml" />
     <Content Include="Views\TaskStatus\Index.cshtml" />
     <Content Include="Views\TaskDashboard\Index.cshtml" />
+    <Content Include="Views\ProductionToSalesTransfer\Create.cshtml" />
+    <Content Include="Views\ProductionToSalesTransfer\Details.cshtml" />
+    <Content Include="Views\ProductionToSalesTransfer\Index.cshtml" />
+    <Content Include="Views\Warehouse\Create.cshtml" />
+    <Content Include="Views\Warehouse\Delete.cshtml" />
+    <Content Include="Views\Warehouse\Details.cshtml" />
+    <Content Include="Views\Warehouse\Edit.cshtml" />
+    <Content Include="Views\Warehouse\Index.cshtml" />
+    <Content Include="Services\MaterialConsumptionService_README.md" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

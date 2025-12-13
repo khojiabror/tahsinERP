@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
 
-namespace tahsinERP.Controllers
+namespace tahsinERP.Controllers.SRM
 {
     public class ExpensesController : Controller
     {
@@ -124,7 +125,7 @@ namespace tahsinERP.Controllers
         // POST: Expenses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(ExpenseCreateViewModel model, HttpPostedFileBase expenseFile)
+        public async Task<ActionResult> Create(ViewModels.ExpenseCreateViewModel model, HttpPostedFileBase expenseFile)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
             {
@@ -235,12 +236,21 @@ namespace tahsinERP.Controllers
                                                 db.PRODUCT_STOCKS.Add(newStock);
                                             }
                                         }
+
+                                        // Income will be created after all products are processed (see below)
                                     }
                                 }
 
                                 expense.Amount = totalAmount;
                                 expense.TotalPrice = totalPrice;
                                 await db.SaveChangesAsync();
+
+                                // Auto-create linked Income document for internal transfer (Supply → Production/Sales WH)
+                                // Create ONE Income document for the entire Expense (not per product)
+                                if (expense.ReceiverWhID.HasValue)
+                                {
+                                    await CreateLinkedIncomeDocumentForExpenseAsync(expense, model.ExpenseProducts, db);
+                                }
                             }
 
                             // Upload expense document if provided
@@ -272,7 +282,14 @@ namespace tahsinERP.Controllers
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                            var errorMessage = $"Xatolik: {ex.Message}";
+                            var innerEx = ex.InnerException;
+                            while (innerEx != null)
+                            {
+                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                                innerEx = innerEx.InnerException;
+                            }
+                            ModelState.AddModelError("", errorMessage);
                         }
                     }
                 }
@@ -356,7 +373,7 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Index");
                 }
 
-                var model = new ExpenseEditViewModel
+                var model = new ViewModels.ExpenseEditViewModel
                 {
                     ID = expense.ID,
                     DocNo = expense.DocNo,
@@ -367,7 +384,7 @@ namespace tahsinERP.Controllers
                     Amount = expense.Amount,
                     TotalPrice = expense.TotalPrice,
                     Description = expense.Description,
-                    ExpenseProducts = expense.EXPENSE_PRODUCTS.Select(ep => new ExpenseProductViewModel
+                    ExpenseProducts = expense.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
                     {
                         ID = ep.ID,
                         ProductID = ep.ProductID,
@@ -403,7 +420,7 @@ namespace tahsinERP.Controllers
         // POST: Expenses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(ExpenseEditViewModel model, HttpPostedFileBase expenseFile)
+        public async Task<ActionResult> Edit(ViewModels.ExpenseEditViewModel model, HttpPostedFileBase expenseFile)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
             {
@@ -590,7 +607,14 @@ namespace tahsinERP.Controllers
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                            var errorMessage = $"Xatolik: {ex.Message}";
+                            var innerEx = ex.InnerException;
+                            while (innerEx != null)
+                            {
+                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                                innerEx = innerEx.InnerException;
+                            }
+                            ModelState.AddModelError("", errorMessage);
                         }
                     }
                 }
@@ -738,56 +762,99 @@ namespace tahsinERP.Controllers
                 return File(doc.Doc, "application/pdf", $"Expense_{doc.ExpenseID}.pdf");
             }
         }
-    }
 
-    // ViewModels
-    public class ExpenseCreateViewModel
-    {
-        public string DocNo { get; set; }
-        public DateTime IssueDateTime { get; set; } = DateTime.Now;
-        public int SenderWHID { get; set; }
-        public int? ReceiverWhID { get; set; }
-        public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
-        public string Description { get; set; }
-        public List<ExpenseProductViewModel> ExpenseProducts { get; set; }
-
-        public ExpenseCreateViewModel()
+        /// <summary>
+        /// Auto-creates linked Income document for internal transfer (Supply → Production/Sales WH)
+        /// Creates ONE Income document per Expense with all products
+        /// </summary>
+        private async Task CreateLinkedIncomeDocumentForExpenseAsync(EXPENS expense, List<ViewModels.ExpenseProductViewModel> products, DBTHSNEntities db)
         {
-            ExpenseProducts = new List<ExpenseProductViewModel>();
+            // Check if receiver is Production warehouse or Sales warehouse
+            var receiverWarehouse = await db.WAREHOUSES.FindAsync(expense.ReceiverWhID.Value);
+            if (receiverWarehouse == null)
+                return;
+
+            bool isProductionWarehouse = receiverWarehouse.WHName.Contains("Production") || 
+                                        receiverWarehouse.WHName.Contains("Ishlab chiqarish");
+            bool isSalesWarehouse = receiverWarehouse.WHName.Contains("Sales") || 
+                                   receiverWarehouse.WHName.Contains("Sotuv");
+
+            if (!isProductionWarehouse && !isSalesWarehouse)
+                return; // Only auto-link for Production or Sales warehouse transfers
+
+            // Generate Income DocNo
+            var incomeDocNo = await GenerateIncomeDocNo(db);
+
+            // Calculate totals
+            double totalAmount = products.Sum(p => p.Amount);
+            double totalPrice = products.Sum(p => p.TotalPrice);
+
+            // Create Income document
+            var income = new INCOME
+            {
+                DocNo = incomeDocNo,
+                IssueDateTime = expense.IssueDateTime,
+                ReceivingWHID = expense.ReceiverWhID.Value,
+                SenderWHID = expense.SenderWHID,
+                CurrencyID = expense.CurrencyID,
+                Amount = totalAmount,
+                TotalPrice = totalPrice,
+                Description = $"Auto-linked from Expense {expense.DocNo} - {expense.Description}",
+                RecieveStatus = true, // Auto-received for internal transfers
+                IsDeleted = false
+            };
+
+            db.INCOMES.Add(income);
+            await db.SaveChangesAsync();
+
+            // Create Income Products for all products in the Expense
+            foreach (var product in products)
+            {
+                var incomeProduct = new INCOME_PRODUCTS
+                {
+                    IncomeID = income.ID,
+                    ProductID = product.ProductID,
+                    Amount = product.Amount,
+                    PiecePrice = product.PiecePrice,
+                    TotalPrice = product.TotalPrice,
+                    UnitID = product.UnitID,
+                    Comment = $"Linked from Expense {expense.DocNo}"
+                };
+
+                db.INCOME_PRODUCTS.Add(incomeProduct);
+            }
+
+            await db.SaveChangesAsync();
+
+            LogHelper.LogToDatabase(User.Identity.Name, "Expenses", 
+                $"Auto-created linked Income {income.DocNo} for Expense {expense.DocNo} with {products.Count} products");
+        }
+
+        /// <summary>
+        /// Generates Income DocNo
+        /// </summary>
+        private async Task<string> GenerateIncomeDocNo(DBTHSNEntities db)
+        {
+            var month = DateTime.Now.Month;
+            var prefix = $"INC-{month}_";
+
+            var lastIncome = await db.INCOMES
+                .Where(i => i.DocNo.StartsWith(prefix))
+                .OrderByDescending(i => i.DocNo)
+                .FirstOrDefaultAsync();
+
+            int nextNumber = 1;
+            if (lastIncome != null)
+            {
+                var lastNumberStr = lastIncome.DocNo.Substring(prefix.Length);
+                if (int.TryParse(lastNumberStr, out int lastNumber))
+                {
+                    nextNumber = lastNumber + 1;
+                }
+            }
+
+            return $"{prefix}{nextNumber}";
         }
     }
 
-    public class ExpenseEditViewModel
-    {
-        public int ID { get; set; }
-        public string DocNo { get; set; }
-        public DateTime IssueDateTime { get; set; }
-        public int SenderWHID { get; set; }
-        public int? ReceiverWhID { get; set; }
-        public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
-        public string Description { get; set; }
-        public List<ExpenseProductViewModel> ExpenseProducts { get; set; }
-
-        public ExpenseEditViewModel()
-        {
-            ExpenseProducts = new List<ExpenseProductViewModel>();
-        }
-    }
-
-    public class ExpenseProductViewModel
-    {
-        public int? ID { get; set; }
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public double Amount { get; set; }
-        public int UnitID { get; set; }
-        public double PiecePrice { get; set; }
-        public double TotalPrice { get; set; }
-        public string Comment { get; set; }
-    }
 }

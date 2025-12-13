@@ -78,14 +78,8 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <div class="row mb-2">
-                                        <div class="col-md-6">
-                                            <span class="text-muted">Jami: @ViewBag.TotalItems ta yozuv</span>
-                                        </div>
-                                    </div>
-
                                     <div class="table-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
+                                        <table id="invoiceDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Invoys raqami</th>
@@ -97,7 +91,7 @@
                                                     <th>Holati</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th class="text-center">Amallar</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -108,7 +102,9 @@
                                                     {
                                                         <tr>
                                                             <td>
-                                                                <a href="@Url.Action("Details", "SalesInvoices", new { id = item.ID })">@item.InvoiceNo</a>
+                                                                <a href="@Url.Action("Details", "SalesInvoices", new { id = item.ID })" class="font-weight-bold">
+                                                                    @item.InvoiceNo
+                                                                </a>
                                                             </td>
                                                             <td>@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                                             <td>
@@ -116,16 +112,38 @@
                                                                     var customer = ViewBag.Customers as SelectList;
                                                                     var customerItem = customer?.Items.Cast<SelectListItem>().FirstOrDefault(c => c.Value == item.CustomerID.ToString());
                                                                 }
-                                                                @(customerItem?.Text ?? "")
+                                                                @if (!string.IsNullOrEmpty(customerItem?.Text))
+                                                                {
+                                                                    <span class="font-weight-bold">@customerItem.Text</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
                                                             </td>
                                                             <td>
                                                                 @if (item.OrderID.HasValue)
                                                                 {
-                                                                    <a href="@Url.Action("Details", "SOrder", new { id = item.OrderID })">Buyurtma #@item.OrderID</a>
+                                                                    <a href="@Url.Action("Details", "SOrder", new { id = item.OrderID })" class="font-weight-bold">
+                                                                        Buyurtma #@item.OrderID
+                                                                    </a>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
                                                                 }
                                                             </td>
                                                             <td>@item.TotalAmount.ToString("N2")</td>
-                                                            <td>@item.CurrencyCode</td>
+                                                            <td>
+                                                                @if (!string.IsNullOrEmpty(item.CurrencyCode))
+                                                                {
+                                                                    <span class="badge badge-light-primary">@item.CurrencyCode</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
                                                             <td>
                                                                 <span class="badge badge-@(item.StatusCode == "FINALIZED" ? "success" : item.StatusCode == "DRAFT" ? "warning" : "info")">
                                                                     @item.StatusCode
@@ -133,66 +151,20 @@
                                                             </td>
                                                             @if (changePermit)
                                                             {
-                                                                <td>
-                                                                    <div>
-                                                                        <a href="@Url.Action("Edit", "SalesInvoices", new { id = item.ID })" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                                    </div>
+                                                                <td class="text-center">
+                                                                    <a href="@Url.Action("Edit", "SalesInvoices", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                        <i class="bx bx-edit"></i>
+                                                                    </a>
                                                                 </td>
                                                             }
                                                         </tr>
                                                     }
                                                 }
-                                                else
-                                                {
-                                                    <tr>
-                                                        <td colspan="@(changePermit ? 8 : 7)" class="text-center">Ma'lumot topilmadi</td>
-                                                    </tr>
-                                                }
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    <!-- Pagination -->
-                                    @if (ViewBag.TotalPages > 1)
-                                    {
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <span class="text-muted">
-                                                    Sahifa @ViewBag.CurrentPage dan @ViewBag.TotalPages (@ViewBag.TotalItems ta yozuv)
-                                                </span>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <nav>
-                                                    <ul class="pagination justify-content-end">
-                                                        @if (ViewBag.CurrentPage > 1)
-                                                        {
-                                                            <li class="page-item">
-                                                                <a class="page-link" href="@Url.Action("Index", "SalesInvoices", new { searchTerm = ViewBag.SearchTerm, customerID = ViewBag.CustomerID, orderID = ViewBag.OrderID, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, sortOrder = ViewBag.SortOrder, page = ViewBag.CurrentPage - 1 })">
-                                                                    Oldingi
-                                                                </a>
-                                                            </li>
-                                                        }
-                                                        @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
-                                                        {
-                                                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                                                <a class="page-link" href="@Url.Action("Index", "SalesInvoices", new { searchTerm = ViewBag.SearchTerm, customerID = ViewBag.CustomerID, orderID = ViewBag.OrderID, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, sortOrder = ViewBag.SortOrder, page = i })">
-                                                                    @i
-                                                                </a>
-                                                            </li>
-                                                        }
-                                                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                                                        {
-                                                            <li class="page-item">
-                                                                <a class="page-link" href="@Url.Action("Index", "SalesInvoices", new { searchTerm = ViewBag.SearchTerm, customerID = ViewBag.CustomerID, orderID = ViewBag.OrderID, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, sortOrder = ViewBag.SortOrder, page = ViewBag.CurrentPage + 1 })">
-                                                                    Keyingi
-                                                                </a>
-                                                            </li>
-                                                        }
-                                                    </ul>
-                                                </nav>
-                                            </div>
-                                        </div>
-                                    }
                                 </div>
                             </div>
                         </div>
@@ -201,6 +173,96 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+            var changePermit = @(changePermit ? "true" : "false");
+            
+            var columnDefs = [];
+            if (changePermit) {
+                columnDefs.push({ "orderable": false, "targets": -1 });
+            }
+            
+            $('#invoiceDataTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[1, "desc"]],
+                "columnDefs": columnDefs,
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Invoyslar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Invoyslar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        title: 'Invoyslar ro\'yxati',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
+                    }
+                ],
+                "scrollX": true
+            });
+        });
+    </script>
 }
 else
 {

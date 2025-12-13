@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -95,9 +96,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -147,7 +146,6 @@ namespace tahsinERP.Controllers
                             CompanyID = model.CompanyID,
                             SupplierID = model.SupplierID,
                             CurrencyID = model.CurrencyID,
-                            Amount = 0,
                             Incoterms = model.Incoterms,
                             PaymentTerms = model.PaymentTerms,
                             DueDate = model.DueDate,
@@ -159,29 +157,44 @@ namespace tahsinERP.Controllers
                         await db.SaveChangesAsync();
 
                         // Add contract products
-                        double totalAmount = 0;
                         if (model.ContractProducts != null && model.ContractProducts.Any())
                         {
+                            var conversionService = new UnitConversionService(db);
+                            
                             foreach (var product in model.ContractProducts)
                             {
+                                // Check if product requires cutting
+                                bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
+                                
+                                // For requires_cutting products, use CBM (UnitID = 11 for m3)
+                                // For other products, use the user-selected unit
+                                int unitId;
+                                if (requiresCutting)
+                                {
+                                    unitId = 11; // m3 (cubic meter) for CBM
+                                }
+                                else
+                                {
+                                    // Use user-selected unit or product's default unit
+                                    var prod = await db.PRODUCTS.FindAsync(product.ProductID);
+                                    unitId = product.UnitID ?? (prod?.UnitID ?? 1);
+                                }
+
                                 var contractProduct = new P_CONTRACT_PRODUCTS
                                 {
                                     ContractID = contract.ID,
-                                    PartID = product.ProductID,
+                                    ProductID = product.ProductID,
                                     Price = product.Price,
-                                    Quantity = product.Quantity,
-                                    Amount = product.Price * product.Quantity,
-                                    UnitID = product.UnitID,
+                                    Quantity = product.Quantity, // Already in CBM for cutting products, or user-selected unit for others
+                                    UnitID = unitId,
                                     MOQ = product.MOQ,
                                     HSCodeID = product.HSCodeID,
                                     ActivePart = true
                                 };
 
                                 db.P_CONTRACT_PRODUCTS.Add(contractProduct);
-                                totalAmount += contractProduct.Amount;
                             }
 
-                            contract.Amount = totalAmount;
                             await db.SaveChangesAsync();
                         }
 
@@ -211,7 +224,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -237,9 +257,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -323,7 +341,7 @@ namespace tahsinERP.Controllers
                     ContractProducts = contract.P_CONTRACT_PRODUCTS.Select(cp => new PContractProductViewModel
                     {
                         ID = cp.ID,
-                        ProductID = cp.PartID,
+                        ProductID = cp.ProductID, // Changed from PartID to ProductID
                         ProductPNo = cp.PRODUCT.PNo,
                         ProductName = cp.PRODUCT.Name,
                         Price = cp.Price,
@@ -353,9 +371,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -416,30 +432,46 @@ namespace tahsinERP.Controllers
                         }
 
                         // Add updated contract products
-                        double totalAmount = 0;
                         if (model.ContractProducts != null && model.ContractProducts.Any())
                         {
+                            var conversionService = new UnitConversionService(db);
+                            
                             foreach (var product in model.ContractProducts)
                             {
+                                // Check if product requires cutting
+                                bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
+                                
+                                // For requires_cutting products, use CBM (UnitID = 11 for m3)
+                                // For other products, use the user-selected unit
+                                int unitId;
+                                if (requiresCutting)
+                                {
+                                    unitId = 11; // m3 (cubic meter) for CBM
+                                }
+                                else
+                                {
+                                    // Use user-selected unit or product's default unit
+                                    var prod = await db.PRODUCTS.FindAsync(product.ProductID);
+                                    unitId = product.UnitID ?? (prod?.UnitID ?? 1);
+                                }
+
                                 var contractProduct = new P_CONTRACT_PRODUCTS
                                 {
                                     ContractID = contract.ID,
-                                    PartID = product.ProductID,
+                                    ProductID = product.ProductID,
                                     Price = product.Price,
-                                    Quantity = product.Quantity,
-                                    Amount = product.Price * product.Quantity,
-                                    UnitID = product.UnitID,
+                                    Quantity = product.Quantity, // Already in CBM for cutting products, or user-selected unit for others
+                                    UnitID = unitId,
                                     MOQ = product.MOQ,
                                     HSCodeID = product.HSCodeID,
                                     ActivePart = true
                                 };
 
                                 db.P_CONTRACT_PRODUCTS.Add(contractProduct);
-                                totalAmount += contractProduct.Amount;
                             }
                         }
 
-                        contract.Amount = totalAmount;
+                        await db.SaveChangesAsync();
 
                         // Handle file upload (replace existing if new file uploaded)
                         if (contractFile != null && contractFile.ContentLength > 0)
@@ -476,7 +508,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -502,9 +541,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -656,5 +693,8 @@ namespace tahsinERP.Controllers
         public int? UnitID { get; set; }
         public double? MOQ { get; set; }
         public int? HSCodeID { get; set; }
+        
+        // For display: indicates if product requires cutting (uses CBM)
+        public bool RequiresCutting { get; set; }
     }
 }

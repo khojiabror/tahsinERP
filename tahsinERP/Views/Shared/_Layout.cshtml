@@ -209,17 +209,36 @@
             color: var(--ipack-green-dark) !important;
         }
         
-        /* Table ichidagi linklar */
-        table a,
-        .table a,
-        .dataTable a {
+        /* Table ichidagi linklar - umumiy */
+        table a:not(.dataTable a),
+        .table a:not(.dataTable a) {
             color: var(--ipack-green) !important;
         }
         
-        table a:hover,
-        .table a:hover,
-        .dataTable a:hover {
+        table a:not(.dataTable a):hover,
+        .table a:not(.dataTable a):hover {
             color: var(--ipack-green-hover) !important;
+        }
+        
+        /* DataTable ichidagi linklar - yashil va bold */
+        .dataTable a,
+        table.dataTable a,
+        .dataTable tbody a,
+        table.dataTable tbody a,
+        .dataTable tbody td a,
+        table.dataTable tbody td a {
+            color: #33cc00 !important;
+            font-weight: bold !important;
+        }
+        
+        .dataTable a:hover,
+        table.dataTable a:hover,
+        .dataTable tbody a:hover,
+        table.dataTable tbody a:hover,
+        .dataTable tbody td a:hover,
+        table.dataTable tbody td a:hover {
+            color: #2db300 !important;
+            font-weight: bold !important;
         }
         
         /* Card ichidagi linklar */
@@ -434,7 +453,8 @@
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory") ||
-                         RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionToSalesTransfer"))
                     {
                         <li class="navigation-header"><span>Omborxona</span></li>
                         
@@ -452,6 +472,10 @@
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses"))
                                 {
                                     <li><a href="~/Expenses"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor chiqimlari</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionToSalesTransfer"))
+                                {
+                                    <li><a href="~/ProductionToSalesTransfer"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ishlab chiqarishdan sotuvga o'tkazma</span></a></li>
                                 }
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
                                 {
@@ -850,6 +874,7 @@
                         <a href="#"><i class="bx bx-wrench"></i><span class="menu-title">Tizim sozlamalari</span></a>
                         <ul class="menu-content">
                             <li><a href="~/Company/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Korxona</span></a></li>
+                            <li><a href="~/Warehouse/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Korxona omborlari</span></a></li>
                             <li><a href="~/Unit/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">O'lchov birliklari</span></a></li>
                             <li><a href="~/Currency/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Valyutalar</span></a></li>
                         </ul>
@@ -895,6 +920,7 @@
         <!-- Scripts -->
         @Scripts.Render("~/bundles/jquery")
         <script src="~/Scripts/bootstrap.bundle.js"></script>
+        <script src="~/Scripts/device-identifier.js"></script>
         @RenderSection("scripts", required: false)
 
         <!-- Vendor JS -->

@@ -25,13 +25,14 @@ namespace tahsinERP.Models
     
         public int ID { get; set; }
         public string InvoiceNo { get; set; }
-        public int OrderID { get; set; }
+        public Nullable<int> OrderID { get; set; }
         public int SupplierID { get; set; }
         public double Amount { get; set; }
         public System.DateTime InvoiceDate { get; set; }
         public Nullable<int> CompanyID { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public Nullable<int> CurrencyID { get; set; }
+        public int ContractID { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
         public virtual CURRENCy CURRENCy { get; set; }
@@ -39,6 +40,7 @@ namespace tahsinERP.Models
         public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<INCOME> INCOMES { get; set; }
+        public virtual P_CONTRACTS P_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_INVOICE_DOCS> P_INVOICE_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

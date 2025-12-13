@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -45,5 +45,13 @@ namespace tahsinERP.ViewModels
         public double Price { get; set; }
 
         public double TotalPrice { get; set; }
+        
+        // For display: CBM conversion and contract balance
+        public bool RequiresCutting { get; set; }
+        public decimal? QuantityCBM { get; set; } // Calculated CBM for cutting products
+        public decimal? ContractQuantityCBM { get; set; }
+        public decimal? InvoicedQuantityCBM { get; set; }
+        public decimal? RemainingQuantityCBM { get; set; }
+        public decimal? FulfillmentPercentage { get; set; }
     }
 }

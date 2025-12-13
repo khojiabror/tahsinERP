@@ -21,6 +21,9 @@ namespace tahsinERP.Models
             this.BOM_LINES = new HashSet<BOM_LINES>();
             this.DAMAGED_PRODUCTS = new HashSet<DAMAGED_PRODUCTS>();
             this.EXPENSE_PRODUCTS = new HashSet<EXPENSE_PRODUCTS>();
+            this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
+            this.HR_PIECE_RATE_WORK_ENTRIES = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
+            this.HR_TIMESHEET_LINES = new HashSet<HR_TIMESHEET_LINES>();
             this.INCOME_PRODUCTS = new HashSet<INCOME_PRODUCTS>();
             this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
             this.NORM_INPUT_LINES1 = new HashSet<NORM_INPUT_LINES>();
@@ -33,17 +36,13 @@ namespace tahsinERP.Models
             this.PRODUCT_STOCKS = new HashSet<PRODUCT_STOCKS>();
             this.PRODUCTIMAGES = new HashSet<PRODUCTIMAGE>();
             this.PRODUCTPLANS = new HashSet<PRODUCTPLAN>();
+            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
             this.S_CONTRACT_PRODUCTS = new HashSet<S_CONTRACT_PRODUCTS>();
             this.S_ORDER_PRODUCTS = new HashSet<S_ORDER_PRODUCTS>();
-            this.SHOPS = new HashSet<SHOP>();
             this.SALES_INVOICE_LINES = new HashSet<SALES_INVOICE_LINES>();
             this.SALES_SF_LINES = new HashSet<SALES_SF_LINES>();
             this.SALES_TTNK_LINES = new HashSet<SALES_TTNK_LINES>();
             this.SORDER_DELIVERY_SCHEDULE = new HashSet<SORDER_DELIVERY_SCHEDULE>();
-            this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
-            this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
-            this.HR_TIMESHEET_LINES = new HashSet<HR_TIMESHEET_LINES>();
-            this.HR_PIECE_RATE_WORK_ENTRIES = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
         }
     
         public int ID { get; set; }
@@ -78,6 +77,12 @@ namespace tahsinERP.Models
         public virtual ICollection<DAMAGED_PRODUCTS> DAMAGED_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<EXPENSE_PRODUCTS> EXPENSE_PRODUCTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
         public virtual HSCODE HSCODE { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<INCOME_PRODUCTS> INCOME_PRODUCTS { get; set; }
@@ -95,6 +100,7 @@ namespace tahsinERP.Models
         public virtual ICollection<P_INVOICE_PRODUCTS> P_INVOICE_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
+        public virtual PRODUCT_CATEGORIES PRODUCT_CATEGORIES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCT_PRODUCTION> PRODUCT_PRODUCTION { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -106,12 +112,11 @@ namespace tahsinERP.Models
         public virtual SHOP SHOP { get; set; }
         public virtual UNIT UNIT { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<S_CONTRACT_PRODUCTS> S_CONTRACT_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<S_ORDER_PRODUCTS> S_ORDER_PRODUCTS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<SHOP> SHOPS { get; set; }
-        public virtual PRODUCT_CATEGORIES PRODUCT_CATEGORIES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_INVOICE_LINES> SALES_INVOICE_LINES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -120,13 +125,5 @@ namespace tahsinERP.Models
         public virtual ICollection<SALES_TTNK_LINES> SALES_TTNK_LINES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
     }
 }

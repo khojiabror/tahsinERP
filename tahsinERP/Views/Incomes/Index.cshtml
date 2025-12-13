@@ -1,4 +1,5 @@
 @model List<tahsinERP.Models.INCOME>
+@using System.Linq
 @{
     ViewBag.Title = "Ombor kirimlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -6,8 +7,13 @@
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
 {
+    // MES va Sales xodimlari faqat ko'radi, Create/Edit qila olmaydi
+    var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+    bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
+    bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+    
     bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
+    if (!isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
     {
         changePermit = true;
     }

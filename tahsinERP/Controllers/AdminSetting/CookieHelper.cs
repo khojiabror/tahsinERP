@@ -16,17 +16,36 @@ namespace tahsinERP.Controllers
             
             // Get client IP address
             string clientIp = "127.0.0.1";
-            if (httpContext != null && httpContext.Request != null)
+            HttpContextBase contextToUse = httpContext;
+            
+            if (contextToUse == null && HttpContext.Current != null)
             {
-                clientIp = NetworkHelper.GetClientIpAddress(httpContext);
-            }
-            else if (HttpContext.Current != null)
-            {
-                clientIp = NetworkHelper.GetClientIpAddress(new HttpContextWrapper(HttpContext.Current));
+                contextToUse = new HttpContextWrapper(HttpContext.Current);
             }
             
-            // MAC address cannot be retrieved from client in web applications
+            if (contextToUse != null && contextToUse.Request != null)
+            {
+                clientIp = NetworkHelper.GetClientIpAddress(contextToUse);
+            }
+            
+            // Get device identifier from session (set by client-side JavaScript)
             string macAddress = "00:00:00:00:00:00";
+            if (contextToUse != null && contextToUse.Session != null)
+            {
+                object deviceId = contextToUse.Session["DeviceId"];
+                if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
+                {
+                    macAddress = deviceId.ToString();
+                }
+            }
+            else if (HttpContext.Current != null && HttpContext.Current.Session != null)
+            {
+                object deviceId = HttpContext.Current.Session["DeviceId"];
+                if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
+                {
+                    macAddress = deviceId.ToString();
+                }
+            }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -49,17 +68,36 @@ namespace tahsinERP.Controllers
 
                 // Get client IP address
                 string clientIp = "127.0.0.1";
-                if (httpContext != null && httpContext.Request != null)
+                HttpContextBase contextToUse = httpContext;
+                
+                if (contextToUse == null && HttpContext.Current != null)
                 {
-                    clientIp = NetworkHelper.GetClientIpAddress(httpContext);
-                }
-                else if (HttpContext.Current != null)
-                {
-                    clientIp = NetworkHelper.GetClientIpAddress(new HttpContextWrapper(HttpContext.Current));
+                    contextToUse = new HttpContextWrapper(HttpContext.Current);
                 }
                 
-                // MAC address cannot be retrieved from client in web applications
+                if (contextToUse != null && contextToUse.Request != null)
+                {
+                    clientIp = NetworkHelper.GetClientIpAddress(contextToUse);
+                }
+                
+                // Get device identifier from session (set by client-side JavaScript)
                 string macAddress = "00:00:00:00:00:00";
+                if (contextToUse != null && contextToUse.Session != null)
+                {
+                    object deviceId = contextToUse.Session["DeviceId"];
+                    if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
+                    {
+                        macAddress = deviceId.ToString();
+                    }
+                }
+                else if (HttpContext.Current != null && HttpContext.Current.Session != null)
+                {
+                    object deviceId = HttpContext.Current.Session["DeviceId"];
+                    if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
+                    {
+                        macAddress = deviceId.ToString();
+                    }
+                }
 
                 var cookieConfirm = new COOKIES_CONFIRMATION
                 {

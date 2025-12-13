@@ -233,7 +233,14 @@ namespace tahsinERP.Controllers
                     ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
                     ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                     ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-                    ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    var errorMessage = $"Xatolik: {ex.Message}";
+                    var innerEx = ex.InnerException;
+                    while (innerEx != null)
+                    {
+                        errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                        innerEx = innerEx.InnerException;
+                    }
+                    ModelState.AddModelError("", errorMessage);
                     return View(model);
                 }
             }
@@ -275,7 +282,8 @@ namespace tahsinERP.Controllers
                 var invoicesCount = db.SALES_INVOICES.Where(i => i.ContractID == id).Count();
                 ViewBag.InvoicesCount = invoicesCount;
 
-                var contractedTotal = productList.Sum(p => p.Amount);
+                // Use contract.Amount instead of sum from products
+                var contractedTotal = contract.Amount ?? 0;
                 var orderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
                 var invoicedTotal = db.SALES_INVOICES
                     .Where(i => i.ContractID == id)
@@ -482,7 +490,14 @@ namespace tahsinERP.Controllers
                     ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
                     ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
                     ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-                    ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    var errorMessage = $"Xatolik: {ex.Message}";
+                    var innerEx = ex.InnerException;
+                    while (innerEx != null)
+                    {
+                        errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                        innerEx = innerEx.InnerException;
+                    }
+                    ModelState.AddModelError("", errorMessage);
                     return View(model);
                 }
             }

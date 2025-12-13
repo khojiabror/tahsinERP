@@ -18,10 +18,10 @@ namespace tahsinERP.Models
         public HR_POSITIONS()
         {
             this.DOC_DOCUMENTS = new HashSet<DOC_DOCUMENTS>();
-            this.HR_JOB_DESCRIPTIONS = new HashSet<HR_JOB_DESCRIPTIONS>();
-            this.HR_STAFFING_PLAN = new HashSet<HR_STAFFING_PLAN>();
             this.HR_EMPLOYEES = new HashSet<HR_EMPLOYEES>();
+            this.HR_JOB_DESCRIPTIONS = new HashSet<HR_JOB_DESCRIPTIONS>();
             this.HR_PIECE_RATE_TARIFFS = new HashSet<HR_PIECE_RATE_TARIFFS>();
+            this.HR_STAFFING_PLAN = new HashSet<HR_STAFFING_PLAN>();
         }
     
         public int ID { get; set; }
@@ -34,12 +34,12 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DOC_DOCUMENTS> DOC_DOCUMENTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_JOB_DESCRIPTIONS> HR_JOB_DESCRIPTIONS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_STAFFING_PLAN> HR_STAFFING_PLAN { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_JOB_DESCRIPTIONS> HR_JOB_DESCRIPTIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_STAFFING_PLAN> HR_STAFFING_PLAN { get; set; }
     }
 }

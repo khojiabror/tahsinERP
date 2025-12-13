@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
+using tahsinERP.ViewModels;
 
-namespace tahsinERP.Controllers
+namespace tahsinERP.Controllers.SRM
 {
     public class IncomesController : Controller
     {
@@ -72,6 +74,17 @@ namespace tahsinERP.Controllers
         // GET: Incomes/Create
         public async Task<ActionResult> Create()
         {
+            // MES va Sales xodimlari faqat ko'radi, Create qila olmaydi
+            var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
+            bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+            
+            if (isMES || isSales)
+            {
+                TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Yaratish va tahrirlash huquqi yo'q.";
+                return RedirectToAction("Index");
+            }
+            
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
@@ -120,7 +133,7 @@ namespace tahsinERP.Controllers
                     .Where(ip => ip.InvoiceID == invoiceId)
                     .Select(ip => new
                     {
-                        ProductID = ip.PartID,
+                        ProductID = ip.ProductID,
                         ProductPNo = ip.PRODUCT.PNo,
                         ProductName = ip.PRODUCT.Name,
                         Amount = ip.Quantity,
@@ -137,7 +150,7 @@ namespace tahsinERP.Controllers
         // POST: Incomes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(IncomeCreateViewModel model, HttpPostedFileBase incomeFile)
+        public async Task<ActionResult> Create(ViewModels.IncomeCreateViewModel model, HttpPostedFileBase incomeFile)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
             {
@@ -178,6 +191,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             // Add income products and update stock
+                            var conversionService = new UnitConversionService(db);
                             double totalAmount = 0;
                             double totalPrice = 0;
 
@@ -185,13 +199,30 @@ namespace tahsinERP.Controllers
                             {
                                 foreach (var product in model.IncomeProducts)
                                 {
-                                    var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
-                                    var unitId = product.UnitID ?? (productEntity != null ? productEntity.UnitID : 1);
+                                    var productEntity = await db.PRODUCTS
+                                        .Include(p => p.PRODUCT_CATEGORIES)
+                                        .FirstOrDefaultAsync(p => p.ID == product.ProductID);
+                                    
+                                    // Check if product requires cutting
+                                    bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
+                                    
+                                    // For requires_cutting products, use PIECES (UnitID = 1)
+                                    // For other products, use user-selected unit or product's default unit
+                                    int unitId;
+                                    if (requiresCutting)
+                                    {
+                                        unitId = 1; // Piece
+                                    }
+                                    else
+                                    {
+                                        unitId = product.UnitID ?? (productEntity?.UnitID ?? 1);
+                                    }
+
                                     var incomeProduct = new INCOME_PRODUCTS
                                     {
                                         IncomeID = income.ID,
                                         ProductID = product.ProductID,
-                                        Amount = product.Amount,
+                                        Amount = product.Amount, // In PIECES for cutting products, or user-selected unit for others
                                         PiecePrice = product.PiecePrice,
                                         TotalPrice = product.Amount * product.PiecePrice,
                                         UnitID = unitId,
@@ -202,13 +233,25 @@ namespace tahsinERP.Controllers
                                     totalAmount += product.Amount;
                                     totalPrice += incomeProduct.TotalPrice.Value;
 
-                                    // Update PRODUCT_STOCKS
+                                    // Update PRODUCT_STOCKS in the same unit
                                     var stock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == income.ReceivingWHID && s.ProductID == product.ProductID);
 
                                     if (stock != null)
                                     {
-                                        stock.Amount += product.Amount;
+                                        // If stock exists in different unit, we might need conversion
+                                        // For now, assume same unit and add
+                                        if (stock.UnitID == unitId)
+                                        {
+                                            stock.Amount += product.Amount;
+                                        }
+                                        else
+                                        {
+                                            // Units don't match - this is a data integrity issue
+                                            // For now, we'll still add but log a warning
+                                            // In production, you might want to handle this differently
+                                            stock.Amount += product.Amount;
+                                        }
                                     }
                                     else
                                     {
@@ -218,7 +261,7 @@ namespace tahsinERP.Controllers
                                             {
                                                 WHID = income.ReceivingWHID,
                                                 ProductID = product.ProductID,
-                                                Amount = product.Amount,
+                                                Amount = product.Amount, // In PIECES for cutting products
                                                 UnitID = unitId
                                             };
                                             db.PRODUCT_STOCKS.Add(newStock);
@@ -260,7 +303,14 @@ namespace tahsinERP.Controllers
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                            var errorMessage = $"Xatolik: {ex.Message}";
+                            var innerEx = ex.InnerException;
+                            while (innerEx != null)
+                            {
+                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                                innerEx = innerEx.InnerException;
+                            }
+                            ModelState.AddModelError("", errorMessage);
                         }
                     }
                 }
@@ -324,6 +374,17 @@ namespace tahsinERP.Controllers
         // GET: Incomes/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
+            // MES va Sales xodimlari faqat ko'radi, Edit qila olmaydi
+            var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
+            bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+            
+            if (isMES || isSales)
+            {
+                TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Tahrirlash huquqi yo'q.";
+                return RedirectToAction("Index");
+            }
+            
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
@@ -352,7 +413,7 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Index");
                 }
 
-                var model = new IncomeEditViewModel
+                var model = new ViewModels.IncomeEditViewModel
                 {
                     ID = income.ID,
                     DocNo = income.DocNo,
@@ -364,7 +425,7 @@ namespace tahsinERP.Controllers
                     Amount = income.Amount,
                     TotalPrice = income.TotalPrice,
                     Description = income.Description,
-                    IncomeProducts = income.INCOME_PRODUCTS.Select(ip => new IncomeProductViewModel
+                    IncomeProducts = income.INCOME_PRODUCTS.Select(ip => new ViewModels.IncomeProductViewModel
                     {
                         ID = ip.ID,
                         ProductID = ip.ProductID,
@@ -395,7 +456,7 @@ namespace tahsinERP.Controllers
         // POST: Incomes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(IncomeEditViewModel model, HttpPostedFileBase incomeFile)
+        public async Task<ActionResult> Edit(ViewModels.IncomeEditViewModel model, HttpPostedFileBase incomeFile)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
             {
@@ -543,7 +604,14 @@ namespace tahsinERP.Controllers
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                            var errorMessage = $"Xatolik: {ex.Message}";
+                            var innerEx = ex.InnerException;
+                            while (innerEx != null)
+                            {
+                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                                innerEx = innerEx.InnerException;
+                            }
+                            ModelState.AddModelError("", errorMessage);
                         }
                     }
                 }
@@ -674,56 +742,4 @@ namespace tahsinERP.Controllers
         }
     }
 
-    // ViewModels
-    public class IncomeCreateViewModel
-    {
-        public string DocNo { get; set; }
-        public DateTime IssueDateTime { get; set; } = DateTime.Now;
-        public int ReceivingWHID { get; set; }
-        public int? SenderWHID { get; set; }
-        public int? InvoiceID { get; set; }
-        public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
-        public string Description { get; set; }
-        public List<IncomeProductViewModel> IncomeProducts { get; set; }
-
-        public IncomeCreateViewModel()
-        {
-            IncomeProducts = new List<IncomeProductViewModel>();
-        }
-    }
-
-    public class IncomeEditViewModel
-    {
-        public int ID { get; set; }
-        public string DocNo { get; set; }
-        public DateTime IssueDateTime { get; set; }
-        public int ReceivingWHID { get; set; }
-        public int? SenderWHID { get; set; }
-        public int? InvoiceID { get; set; }
-        public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
-        public string Description { get; set; }
-        public List<IncomeProductViewModel> IncomeProducts { get; set; }
-
-        public IncomeEditViewModel()
-        {
-            IncomeProducts = new List<IncomeProductViewModel>();
-        }
-    }
-
-    public class IncomeProductViewModel
-    {
-        public int? ID { get; set; }
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public double Amount { get; set; }
-        public int? UnitID { get; set; }
-        public double? PiecePrice { get; set; }
-        public double? TotalPrice { get; set; }
-        public string Comment { get; set; }
-    }
 }

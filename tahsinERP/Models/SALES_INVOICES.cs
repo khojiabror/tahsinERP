@@ -17,11 +17,13 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public SALES_INVOICES()
         {
+            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
             this.SALES_INVOICE_LINES = new HashSet<SALES_INVOICE_LINES>();
             this.SALES_SF_HEADERS = new HashSet<SALES_SF_HEADERS>();
             this.SALES_TTNK_HEADERS = new HashSet<SALES_TTNK_HEADERS>();
             this.SALES_TTNK_INVOICES = new HashSet<SALES_TTNK_INVOICES>();
-            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
+            this.SALES_SF_HEADERS1 = new HashSet<SALES_SF_HEADERS>();
+            this.SALES_TTNK_HEADERS1 = new HashSet<SALES_TTNK_HEADERS>();
         }
     
         public long ID { get; set; }
@@ -41,20 +43,24 @@ namespace tahsinERP.Models
         public Nullable<System.DateTime> UpdatedDT { get; set; }
         public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
+        public virtual CUSTOMER CUSTOMER { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
+        public virtual S_CONTRACTS S_CONTRACTS { get; set; }
+        public virtual S_ORDERS S_ORDERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_INVOICE_LINES> SALES_INVOICE_LINES { get; set; }
+        public virtual USER USER { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_SF_HEADERS> SALES_SF_HEADERS { get; set; }
-        public virtual USER USER { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_TTNK_HEADERS> SALES_TTNK_HEADERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_TTNK_INVOICES> SALES_TTNK_INVOICES { get; set; }
-        public virtual CURRENCy CURRENCy { get; set; }
-        public virtual CUSTOMER CUSTOMER { get; set; }
-        public virtual S_CONTRACTS S_CONTRACTS { get; set; }
-        public virtual S_ORDERS S_ORDERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
+        public virtual ICollection<SALES_SF_HEADERS> SALES_SF_HEADERS1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_TTNK_HEADERS> SALES_TTNK_HEADERS1 { get; set; }
     }
 }

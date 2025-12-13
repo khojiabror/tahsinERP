@@ -58,6 +58,7 @@ namespace tahsinERP.Controllers
                     .Include(i => i.P_ORDERS)
                     .Include(i => i.P_ORDERS.P_CONTRACTS)
                     .Include(i => i.P_INVOICE_PRODUCTS.Select(p => p.PRODUCT))
+                    .Include(i => i.P_INVOICE_PRODUCTS.Select(p => p.PRODUCT.PRODUCT_CATEGORIES))
                     .Include(i => i.P_INVOICE_PRODUCTS.Select(p => p.UNIT))
                     .Include(i => i.P_INVOICE_DOCS)
                     .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
@@ -66,6 +67,46 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
+
+                // Calculate contract balances for each product if contract exists
+                var contractBalanceService = new ContractBalanceService(db);
+                var conversionService = new UnitConversionService(db);
+                var contractBalances = new Dictionary<int, ContractBalanceInfo>();
+                
+                if (invoice.P_ORDERS?.ContractID.HasValue == true)
+                {
+                    foreach (var invoiceProduct in invoice.P_INVOICE_PRODUCTS)
+                    {
+                        var balance = await contractBalanceService.GetContractBalanceAsync(
+                            invoice.P_ORDERS.ContractID.Value, 
+                            invoiceProduct.ProductID);
+                        contractBalances[invoiceProduct.ProductID] = balance;
+                    }
+                }
+
+                // Calculate CBM for each invoice product that requires cutting
+                var productCBMInfo = new Dictionary<int, decimal>();
+                foreach (var invoiceProduct in invoice.P_INVOICE_PRODUCTS)
+                {
+                    bool requiresCutting = await conversionService.RequiresCuttingAsync(invoiceProduct.ProductID);
+                    if (requiresCutting)
+                    {
+                        try
+                        {
+                            decimal cbm = await conversionService.ConvertPieceToCBMAsync(
+                                invoiceProduct.ProductID, 
+                                (decimal)invoiceProduct.Quantity);
+                            productCBMInfo[invoiceProduct.ProductID] = cbm;
+                        }
+                        catch
+                        {
+                            productCBMInfo[invoiceProduct.ProductID] = 0;
+                        }
+                    }
+                }
+
+                ViewBag.ContractBalances = contractBalances;
+                ViewBag.ProductCBMInfo = productCBMInfo;
 
                 return View(invoice);
             }
@@ -104,9 +145,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null ||
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true &&
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -121,7 +160,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PInvoices/LoadOrderProducts
+        // POST: PInvoices/LoadOrderProducts - Load products from P_ORDER
         [HttpPost]
         public async Task<JsonResult> LoadOrderProducts(int orderId)
         {
@@ -133,7 +172,7 @@ namespace tahsinERP.Controllers
                     .Where(op => op.OrderID == orderId)
                     .Select(op => new
                     {
-                        ProductID = op.PartID,
+                        ProductID = op.ProductID,
                         ProductPNo = op.PRODUCT.PNo,
                         ProductName = op.PRODUCT.Name,
                         Quantity = op.Amount,
@@ -185,26 +224,47 @@ namespace tahsinERP.Controllers
                         db.P_INVOICES.Add(invoice);
                         await db.SaveChangesAsync();
 
-                        // Add invoice products
+                        // Add invoice products with conversion logic
+                        var conversionService = new UnitConversionService(db);
+                        var contractBalanceService = new ContractBalanceService(db);
                         double totalAmount = 0;
+                        
                         if (model.InvoiceProducts != null && model.InvoiceProducts.Any())
                         {
                             foreach (var product in model.InvoiceProducts)
                             {
+                                // Check if product requires cutting
+                                bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
+                                
+                                // For requires_cutting products, quantity is in PIECES, UnitID = 1
+                                // For other products, use user-selected unit
+                                int unitId;
+                                if (requiresCutting)
+                                {
+                                    unitId = 1; // Piece
+                                }
+                                else
+                                {
+                                    // Use user-selected unit or product's default unit
+                                    var prod = await db.PRODUCTS.FindAsync(product.ProductID);
+                                    unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
+                                }
+
                                 var invoiceProduct = new P_INVOICE_PRODUCTS
                                 {
                                     InvoiceID = invoice.ID,
-                                    PartID = product.ProductID,
-                                    Quantity = product.Quantity,
+                                    ProductID = product.ProductID,
+                                    Quantity = product.Quantity, // In PIECES for cutting products, or user-selected unit for others
                                     Price = product.Price,
                                     TotalPrice = product.Price * product.Quantity,
-                                    UnitID = product.UnitID
+                                    UnitID = unitId
                                 };
 
                                 db.P_INVOICE_PRODUCTS.Add(invoiceProduct);
                                 totalAmount += invoiceProduct.TotalPrice;
                             }
 
+                            // Update invoice total amount
                             invoice.Amount = totalAmount;
                             await db.SaveChangesAsync();
 
@@ -220,35 +280,42 @@ namespace tahsinERP.Controllers
                                 tahsinERP.Controllers.LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", "Create",
                                     $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
                             }
+                        }
 
-                            // Upload invoice document if provided
-                            if (invoiceFile != null && invoiceFile.ContentLength > 0)
+                        // Upload invoice document if provided
+                        if (invoiceFile != null && invoiceFile.ContentLength > 0)
+                        {
+                            byte[] fileData = null;
+                            using (var binaryReader = new BinaryReader(invoiceFile.InputStream))
                             {
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(invoiceFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(invoiceFile.ContentLength);
-                                }
-
-                                var invoiceDoc = new P_INVOICE_DOCS
-                                {
-                                    InvoiceID = invoice.ID,
-                                    Doc = fileData
-                                };
-
-                                db.P_INVOICE_DOCS.Add(invoiceDoc);
-                                await db.SaveChangesAsync();
+                                fileData = binaryReader.ReadBytes(invoiceFile.ContentLength);
                             }
 
-                            // Log the action
-                            LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Create - {invoice.InvoiceNo} invoysi yaratildi");
+                            var invoiceDoc = new P_INVOICE_DOCS
+                            {
+                                InvoiceID = invoice.ID,
+                                Doc = fileData
+                            };
 
-                            return RedirectToAction("Index");
+                            db.P_INVOICE_DOCS.Add(invoiceDoc);
+                            await db.SaveChangesAsync();
                         }
+
+                        // Log the action
+                        LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Create - {invoice.InvoiceNo} invoysi yaratildi");
+
+                        return RedirectToAction("Index");
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -279,9 +346,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null ||
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true &&
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -349,7 +414,7 @@ namespace tahsinERP.Controllers
                     ID = invoice.ID,
                     InvoiceNo = invoice.InvoiceNo,
                     InvoiceDate = invoice.InvoiceDate,
-                    OrderID = invoice.OrderID,
+                    OrderID = invoice.OrderID ?? 0,
                     SupplierID = invoice.SupplierID,
                     CompanyID = invoice.CompanyID,
                     CurrencyID = invoice.CurrencyID ?? 0,
@@ -357,7 +422,7 @@ namespace tahsinERP.Controllers
                     InvoiceProducts = invoice.P_INVOICE_PRODUCTS.Select(ip => new PInvoiceProductViewModel
                     {
                         ID = ip.ID,
-                        ProductID = ip.PartID,
+                        ProductID = ip.ProductID,
                         ProductPNo = ip.PRODUCT.PNo,
                         ProductName = ip.PRODUCT.Name,
                         Quantity = ip.Quantity,
@@ -390,9 +455,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null ||
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true &&
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -444,20 +507,39 @@ namespace tahsinERP.Controllers
                             db.P_INVOICE_PRODUCTS.Remove(existing);
                         }
 
-                        // Add updated invoice products
+                        // Add updated invoice products with conversion logic
+                        var conversionService = new UnitConversionService(db);
                         double totalAmount = 0;
+                        
                         if (model.InvoiceProducts != null && model.InvoiceProducts.Any())
                         {
                             foreach (var product in model.InvoiceProducts)
                             {
+                                // Check if product requires cutting
+                                bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
+                                
+                                // For requires_cutting products, quantity is in PIECES, UnitID = 1
+                                // For other products, use user-selected unit
+                                int unitId;
+                                if (requiresCutting)
+                                {
+                                    unitId = 1; // Piece
+                                }
+                                else
+                                {
+                                    // Use user-selected unit or product's default unit
+                                    var prod = await db.PRODUCTS.FindAsync(product.ProductID);
+                                    unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
+                                }
+
                                 var invoiceProduct = new P_INVOICE_PRODUCTS
                                 {
                                     InvoiceID = invoice.ID,
-                                    PartID = product.ProductID,
-                                    Quantity = product.Quantity,
+                                    ProductID = product.ProductID,
+                                    Quantity = product.Quantity, // In PIECES for cutting products, or user-selected unit for others
                                     Price = product.Price,
                                     TotalPrice = product.Price * product.Quantity,
-                                    UnitID = product.UnitID
+                                    UnitID = unitId
                                 };
 
                                 db.P_INVOICE_PRODUCTS.Add(invoiceProduct);
@@ -502,7 +584,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -533,9 +622,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null ||
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true &&
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 

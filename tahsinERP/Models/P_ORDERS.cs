@@ -17,9 +17,9 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public P_ORDERS()
         {
+            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
             this.P_INVOICES = new HashSet<P_INVOICES>();
             this.P_ORDER_PRODUCTS = new HashSet<P_ORDER_PRODUCTS>();
-            this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
         }
     
         public int ID { get; set; }
@@ -35,13 +35,13 @@ namespace tahsinERP.Models
     
         public virtual COMPANy COMPANy { get; set; }
         public virtual CURRENCy CURRENCy { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
         public virtual P_CONTRACTS P_CONTRACTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_INVOICES> P_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
         public virtual SUPPLIER SUPPLIER { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
     }
 }

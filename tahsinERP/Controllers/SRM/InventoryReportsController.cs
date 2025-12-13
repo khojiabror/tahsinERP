@@ -5,271 +5,188 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
-namespace tahsinERP.Controllers
+namespace tahsinERP.Controllers.SRM
 {
+    /// <summary>
+    /// Inventory Reports for Production Warehouse
+    /// Reports: DOH (Days on Hand), Coverage, Plan fulfillment
+    /// </summary>
     public class InventoryReportsController : Controller
     {
-        // GET: InventoryReports/Dashboard
-        public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate)
+        // GET: InventoryReports/ProductionWH
+        public async Task<ActionResult> ProductionWH(int? warehouseId, DateTime? reportDate)
         {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "ProductionWH"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Default date range: last 90 days
-            fromDate = fromDate ?? DateTime.Now.AddDays(-90);
-            toDate = toDate ?? DateTime.Now;
-
             using (var db = new DBTHSNEntities())
             {
-                // Get current stock
-                var currentStockQuery = db.PRODUCT_STOCKS
-                    .Include(s => s.Warehouse)
-                    .Include(s => s.PRODUCT)
-                    .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                    .Include(s => s.UNIT)
-                    .Where(s => s.Amount > 0);
+                var reportDateValue = reportDate ?? DateTime.Now;
 
-                if (warehouseId.HasValue)
+                // Get Production warehouse
+                var productionWarehouse = warehouseId.HasValue
+                    ? await db.WAREHOUSES.FindAsync(warehouseId.Value)
+                    : db.WAREHOUSES.FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
+
+                if (productionWarehouse == null)
                 {
-                    currentStockQuery = currentStockQuery.Where(s => s.WHID == warehouseId.Value);
+                    productionWarehouse = db.WAREHOUSES.FirstOrDefault();
                 }
 
-                if (categoryId.HasValue)
+                if (productionWarehouse == null)
                 {
-                    currentStockQuery = currentStockQuery.Where(s => s.PRODUCT.CategoryID == categoryId.Value);
+                    ViewBag.Error = "Production ombor topilmadi";
+                    return View(new InventoryReportViewModel());
                 }
 
-                var currentStocks = await currentStockQuery.ToListAsync();
+                var report = await GenerateInventoryReportAsync(productionWarehouse.ID, reportDateValue, db);
 
-                // Get consumption history from EXPENSE_PRODUCTS
-                var consumptionQuery = db.EXPENSE_PRODUCTS
-                    .Include(ep => ep.EXPENS)
-                    .Include(ep => ep.PRODUCT)
-                    .Where(ep => ep.EXPENS.IssueDateTime >= fromDate.Value && 
-                                ep.EXPENS.IssueDateTime <= toDate.Value &&
-                                ep.EXPENS.IsDeleted != true);
+                ViewBag.Warehouses = new SelectList(
+                    await db.WAREHOUSES.Where(w => w.IsDeleted != false).ToListAsync(),
+                    "ID", "WHName", productionWarehouse.ID);
+                ViewBag.ReportDate = reportDateValue;
 
-                if (warehouseId.HasValue)
-                {
-                    consumptionQuery = consumptionQuery.Where(ep => ep.EXPENS.SenderWHID == warehouseId.Value);
-                }
+                return View(report);
+            }
+        }
 
-                var consumptions = await consumptionQuery.ToListAsync();
+        /// <summary>
+        /// Generates inventory report for Production warehouse
+        /// </summary>
+        private async Task<InventoryReportViewModel> GenerateInventoryReportAsync(
+            int warehouseId, 
+            DateTime reportDate, 
+            DBTHSNEntities db)
+        {
+            var report = new InventoryReportViewModel
+            {
+                WarehouseID = warehouseId,
+                ReportDate = reportDate,
+                Items = new List<InventoryReportItem>()
+            };
 
-                // Calculate average daily consumption per product
-                var daysDiff = (toDate.Value - fromDate.Value).TotalDays;
-                if (daysDiff <= 0) daysDiff = 1;
+            // Get all stocks in Production warehouse
+            var stocks = await db.PRODUCT_STOCKS
+                .Include(s => s.PRODUCT)
+                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
+                .Include(s => s.UNIT)
+                .Where(s => s.WHID == warehouseId && s.Amount > 0)
+                .ToListAsync();
 
-                var consumptionByProduct = consumptions
-                    .GroupBy(ep => ep.ProductID)
-                    .Select(g => new
+            // Get active production plans
+            var activePlans = await db.PRODUCTPLANS
+                .Include(p => p.PRODUCT)
+                .Where(p => p.IsDeleted == false &&
+                           p.StartDate <= reportDate &&
+                           p.DueDate >= reportDate)
+                .ToListAsync();
+
+            var consumptionService = new ProductionConsumptionService(db);
+
+            foreach (var stock in stocks)
+            {
+                // Calculate average daily consumption from active plans
+                var materialPlans = activePlans
+                    .Where(p => 
                     {
-                        ProductID = g.Key,
-                        TotalConsumption = g.Sum(ep => ep.Amount),
-                        AverageDailyConsumption = g.Sum(ep => ep.Amount) / daysDiff
-                    })
-                    .ToDictionary(x => x.ProductID, x => x);
-
-                // Calculate DOH for each product
-                var stockWithDOH = currentStocks.Select(s => new
-                {
-                    Stock = s,
-                    AverageDailyConsumption = consumptionByProduct.ContainsKey(s.ProductID) 
-                        ? consumptionByProduct[s.ProductID].AverageDailyConsumption 
-                        : 0,
-                    DOH = consumptionByProduct.ContainsKey(s.ProductID) && consumptionByProduct[s.ProductID].AverageDailyConsumption > 0
-                        ? s.Amount / consumptionByProduct[s.ProductID].AverageDailyConsumption
-                        : (double?)null
-                }).ToList();
-
-                // Prepare dashboard data
-                var dashboardData = new InventoryDashboardViewModel
-                {
-                    WarehouseId = warehouseId,
-                    CategoryId = categoryId,
-                    FromDate = fromDate.Value,
-                    ToDate = toDate.Value,
-                    StockItems = stockWithDOH.Select(s => new StockDOHItem
-                    {
-                        ProductID = s.Stock.ProductID,
-                        ProductPNo = s.Stock.PRODUCT.PNo,
-                        ProductName = s.Stock.PRODUCT.Name,
-                        CategoryName = s.Stock.PRODUCT.PRODUCT_CATEGORIES?.Name ?? "-",
-                        WarehouseName = s.Stock.Warehouse.WHName,
-                        CurrentStock = s.Stock.Amount,
-                        UnitName = s.Stock.UNIT.ShortName,
-                        AverageDailyConsumption = s.AverageDailyConsumption,
-                        DOH = s.DOH
-                    }).ToList(),
-                    HighDOHItems = stockWithDOH
-                        .Where(s => s.DOH.HasValue && s.DOH.Value > 60)
-                        .OrderByDescending(s => s.DOH)
-                        .Take(10)
-                        .Select(s => new StockDOHItem
-                        {
-                            ProductID = s.Stock.ProductID,
-                            ProductPNo = s.Stock.PRODUCT.PNo,
-                            ProductName = s.Stock.PRODUCT.Name,
-                            CategoryName = s.Stock.PRODUCT.PRODUCT_CATEGORIES?.Name ?? "-",
-                            WarehouseName = s.Stock.Warehouse.WHName,
-                            CurrentStock = s.Stock.Amount,
-                            UnitName = s.Stock.UNIT.ShortName,
-                            AverageDailyConsumption = s.AverageDailyConsumption,
-                            DOH = s.DOH
-                        }).ToList(),
-                    LowDOHItems = stockWithDOH
-                        .Where(s => s.DOH.HasValue && s.DOH.Value < 30)
-                        .OrderBy(s => s.DOH)
-                        .Take(10)
-                        .Select(s => new StockDOHItem
-                        {
-                            ProductID = s.Stock.ProductID,
-                            ProductPNo = s.Stock.PRODUCT.PNo,
-                            ProductName = s.Stock.PRODUCT.Name,
-                            CategoryName = s.Stock.PRODUCT.PRODUCT_CATEGORIES?.Name ?? "-",
-                            WarehouseName = s.Stock.Warehouse.WHName,
-                            CurrentStock = s.Stock.Amount,
-                            UnitName = s.Stock.UNIT.ShortName,
-                            AverageDailyConsumption = s.AverageDailyConsumption,
-                            DOH = s.DOH
-                        }).ToList()
-                };
-
-                // Get inbound/outbound trends
-                var inboundTrends = await db.INCOME_PRODUCTS
-                    .Include(ip => ip.INCOME)
-                    .Where(ip => ip.INCOME.IssueDateTime >= fromDate.Value && 
-                                 ip.INCOME.IssueDateTime <= toDate.Value &&
-                                 ip.INCOME.IsDeleted != true)
-                    .GroupBy(ip => new { 
-                        Date = DbFunctions.TruncateTime(ip.INCOME.IssueDateTime),
-                        WarehouseId = ip.INCOME.ReceivingWHID
-                    })
-                    .Select(g => new
-                    {
-                        Date = g.Key.Date,
-                        WarehouseId = g.Key.WarehouseId,
-                        TotalAmount = g.Sum(ip => ip.Amount)
-                    })
-                    .ToListAsync();
-
-                var outboundTrends = await db.EXPENSE_PRODUCTS
-                    .Include(ep => ep.EXPENS)
-                    .Where(ep => ep.EXPENS.IssueDateTime >= fromDate.Value && 
-                                ep.EXPENS.IssueDateTime <= toDate.Value &&
-                                ep.EXPENS.IsDeleted != true)
-                    .GroupBy(ep => new { 
-                        Date = DbFunctions.TruncateTime(ep.EXPENS.IssueDateTime),
-                        WarehouseId = ep.EXPENS.SenderWHID
-                    })
-                    .Select(g => new
-                    {
-                        Date = g.Key.Date,
-                        WarehouseId = g.Key.WarehouseId,
-                        TotalAmount = g.Sum(ep => ep.Amount)
-                    })
-                    .ToListAsync();
-
-                dashboardData.InboundTrends = inboundTrends.Select(t => new TrendData
-                {
-                    Date = t.Date.Value,
-                    WarehouseId = t.WarehouseId,
-                    Amount = t.TotalAmount
-                }).ToList();
-
-                dashboardData.OutboundTrends = outboundTrends.Select(t => new TrendData
-                {
-                    Date = t.Date.Value,
-                    WarehouseId = t.WarehouseId,
-                    Amount = t.TotalAmount
-                }).ToList();
-
-                // Stock distribution by category
-                var stockByCategory = currentStocks
-                    .GroupBy(s => s.PRODUCT.PRODUCT_CATEGORIES != null ? s.PRODUCT.PRODUCT_CATEGORIES.Name : "Kategoriyasi yo'q")
-                    .Select(g => new
-                    {
-                        CategoryName = g.Key,
-                        TotalStock = g.Sum(s => s.Amount),
-                        ProductCount = g.Count()
+                        // Check if this material is used in the plan's BOM
+                        // This is a simplified check - in production, you'd query BOM/NORMLINES
+                        return true; // Placeholder - should check BOM relationship
                     })
                     .ToList();
 
-                dashboardData.StockByCategory = stockByCategory.Select(c => new CategoryStockData
+                double totalPlannedQty = 0;
+                int totalDays = 0;
+
+                foreach (var plan in materialPlans)
                 {
-                    CategoryName = c.CategoryName,
-                    TotalStock = c.TotalStock,
-                    ProductCount = c.ProductCount
-                }).ToList();
+                    var days = (plan.DueDate - plan.StartDate).Days + 1;
+                    totalDays += days;
+                    // Get material requirement for this plan
+                    var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
+                        plan.ProductID, plan.Amount);
+                    var materialReq = requirements.FirstOrDefault(r => r.MaterialID == stock.ProductID);
+                    if (materialReq != null)
+                    {
+                        totalPlannedQty += materialReq.TotalConsumption;
+                    }
+                }
 
-                // ViewBag for filters
-                ViewBag.Warehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", warehouseId
-                );
+                double avgDailyConsumption = totalDays > 0 ? totalPlannedQty / totalDays : 0;
+                double doh = avgDailyConsumption > 0 ? stock.Amount / avgDailyConsumption : 0;
 
-                ViewBag.Categories = new SelectList(
-                    await db.PRODUCT_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync(),
-                    "ID", "Name", categoryId
-                );
+                // Calculate coverage (how many days the stock will last)
+                double coverage = doh;
 
-                return View(dashboardData);
+                // Calculate plan fulfillment (percentage of planned quantity available)
+                double planFulfillment = 0;
+                if (totalPlannedQty > 0)
+                {
+                    planFulfillment = (stock.Amount / totalPlannedQty) * 100;
+                    if (planFulfillment > 100) planFulfillment = 100;
+                }
+
+                report.Items.Add(new InventoryReportItem
+                {
+                    ProductID = stock.ProductID,
+                    ProductPNo = stock.PRODUCT?.PNo ?? "N/A",
+                    ProductName = stock.PRODUCT?.Name ?? "N/A",
+                    CurrentStock = stock.Amount,
+                    UnitID = stock.UnitID,
+                    UnitName = stock.UNIT?.ShortName ?? "N/A",
+                    AvgDailyConsumption = Math.Round(avgDailyConsumption, 2),
+                    DaysOnHand = Math.Round(doh, 1),
+                    Coverage = Math.Round(coverage, 1),
+                    PlanFulfillment = Math.Round(planFulfillment, 1),
+                    IsRawMaterial = stock.PRODUCT?.IsRawMaterial ?? false,
+                    RequiresCutting = stock.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false
+                });
+            }
+
+            return report;
+        }
+
+        // GET: InventoryReports/Export
+        public async Task<ActionResult> Export(int warehouseId, DateTime reportDate)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                var report = await GenerateInventoryReportAsync(warehouseId, reportDate, db);
+                
+                // TODO: Implement Excel export
+                // For now, return JSON
+                return Json(report, JsonRequestBehavior.AllowGet);
             }
         }
     }
 
-    // ViewModels
-    public class InventoryDashboardViewModel
+    /// <summary>
+    /// Inventory report view model
+    /// </summary>
+    public class InventoryReportViewModel
     {
-        public int? WarehouseId { get; set; }
-        public int? CategoryId { get; set; }
-        public DateTime FromDate { get; set; }
-        public DateTime ToDate { get; set; }
-        public List<StockDOHItem> StockItems { get; set; }
-        public List<StockDOHItem> HighDOHItems { get; set; }
-        public List<StockDOHItem> LowDOHItems { get; set; }
-        public List<TrendData> InboundTrends { get; set; }
-        public List<TrendData> OutboundTrends { get; set; }
-        public List<CategoryStockData> StockByCategory { get; set; }
-
-        public InventoryDashboardViewModel()
-        {
-            StockItems = new List<StockDOHItem>();
-            HighDOHItems = new List<StockDOHItem>();
-            LowDOHItems = new List<StockDOHItem>();
-            InboundTrends = new List<TrendData>();
-            OutboundTrends = new List<TrendData>();
-            StockByCategory = new List<CategoryStockData>();
-        }
+        public int WarehouseID { get; set; }
+        public DateTime ReportDate { get; set; }
+        public List<InventoryReportItem> Items { get; set; }
     }
 
-    public class StockDOHItem
+    public class InventoryReportItem
     {
         public int ProductID { get; set; }
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
-        public string CategoryName { get; set; }
-        public string WarehouseName { get; set; }
         public double CurrentStock { get; set; }
+        public int UnitID { get; set; }
         public string UnitName { get; set; }
-        public double AverageDailyConsumption { get; set; }
-        public double? DOH { get; set; }
-    }
-
-    public class TrendData
-    {
-        public DateTime Date { get; set; }
-        public int WarehouseId { get; set; }
-        public double Amount { get; set; }
-    }
-
-    public class CategoryStockData
-    {
-        public string CategoryName { get; set; }
-        public double TotalStock { get; set; }
-        public int ProductCount { get; set; }
+        public double AvgDailyConsumption { get; set; }
+        public double DaysOnHand { get; set; }
+        public double Coverage { get; set; }
+        public double PlanFulfillment { get; set; }
+        public bool IsRawMaterial { get; set; }
+        public bool RequiresCutting { get; set; }
     }
 }

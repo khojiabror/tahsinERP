@@ -72,6 +72,19 @@ namespace tahsinERP.ViewModels.POrder
         
         [Display(Name = "MOQ")]
         public double? MOQ { get; set; }
+        
+        // Conversion information
+        [Display(Name = "Hisob tushuntirishi")]
+        public string CalculationExplanation { get; set; }
+        
+        [Display(Name = "Konvertatsiya qilingan")]
+        public bool IsConverted { get; set; }
+        
+        [Display(Name = "Original miqdor")]
+        public decimal? OriginalQuantity { get; set; }
+        
+        [Display(Name = "Original birlik")]
+        public int? OriginalUnitID { get; set; }
     }
     
     public class POrderEditViewModel

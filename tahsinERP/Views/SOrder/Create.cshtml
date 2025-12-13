@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.SOrderViewModel
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Buyurtma yaratish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -31,96 +31,124 @@
                 </div>
             </div>
             <div class="content-body">
-                <section id="form-repeater-wrapper">
+                <section id="order-create-wrapper">
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "SOrder", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form repeater-default", @id = "orderForm" }))
+                                        @using (Html.BeginForm("Create", "SOrder", FormMethod.Post, new { @id = "orderForm" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
+                                            <h4 class="mb-2">Asosiy ma'lumotlar</h4>
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="OrderNo">Buyurtma raqami</label>
-                                                    @Html.TextBoxFor(model => model.OrderNo, new { @type = "text", @class = "form-control", @placeholder = "Buyurtma raqamini kiriting", @required = "required" })
+                                                    <label for="OrderNo">Buyurtma raqami <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @placeholder = "Buyurtma raqamini kiriting", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="CustomerID">Haridor</label>
+                                                    <label for="IssuedDate">Buyurtma sanasi <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @type = "date", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CustomerID">Haridor <span class="text-danger">*</span></label>
                                                     @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @id = "CustomerID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContractID">Shartnoma raqami</label>
-                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID" })
+                                                    <label for="ContractID">Shartnoma raqami <span class="text-danger">*</span></label>
+                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="IssuedDate">Buyurtma berilgan sanasi</label>
-                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">Shartnoma tanlang, maxsulotlar avtomatik yuklanadi</small>
                                                 </div>
                                                 <div class="col-md-12 col-12 form-group">
                                                     <label for="Description">Qisqacha tavsifi</label>
-                                                    @Html.TextAreaFor(model => model.Description, new { @type = "text", @class = "form-control", @placeholder = "Qisqacha tavsif kiriting", @rows = "2" })
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = "Qisqacha tavsif kiriting", @rows = "2" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
 
-                                            <br />
-                                            <h4>Buyurtma maxsulotlari</h4>
-                                            <div data-repeater-list="Parts">
-                                                <div data-repeater-item>
-                                                    <div class="row justify-content-between">
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label>Maxsulot</label>
-                                                            <select name="ProductID" class="form-control select2 product-select" required>
-                                                                <option value="">---Tanlang---</option>
-                                                                @foreach (var product in ((SelectList)ViewBag.ProductList))
+                                            <hr class="my-2" />
+
+                                            <h4 class="mb-2">Shartnoma maxsulotlari</h4>
+                                            <div id="productsContainer" style="display: none;">
+                                                <div class="alert alert-info">
+                                                    <i class="bx bx-info-circle"></i> Faqat buyurtma miqdorini kiriting. Narxlar shartnomadan avtomatik olinadi.
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table id="productsTable" class="table table-bordered table-striped">
+                                                        <thead class="thead-light">
+                                                            <tr>
+                                                                <th width="5%">№</th>
+                                                                <th width="15%">Maxsulot kodi</th>
+                                                                <th width="25%">Maxsulot nomi</th>
+                                                                <th width="10%">O'lchov birligi</th>
+                                                                <th width="12%">Shartnoma miqdori</th>
+                                                                <th width="12%">Birlik narxi</th>
+                                                                <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
+                                                                <th width="10%">Jami</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="productsTableBody">
+                                                            @if (Model.ProductQuantities != null && Model.ProductQuantities.Any())
+                                                            {
+                                                                int index = 0;
+                                                                foreach (var product in Model.ProductQuantities)
                                                                 {
-                                                                    <option value="@product.Value">@product.Text</option>
+                                                                    <tr>
+                                                                        <td>@(index + 1)</td>
+                                                                        <td>@product.ProductPNo</td>
+                                                                        <td>@product.ProductName</td>
+                                                                        <td>@product.UnitName</td>
+                                                                        <td class="text-right">@product.ContractAmount.ToString("N2")</td>
+                                                                        <td class="text-right">@product.PiecePrice.ToString("N2")</td>
+                                                                        <td>
+                                                                            <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
+                                                                            <input type="number" 
+                                                                                   name="ProductQuantities[@index].OrderQuantity" 
+                                                                                   class="form-control order-quantity" 
+                                                                                   value="@product.OrderQuantity.ToString("N2")" 
+                                                                                   step="0.01" 
+                                                                                   min="0.01" 
+                                                                                   data-price="@product.PiecePrice"
+                                                                                   required />
+                                                                        </td>
+                                                                        <td class="text-right total-price">0.00</td>
+                                                                    </tr>
+                                                                    index++;
                                                                 }
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label>O'lchov birligi</label>
-                                                            <select name="UnitID" class="form-control select2 unit-select" required>
-                                                                <option value="">---Tanlang---</option>
-                                                                @foreach (var unit in ((SelectList)ViewBag.Units))
-                                                                {
-                                                                    <option value="@unit.Value">@unit.Text</option>
-                                                                }
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label>Miqdori</label>
-                                                            <input type="number" name="Amount" class="form-control product-amount" placeholder="Miqdori" step="0.01" min="0.01" required />
-                                                        </div>
-                                                        <div class="col-md-2 col-sm-12 form-group">
-                                                            <label>Birlik narxi</label>
-                                                            <input type="number" name="Price" class="form-control product-price" placeholder="Birlik narxi" step="0.01" min="0" readonly required />
-                                                        </div>
-                                                        <div class="col-md-1 col-sm-12 form-group d-flex align-items-center pt-2">
-                                                            <button data-repeater-delete type="button" class="btn btn-danger">O'chirish</button>
-                                                        </div>
-                                                    </div>
-                                                    <hr>
+                                                            }
+                                                        </tbody>
+                                                        <tfoot>
+                                                            <tr class="font-weight-bold">
+                                                                <td colspan="7" class="text-right">Jami summa:</td>
+                                                                <td class="text-right" id="grandTotal">0.00</td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
                                                 </div>
                                             </div>
+                                            <div id="noProductsMessage" class="alert alert-warning" style="display: none;">
+                                                <i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.
+                                            </div>
 
-                                            <button data-repeater-create type="button" class="btn btn-primary">Yangi maxsulot qo'shish</button>
-
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item border-0 pb-0">
-                                                    <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
-                                                        <i class='bx bx-save'></i>
-                                                        Saqlash
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-primary btn-lg">
+                                                        <i class="bx bx-save"></i> Saqlash va yetkazib berish rejasiga o'tish
                                                     </button>
-                                                </li>
-                                            </ul>
+                                                    <a href="@Url.Action("Index")" class="btn btn-secondary btn-lg">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
                                         }
                                     </div>
                                 </div>
@@ -131,195 +159,175 @@
             </div>
         </div>
     </div>
-
-    <script>
-        $(document).ready(function () {
-            // Initialize flatpickr
-            if (typeof flatpickr !== 'undefined') {
-                flatpickr("#IssuedDate", {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d.m.Y",
-                    locale: "uz"
-                });
-            }
-
-            // Store contract products globally
-            window.contractProducts = null;
-
-            // Load contract products when contract is selected
-            $('#ContractID').on('change', function () {
-                var contractId = $(this).val();
-                if (contractId && contractId != '0' && contractId != '') {
-                    loadContractProducts(contractId);
-                } else {
-                    window.contractProducts = null;
-                    // Reset all product dropdowns to show all products
-                    $('.product-select').each(function () {
-                        var $select = $(this);
-                        var currentValue = $select.val();
-                        $select.empty();
-                        $select.append($('<option></option>').val('').text('---Tanlang---'));
-                        @foreach (var product in ((SelectList)ViewBag.ProductList))
-                        {
-                            <text>
-                            var $option = $('<option></option>').val('@product.Value').text('@product.Text');
-                            if ('@product.Value' == currentValue) {
-                                $option.prop('selected', true);
-                            }
-                            $select.append($option);
-                            </text>
-                        }
-                        if ($select.hasClass('select2')) {
-                            $select.select2('destroy');
-                            $select.select2();
-                        }
-                    });
-                    $('.product-price').val('').prop('readonly', false);
-                }
-            });
-
-            // When product is selected, load price from contract
-            $(document).on('change', '.product-select', function () {
-                var $row = $(this).closest('[data-repeater-item]');
-                var productId = $(this).val();
-                var contractId = $('#ContractID').val();
-
-                if (contractId && contractId != '0' && contractId != '' && productId && productId != '0' && productId != '') {
-                    loadProductPriceFromContract(contractId, parseInt(productId), $row);
-                } else {
-                    $row.find('.product-price').val('').prop('readonly', false);
-                }
-            });
-
-            // Update product dropdowns when new item is added
-            $(document).on('click', '[data-repeater-create]', function () {
-                setTimeout(function () {
-                    var contractId = $('#ContractID').val();
-                    if (contractId && contractId != '0' && contractId != '' && window.contractProducts) {
-                        updateProductDropdowns(window.contractProducts);
-                    }
-                }, 100);
-            });
-
-            // Function to load contract products
-            function loadContractProducts(contractId) {
-                $.ajax({
-                    url: '@Url.Action("GetContractProducts", "SOrder")',
-                    type: 'GET',
-                    data: { contractId: contractId },
-                    success: function (data) {
-                        if (data && data.length > 0) {
-                            window.contractProducts = data;
-                            updateProductDropdowns(data);
-                        } else {
-                            alert('Shartnomada maxsulotlar topilmadi');
-                            window.contractProducts = null;
-                        }
-                    },
-                    error: function () {
-                        console.error('Shartnoma maxsulotlarini yuklashda xatolik');
-                        alert('Shartnoma maxsulotlarini yuklashda xatolik yuz berdi');
-                        window.contractProducts = null;
-                    }
-                });
-            }
-
-            // Function to update product dropdowns with contract products
-            function updateProductDropdowns(products) {
-                $('.product-select').each(function () {
-                    var $select = $(this);
-                    var currentValue = $select.val();
-
-                    $select.empty();
-                    $select.append($('<option></option>').val('').text('---Tanlang---'));
-
-                    $.each(products, function (index, product) {
-                        var $option = $('<option></option>')
-                            .val(product.ProductID)
-                            .text(product.ProductPNo + ' - ' + product.ProductName);
-                        if (product.ProductID == currentValue) {
-                            $option.prop('selected', true);
-                        }
-                        $select.append($option);
-                    });
-
-                    if ($select.hasClass('select2')) {
-                        $select.select2('destroy');
-                        $select.select2();
-                    }
-                });
-            }
-
-            // Function to load product price from contract
-            function loadProductPriceFromContract(contractId, productId, $row) {
-                if (!window.contractProducts) {
-                    loadContractProducts(contractId);
-                    setTimeout(function () {
-                        loadProductPriceFromContract(contractId, productId, $row);
-                    }, 500);
-                    return;
-                }
-
-                var contractProduct = window.contractProducts.find(function (cp) {
-                    return parseInt(cp.ProductID) === productId;
-                });
-
-                if (contractProduct) {
-                    var $priceInput = $row.find('.product-price');
-                    var price = parseFloat(contractProduct.PiecePrice) || 0;
-                    $priceInput.val(price).prop('readonly', true);
-
-                    // Also set UnitID if available
-                    if (contractProduct.UnitID) {
-                        var $unitSelect = $row.find('.unit-select');
-                        $unitSelect.val(contractProduct.UnitID);
-                        if ($unitSelect.hasClass('select2')) {
-                            $unitSelect.select2('destroy');
-                            $unitSelect.select2();
-                        }
-                    }
-                } else {
-                    $row.find('.product-price').val('').prop('readonly', false);
-                }
-            }
-
-            // Form validation
-            $('#orderForm').on('submit', function (e) {
-                var hasProducts = false;
-                $('.product-select').each(function () {
-                    if ($(this).val() && $(this).val() != '0' && $(this).val() != '') {
-                        hasProducts = true;
-                        return false;
-                    }
-                });
-
-                if (!hasProducts) {
-                    e.preventDefault();
-                    alert('Kamida bitta mahsulot qo\'shish kerak');
-                    return false;
-                }
-
-                // Validate that all products have prices
-                var hasEmptyPrice = false;
-                $('.product-price').each(function () {
-                    var $productSelect = $(this).closest('[data-repeater-item]').find('.product-select');
-                    if ($productSelect.val() && $productSelect.val() != '' && (!$(this).val() || $(this).val() == '0')) {
-                        hasEmptyPrice = true;
-                        return false;
-                    }
-                });
-
-                if (hasEmptyPrice) {
-                    e.preventDefault();
-                    alert('Barcha maxsulotlar uchun narx belgilanishi kerak!');
-                    return false;
-                }
-            });
-        });
-    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // Select2 ni ishga tushirish (agar mavjud bo'lsa)
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('#CustomerID, #ContractID').select2({ width: '100%' });
+            }
+
+            // Xaridor o'zgarganda shartnomalarni yuklash
+            $('#CustomerID').on('change', function() {
+                var customerId = $(this).val();
+                
+                if (customerId && customerId != '0') {
+                    loadContracts(customerId);
+                } else {
+                    $('#ContractID').empty().append('<option value="0">---Tanlang---</option>');
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('#ContractID').select2('destroy').select2({ width: '100%' });
+                    }
+                    $('#productsContainer').hide();
+                    $('#noProductsMessage').html('<i class="bx bx-info-circle"></i> Xaridor tanlang, keyin shartnoma tanlang.').show();
+                }
+            });
+
+            // Shartnoma o'zgarganda mahsulotlarni yuklash
+            $('#ContractID').on('change', function() {
+                var contractId = $(this).val();
+                
+                if (contractId && contractId != '0') {
+                    loadProducts(contractId);
+                } else {
+                    $('#productsContainer').hide();
+                    $('#noProductsMessage').html('<i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.').show();
+                }
+            });
+
+            // Shartnomalarni yuklash funksiyasi
+            function loadContracts(customerId) {
+                var $select = $('#ContractID');
+                $select.prop('disabled', true).html('<option value="0">Yuklanmoqda...</option>');
+                
+                $.ajax({
+                    url: '@Url.Action("GetContractsByCustomer", "SOrder")',
+                    type: 'GET',
+                    data: { customerId: customerId },
+                    dataType: 'json',
+                    success: function(data) {
+                        $select.empty().append('<option value="0">---Tanlang---</option>');
+                        
+                        if (data && data.length > 0) {
+                            $.each(data, function(i, contract) {
+                                $select.append('<option value="' + contract.ID + '">' + contract.ContractNo + '</option>');
+                            });
+                        } else {
+                            $select.append('<option value="0">Shartnomalar topilmadi</option>');
+                        }
+                        
+                        if (typeof $.fn.select2 !== 'undefined') {
+                            $select.select2('destroy').select2({ width: '100%' });
+                        }
+                        $select.prop('disabled', false);
+                        
+                        $('#productsContainer').hide();
+                        $('#noProductsMessage').html('<i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.').show();
+                    },
+                    error: function() {
+                        $select.empty().append('<option value="0">Xatolik yuz berdi</option>');
+                        $select.prop('disabled', false);
+                        alert('Shartnomalarni yuklashda xatolik yuz berdi.');
+                    }
+                });
+            }
+
+            // Mahsulotlarni yuklash funksiyasi
+            function loadProducts(contractId) {
+                $('#productsContainer').hide();
+                $('#noProductsMessage').html('<i class="bx bx-loader bx-spin"></i> Maxsulotlar yuklanmoqda...').show();
+
+                $.ajax({
+                    url: '@Url.Action("GetContractProducts", "SOrder")',
+                    type: 'GET',
+                    data: { contractId: contractId },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data && data.length > 0) {
+                            var tbody = $('#productsTableBody');
+                            tbody.empty();
+                            
+                            $.each(data, function(index, product) {
+                                var row = '<tr>' +
+                                    '<td>' + (index + 1) + '</td>' +
+                                    '<td>' + (product.ProductPNo || '') + '</td>' +
+                                    '<td>' + (product.ProductName || '') + '</td>' +
+                                    '<td>' + (product.UnitName || '') + '</td>' +
+                                    '<td class="text-right">' + parseFloat(product.ContractAmount || 0).toFixed(2) + '</td>' +
+                                    '<td class="text-right">' + parseFloat(product.PiecePrice || 0).toFixed(2) + '</td>' +
+                                    '<td>' +
+                                    '<input type="hidden" name="ProductQuantities[' + index + '].ContractProductID" value="' + (product.ContractProductID || '') + '" />' +
+                                    '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + (product.ProductID || '') + '" />' +
+                                    '<input type="hidden" name="ProductQuantities[' + index + '].PiecePrice" value="' + (product.PiecePrice || 0) + '" />' +
+                                    '<input type="hidden" name="ProductQuantities[' + index + '].UnitID" value="' + (product.UnitID || '') + '" />' +
+                                    '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="0" step="0.01" min="0.01" data-price="' + (product.PiecePrice || 0) + '" required />' +
+                                    '</td>' +
+                                    '<td class="text-right total-price">0.00</td>' +
+                                    '</tr>';
+                                tbody.append(row);
+                            });
+                            
+                            $('#productsContainer').show();
+                            $('#noProductsMessage').hide();
+                            calculateTotal();
+                        } else {
+                            $('#productsContainer').hide();
+                            $('#noProductsMessage').html('<i class="bx bx-info-circle"></i> Bu shartnomada maxsulotlar topilmadi.').show();
+                        }
+                    },
+                    error: function() {
+                        $('#productsContainer').hide();
+                        $('#noProductsMessage').html('<i class="bx bx-error"></i> Maxsulotlarni yuklashda xatolik yuz berdi.').show();
+                    }
+                });
+            }
+
+            // Jami summani hisoblash
+            function calculateTotal() {
+                var total = 0;
+                $('.total-price').each(function() {
+                    total += parseFloat($(this).text()) || 0;
+                });
+                $('#grandTotal').text(total.toFixed(2));
+            }
+
+            // Miqdor o'zgarganda jami summani yangilash
+            $(document).on('input', '.order-quantity', function() {
+                var $row = $(this).closest('tr');
+                var qty = parseFloat($(this).val()) || 0;
+                var price = parseFloat($(this).data('price')) || 0;
+                $row.find('.total-price').text((qty * price).toFixed(2));
+                calculateTotal();
+            });
+
+            // Form yuborishdan oldin tekshirish
+            $('#orderForm').on('submit', function(e) {
+                var hasQty = false;
+                $('.order-quantity').each(function() {
+                    if (parseFloat($(this).val()) > 0) {
+                        hasQty = true;
+                        return false;
+                    }
+                });
+                
+                if (!hasQty) {
+                    e.preventDefault();
+                    alert('Kamida bitta maxsulot uchun miqdor kiritish kerak!');
+                    return false;
+                }
+            });
+
+            // Sahifa yuklanganda, agar xaridor tanlangan bo'lsa shartnomalarni yuklash
+            var initialCustomerId = $('#CustomerID').val();
+            if (initialCustomerId && initialCustomerId != '0') {
+                loadContracts(initialCustomerId);
+            }
+        });
+    </script>
 }

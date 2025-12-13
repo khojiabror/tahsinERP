@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
-using tahsinERP.ViewModels;
-using tahsinERP.ViewModels.POrder;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -78,7 +76,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Get sales orders for multi-select
+                // Get sales orders for multi-select (S_ORDER orqali yaratish uchun)
                 var salesOrders = await db.S_ORDERS
                     .Include(o => o.CUSTOMER)
                     .Where(o => o.IsDeleted != true)
@@ -117,9 +115,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
@@ -136,7 +132,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: POrders/GenerateFromSalesOrders
+        // POST: POrders/GenerateFromSalesOrders - BOM explosion from S_ORDERS
         [HttpPost]
         public async Task<JsonResult> GenerateFromSalesOrders(int[] salesOrderIds)
         {
@@ -149,110 +145,20 @@ namespace tahsinERP.Controllers
             {
                 try
                 {
-                    // Load selected sales orders with products
-                    var salesOrders = await db.S_ORDERS
-                        .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT))
-                        .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT.PRODUCT_CATEGORIES))
-                        .Where(o => salesOrderIds.Contains(o.ID) && o.IsDeleted != true)
-                        .ToListAsync();
-
-                    // Dictionary to aggregate required quantities by component (raw material)
-                    var componentRequirements = new Dictionary<int, ComponentRequirement>();
-
-                    // Process each sales order
-                    foreach (var sOrder in salesOrders)
-                    {
-                        foreach (var sOrderProduct in sOrder.S_ORDER_PRODUCTS)
-                        {
-                            var product = sOrderProduct.PRODUCT;
-                            
-                            // Check if product is finished good
-                            if (product.PRODUCT_CATEGORIES != null && 
-                                product.PRODUCT_CATEGORIES.IsFinishedGood == true)
-                            {
-                                // Find active BOM for this finished good
-                                var bomHeader = await db.BOM_HEADERS
-                                    .Include(b => b.BOM_LINES)
-                                    .Where(b => b.ProductID == product.ID && 
-                                                b.IsActive == true)
-                                    .OrderByDescending(b => b.CreatedAt)
-                                    .FirstOrDefaultAsync();
-
-                                if (bomHeader != null && bomHeader.BOM_LINES != null)
-                                {
-                                    // Calculate required quantity for each component
-                                    double finishedGoodQty = sOrderProduct.Amount;
-
-                                    foreach (var bomLine in bomHeader.BOM_LINES)
-                                    {
-                                        if (bomLine.ComponentID.HasValue && bomLine.Qty.HasValue)
-                                        {
-                                            int componentId = bomLine.ComponentID.Value;
-                                            double requiredQty = (double)(finishedGoodQty * (double)bomLine.Qty.Value);
-
-                                            // Check if component is purchasable
-                                            var component = await db.PRODUCTS
-                                                .Include(p => p.PRODUCT_CATEGORIES)
-                                                .FirstOrDefaultAsync(p => p.ID == componentId && p.IsDeleted != true);
-
-                                            if (component != null)
-                                            {
-                                                bool isPurchasable = component.PRODUCT_CATEGORIES == null ||
-                                                    (component.PRODUCT_CATEGORIES.IsFinishedGood != true &&
-                                                     (component.PRODUCT_CATEGORIES.AllowPurchase == true || 
-                                                      component.IsRawMaterial == true));
-
-                                                if (isPurchasable)
-                                                {
-                                                    // Aggregate quantities
-                                                    if (componentRequirements.ContainsKey(componentId))
-                                                    {
-                                                        componentRequirements[componentId].RequiredQty += requiredQty;
-                                                    }
-                                                    else
-                                                    {
-                                                        // Get estimated price from NORM_INPUT_LINES
-                                                        decimal? estimatedPrice = null;
-                                                        var normLine = await db.NORM_INPUT_LINES
-                                                            .Where(n => n.ProductID == product.ID && 
-                                                                        n.MaterialID == componentId)
-                                                            .OrderByDescending(n => n.CreatedDT)
-                                                            .FirstOrDefaultAsync();
-
-                                                        if (normLine != null)
-                                                        {
-                                                            estimatedPrice = normLine.Price;
-                                                        }
-
-                                                        componentRequirements[componentId] = new ComponentRequirement
-                                                        {
-                                                            ComponentID = componentId,
-                                                            ComponentPNo = component.PNo,
-                                                            ComponentName = component.Name,
-                                                            UnitID = component.UnitID,
-                                                            RequiredQty = requiredQty,
-                                                            EstimatedPrice = estimatedPrice.HasValue ? (double?)estimatedPrice.Value : null
-                                                        };
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    var generationService = new POrderGenerationService(db);
+                    var requirements = await generationService.GenerateRequirementsFromSalesOrdersAsync(salesOrderIds);
 
                     // Convert to list for JSON response
-                    var result = componentRequirements.Values.Select(cr => new
+                    var result = requirements.Select(cr => new
                     {
                         ComponentID = cr.ComponentID,
                         ComponentPNo = cr.ComponentPNo,
                         ComponentName = cr.ComponentName,
                         UnitID = cr.UnitID,
                         RequiredQty = cr.RequiredQty,
-                        EstimatedPrice = cr.EstimatedPrice,
-                        EstimatedAmount = cr.EstimatedPrice.HasValue ? cr.RequiredQty * cr.EstimatedPrice.Value : (double?)null
+                        EstimatedPrice = cr.EstimatedPrice.HasValue ? (double?)cr.EstimatedPrice.Value : null,
+                        EstimatedAmount = cr.EstimatedAmount.HasValue ? (double?)cr.EstimatedAmount.Value : null,
+                        CalculationExplanation = cr.CalculationExplanation
                     }).ToList();
 
                     return Json(new { success = true, data = result });
@@ -262,17 +168,6 @@ namespace tahsinERP.Controllers
                     return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
                 }
             }
-        }
-
-        // Helper class for component requirements
-        private class ComponentRequirement
-        {
-            public int ComponentID { get; set; }
-            public string ComponentPNo { get; set; }
-            public string ComponentName { get; set; }
-            public int UnitID { get; set; }
-            public double RequiredQty { get; set; }
-            public double? EstimatedPrice { get; set; }
         }
 
         // POST: POrders/Create
@@ -314,7 +209,7 @@ namespace tahsinERP.Controllers
                         db.P_ORDERS.Add(order);
                         await db.SaveChangesAsync();
 
-                        // Calculate total amount and create order products
+                        // Add order products - simple and straightforward
                         double totalAmount = 0;
                         if (model.OrderProducts != null && model.OrderProducts.Any())
                         {
@@ -326,7 +221,7 @@ namespace tahsinERP.Controllers
                                     var pOrderProduct = new P_ORDER_PRODUCTS
                                     {
                                         OrderID = order.ID,
-                                        PartID = orderProduct.ProductID,
+                                        ProductID = orderProduct.ProductID,
                                         Price = orderProduct.Price,
                                         Amount = orderProduct.Amount,
                                         UnitID = orderProduct.UnitID ?? product.UnitID,
@@ -339,6 +234,7 @@ namespace tahsinERP.Controllers
                                 }
                             }
 
+                            // Update order total amount
                             order.Amount = totalAmount;
                             await db.SaveChangesAsync();
                         }
@@ -350,7 +246,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -388,9 +291,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
@@ -460,15 +361,15 @@ namespace tahsinERP.Controllers
                     ID = order.ID,
                     OrderNo = order.OrderNo,
                     IssuedDate = order.IssuedDate,
-                    CompanyID = order.CompanyID,
-                    SupplierID = order.SupplierID,
-                    ContractID = order.ContractID,
-                    CurrencyID = order.CurrencyID,
+                    CompanyID = order.CompanyID ?? 0,
+                    SupplierID = order.SupplierID ?? 0,
+                    ContractID = order.ContractID ?? 0,
+                    CurrencyID = order.CurrencyID ?? 0,
                     Description = order.Description,
                     OrderProducts = order.P_ORDER_PRODUCTS.Select(op => new POrderProductViewModel
                     {
                         ID = op.ID,
-                        ProductID = op.PartID,
+                        ProductID = op.ProductID,
                         ProductPNo = op.PRODUCT.PNo,
                         ProductName = op.PRODUCT.Name,
                         Price = op.Price,
@@ -497,9 +398,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
@@ -565,7 +464,7 @@ namespace tahsinERP.Controllers
                                     var pOrderProduct = new P_ORDER_PRODUCTS
                                     {
                                         OrderID = order.ID,
-                                        PartID = orderProduct.ProductID,
+                                        ProductID = orderProduct.ProductID,
                                         Price = orderProduct.Price,
                                         Amount = orderProduct.Amount,
                                         UnitID = orderProduct.UnitID ?? product.UnitID,
@@ -589,7 +488,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -615,9 +521,7 @@ namespace tahsinERP.Controllers
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || 
-                                 (p.PRODUCT_CATEGORIES.IsFinishedGood != true && 
-                                  (p.PRODUCT_CATEGORIES.AllowPurchase == true || p.IsRawMaterial == true))))
+                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
@@ -690,5 +594,54 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index");
             }
         }
+    }
+
+    // ViewModels
+    public class POrderCreateViewModel
+    {
+        public string OrderNo { get; set; }
+        public DateTime IssuedDate { get; set; } = DateTime.Now;
+        public int CompanyID { get; set; }
+        public int SupplierID { get; set; }
+        public int? ContractID { get; set; }
+        public int CurrencyID { get; set; }
+        public string Description { get; set; }
+        public List<POrderProductViewModel> OrderProducts { get; set; }
+
+        public POrderCreateViewModel()
+        {
+            OrderProducts = new List<POrderProductViewModel>();
+        }
+    }
+
+    public class POrderEditViewModel
+    {
+        public int ID { get; set; }
+        public string OrderNo { get; set; }
+        public DateTime IssuedDate { get; set; }
+        public int CompanyID { get; set; }
+        public int SupplierID { get; set; }
+        public int? ContractID { get; set; }
+        public int CurrencyID { get; set; }
+        public string Description { get; set; }
+        public List<POrderProductViewModel> OrderProducts { get; set; }
+
+        public POrderEditViewModel()
+        {
+            OrderProducts = new List<POrderProductViewModel>();
+        }
+    }
+
+    public class POrderProductViewModel
+    {
+        public int? ID { get; set; }
+        public int ProductID { get; set; }
+        public string ProductPNo { get; set; }
+        public string ProductName { get; set; }
+        public double Price { get; set; }
+        public double Amount { get; set; }
+        public int? UnitID { get; set; }
+        public double TotalPrice { get; set; }
+        public double? MOQ { get; set; }
     }
 }

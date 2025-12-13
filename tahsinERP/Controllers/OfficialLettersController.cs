@@ -293,6 +293,7 @@ namespace tahsinERP.Controllers
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.COM_OFFICIAL_LETTERS)
                     .Include(d => d.DOC_DOCUMENT_STATUS_REF)
+                    .Include(d => d.DOC_FILES)
                     .FirstOrDefaultAsync(d => d.ID == id);
 
                 if (doc == null || doc.COM_OFFICIAL_LETTERS == null)

@@ -1,0 +1,104 @@
+@model tahsinERP.Models.Warehouse
+
+@{
+    ViewBag.Title = "Omborni o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Warehouse/Index">Korxona omborlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Omborni o'chirish
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-xl-9 col-md-8 col-12">
+                        <div class="card">
+                            <div class="card-header bg-danger">
+                                <h4 class="card-title text-white">
+                                    <i class="bx bx-error-circle"></i> Omborni o'chirish
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="alert alert-warning border-warning">
+                                        <i class="bx bx-error-circle"></i>
+                                        <strong>Diqqat!</strong> Bu omborni o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <dl class="row">
+                                                <dt class="col-sm-4">Ombor nomi:</dt>
+                                                <dd class="col-sm-8">
+                                                    <strong>@Html.DisplayFor(model => model.WHName)</strong>
+                                                </dd>
+
+                                                <dt class="col-sm-4">Tavsif:</dt>
+                                                <dd class="col-sm-8">
+                                                    @(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)
+                                                </dd>
+
+                                                <dt class="col-sm-4">Sex:</dt>
+                                                <dd class="col-sm-8">
+                                                    @(Model.SHOP?.ShopName ?? "-")
+                                                </dd>
+
+                                                <dt class="col-sm-4">MRP (Mas'ul shaxs):</dt>
+                                                <dd class="col-sm-8">
+                                                    @(Model.USER?.FullName ?? "-")
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    @using (Html.BeginForm("Delete", "Warehouse", new { id = Model.ID }, FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(model => model.ID)
+
+                                        <div class="form-actions d-flex justify-content-between">
+                                            <a href="@Url.Action("Index", "Warehouse")" class="btn btn-secondary">
+                                                <i class="bx bx-arrow-back"></i> Bekor qilish
+                                            </a>
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bu omborni o\'chirishni tasdiqlaysizmi?');">
+                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -28,11 +28,11 @@ namespace tahsinERP.Models
         public Nullable<int> OperationID { get; set; }
         public Nullable<int> CurrencyID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
+        public virtual HR_PIECE_RATE_OPERATIONS HR_PIECE_RATE_OPERATIONS { get; set; }
         public virtual USER USER { get; set; }
         public virtual USER USER1 { get; set; }
         public virtual HR_POSITIONS HR_POSITIONS { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
-        public virtual CURRENCy CURRENCy { get; set; }
-        public virtual HR_PIECE_RATE_OPERATIONS HR_PIECE_RATE_OPERATIONS { get; set; }
     }
 }

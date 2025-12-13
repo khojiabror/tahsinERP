@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -83,7 +84,7 @@ namespace tahsinERP.Controllers.MES
         // POST: ProductProduction/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ProductProductionDailyEntryViewModel viewModel)
+        public async Task<ActionResult> Create(ProductProductionDailyEntryViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -91,13 +92,17 @@ namespace tahsinERP.Controllers.MES
                 {
                     try
                     {
+                        var dateOnly = viewModel.Date.Date;
+                        var allProductionsForDate = db.PRODUCT_PRODUCTION
+                            .Where(p => p.ShopID == viewModel.ShopID)
+                            .ToList();
+
                         foreach (var item in viewModel.ProductionItems.Where(i => i.Total > 0))
                         {
                             // Check if production already exists for this date/product/shop
-                            var existing = db.PRODUCT_PRODUCTION
-                                .FirstOrDefault(p => p.Date.Date == viewModel.Date.Date 
-                                    && p.ProductID == item.ProductID 
-                                    && p.ShopID == viewModel.ShopID);
+                            var existing = allProductionsForDate
+                                .FirstOrDefault(p => p.Date.Date == dateOnly 
+                                    && p.ProductID == item.ProductID);
 
                             if (existing != null)
                             {
@@ -124,8 +129,23 @@ namespace tahsinERP.Controllers.MES
                                 db.PRODUCT_PRODUCTION.Add(production);
                             }
 
-                            // Update warehouse (INCOMES and PRODUCT_STOCKS)
-                            UpdateWarehouseForProduction(item.ProductID, item.Total, viewModel.ShopID, db);
+                            // Update warehouse for finished goods (Production WH)
+                            // Only for finished goods - handled by WarehouseFlowService
+                            var product = db.PRODUCTS.Find(item.ProductID);
+                            if (product != null && product.IsFinishedGood == true)
+                            {
+                                WarehouseFlowService.IncreaseProductionStock(
+                                    item.ProductID, 
+                                    item.Total, 
+                                    viewModel.ShopID, 
+                                    db, 
+                                    User.Identity.Name,
+                                    existing?.ID
+                                );
+
+                                // Consume raw materials from Production warehouse with waste calculation
+                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, db);
+                            }
                         }
 
                         db.SaveChanges();
@@ -137,7 +157,14 @@ namespace tahsinERP.Controllers.MES
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        var errorMessage = $"Xatolik: {ex.Message}";
+                        var innerEx = ex.InnerException;
+                        while (innerEx != null)
+                        {
+                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                            innerEx = innerEx.InnerException;
+                        }
+                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
@@ -211,7 +238,7 @@ namespace tahsinERP.Controllers.MES
         // POST: ProductProduction/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(ProductProductionViewModel viewModel)
+        public async Task<ActionResult> Edit(ProductProductionViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -236,9 +263,27 @@ namespace tahsinERP.Controllers.MES
                         return View(viewModel);
                     }
 
-                    // Revert old warehouse entry
-                    var oldTotal = production.Total;
-                    UpdateWarehouseForProduction(production.ProductID, -oldTotal, production.ShopID, db);
+                    // Revert old warehouse entry (for finished goods only)
+                    var oldProduct = db.PRODUCTS.Find(production.ProductID);
+                    if (oldProduct != null && oldProduct.IsFinishedGood == true)
+                    {
+                        // Decrease old stock
+                        var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                        if (productionWH != null)
+                        {
+                            var oldStock = db.PRODUCT_STOCKS
+                                .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
+                            if (oldStock != null)
+                            {
+                                oldStock.Amount -= production.Total;
+                                if (oldStock.Amount < 0) oldStock.Amount = 0;
+                                db.Entry(oldStock).State = EntityState.Modified;
+                            }
+                        }
+
+                        // Revert old material consumption
+                        await RevertMaterialConsumption(production.ProductID, production.Total, db);
+                    }
 
                     // Update production
                     production.ProductID = viewModel.ProductID;
@@ -249,8 +294,22 @@ namespace tahsinERP.Controllers.MES
                     production.Total = viewModel.Total;
                     production.Comment = viewModel.Comment;
 
-                    // Update warehouse with new values
-                    UpdateWarehouseForProduction(viewModel.ProductID, viewModel.Total, viewModel.ShopID, db);
+                    // Update warehouse with new values (for finished goods only)
+                    var newProduct = db.PRODUCTS.Find(viewModel.ProductID);
+                    if (newProduct != null && newProduct.IsFinishedGood == true)
+                    {
+                        WarehouseFlowService.IncreaseProductionStock(
+                            viewModel.ProductID, 
+                            viewModel.Total, 
+                            viewModel.ShopID, 
+                            db, 
+                            User.Identity.Name,
+                            viewModel.ID
+                        );
+
+                        // Consume materials for new production
+                        await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, db);
+                    }
 
                     db.Entry(production).State = EntityState.Modified;
                     db.SaveChanges();
@@ -333,7 +392,7 @@ namespace tahsinERP.Controllers.MES
         // POST: ProductProduction/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -354,8 +413,26 @@ namespace tahsinERP.Controllers.MES
                     return RedirectToAction("Index");
                 }
 
-                // Revert warehouse entry
-                UpdateWarehouseForProduction(production.ProductID, -production.Total, production.ShopID, db);
+                // Revert warehouse entry (for finished goods only)
+                var product = db.PRODUCTS.Find(production.ProductID);
+                if (product != null && product.IsFinishedGood == true)
+                {
+                    var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                    if (productionWH != null)
+                    {
+                        var stock = db.PRODUCT_STOCKS
+                            .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
+                        if (stock != null)
+                        {
+                            stock.Amount -= production.Total;
+                            if (stock.Amount < 0) stock.Amount = 0;
+                            db.Entry(stock).State = EntityState.Modified;
+                        }
+                    }
+
+                    // Revert material consumption
+                    await RevertMaterialConsumption(production.ProductID, production.Total, db);
+                }
 
                 db.PRODUCT_PRODUCTION.Remove(production);
                 db.SaveChanges();
@@ -367,80 +444,170 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
+        /// <summary>
+        /// Consumes materials from Production warehouse when production is confirmed
+        /// </summary>
+        private async Task ConsumeMaterialsForProduction(int productId, double producedQty, DBTHSNEntities db)
+        {
+            // Get Production warehouse (warehouse type should be configured)
+            var productionWarehouse = db.WAREHOUSES
+                .FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
+            
+            if (productionWarehouse == null)
+            {
+                // Try to find by ID or use first warehouse
+                productionWarehouse = db.WAREHOUSES.FirstOrDefault();
+            }
+
+            if (productionWarehouse == null)
+            {
+                throw new Exception("Production ombor topilmadi");
+            }
+
+            var consumptionService = new ProductionConsumptionService(db);
+            await consumptionService.ConsumeMaterialsForProductionAsync(
+                productId, producedQty, productionWarehouse.ID);
+        }
+
+        /// <summary>
+        /// Reverts material consumption (for edit/delete operations)
+        /// </summary>
+        private async Task RevertMaterialConsumption(int productId, double producedQty, DBTHSNEntities db)
+        {
+            var productionWarehouse = db.WAREHOUSES
+                .FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
+            
+            if (productionWarehouse == null)
+            {
+                productionWarehouse = db.WAREHOUSES.FirstOrDefault();
+            }
+
+            if (productionWarehouse == null)
+            {
+                return; // Can't revert if warehouse not found
+            }
+
+            var consumptionService = new ProductionConsumptionService(db);
+            var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(productId, producedQty);
+
+            // Revert consumption (add back to stock)
+            foreach (var req in requirements)
+            {
+                var stock = await db.PRODUCT_STOCKS
+                    .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
+
+                if (stock != null)
+                {
+                    stock.Amount += req.TotalConsumption;
+                    db.Entry(stock).State = EntityState.Modified;
+                }
+            }
+
+            await db.SaveChangesAsync();
+        }
+
         // AJAX: Get planned products for date and shop
         [HttpGet]
-        public JsonResult GetPlannedProducts(DateTime date, int shopID)
+        public JsonResult GetPlannedProducts(DateTime? date, int? shopID)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            try
             {
-                // Get products for this shop from production plans
-                var dailyPlans = db.PRODUCTPLANS_DAILY
-                    .Include(d => d.PRODUCTPLAN)
-                    .Include(d => d.PRODUCTPLAN.PRODUCT)
-                    .Where(d => d.Day.Date == date.Date 
-                        && d.PRODUCTPLAN.PRODUCT.ShopID == shopID
-                        && d.PRODUCTPLAN.IsDeleted == false)
-                    .Select(d => new ProductionEntryItem
-                    {
-                        ProductID = d.PRODUCTPLAN.ProductID,
-                        ProductNo = d.PRODUCTPLAN.PRODUCT.PNo,
-                        ProductName = d.PRODUCTPLAN.PRODUCT.Name,
-                        PlannedDayShift = d.DayShift,
-                        PlannedNightShift = d.NightShift,
-                        PlannedTotal = d.Total,
-                        IsPlanned = true
-                    })
-                    .ToList();
-
-                // Also get existing production entries
-                var existingProductions = db.PRODUCT_PRODUCTION
-                    .Include(p => p.PRODUCT)
-                    .Where(p => p.Date.Date == date.Date && p.ShopID == shopID)
-                    .ToList();
-
-                foreach (var existing in existingProductions)
+                if (!date.HasValue || !shopID.HasValue)
                 {
-                    var item = dailyPlans.FirstOrDefault(d => d.ProductID == existing.ProductID);
-                    if (item != null)
-                    {
-                        item.ID = existing.ID;
-                        item.DayShift = existing.DayShift;
-                        item.NightShift = existing.NightShift;
-                        item.Total = existing.Total;
-                        item.Comment = existing.Comment;
-                    }
-                    else
-                    {
-                        // Unplanned production
-                        dailyPlans.Add(new ProductionEntryItem
-                        {
-                            ID = existing.ID,
-                            ProductID = existing.ProductID,
-                            ProductNo = existing.PRODUCT.PNo,
-                            ProductName = existing.PRODUCT.Name,
-                            DayShift = existing.DayShift,
-                            NightShift = existing.NightShift,
-                            Total = existing.Total,
-                            Comment = existing.Comment,
-                            IsPlanned = false
-                        });
-                    }
+                    return Json(new { success = false, message = "Sana va sex tanlanishi kerak" }, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(dailyPlans, JsonRequestBehavior.AllowGet);
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    var dateOnly = date.Value.Date;
+                    
+                    // Get products for this shop from production plans
+                    // Load data first, then filter in memory to avoid LINQ to Entities Date issues
+                    var allDailyPlans = db.PRODUCTPLANS_DAILY
+                        .Include(d => d.PRODUCTPLAN)
+                        .Include(d => d.PRODUCTPLAN.PRODUCT)
+                        .Where(d => d.PRODUCTPLAN.IsDeleted == false)
+                        .ToList();
+
+                    var dailyPlans = allDailyPlans
+                        .Where(d => d.Day.Date == dateOnly 
+                            && d.PRODUCTPLAN.PRODUCT.ShopID == shopID.Value)
+                        .Select(d => new ProductionEntryItem
+                        {
+                            ProductID = d.PRODUCTPLAN.ProductID,
+                            ProductNo = d.PRODUCTPLAN.PRODUCT.PNo,
+                            ProductName = d.PRODUCTPLAN.PRODUCT.Name,
+                            PlannedDayShift = d.DayShift,
+                            PlannedNightShift = d.NightShift,
+                            PlannedTotal = d.Total,
+                            IsPlanned = true
+                        })
+                        .ToList();
+
+                    // Also get existing production entries
+                    var allProductions = db.PRODUCT_PRODUCTION
+                        .Include(p => p.PRODUCT)
+                        .Where(p => p.ShopID == shopID.Value)
+                        .ToList();
+
+                    var existingProductions = allProductions
+                        .Where(p => p.Date.Date == dateOnly)
+                        .ToList();
+
+                    foreach (var existing in existingProductions)
+                    {
+                        var item = dailyPlans.FirstOrDefault(d => d.ProductID == existing.ProductID);
+                        if (item != null)
+                        {
+                            item.ID = existing.ID;
+                            item.DayShift = existing.DayShift;
+                            item.NightShift = existing.NightShift;
+                            item.Total = existing.Total;
+                            item.Comment = existing.Comment;
+                        }
+                        else
+                        {
+                            // Unplanned production
+                            dailyPlans.Add(new ProductionEntryItem
+                            {
+                                ID = existing.ID,
+                                ProductID = existing.ProductID,
+                                ProductNo = existing.PRODUCT.PNo,
+                                ProductName = existing.PRODUCT.Name,
+                                DayShift = existing.DayShift,
+                                NightShift = existing.NightShift,
+                                Total = existing.Total,
+                                Comment = existing.Comment,
+                                IsPlanned = false
+                            });
+                        }
+                    }
+
+                    return Json(dailyPlans, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Xatolik: {ex.Message}" }, JsonRequestBehavior.AllowGet);
             }
         }
 
         // Helper method to load planned products
         private void LoadPlannedProducts(ProductProductionDailyEntryViewModel viewModel, DBTHSNEntities db)
         {
-                // Get products for this shop from production plans
-                var dailyPlans = db.PRODUCTPLANS_DAILY
-                    .Include(d => d.PRODUCTPLAN)
-                    .Include(d => d.PRODUCTPLAN.PRODUCT)
-                    .Where(d => d.Day.Date == viewModel.Date.Date 
-                        && d.PRODUCTPLAN.PRODUCT.ShopID == viewModel.ShopID
-                        && d.PRODUCTPLAN.IsDeleted == false)
+            var dateOnly = viewModel.Date.Date;
+            
+            // Get products for this shop from production plans
+            // Load data first, then filter in memory to avoid LINQ to Entities Date issues
+            var allDailyPlans = db.PRODUCTPLANS_DAILY
+                .Include(d => d.PRODUCTPLAN)
+                .Include(d => d.PRODUCTPLAN.PRODUCT)
+                .Where(d => d.PRODUCTPLAN.IsDeleted == false)
+                .ToList();
+
+            var dailyPlans = allDailyPlans
+                .Where(d => d.Day.Date == dateOnly 
+                    && d.PRODUCTPLAN.PRODUCT.ShopID == viewModel.ShopID)
                 .Select(d => new ProductionEntryItem
                 {
                     ProductID = d.PRODUCTPLAN.ProductID,
@@ -454,9 +621,13 @@ namespace tahsinERP.Controllers.MES
                 .ToList();
 
             // Also get existing production entries
-            var existingProductions = db.PRODUCT_PRODUCTION
+            var allProductions = db.PRODUCT_PRODUCTION
                 .Include(p => p.PRODUCT)
-                .Where(p => p.Date.Date == viewModel.Date.Date && p.ShopID == viewModel.ShopID)
+                .Where(p => p.ShopID == viewModel.ShopID)
+                .ToList();
+
+            var existingProductions = allProductions
+                .Where(p => p.Date.Date == dateOnly)
                 .ToList();
 
             foreach (var existing in existingProductions)
@@ -490,70 +661,6 @@ namespace tahsinERP.Controllers.MES
             viewModel.ProductionItems = dailyPlans;
         }
 
-        // Helper method to update warehouse (INCOMES and PRODUCT_STOCKS)
-        private void UpdateWarehouseForProduction(int productID, double quantity, int shopID, DBTHSNEntities db)
-        {
-            // Get default finished goods warehouse (assuming warehouse ID 1 or find by type)
-            var finishedGoodsWarehouse = db.WAREHOUSES.FirstOrDefault(w => w.WHName.Contains("Finished") || w.ID == 1);
-            if (finishedGoodsWarehouse == null)
-            {
-                finishedGoodsWarehouse = db.WAREHOUSES.FirstOrDefault();
-            }
-
-            if (finishedGoodsWarehouse == null)
-            {
-                throw new Exception("Ombor topilmadi");
-            }
-
-            // Create or update INCOME record
-            var income = new INCOME
-            {
-                DocNo = $"PROD-{DateTime.Now:yyyyMMddHHmmss}",
-                ReceivingWHID = finishedGoodsWarehouse.ID,
-                IssueDateTime = DateTime.Now,
-                CurrencyID = 1, // Default currency
-                IsDeleted = false,
-                RecieveStatus = true
-            };
-
-            db.INCOMES.Add(income);
-            db.SaveChanges();
-
-            // Create INCOME_PRODUCTS
-            var incomeProduct = new INCOME_PRODUCTS
-            {
-                IncomeID = income.ID,
-                ProductID = productID,
-                Amount = quantity,
-                PiecePrice = 0 // Production cost can be calculated separately
-            };
-
-            db.INCOME_PRODUCTS.Add(incomeProduct);
-
-            // Update or create PRODUCT_STOCKS
-            var stock = db.PRODUCT_STOCKS
-                .FirstOrDefault(s => s.WHID == finishedGoodsWarehouse.ID && s.ProductID == productID);
-
-            if (stock != null)
-            {
-                stock.Amount += quantity;
-                db.Entry(stock).State = EntityState.Modified;
-            }
-            else
-            {
-                var product = db.PRODUCTS.Find(productID);
-                var newStock = new PRODUCT_STOCKS
-                {
-                    WHID = finishedGoodsWarehouse.ID,
-                    ProductID = productID,
-                    Amount = quantity,
-                    UnitID = product?.UnitID ?? 1
-                };
-                db.PRODUCT_STOCKS.Add(newStock);
-            }
-
-            db.SaveChanges();
-        }
     }
 }
 

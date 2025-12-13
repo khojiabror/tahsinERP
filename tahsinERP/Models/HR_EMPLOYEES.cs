@@ -18,8 +18,8 @@ namespace tahsinERP.Models
         public HR_EMPLOYEES()
         {
             this.HR_PAYROLL_LINES = new HashSet<HR_PAYROLL_LINES>();
-            this.HR_TIMESHEET_LINES = new HashSet<HR_TIMESHEET_LINES>();
             this.HR_PIECE_RATE_WORK_ENTRIES = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
+            this.HR_TIMESHEET_LINES = new HashSet<HR_TIMESHEET_LINES>();
         }
     
         public int ID { get; set; }
@@ -43,8 +43,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_PAYROLL_LINES> HR_PAYROLL_LINES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
     }
 }

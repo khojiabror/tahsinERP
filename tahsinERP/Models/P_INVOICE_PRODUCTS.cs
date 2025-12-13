@@ -16,14 +16,14 @@ namespace tahsinERP.Models
     {
         public int ID { get; set; }
         public int InvoiceID { get; set; }
-        public int PartID { get; set; }
+        public int ProductID { get; set; }
         public double Quantity { get; set; }
         public double Price { get; set; }
         public double TotalPrice { get; set; }
         public int UnitID { get; set; }
     
-        public virtual P_INVOICES P_INVOICES { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
+        public virtual P_INVOICES P_INVOICES { get; set; }
         public virtual UNIT UNIT { get; set; }
     }
 }

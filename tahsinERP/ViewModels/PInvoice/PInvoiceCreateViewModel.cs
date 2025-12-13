@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -37,5 +37,11 @@ namespace tahsinERP.ViewModels.PInvoice
         [Required]
         public double Price { get; set; }
         public double TotalPrice => Price * Quantity;
+        
+        // For display purposes
+        public string ProductPNo { get; set; }
+        public string ProductName { get; set; }
+        public bool RequiresCutting { get; set; }
+        public decimal? QuantityCBM { get; set; } // Calculated CBM for cutting products
     }
 }

@@ -1,0 +1,145 @@
+@model List<tahsinERP.Models.Warehouse>
+
+@{
+    ViewBag.Title = "Korxona omborlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Korxona omborlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="#">Sahifalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Korxona omborlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bx bx-check-circle"></i> @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bx bx-error-circle"></i> @TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+                    
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "Warehouse")" class="btn btn-outline-success mr-1 mb-1">
+                                <i class="bx bx-plus"></i>
+                                <span class="align-middle ml-25">Ombor qo'shish</span>
+                            </a>
+                        </div>
+                    }
+                    
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="myDataTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ombor nomi</th>
+                                                    <th>Tavsif</th>
+                                                    <th>Sex</th>
+                                                    <th>MRP (Mas'ul shaxs)</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "Warehouse", new { id = item.ID })" class="text-primary">
+                                                                <strong>@item.WHName</strong>
+                                                            </a>
+                                                        </td>
+                                                        <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
+                                                        <td>@(item.SHOP?.ShopName ?? "-")</td>
+                                                        <td>@(item.USER?.FullName ?? "-")</td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <td>
+                                                                <div class="d-inline-flex">
+                                                                    <a href="@Url.Action("Edit", "Warehouse", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-icon btn-primary mr-1" 
+                                                                       title="Tahrirlash">
+                                                                        <i class="bx bx-edit-alt"></i>
+                                                                    </a>
+                                                                    <a href="@Url.Action("Delete", "Warehouse", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-icon btn-danger" 
+                                                                       title="O'chirish">
+                                                                        <i class="bx bx-trash"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#myDataTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                },
+                "order": [[0, "asc"]],
+                "pageLength": 25,
+                "responsive": true
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

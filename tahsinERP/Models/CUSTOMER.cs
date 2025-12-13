@@ -21,6 +21,7 @@ namespace tahsinERP.Models
             this.S_ORDERS = new HashSet<S_ORDERS>();
             this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
             this.SALES_SF_HEADERS = new HashSet<SALES_SF_HEADERS>();
+            this.SALES_SF_HEADERS1 = new HashSet<SALES_SF_HEADERS>();
         }
     
         public int ID { get; set; }
@@ -44,5 +45,7 @@ namespace tahsinERP.Models
         public virtual ICollection<SALES_INVOICES> SALES_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SALES_SF_HEADERS> SALES_SF_HEADERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SALES_SF_HEADERS> SALES_SF_HEADERS1 { get; set; }
     }
 }

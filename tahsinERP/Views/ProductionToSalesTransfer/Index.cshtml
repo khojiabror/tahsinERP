@@ -1,0 +1,192 @@
+@model List<tahsinERP.Models.EXPENS>
+
+@{
+    ViewBag.Title = "Ishlab chiqarishdan sotuv omboriga o'tkazmalar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionToSalesTransfer", "Index"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductionToSalesTransfer");
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Ishlab chiqarishdan sotuv omboriga o'tkazmalar</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="#">Ombor</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        O'tkazmalar
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bx bx-check-circle"></i> @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bx bx-error-circle"></i> @(TempData["Error"] ?? TempData["ErrorMessage"])
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+                    
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "ProductionToSalesTransfer")" class="btn btn-outline-success mr-1 mb-1">
+                                <i class="bx bx-transfer"></i>
+                                <span class="align-middle ml-25">Yangi o'tkazma</span>
+                            </a>
+                        </div>
+                    }
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">O'tkazmalar ro'yxati</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                @using (Html.BeginForm("Index", "ProductionToSalesTransfer", FormMethod.Get))
+                                {
+                                    <div class="row mb-2">
+                                        <div class="col-md-3">
+                                            <label>Sana (dan)</label>
+                                            <input type="date" name="fromDate" value="@ViewBag.FromDate.ToString("yyyy-MM-dd")" class="form-control" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Sana (gacha)</label>
+                                            <input type="date" name="toDate" value="@ViewBag.ToDate.ToString("yyyy-MM-dd")" class="form-control" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Mahsulot</label>
+                                            @Html.DropDownList("productID", ViewBag.Products as SelectList, "Barcha mahsulotlar", new { @class = "form-control select2" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>&nbsp;</label>
+                                            <button type="submit" class="btn btn-primary btn-block">
+                                                <i class="bx bx-search"></i> Qidirish
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                <div class="table-responsive">
+                                    <table id="transfersTable" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Hujjat raqami</th>
+                                                <th>Ishlab chiqarish ombori</th>
+                                                <th>Sotuv ombori</th>
+                                                <th>Mahsulotlar</th>
+                                                <th>Sana</th>
+                                                <th>Holati</th>
+                                                <th>Amallar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <a href="@Url.Action("Details", "ProductionToSalesTransfer", new { id = item.ID })" class="text-primary">
+                                                            <strong>@item.DocNo</strong>
+                                                        </a>
+                                                    </td>
+                                                    <td>@(item.Warehouse?.WHName ?? "-")</td>
+                                                    <td>@(item.Warehouse1?.WHName ?? "-")</td>
+                                                    <td>
+                                                        @if (item.EXPENSE_PRODUCTS != null && item.EXPENSE_PRODUCTS.Any())
+                                                        {
+                                                            <ul class="list-unstyled mb-0">
+                                                                @foreach (var product in item.EXPENSE_PRODUCTS.Take(3))
+                                                                {
+                                                                    <li>@product.PRODUCT?.PNo - @product.Amount</li>
+                                                                }
+                                                                @if (item.EXPENSE_PRODUCTS.Count() > 3)
+                                                                {
+                                                                    <li class="text-muted">+@(item.EXPENSE_PRODUCTS.Count() - 3) boshqa</li>
+                                                                }
+                                                            </ul>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </td>
+                                                    <td>@item.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                                    <td>
+                                                        @if (item.SendStatus == true)
+                                                        {
+                                                            <span class="badge badge-success">Yuborilgan</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <a href="@Url.Action("Details", "ProductionToSalesTransfer", new { id = item.ID })" 
+                                                           class="btn btn-sm btn-icon btn-primary" title="Batafsil">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                placeholder: "Tanlang",
+                allowClear: true
+            });
+            
+            $('#transfersTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                },
+                "order": [[4, "desc"]],
+                "pageLength": 25,
+                "responsive": true
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

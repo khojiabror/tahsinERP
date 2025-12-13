@@ -18,8 +18,8 @@ namespace tahsinERP.Models
         public F_WAYBILLS()
         {
             this.F_WAYBILL_DOCS = new HashSet<F_WAYBILL_DOCS>();
-            this.F_WAYBILL_PAYMENTS = new HashSet<F_WAYBILL_PAYMENTS>();
             this.F_WAYBILL_PAYMENT_SPLITS = new HashSet<F_WAYBILL_PAYMENT_SPLITS>();
+            this.F_WAYBILL_PAYMENTS = new HashSet<F_WAYBILL_PAYMENTS>();
         }
     
         public int ID { get; set; }
@@ -59,17 +59,17 @@ namespace tahsinERP.Models
         public Nullable<int> SalesOrderID { get; set; }
         public Nullable<int> PurchaseOrderID { get; set; }
     
+        public virtual CURRENCy CURRENCy { get; set; }
         public virtual F_CONTRACTS F_CONTRACTS { get; set; }
         public virtual F_TRANSPORT_TYPES F_TRANSPORT_TYPES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_DOCS> F_WAYBILL_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
-        public virtual P_INVOICES P_INVOICES { get; set; }
-        public virtual CURRENCy CURRENCy { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_PAYMENT_SPLITS> F_WAYBILL_PAYMENT_SPLITS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
         public virtual FORWARDER FORWARDER { get; set; }
+        public virtual P_INVOICES P_INVOICES { get; set; }
         public virtual P_ORDERS P_ORDERS { get; set; }
         public virtual S_ORDERS S_ORDERS { get; set; }
         public virtual SALES_INVOICES SALES_INVOICES { get; set; }

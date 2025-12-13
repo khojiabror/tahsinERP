@@ -319,6 +319,7 @@ namespace tahsinERP.Controllers
                     .Include(d => d.ADM_COMPANY_ORDERS)
                     .Include(d => d.HR_ORG_UNITS)
                     .Include(d => d.DOC_DOCUMENT_STATUS_REF)
+                    .Include(d => d.DOC_FILES)
                     .FirstOrDefaultAsync(d => d.ID == id);
 
                 if (doc == null || doc.ADM_COMPANY_ORDERS == null)

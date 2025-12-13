@@ -137,24 +137,64 @@ namespace tahsinERP.Controllers
             try
             {
                 // Get client IP address from HTTP request
-                string clientIp = NetworkHelper.GetClientIpAddress(Request);
-                
-                // MAC address cannot be retrieved from client in web applications
-                // MAC addresses are layer 2 and not transmitted over the internet
-                string macAddress = "00:00:00:00:00:00";
-
-                var userEntry = new USER_ENTRIES
+                string clientIp = "127.0.0.1";
+                try
                 {
-                    UserID = userID,
-                    DateTime = DateTime.Now,
-                    IP = clientIp,
-                    MAC = macAddress
-                };
+                    if (Request != null)
+                    {
+                        clientIp = NetworkHelper.GetClientIpAddress(Request);
+                        if (string.IsNullOrEmpty(clientIp) || clientIp == "127.0.0.1" || clientIp == "::1")
+                        {
+                            if (Request.UserHostAddress != null && Request.UserHostAddress != "::1")
+                            {
+                                clientIp = Request.UserHostAddress;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    clientIp = "127.0.0.1";
+                }
+                
+                // Get device identifier from session (set by client-side JavaScript)
+                string macAddress = "00:00:00:00:00:00";
+                try
+                {
+                    if (Session != null && Session["DeviceId"] != null)
+                    {
+                        string deviceId = Session["DeviceId"]?.ToString();
+                        if (!string.IsNullOrEmpty(deviceId))
+                        {
+                            macAddress = deviceId;
+                        }
+                    }
+                }
+                catch
+                {
+                    macAddress = "00:00:00:00:00:00";
+                }
 
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    db.USER_ENTRIES.Add(userEntry);
-                    db.SaveChanges();
+                    try
+                    {
+                        var userEntry = new USER_ENTRIES
+                        {
+                            UserID = userID,
+                            DateTime = DateTime.Now,
+                            IP = clientIp ?? "127.0.0.1",
+                            MAC = macAddress ?? "00:00:00:00:00:00"
+                        };
+
+                        db.USER_ENTRIES.Add(userEntry);
+                        db.SaveChanges();
+                    }
+                    catch (Exception dbEx)
+                    {
+                        // Log database error but don't fail login
+                        System.Diagnostics.Debug.WriteLine($"SetUserEntry database error: {dbEx.Message}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -323,6 +363,28 @@ namespace tahsinERP.Controllers
                 }
 
                 return View("Settings", uvm);
+            }
+        }
+
+        /// <summary>
+        /// Receives device identifier from client-side JavaScript and stores it in session
+        /// </summary>
+        [HttpPost]
+        public JsonResult SetDeviceId(string deviceId)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(deviceId))
+                {
+                    // Store device ID in session for use in logging
+                    Session["DeviceId"] = deviceId;
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Device ID is required" });
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Error storing device ID" });
             }
         }
     }

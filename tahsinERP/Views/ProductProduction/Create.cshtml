@@ -155,8 +155,18 @@
         </div>
     }
 
+    @section scripts {
     <script>
-        $(document).ready(function() {
+        // Wait for jQuery to be loaded
+        (function() {
+            function initProductionPage() {
+                if (typeof jQuery === 'undefined') {
+                    console.error('jQuery is not loaded!');
+                    setTimeout(initProductionPage, 100);
+                    return;
+                }
+
+                $(document).ready(function() {
             // Load planned products
             $('#loadPlannedBtn').on('click', function() {
                 var date = $('#productionDate').val();
@@ -167,27 +177,39 @@
                     return;
                 }
 
+                // Disable button during loading
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Yuklanmoqda...');
+
                 $.ajax({
                     url: '@Url.Action("GetPlannedProducts", "ProductProduction")',
                     type: 'GET',
-                    data: { date: date, shopID: shopID },
+                    data: { 
+                        date: date, 
+                        shopID: parseInt(shopID) 
+                    },
+                    dataType: 'json',
                     success: function(data) {
                         var tbody = $('#productionItemsTable tbody');
                         tbody.empty();
                         
-                        if (data.length === 0) {
+                        if (!data || data.length === 0) {
                             tbody.append('<tr><td colspan="8" class="text-center">Rejalashtirilgan mahsulotlar topilmadi</td></tr>');
+                            $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash');
                             return;
                         }
 
                         $.each(data, function(index, item) {
+                            var productName = (item.ProductName || '').replace(/'/g, "&#39;");
+                            var comment = (item.Comment || '').replace(/'/g, "&#39;");
+                            
                             var row = '<tr>' +
-                                '<td>' + item.ProductNo + ' - ' + item.ProductName +
-                                '<input type="hidden" name="ProductionItems[' + index + '].ProductID" value="' + item.ProductID + '" />' +
+                                '<td>' + (item.ProductNo || '') + ' - ' + productName +
+                                '<input type="hidden" name="ProductionItems[' + index + '].ProductID" value="' + (item.ProductID || '') + '" />' +
                                 '<input type="hidden" name="ProductionItems[' + index + '].ID" value="' + (item.ID || '') + '" />';
                             
                             if (item.IsPlanned) {
-                                row += '<span class="badge badge-info">Rejalashtirilgan</span>';
+                                row += ' <span class="badge badge-info">Rejalashtirilgan</span>';
                             }
                             
                             row += '</td>' +
@@ -198,35 +220,47 @@
                                 '<td><input type="number" step="0.001" min="0" class="form-control night-shift" name="ProductionItems[' + index + '].NightShift" value="' + (item.NightShift || 0) + '" /></td>' +
                                 '<td><span class="total-display">' + (item.Total ? parseFloat(item.Total).toFixed(3) : '0.000') + '</span>' +
                                 '<input type="hidden" class="total-input" name="ProductionItems[' + index + '].Total" value="' + (item.Total || 0) + '" /></td>' +
-                                '<td><input type="text" class="form-control" name="ProductionItems[' + index + '].Comment" value="' + (item.Comment || '') + '" /></td>' +
+                                '<td><input type="text" class="form-control" name="ProductionItems[' + index + '].Comment" value="' + comment + '" /></td>' +
                                 '</tr>';
                             tbody.append(row);
                         });
 
                         // Attach total calculation
                         attachTotalCalculation();
+                        
+                        // Re-enable button
+                        $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash');
                     },
-                    error: function() {
-                        alert('Xatolik yuz berdi');
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        console.error('Response:', xhr.responseText);
+                        alert('Xatolik yuz berdi: ' + (xhr.responseJSON?.message || error || 'Noma\'lum xatolik'));
+                        $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash');
                     }
                 });
             });
 
-            // Calculate total when day/night shift changes
-            function attachTotalCalculation() {
-                $('.day-shift, .night-shift').off('input').on('input', function() {
-                    var row = $(this).closest('tr');
-                    var dayShift = parseFloat(row.find('.day-shift').val()) || 0;
-                    var nightShift = parseFloat(row.find('.night-shift').val()) || 0;
-                    var total = dayShift + nightShift;
-                    row.find('.total-display').text(total.toFixed(3));
-                    row.find('.total-input').val(total);
+                    // Calculate total when day/night shift changes
+                    function attachTotalCalculation() {
+                        $('.day-shift, .night-shift').off('input').on('input', function() {
+                            var row = $(this).closest('tr');
+                            var dayShift = parseFloat(row.find('.day-shift').val()) || 0;
+                            var nightShift = parseFloat(row.find('.night-shift').val()) || 0;
+                            var total = dayShift + nightShift;
+                            row.find('.total-display').text(total.toFixed(3));
+                            row.find('.total-input').val(total);
+                        });
+                    }
+
+                    attachTotalCalculation();
                 });
             }
 
-            attachTotalCalculation();
-        });
+            // Start initialization
+            initProductionPage();
+        })();
     </script>
+    }
 }
 else
 {

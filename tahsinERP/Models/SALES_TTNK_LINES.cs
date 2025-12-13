@@ -32,9 +32,9 @@ namespace tahsinERP.Models
         public string Remark { get; set; }
         public Nullable<int> HsCodeID { get; set; }
     
+        public virtual HSCODE HSCODE1 { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual SALES_INVOICE_LINES SALES_INVOICE_LINES { get; set; }
         public virtual SALES_TTNK_HEADERS SALES_TTNK_HEADERS { get; set; }
-        public virtual HSCODE HSCODE1 { get; set; }
     }
 }
