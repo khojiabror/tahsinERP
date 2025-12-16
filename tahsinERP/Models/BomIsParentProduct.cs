@@ -13,9 +13,9 @@ namespace tahsinERP.Models
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (string.IsNullOrWhiteSpace(childPno))
-                {
-                    return false;
-                }
+                    {
+                        return false;
+                    }
 
                 // Find product by PNo
                 var product = db.PRODUCTS
@@ -24,8 +24,8 @@ namespace tahsinERP.Models
 
                 if (product == null)
                 {
-                    return false;
-                }
+                return false;
+            }
 
                 // Check if this product has a BOM (is a parent product)
                 // A product is a parent if it has an active BOM_HEADER

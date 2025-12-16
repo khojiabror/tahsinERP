@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -30,57 +31,158 @@ namespace tahsinERP.Services
                 fileExtension = template.FileExtension ?? ".docx";
                 mimeType = template.MimeType ?? "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-                // DOCX files are ZIP archives containing XML files
-                // We need to extract, modify document.xml, and repackage
+                // Use OpenXml SDK to properly handle DOCX files
                 using (var templateStream = new MemoryStream(template.FileContent))
                 using (var outputStream = new MemoryStream())
                 {
-                    using (var archive = new ZipArchive(templateStream, ZipArchiveMode.Read))
-                    using (var outputArchive = new ZipArchive(outputStream, ZipArchiveMode.Create))
+                    // Copy template to output stream
+                    templateStream.CopyTo(outputStream);
+                    outputStream.Position = 0;
+
+                    // Open the document using OpenXml SDK
+                    using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(outputStream, true))
                     {
-                        // Copy all entries from template to output
-                        foreach (var entry in archive.Entries)
+                        MainDocumentPart mainPart = wordDoc.MainDocumentPart;
+                        if (mainPart == null)
                         {
-                            var newEntry = outputArchive.CreateEntry(entry.FullName);
-                            
-                            using (var entryStream = entry.Open())
-                            using (var newEntryStream = newEntry.Open())
-                            {
-                                // If this is the main document.xml, replace placeholders
-                                if (entry.FullName == "word/document.xml")
-                                {
-                                    using (var reader = new StreamReader(entryStream, Encoding.UTF8))
-                                    {
-                                        string xmlContent = reader.ReadToEnd();
-                                        
-                                        // Replace all placeholders
-                                        foreach (var placeholder in placeholders)
-                                        {
-                                            string placeholderKey = "{{" + placeholder.Key + "}}";
-                                            string value = placeholder.Value ?? string.Empty;
-                                            // Escape XML special characters
-                                            value = System.Security.SecurityElement.Escape(value);
-                                            xmlContent = xmlContent.Replace(placeholderKey, value);
-                                        }
-                                        
-                                        // Write modified content
-                                        byte[] xmlBytes = Encoding.UTF8.GetBytes(xmlContent);
-                                        newEntryStream.Write(xmlBytes, 0, xmlBytes.Length);
-                                    }
-                                }
-                                else
-                                {
-                                    // Copy other files as-is
-                                    entryStream.CopyTo(newEntryStream);
-                                }
-                            }
+                            throw new Exception("Invalid DOCX template: MainDocumentPart not found");
+                        }
+
+                        // Get the document body
+                        Document document = mainPart.Document;
+                        if (document == null || document.Body == null)
+                        {
+                            throw new Exception("Invalid DOCX template: Document body not found");
+                        }
+
+                        // Replace placeholders in all text elements
+                        ReplacePlaceholdersInBody(document.Body, placeholders);
+
+                        // Save changes
+                        document.Save();
+                    }
+
+                    return outputStream.ToArray();
+                }
+            }
+        }
+
+        private void ReplacePlaceholdersInBody(Body body, IDictionary<string, string> placeholders)
+        {
+            if (body == null)
+                return;
+
+            // Process all paragraphs
+            foreach (Paragraph paragraph in body.Elements<Paragraph>())
+            {
+                ReplacePlaceholdersInParagraph(paragraph, placeholders);
+            }
+
+            // Process tables
+            foreach (Table table in body.Elements<Table>())
+            {
+                foreach (TableRow row in table.Elements<TableRow>())
+                {
+                    foreach (TableCell cell in row.Elements<TableCell>())
+                    {
+                        foreach (Paragraph para in cell.Elements<Paragraph>())
+                        {
+                            ReplacePlaceholdersInParagraph(para, placeholders);
                         }
                     }
+                }
+            }
+        }
+
+        private void ReplacePlaceholdersInParagraph(Paragraph paragraph, IDictionary<string, string> placeholders)
+        {
+            if (paragraph == null)
+                return;
+
+            // Collect all text from all runs in the paragraph
+            var runs = paragraph.Elements<Run>().ToList();
+            if (runs.Count == 0)
+                return;
+
+            // Build full text from all runs
+            StringBuilder fullText = new StringBuilder();
+            var textElements = new List<Text>();
+
+            foreach (var run in runs)
+            {
+                foreach (var text in run.Elements<Text>())
+                {
+                    if (text.Text != null)
+                    {
+                        fullText.Append(text.Text);
+                        textElements.Add(text);
+                    }
+                }
+            }
+
+            string combinedText = fullText.ToString();
+            bool hasPlaceholder = false;
+
+            // Check if any placeholder exists
+            foreach (var placeholder in placeholders)
+            {
+                string placeholderKey = "{{" + placeholder.Key + "}}";
+                if (combinedText.Contains(placeholderKey))
+                {
+                    hasPlaceholder = true;
+                    break;
+                }
+            }
+
+            if (!hasPlaceholder)
+                return;
+
+            // Replace all placeholders
+            string replacedText = combinedText;
+            foreach (var placeholder in placeholders)
+            {
+                string placeholderKey = "{{" + placeholder.Key + "}}";
+                string value = placeholder.Value ?? string.Empty;
+                replacedText = replacedText.Replace(placeholderKey, value);
+            }
+
+            // If text changed, update the paragraph
+            if (replacedText != combinedText)
+            {
+                // Clear all runs
+                paragraph.RemoveAllChildren<Run>();
+
+                // Split by newlines and create new runs
+                string[] lines = replacedText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                
+                // Get formatting from first run if available
+                RunProperties runProperties = null;
+                if (runs.Count > 0)
+                {
+                    runProperties = runs[0].RunProperties?.Clone() as RunProperties;
+                }
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    Run newRun = new Run();
                     
-                    return outputStream.ToArray();
+                    // Copy formatting if available
+                    if (runProperties != null)
+                    {
+                        newRun.RunProperties = runProperties.Clone() as RunProperties;
+                    }
+
+                    newRun.AppendChild(new Text(lines[i]));
+
+                    // Add line break after each line except the last
+                    if (i < lines.Length - 1)
+                    {
+                        newRun.AppendChild(new Break());
+                    }
+
+                    paragraph.AppendChild(newRun);
                 }
             }
         }
     }
 }
-

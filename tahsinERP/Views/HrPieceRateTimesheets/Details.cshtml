@@ -1,4 +1,4 @@
-@model List<tahsinERP.Models.HR_PIECE_RATE_WORK_ENTRIES>
+@model List<tahsinERP.ViewModels.HR.HrPieceRateTimesheetDetailsViewModel>
 @{
     ViewBag.Title = "Ishbay tabel tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -52,57 +52,23 @@
                                         @{ 
                                             int rowNum = 1; 
                                             decimal totalAmount = 0;
-                                            var db = new tahsinERP.Models.DBTHSNEntities();
                                         }
-                                        @foreach (var entry in Model)
+                                        @foreach (var item in Model)
                                         {
-                                            // Get tariff
-                                            int? positionId = entry.HR_EMPLOYEES?.PositionID;
-                                            var tariff = db.HR_PIECE_RATE_TARIFFS
-                                                .Include(t => t.CURRENCy)
-                                                .Where(t => t.ProductID == entry.ProductID &&
-                                                           t.OperationID == entry.OperationID &&
-                                                           t.IsActive &&
-                                                           t.EffectiveFrom <= entry.WorkDate &&
-                                                           (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
-                                                           (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
-                                                .OrderByDescending(t => t.PositionID)
-                                                .FirstOrDefault();
-
-                                            if (tariff == null)
-                                            {
-                                                tariff = db.HR_PIECE_RATE_TARIFFS
-                                                    .Include(t => t.CURRENCy)
-                                                    .Where(t => t.ProductID == entry.ProductID &&
-                                                               t.OperationID == entry.OperationID &&
-                                                               t.PositionID == null &&
-                                                               t.IsActive &&
-                                                               t.EffectiveFrom <= entry.WorkDate &&
-                                                               (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
-                                                    .FirstOrDefault();
-                                            }
-
-                                            decimal entryAmount = 0;
-                                            if (tariff != null)
-                                            {
-                                                entryAmount = entry.Quantity * tariff.RatePerUnit;
-                                                totalAmount += entryAmount;
-                                            }
-
+                                            totalAmount += item.EntryAmount;
                                             <tr>
                                                 <td>@rowNum</td>
-                                                <td>@entry.WorkDate.ToString("dd.MM.yyyy")</td>
-                                                <td>@(entry.HR_EMPLOYEES?.FullName ?? "-")</td>
-                                                <td>@(entry.HR_EMPLOYEES?.HR_POSITIONS?.Name ?? "-")</td>
-                                                <td>@(entry.PRODUCT?.PNo ?? "-")</td>
-                                                <td>@(entry.HR_PIECE_RATE_OPERATIONS?.Name ?? "-")</td>
-                                                <td>@entry.Quantity.ToString("N2")</td>
-                                                <td>@(tariff != null ? tariff.RatePerUnit.ToString("N4") + " " + (tariff.CURRENCy?.Shortname ?? "") : "Tarif topilmadi")</td>
-                                                <td>@entryAmount.ToString("N2")</td>
+                                                <td>@item.Entry.WorkDate.ToString("dd.MM.yyyy")</td>
+                                                <td>@(item.Entry.HR_EMPLOYEES?.FullName ?? "-")</td>
+                                                <td>@(item.Entry.HR_EMPLOYEES?.HR_POSITIONS?.Name ?? "-")</td>
+                                                <td>@(item.Entry.PRODUCT?.PNo ?? "-")</td>
+                                                <td>@(item.Entry.HR_PIECE_RATE_OPERATIONS?.Name ?? "-")</td>
+                                                <td>@item.Entry.Quantity.ToString("N2")</td>
+                                                <td>@(item.Tariff != null ? item.Tariff.RatePerUnit.ToString("N4") + " " + (item.Tariff.CURRENCy?.Shortname ?? "") : "Tarif topilmadi")</td>
+                                                <td>@item.EntryAmount.ToString("N2")</td>
                                             </tr>
                                             rowNum++;
                                         }
-                                        @{ db.Dispose(); }
                                     </tbody>
                                     <tfoot>
                                         <tr>

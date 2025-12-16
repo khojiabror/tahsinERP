@@ -166,7 +166,7 @@
                     return;
                 }
 
-                $(document).ready(function() {
+        $(document).ready(function() {
             // Load planned products
             $('#loadPlannedBtn').on('click', function() {
                 var date = $('#productionDate').val();
@@ -240,20 +240,20 @@
                 });
             });
 
-                    // Calculate total when day/night shift changes
-                    function attachTotalCalculation() {
-                        $('.day-shift, .night-shift').off('input').on('input', function() {
-                            var row = $(this).closest('tr');
-                            var dayShift = parseFloat(row.find('.day-shift').val()) || 0;
-                            var nightShift = parseFloat(row.find('.night-shift').val()) || 0;
-                            var total = dayShift + nightShift;
-                            row.find('.total-display').text(total.toFixed(3));
-                            row.find('.total-input').val(total);
-                        });
-                    }
-
-                    attachTotalCalculation();
+            // Calculate total when day/night shift changes
+            function attachTotalCalculation() {
+                $('.day-shift, .night-shift').off('input').on('input', function() {
+                    var row = $(this).closest('tr');
+                    var dayShift = parseFloat(row.find('.day-shift').val()) || 0;
+                    var nightShift = parseFloat(row.find('.night-shift').val()) || 0;
+                    var total = dayShift + nightShift;
+                    row.find('.total-display').text(total.toFixed(3));
+                    row.find('.total-input').val(total);
                 });
+            }
+
+            attachTotalCalculation();
+        });
             }
 
             // Start initialization

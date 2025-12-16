@@ -427,7 +427,7 @@ namespace tahsinERP.Controllers.MES
                             stock.Amount -= production.Total;
                             if (stock.Amount < 0) stock.Amount = 0;
                             db.Entry(stock).State = EntityState.Modified;
-                        }
+                    }
                     }
 
                     // Revert material consumption

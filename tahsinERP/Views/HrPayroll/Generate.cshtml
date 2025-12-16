@@ -26,7 +26,7 @@
             </div>
 
             <div class="content-body">
-                @using (Html.BeginForm("Generate", "HrPayroll", FormMethod.Post))
+                @using (Html.BeginForm(ViewBag.PayrollType == "PieceRate" ? "GeneratePieceRate" : "Generate", "HrPayroll", FormMethod.Post))
                 {
                     @Html.AntiForgeryToken()
 
@@ -83,11 +83,28 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2({ width: '100%' });
-        });
-    </script>
+    @section scripts {
+        <script>
+            // Wait for jQuery and Select2 to be loaded
+            function initSelect2() {
+                if (typeof jQuery !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                    $('.select2').select2({ width: '100%' });
+                } else {
+                    // If Select2 is not loaded yet, wait a bit and try again
+                    setTimeout(initSelect2, 100);
+                }
+            }
+            
+            // Start initialization when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(initSelect2, 500);
+                });
+            } else {
+                setTimeout(initSelect2, 500);
+            }
+        </script>
+    }
 }
 else
 {

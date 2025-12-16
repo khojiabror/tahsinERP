@@ -495,6 +495,59 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // POST: CompanyOrders/ChangeStatus/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ChangeStatus(long id, string statusCode)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "ChangeStatus"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var doc = await db.DOC_DOCUMENTS
+                    .Include(d => d.ADM_COMPANY_ORDERS)
+                    .FirstOrDefaultAsync(d => d.ID == id);
+
+                if (doc == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var status = await db.DOC_DOCUMENT_STATUS_REF
+                    .FirstOrDefaultAsync(s => s.Code == statusCode && s.IsActive);
+
+                if (status == null)
+                {
+                    TempData["ErrorMessage"] = "Noto'g'ri holat kodi";
+                    return RedirectToAction("Details", new { id });
+                }
+
+                doc.StatusID = status.ID;
+                doc.UpdatedDT = DateTime.Now;
+
+                // If approving, set ApprovedByUserID
+                if (statusCode == "APPROVED")
+                {
+                    var currentUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
+                    if (currentUser != null)
+                    {
+                        doc.ApprovedByUserID = currentUser.ID;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "ChangeStatus", 
+                    $"Status changed to {status.Name} for order {doc.ADM_COMPANY_ORDERS?.OrderNo}");
+
+                TempData["Success"] = $"Holat '{status.Name}' ga o'zgartirildi";
+                return RedirectToAction("Details", new { id });
+            }
+        }
+
         // GET: CompanyOrders/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long fileId)
         {

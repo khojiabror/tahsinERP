@@ -93,7 +93,50 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Holat</th>
-                                                    <td><span class="badge badge-info">@(Model.DOC_DOCUMENT_STATUS_REF?.Name ?? "-")</span></td>
+                                                    <td>
+                                                        <span class="badge badge-@(Model.DOC_DOCUMENT_STATUS_REF?.Code == "APPROVED" ? "success" : Model.DOC_DOCUMENT_STATUS_REF?.Code == "CANCELLED" ? "danger" : Model.DOC_DOCUMENT_STATUS_REF?.Code == "FOR_APPROVAL" ? "warning" : "info")">
+                                                            @(Model.DOC_DOCUMENT_STATUS_REF?.Name ?? "-")
+                                                        </span>
+                                                        @if (changePermit && Model.DOC_DOCUMENT_STATUS_REF?.Code != "APPROVED" && Model.DOC_DOCUMENT_STATUS_REF?.Code != "CANCELLED")
+                                                        {
+                                                            <div class="mt-2">
+                                                                @if (Model.DOC_DOCUMENT_STATUS_REF?.Code == "DRAFT")
+                                                                {
+                                                                    <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="statusCode" value="FOR_APPROVAL" />
+                                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Tasdiqlash uchun yuborilsinmi?');">
+                                                                            <i class="bx bx-send"></i> Tasdiqlash uchun yuborish
+                                                                        </button>
+                                                                    </form>
+                                                                    <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="statusCode" value="APPROVED" />
+                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('To\'g\'ridan-to\'g\'ri tasdiqlansinmi?');">
+                                                                            <i class="bx bx-check"></i> Tasdiqlash
+                                                                        </button>
+                                                                    </form>
+                                                                }
+                                                                @if (Model.DOC_DOCUMENT_STATUS_REF?.Code == "FOR_APPROVAL")
+                                                                {
+                                                                    <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="statusCode" value="APPROVED" />
+                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Tasdiqlansinmi?');">
+                                                                            <i class="bx bx-check"></i> Tasdiqlash
+                                                                        </button>
+                                                                    </form>
+                                                                }
+                                                                <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="statusCode" value="CANCELLED" />
+                                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Rad etilsinmi?');">
+                                                                        <i class="bx bx-x"></i> Rad etish
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        }
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Mavzu</th>

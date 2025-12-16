@@ -436,6 +436,59 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // POST: OfficialLetters/ChangeStatus/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ChangeStatus(long id, string statusCode)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "ChangeStatus"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var doc = await db.DOC_DOCUMENTS
+                    .Include(d => d.COM_OFFICIAL_LETTERS)
+                    .FirstOrDefaultAsync(d => d.ID == id);
+
+                if (doc == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var status = await db.DOC_DOCUMENT_STATUS_REF
+                    .FirstOrDefaultAsync(s => s.Code == statusCode && s.IsActive);
+
+                if (status == null)
+                {
+                    TempData["ErrorMessage"] = "Noto'g'ri holat kodi";
+                    return RedirectToAction("Details", new { id });
+                }
+
+                doc.StatusID = status.ID;
+                doc.UpdatedDT = DateTime.Now;
+
+                // If approving, set ApprovedByUserID
+                if (statusCode == "APPROVED")
+                {
+                    var currentUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
+                    if (currentUser != null)
+                    {
+                        doc.ApprovedByUserID = currentUser.ID;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "ChangeStatus", 
+                    $"Status changed to {status.Name} for letter {doc.COM_OFFICIAL_LETTERS?.LetterNo}");
+
+                TempData["Success"] = $"Holat '{status.Name}' ga o'zgartirildi";
+                return RedirectToAction("Details", new { id });
+            }
+        }
+
         // GET: OfficialLetters/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long fileId)
         {
@@ -521,6 +574,145 @@ namespace tahsinERP.Controllers
                 // Return next number in format "0123", "0124", etc.
                 return (maxLetterNo + 1).ToString("D4");
             }
+        }
+
+        // GET: OfficialLetters/RegisterIncoming
+        public ActionResult RegisterIncoming()
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "RegisterIncoming"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var vm = new IncomingLetterRegisterVm
+            {
+                LetterDate = DateTime.Now
+            };
+
+            return View(vm);
+        }
+
+        // POST: OfficialLetters/RegisterIncoming
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegisterIncoming(IncomingLetterRegisterVm vm)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "RegisterIncoming"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (ModelState.IsValid)
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    // Get document type for OFFICIAL_LETTER
+                    var docType = await db.DOC_DOCUMENT_TYPES
+                        .FirstOrDefaultAsync(dt => dt.Code == "OFFICIAL_LETTER");
+
+                    if (docType == null)
+                    {
+                        TempData["ErrorMessage"] = "Hujjat turi topilmadi";
+                        return View(vm);
+                    }
+
+                    // Get DRAFT status
+                    var statusDraft = await db.DOC_DOCUMENT_STATUS_REF
+                        .FirstOrDefaultAsync(s => s.Code == "DRAFT" && s.IsActive);
+
+                    if (statusDraft == null)
+                    {
+                        TempData["ErrorMessage"] = "Holat topilmadi";
+                        return View(vm);
+                    }
+
+                    // Get current user
+                    var currentUser = await db.USERS
+                        .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
+
+                    // Create document
+                    var doc = new DOC_DOCUMENTS
+                    {
+                        DocTypeID = docType.ID,
+                        StatusID = statusDraft.ID,
+                        Code = $"IN-{vm.LetterNo}",
+                        Title = $"Kiruvchi xat: {vm.CompanyOrPersonName}",
+                        CreatedDT = DateTime.Now,
+                        IntegrationUID = Guid.NewGuid(),
+                        CreatedByUserID = currentUser?.ID
+                    };
+
+                    db.DOC_DOCUMENTS.Add(doc);
+                    await db.SaveChangesAsync();
+
+                    // Create official letter record
+                    var letter = new COM_OFFICIAL_LETTERS
+                    {
+                        DocumentID = doc.ID,
+                        DirectionCode = "IN",
+                        LetterNo = vm.LetterNo,
+                        LetterDate = vm.LetterDate ?? DateTime.Now,
+                        ExternalCompanyName = vm.CompanyOrPersonName,
+                        ExternalContactName = null,
+                        Topic = $"Kiruvchi xat: {vm.CompanyOrPersonName}"
+                    };
+
+                    db.COM_OFFICIAL_LETTERS.Add(letter);
+
+                    // Handle file upload
+                    if (vm.AttachmentFile != null && vm.AttachmentFile.ContentLength > 0)
+                    {
+                        // Validate file type (PDF only)
+                        string fileExtension = System.IO.Path.GetExtension(vm.AttachmentFile.FileName).ToLower();
+                        if (fileExtension != ".pdf")
+                        {
+                            ModelState.AddModelError("AttachmentFile", "Faqat PDF fayllarni yuklash mumkin");
+                            return View(vm);
+                        }
+
+                        // Validate file size (max 10MB)
+                        if (vm.AttachmentFile.ContentLength > 10 * 1024 * 1024)
+                        {
+                            ModelState.AddModelError("AttachmentFile", "Fayl hajmi 10 MB dan oshmasligi kerak");
+                            return View(vm);
+                        }
+
+                        // Read file content
+                        byte[] fileContent;
+                        using (var binaryReader = new System.IO.BinaryReader(vm.AttachmentFile.InputStream))
+                        {
+                            fileContent = binaryReader.ReadBytes(vm.AttachmentFile.ContentLength);
+                        }
+
+                        // Save file to DOC_FILES
+                        var docFile = new DOC_FILES
+                        {
+                            DocumentID = doc.ID,
+                            VersionNo = 1,
+                            FileName = vm.AttachmentFile.FileName,
+                            FileExtension = fileExtension,
+                            MimeType = vm.AttachmentFile.ContentType ?? "application/pdf",
+                            FileSizeBytes = vm.AttachmentFile.ContentLength,
+                            FileContent = fileContent,
+                            IsMain = true,
+                            CreatedByUserID = currentUser?.ID,
+                            CreatedDT = DateTime.Now
+                        };
+
+                        db.DOC_FILES.Add(docFile);
+                    }
+
+                    await db.SaveChangesAsync();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "RegisterIncoming", 
+                        $"Kiruvchi xat ro'yxatga olindi: {vm.LetterNo} - {vm.CompanyOrPersonName}");
+
+                    TempData["Success"] = "Kiruvchi xat muvaffaqiyatli ro'yxatga olindi";
+                    return RedirectToAction("Index");
+                }
+            }
+
+            return View(vm);
         }
     }
 }

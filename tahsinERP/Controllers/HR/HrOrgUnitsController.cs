@@ -216,6 +216,11 @@ namespace tahsinERP.Controllers.HR
 
                 // Recalculate LevelNo if parent changed
                 var existing = await db.HR_ORG_UNITS.FindAsync(orgUnit.ID);
+                if (existing == null)
+                {
+                    return HttpNotFound();
+                }
+
                 if (existing.ParentID != orgUnit.ParentID)
                 {
                     if (orgUnit.ParentID.HasValue)
@@ -232,7 +237,12 @@ namespace tahsinERP.Controllers.HR
                     await UpdateChildrenLevels(orgUnit.ID, orgUnit.LevelNo);
                 }
 
-                db.Entry(orgUnit).State = EntityState.Modified;
+                // Update existing entity with values from orgUnit
+                existing.Name = orgUnit.Name;
+                existing.ParentID = orgUnit.ParentID;
+                existing.LevelNo = orgUnit.LevelNo;
+                existing.IsActive = orgUnit.IsActive;
+
                 await db.SaveChangesAsync();
 
                 logger.Log("HrOrgUnits", "Edit", $"ID: {orgUnit.ID}");

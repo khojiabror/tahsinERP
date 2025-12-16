@@ -1,0 +1,421 @@
+@model tahsinERP.ViewModels.TaskKanbanViewModel
+@{
+    ViewBag.Title = "Task Kanban";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@Html.AntiForgeryToken()
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Task Kanban</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tasks">Tasks</a></li>
+                                    <li class="breadcrumb-item active">Kanban</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <!-- View Type Toggle -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">Task Kanban</h4>
+                                    </div>
+                                    <div>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Index", new { viewType = "project" })" 
+                                               class="btn @(Model.ViewType == "project" ? "btn-primary" : "btn-outline-primary")">
+                                                <i class="bx bx-folder"></i> Loyiha bo'yicha
+                                            </a>
+                                            <a href="@Url.Action("Index", new { viewType = "status" })" 
+                                               class="btn @(Model.ViewType == "status" ? "btn-primary" : "btn-outline-primary")">
+                                                <i class="bx bx-check-circle"></i> Status bo'yicha
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kanban Board -->
+                <section id="kanban-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="kanban-app" class="kanban-container">
+                                @if (Model.ViewType == "project")
+                                {
+                                    foreach (var board in Model.ProjectBoards)
+                                    {
+                                        <div class="kanban-board" data-board-id="@board.ID">
+                                            <div class="kanban-board-header">
+                                                <h5 class="kanban-board-title">@board.Title</h5>
+                                                <span class="badge badge-primary">@board.Tasks.Count</span>
+                                            </div>
+                                            <div class="kanban-board-body" data-board-id="@board.ID">
+                                                @foreach (var task in board.Tasks)
+                                                {
+                                                    <div class="kanban-item" data-task-id="@task.ID" draggable="true">
+                                                        <div class="kanban-item-header">
+                                                            <span class="kanban-item-key">@(task.KeyCode ?? task.ID.ToString())</span>
+                                                            @if (task.PriorityID.HasValue)
+                                                            {
+                                                                <span class="badge badge-@(task.PriorityName?.ToLower() == "critical" ? "danger" : task.PriorityName?.ToLower() == "high" ? "warning" : "info") float-right">
+                                                                    @task.PriorityName
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <div class="kanban-item-title">@task.Title</div>
+                                                        @if (!string.IsNullOrEmpty(task.Description))
+                                                        {
+                                                            <div class="kanban-item-description">@(task.Description.Length > 100 ? task.Description.Substring(0, 100) + "..." : task.Description)</div>
+                                                        }
+                                                        <div class="kanban-item-footer">
+                                                            <div class="kanban-item-meta">
+                                                                @if (task.DueDate.HasValue)
+                                                                {
+                                                                    <span class="kanban-item-date @(task.DueDate.Value < DateTime.Now && task.StatusName?.ToLower() != "done" ? "text-danger" : "")">
+                                                                        <i class="bx bx-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                                    </span>
+                                                                }
+                                                                @if (!string.IsNullOrEmpty(task.AssigneeFullName))
+                                                                {
+                                                                    <span class="kanban-item-assignee">
+                                                                        <i class="bx bx-user"></i> @task.AssigneeFullName
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                            <a href="@Url.Action("Details", "Tasks", new { id = task.ID })" class="btn btn-sm btn-primary">
+                                                                <i class="bx bx-show"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                @if (board.Tasks.Count == 0)
+                                                {
+                                                    <div class="kanban-item-empty text-center text-muted p-3">
+                                                        Vazifalar yo'q
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (var board in Model.StatusBoards)
+                                    {
+                                        <div class="kanban-board" data-board-id="@board.ID">
+                                            <div class="kanban-board-header">
+                                                <h5 class="kanban-board-title">@board.Title</h5>
+                                                <span class="badge badge-primary">@board.Tasks.Count</span>
+                                            </div>
+                                            <div class="kanban-board-body" data-board-id="@board.ID" data-status-id="@board.ID">
+                                                @foreach (var task in board.Tasks)
+                                                {
+                                                    <div class="kanban-item" data-task-id="@task.ID" data-status-id="@task.StatusID" draggable="true">
+                                                        <div class="kanban-item-header">
+                                                            <span class="kanban-item-key">@(task.KeyCode ?? task.ID.ToString())</span>
+                                                            @if (task.PriorityID.HasValue)
+                                                            {
+                                                                <span class="badge badge-@(task.PriorityName?.ToLower() == "critical" ? "danger" : task.PriorityName?.ToLower() == "high" ? "warning" : "info") float-right">
+                                                                    @task.PriorityName
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <div class="kanban-item-title">@task.Title</div>
+                                                        @if (!string.IsNullOrEmpty(task.Description))
+                                                        {
+                                                            <div class="kanban-item-description">@(task.Description.Length > 100 ? task.Description.Substring(0, 100) + "..." : task.Description)</div>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(task.ProjectName))
+                                                        {
+                                                            <div class="kanban-item-project">
+                                                                <i class="bx bx-folder"></i> @task.ProjectName
+                                                            </div>
+                                                        }
+                                                        <div class="kanban-item-footer">
+                                                            <div class="kanban-item-meta">
+                                                                @if (task.DueDate.HasValue)
+                                                                {
+                                                                    <span class="kanban-item-date @(task.DueDate.Value < DateTime.Now && task.StatusName?.ToLower() != "done" ? "text-danger" : "")">
+                                                                        <i class="bx bx-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                                    </span>
+                                                                }
+                                                                @if (!string.IsNullOrEmpty(task.AssigneeFullName))
+                                                                {
+                                                                    <span class="kanban-item-assignee">
+                                                                        <i class="bx bx-user"></i> @task.AssigneeFullName
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                            <a href="@Url.Action("Details", "Tasks", new { id = task.ID })" class="btn btn-sm btn-primary">
+                                                                <i class="bx bx-show"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                @if (board.Tasks.Count == 0)
+                                                {
+                                                    <div class="kanban-item-empty text-center text-muted p-3">
+                                                        Vazifalar yo'q
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .kanban-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px 0;
+            min-height: 600px;
+        }
+
+        .kanban-board {
+            min-width: 300px;
+            max-width: 300px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .kanban-board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .kanban-board-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .kanban-board-body {
+            min-height: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .kanban-item {
+            background: #fff;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: move;
+            transition: all 0.2s;
+        }
+
+        .kanban-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .kanban-item.dragging {
+            opacity: 0.5;
+        }
+
+        .kanban-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .kanban-item-key {
+            font-size: 11px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .kanban-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .kanban-item-description {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .kanban-item-project {
+            font-size: 11px;
+            color: #198754;
+            margin-bottom: 8px;
+        }
+
+        .kanban-item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+
+        .kanban-item-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .kanban-item-date,
+        .kanban-item-assignee {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .kanban-item-empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .kanban-board-body.drag-over {
+            background: #e3f2fd;
+            border: 2px dashed #1976d2;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            // Drag and Drop functionality
+            let draggedElement = null;
+            let draggedTaskId = null;
+            let draggedStatusId = null;
+
+            // Drag start
+            $('.kanban-item').on('dragstart', function(e) {
+                draggedElement = this;
+                draggedTaskId = $(this).data('task-id');
+                draggedStatusId = $(this).data('status-id');
+                $(this).addClass('dragging');
+                e.originalEvent.dataTransfer.effectAllowed = 'move';
+            });
+
+            // Drag end
+            $('.kanban-item').on('dragend', function(e) {
+                $(this).removeClass('dragging');
+                $('.kanban-board-body').removeClass('drag-over');
+            });
+
+            // Drag over
+            $('.kanban-board-body').on('dragover', function(e) {
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'move';
+                $(this).addClass('drag-over');
+            });
+
+            // Drag leave
+            $('.kanban-board-body').on('dragleave', function(e) {
+                $(this).removeClass('drag-over');
+            });
+
+            // Drop
+            $('.kanban-board-body').on('drop', function(e) {
+                e.preventDefault();
+                $(this).removeClass('drag-over');
+
+                if (!draggedElement || !draggedTaskId) return;
+
+                var newStatusId = $(this).data('status-id');
+                if (!newStatusId) {
+                    // Project view - can't change status by dragging
+                    return;
+                }
+
+                // Don't update if status hasn't changed
+                if (newStatusId == draggedStatusId) {
+                    return;
+                }
+
+                // Move the element visually
+                $(draggedElement).detach().appendTo($(this));
+                $(draggedElement).data('status-id', newStatusId);
+
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    token = $('@Html.AntiForgeryToken()').val();
+                }
+
+                // Update status via AJAX
+                $.ajax({
+                    url: '@Url.Action("UpdateStatus", "TaskKanban")',
+                    type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    data: {
+                        taskId: draggedTaskId,
+                        newStatusId: newStatusId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            toastr.success(response.message || 'Status muvaffaqiyatli o\'zgartirildi');
+                        } else {
+                            // Revert the move
+                            location.reload();
+                            toastr.error(response.message || 'Xatolik yuz berdi');
+                        }
+                    },
+                    error: function() {
+                        // Revert the move
+                        location.reload();
+                        toastr.error('Xatolik yuz berdi');
+                    }
+                });
+
+                draggedElement = null;
+                draggedTaskId = null;
+                draggedStatusId = null;
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

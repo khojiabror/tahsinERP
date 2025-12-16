@@ -800,6 +800,7 @@
                     <!-- Tasks / Vazifalar -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tasks") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "TaskKanban") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "TaskStatus") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "TaskPriority") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "TaskProject"))
@@ -816,6 +817,10 @@
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tasks"))
                                 {
                                     <li><a href="~/Tasks"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Vazifalar</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskKanban"))
+                                {
+                                    <li><a href="~/TaskKanban"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kanban</span></a></li>
                                 }
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskStatus") ||
                                      RoleHelper.IsViewPermitted(User.Identity.Name, "TaskPriority") ||

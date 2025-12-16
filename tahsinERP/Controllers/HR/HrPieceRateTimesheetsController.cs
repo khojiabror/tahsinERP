@@ -66,7 +66,7 @@ namespace tahsinERP.Controllers.HR
                     Month = e.WorkDate.Month,
                     OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
                 })
-                .Select(g => new
+                .Select(g => new HrPieceRateTimesheetIndexViewModel
                 {
                     Year = g.Key.Year,
                     Month = g.Key.Month,
@@ -178,13 +178,58 @@ namespace tahsinERP.Controllers.HR
 
             var workEntries = await query.OrderBy(e => e.WorkDate).ThenBy(e => e.HR_EMPLOYEES.FullName).ToListAsync();
 
+            // Calculate tariffs for each entry
+            var viewModel = new List<HrPieceRateTimesheetDetailsViewModel>();
+            foreach (var entry in workEntries)
+            {
+                int? positionId = entry.HR_EMPLOYEES?.PositionID;
+                
+                var tariff = db.HR_PIECE_RATE_TARIFFS
+                    .Include(t => t.CURRENCy)
+                    .Where(t => t.ProductID == entry.ProductID &&
+                               t.OperationID == entry.OperationID &&
+                               t.IsActive &&
+                               t.EffectiveFrom <= entry.WorkDate &&
+                               (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
+                               (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
+                    .OrderByDescending(t => t.PositionID)
+                    .FirstOrDefault();
+
+                // If not found, try general tariff (PositionID == null)
+                if (tariff == null)
+                {
+                    tariff = db.HR_PIECE_RATE_TARIFFS
+                        .Include(t => t.CURRENCy)
+                        .Where(t => t.ProductID == entry.ProductID &&
+                                   t.OperationID == entry.OperationID &&
+                                   t.PositionID == null &&
+                                   t.IsActive &&
+                                   t.EffectiveFrom <= entry.WorkDate &&
+                                   (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
+                        .FirstOrDefault();
+                }
+
+                decimal entryAmount = 0;
+                if (tariff != null)
+                {
+                    entryAmount = entry.Quantity * tariff.RatePerUnit;
+                }
+
+                viewModel.Add(new HrPieceRateTimesheetDetailsViewModel
+                {
+                    Entry = entry,
+                    Tariff = tariff,
+                    EntryAmount = entryAmount
+                });
+            }
+
             ViewBag.Year = year;
             ViewBag.Month = month;
             ViewBag.MonthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
             ViewBag.OrgUnitName = orgUnitId.HasValue ? 
                 (await db.HR_ORG_UNITS.FindAsync(orgUnitId.Value))?.Name : "Butun kompaniya";
 
-            return View(workEntries);
+            return View(viewModel);
         }
 
         // GET: HR/PieceRateTimesheets/Edit/5

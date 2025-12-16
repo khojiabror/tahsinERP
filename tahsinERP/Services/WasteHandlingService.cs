@@ -28,15 +28,8 @@ namespace tahsinERP.Services
         public async Task RecordWasteAsync(int productId, int materialId, double wasteQty, int productionProcessId, int warehouseId, int unitId, string comment = null)
         {
             if (USE_SEPARATE_WASTE_STOCK)
-            {
                 // Option A: Create separate waste stock
                 await RecordWasteAsStockAsync(productId, materialId, wasteQty, productionProcessId, warehouseId, unitId, comment);
-            }
-            else
-            {
-                // Option B: Only log for reporting (consumption loss)
-                await RecordWasteAsLossAsync(productId, materialId, wasteQty, productionProcessId, comment);
-            }
         }
 
         /// <summary>
@@ -46,8 +39,8 @@ namespace tahsinERP.Services
         {
             // Find or create WASTE record
             var waste = await _db.WASTES
-                .FirstOrDefaultAsync(w => w.ProcessID == productionProcessId && 
-                                         w.WasteName.Contains(materialId.ToString()) && 
+                .FirstOrDefaultAsync(w => w.ProcessID == productionProcessId &&
+                                         w.WasteName.Contains(materialId.ToString()) &&
                                          w.IsDeleted == false);
 
             if (waste == null)
@@ -96,7 +89,7 @@ namespace tahsinERP.Services
             // In Option B, waste is only reflected in reports
             // You could create a WASTE_RECORDS table or log to a separate table for reporting
             // For now, we'll just log it (can be extended with a dedicated table)
-            
+
             // TODO: Create WASTE_RECORDS table if needed for reporting
             // This would track: ProductID, MaterialID, WasteQty, ProductionProcessID, Date, Comment
         }

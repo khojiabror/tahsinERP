@@ -67,7 +67,7 @@ namespace tahsinERP.Controllers.SRM
                 WarehouseID = warehouseId,
                 ReportDate = reportDate,
                 Items = new List<InventoryReportItem>()
-            };
+                };
 
             // Get all stocks in Production warehouse
             var stocks = await db.PRODUCT_STOCKS
@@ -75,7 +75,7 @@ namespace tahsinERP.Controllers.SRM
                 .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
                 .Include(s => s.UNIT)
                 .Where(s => s.WHID == warehouseId && s.Amount > 0)
-                .ToListAsync();
+                    .ToListAsync();
 
             // Get active production plans
             var activePlans = await db.PRODUCTPLANS
@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers.SRM
                 .Where(p => p.IsDeleted == false &&
                            p.StartDate <= reportDate &&
                            p.DueDate >= reportDate)
-                .ToListAsync();
+                    .ToListAsync();
 
             var consumptionService = new ProductionConsumptionService(db);
 
@@ -113,8 +113,8 @@ namespace tahsinERP.Controllers.SRM
                     if (materialReq != null)
                     {
                         totalPlannedQty += materialReq.TotalConsumption;
-                    }
-                }
+            }
+        }
 
                 double avgDailyConsumption = totalDays > 0 ? totalPlannedQty / totalDays : 0;
                 double doh = avgDailyConsumption > 0 ? stock.Amount / avgDailyConsumption : 0;
