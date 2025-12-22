@@ -1,0 +1,235 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxDetailsViewModel
+
+@{
+    ViewBag.Title = "Tannarx ma'lumotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit");
+    bool deletePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Delete");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarx ma'lumotlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-12 text-right">
+                                            @if (changePermit)
+                                            {
+                                                <a href="@Url.Action("Edit", "Tannarx", new { id = Model.ID })" class="btn btn-primary">
+                                                    <i class="bx bx-pencil"></i> Tahrirlash
+                                                </a>
+                                            }
+                                            @if (deletePermit)
+                                            {
+                                                <a href="@Url.Action("Delete", "Tannarx", new { id = Model.ID })" class="btn btn-danger">
+                                                    <i class="bx bx-trash"></i> O'chirish
+                                                </a>
+                                            }
+                                            <a href="@Url.Action("Index", "Tannarx", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">
+                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">Mahsulot ma'lumotlari</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Maxsulot raqami</th>
+                                                    <td>@Model.ProductPNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Maxsulot nomi</th>
+                                                    <td>@Model.ProductName</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Turi</th>
+                                                    <td>@Model.ProductType</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>O'lchami</th>
+                                                    <td>@Model.Dimensions</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Oy</th>
+                                                    <td>@Model.MonthString</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">Material xarajatlari</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Material narxi</th>
+                                                    <td>@Model.MaterialPrice.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Material tashuvi narxi (2%)</th>
+                                                    <td>@Model.MaterialTransportCost.ToString("N0") so'm</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">Ish haqi va xarajatlar</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">A - Ish haqi (Faqat ishchilar)</th>
+                                                    <td>@Model.LaborCost.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>B - Soliq va bank (@(Model.TaxAndBankPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.TaxAndBank.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>C - Adminstrativ harajatlar (@(Model.AdministrativeExpensesPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.AdministrativeExpenses.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>D - Boshqa xarajatlar (@(Model.OtherExpensesPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.OtherExpenses.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>E - Foyda (@(Model.ProfitPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.Profit.ToString("N0") so'm</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">EXW narxlari</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Sotuv narxi EXW QQS siz</th>
+                                                    <td>@Model.SalesPriceEXWWithoutVAT.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sotuv narxi QQS bilan EXW</th>
+                                                    <td>@Model.SalesPriceEXWWithVAT.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Belgilangan narxi QQS bilan EXW</th>
+                                                    <td>@(Model.SetPriceEXWWithVAT?.ToString("N0") ?? "-") so'm</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">Tayyor maxsulot tashuvi</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Tayyor maxsulot tashuvi narxi</th>
+                                                    <td>@(Model.FinishedProductTransportCost?.ToString("N0") ?? "-") so'm</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">CIP narxlari</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Sotuv narxi CIP QQS siz</th>
+                                                    <td>@Model.SalesPriceCIPWithoutVAT.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sotuv narxi QQS bilan CIP</th>
+                                                    <td>@Model.SalesPriceCIPWithVAT.ToString("N0") so'm</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Belgilangan QQS bilan CIP</th>
+                                                    <td>@(Model.SetPriceCIPWithVAT?.ToString("N0") ?? "-") so'm</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2">Audit ma'lumotlari</h6>
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Yaratgan foydalanuvchi</th>
+                                                    <td>@Model.CreatedBy</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Yaratilgan vaqti</th>
+                                                    <td>@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
+                                                </tr>
+                                                @if (!string.IsNullOrEmpty(Model.ModifiedBy))
+                                                {
+                                                    <tr>
+                                                        <th>O'zgartirgan foydalanuvchi</th>
+                                                        <td>@Model.ModifiedBy</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>O'zgartirilgan vaqti</th>
+                                                        <td>@(Model.ModifiedDT?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                                                    </tr>
+                                                }
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

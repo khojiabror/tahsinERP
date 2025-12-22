@@ -1,0 +1,91 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxDetailsViewModel
+
+@{
+    ViewBag.Title = "Tannarxni o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Delete"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarxni o'chirish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="alert alert-warning">
+                                        <h5>Diqqat!</h5>
+                                        <p>Siz quyidagi tannarxni o'chirmoqchisiz:</p>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th style="width: 200px;">Maxsulot raqami</th>
+                                                    <td>@Model.ProductPNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Maxsulot nomi</th>
+                                                    <td>@Model.ProductName</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Oy</th>
+                                                    <td>@Model.MonthString</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-danger">
+                                        <p><strong>Bu amalni qaytarib bo'lmaydi!</strong></p>
+                                        <p>Tannarx o'chirilgandan so'ng, uni qayta tiklash mumkin emas.</p>
+                                    </div>
+
+                                    @using (Html.BeginForm("Delete", "Tannarx", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.ID)
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                            </button>
+                                            <a href="@Url.Action("Index", "Tannarx", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

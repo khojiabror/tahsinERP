@@ -44,6 +44,11 @@ namespace tahsinERP.Models
             this.USERLOGS = new HashSet<USERLOG>();
             this.WAREHOUSES = new HashSet<Warehouse>();
             this.ROLES = new HashSet<ROLE>();
+            this.HR_PIECE_RATE_TIMESHEET_APPROVALS = new HashSet<HR_PIECE_RATE_TIMESHEET_APPROVALS>();
+            this.HR_PIECE_RATE_TIMESHEET_APPROVALS1 = new HashSet<HR_PIECE_RATE_TIMESHEET_APPROVALS>();
+            this.HR_PIECE_RATE_TIMESHEET_APPROVALS2 = new HashSet<HR_PIECE_RATE_TIMESHEET_APPROVALS>();
+            this.TANNARXes = new HashSet<TANNARX>();
+            this.TANNARXes1 = new HashSet<TANNARX>();
         }
     
         public int ID { get; set; }
@@ -111,5 +116,15 @@ namespace tahsinERP.Models
         public virtual ICollection<Warehouse> WAREHOUSES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ROLE> ROLES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TANNARX> TANNARXes { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TANNARX> TANNARXes1 { get; set; }
     }
 }

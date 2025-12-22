@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
     public class TasksController : Controller
     {
         // GET: Tasks
-        public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, string sortOrder, int? page, int? pageSize)
+        public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, string sortOrder, int? page, int? pageSize, bool? showOverdue)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -73,6 +73,17 @@ namespace tahsinERP.Controllers
                         t.Title.Contains(searchTerm) || 
                         (t.Description != null && t.Description.Contains(searchTerm)) ||
                         (t.KeyCode != null && t.KeyCode.Contains(searchTerm)));
+                }
+
+                // Muddatidan o'tgan tasklar filtr
+                if (showOverdue == true)
+                {
+                    var today = DateTime.Now.Date;
+                    query = query.Where(t => 
+                        t.DueDate.HasValue && 
+                        t.DueDate.Value < today && 
+                        t.APP_TASK_STATUS_REF.Code != "DONE" &&
+                        !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi"));
                 }
 
                 // Sorting

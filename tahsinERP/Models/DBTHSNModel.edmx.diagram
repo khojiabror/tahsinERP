@@ -336,6 +336,20 @@
         <AssociationConnector Association="DBTHSNModel.FK_WASTE_STOCKS_WASTES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.USERROLES" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" Width="1.5" PointX="20" PointY="44.625" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" />
+        <EntityTypeShape EntityType="DBTHSNModel.TANNARX" Width="1.5" PointX="28.25" PointY="55.5" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_PRODUCTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_USERS_CreatedBy" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_USERS_ModifiedBy" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES" Width="1.5" PointX="7.375" PointY="6.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" Width="1.5" PointX="8.375" PointY="0.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS" Width="1.5" PointX="8.375" PointY="3.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS" Width="1.5" PointX="9.375" PointY="6.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" Width="1.5" PointX="7.375" PointY="9.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

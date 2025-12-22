@@ -56,11 +56,18 @@ namespace tahsinERP.Controllers.MES
                     .ThenByDescending(q => q.ID)
                     .ToListAsync();
 
-                ViewBag.Products = new SelectList(await db.PRODUCTS.Where(p => p.IsDeleted == false).ToListAsync(), "ID", "PNo", productID);
+                var products = await db.PRODUCTS.Where(p => p.IsDeleted == false).ToListAsync();
+                ViewBag.Products = new SelectList(
+                    products.Select(p => new { p.ID, DisplayText = $"{p.PNo} - {p.Name}" }), 
+                    "ID", 
+                    "DisplayText", 
+                    productID
+                );
                 ViewBag.StatusCodes = new SelectList(new[] { "DRAFT", "APPROVED", "REJECTED" }, statusCode);
                 ViewBag.DefectTypes = new SelectList(await db.DEFECT_TYPES.ToListAsync(), "ID", "Name");
                 ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
                 ViewBag.ToDate = toDate ?? DateTime.Now;
+                ViewBag.SearchTerm = searchTerm;
 
                 return View(inspections);
             }

@@ -4,6 +4,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -125,7 +126,7 @@ namespace tahsinERP.Controllers
                     Response.Cookies.Set(userImageCookie);
                 }
 
-                // Log user entry
+                // Log user entry immediately (IP will be logged, MAC might be 00:00:00:00:00:00 if not in session yet)
                 SetUserEntry(getUser.ID);
 
                 return RedirectToAction("Index", "Home");
@@ -143,35 +144,80 @@ namespace tahsinERP.Controllers
                     if (Request != null)
                     {
                         clientIp = NetworkHelper.GetClientIpAddress(Request);
-                        if (string.IsNullOrEmpty(clientIp) || clientIp == "127.0.0.1" || clientIp == "::1")
-                        {
-                            if (Request.UserHostAddress != null && Request.UserHostAddress != "::1")
-                            {
-                                clientIp = Request.UserHostAddress;
-                            }
-                        }
+                        System.Diagnostics.Debug.WriteLine($"SetUserEntry: Got IP address: {clientIp}");
                     }
                 }
-                catch
+                catch (Exception ipEx)
                 {
+                    System.Diagnostics.Debug.WriteLine($"SetUserEntry: Error getting IP: {ipEx.Message}");
                     clientIp = "127.0.0.1";
                 }
                 
-                // Get device identifier from session (set by client-side JavaScript)
+                // Get device identifier from session or cookie (set by client-side JavaScript)
                 string macAddress = "00:00:00:00:00:00";
                 try
                 {
-                    if (Session != null && Session["DeviceId"] != null)
+                    // Try multiple ways to get device ID
+                    string deviceId = null;
+                    
+                    // First try: Use Session property directly (Controller has this)
+                    if (Session != null)
                     {
-                        string deviceId = Session["DeviceId"]?.ToString();
-                        if (!string.IsNullOrEmpty(deviceId))
+                        object sessionDeviceId = Session["DeviceId"];
+                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
                         {
-                            macAddress = deviceId;
+                            deviceId = sessionDeviceId.ToString();
                         }
                     }
+                    
+                    // Second try: Use HttpContext property (Controller has this as HttpContextBase)
+                    if (string.IsNullOrEmpty(deviceId) && HttpContext != null && HttpContext.Session != null)
+                    {
+                        object sessionDeviceId = HttpContext.Session["DeviceId"];
+                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
+                        {
+                            deviceId = sessionDeviceId.ToString();
+                        }
+                    }
+                    
+                    // Third try: Use System.Web.HttpContext.Current (static property)
+                    if (string.IsNullOrEmpty(deviceId) && System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Session != null)
+                    {
+                        object sessionDeviceId = System.Web.HttpContext.Current.Session["DeviceId"];
+                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
+                        {
+                            deviceId = sessionDeviceId.ToString();
+                        }
+                    }
+                    
+                    // Fourth try: Get from cookie (backup method)
+                    if (string.IsNullOrEmpty(deviceId) && Request != null && Request.Cookies != null)
+                    {
+                        HttpCookie deviceIdCookie = Request.Cookies["DeviceId"];
+                        if (deviceIdCookie != null && !string.IsNullOrEmpty(deviceIdCookie.Value))
+                        {
+                            deviceId = deviceIdCookie.Value;
+                            // Also store in session for future use
+                            if (Session != null)
+                            {
+                                Session["DeviceId"] = deviceId;
+                            }
+                        }
+                    }
+                    
+                    if (!string.IsNullOrEmpty(deviceId))
+                    {
+                        macAddress = deviceId;
+                        System.Diagnostics.Debug.WriteLine($"SetUserEntry: Got MAC address from session/cookie: {macAddress}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("SetUserEntry: Device ID not found in session or cookie");
+                    }
                 }
-                catch
+                catch (Exception sessionEx)
                 {
+                    System.Diagnostics.Debug.WriteLine($"SetUserEntry: Error getting device ID: {sessionEx.Message}");
                     macAddress = "00:00:00:00:00:00";
                 }
 
@@ -367,24 +413,54 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Receives device identifier from client-side JavaScript and stores it in session
+        /// Receives device identifier from client-side JavaScript and stores it in session and cookie
         /// </summary>
         [HttpPost]
+        [AllowAnonymous]
         public JsonResult SetDeviceId(string deviceId)
         {
             try
             {
-                if (!string.IsNullOrEmpty(deviceId))
+                if (string.IsNullOrEmpty(deviceId))
                 {
-                    // Store device ID in session for use in logging
-                    Session["DeviceId"] = deviceId;
-                    return Json(new { success = true });
+                    return Json(new { success = false, message = "Device ID is required" });
                 }
-                return Json(new { success = false, message = "Device ID is required" });
+
+                // Store device ID in session for use in logging
+                if (Session != null)
+                {
+                    Session["DeviceId"] = deviceId;
+                }
+                
+                // Also try to store in HttpContext.Session as backup
+                if (HttpContext != null && HttpContext.Session != null)
+                {
+                    HttpContext.Session["DeviceId"] = deviceId;
+                }
+                
+                // Also try to store in System.Web.HttpContext.Current.Session as backup
+                if (System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Session != null)
+                {
+                    System.Web.HttpContext.Current.Session["DeviceId"] = deviceId;
+                }
+                
+                // Also store in cookie as backup (persists across requests)
+                var deviceIdCookie = new HttpCookie("DeviceId", deviceId)
+                {
+                    HttpOnly = false, // Allow JavaScript to read it
+                    Expires = DateTime.Now.AddYears(1), // Long expiration
+                    Path = "/"
+                };
+                Response.Cookies.Set(deviceIdCookie);
+
+                System.Diagnostics.Debug.WriteLine($"SetDeviceId: Successfully stored device ID in session and cookie: {deviceId}");
+                
+                return Json(new { success = true, deviceId = deviceId });
             }
-            catch
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error storing device ID" });
+                System.Diagnostics.Debug.WriteLine($"SetDeviceId: Error storing device ID: {ex.Message}");
+                return Json(new { success = false, message = $"Error storing device ID: {ex.Message}" });
             }
         }
     }

@@ -340,7 +340,7 @@ namespace tahsinERP.Controllers.Engineering
                             
                             // Log deletion of NORM_INPUT_LINES
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm", 
-                                $"Mahsulot {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedInputLinesCount} ta NORM_INPUT_LINE o'chirildi.");
+                                $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedInputLinesCount} ta NORM_INPUT_LINE o'chirildi.");
                         }
                     }
 
@@ -354,7 +354,7 @@ namespace tahsinERP.Controllers.Engineering
                         
                         // Log deletion of NORMLINES
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedNormLinesCount} ta NORMLINE o'chirildi.");
+                            $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedNormLinesCount} ta NORMLINE o'chirildi.");
                     }
 
                     // Delete NORMVERSION
@@ -366,7 +366,7 @@ namespace tahsinERP.Controllers.Engineering
 
                     // Log final deletion
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                        $"Mahsulot {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}, Period: {period}) o'chirildi.");
+                        $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}, Period: {period}) o'chirildi.");
 
                     transaction.Complete();
 
@@ -964,6 +964,10 @@ namespace tahsinERP.Controllers.Engineering
                     // Recalculate fields
                     RecalculateLineFields(viewModel.CuttingLines);
 
+                    // Get product PNo for logging
+                    var product = await db.PRODUCTS.FindAsync(viewModel.ProductID);
+                    var productPNo = product?.PNo ?? viewModel.ProductCode ?? "Noma'lum";
+                    
                     // Get or create NORMVERSION
                     NORMVERSION normVersion;
                     bool isUpdate = false;
@@ -994,7 +998,7 @@ namespace tahsinERP.Controllers.Engineering
                         if (deletedLinesCount > 0)
                         {
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm", 
-                                $"Mahsulot {viewModel.ProductCode} uchun NORM versiyasi (ID: {viewModel.NormVersionID.Value}) yangilandi. {deletedLinesCount} ta eski NORMLINE o'chirildi.");
+                                $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {viewModel.NormVersionID.Value}) yangilandi. {deletedLinesCount} ta eski NORMLINE o'chirildi.");
                         }
                     }
                     else
@@ -1012,7 +1016,7 @@ namespace tahsinERP.Controllers.Engineering
                         
                         // Log creation of new NORMVERSION
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot {viewModel.ProductCode} uchun yangi NORM versiyasi yaratildi. Period: {viewModel.Period}");
+                            $"Mahsulot PNo: {productPNo} uchun yangi NORM versiyasi yaratildi. Period: {viewModel.Period}");
                     }
 
                     // Delete existing NORM_INPUT_LINES for this period (if updating)
@@ -1029,7 +1033,7 @@ namespace tahsinERP.Controllers.Engineering
                             
                             // Log deletion of old NORM_INPUT_LINES
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm", 
-                                $"Mahsulot {viewModel.ProductCode} uchun NORM versiyasi (ID: {normVersion.ID}) dan {existingInputLines.Count} ta eski NORM_INPUT_LINE o'chirildi.");
+                                $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) dan {existingInputLines.Count} ta eski NORM_INPUT_LINE o'chirildi.");
                         }
                     }
 
@@ -1113,7 +1117,7 @@ namespace tahsinERP.Controllers.Engineering
                     if (inputLinesCount > 0)
                     {
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot {viewModel.ProductCode} uchun NORM versiyasi (ID: {normVersion.ID}) ga {inputLinesCount} ta NORM_INPUT_LINE qo'shildi.");
+                            $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) ga {inputLinesCount} ta NORM_INPUT_LINE qo'shildi.");
                     }
 
                     // Now update NORM_LINES based on NORM_INPUT_LINES data
@@ -1180,7 +1184,7 @@ namespace tahsinERP.Controllers.Engineering
                     
                     // Log creation/update of NORMLINES
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                        $"Mahsulot {viewModel.ProductCode} uchun NORM versiyasi (ID: {normVersion.ID}) ga {materialGroups.Count} ta NORMLINE yangilandi/yaratildi.");
+                        $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) ga {materialGroups.Count} ta NORMLINE yangilandi/yaratildi.");
 
                     // Create/Update BOM_HEADERS and BOM_LINES
                     var bomHeader = await db.BOM_HEADERS
@@ -1202,7 +1206,7 @@ namespace tahsinERP.Controllers.Engineering
                         
                         // Log creation of BOM_HEADERS
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot {viewModel.ProductCode} uchun yangi BOM_HEADERS yaratildi (ID: {bomHeader.ID}).");
+                            $"Mahsulot PNo: {productPNo} uchun yangi BOM_HEADERS yaratildi (ID: {bomHeader.ID}).");
                     }
                     else
                     {
@@ -1223,7 +1227,7 @@ namespace tahsinERP.Controllers.Engineering
                     if (deletedBomLinesCount > 0)
                     {
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot {viewModel.ProductCode} uchun BOM_HEADERS (ID: {bomHeader.ID}) dan {deletedBomLinesCount} ta eski BOM_LINE o'chirildi.");
+                            $"Mahsulot PNo: {productPNo} uchun BOM_HEADERS (ID: {bomHeader.ID}) dan {deletedBomLinesCount} ta eski BOM_LINE o'chirildi.");
                     }
 
                     // Create new BOM_LINES from aggregated norms
@@ -1280,13 +1284,13 @@ namespace tahsinERP.Controllers.Engineering
                     if (materialGroups.Count > 0)
                     {
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot {viewModel.ProductCode} uchun BOM_HEADERS (ID: {bomHeader.ID}) ga {materialGroups.Count} ta yangi BOM_LINE qo'shildi.");
+                            $"Mahsulot PNo: {productPNo} uchun BOM_HEADERS (ID: {bomHeader.ID}) ga {materialGroups.Count} ta yangi BOM_LINE qo'shildi.");
                     }
 
                     // Log final summary
                     var actionType = isUpdate ? "yangilandi" : "yaratildi";
                             LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                        $"Mahsulot {viewModel.ProductCode} uchun NORM versiyasi {actionType}. Period: {viewModel.Period}, {materialGroups.Count} ta material, {viewModel.CuttingLines.Count(l => l.IsSelected)} ta kesish variantlari.");
+                        $"Mahsulot PNo: {productPNo} uchun NORM versiyasi {actionType}. Period: {viewModel.Period}, {materialGroups.Count} ta material, {viewModel.CuttingLines.Count(l => l.IsSelected)} ta kesish variantlari.");
 
                     transaction.Complete();
 

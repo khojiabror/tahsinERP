@@ -37,14 +37,37 @@
                                     {
                                         <div class="col-md-6">
                                             <label>Foydalanuvchi</label>
-                                            @Html.DropDownList("userId", ViewBag.UserID as SelectList, "Barcha foydalanuvchilar", new { @class = "form-control", @onchange = "this.form.submit()" })
+                                            @{
+                                                var userSelectList = ViewBag.UserID as SelectList;
+                                                var selectedUserId = ViewBag.SelectedUserID as int?;
+                                            }
+                                            <select name="userId" class="form-control" onchange="this.form.submit()">
+                                                <option value="">Barcha foydalanuvchilar</option>
+                                                @if (userSelectList != null)
+                                                {
+                                                    foreach (var item in userSelectList)
+                                                    {
+                                                        <option value="@item.Value" @(selectedUserId.HasValue && selectedUserId.Value.ToString() == item.Value ? "selected" : "")>@item.Text</option>
+                                                    }
+                                                }
+                                            </select>
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="col-md-6">
                                             <label>Foydalanuvchi</label>
-                                            <input type="text" class="form-control" value="@Model.UserName" readonly />
+                                            <select name="userId" class="form-control" disabled>
+                                                @if (ViewBag.UserID != null)
+                                                {
+                                                    var userSelectList = ViewBag.UserID as SelectList;
+                                                    foreach (var item in userSelectList)
+                                                    {
+                                                        <option value="@item.Value" selected>@item.Text</option>
+                                                    }
+                                                }
+                                            </select>
+                                            Html.Hidden("userId", ViewBag.CurrentUserID)
                                         </div>
                                     }
                                     <div class="col-md-6">
@@ -211,6 +234,20 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Overdue Tasks Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Muddatidan o'tgan vazifalar (Loyiha bo'yicha)</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="overdueTasksChart" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -261,9 +298,36 @@ else
                         <text>@stat.Count,</text>
                     }
                 ];
+                
+                // Status ranglarini dinamik belgilash
+                var statusColors = [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        var statusNameLower = stat.StatusName?.ToLower() ?? "";
+                        string color = "#6C757D"; // default grey
+                        if (statusNameLower.Contains("jarayonda") || statusNameLower.Contains("in_progress") || statusNameLower.Contains("in progress"))
+                        {
+                            color = "#FFC107"; // sariq (yellow)
+                        }
+                        else if (statusNameLower.Contains("rejada") || statusNameLower.Contains("todo") || statusNameLower.Contains("planned"))
+                        {
+                            color = "#6C757D"; // grey
+                        }
+                        else if (statusNameLower.Contains("bajarildi") || statusNameLower.Contains("done"))
+                        {
+                            color = "#28A745"; // yashil (green)
+                        }
+                        else if (statusNameLower.Contains("bekor") || statusNameLower.Contains("cancelled") || statusNameLower.Contains("cancel"))
+                        {
+                            color = "#DC3545"; // qizil (red)
+                        }
+                        <text>'@color',</text>
+                    }
+                ];
 
                 console.log('Status Labels:', statusLabels);
                 console.log('Status Series:', statusSeries);
+                console.log('Status Colors:', statusColors);
 
                 var statusPieOptions = {
                     chart: {
@@ -272,7 +336,7 @@ else
                     },
                     labels: statusLabels,
                     series: statusSeries,
-                    colors: ['#5A8DEE', '#39DA8A', '#FF5B5C', '#FDAC41', '#00CFDD'],
+                    colors: statusColors,
                     legend: {
                         position: 'bottom'
                     },
@@ -317,6 +381,28 @@ else
                         <text>'@stat.PriorityName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
                     }
                 ];
+                
+                // Priority ranglarini dinamik belgilash
+                var priorityColors = [
+                    @foreach (var stat in Model.PriorityStatistics)
+                    {
+                        var priorityNameLower = stat.PriorityName?.ToLower() ?? "";
+                        string color = "#DC3545"; // default to'q qizil
+                        if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
+                        {
+                            color = "#DC3545"; // to'q qizil
+                        }
+                        else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
+                        {
+                            color = "#FF6666"; // qizil
+                        }
+                        else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
+                        {
+                            color = "#FFCCCC"; // och qizil
+                        }
+                        <text>'@color',</text>
+                    }
+                ];
 
                 var priorityBarOptions = {
                     chart: {
@@ -356,7 +442,12 @@ else
                         ]
                     }],
                     xaxis: {
-                        categories: priorityCategories
+                        categories: priorityCategories,
+                        labels: {
+                            style: {
+                                colors: priorityColors
+                            }
+                        }
                     },
                     yaxis: {
                         title: {
@@ -366,7 +457,7 @@ else
                     fill: {
                         opacity: 1
                     },
-                    colors: ['#5A8DEE', '#39DA8A'],
+                    colors: priorityColors,
                     legend: {
                         position: 'top'
                     }
@@ -420,9 +511,14 @@ else
                         ]
                     }],
                     xaxis: {
-                        categories: priorityCategories
+                        categories: priorityCategories,
+                        labels: {
+                            style: {
+                                colors: priorityColors
+                            }
+                        }
                     },
-                    colors: ['#00CFDD', '#FDAC41', '#39DA8A'],
+                    colors: ['#6C757D', '#FFC107', '#28A745'],
                     legend: {
                         position: 'top'
                     },
@@ -447,6 +543,71 @@ else
                 console.log('No priority statistics available');
                 document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
                 document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                </text>
+            }
+
+            // Overdue Tasks Chart
+            @if (Model.OverdueTasksStatistics != null && Model.OverdueTasksStatistics.Any())
+            {
+                <text>
+                var overdueCategories = [
+                    @foreach (var stat in Model.OverdueTasksStatistics)
+                    {
+                        <text>'@stat.ProjectName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                var overdueSeries = [
+                    @foreach (var stat in Model.OverdueTasksStatistics)
+                    {
+                        <text>@stat.OverdueCount,</text>
+                    }
+                ];
+
+                var overdueChartOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: 400
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            borderRadius: 4
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true
+                    },
+                    series: [{
+                        name: 'Muddatidan o\'tgan vazifalar',
+                        data: overdueSeries
+                    }],
+                    xaxis: {
+                        categories: overdueCategories
+                    },
+                    colors: ['#DC3545'],
+                    legend: {
+                        position: 'top'
+                    },
+                    fill: {
+                        opacity: 1
+                    }
+                };
+
+                try {
+                    var overdueChart = new ApexCharts(document.querySelector("#overdueTasksChart"), overdueChartOptions);
+                    overdueChart.render();
+                    console.log('Overdue Tasks Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Overdue Tasks Chart:', e);
+                    document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No overdue tasks statistics available');
+                document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-muted">Muddatidan o\'tgan vazifalar yo\'q</p>';
                 </text>
             }
         });

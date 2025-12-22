@@ -153,6 +153,7 @@ namespace tahsinERP.Controllers
                         LetterDate = vm.LetterDate,
                         ExternalCompanyName = vm.ExternalCompanyName,
                         ExternalContactName = vm.ExternalContactName,
+                        ExternalContactPosition = vm.ExternalContactPosition,
                         OurRefNo = vm.OurRefNo,
                         TheirRefNo = vm.TheirRefNo,
                         ChannelCode = vm.ChannelCode,
@@ -208,6 +209,7 @@ namespace tahsinERP.Controllers
                     LetterDate = letter.LetterDate,
                     ExternalCompanyName = letter.ExternalCompanyName,
                     ExternalContactName = letter.ExternalContactName,
+                    ExternalContactPosition = letter.ExternalContactPosition,
                     OurRefNo = letter.OurRefNo,
                     TheirRefNo = letter.TheirRefNo,
                     ChannelCode = letter.ChannelCode,
@@ -255,6 +257,7 @@ namespace tahsinERP.Controllers
                     letter.LetterDate = vm.LetterDate;
                     letter.ExternalCompanyName = vm.ExternalCompanyName;
                     letter.ExternalContactName = vm.ExternalContactName;
+                    letter.ExternalContactPosition = vm.ExternalContactPosition;
                     letter.OurRefNo = vm.OurRefNo;
                     letter.TheirRefNo = vm.TheirRefNo;
                     letter.ChannelCode = vm.ChannelCode;
@@ -371,11 +374,21 @@ namespace tahsinERP.Controllers
                 }
 
                 // Prepare placeholders
+                var recipientBlock = letter.ExternalCompanyName ?? "";
+                if (!string.IsNullOrEmpty(letter.ExternalContactPosition))
+                {
+                    recipientBlock += "\n" + letter.ExternalContactPosition;
+                }
+                if (!string.IsNullOrEmpty(letter.ExternalContactName))
+                {
+                    recipientBlock += "\n" + letter.ExternalContactName;
+                }
+
                 var placeholders = new Dictionary<string, string>
                 {
                     { "LETTER_NO", letter.LetterNo },
                     { "LETTER_DATE", letter.LetterDate.ToString("dd.MM.yyyy") },
-                    { "RECIPIENT_BLOCK", $"{letter.ExternalCompanyName}\n{letter.ExternalContactName}" },
+                    { "RECIPIENT_BLOCK", recipientBlock },
                     { "GREETING_LINE", $"Hurmatli {letter.ExternalContactName ?? "hamkor"}!" },
                     { "LETTER_BODY", doc.Title ?? "" },
                     { "ITEM_NAME_1", "" },
@@ -411,12 +424,12 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Save file
+                // Save file - use letter date instead of current date
                 var docFile = new DOC_FILES
                 {
                     DocumentID = doc.ID,
                     VersionNo = nextVersion,
-                    FileName = $"{letter.LetterNo}_{DateTime.Now:yyyyMMdd}{fileExtension}",
+                    FileName = $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}{fileExtension}",
                     FileExtension = fileExtension,
                     MimeType = mimeType,
                     FileSizeBytes = fileContent.Length,

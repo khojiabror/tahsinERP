@@ -70,6 +70,7 @@
                                                     <th>Foydalanuvchi</th>
                                                     <th>IP manzili</th>
                                                     <th>MAC manzili</th>
+                                                    <th>Sana</th>
                                                     <th>Vaqt</th>
                                                 </tr>
                                             </thead>
@@ -80,7 +81,8 @@
                                                         <td>@(item.USER?.FullName ?? item.USER?.Uname ?? "Noma'lum")</td>
                                                         <td>@item.IP</td>
                                                         <td>@item.MAC</td>
-                                                        <td>@item.DateTime.ToString("dd.MM.yyyy HH:mm:ss")</td>
+                                                        <td>@item.DateTime.ToString("dd.MM.yyyy")</td>
+                                                        <td>@item.DateTime.ToString("HH:mm:ss")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -116,6 +118,9 @@
                 "pageLength": 25,
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
                 "order": [[3, "desc"]],
+                "columnDefs": [
+                    { "type": "date", "targets": 3 }
+                ],
                 "scrollX": true,
                 dom: 'lBfrtip',
                 buttons: [

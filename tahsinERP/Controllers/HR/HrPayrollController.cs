@@ -189,14 +189,46 @@ namespace tahsinERP.Controllers.HR
             year = year ?? DateTime.Now.Year;
             month = month ?? DateTime.Now.Month;
 
-            // Get approved piece-rate timesheets
-            var timesheets = await db.HR_TIMESHEET_HEADERS
-                .Include(t => t.HR_ORG_UNITS)
-                .Where(t => t.Year == year.Value && t.Month == month.Value && 
-                    t.Status == "Approved" &&
-                    (orgUnitId == null ? true : t.OrgUnitID == orgUnitId.Value))
-                .OrderBy(t => t.HR_ORG_UNITS.Name)
-                .ToListAsync();
+            // Get piece-rate work entries grouped by year, month, and org unit
+            var startDate = new DateTime(year.Value, month.Value, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Include(e => e.HR_EMPLOYEES)
+                .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+            if (orgUnitId.HasValue)
+            {
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+            }
+
+            var workEntries = await query.ToListAsync();
+
+            // Group by year, month, and org unit
+            var groupedData = workEntries
+                .GroupBy(e => new { 
+                    Year = e.WorkDate.Year, 
+                    Month = e.WorkDate.Month,
+                    OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
+                })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    OrgUnitID = g.Key.OrgUnitID,
+                    OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                    EntryCount = g.Count()
+                })
+                .OrderBy(x => x.OrgUnitName)
+                .ToList();
+
+            // Create timesheet list for dropdown (using a composite key: Year-Month-OrgUnitID)
+            var timesheetList = groupedData.Select(g => new
+            {
+                ID = $"{g.Year}-{g.Month}-{g.OrgUnitID}",
+                Name = $"{g.OrgUnitName} - {g.Year}-{g.Month:D2} ({g.EntryCount} ta yozuv)"
+            }).ToList();
 
             ViewBag.Year = year;
             ViewBag.Month = month;
@@ -205,7 +237,7 @@ namespace tahsinERP.Controllers.HR
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name", orgUnitId);
             ViewBag.TimesheetID = new SelectList(
-                timesheets.Select(t => new { ID = t.ID, Name = $"{t.HR_ORG_UNITS?.Name ?? "Butun kompaniya"} - {t.Year}-{t.Month:D2}" }),
+                timesheetList,
                 "ID", "Name");
 
             return View("Generate");
@@ -214,11 +246,36 @@ namespace tahsinERP.Controllers.HR
         // POST: HR/Payroll/GeneratePieceRate
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> GeneratePieceRate(int year, int month, int? orgUnitId, int timesheetId)
+        public async Task<ActionResult> GeneratePieceRate(int year, int month, int? orgUnitId, string timesheetId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Parse timesheetId (format: "Year-Month-OrgUnitID")
+            if (string.IsNullOrEmpty(timesheetId))
+            {
+                TempData["Error"] = "Tabel tanlanmagan";
+                return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
+            }
+
+            var parts = timesheetId.Split('-');
+            if (parts.Length != 3)
+            {
+                TempData["Error"] = "Noto'g'ri tabel formati";
+                return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
+            }
+
+            int parsedYear = int.Parse(parts[0]);
+            int parsedMonth = int.Parse(parts[1]);
+            int? parsedOrgUnitId = string.IsNullOrEmpty(parts[2]) ? (int?)null : int.Parse(parts[2]);
+
+            // Verify the parsed values match the form values
+            if (parsedYear != year || parsedMonth != month || parsedOrgUnitId != orgUnitId)
+            {
+                TempData["Error"] = "Tabel ma'lumotlari mos kelmaydi";
+                return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
             }
 
             // Check if payroll already exists
@@ -232,24 +289,14 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Edit", new { id = existing.ID });
             }
 
-            var timesheet = await db.HR_TIMESHEET_HEADERS
-                .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES))
-                .FirstOrDefaultAsync(t => t.ID == timesheetId);
-
-            if (timesheet == null || timesheet.Status != "Approved")
-            {
-                TempData["Error"] = "Tabel topilmadi yoki tasdiqlanmagan";
-                return RedirectToAction("GeneratePieceRate");
-            }
-
-            // Create payroll header
+            // Create payroll header (no TimesheetID for piece-rate, as it's based on work entries)
             var payroll = new HR_PAYROLL_HEADERS
             {
                 Year = year,
                 Month = month,
                 OrgUnitID = orgUnitId,
                 Status = "Draft",
-                TimesheetID = timesheetId,
+                TimesheetID = null, // Piece-rate doesn't use HR_TIMESHEET_HEADERS
                 PayrollType = "PieceRate",
                 CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
                 CreatedDT = DateTime.Now
@@ -258,8 +305,8 @@ namespace tahsinERP.Controllers.HR
             db.HR_PAYROLL_HEADERS.Add(payroll);
             await db.SaveChangesAsync();
 
-            // Generate payroll lines for piece-rate employees only
-            await GeneratePieceRatePayrollLines(payroll.ID, timesheet);
+            // Generate payroll lines for piece-rate employees based on work entries
+            await GeneratePieceRatePayrollLinesFromWorkEntries(payroll.ID, year, month, orgUnitId);
 
             logger.Log("HrPayroll", "GeneratePieceRate", $"ID: {payroll.ID}, TimesheetID: {timesheetId}");
             return RedirectToAction("Edit", new { id = payroll.ID });
@@ -821,6 +868,132 @@ namespace tahsinERP.Controllers.HR
                 };
 
                 db.HR_PAYROLL_LINES.Add(payrollLine);
+            }
+
+            await db.SaveChangesAsync();
+        }
+
+        private async Task GeneratePieceRatePayrollLinesFromWorkEntries(int payrollId, int year, int month, int? orgUnitId)
+        {
+            var payroll = await db.HR_PAYROLL_HEADERS.FindAsync(payrollId);
+            
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            // Get work entries for this period
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Include(e => e.HR_EMPLOYEES)
+                .Include(e => e.PRODUCT)
+                .Include(e => e.HR_PIECE_RATE_OPERATIONS)
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+            if (orgUnitId.HasValue)
+            {
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+            }
+
+            var workEntries = await query.ToListAsync();
+
+            // Get default currency
+            var defaultCurrency = await db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
+            int? defaultCurrencyID = defaultCurrency?.ID;
+
+            if (!defaultCurrencyID.HasValue)
+            {
+                throw new Exception("Valyuta jadvalida hech qanday valyuta topilmadi. Iltimos, avval valyuta qo'shing.");
+            }
+
+            // Group by employee to calculate total amounts
+            var employeeGroups = workEntries
+                .GroupBy(e => e.EmployeeID)
+                .ToList();
+
+            foreach (var employeeGroup in employeeGroups)
+            {
+                var firstEntry = employeeGroup.First();
+                var employee = firstEntry.HR_EMPLOYEES;
+                
+                if (employee == null) continue;
+
+                // Get staffing plan for employee
+                var staffingPlan = await db.HR_STAFFING_PLAN
+                    .FirstOrDefaultAsync(sp => sp.OrgUnitID == employee.OrgUnitID &&
+                                              sp.PositionID == employee.PositionID &&
+                                              sp.IsActive &&
+                                              sp.IsPieceRate == true &&
+                                              sp.EffectiveFrom <= payroll.CreatedDT &&
+                                              (sp.EffectiveTo == null || sp.EffectiveTo >= payroll.CreatedDT));
+
+                decimal baseSalary = employee.BaseSalary ?? 0;
+                decimal grossSalary = 0;
+                decimal totalPieceQty = 0;
+
+                // Calculate total piece-rate amount for this employee
+                foreach (var entry in employeeGroup)
+                {
+                    int? positionId = employee.PositionID;
+                    
+                    // Get tariff for this product and operation
+                    var tariff = await db.HR_PIECE_RATE_TARIFFS
+                        .Where(t => t.ProductID == entry.ProductID &&
+                                   t.OperationID == entry.OperationID &&
+                                   t.IsActive &&
+                                   t.EffectiveFrom <= entry.WorkDate &&
+                                   (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
+                                   (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
+                        .OrderByDescending(t => t.PositionID) // Prefer position-specific
+                        .FirstOrDefaultAsync();
+
+                    // If not found, try general tariff (PositionID == null)
+                    if (tariff == null)
+                    {
+                        tariff = await db.HR_PIECE_RATE_TARIFFS
+                            .Where(t => t.ProductID == entry.ProductID &&
+                                       t.OperationID == entry.OperationID &&
+                                       t.PositionID == null &&
+                                       t.IsActive &&
+                                       t.EffectiveFrom <= entry.WorkDate &&
+                                       (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
+                            .FirstOrDefaultAsync();
+                    }
+
+                    if (tariff != null)
+                    {
+                        decimal entryAmount = entry.Quantity * tariff.RatePerUnit;
+                        grossSalary += entryAmount;
+                        totalPieceQty += entry.Quantity;
+                    }
+                }
+
+                // If no tariff found for any entry, use base salary
+                if (grossSalary == 0)
+                {
+                    grossSalary = baseSalary;
+                }
+
+                // Check if payroll line already exists for this employee
+                var existingLine = await db.HR_PAYROLL_LINES
+                    .FirstOrDefaultAsync(l => l.PayrollID == payrollId && l.EmployeeID == employee.ID);
+
+                if (existingLine == null)
+                {
+                    var payrollLine = new HR_PAYROLL_LINES
+                    {
+                        PayrollID = payrollId,
+                        EmployeeID = employee.ID,
+                        BaseSalary = baseSalary,
+                        HoursWorked = 0,
+                        PieceQty = totalPieceQty,
+                        HourlyRate = 0,
+                        GrossSalary = grossSalary,
+                        Bonuses = 0,
+                        Penalties = 0,
+                        NetSalary = grossSalary,
+                        CurrencyID = defaultCurrencyID.Value
+                    };
+
+                    db.HR_PAYROLL_LINES.Add(payrollLine);
+                }
             }
 
             await db.SaveChangesAsync();

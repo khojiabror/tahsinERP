@@ -1,0 +1,257 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxEditViewModel
+
+@{
+    ViewBag.Title = "Tannarxni tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarxni tahrirlash</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Edit", "Tannarx", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.ID)
+                                        @Html.HiddenFor(m => m.ProductID)
+                                        @Html.HiddenFor(m => m.Year)
+                                        @Html.HiddenFor(m => m.Month)
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6 class="mb-2">Mahsulot ma'lumotlari</h6>
+                                                <div class="form-group">
+                                                    <label>Maxsulot raqami:</label>
+                                                    <input type="text" class="form-control" value="@Model.ProductPNo" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Maxsulot nomi:</label>
+                                                    <input type="text" class="form-control" value="@Model.ProductName" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Oy:</label>
+                                                    <input type="text" class="form-control" value="@Model.MonthString" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6 class="mb-2">Material xarajatlari</h6>
+                                                <div class="form-group">
+                                                    <label>Material narxi:</label>
+                                                    <input type="text" class="form-control" value="@Model.MaterialPrice.ToString("N0") so'm" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Material tashuvi narxi (2%):</label>
+                                                    <input type="text" class="form-control" value="@Model.MaterialTransportCost.ToString("N0") so'm" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6 class="mb-2">Ish haqi va xarajatlar</h6>
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.LaborCost, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.LaborCost, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.LaborCost, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">HR_PIECE_RATE_TARIFFS dan avtomatik hisoblanadi, lekin tahrirlash mumkin</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.TaxAndBankPercent, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.TaxAndBankPercent, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.TaxAndBankPercent, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>B - Soliq va bank (so'm):</label>
+                                                    <input type="text" class="form-control" value="@Model.TaxAndBank.ToString("N0") so'm" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.AdministrativeExpensesPercent, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.AdministrativeExpensesPercent, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.AdministrativeExpensesPercent, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>C - Adminstrativ harajatlar (so'm):</label>
+                                                    <input type="text" class="form-control" value="@Model.AdministrativeExpenses.ToString("N0") so'm" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.OtherExpensesPercent, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.OtherExpensesPercent, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.OtherExpensesPercent, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>D - Boshqa xarajatlar (so'm):</label>
+                                                    <input type="text" class="form-control" value="@Model.OtherExpenses.ToString("N0") so'm" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.ProfitPercent, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.ProfitPercent, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.ProfitPercent, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>E - Foyda (so'm):</label>
+                                                    <input type="text" class="form-control" value="@Model.Profit.ToString("N0") so'm" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6 class="mb-2">EXW narxlari</h6>
+                                                <div class="form-group">
+                                                    <label>Sotuv narxi EXW QQS siz:</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceEXWWithoutVAT.ToString("N0") so'm" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Sotuv narxi QQS bilan EXW:</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceEXWWithVAT.ToString("N0") so'm" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.SetPriceEXWWithVAT, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.SetPriceEXWWithVAT, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.SetPriceEXWWithVAT, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">Tizim taklif qilgan narx, lekin tahrirlash mumkin</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6 class="mb-2">Tayyor maxsulot tashuvi</h6>
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.FinishedProductTransportCost, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.FinishedProductTransportCost, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.FinishedProductTransportCost, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">Keyinchalik Forwarders modulidan avtomatik olinadi</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h6 class="mb-2">CIP narxlari</h6>
+                                                <div class="form-group">
+                                                    <label>Sotuv narxi CIP QQS siz:</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceCIPWithoutVAT.ToString("N0") so'm" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Sotuv narxi QQS bilan CIP:</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceCIPWithVAT.ToString("N0") so'm" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.SetPriceCIPWithVAT, new { @class = "form-label" })
+                                                    @Html.TextBoxFor(m => m.SetPriceCIPWithVAT, new { @class = "form-control", @type = "number", @step = "0.01" })
+                                                    @Html.ValidationMessageFor(m => m.SetPriceCIPWithVAT, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">Tizim taklif qilgan narx, lekin tahrirlash mumkin</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save"></i> Saqlash
+                                            </button>
+                                            <a href="@Url.Action("Index", "Tannarx", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Auto-recalculate when SetPriceEXWWithVAT changes
+            $('#SetPriceEXWWithVAT').on('input', function () {
+                var setPrice = parseFloat($(this).val()) || 0;
+                if (setPrice > 0) {
+                    // This will be recalculated on server side
+                    // Just show a message
+                    console.log('Narx o\'zgartirildi. Saqlashda qayta hisoblanadi.');
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

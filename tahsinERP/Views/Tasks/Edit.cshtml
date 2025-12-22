@@ -92,7 +92,14 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Due Date</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control round", @type = "date", @value = Model.DueDate.HasValue ? Model.DueDate.Value.ToString("yyyy-MM-dd") : "" })
+                                                        @if (Model.DueDate.HasValue)
+                                                        {
+                                                            @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control round", @type = "date", @Value = Model.DueDate.Value.ToString("yyyy-MM-dd") })
+                                                        }
+                                                        else
+                                                        {
+                                                            @Html.TextBoxFor(model => model.DueDate, new { @class = "form-control round", @type = "date" })
+                                                        }
                                                         @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">

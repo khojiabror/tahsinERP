@@ -13,6 +13,9 @@ namespace tahsinERP.ViewModels.HR
         public decimal CalculatedAmount { get; set; }
         public DateTime CreatedDT { get; set; }
         public int EntryCount { get; set; }
+        public string Status { get; set; }
+        public DateTime? ApprovedDT { get; set; }
+        public int? ApprovedByUserID { get; set; }
     }
 }
 

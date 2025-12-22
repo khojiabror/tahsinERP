@@ -251,11 +251,7 @@ namespace tahsinERP.Controllers.MES
                                 && s.DeliveryDate <= viewModel.EndDate)
                             .ToList();
 
-                        if (matchingSchedules.Any())
-                        {
-                            LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", 
-                                $"ProductPlan ID {plan.ID} ga {matchingSchedules.Count} ta delivery schedule bog'landi");
-                        }
+                        // Note: Matching schedules found but no database linking occurs, so no log needed
 
                         TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli yaratildi";
                         return RedirectToAction("Details", new { id = plan.ID });

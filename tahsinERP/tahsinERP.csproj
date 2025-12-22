@@ -483,6 +483,8 @@
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
     <Compile Include="Controllers\Engineering\NormController.cs" />
+    <Compile Include="Controllers\Engineering\TannarxAnalyticsController.cs" />
+    <Compile Include="Controllers\Engineering\TannarxController.cs" />
     <Compile Include="Controllers\Finance\FinAccountsController.cs" />
     <Compile Include="Controllers\Finance\FinBalanceCategoriesController.cs" />
     <Compile Include="Controllers\Finance\FinCategoriesController.cs" />
@@ -558,6 +560,7 @@
     <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
+    <Compile Include="Controllers\TaskChangeStatusController.cs" />
     <Compile Include="Controllers\TaskDashboardController.cs" />
     <Compile Include="Controllers\TaskKanbanController.cs" />
     <Compile Include="Controllers\TasksController.cs" />
@@ -714,6 +717,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_PIECE_RATE_TARIFFS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HR_PIECE_RATE_TIMESHEET_APPROVALS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\HR_PIECE_RATE_WORK_ENTRIES.cs">
@@ -878,6 +884,9 @@
     <Compile Include="Models\S_ORDER_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\TANNARX.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\UNIT.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -908,6 +917,21 @@
     <Compile Include="Models\V_FIN_PL_PLAN_VS_FACT_MONTHLY.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\V_TANNARX_ACTUAL_ADMIN_EXPENSES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\V_TANNARX_ACTUAL_LABOR_COSTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\V_TANNARX_ACTUAL_MATERIAL_COSTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\V_TANNARX_ACTUAL_MATERIAL_TRANSPORT.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Warehouse.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -934,6 +958,8 @@
     <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
+    <Compile Include="Services\TannarxAnalyticsService.cs" />
+    <Compile Include="Services\TannarxService.cs" />
     <Compile Include="Services\TextSuggestionService.cs" />
     <Compile Include="Services\TransportLoadCalculator.cs" />
     <Compile Include="Services\UnitConversionService.cs" />
@@ -988,6 +1014,12 @@
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxAnalyticsDashboardViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxAnalyticsReportViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxEditViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxIndexViewModel.cs" />
+    <Compile Include="ViewModels\TaskChangeStatusViewModel.cs" />
     <Compile Include="ViewModels\TaskDashboardViewModel.cs" />
     <Compile Include="ViewModels\TaskKanbanViewModel.cs" />
     <Compile Include="ViewModels\TaskViewModel.cs" />
@@ -3167,6 +3199,13 @@
     <Content Include="Services\MaterialConsumptionService_README.md" />
     <Content Include="Views\OfficialLetters\RegisterIncoming.cshtml" />
     <Content Include="Views\TaskKanban\Index.cshtml" />
+    <Content Include="Views\Tannarx\Delete.cshtml" />
+    <Content Include="Views\Tannarx\Details.cshtml" />
+    <Content Include="Views\Tannarx\Edit.cshtml" />
+    <Content Include="Views\Tannarx\Index.cshtml" />
+    <Content Include="Views\TannarxAnalytics\Dashboard.cshtml" />
+    <Content Include="Views\TannarxAnalytics\ProductDetails.cshtml" />
+    <Content Include="Views\TannarxAnalytics\Report.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

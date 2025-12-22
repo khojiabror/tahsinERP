@@ -276,9 +276,7 @@ namespace tahsinERP.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Log error but don't fail the invoice save
-                                tahsinERP.Controllers.LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", "Create",
-                                    $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
+                                // Finance posting error - don't log as it's not a database change
                             }
                         }
 

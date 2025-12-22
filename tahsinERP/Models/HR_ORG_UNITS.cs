@@ -24,6 +24,7 @@ namespace tahsinERP.Models
             this.HR_PAYROLL_HEADERS = new HashSet<HR_PAYROLL_HEADERS>();
             this.HR_STAFFING_PLAN = new HashSet<HR_STAFFING_PLAN>();
             this.HR_TIMESHEET_HEADERS = new HashSet<HR_TIMESHEET_HEADERS>();
+            this.HR_PIECE_RATE_TIMESHEET_APPROVALS = new HashSet<HR_PIECE_RATE_TIMESHEET_APPROVALS>();
         }
     
         public int ID { get; set; }
@@ -50,5 +51,7 @@ namespace tahsinERP.Models
         public virtual ICollection<HR_STAFFING_PLAN> HR_STAFFING_PLAN { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
     }
 }

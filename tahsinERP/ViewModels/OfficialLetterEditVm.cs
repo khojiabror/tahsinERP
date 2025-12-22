@@ -24,6 +24,9 @@ namespace tahsinERP.ViewModels
         [Display(Name = "Tashqi kontakt shaxs")]
         public string ExternalContactName { get; set; }
 
+        [Display(Name = "Tashqi kompaniya rahbari lavozimi")]
+        public string ExternalContactPosition { get; set; }
+
         [Display(Name = "Bizning havola raqami")]
         public string OurRefNo { get; set; }
 

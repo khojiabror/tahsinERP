@@ -137,6 +137,13 @@ namespace tahsinERP.Models
         public virtual DbSet<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual DbSet<V_FIN_PL_FACT_MONTHLY> V_FIN_PL_FACT_MONTHLY { get; set; }
         public virtual DbSet<V_FIN_PL_PLAN_VS_FACT_MONTHLY> V_FIN_PL_PLAN_VS_FACT_MONTHLY { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
+        public virtual DbSet<TANNARX> TANNARXes { get; set; }
+        public virtual DbSet<V_TANNARX_ACTUAL_ADMIN_EXPENSES> V_TANNARX_ACTUAL_ADMIN_EXPENSES { get; set; }
+        public virtual DbSet<V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT> V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT { get; set; }
+        public virtual DbSet<V_TANNARX_ACTUAL_LABOR_COSTS> V_TANNARX_ACTUAL_LABOR_COSTS { get; set; }
+        public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_COSTS> V_TANNARX_ACTUAL_MATERIAL_COSTS { get; set; }
+        public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_TRANSPORT> V_TANNARX_ACTUAL_MATERIAL_TRANSPORT { get; set; }
     
         public virtual int sp_Fin_AddTransaction(Nullable<System.DateTime> txnDate, Nullable<int> accountID, Nullable<int> categoryID, Nullable<byte> direction, Nullable<decimal> amount, Nullable<int> currencyID, Nullable<decimal> qty, Nullable<decimal> pricePerUnit, Nullable<byte> counterpartyType, Nullable<int> counterpartyID, string counterpartyName, string purpose, string sourceDocType, Nullable<int> sourceDocID, string contractNo, string comment, Nullable<int> createdByUserID, ObjectParameter newID)
         {
@@ -271,6 +278,19 @@ namespace tahsinERP.Models
                 new ObjectParameter("SOrderID", typeof(int));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_SOrder_RecalcDeliveryShippedFromInvoices", sOrderIDParameter);
+        }
+    
+        public virtual ObjectResult<Nullable<int>> SP_TANNARX_UPDATE_ACTUAL_COSTS(Nullable<int> year, Nullable<int> month)
+        {
+            var yearParameter = year.HasValue ?
+                new ObjectParameter("Year", year) :
+                new ObjectParameter("Year", typeof(int));
+    
+            var monthParameter = month.HasValue ?
+                new ObjectParameter("Month", month) :
+                new ObjectParameter("Month", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<Nullable<int>>("SP_TANNARX_UPDATE_ACTUAL_COSTS", yearParameter, monthParameter);
         }
     }
 }

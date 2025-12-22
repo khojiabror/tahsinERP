@@ -13,6 +13,7 @@ namespace tahsinERP.ViewModels
         public int RecentTasksCount { get; set; }
         public List<TaskStatusStatViewModel> StatusStatistics { get; set; } = new List<TaskStatusStatViewModel>();
         public List<TaskPriorityStatViewModel> PriorityStatistics { get; set; } = new List<TaskPriorityStatViewModel>();
+        public List<TaskOverdueStatViewModel> OverdueTasksStatistics { get; set; } = new List<TaskOverdueStatViewModel>();
     }
 
     public class TaskStatusStatViewModel
@@ -31,5 +32,11 @@ namespace tahsinERP.ViewModels
         public int DoneCount { get; set; }
         public int InProgressCount { get; set; }
         public int TodoCount { get; set; }
+    }
+
+    public class TaskOverdueStatViewModel
+    {
+        public string ProjectName { get; set; }
+        public int OverdueCount { get; set; }
     }
 }

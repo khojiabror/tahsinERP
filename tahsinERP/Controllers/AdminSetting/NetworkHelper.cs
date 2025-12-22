@@ -44,12 +44,41 @@ namespace tahsinERP.Controllers
                 
                 string ipAddress = null;
 
+                // Helper method to safely get server variable
+                // This is important for release/publish mode where ServerVariables might not work correctly
+                Func<string, string> getServerVar = (key) =>
+                {
+                    try
+                    {
+                        if (request.ServerVariables != null)
+                        {
+                            var allKeys = request.ServerVariables.AllKeys;
+                            if (allKeys != null && allKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                            {
+                                return request.ServerVariables[key];
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but don't fail
+                        System.Diagnostics.Debug.WriteLine($"GetClientIpAddress: Error getting server variable {key}: {ex.Message}");
+                    }
+                    return null;
+                };
+
                 // Priority 1: Check for IP in X-Forwarded-For header (for proxies/load balancers)
                 // This is usually the most reliable for getting client IP behind proxies
-                string xForwardedFor = request.Headers["X-Forwarded-For"];
+                string xForwardedFor = null;
+                try
+                {
+                    xForwardedFor = request.Headers["X-Forwarded-For"];
+                }
+                catch { }
+                
                 if (string.IsNullOrEmpty(xForwardedFor))
                 {
-                    xForwardedFor = request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                    xForwardedFor = getServerVar("HTTP_X_FORWARDED_FOR");
                 }
                 
                 if (!string.IsNullOrEmpty(xForwardedFor))
@@ -72,10 +101,16 @@ namespace tahsinERP.Controllers
                 // Priority 2: Check for X-Real-IP header (Nginx, etc.)
                 if (string.IsNullOrEmpty(ipAddress))
                 {
-                    string xRealIp = request.Headers["X-Real-IP"];
+                    string xRealIp = null;
+                    try
+                    {
+                        xRealIp = request.Headers["X-Real-IP"];
+                    }
+                    catch { }
+                    
                     if (string.IsNullOrEmpty(xRealIp))
                     {
-                        xRealIp = request.ServerVariables["HTTP_X_REAL_IP"];
+                        xRealIp = getServerVar("HTTP_X_REAL_IP");
                     }
                     if (!string.IsNullOrEmpty(xRealIp))
                     {
@@ -104,10 +139,16 @@ namespace tahsinERP.Controllers
                 // Priority 4: Check True-Client-IP (Akamai, Cloudflare Enterprise)
                 if (string.IsNullOrEmpty(ipAddress))
                 {
-                    string trueClientIp = request.Headers["True-Client-IP"];
+                    string trueClientIp = null;
+                    try
+                    {
+                        trueClientIp = request.Headers["True-Client-IP"];
+                    }
+                    catch { }
+                    
                     if (string.IsNullOrEmpty(trueClientIp))
                     {
-                        trueClientIp = request.ServerVariables["HTTP_TRUE_CLIENT_IP"];
+                        trueClientIp = getServerVar("HTTP_TRUE_CLIENT_IP");
                     }
                     if (!string.IsNullOrEmpty(trueClientIp))
                     {
@@ -133,60 +174,138 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Priority 6: Check REMOTE_ADDR (but filter out server IPs)
-                // This is usually the proxy IP, not the client IP, but we check it anyway
+                // Priority 6: Check REMOTE_ADDR
+                // IMPORTANT: REMOTE_ADDR is usually the actual client IP when there's no proxy
+                // In production, REMOTE_ADDR should contain the real client IP
                 if (string.IsNullOrEmpty(ipAddress))
                 {
-                    string remoteAddr = request.ServerVariables["REMOTE_ADDR"];
+                    string remoteAddr = getServerVar("REMOTE_ADDR");
+                    if (string.IsNullOrEmpty(remoteAddr))
+                    {
+                        // Try alternative server variable names
+                        remoteAddr = getServerVar("REMOTE_HOST");
+                    }
+                    
                     if (!string.IsNullOrEmpty(remoteAddr))
                     {
                         string trimmedIp = remoteAddr.Trim();
-                        if (!IsLoopback(trimmedIp) && !IsServerIp(trimmedIp, serverIps))
+                        
+                        // Check if we have proxy headers
+                        bool hasProxyHeaders = false;
+                        try
                         {
+                            hasProxyHeaders = !string.IsNullOrEmpty(request.Headers["X-Forwarded-For"]) ||
+                                             !string.IsNullOrEmpty(request.Headers["X-Real-IP"]) ||
+                                             !string.IsNullOrEmpty(getServerVar("HTTP_X_FORWARDED_FOR"));
+                        }
+                        catch { }
+                        
+                        // If no proxy headers, REMOTE_ADDR is the real client IP (even if it's 127.0.0.1 in dev)
+                        if (!hasProxyHeaders)
+                        {
+                            // No proxy = direct connection, REMOTE_ADDR is the client IP
                             ipAddress = trimmedIp;
+                            System.Diagnostics.Debug.WriteLine($"INFO: GetClientIpAddress - Using REMOTE_ADDR as client IP (no proxy headers): {trimmedIp}");
+                        }
+                        else
+                        {
+                            // We have proxy headers, so REMOTE_ADDR might be proxy IP
+                            // Only use it if it's not loopback and not server IP
+                            if (!IsLoopback(trimmedIp))
+                            {
+                                bool isDefinitelyServerIp = IsServerIp(trimmedIp, serverIps);
+                                
+                                if (!isDefinitelyServerIp)
+                                {
+                                    ipAddress = trimmedIp;
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"WARNING: GetClientIpAddress - REMOTE_ADDR appears to be server IP: {trimmedIp}, but proxy headers exist");
+                                }
+                            }
                         }
                     }
                 }
 
-                // Priority 7: Fall back to UserHostAddress (but filter out server IPs)
-                // This is usually the proxy IP, not the client IP
+                // Priority 7: Fall back to UserHostAddress
+                // UserHostAddress is usually the same as REMOTE_ADDR, but check it anyway
                 if (string.IsNullOrEmpty(ipAddress))
                 {
                     if (!string.IsNullOrEmpty(request.UserHostAddress))
                     {
                         string userHostIp = request.UserHostAddress.Trim();
-                        if (!IsLoopback(userHostIp) && !IsServerIp(userHostIp, serverIps))
+                        
+                        // Check if we have proxy headers
+                        bool hasProxyHeaders = !string.IsNullOrEmpty(request.Headers["X-Forwarded-For"]) ||
+                                               !string.IsNullOrEmpty(request.Headers["X-Real-IP"]);
+                        
+                        if (!hasProxyHeaders)
                         {
+                            // No proxy headers - UserHostAddress is the real client IP (even if 127.0.0.1 in dev)
                             ipAddress = userHostIp;
+                            System.Diagnostics.Debug.WriteLine($"INFO: GetClientIpAddress - Using UserHostAddress as client IP (no proxy headers): {userHostIp}");
+                        }
+                        else
+                        {
+                            // We have proxy headers, so only use if not loopback and not server IP
+                            if (!IsLoopback(userHostIp))
+                            {
+                                bool isDefinitelyServerIp = IsServerIp(userHostIp, serverIps);
+                                
+                                if (!isDefinitelyServerIp)
+                                {
+                                    ipAddress = userHostIp;
+                                }
+                            }
                         }
                     }
                 }
 
-                // Last resort: If we still don't have a valid IP, use REMOTE_ADDR even if it might be server IP
-                // But only if it's not loopback
+                // Last resort: If we still don't have a valid IP, use REMOTE_ADDR
+                // This handles edge cases where all checks failed
                 if (string.IsNullOrEmpty(ipAddress))
                 {
-                    string remoteAddr = request.ServerVariables["REMOTE_ADDR"];
+                    string remoteAddr = getServerVar("REMOTE_ADDR");
+                    if (string.IsNullOrEmpty(remoteAddr))
+                    {
+                        remoteAddr = getServerVar("REMOTE_HOST");
+                    }
+                    
                     if (!string.IsNullOrEmpty(remoteAddr))
                     {
-                        string trimmedIp = remoteAddr.Trim();
-                        if (!IsLoopback(trimmedIp))
-                        {
-                            // Check if it's server IP - if yes, log warning
-                            if (IsServerIp(trimmedIp, serverIps))
-                            {
-                                System.Diagnostics.Debug.WriteLine($"WARNING: GetClientIpAddress - REMOTE_ADDR appears to be server IP: {trimmedIp}. Headers checked: X-Forwarded-For={request.Headers["X-Forwarded-For"]}, X-Real-IP={request.Headers["X-Real-IP"]}");
-                            }
-                            ipAddress = trimmedIp;
-                        }
+                        ipAddress = remoteAddr.Trim();
+                        System.Diagnostics.Debug.WriteLine($"WARNING: GetClientIpAddress - Last resort: Using REMOTE_ADDR: {ipAddress}");
                     }
                 }
                 
-                // Debug: Log what we found
+                // Debug: Log what we found (only in debug mode to avoid performance issues in production)
+                #if DEBUG
                 if (!string.IsNullOrEmpty(ipAddress))
                 {
-                    System.Diagnostics.Debug.WriteLine($"GetClientIpAddress found: {ipAddress} (X-Forwarded-For: {request.Headers["X-Forwarded-For"]}, REMOTE_ADDR: {request.ServerVariables["REMOTE_ADDR"]})");
+                    System.Diagnostics.Debug.WriteLine($"GetClientIpAddress found: {ipAddress}");
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"  - X-Forwarded-For: {request.Headers["X-Forwarded-For"] ?? "null"}");
+                        System.Diagnostics.Debug.WriteLine($"  - X-Real-IP: {request.Headers["X-Real-IP"] ?? "null"}");
+                        System.Diagnostics.Debug.WriteLine($"  - REMOTE_ADDR: {getServerVar("REMOTE_ADDR") ?? "null"}");
+                        System.Diagnostics.Debug.WriteLine($"  - UserHostAddress: {request.UserHostAddress ?? "null"}");
+                    }
+                    catch { }
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"GetClientIpAddress: No valid IP found, returning 127.0.0.1");
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"  - X-Forwarded-For: {request.Headers["X-Forwarded-For"] ?? "null"}");
+                        System.Diagnostics.Debug.WriteLine($"  - X-Real-IP: {request.Headers["X-Real-IP"] ?? "null"}");
+                        System.Diagnostics.Debug.WriteLine($"  - REMOTE_ADDR: {getServerVar("REMOTE_ADDR") ?? "null"}");
+                        System.Diagnostics.Debug.WriteLine($"  - UserHostAddress: {request.UserHostAddress ?? "null"}");
+                    }
+                    catch { }
+                }
+                #endif
 
                 // Prefer IPv4 over IPv6 if we have both
                 if (!string.IsNullOrEmpty(ipAddress))
@@ -255,6 +374,7 @@ namespace tahsinERP.Controllers
 
             ip = ip.Trim();
             
+            // Exact match with server IPs
             foreach (string serverIp in serverIps)
             {
                 if (ip.Equals(serverIp, StringComparison.OrdinalIgnoreCase))
@@ -262,6 +382,60 @@ namespace tahsinERP.Controllers
             }
             
             return false;
+        }
+
+        /// <summary>
+        /// Checks if an IP address is a private network IP (LAN)
+        /// </summary>
+        private static bool IsPrivateNetworkIp(string ip)
+        {
+            if (string.IsNullOrEmpty(ip))
+                return false;
+
+            ip = ip.Trim();
+            
+            // Private network ranges:
+            // 10.0.0.0 - 10.255.255.255
+            // 172.16.0.0 - 172.31.255.255
+            // 192.168.0.0 - 192.168.255.255
+            
+            if (ip.StartsWith("10.") || 
+                ip.StartsWith("192.168.") ||
+                (ip.StartsWith("172.") && IsInRange(ip, "172.16.0.0", "172.31.255.255")))
+            {
+                return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if an IP is in a given range
+        /// </summary>
+        private static bool IsInRange(string ip, string startIp, string endIp)
+        {
+            try
+            {
+                IPAddress ipAddr = IPAddress.Parse(ip);
+                IPAddress startAddr = IPAddress.Parse(startIp);
+                IPAddress endAddr = IPAddress.Parse(endIp);
+                
+                byte[] ipBytes = ipAddr.GetAddressBytes();
+                byte[] startBytes = startAddr.GetAddressBytes();
+                byte[] endBytes = endAddr.GetAddressBytes();
+                
+                for (int i = 0; i < 4; i++)
+                {
+                    if (ipBytes[i] < startBytes[i] || ipBytes[i] > endBytes[i])
+                        return false;
+                }
+                
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>

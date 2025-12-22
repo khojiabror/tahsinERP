@@ -59,6 +59,9 @@ namespace tahsinERP.Controllers.HR
 
             var workEntries = await query.OrderByDescending(e => e.WorkDate).ToListAsync();
 
+            // Get approval statuses
+            var approvals = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS.ToListAsync();
+
             // Group by year, month, and org unit
             var groupedData = workEntries
                 .GroupBy(e => new { 
@@ -66,16 +69,26 @@ namespace tahsinERP.Controllers.HR
                     Month = e.WorkDate.Month,
                     OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
                 })
-                .Select(g => new HrPieceRateTimesheetIndexViewModel
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    MonthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
-                    OrgUnitID = g.Key.OrgUnitID,
-                    OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
-                    CalculatedAmount = CalculatePieceRateAmountForEntries(g.ToList()),
-                    CreatedDT = g.Min(e => e.CreatedDT),
-                    EntryCount = g.Count()
+                .Select(g => {
+                    var approval = approvals.FirstOrDefault(a => 
+                        a.Year == g.Key.Year && 
+                        a.Month == g.Key.Month && 
+                        a.OrgUnitID == g.Key.OrgUnitID);
+                    
+                    return new HrPieceRateTimesheetIndexViewModel
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        MonthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
+                        OrgUnitID = g.Key.OrgUnitID,
+                        OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                        CalculatedAmount = CalculatePieceRateAmountForEntries(g.ToList()),
+                        CreatedDT = g.Min(e => e.CreatedDT),
+                        EntryCount = g.Count(),
+                        Status = approval?.Status ?? "Draft",
+                        ApprovedDT = approval?.ApprovedDT,
+                        ApprovedByUserID = approval?.ApprovedByUserID
+                    };
                 })
                 .OrderByDescending(x => x.Year)
                 .ThenByDescending(x => x.Month)
@@ -474,35 +487,74 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        // GET: HR/PieceRateTimesheets/Approve/5
-        public async Task<ActionResult> Approve(int id)
+        // POST: HR/PieceRateTimesheets/Approve
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Approve(int year, int month, int? orgUnitId)
         {
+            // Check permission for Approve action specifically
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                TempData["Error"] = "Sizda tasdiqlash huquqi yo'q";
+                return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            var header = await db.HR_TIMESHEET_HEADERS.FindAsync(id);
-            if (header == null)
+            // Check if there are any work entries for this period
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+            if (orgUnitId.HasValue)
             {
-                return HttpNotFound();
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
             }
 
-            if (header.Status != "Draft")
+            var hasEntries = await query.AnyAsync();
+            if (!hasEntries)
             {
-                TempData["Error"] = "Faqat 'Qoralama' holatidagi tabelni tasdiqlash mumkin";
-                return RedirectToAction("Edit", new { id });
+                TempData["Error"] = "Bu oy uchun ishbay ma'lumotlari topilmadi";
+                return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            header.Status = "Approved";
-            header.ApprovedByUserID = UserHelper.GetUserId(User.Identity.Name);
-            header.ApprovedDT = DateTime.Now;
+            // Get or create approval record
+            var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == orgUnitId);
 
-            db.Entry(header).State = EntityState.Modified;
+            if (approval == null)
+            {
+                approval = new HR_PIECE_RATE_TIMESHEET_APPROVALS
+                {
+                    Year = year,
+                    Month = month,
+                    OrgUnitID = orgUnitId,
+                    Status = "Draft",
+                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                    CreatedDT = DateTime.Now
+                };
+                db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Add(approval);
+            }
+            else
+            {
+                if (approval.Status == "Approved")
+                {
+                    TempData["Error"] = "Bu tabel allaqachon tasdiqlangan";
+                    return RedirectToAction("Index", new { year, month, orgUnitId });
+                }
+            }
+
+            approval.Status = "Approved";
+            approval.ApprovedByUserID = UserHelper.GetUserId(User.Identity.Name);
+            approval.ApprovedDT = DateTime.Now;
+            approval.ModifiedByUserID = UserHelper.GetUserId(User.Identity.Name);
+            approval.ModifiedDT = DateTime.Now;
+
             await db.SaveChangesAsync();
 
-            logger.Log("HrPieceRateTimesheets", "Approve", $"ID: {id}");
-            return RedirectToAction("Index");
+            logger.Log("HrPieceRateTimesheets", "Approve", $"Year: {year}, Month: {month}, OrgUnitID: {orgUnitId}");
+            TempData["Success"] = "Tabel muvaffaqiyatli tasdiqlandi";
+            return RedirectToAction("Index", new { year, month, orgUnitId });
         }
 
         private async Task CreatePieceRateTimesheetLines(int timesheetId, int? orgUnitId)

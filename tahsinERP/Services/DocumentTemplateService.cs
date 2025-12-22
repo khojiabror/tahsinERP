@@ -31,16 +31,17 @@ namespace tahsinERP.Services
                 fileExtension = template.FileExtension ?? ".docx";
                 mimeType = template.MimeType ?? "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-                // Use OpenXml SDK to properly handle DOCX files
-                using (var templateStream = new MemoryStream(template.FileContent))
-                using (var outputStream = new MemoryStream())
+                // Create a copy of template content
+                byte[] templateBytes = new byte[template.FileContent.Length];
+                Array.Copy(template.FileContent, templateBytes, template.FileContent.Length);
+                
+                using (var stream = new MemoryStream())
                 {
-                    // Copy template to output stream
-                    templateStream.CopyTo(outputStream);
-                    outputStream.Position = 0;
+                    stream.Write(templateBytes, 0, templateBytes.Length);
+                    stream.Position = 0;
 
-                    // Open the document using OpenXml SDK
-                    using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(outputStream, true))
+                    // Open document for editing
+                    using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(stream, true))
                     {
                         MainDocumentPart mainPart = wordDoc.MainDocumentPart;
                         if (mainPart == null)
@@ -48,141 +49,255 @@ namespace tahsinERP.Services
                             throw new Exception("Invalid DOCX template: MainDocumentPart not found");
                         }
 
-                        // Get the document body
                         Document document = mainPart.Document;
                         if (document == null || document.Body == null)
                         {
                             throw new Exception("Invalid DOCX template: Document body not found");
                         }
 
-                        // Replace placeholders in all text elements
-                        ReplacePlaceholdersInBody(document.Body, placeholders);
+                        // Replace placeholders while preserving formatting and structure
+                        ReplacePlaceholdersPreservingFormat(document.Body, placeholders);
 
-                        // Save changes
+                        // Save the document
                         document.Save();
                     }
 
-                    return outputStream.ToArray();
+                    // Return the modified content
+                    return stream.ToArray();
                 }
             }
         }
 
-        private void ReplacePlaceholdersInBody(Body body, IDictionary<string, string> placeholders)
+        private void ReplacePlaceholdersPreservingFormat(OpenXmlElement element, IDictionary<string, string> placeholders)
         {
-            if (body == null)
+            if (element == null)
                 return;
 
-            // Process all paragraphs
-            foreach (Paragraph paragraph in body.Elements<Paragraph>())
+            // Process all paragraphs (including those in tables)
+            var paragraphs = element.Descendants<Paragraph>().ToList();
+            foreach (var paragraph in paragraphs)
             {
-                ReplacePlaceholdersInParagraph(paragraph, placeholders);
+                ReplaceInParagraph(paragraph, placeholders);
+            }
+        }
+
+        private void ReplaceInParagraph(Paragraph paragraph, IDictionary<string, string> placeholders)
+        {
+            if (paragraph == null)
+                return;
+
+            // Get all runs in the paragraph
+            var runs = paragraph.Elements<Run>().ToList();
+            if (runs.Count == 0)
+                return;
+
+            // Strategy: Build full text, replace placeholders, then redistribute back to runs
+            // This preserves Run structure and formatting
+            
+            // Step 1: Collect all text from all runs
+            StringBuilder fullText = new StringBuilder();
+            var runInfo = new List<RunInfo>();
+            
+            foreach (var run in runs)
+            {
+                var texts = run.Elements<Text>().ToList();
+                int startPos = fullText.Length;
+                int length = 0;
+                
+                foreach (var text in texts)
+                {
+                    if (text.Text != null)
+                    {
+                        fullText.Append(text.Text);
+                        length += text.Text.Length;
+                    }
+                }
+                
+                if (length > 0)
+                {
+                    runInfo.Add(new RunInfo
+                    {
+                        Run = run,
+                        StartPos = startPos,
+                        Length = length,
+                        TextElements = texts
+                    });
+                }
             }
 
-            // Process tables
-            foreach (Table table in body.Elements<Table>())
+            string combinedText = fullText.ToString();
+            
+            // Step 2: Check if any placeholder exists
+            bool hasPlaceholder = combinedText.Contains("{{");
+            if (!hasPlaceholder)
+                return;
+
+            // Step 3: Replace all placeholders
+            string replacedText = ReplaceAllPlaceholderFormats(combinedText, placeholders);
+            
+            if (replacedText == combinedText)
+                return; // No changes
+
+            // Step 4: Redistribute replaced text back to runs, preserving formatting
+            // If replaced text is much longer than original, we need to handle it differently
+            if (replacedText.Length > combinedText.Length * 2)
             {
-                foreach (TableRow row in table.Elements<TableRow>())
+                // Text is significantly longer - rebuild paragraph completely but preserve formatting
+                var firstRun = runs.FirstOrDefault();
+                RunProperties runProps = firstRun?.RunProperties?.Clone() as RunProperties;
+                
+                // Clear all runs
+                paragraph.RemoveAllChildren<Run>();
+                
+                // Create new run with all text, preserving formatting
+                Run newRun = new Run();
+                if (runProps != null)
                 {
-                    foreach (TableCell cell in row.Elements<TableCell>())
+                    newRun.RunProperties = runProps;
+                }
+                
+                // Split by newlines and create text with breaks
+                string[] lines = replacedText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    newRun.AppendChild(new Text(lines[i]));
+                    if (i < lines.Length - 1)
                     {
-                        foreach (Paragraph para in cell.Elements<Paragraph>())
+                        newRun.AppendChild(new Break());
+                    }
+                }
+                
+                paragraph.AppendChild(newRun);
+            }
+            else
+            {
+                // Normal case - redistribute text to existing runs
+                int currentPos = 0;
+                
+                foreach (var info in runInfo)
+                {
+                    if (currentPos >= replacedText.Length)
+                    {
+                        // Remove all text from this run
+                        foreach (var text in info.TextElements)
                         {
-                            ReplacePlaceholdersInParagraph(para, placeholders);
+                            text.Text = "";
+                        }
+                        continue;
+                    }
+                    
+                    // Calculate how much text should go to this run
+                    int textToAssign = Math.Min(info.Length, replacedText.Length - currentPos);
+                    string textForRun = replacedText.Substring(currentPos, textToAssign);
+                    
+                    // Update the first text element, clear others
+                    if (info.TextElements.Count > 0)
+                    {
+                        info.TextElements[0].Text = textForRun;
+                        for (int i = 1; i < info.TextElements.Count; i++)
+                        {
+                            info.TextElements[i].Text = "";
+                        }
+                    }
+                    else if (textForRun.Length > 0)
+                    {
+                        // Create new text element if none exists
+                        info.Run.AppendChild(new Text(textForRun));
+                    }
+                    
+                    currentPos += textToAssign;
+                }
+                
+                // Step 5: If there's remaining text, add it to the last run or create new runs
+                if (currentPos < replacedText.Length)
+                {
+                    string remainingText = replacedText.Substring(currentPos);
+                    if (remainingText.Length > 0)
+                    {
+                        // Split remaining text by newlines
+                        string[] remainingLines = remainingText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                        
+                        var firstRun = runs.FirstOrDefault();
+                        RunProperties runProps = firstRun?.RunProperties?.Clone() as RunProperties;
+                        
+                        foreach (string line in remainingLines)
+                        {
+                            if (string.IsNullOrEmpty(line))
+                                continue;
+                                
+                            Run newRun = new Run();
+                            if (runProps != null)
+                            {
+                                newRun.RunProperties = runProps.Clone() as RunProperties;
+                            }
+                            newRun.AppendChild(new Text(line));
+                            paragraph.AppendChild(newRun);
+                            
+                            // Add break after each line except the last
+                            if (line != remainingLines.Last())
+                            {
+                                Run breakRun = new Run();
+                                if (runProps != null)
+                                {
+                                    breakRun.RunProperties = runProps.Clone() as RunProperties;
+                                }
+                                breakRun.AppendChild(new Break());
+                                paragraph.AppendChild(breakRun);
+                            }
                         }
                     }
                 }
             }
         }
 
-        private void ReplacePlaceholdersInParagraph(Paragraph paragraph, IDictionary<string, string> placeholders)
+        private class RunInfo
         {
-            if (paragraph == null)
-                return;
+            public Run Run { get; set; }
+            public int StartPos { get; set; }
+            public int Length { get; set; }
+            public List<Text> TextElements { get; set; }
+        }
 
-            // Collect all text from all runs in the paragraph
-            var runs = paragraph.Elements<Run>().ToList();
-            if (runs.Count == 0)
-                return;
+        private string ReplaceAllPlaceholderFormats(string text, IDictionary<string, string> placeholders)
+        {
+            string result = text;
 
-            // Build full text from all runs
-            StringBuilder fullText = new StringBuilder();
-            var textElements = new List<Text>();
-
-            foreach (var run in runs)
+            // First, replace nested placeholder formats (from template)
+            var nestedMappings = new Dictionary<string, string>
             {
-                foreach (var text in run.Elements<Text>())
+                { "{{Letter.No}}", placeholders.ContainsKey("LETTER_NO") ? placeholders["LETTER_NO"] : "" },
+                { "{{Letter.Date}}", placeholders.ContainsKey("LETTER_DATE") ? placeholders["LETTER_DATE"] : "" },
+                { "{{Receipent.Receiver.Name}}", placeholders.ContainsKey("GREETING_LINE") ? placeholders["GREETING_LINE"] : (placeholders.ContainsKey("RECIPIENT_BLOCK") ? placeholders["RECIPIENT_BLOCK"] : "") },
+                { "{{Receipent.CompanyName}}", placeholders.ContainsKey("RECIPIENT_BLOCK") ? placeholders["RECIPIENT_BLOCK"] : "" },
+                { "{{Receipent.Company.Receiver.Position}}", placeholders.ContainsKey("RECIPIENT_BLOCK") ? placeholders["RECIPIENT_BLOCK"] : "" },
+                { "{{Content}}", placeholders.ContainsKey("LETTER_BODY") ? placeholders["LETTER_BODY"] : "" },
+                // Company Orders placeholders
+                { "{{ORDER_NO}}", placeholders.ContainsKey("ORDER_NO") ? placeholders["ORDER_NO"] : (placeholders.ContainsKey("ORDER NO") ? placeholders["ORDER NO"] : "") },
+                { "{{ORDER NO}}", placeholders.ContainsKey("ORDER_NO") ? placeholders["ORDER_NO"] : (placeholders.ContainsKey("ORDER NO") ? placeholders["ORDER NO"] : "") }
+            };
+
+            // Replace nested format placeholders
+            foreach (var mapping in nestedMappings)
+            {
+                if (result.Contains(mapping.Key))
                 {
-                    if (text.Text != null)
-                    {
-                        fullText.Append(text.Text);
-                        textElements.Add(text);
-                    }
+                    result = result.Replace(mapping.Key, mapping.Value);
                 }
             }
 
-            string combinedText = fullText.ToString();
-            bool hasPlaceholder = false;
-
-            // Check if any placeholder exists
-            foreach (var placeholder in placeholders)
+            // Then replace standard format placeholders ({{KEY}})
+            foreach (var kvp in placeholders)
             {
-                string placeholderKey = "{{" + placeholder.Key + "}}";
-                if (combinedText.Contains(placeholderKey))
-                {
-                    hasPlaceholder = true;
-                    break;
-                }
-            }
-
-            if (!hasPlaceholder)
-                return;
-
-            // Replace all placeholders
-            string replacedText = combinedText;
-            foreach (var placeholder in placeholders)
-            {
-                string placeholderKey = "{{" + placeholder.Key + "}}";
-                string value = placeholder.Value ?? string.Empty;
-                replacedText = replacedText.Replace(placeholderKey, value);
-            }
-
-            // If text changed, update the paragraph
-            if (replacedText != combinedText)
-            {
-                // Clear all runs
-                paragraph.RemoveAllChildren<Run>();
-
-                // Split by newlines and create new runs
-                string[] lines = replacedText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                string placeholderKey = "{{" + kvp.Key + "}}";
+                string value = kvp.Value ?? string.Empty;
                 
-                // Get formatting from first run if available
-                RunProperties runProperties = null;
-                if (runs.Count > 0)
+                if (result.Contains(placeholderKey))
                 {
-                    runProperties = runs[0].RunProperties?.Clone() as RunProperties;
-                }
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    Run newRun = new Run();
-                    
-                    // Copy formatting if available
-                    if (runProperties != null)
-                    {
-                        newRun.RunProperties = runProperties.Clone() as RunProperties;
-                    }
-
-                    newRun.AppendChild(new Text(lines[i]));
-
-                    // Add line break after each line except the last
-                    if (i < lines.Length - 1)
-                    {
-                        newRun.AppendChild(new Break());
-                    }
-
-                    paragraph.AppendChild(newRun);
+                    result = result.Replace(placeholderKey, value);
                 }
             }
+
+            return result;
         }
     }
 }

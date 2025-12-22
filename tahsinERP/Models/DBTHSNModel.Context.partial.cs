@@ -9,6 +9,7 @@ namespace tahsinERP.Models
     public partial class DBTHSNEntities : DbContext
     {
         public virtual DbSet<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
+        public virtual DbSet<TANNARX> TANNARXes { get; set; }
     }
 }
 

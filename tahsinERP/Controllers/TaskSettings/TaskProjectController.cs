@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -40,6 +41,13 @@ namespace tahsinERP.Controllers.TaskSettings
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            // Oddiy user uchun faqat o'z tasklarini ko'rsatish
+            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
+            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
+                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var project = await db.APP_TASK_PROJECTS.FindAsync(id);
@@ -47,6 +55,48 @@ namespace tahsinERP.Controllers.TaskSettings
                 {
                     return HttpNotFound();
                 }
+
+                // Get tasks for this project
+                var tasksQuery = db.APP_TASKS
+                    .Include(t => t.APP_TASK_STATUS_REF)
+                    .Include(t => t.APP_TASK_PRIORITY_REF)
+                    .Where(t => t.ProjectID == id && t.IsDeleted == false);
+
+                // Oddiy user uchun faqat o'z tasklarini ko'rsatish
+                if (!isAdminOrDeveloper)
+                {
+                    tasksQuery = tasksQuery.Where(t => t.AssigneeUserID == currentUserId);
+                }
+
+                var tasks = await tasksQuery
+                    .OrderByDescending(t => t.CreatedDT)
+                    .ToListAsync();
+
+                // Convert to ViewModels
+                var taskViewModels = tasks.Select(t => new ViewModels.TaskViewModel
+                {
+                    ID = t.ID,
+                    KeyCode = t.KeyCode,
+                    Title = t.Title,
+                    Description = t.Description,
+                    StatusID = t.StatusID,
+                    StatusName = t.APP_TASK_STATUS_REF?.Name,
+                    PriorityID = t.PriorityID,
+                    PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
+                    AssigneeUserID = t.AssigneeUserID,
+                    AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
+                    ReporterUserID = t.ReporterUserID,
+                    ReporterFullName = t.ReporterUserID.HasValue ? UserHelper.GetFullName(userID: t.ReporterUserID.Value) : null,
+                    CreatedDT = t.CreatedDT,
+                    UpdatedDT = t.UpdatedDT,
+                    DueDate = t.DueDate,
+                    ProjectID = t.ProjectID,
+                    ProjectName = project.Name
+                }).ToList();
+
+                ViewBag.Tasks = taskViewModels;
+                ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
+
                 return View(project);
             }
         }

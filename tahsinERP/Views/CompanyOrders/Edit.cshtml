@@ -110,7 +110,7 @@
     </div>
 
     <script>
-        $(document).ready(function() {
+        jQuery(document).ready(function($) {
             $('#btnSuggestText').click(function() {
                 var $btn = $(this);
                 var originalText = $btn.html();
@@ -124,6 +124,9 @@
                 $.ajax({
                     url: '@Url.Action("SuggestText", "CompanyOrders")',
                     type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
                     data: {
                         orderTypeCode: orderTypeCode,
                         orderDate: orderDate || null,
@@ -139,8 +142,14 @@
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('AJAX Error:', error);
-                        alert('Xatolik yuz berdi: ' + error);
+                        console.error('AJAX Error:', error, xhr.responseText);
+                        var errorMsg = 'Xatolik yuz berdi';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        } else if (xhr.responseText) {
+                            errorMsg = xhr.responseText;
+                        }
+                        alert(errorMsg);
                     },
                     complete: function() {
                         $btn.prop('disabled', false).html(originalText);

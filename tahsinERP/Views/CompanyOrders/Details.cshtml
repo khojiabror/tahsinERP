@@ -48,7 +48,7 @@
                                                 </a>
                                                 <form method="post" action="@Url.Action("GenerateDoc", "CompanyOrders", new { id = Model.ID })" style="display:inline;">
                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-success">
+                                                    <button type="submit" class="btn btn-success" style="color: white;">
                                                         <i class="bx bx-file"></i> Hujjat yaratish
                                                     </button>
                                                 </form>
@@ -158,7 +158,7 @@
                                                                 <td>@file.FileName</td>
                                                                 <td>@file.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
                                                                 <td>
-                                                                    <a href="@Url.Action("DownloadFile", new { fileId = file.ID })" class="btn btn-sm btn-primary">
+                                                                    <a href="@Url.Action("DownloadFile", new { fileId = file.ID })" class="btn btn-sm btn-primary" style="color: white !important;">
                                                                         <i class="bx bx-download"></i> Yuklab olish
                                                                     </a>
                                                                 </td>

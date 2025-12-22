@@ -1,0 +1,241 @@
+@model IEnumerable<tahsinERP.ViewModels.Tannarx.TannarxIndexViewModel>
+
+@{
+    ViewBag.Title = "Tannarx";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Create");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarx</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item active">Ro'yxat</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Info"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        @TempData["Info"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    <div class="users-list-filter px-1">
+                        <form id="filterForm" method="get" action="@Url.Action("Index", "Tannarx")">
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label for="yearFilter">Yil</label>
+                                    @Html.DropDownList(
+                                        "year",
+                                        (SelectList)ViewBag.Years,
+                                        new { @id = "yearFilter", @class = "form-control" }
+                                    )
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label for="monthFilter">Oy</label>
+                                    @Html.DropDownList(
+                                        "month",
+                                        (SelectList)ViewBag.Months,
+                                        new { @id = "monthFilter", @class = "form-control" }
+                                    )
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label for="productFilter">Maxsulot</label>
+                                    @Html.DropDownList(
+                                        "productID",
+                                        (SelectList)ViewBag.Products,
+                                        "Barchasi",
+                                        new { @id = "productFilter", @class = "form-control" }
+                                    )
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-search"></i> Filtrlash
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="tannarxTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Maxsulot ID</th>
+                                                    <th>Turi</th>
+                                                    <th>O'lchami</th>
+                                                    <th>Oy</th>
+                                                    <th>Material narxi</th>
+                                                    <th>Material tashuvi narxi PLANNED</th>
+                                                    <th style="background-color: #fff3cd;">A Ish haqi (Faqat ishchilar)</th>
+                                                    <th style="background-color: #fff3cd;">B Soliq va bank</th>
+                                                    <th style="background-color: #fff3cd;">Adminstrativ harajatlar</th>
+                                                    <th style="background-color: #fff3cd;">C Boshqa xarajatlar</th>
+                                                    <th style="background-color: #fff3cd;">D Foyda</th>
+                                                    <th style="background-color: #ffe5cc;">Sotuv narxi EXW QQS siz</th>
+                                                    <th style="background-color: #ffe5cc;">Sotuv narxi QQS bilan EXW</th>
+                                                    <th style="background-color: #ffe5cc;">Belgilangan narxi QQS bilan EXW</th>
+                                                    <th style="background-color: #ffe5cc;">Tayyor maxsulot tashuvi narxi PLANNED</th>
+                                                    <th style="background-color: #cce5ff;">Sotuv narxi CIP QQS siz</th>
+                                                    <th style="background-color: #cce5ff;">Sotuv narxi QQS bilan CIP</th>
+                                                    <th style="background-color: #cce5ff;">Belgilangan QQS bilan CIP</th>
+                                                    <th class="text-center">Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>@item.ProductPNo</td>
+                                                            <td>@item.ProductType</td>
+                                                            <td>@item.Dimensions</td>
+                                                            <td>@item.MonthString</td>
+                                                            <td>@item.MaterialPrice.ToString("N0") so'm</td>
+                                                            <td>@item.MaterialTransportCost.ToString("N0") so'm</td>
+                                                            <td>@item.LaborCost.ToString("N0") so'm</td>
+                                                            <td>@item.TaxAndBank.ToString("N0") so'm</td>
+                                                            <td>@item.AdministrativeExpenses.ToString("N0") so'm</td>
+                                                            <td>@item.OtherExpenses.ToString("N0") so'm</td>
+                                                            <td>@item.Profit.ToString("N0") so'm</td>
+                                                            <td>@item.SalesPriceEXWWithoutVAT.ToString("N0") so'm</td>
+                                                            <td>@item.SalesPriceEXWWithVAT.ToString("N0") so'm</td>
+                                                            <td>@(item.SetPriceEXWWithVAT?.ToString("N0") ?? "-") so'm</td>
+                                                            <td>@(item.FinishedProductTransportCost?.ToString("N0") ?? "-") so'm</td>
+                                                            <td>@item.SalesPriceCIPWithoutVAT.ToString("N0") so'm</td>
+                                                            <td>@item.SalesPriceCIPWithVAT.ToString("N0") so'm</td>
+                                                            <td>@(item.SetPriceCIPWithVAT?.ToString("N0") ?? "-") so'm</td>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Details", "Tannarx", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
+                                                                    <i class="bx bx-show"></i>
+                                                                </a>
+                                                                @if (changePermit)
+                                                                {
+                                                                    <a href="@Url.Action("Edit", "Tannarx", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                        <i class="bx bx-pencil"></i>
+                                                                    </a>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="19" class="text-center text-muted">Tannarx ma'lumotlari topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    @if (ViewBag.ShowGenerateButton == true)
+                                    {
+                                        <div class="mt-3 text-center">
+                                            @using (Html.BeginForm("Generate", "Tannarx", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="year" value="@ViewBag.Year" />
+                                                <input type="hidden" name="month" value="@ViewBag.Month" />
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="bx bx-plus"></i> Tannarx shakllantirish
+                                                </button>
+                                            }
+                                            <p class="text-muted mt-2 text-center">
+                                                <small>Norma kiritilgan maxsulotlar: @ViewBag.FinishedGoodsWithNormsCount | Tannarx mavjud: @ViewBag.TannarxCount</small>
+                                            </p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Wait for document and all scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use jQuery since noConflict(true) is called in _Layout.cshtml
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded');
+                return;
+            }
+
+            // Initialize DataTable
+            var table = jQuery('#tannarxTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]],
+                "columnDefs": [
+                    { "orderable": false, "targets": -1 }
+                ],
+                "scrollX": true
+            });
+
+            // Filter change handlers - submit form on change
+            jQuery('#yearFilter, #monthFilter, #productFilter').on('change', function () {
+                jQuery('#filterForm').submit();
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

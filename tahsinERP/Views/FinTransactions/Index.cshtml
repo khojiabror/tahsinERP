@@ -138,24 +138,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                
-                                @if (ViewBag.TotalRecords > ViewBag.PageSize)
-                                {
-                                    <div class="d-flex justify-content-between mt-2">
-                                        <div>Jami: @ViewBag.TotalRecords ta yozuv</div>
-                                        <div>
-                                            @if (ViewBag.CurrentPage > 1)
-                                            {
-                                                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, pageSize = ViewBag.PageSize })" class="btn btn-sm btn-outline-primary">Oldingi</a>
-                                            }
-                                            <span class="mx-2">Sahifa @ViewBag.CurrentPage</span>
-                                            @if (ViewBag.CurrentPage * ViewBag.PageSize < ViewBag.TotalRecords)
-                                            {
-                                                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, pageSize = ViewBag.PageSize })" class="btn btn-sm btn-outline-primary">Keyingi</a>
-                                            }
-                                        </div>
-                                    </div>
-                                }
                             </div>
                         </div>
                     </div>
@@ -163,6 +145,42 @@
             </div>
         </div>
     </div>
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                var table = $('#transactionsTable').DataTable({
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": {
+                            "first": "Birinchi",
+                            "last": "Oxirgi",
+                            "next": "Keyingi",
+                            "previous": "Oldingi"
+                        },
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "order": [[0, "desc"]], // Default: Sana bo'yicha teskari tartib
+                    "columnDefs": [
+                        @if (changePermit)
+                        {
+                            <text>
+                            { "orderable": false, "targets": -1 } // Amallar ustuni sorting'siz
+                            </text>
+                        }
+                    ],
+                    "dom": 'lBfrtip',
+                    "pagingType": "full_numbers" // Page raqamlarini ko'rsatish (1, 2, 3...)
+                });
+            });
+        </script>
+    }
 }
 else
 {

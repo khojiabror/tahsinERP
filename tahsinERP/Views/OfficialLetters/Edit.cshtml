@@ -92,6 +92,16 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
+                                                    @Html.LabelFor(m => m.ExternalContactPosition, new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.ExternalContactPosition, new { @class = "form-control" })
+                                                    @Html.ValidationMessageFor(m => m.ExternalContactPosition, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
                                                     @Html.LabelFor(m => m.OurRefNo, new { @class = "control-label" })
                                                     @Html.TextBoxFor(m => m.OurRefNo, new { @class = "form-control" })
                                                     @Html.ValidationMessageFor(m => m.OurRefNo, "", new { @class = "text-danger" })
@@ -177,52 +187,75 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            $('#btnSuggestText').click(function() {
-                var $btn = $(this);
-                var originalText = $btn.html();
-                $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
+        (function() {
+            // Wait for jQuery to be loaded
+            function initSuggestText() {
+                if (typeof jQuery === 'undefined' && typeof $ === 'undefined') {
+                    setTimeout(initSuggestText, 100);
+                    return;
+                }
+                
+                var $ = jQuery || window.$;
+                
+                $(document).ready(function() {
+                    $('#btnSuggestText').click(function() {
+                        var $btn = $(this);
+                        var originalText = $btn.html();
+                        $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
 
-                var directionCode = $('#DirectionCode').val() || 'OUT';
-                var externalCompanyName = $('#ExternalCompanyName').val() || '';
-                var externalContactName = $('#ExternalContactName').val() || '';
-                var topic = $('#TopicInput').val() || '';
-                var letterDate = $('#LetterDate').val() || null;
-                var ourRefNo = $('#OurRefNo').val() || '';
-                var theirRefNo = $('#TheirRefNo').val() || '';
+                        var directionCode = $('#DirectionCode').val() || 'OUT';
+                        var externalCompanyName = $('#ExternalCompanyName').val() || '';
+                        var externalContactName = $('#ExternalContactName').val() || '';
+                        var topic = $('#TopicInput').val() || '';
+                        var letterDate = $('#LetterDate').val() || null;
+                        var ourRefNo = $('#OurRefNo').val() || '';
+                        var theirRefNo = $('#TheirRefNo').val() || '';
 
-                $.ajax({
-                    url: '@Url.Action("SuggestText", "OfficialLetters")',
-                    type: 'POST',
-                    data: {
-                        directionCode: directionCode,
-                        externalCompanyName: externalCompanyName,
-                        externalContactName: externalContactName,
-                        topic: topic,
-                        letterDate: letterDate,
-                        ourRefNo: ourRefNo,
-                        theirRefNo: theirRefNo
-                    },
-                    success: function(response) {
-                        if (response && response.success) {
-                            $('#BodyTextArea').val(response.text);
-                            if (externalContactName) {
-                                $('#GreetingInput').val('Hurmatli ' + externalContactName + '!');
+                        $.ajax({
+                            url: '@Url.Action("SuggestText", "OfficialLetters")',
+                            type: 'POST',
+                            headers: {
+                                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            data: {
+                                directionCode: directionCode,
+                                externalCompanyName: externalCompanyName,
+                                externalContactName: externalContactName,
+                                topic: topic,
+                                letterDate: letterDate,
+                                ourRefNo: ourRefNo,
+                                theirRefNo: theirRefNo
+                            },
+                            success: function(response) {
+                                if (response && response.success) {
+                                    $('#BodyTextArea').val(response.text);
+                                    if (externalContactName) {
+                                        $('#GreetingInput').val('Hurmatli ' + externalContactName + '!');
+                                    }
+                                } else {
+                                    alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('AJAX Error:', error, xhr.responseText);
+                                var errorMsg = 'Xatolik yuz berdi';
+                                if (xhr.responseJSON && xhr.responseJSON.error) {
+                                    errorMsg = xhr.responseJSON.error;
+                                } else if (xhr.responseText) {
+                                    errorMsg = xhr.responseText;
+                                }
+                                alert(errorMsg);
+                            },
+                            complete: function() {
+                                $btn.prop('disabled', false).html(originalText);
                             }
-                        } else {
-                            alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('AJAX Error:', error);
-                        alert('Xatolik yuz berdi: ' + error);
-                    },
-                    complete: function() {
-                        $btn.prop('disabled', false).html(originalText);
-                    }
+                        });
+                    });
                 });
-            });
-        });
+            }
+            
+            initSuggestText();
+        })();
     </script>
 }
 else

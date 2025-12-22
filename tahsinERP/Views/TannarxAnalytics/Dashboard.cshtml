@@ -1,0 +1,410 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxAnalyticsDashboardViewModel
+
+@{
+    ViewBag.Title = "Tannarx Analytics Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarx Analytics Dashboard</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item active">Analytics Dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <!-- Filters -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="filterForm" method="get" action="@Url.Action("Dashboard", "TannarxAnalytics")">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label>Yil</label>
+                                            @Html.DropDownList("year", (SelectList)ViewBag.Years, new { @class = "form-control", @id = "yearFilter" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Oy</label>
+                                            @Html.DropDownList("month", (SelectList)ViewBag.Months, new { @class = "form-control", @id = "monthFilter" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Maxsulot</label>
+                                            @Html.DropDownList("productID", (SelectList)ViewBag.Products, "Barchasi", new { @class = "form-control", @id = "productFilter" })
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-search"></i> Filtrlash
+                                            </button>
+                                        </div>
+                                        @if (changePermit)
+                                        {
+                                            <div class="col-md-3 d-flex align-items-end">
+                                                @using (Html.BeginForm("UpdateActualCosts", "TannarxAnalytics", FormMethod.Post, new { @class = "d-inline" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="year" value="@Model.Year" />
+                                                    <input type="hidden" name="month" value="@Model.Month" />
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-refresh"></i> Actual Costs Yangilash
+                                                    </button>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row">
+                    <!-- Material Price Variance -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div class="dashboard-content-left">
+                                            <p class="mb-0 text-muted">Material Narxi</p>
+                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.MaterialPriceVariance >= 0 ? "#dc3545" : "#198754");">
+                                                @Model.MaterialPriceVariancePercent.ToString("N2")%
+                                            </h2>
+                                            <small class="text-muted">
+                                                Planned: @Model.TotalPlannedMaterialPrice.ToString("N0")<br />
+                                                Actual: @Model.TotalActualMaterialPrice.ToString("N0")
+                                            </small>
+                                        </div>
+                                        <div class="dashboard-content-right">
+                                            <div class="avatar p-50 m-0" style="background: rgba(25, 135, 84, 0.15);">
+                                                <div class="avatar-content">
+                                                    <i class="bx bx-package font-medium-5" style="color: #198754;"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Labor Cost Variance -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div class="dashboard-content-left">
+                                            <p class="mb-0 text-muted">Ish Haqi</p>
+                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.LaborCostVariance >= 0 ? "#dc3545" : "#198754");">
+                                                @Model.LaborCostVariancePercent.ToString("N2")%
+                                            </h2>
+                                            <small class="text-muted">
+                                                Planned: @Model.TotalPlannedLaborCost.ToString("N0")<br />
+                                                Actual: @Model.TotalActualLaborCost.ToString("N0")
+                                            </small>
+                                        </div>
+                                        <div class="dashboard-content-right">
+                                            <div class="avatar p-50 m-0" style="background: rgba(220, 53, 69, 0.15);">
+                                                <div class="avatar-content">
+                                                    <i class="bx bx-user font-medium-5" style="color: #dc3545;"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EXW Variance -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div class="dashboard-content-left">
+                                            <p class="mb-0 text-muted">EXW Narxi</p>
+                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.EXWVariance >= 0 ? "#dc3545" : "#198754");">
+                                                @Model.EXWVariancePercent.ToString("N2")%
+                                            </h2>
+                                            <small class="text-muted">
+                                                Planned: @Model.TotalPlannedEXWWithVAT.ToString("N0")<br />
+                                                Actual: @Model.TotalActualEXWWithVAT.ToString("N0")
+                                            </small>
+                                        </div>
+                                        <div class="dashboard-content-right">
+                                            <div class="avatar p-50 m-0" style="background: rgba(255, 193, 7, 0.15);">
+                                                <div class="avatar-content">
+                                                    <i class="bx bx-dollar font-medium-5" style="color: #ffc107;"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CIP Variance -->
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div class="dashboard-content-left">
+                                            <p class="mb-0 text-muted">CIP Narxi</p>
+                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.CIPVariance >= 0 ? "#dc3545" : "#198754");">
+                                                @Model.CIPVariancePercent.ToString("N2")%
+                                            </h2>
+                                            <small class="text-muted">
+                                                Planned: @Model.TotalPlannedCIPWithVAT.ToString("N0")<br />
+                                                Actual: @Model.TotalActualCIPWithVAT.ToString("N0")
+                                            </small>
+                                        </div>
+                                        <div class="dashboard-content-right">
+                                            <div class="avatar p-50 m-0" style="background: rgba(0, 123, 255, 0.15);">
+                                                <div class="avatar-content">
+                                                    <i class="bx bx-truck font-medium-5" style="color: #007bff;"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <!-- Monthly Trend Chart -->
+                    <div class="col-lg-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Oylik Trend (Planned vs Actual)</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div id="monthly-trend-chart" style="min-height: 350px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Variance Products -->
+                    <div class="col-lg-4 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Eng Katta Variancelar</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Maxsulot</th>
+                                                    <th>Variance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.TopVarianceProducts != null && Model.TopVarianceProducts.Any())
+                                                {
+                                                    foreach (var product in Model.TopVarianceProducts)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <small>@product.ProductPNo</small><br />
+                                                                <span class="font-weight-bold">@product.ProductName</span>
+                                                            </td>
+                                                            <td class="text-right">
+                                                                <span class="badge badge-@(product.Variance >= 0 ? "danger" : "success")">
+                                                                    @product.VariancePercent.ToString("N1")%
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted">Ma'lumot yo'q</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Umumiy Statistika</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <p class="mb-0 text-muted">Jami Maxsulotlar</p>
+                                            <h3 class="font-weight-bolder">@Model.TotalProducts</h3>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="mb-0 text-muted">Actual Ma'lumotli</p>
+                                            <h3 class="font-weight-bolder">@Model.ProductsWithActualData</h3>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="mb-0 text-muted">To'ldirilgan Foiz</p>
+                                            <h3 class="font-weight-bolder">
+                                                @(Model.TotalProducts > 0 ? ((Model.ProductsWithActualData * 100) / Model.TotalProducts).ToString("N1") : "0")%
+                                            </h3>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a href="@Url.Action("Report", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-primary btn-block">
+                                                <i class="bx bx-file"></i> Batafsil Hisobot
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section scripts
+    {
+        <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof jQuery === 'undefined') {
+                    console.error('jQuery is not loaded');
+                    return;
+                }
+
+                // Monthly Trend Chart using ApexCharts
+                var monthlyTrendData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new {
+                    labels = Model.MonthlyTrends?.Select(t => t.MonthString).ToArray() ?? new string[0],
+                    planned = Model.MonthlyTrends?.Select(t => (double)t.PlannedTotal).ToArray() ?? new double[0],
+                    actual = Model.MonthlyTrends?.Select(t => (double)t.ActualTotal).ToArray() ?? new double[0]
+                }));
+
+                // Wait for ApexCharts to load
+                function initChart() {
+                    if (typeof ApexCharts !== 'undefined') {
+                        var monthlyTrendOptions = {
+                            chart: {
+                                height: 350,
+                                type: 'line',
+                                zoom: {
+                                    enabled: false
+                                },
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                curve: 'straight',
+                                width: 3
+                            },
+                            legend: {
+                                position: 'top',
+                                horizontalAlign: 'right'
+                            },
+                            colors: ['#198754', '#dc3545'],
+                            series: [{
+                                name: 'Planned',
+                                data: monthlyTrendData.planned
+                            }, {
+                                name: 'Actual',
+                                data: monthlyTrendData.actual
+                            }],
+                            xaxis: {
+                                categories: monthlyTrendData.labels
+                            },
+                            yaxis: {
+                                labels: {
+                                    formatter: function(val) {
+                                        return Math.round(val).toLocaleString('uz-UZ') + ' so\'m';
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function(val) {
+                                        return Math.round(val).toLocaleString('uz-UZ') + ' so\'m';
+                                    }
+                                }
+                            }
+                        };
+
+                        var monthlyTrendChart = new ApexCharts(
+                            document.querySelector("#monthly-trend-chart"),
+                            monthlyTrendOptions
+                        );
+                        monthlyTrendChart.render();
+                    } else {
+                        // Retry after a short delay if ApexCharts is not loaded yet
+                        setTimeout(initChart, 100);
+                    }
+                }
+
+                initChart();
+
+                // Filter change handlers
+                jQuery('#yearFilter, #monthFilter, #productFilter').on('change', function () {
+                    jQuery('#filterForm').submit();
+                });
+            });
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

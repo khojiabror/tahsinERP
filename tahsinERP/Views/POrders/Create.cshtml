@@ -159,43 +159,64 @@
             </div>
         </div>
     </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
 
+@{
+    // Prepare data for JavaScript (server-side)
+    var purchasableProductsList = ViewBag.PurchasableProducts as SelectList;
+    var unitsList = ViewBag.Units as SelectList;
+    var purchasableProductsData = new List<object>();
+    var unitsData = new List<object>();
+    
+    if (purchasableProductsList != null)
+    {
+        foreach (SelectListItem item in purchasableProductsList)
+        {
+            purchasableProductsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+    
+    if (unitsList != null)
+    {
+        foreach (SelectListItem item in unitsList)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+}
+
+@section scripts {
     <script>
-        $(document).ready(function () {
-            // Initialize Select2 for multi-select
-            $('#salesOrdersSelect').select2({
-                placeholder: "Sotuv buyurtmalarini tanlang",
-                allowClear: true
-            });
-
-            // Initialize Select2 for other dropdowns
-            $('.select2').select2();
-
-            var productRowIndex = 0;
-            @{
-                var purchasableProductsList = ViewBag.PurchasableProducts as SelectList;
-                var unitsList = ViewBag.Units as SelectList;
-                var purchasableProductsData = new List<object>();
-                var unitsData = new List<object>();
-                
-                if (purchasableProductsList != null)
-                {
-                    foreach (SelectListItem item in purchasableProductsList)
-                    {
-                        purchasableProductsData.Add(new { Value = item.Value, Text = item.Text });
-                    }
+        // Wait for both jQuery and Select2 to be loaded
+        (function() {
+            function initPOrderScripts() {
+                // Check if jQuery and Select2 are available
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+                    // Retry after a short delay
+                    setTimeout(initPOrderScripts, 100);
+                    return;
                 }
-                
-                if (unitsList != null)
-                {
-                    foreach (SelectListItem item in unitsList)
-                    {
-                        unitsData.Add(new { Value = item.Value, Text = item.Text });
-                    }
-                }
-            }
-            var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
-            var units = @Html.Raw(Json.Encode(unitsData));
+
+                // Use jQuery - $ might be conflicted, so use jQuery explicitly
+                var $ = jQuery;
+
+                $(document).ready(function () {
+                    // Initialize Select2 for multi-select
+                    $('#salesOrdersSelect').select2({
+                        placeholder: "Sotuv buyurtmalarini tanlang",
+                        allowClear: true
+                    });
+
+                    // Initialize Select2 for other dropdowns
+                    $('.select2').select2();
+
+                    var productRowIndex = 0;
+                    var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
+                    var units = @Html.Raw(Json.Encode(unitsData));
 
             // Generate from Sales Orders
             $('#generateBtn').click(function () {
@@ -354,11 +375,15 @@
                     alert('Barcha mahsulotlar uchun to\'liq ma\'lumot kiriting');
                     return false;
                 }
-            });
-        });
+                });
+            }
+
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPOrderScripts);
+            } else {
+                initPOrderScripts();
+            }
+        })();
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

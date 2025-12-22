@@ -401,49 +401,20 @@ namespace tahsinERP.Controllers
                 // Prepare placeholders - matching template structure
                 var placeholders = new Dictionary<string, string>
                 {
-                    { "ORDER NO", order.OrderNo }, // Template uses space, not underscore
+                    { "ORDER_NO", order.OrderNo }, // Template uses ORDER_NO
+                    { "ORDER NO", order.OrderNo }, // Also support space version
                     { "ORDER_DATE", order.OrderDate.ToString("dd.MM.yyyy") },
                     { "ORDER_TOPIC", doc.Title ?? "" }, // Template uses ORDER_TOPIC, not ORDER_TITLE
+                    { "ORDER_BODY", order.Notes ?? "" }, // Full body text without splitting
                     { "ORG_UNIT_NAME", doc.HR_ORG_UNITS?.Name ?? "" },
                     { "DIRECTOR_NAME", "X.M. Maxmudov" } // TODO: Get from settings or user table
                 };
 
-                // Parse body text into numbered decree items
-                // Template expects ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.
+                // Also add body text as ORDER_BODY for full text replacement
+                // Template might use {{ORDER_BODY}} for the complete text
                 if (!string.IsNullOrEmpty(order.Notes))
                 {
-                    // Split body by lines or numbered items
-                    var bodyLines = order.Notes.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
-                        .Where(line => !string.IsNullOrWhiteSpace(line))
-                        .Select(line => line.Trim())
-                        .ToList();
-
-                    // Remove numbering if present (e.g., "1. ", "2. ")
-                    var cleanedLines = bodyLines.Select(line => 
-                        System.Text.RegularExpressions.Regex.Replace(line, @"^\d+[\.\)]\s*", "")).ToList();
-
-                    // Add up to 10 decree items (adjust as needed)
-                    for (int i = 0; i < Math.Min(cleanedLines.Count, 10); i++)
-                    {
-                        placeholders[$"ORDER_DECREE_1_CONTENT_{i + 1}"] = cleanedLines[i];
-                    }
-
-                    // Fill remaining placeholders with empty strings if needed
-                    for (int i = cleanedLines.Count; i < 10; i++)
-                    {
-                        if (!placeholders.ContainsKey($"ORDER_DECREE_1_CONTENT_{i + 1}"))
-                        {
-                            placeholders[$"ORDER_DECREE_1_CONTENT_{i + 1}"] = "";
-                        }
-                    }
-                }
-                else
-                {
-                    // Fill all decree placeholders with empty strings if no body text
-                    for (int i = 1; i <= 10; i++)
-                    {
-                        placeholders[$"ORDER_DECREE_1_CONTENT_{i}"] = "";
-                    }
+                    placeholders["ORDER_BODY"] = order.Notes;
                 }
 
                 // Generate document
@@ -470,12 +441,12 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Save file
+                // Save file - use order date instead of current date
                 var docFile = new DOC_FILES
                 {
                     DocumentID = doc.ID,
                     VersionNo = nextVersion,
-                    FileName = $"{order.OrderNo}_{DateTime.Now:yyyyMMdd}{fileExtension}",
+                    FileName = $"{order.OrderNo}_{order.OrderDate:yyyyMMdd}{fileExtension}",
                     FileExtension = fileExtension,
                     MimeType = mimeType,
                     FileSizeBytes = fileContent.Length,

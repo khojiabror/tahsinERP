@@ -43,6 +43,7 @@ namespace tahsinERP.Models
             this.SALES_SF_LINES = new HashSet<SALES_SF_LINES>();
             this.SALES_TTNK_LINES = new HashSet<SALES_TTNK_LINES>();
             this.SORDER_DELIVERY_SCHEDULE = new HashSet<SORDER_DELIVERY_SCHEDULE>();
+            this.TANNARXes = new HashSet<TANNARX>();
         }
     
         public int ID { get; set; }
@@ -125,5 +126,7 @@ namespace tahsinERP.Models
         public virtual ICollection<SALES_TTNK_LINES> SALES_TTNK_LINES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TANNARX> TANNARXes { get; set; }
     }
 }

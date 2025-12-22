@@ -76,21 +76,32 @@
         try {
             var deviceId = getDeviceId();
             
+            if (!deviceId) {
+                console.error('Device ID is empty, cannot send to server');
+                return;
+            }
+            
             // Send via AJAX to store in session/cookie
             if (typeof jQuery !== 'undefined') {
                 $.ajax({
                     url: '/Account/SetDeviceId',
                     type: 'POST',
                     data: { deviceId: deviceId },
-                    timeout: 5000,
+                    timeout: 10000,
+                    dataType: 'json',
                     success: function(response) {
                         if (response && response.success) {
-                            console.log('Device ID sent to server:', deviceId);
+                            console.log('Device ID sent to server successfully:', deviceId);
+                        } else {
+                            console.warn('Device ID send failed:', response ? response.message : 'Unknown error');
+                            // Retry after delay
+                            setTimeout(sendDeviceIdToServer, 3000);
                         }
                     },
                     error: function(xhr, status, error) {
-                        // Silently fail - not critical, but retry after delay
-                        setTimeout(sendDeviceIdToServer, 2000);
+                        console.warn('Device ID send error:', status, error);
+                        // Retry after delay
+                        setTimeout(sendDeviceIdToServer, 3000);
                     }
                 });
             } else {
@@ -99,38 +110,103 @@
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', '/Account/SetDeviceId', true);
                     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.timeout = 10000;
                     xhr.onreadystatechange = function() {
                         if (xhr.readyState === 4) {
                             if (xhr.status === 200) {
-                                console.log('Device ID sent to server:', deviceId);
+                                try {
+                                    var response = JSON.parse(xhr.responseText);
+                                    if (response && response.success) {
+                                        console.log('Device ID sent to server successfully:', deviceId);
+                                    } else {
+                                        console.warn('Device ID send failed:', response ? response.message : 'Unknown error');
+                                        setTimeout(sendDeviceIdToServer, 3000);
+                                    }
+                                } catch (e) {
+                                    console.log('Device ID sent to server (response parse failed):', deviceId);
+                                }
+                            } else {
+                                console.warn('Device ID send failed with status:', xhr.status);
+                                setTimeout(sendDeviceIdToServer, 3000);
                             }
                         }
                     };
+                    xhr.ontimeout = function() {
+                        console.warn('Device ID send timeout');
+                        setTimeout(sendDeviceIdToServer, 3000);
+                    };
                     xhr.send('deviceId=' + encodeURIComponent(deviceId));
                 } catch (e) {
+                    console.error('Device ID send exception:', e);
                     // If all fails, retry later
-                    setTimeout(sendDeviceIdToServer, 2000);
+                    setTimeout(sendDeviceIdToServer, 3000);
                 }
             }
         } catch (e) {
+            console.error('Device ID send error:', e);
             // If error occurs, retry after delay
-            setTimeout(sendDeviceIdToServer, 2000);
+            setTimeout(sendDeviceIdToServer, 3000);
         }
     }
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', sendDeviceIdToServer);
-    } else {
+    // Initialize immediately - don't wait for jQuery
+    function initializeDeviceId() {
+        // Send immediately using XMLHttpRequest (works without jQuery)
         sendDeviceIdToServer();
+        
+        // Also send after jQuery is loaded (if available)
+        if (typeof jQuery !== 'undefined') {
+            sendDeviceIdToServer();
+        } else {
+            // Wait for jQuery and send again
+            var checkJQuery = setInterval(function() {
+                if (typeof jQuery !== 'undefined') {
+                    clearInterval(checkJQuery);
+                    sendDeviceIdToServer();
+                }
+            }, 100);
+            
+            // Stop checking after 5 seconds
+            setTimeout(function() {
+                clearInterval(checkJQuery);
+            }, 5000);
+        }
+        
+        // Send on page visibility change (when user returns to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                sendDeviceIdToServer();
+            }
+        });
+        
+        // Send before page unload (to ensure it's sent)
+        window.addEventListener('beforeunload', function() {
+            // Use synchronous request for beforeunload
+            try {
+                var deviceId = getDeviceId();
+                if (deviceId) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/Account/SetDeviceId', false); // synchronous
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send('deviceId=' + encodeURIComponent(deviceId));
+                }
+            } catch (e) {
+                // Ignore errors on beforeunload
+            }
+        });
     }
 
-    // Also send on page visibility change (when user returns to tab)
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            sendDeviceIdToServer();
-        }
-    });
+    // Start initialization immediately
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeDeviceId);
+    } else {
+        initializeDeviceId();
+    }
+    
+    // Also try immediately if document is already loaded
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initializeDeviceId();
+    }
 
     // Expose function globally for manual calls if needed
     window.getTahsinERPDeviceId = getDeviceId;

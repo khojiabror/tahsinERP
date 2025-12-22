@@ -1,0 +1,121 @@
+@model tahsinERP.ViewModels.TaskChangeStatusViewModel
+@{
+    ViewBag.Title = "Status o'zgartirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Tasks">Tasks</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="@Url.Action("Details", "Tasks", new { id = Model.TaskID })">@Model.KeyCode</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Status o'zgartirish
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-9 col-md-8 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        <div class="row">
+                                            <div class="col-lg-12 col-md-6 mt-25">
+                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                
+                                                @if (TempData["Error"] != null)
+                                                {
+                                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                        @TempData["Error"]
+                                                        <button type="button" class="close" data-dismiss="alert">
+                                                            <span>&times;</span>
+                                                        </button>
+                                                    </div>
+                                                }
+
+                                                <h4 class="text-primary">Task Status o'zgartirish</h4>
+                                                <hr>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><b>Kod:</b> @Model.KeyCode</p>
+                                                        <p><b>Sarlavha:</b> @Model.Title</p>
+                                                        <p><b>Joriy Status:</b> 
+                                                            <span class="badge badge-secondary">@Model.CurrentStatusName</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <hr>
+
+                                                @using (Html.BeginForm("ChangeStatus", "TaskChangeStatus", FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    @Html.HiddenFor(model => model.TaskID)
+                                                    @Html.HiddenFor(model => model.KeyCode)
+                                                    @Html.HiddenFor(model => model.Title)
+                                                    
+                                                    <h6 class="invoice-to">Yangi Status *</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.StatusID, (SelectList)ViewBag.StatusID, "Status tanlang", new { @class = "form-control round", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.StatusID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <h6 class="invoice-to">Izoh</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextAreaFor(model => model.UserComment, new { @class = "form-control round", @placeholder = "Status o'zgarishi haqida izoh yozing...", @rows = "5" })
+                                                        @Html.ValidationMessageFor(model => model.UserComment, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item border-0 pb-0">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
+                                                                <i class='bx bx-save'></i>
+                                                                Saqlash
+                                                            </button>
+                                                            <a href="@Url.Action("Details", "Tasks", new { id = Model.TaskID })" class="btn btn-secondary btn-block mt-2">
+                                                                <i class='bx bx-arrow-back'></i>
+                                                                Orqaga
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                }
+                                            </div>
+                                        </div>
+                                        <hr>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

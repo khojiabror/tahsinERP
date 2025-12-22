@@ -1,0 +1,250 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxAnalyticsReportViewModel
+
+@{
+    ViewBag.Title = "Tannarx Analytics - Maxsulot Tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarx Analytics - Maxsulot Tafsilotlari</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "TannarxAnalytics")">Analytics</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">@Model.ProductPNo - @Model.ProductName</h4>
+                                <div class="text-right">
+                                    <a href="@Url.Action("Report", "TannarxAnalytics", new { year = Model.Year, month = Model.Month, productID = Model.ProductID })" 
+                                       class="btn btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <!-- Material Costs Comparison -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <h6 class="mb-2">Material Xarajatlari</h6>
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Xarajat Turi</th>
+                                                        <th class="text-right">Planned</th>
+                                                        <th class="text-right">Actual</th>
+                                                        <th class="text-right">Variance</th>
+                                                        <th class="text-right">Variance %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Material Narxi</td>
+                                                        <td class="text-right">@Model.PlannedMaterialPrice.ToString("N0") so'm</td>
+                                                        <td class="text-right @(Model.MaterialPriceVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.ActualMaterialPrice.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.MaterialPriceVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.MaterialPriceVariance.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.MaterialPriceVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.MaterialPriceVariancePercent.ToString("N2")%
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Material Tashuvi</td>
+                                                        <td class="text-right">@Model.PlannedMaterialTransportCost.ToString("N0") so'm</td>
+                                                        <td class="text-right @(Model.MaterialTransportVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.ActualMaterialTransportCost.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.MaterialTransportVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.MaterialTransportVariance.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.MaterialTransportVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.MaterialTransportVariancePercent.ToString("N2")%
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Labor and Expenses Comparison -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <h6 class="mb-2">Ish Haqi va Xarajatlar</h6>
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Xarajat Turi</th>
+                                                        <th class="text-right">Planned</th>
+                                                        <th class="text-right">Actual</th>
+                                                        <th class="text-right">Variance</th>
+                                                        <th class="text-right">Variance %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>A - Ish Haqi</td>
+                                                        <td class="text-right">@Model.PlannedLaborCost.ToString("N0") so'm</td>
+                                                        <td class="text-right @(Model.LaborCostVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.ActualLaborCost.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.LaborCostVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.LaborCostVariance.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.LaborCostVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.LaborCostVariancePercent.ToString("N2")%
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>B - Soliq va Bank</td>
+                                                        <td class="text-right">@Model.PlannedTaxAndBank.ToString("N0") so'm</td>
+                                                        <td class="text-right">@Model.ActualTaxAndBank.ToString("N0") so'm</td>
+                                                        <td class="text-right">-</td>
+                                                        <td class="text-right">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>C - Adminstrativ Harajatlar</td>
+                                                        <td class="text-right">@Model.PlannedAdministrativeExpenses.ToString("N0") so'm</td>
+                                                        <td class="text-right @(Model.AdminExpensesVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.ActualAdministrativeExpenses.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.AdminExpensesVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.AdminExpensesVariance.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.AdminExpensesVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.AdminExpensesVariancePercent.ToString("N2")%
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>D - Boshqa Xarajatlar</td>
+                                                        <td class="text-right">@Model.PlannedOtherExpenses.ToString("N0") so'm</td>
+                                                        <td class="text-right">@Model.ActualOtherExpenses.ToString("N0") so'm</td>
+                                                        <td class="text-right">-</td>
+                                                        <td class="text-right">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>E - Foyda</td>
+                                                        <td class="text-right">@Model.PlannedProfit.ToString("N0") so'm</td>
+                                                        <td class="text-right">@Model.ActualProfit.ToString("N0") so'm</td>
+                                                        <td class="text-right">-</td>
+                                                        <td class="text-right">-</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- EXW Prices Comparison -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <h6 class="mb-2">EXW Narxlari</h6>
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Narx Turi</th>
+                                                        <th class="text-right">Planned</th>
+                                                        <th class="text-right">Actual</th>
+                                                        <th class="text-right">Variance</th>
+                                                        <th class="text-right">Variance %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>EXW QQS siz</td>
+                                                        <td class="text-right">@Model.PlannedEXWWithoutVAT.ToString("N0") so'm</td>
+                                                        <td class="text-right">@Model.ActualEXWWithoutVAT.ToString("N0") so'm</td>
+                                                        <td class="text-right">@((Model.ActualEXWWithoutVAT - Model.PlannedEXWWithoutVAT).ToString("N0")) so'm</td>
+                                                        <td class="text-right">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>EXW QQS bilan</td>
+                                                        <td class="text-right">@Model.PlannedSetPriceEXWWithVAT.ToString("N0") so'm</td>
+                                                        <td class="text-right @(Model.EXWVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.ActualEXWWithVAT.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.EXWVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.EXWVariance.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.EXWVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.EXWVariancePercent.ToString("N2")%
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- CIP Prices Comparison -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <h6 class="mb-2">CIP Narxlari</h6>
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Narx Turi</th>
+                                                        <th class="text-right">Planned</th>
+                                                        <th class="text-right">Actual</th>
+                                                        <th class="text-right">Variance</th>
+                                                        <th class="text-right">Variance %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>CIP QQS siz</td>
+                                                        <td class="text-right">@Model.PlannedCIPWithoutVAT.ToString("N0") so'm</td>
+                                                        <td class="text-right">@Model.ActualCIPWithoutVAT.ToString("N0") so'm</td>
+                                                        <td class="text-right">@((Model.ActualCIPWithoutVAT - Model.PlannedCIPWithoutVAT).ToString("N0")) so'm</td>
+                                                        <td class="text-right">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>CIP QQS bilan</td>
+                                                        <td class="text-right">@Model.PlannedSetPriceCIPWithVAT.ToString("N0") so'm</td>
+                                                        <td class="text-right @(Model.CIPVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.ActualCIPWithVAT.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.CIPVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.CIPVariance.ToString("N0") so'm
+                                                        </td>
+                                                        <td class="text-right @(Model.CIPVariance >= 0 ? "text-danger" : "text-success")">
+                                                            @Model.CIPVariancePercent.ToString("N2")%
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

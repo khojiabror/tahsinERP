@@ -150,7 +150,6 @@ namespace tahsinERP.Controllers
                 ViewBag.ViewType = viewType;
                 ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
 
-                LogHelper.LogToDatabase(User.Identity.Name, "TaskKanbanController", "Index");
                 return View(viewModel);
             }
         }

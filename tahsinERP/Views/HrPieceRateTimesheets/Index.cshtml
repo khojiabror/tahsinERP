@@ -7,6 +7,7 @@
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets"))
 {
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets");
+    bool approvePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets", "Approve");
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -87,17 +88,39 @@
                                                     <td>@item.MonthName</td>
                                                     <td>@item.OrgUnitName</td>
                                                     <td>
-                                                        <span class="badge badge-info">
+                                                        <span class="badge badge-primary">
                                                             @item.EntryCount ta yozuv
                                                         </span>
                                                     </td>
                                                     <td>@item.CalculatedAmount.ToString("N2")</td>
                                                     <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
-                                                    <td>-</td>
+                                                    <td>
+                                                        @if (item.Status == "Approved" && item.ApprovedDT.HasValue)
+                                                        {
+                                                            <span class="badge badge-success">@item.ApprovedDT.Value.ToString("dd.MM.yyyy")</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Tasdiqlanmagan</span>
+                                                        }
+                                                    </td>
                                                     <td>
                                                         <a href="@Url.Action("Details", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-info">
                                                             <i class="bx bx-show"></i>
                                                         </a>
+                                                        @if (approvePermit && item.Status != "Approved")
+                                                        {
+                                                            using (Html.BeginForm("Approve", "HrPieceRateTimesheets", FormMethod.Post, new { style = "display: inline-block;", onsubmit = "return confirm('Bu tabelni tasdiqlashni xohlaysizmi?');" }))
+                                                            {
+                                                                @Html.AntiForgeryToken()
+                                                                @Html.Hidden("year", item.Year)
+                                                                @Html.Hidden("month", item.Month)
+                                                                @Html.Hidden("orgUnitId", item.OrgUnitID)
+                                                                <button type="submit" class="btn btn-sm btn-success">
+                                                                    <i class="bx bx-check"></i>
+                                                                </button>
+                                                            }
+                                                        }
                                                         @if (changePermit)
                                                         {
                                                             <a href="@Url.Action("DeleteEntries", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-danger" onclick="return confirm('Bu oy uchun barcha ishbay ma\'lumotlarni o\'chirish?');">

@@ -388,6 +388,14 @@
                             {
                                 <li><a href="~/InventoryReports/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor Dashboard</span></a></li>
                             }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+                            {
+                                <li><a href="~/TannarxAnalytics/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tannarx Dashboard</span></a></li>
+                            }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskDashboard"))
+                            {
+                                <li><a href="~/TaskDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Task Dashboard</span></a></li>
+                            }
                         </ul>
                     </li>
 
@@ -613,6 +621,17 @@
                                 <li><a href="@Url.Action("Index", "Product", new { typeFilter = "MAXSULOT" })"><i class="bx bx-package"></i><span class="menu-item">Tayyor maxsulot</span></a></li>
                                 <li><a href="@Url.Action("Index", "Product", new { typeFilter = "YARIM_TAYYOR" })"><i class="bx bx-cog"></i><span class="menu-item">Yarim tayyor</span></a></li>
                                 <li><a href="@Url.Action("Index", "Product", new { typeFilter = "XOMASHYO" })"><i class="bx bx-cube"></i><span class="menu-item">Xomashyo</span></a></li>
+                            </ul>
+                        </li>
+                    }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+                    {
+                        <li class="nav-item">
+                            <a href="#"><i class="bx bx-calculator"></i><span class="menu-title">Tannarx</span></a>
+                            <ul class="menu-content">
+                                <li><a href="~/Tannarx"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tannarx</span></a></li>
+                                <li><a href="~/TannarxAnalytics/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Analytics Dashboard</span></a></li>
+                                <li><a href="~/TannarxAnalytics/Report"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Analytics Report</span></a></li>
                             </ul>
                         </li>
                     }

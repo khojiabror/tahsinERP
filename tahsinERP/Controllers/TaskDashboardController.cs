@@ -12,7 +12,7 @@ namespace tahsinERP.Controllers
     public class TaskDashboardController : Controller
     {
         // GET: TaskDashboard
-        public async Task<ActionResult> Index(int? userId)
+        public async Task<ActionResult> Index(int? userId, int? productID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -31,11 +31,8 @@ namespace tahsinERP.Controllers
                 // Oddiy user - faqat o'z tasklarini ko'rsatish
                 userId = currentUserId;
             }
-            else
-            {
-                // Admin/Developer - agar userId ko'rsatilmagan bo'lsa, current user
-                userId = userId ?? currentUserId;
-            }
+            // Admin/Developer uchun userId null bo'lishi mumkin (barcha foydalanuvchilar)
+            // userId null bo'lsa, barcha tasklar ko'rsatiladi
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -110,39 +107,58 @@ namespace tahsinERP.Controllers
                     viewModel.UserName = "Barcha foydalanuvchilar";
                 }
 
-                // Overdue tasks count
+                // Overdue tasks count (muddatidan o'tgan tasklar)
                 viewModel.OverdueCount = allTasks.Count(t => 
                     t.DueDate.HasValue && 
                     t.DueDate.Value < DateTime.Now && 
-                    t.APP_TASK_STATUS_REF?.Code != "DONE");
+                    (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE") &&
+                    (t.APP_TASK_STATUS_REF == null || !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi")));
 
                 // Recent tasks (last 7 days)
                 var sevenDaysAgo = DateTime.Now.AddDays(-7);
                 viewModel.RecentTasksCount = allTasks.Count(t => t.CreatedDT >= sevenDaysAgo);
 
-                // ViewBag for user dropdown - oddiy user uchun dropdown ko'rsatilmaydi
+                // Overdue tasks by project (muddatidan o'tgan tasklar)
+                var overdueTasks = allTasks.Where(t => 
+                    t.DueDate.HasValue && 
+                    t.DueDate.Value < DateTime.Now && 
+                    (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE") &&
+                    (t.APP_TASK_STATUS_REF == null || !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi"))).ToList();
+
+                var overdueStats = overdueTasks
+                    .GroupBy(t => t.APP_TASK_PROJECTS?.Name ?? "Loyiha yo'q")
+                    .Select(g => new TaskOverdueStatViewModel
+                    {
+                        ProjectName = g.Key,
+                        OverdueCount = g.Count()
+                    })
+                    .OrderByDescending(s => s.OverdueCount)
+                    .ToList();
+
+                viewModel.OverdueTasksStatistics = overdueStats;
+
+                // ViewBag for user dropdown
                 if (isAdminOrDeveloper)
                 {
-                    ViewBag.UserID = new SelectList(
-                        await db.USERS.Where(u => u.IsDeleted != true && u.IsActive)
-                            .OrderBy(u => u.FullName ?? u.Uname)
-                            .ToListAsync(),
-                        "ID", "FullName", userId);
+                    // Admin/Developer uchun barcha foydalanuvchilar + "Barcha foydalanuvchilar" option
+                    var allUsers = await db.USERS.Where(u => u.IsDeleted != true && u.IsActive)
+                        .OrderBy(u => u.FullName ?? u.Uname)
+                        .ToListAsync();
+                    ViewBag.UserID = new SelectList(allUsers, "ID", "FullName", userId);
                 }
                 else
                 {
-                    ViewBag.UserID = new SelectList(
-                        await db.USERS.Where(u => u.ID == currentUserId && u.IsDeleted != true && u.IsActive)
-                            .OrderBy(u => u.FullName ?? u.Uname)
-                            .ToListAsync(),
-                        "ID", "FullName", userId);
+                    // Oddiy user uchun faqat o'zini useri
+                    var currentUser = await db.USERS.Where(u => u.ID == currentUserId && u.IsDeleted != true && u.IsActive)
+                        .OrderBy(u => u.FullName ?? u.Uname)
+                        .ToListAsync();
+                    ViewBag.UserID = new SelectList(currentUser, "ID", "FullName", currentUserId);
                 }
 
                 ViewBag.SelectedUserID = userId;
                 ViewBag.CurrentUserID = currentUserId;
                 ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
 
-                LogHelper.LogToDatabase(User.Identity.Name, "TaskDashboardController", "Index");
                 return View(viewModel);
             }
         }

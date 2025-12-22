@@ -27,6 +27,7 @@ namespace tahsinERP.Models
         public Nullable<System.DateTime> UpdatedDT { get; set; }
         public Nullable<System.DateTime> DueDate { get; set; }
         public bool IsDeleted { get; set; }
+        public string UserComment { get; set; }
     
         public virtual APP_TASK_PRIORITY_REF APP_TASK_PRIORITY_REF { get; set; }
         public virtual APP_TASK_PROJECTS APP_TASK_PROJECTS { get; set; }
