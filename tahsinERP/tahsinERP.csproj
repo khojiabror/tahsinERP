@@ -3206,6 +3206,7 @@
     <Content Include="Views\TannarxAnalytics\Dashboard.cshtml" />
     <Content Include="Views\TannarxAnalytics\ProductDetails.cshtml" />
     <Content Include="Views\TannarxAnalytics\Report.cshtml" />
+    <Content Include="Views\TaskChangeStatus\ChangeStatus.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

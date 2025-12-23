@@ -153,73 +153,8 @@ namespace tahsinERP.Controllers
                     clientIp = "127.0.0.1";
                 }
                 
-                // Get device identifier from session or cookie (set by client-side JavaScript)
+                // MAC address - use default value (device ID functionality disabled)
                 string macAddress = "00:00:00:00:00:00";
-                try
-                {
-                    // Try multiple ways to get device ID
-                    string deviceId = null;
-                    
-                    // First try: Use Session property directly (Controller has this)
-                    if (Session != null)
-                    {
-                        object sessionDeviceId = Session["DeviceId"];
-                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
-                        {
-                            deviceId = sessionDeviceId.ToString();
-                        }
-                    }
-                    
-                    // Second try: Use HttpContext property (Controller has this as HttpContextBase)
-                    if (string.IsNullOrEmpty(deviceId) && HttpContext != null && HttpContext.Session != null)
-                    {
-                        object sessionDeviceId = HttpContext.Session["DeviceId"];
-                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
-                        {
-                            deviceId = sessionDeviceId.ToString();
-                        }
-                    }
-                    
-                    // Third try: Use System.Web.HttpContext.Current (static property)
-                    if (string.IsNullOrEmpty(deviceId) && System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Session != null)
-                    {
-                        object sessionDeviceId = System.Web.HttpContext.Current.Session["DeviceId"];
-                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
-                        {
-                            deviceId = sessionDeviceId.ToString();
-                        }
-                    }
-                    
-                    // Fourth try: Get from cookie (backup method)
-                    if (string.IsNullOrEmpty(deviceId) && Request != null && Request.Cookies != null)
-                    {
-                        HttpCookie deviceIdCookie = Request.Cookies["DeviceId"];
-                        if (deviceIdCookie != null && !string.IsNullOrEmpty(deviceIdCookie.Value))
-                        {
-                            deviceId = deviceIdCookie.Value;
-                            // Also store in session for future use
-                            if (Session != null)
-                            {
-                                Session["DeviceId"] = deviceId;
-                            }
-                        }
-                    }
-                    
-                    if (!string.IsNullOrEmpty(deviceId))
-                    {
-                        macAddress = deviceId;
-                        System.Diagnostics.Debug.WriteLine($"SetUserEntry: Got MAC address from session/cookie: {macAddress}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("SetUserEntry: Device ID not found in session or cookie");
-                    }
-                }
-                catch (Exception sessionEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"SetUserEntry: Error getting device ID: {sessionEx.Message}");
-                    macAddress = "00:00:00:00:00:00";
-                }
 
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
@@ -419,49 +354,8 @@ namespace tahsinERP.Controllers
         [AllowAnonymous]
         public JsonResult SetDeviceId(string deviceId)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(deviceId))
-                {
-                    return Json(new { success = false, message = "Device ID is required" });
-                }
-
-                // Store device ID in session for use in logging
-                if (Session != null)
-                {
-                    Session["DeviceId"] = deviceId;
-                }
-                
-                // Also try to store in HttpContext.Session as backup
-                if (HttpContext != null && HttpContext.Session != null)
-                {
-                    HttpContext.Session["DeviceId"] = deviceId;
-                }
-                
-                // Also try to store in System.Web.HttpContext.Current.Session as backup
-                if (System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Session != null)
-                {
-                    System.Web.HttpContext.Current.Session["DeviceId"] = deviceId;
-                }
-                
-                // Also store in cookie as backup (persists across requests)
-                var deviceIdCookie = new HttpCookie("DeviceId", deviceId)
-                {
-                    HttpOnly = false, // Allow JavaScript to read it
-                    Expires = DateTime.Now.AddYears(1), // Long expiration
-                    Path = "/"
-                };
-                Response.Cookies.Set(deviceIdCookie);
-
-                System.Diagnostics.Debug.WriteLine($"SetDeviceId: Successfully stored device ID in session and cookie: {deviceId}");
-                
-                return Json(new { success = true, deviceId = deviceId });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"SetDeviceId: Error storing device ID: {ex.Message}");
-                return Json(new { success = false, message = $"Error storing device ID: {ex.Message}" });
-            }
+            // Device ID functionality disabled - just return success to avoid 404 errors
+            return Json(new { success = true });
         }
     }
 }

@@ -223,7 +223,8 @@ namespace tahsinERP.Controllers
                     UpdatedDT = task.UpdatedDT,
                     DueDate = task.DueDate,
                     ProjectID = task.ProjectID,
-                    ProjectName = task.APP_TASK_PROJECTS?.Name
+                    ProjectName = task.APP_TASK_PROJECTS?.Name,
+                    UserComment = task.UserComment
                 };
 
                 return View(viewModel);

@@ -206,10 +206,12 @@ else
 
                 $(document).ready(function () {
                     // Initialize Select2 for multi-select
-                    $('#salesOrdersSelect').select2({
-                        placeholder: "Sotuv buyurtmalarini tanlang",
-                        allowClear: true
-                    });
+                    if ($('#salesOrdersSelect').length > 0) {
+                        $('#salesOrdersSelect').select2({
+                            placeholder: "Sotuv buyurtmalarini tanlang",
+                            allowClear: true
+                        });
+                    }
 
                     // Initialize Select2 for other dropdowns
                     $('.select2').select2();
@@ -219,7 +221,7 @@ else
                     var units = @Html.Raw(Json.Encode(unitsData));
 
             // Generate from Sales Orders
-            $('#generateBtn').click(function () {
+            $(document).on('click', '#generateBtn', function () {
                 var selectedIds = $('#salesOrdersSelect').val();
                 if (!selectedIds || selectedIds.length === 0) {
                     alert('Iltimos, kamida bitta sotuv buyurtmasini tanlang');
@@ -232,28 +234,60 @@ else
                 $.ajax({
                     url: '@Url.Action("GenerateFromSalesOrders", "POrders")',
                     type: 'POST',
-                    data: { salesOrderIds: selectedIds },
+                    data: { 
+                        salesOrderIds: selectedIds,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
                     success: function (response) {
-                        if (response.success) {
+                        if (response && response.success) {
                             // Clear existing rows
                             $('#orderProductsTable tbody').empty();
                             productRowIndex = 0;
 
                             // Add generated rows
-                            response.data.forEach(function (item) {
-                                addProductRow(item.ComponentID, item.ComponentPNo, item.ComponentName, 
-                                             item.RequiredQty, item.UnitID, item.EstimatedPrice, item.MOQ, 
-                                             item.CalculationExplanation || '');
-                            });
-
-                            updateTotal();
-                            alert('Mahsulotlar muvaffaqiyatli generatsiya qilindi');
+                            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                                response.data.forEach(function (item) {
+                                    try {
+                                        addProductRow(
+                                            item.ComponentID || null,
+                                            item.ComponentPNo || '',
+                                            item.ComponentName || '',
+                                            item.RequiredQty || 0,
+                                            item.UnitID || null,
+                                            item.EstimatedPrice || 0,
+                                            item.MOQ || null,
+                                            item.CalculationExplanation || ''
+                                        );
+                                    } catch (err) {
+                                        console.error('Error adding product row:', err, item);
+                                    }
+                                });
+                                updateTotal();
+                                alert('Mahsulotlar muvaffaqiyatli generatsiya qilindi');
+                            } else {
+                                alert('Generatsiya qilingan ma\'lumotlar topilmadi');
+                            }
                         } else {
-                            alert('Xatolik: ' + response.message);
+                            var errorMsg = response && response.message ? response.message : 'Noma\'lum xatolik';
+                            alert('Xatolik: ' + errorMsg);
                         }
                     },
-                    error: function () {
-                        alert('Server xatoligi yuz berdi');
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error, xhr);
+                        var errorMsg = 'Server xatoligi yuz berdi';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                var errorResponse = JSON.parse(xhr.responseText);
+                                if (errorResponse.message) {
+                                    errorMsg = errorResponse.message;
+                                }
+                            } catch (e) {
+                                // Ignore parse error
+                            }
+                        }
+                        alert('Xatolik: ' + errorMsg);
                     },
                     complete: function () {
                         $('#generateBtn').prop('disabled', false).html('<i class="bx bx-cog"></i> Generatsiya qilish');
@@ -262,11 +296,39 @@ else
             });
 
             // Add new row manually
-            $('#addRowBtn').click(function () {
+            $(document).on('click', '#addRowBtn', function () {
                 addProductRow(null, '', '', 0, null, null, null, '');
             });
 
+            // Helper function to escape HTML
+            function escapeHtml(text) {
+                if (!text) return '';
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+
+            // Helper function to escape attribute values
+            function escapeAttr(text) {
+                if (!text) return '';
+                return String(text).replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            }
+
             function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation) {
+                // Escape all user input to prevent XSS and syntax errors
+                var safeProductPNo = escapeAttr(productPNo || '');
+                var safeProductName = escapeAttr(productName || '');
+                var safeAmount = amount || 0;
+                var safePrice = price || 0;
+                var safeMoq = moq || 0;
+                var safeCalcExplanation = escapeAttr(calculationExplanation || '');
+                var safeCalcDisplay = calculationExplanation ? escapeHtml(calculationExplanation.length > 50 ? calculationExplanation.substring(0, 50) + '...' : calculationExplanation) : '-';
+
                 var row = '<tr data-row-index="' + productRowIndex + '">' +
                     '<td>' +
                         '<select name="OrderProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
@@ -274,31 +336,33 @@ else
                 
                 purchasableProducts.forEach(function (product) {
                     var selected = product.Value == productId ? 'selected' : '';
-                    row += '<option value="' + product.Value + '" ' + selected + ' data-pno="' + product.Text + '">' + product.Text + '</option>';
+                    var safeProductText = escapeHtml(product.Text);
+                    var safeProductValue = escapeAttr(product.Value);
+                    row += '<option value="' + safeProductValue + '" ' + selected + ' data-pno="' + safeProductText + '">' + safeProductText + '</option>';
                 });
                 
                 row += '</select>' +
-                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + (productPNo || '') + '" />' +
+                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + safeProductPNo + '" />' +
                     '</td>' +
-                    '<td><input type="text" name="OrderProducts[' + productRowIndex + '].ProductName" class="form-control product-name" value="' + (productName || '') + '" readonly /></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + (amount || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td><input type="text" name="OrderProducts[' + productRowIndex + '].ProductName" class="form-control product-name" value="' + safeProductName + '" readonly /></td>' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + safeAmount + '" step="0.01" min="0" required /></td>' +
                     '<td>' +
                         '<select name="OrderProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
                         '<option value="">---Tanlang---</option>';
                 
                 units.forEach(function (unit) {
                     var selected = unit.Value == unitId ? 'selected' : '';
-                    row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                    var safeUnitText = escapeHtml(unit.Text);
+                    var safeUnitValue = escapeAttr(unit.Value);
+                    row += '<option value="' + safeUnitValue + '" ' + selected + '>' + safeUnitText + '</option>';
                 });
                 
                 row += '</select></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + safePrice + '" step="0.01" min="0" required /></td>' +
                     '<td><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
-                    '<td><small class="text-muted calculation-explanation" title="' + (calculationExplanation || '') + '">' + 
-                        (calculationExplanation ? (calculationExplanation.length > 50 ? calculationExplanation.substring(0, 50) + '...' : calculationExplanation) : '-') + 
-                        '</small>' +
-                        '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + (calculationExplanation || '') + '" />' +
+                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + safeMoq + '" step="0.01" min="0" /></td>' +
+                    '<td><small class="text-muted calculation-explanation" title="' + safeCalcExplanation + '">' + safeCalcDisplay + '</small>' +
+                        '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + safeCalcExplanation + '" />' +
                         '</td>' +
                     '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                     '</tr>';

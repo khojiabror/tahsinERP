@@ -332,7 +332,21 @@
             
             var $ = jQuery;
             
+            // AJAX so'rovlar uchun umumiy sozlamalar
+            $.ajaxSetup({
+                timeout: 30000, // 30 soniya timeout
+                error: function(xhr, status, error) {
+                    console.error('AJAX xatosi:', status, error);
+                }
+            });
+            
             $(window).on("load", function () {
+                // Loading overlay'ni majburiy ravishda yashirish (agar xato bo'lsa ham)
+                setTimeout(function() {
+                    $('html').removeClass('loading').addClass('loaded');
+                    $('.content-overlay').hide();
+                }, 1500);
+                
                 // iPack korxonasi yashil ranglari
                 var $primary = '#198754'; // To'q yashil
                 var $primary_light = '#20c997'; // Yengil yashil
@@ -344,7 +358,11 @@
                 var $gray_light = '#828D99';
 
         // Finance Plan vs Fact Chart
-        $.get('/Home/GetFinancePlanVsFact', function (data) {
+        $.ajax({
+            url: '/Home/GetFinancePlanVsFact',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data && data.length > 0) {
                 var periods = data.map(x => x.period);
                 var planData = data.map(x => x.plan);
@@ -410,10 +428,19 @@
                 );
                 financePlanVsFactChart.render();
             }
+            },
+            error: function(xhr, status, error) {
+                console.error('Finance Plan vs Fact xatosi:', error);
+                $('#finance-plan-vs-fact-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
+            }
         });
 
         // Finance Cash Summary Chart
-        $.get('/Home/GetFinanceCashSummary', function (data) {
+        $.ajax({
+            url: '/Home/GetFinanceCashSummary',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data && data.length > 0) {
                 var accountNames = data.map(x => x.accountName);
                 var closingBalances = data.map(x => x.closingBalance);
@@ -488,10 +515,19 @@
                 );
                 financeCashSummaryChart.render();
             }
+            },
+            error: function(xhr, status, error) {
+                console.error('Finance Cash Summary xatosi:', error);
+                $('#finance-cash-summary-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
+            }
         });
 
         // CRM Sales Orders Chart
-        $.get('/Home/GetCRMSalesOrdersStats', function (data) {
+        $.ajax({
+            url: '/Home/GetCRMSalesOrdersStats',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data && data.length > 0) {
                 var periods = data.map(x => x.period);
                 var orderCounts = data.map(x => x.orderCount);
@@ -571,10 +607,19 @@
                 );
                 crmSalesOrdersChart.render();
             }
+            },
+            error: function(xhr, status, error) {
+                console.error('CRM Sales Orders xatosi:', error);
+                $('#crm-sales-orders-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
+            }
         });
 
         // CRM Customers Statistics
-        $.get('/Home/GetCRMCustomersStats', function (data) {
+        $.ajax({
+            url: '/Home/GetCRMCustomersStats',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data) {
                 var crmCustomersOptions = {
                     chart: {
@@ -655,11 +700,19 @@
                 crmCustomersChart.render();
 
                 $('#crm-orders').text(data.totalOrders);
+            },
+            error: function(xhr, status, error) {
+                console.error('CRM Customers Stats xatosi:', error);
+                $('#crm-customers-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
             }
         });
 
         // SRM Product Stocks Chart
-        $.get('/Home/GetSRMMaterialRequirements', function (data) {
+        $.ajax({
+            url: '/Home/GetSRMMaterialRequirements',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data && data.length > 0) {
                 var productNos = data.map(x => x.productNo);
                 var stocks = data.map(x => x.totalStock);
@@ -726,11 +779,19 @@
                 srmMaterialRequirementsChart.render();
 
                 $('#srm-materials').text(data.length);
+            },
+            error: function(xhr, status, error) {
+                console.error('SRM Material Requirements xatosi:', error);
+                $('#srm-material-requirements-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
             }
         });
 
         // MES Production Plans Chart
-        $.get('/Home/GetMESProductionStats', function (data) {
+        $.ajax({
+            url: '/Home/GetMESProductionStats',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data && data.length > 0) {
                 var periods = data.map(x => x.period);
                 var planCounts = data.map(x => x.planCount);
@@ -803,11 +864,19 @@
                 mesProductionChart.render();
 
                 $('#mes-plans').text(data.reduce((sum, x) => sum + x.planCount, 0));
+            },
+            error: function(xhr, status, error) {
+                console.error('MES Production Stats xatosi:', error);
+                $('#mes-production-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
             }
         });
 
         // HR Statistics
-        $.get('/Home/GetHRStats', function (data) {
+        $.ajax({
+            url: '/Home/GetHRStats',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data) {
                 var hrStatsOptions = {
                     chart: {
@@ -879,10 +948,19 @@
                 );
                 hrStatsChart.render();
             }
+            },
+            error: function(xhr, status, error) {
+                console.error('HR Stats xatosi:', error);
+                $('#hr-stats-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
+            }
         });
 
         // Tasks Statistics
-        $.get('/Home/GetTasksStats', function (data) {
+        $.ajax({
+            url: '/Home/GetTasksStats',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data) {
                 var tasksStatsOptions = {
                     chart: {
@@ -954,10 +1032,19 @@
                 );
                 tasksStatsChart.render();
             }
+            },
+            error: function(xhr, status, error) {
+                console.error('Tasks Stats xatosi:', error);
+                $('#tasks-stats-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
+            }
         });
 
         // Documents Statistics
-        $.get('/Home/GetDocumentsStats', function (data) {
+        $.ajax({
+            url: '/Home/GetDocumentsStats',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data) {
                 var documentsStatsOptions = {
                     chart: {
@@ -1019,13 +1106,26 @@
                 );
                 documentsStatsChart.render();
             }
+            },
+            error: function(xhr, status, error) {
+                console.error('Documents Stats xatosi:', error);
+                $('#documents-stats-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
+            }
         });
 
         // Update Finance Total
-        $.get('/Home/GetFinancePlanVsFact', function (data) {
+        $.ajax({
+            url: '/Home/GetFinancePlanVsFact',
+            method: 'GET',
+            timeout: 30000,
+            success: function (data) {
             if (data && data.length > 0) {
                 var total = data.reduce((sum, x) => sum + x.fact, 0);
                 $('#finance-total').text(total.toLocaleString());
+            },
+            error: function(xhr, status, error) {
+                console.error('Finance Total xatosi:', error);
+                $('#finance-total').text('0');
             }
         });
             });

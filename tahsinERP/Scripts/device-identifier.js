@@ -149,10 +149,19 @@
         }
     }
 
-    // Initialize immediately - don't wait for jQuery
+    // Send device ID immediately and repeatedly to ensure it's stored
     function initializeDeviceId() {
         // Send immediately using XMLHttpRequest (works without jQuery)
         sendDeviceIdToServer();
+        
+        // Send again after 100ms to ensure it goes through
+        setTimeout(sendDeviceIdToServer, 100);
+        
+        // Send again after 500ms
+        setTimeout(sendDeviceIdToServer, 500);
+        
+        // Send again after 1 second
+        setTimeout(sendDeviceIdToServer, 1000);
         
         // Also send after jQuery is loaded (if available)
         if (typeof jQuery !== 'undefined') {
@@ -194,19 +203,44 @@
                 // Ignore errors on beforeunload
             }
         });
+        
+        // Intercept form submissions and AJAX requests to send device ID
+        // This ensures device ID is sent before any action that might log
+        var originalSubmit = HTMLFormElement.prototype.submit;
+        HTMLFormElement.prototype.submit = function() {
+            sendDeviceIdToServer();
+            return originalSubmit.apply(this, arguments);
+        };
+        
+        // Intercept jQuery AJAX if available
+        if (typeof jQuery !== 'undefined') {
+            var originalAjax = jQuery.ajax;
+            jQuery.ajax = function(options) {
+                sendDeviceIdToServer();
+                return originalAjax.apply(this, arguments);
+            };
+        }
     }
 
-    // Start initialization immediately
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeDeviceId);
-    } else {
+    // Start initialization immediately - multiple times to ensure it runs
+    function startInitialization() {
         initializeDeviceId();
+    }
+    
+    // Try multiple times to ensure initialization
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startInitialization);
+    } else {
+        startInitialization();
     }
     
     // Also try immediately if document is already loaded
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        initializeDeviceId();
+        startInitialization();
     }
+    
+    // One more time after a short delay
+    setTimeout(startInitialization, 50);
 
     // Expose function globally for manual calls if needed
     window.getTahsinERPDeviceId = getDeviceId;

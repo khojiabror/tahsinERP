@@ -44,73 +44,8 @@ namespace tahsinERP.Controllers
                     clientIp = "127.0.0.1";
                 }
 
-                // Get device identifier from session or cookie (set by client-side JavaScript)
+                // MAC address - use default value (device ID functionality disabled)
                 string macAddress = "00:00:00:00:00:00";
-                try
-                {
-                    // Try multiple ways to get device ID
-                    string deviceId = null;
-                    
-                    // First try: Use context session
-                    if (contextToUse != null && contextToUse.Session != null)
-                    {
-                        object sessionDeviceId = contextToUse.Session["DeviceId"];
-                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
-                        {
-                            deviceId = sessionDeviceId.ToString();
-                        }
-                    }
-                    
-                    // Second try: Use HttpContext.Current session
-                    if (string.IsNullOrEmpty(deviceId) && HttpContext.Current != null && HttpContext.Current.Session != null)
-                    {
-                        object sessionDeviceId = HttpContext.Current.Session["DeviceId"];
-                        if (sessionDeviceId != null && !string.IsNullOrEmpty(sessionDeviceId.ToString()))
-                        {
-                            deviceId = sessionDeviceId.ToString();
-                        }
-                    }
-                    
-                    // Third try: Get from cookie (backup method)
-                    if (string.IsNullOrEmpty(deviceId))
-                    {
-                        HttpContextBase requestContext = contextToUse;
-                        if (requestContext == null && HttpContext.Current != null)
-                        {
-                            requestContext = new HttpContextWrapper(HttpContext.Current);
-                        }
-                        
-                        if (requestContext != null && requestContext.Request != null && requestContext.Request.Cookies != null)
-                        {
-                            HttpCookie deviceIdCookie = requestContext.Request.Cookies["DeviceId"];
-                            if (deviceIdCookie != null && !string.IsNullOrEmpty(deviceIdCookie.Value))
-                            {
-                                deviceId = deviceIdCookie.Value;
-                                // Also store in session for future use
-                                if (requestContext.Session != null)
-                                {
-                                    requestContext.Session["DeviceId"] = deviceId;
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (!string.IsNullOrEmpty(deviceId))
-                    {
-                        macAddress = deviceId;
-                        System.Diagnostics.Debug.WriteLine($"LogHelper: Got MAC address from session/cookie: {macAddress}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("LogHelper: Device ID not found in session or cookie");
-                    }
-                }
-                catch (Exception sessionEx)
-                {
-                    // If session access fails, use default
-                    System.Diagnostics.Debug.WriteLine($"LogHelper: Error getting device ID: {sessionEx.Message}");
-                    macAddress = "00:00:00:00:00:00";
-                }
 
                 // Get UserID - handle errors gracefully
                 int userId = 0;

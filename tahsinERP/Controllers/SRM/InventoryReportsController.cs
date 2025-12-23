@@ -7,7 +7,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 
-namespace tahsinERP.Controllers.SRM
+namespace tahsinERP.Controllers
 {
     /// <summary>
     /// Inventory Reports for Production Warehouse
@@ -15,6 +15,144 @@ namespace tahsinERP.Controllers.SRM
     /// </summary>
     public class InventoryReportsController : Controller
     {
+        // GET: InventoryReports/Dashboard
+        public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var fromDateValue = fromDate ?? DateTime.Now.AddDays(-30);
+                var toDateValue = toDate ?? DateTime.Now;
+
+                var model = new InventoryDashboardViewModel
+                {
+                    FromDate = fromDateValue,
+                    ToDate = toDateValue,
+                    HighDOHItems = new List<InventoryDashboardItem>(),
+                    LowDOHItems = new List<InventoryDashboardItem>(),
+                    StockItems = new List<InventoryDashboardItem>(),
+                    StockByCategory = new List<CategoryStockSummary>(),
+                    InboundTrends = new List<TrendData>(),
+                    OutboundTrends = new List<TrendData>()
+                };
+
+                // Get all warehouses if not specified
+                var warehouses = warehouseId.HasValue
+                    ? await db.WAREHOUSES.Where(w => w.ID == warehouseId.Value && w.IsDeleted != true).ToListAsync()
+                    : await db.WAREHOUSES.Where(w => w.IsDeleted != true).ToListAsync();
+
+                // Get all stocks
+                var stocks = await db.PRODUCT_STOCKS
+                    .Include(s => s.PRODUCT)
+                    .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
+                    .Include(s => s.UNIT)
+                    .Include(s => s.Warehouse)
+                    .Where(s => warehouses.Select(w => w.ID).Contains(s.WHID) && s.Amount > 0)
+                    .ToListAsync();
+
+                // Filter by category if specified
+                if (categoryId.HasValue)
+                {
+                    stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.CategoryID == categoryId.Value).ToList();
+                }
+
+                // Calculate consumption from EXPENSES (outbound)
+                var expenses = await db.EXPENSES
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .Where(e => e.IssueDateTime >= fromDateValue && e.IssueDateTime <= toDateValue && e.IsDeleted != true)
+                    .ToListAsync();
+
+                var totalDays = (toDateValue - fromDateValue).TotalDays;
+                if (totalDays <= 0) totalDays = 1;
+
+                foreach (var stock in stocks)
+                {
+                    if (stock.PRODUCT == null) continue;
+
+                    // Calculate average daily consumption from expenses
+                    var productExpenses = expenses
+                        .SelectMany(e => e.EXPENSE_PRODUCTS)
+                        .Where(ep => ep.ProductID == stock.ProductID && ep.EXPENS.SenderWHID == stock.WHID)
+                        .ToList();
+
+                    var totalConsumption = productExpenses.Sum(ep => ep.Amount);
+                    var avgDailyConsumption = totalConsumption / totalDays;
+                    var doh = avgDailyConsumption > 0 ? stock.Amount / avgDailyConsumption : (double?)null;
+
+                    var item = new InventoryDashboardItem
+                    {
+                        ProductID = stock.ProductID,
+                        ProductPNo = stock.PRODUCT.PNo ?? "N/A",
+                        ProductName = stock.PRODUCT.Name ?? "N/A",
+                        CategoryName = stock.PRODUCT.PRODUCT_CATEGORIES?.Name ?? "N/A",
+                        WarehouseName = stock.Warehouse?.WHName ?? "N/A",
+                        CurrentStock = stock.Amount,
+                        UnitName = stock.UNIT?.ShortName ?? "N/A",
+                        AverageDailyConsumption = avgDailyConsumption,
+                        DOH = doh
+                    };
+
+                    model.StockItems.Add(item);
+
+                    // Categorize by DOH
+                    if (doh.HasValue)
+                    {
+                        if (doh.Value > 60)
+                        {
+                            model.HighDOHItems.Add(item);
+                        }
+                        else if (doh.Value < 30)
+                        {
+                            model.LowDOHItems.Add(item);
+                        }
+                    }
+                }
+
+                // Calculate stock by category
+                model.StockByCategory = stocks
+                    .Where(s => s.PRODUCT != null && s.PRODUCT.PRODUCT_CATEGORIES != null)
+                    .GroupBy(s => s.PRODUCT.PRODUCT_CATEGORIES.Name)
+                    .Select(g => new CategoryStockSummary
+                    {
+                        CategoryName = g.Key,
+                        TotalStock = g.Sum(s => s.Amount)
+                    })
+                    .ToList();
+
+                // Calculate inbound/outbound trends
+                var inboundData = await db.INCOMES
+                    .Include(i => i.INCOME_PRODUCTS)
+                    .Where(i => i.IssueDateTime >= fromDateValue && i.IssueDateTime <= toDateValue && i.IsDeleted != true)
+                    .GroupBy(i => DbFunctions.TruncateTime(i.IssueDateTime))
+                    .Select(g => new { Date = g.Key, Amount = g.SelectMany(i => i.INCOME_PRODUCTS).Sum(ip => ip.Amount) })
+                    .ToListAsync();
+
+                var outboundData = await db.EXPENSES
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .Where(e => e.IssueDateTime >= fromDateValue && e.IssueDateTime <= toDateValue && e.IsDeleted != true)
+                    .GroupBy(e => DbFunctions.TruncateTime(e.IssueDateTime))
+                    .Select(g => new { Date = g.Key, Amount = g.SelectMany(e => e.EXPENSE_PRODUCTS).Sum(ep => ep.Amount) })
+                    .ToListAsync();
+
+                model.InboundTrends = inboundData.Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
+                model.OutboundTrends = outboundData.Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
+
+                // Prepare ViewBag
+                ViewBag.Warehouses = new SelectList(
+                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).ToListAsync(),
+                    "ID", "WHName", warehouseId);
+                ViewBag.Categories = new SelectList(
+                    await db.PRODUCT_CATEGORIES.ToListAsync(),
+                    "ID", "Name", categoryId);
+
+                return View(model);
+            }
+        }
+
         // GET: InventoryReports/ProductionWH
         public async Task<ActionResult> ProductionWH(int? warehouseId, DateTime? reportDate)
         {
@@ -188,5 +326,45 @@ namespace tahsinERP.Controllers.SRM
         public double PlanFulfillment { get; set; }
         public bool IsRawMaterial { get; set; }
         public bool RequiresCutting { get; set; }
+    }
+
+    /// <summary>
+    /// Inventory Dashboard ViewModel
+    /// </summary>
+    public class InventoryDashboardViewModel
+    {
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public List<InventoryDashboardItem> HighDOHItems { get; set; }
+        public List<InventoryDashboardItem> LowDOHItems { get; set; }
+        public List<InventoryDashboardItem> StockItems { get; set; }
+        public List<CategoryStockSummary> StockByCategory { get; set; }
+        public List<TrendData> InboundTrends { get; set; }
+        public List<TrendData> OutboundTrends { get; set; }
+    }
+
+    public class InventoryDashboardItem
+    {
+        public int ProductID { get; set; }
+        public string ProductPNo { get; set; }
+        public string ProductName { get; set; }
+        public string CategoryName { get; set; }
+        public string WarehouseName { get; set; }
+        public double CurrentStock { get; set; }
+        public string UnitName { get; set; }
+        public double AverageDailyConsumption { get; set; }
+        public double? DOH { get; set; }
+    }
+
+    public class CategoryStockSummary
+    {
+        public string CategoryName { get; set; }
+        public double TotalStock { get; set; }
+    }
+
+    public class TrendData
+    {
+        public DateTime Date { get; set; }
+        public double Amount { get; set; }
     }
 }

@@ -83,112 +83,6 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Supplier/Create (AJAX)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Create(SUPPLIER supplier)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
-            {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
-            }
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                return Json(new { success = false, message = string.Join(", ", errors) });
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                try
-                {
-                    // Check if supplier with same name exists
-                    var existSupplier = await db.SUPPLIERS
-                        .FirstOrDefaultAsync(x => x.IsDeleted != true && x.Name.ToLower() == supplier.Name.ToLower());
-
-                    if (existSupplier != null)
-                    {
-                        return Json(new { success = false, message = "Bunday nom bilan Ta'minotchi kiritilgan, ma'lumotlarni qaytadan tekshiring." });
-                    }
-
-                    supplier.IsDeleted = false;
-                    db.SUPPLIERS.Add(supplier);
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "Supplier", $"Create - {supplier.Name} ta'minotchini yaratildi");
-
-                    return Json(new { success = true, message = "Ta'minotchi muvaffaqiyatli qo'shildi", id = supplier.ID });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
-                }
-            }
-        }
-
-        // POST: Supplier/Edit (AJAX)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Edit(SUPPLIER supplier)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
-            {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
-            }
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                return Json(new { success = false, message = string.Join(", ", errors) });
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                try
-                {
-                    var supplierToUpdate = await db.SUPPLIERS.FindAsync(supplier.ID);
-                    if (supplierToUpdate == null || supplierToUpdate.IsDeleted == true)
-                    {
-                        return Json(new { success = false, message = "Ta'minotchi topilmadi" });
-                    }
-
-                    // Check if another supplier with same name exists
-                    var existSupplier = await db.SUPPLIERS
-                        .FirstOrDefaultAsync(x => x.IsDeleted != true && 
-                                                  x.Name.ToLower() == supplier.Name.ToLower() && 
-                                                  x.ID != supplier.ID);
-
-                    if (existSupplier != null)
-                    {
-                        return Json(new { success = false, message = "Bunday nom bilan boshqa Ta'minotchi mavjud" });
-                    }
-
-                    // Update fields
-                    supplierToUpdate.Name = supplier.Name;
-                    supplierToUpdate.Address = supplier.Address;
-                    supplierToUpdate.Country = supplier.Country;
-                    supplierToUpdate.City = supplier.City;
-                    supplierToUpdate.Telephone = supplier.Telephone;
-                    supplierToUpdate.Email = supplier.Email;
-                    supplierToUpdate.ContactPersonName = supplier.ContactPersonName;
-                    supplierToUpdate.DirectorName = supplier.DirectorName;
-                    supplierToUpdate.DUNS = supplier.DUNS;
-                    supplierToUpdate.Type = supplier.Type;
-                    supplierToUpdate.IsDeleted = false;
-
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "Supplier", $"Edit - {supplierToUpdate.Name} ta'minotchi tahrirlandi");
-
-                    return Json(new { success = true, message = "Ta'minotchi muvaffaqiyatli yangilandi" });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
-                }
-            }
-        }
 
         // POST: Supplier/Delete (AJAX)
         [HttpPost]
@@ -249,23 +143,58 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Legacy actions for backward compatibility
+        // GET: Supplier/Create
         public ActionResult Create()
         {
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             return View();
         }
 
+        // POST: Supplier/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(SUPPLIER supplier, FormCollection collection)
         {
-            var result = await Create(supplier);
-            if ((result.Data as System.Web.Mvc.JsonResult)?.Data != null)
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
             {
-                var jsonData = (result.Data as System.Web.Mvc.JsonResult).Data;
-                // Handle legacy form submission
+                return RedirectToAction("Index", "ViewNotAuthorized");
             }
-            return RedirectToAction("Index");
+
+            if (ModelState.IsValid)
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    try
+                    {
+                        // Check if supplier with same name exists
+                        var existSupplier = await db.SUPPLIERS
+                            .FirstOrDefaultAsync(x => x.IsDeleted != true && x.Name.ToLower() == supplier.Name.ToLower());
+
+                        if (existSupplier != null)
+                        {
+                            ModelState.AddModelError("", "Bunday nom bilan Ta'minotchi kiritilgan, ma'lumotlarni qaytadan tekshiring.");
+                            return View(supplier);
+                        }
+
+                        supplier.IsDeleted = false;
+                        db.SUPPLIERS.Add(supplier);
+                        await db.SaveChangesAsync();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "Supplier", $"Create - {supplier.Name} ta'minotchini yaratildi");
+
+                        return RedirectToAction("Index");
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    }
+                }
+            }
+
+            return View(supplier);
         }
 
         public async Task<ActionResult> Edit(int? id)
@@ -292,12 +221,67 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // POST: Supplier/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(SUPPLIER supplier, FormCollection collection)
         {
-            var result = await Edit(supplier);
-            return RedirectToAction("Index");
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (ModelState.IsValid)
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    try
+                    {
+                        var supplierToUpdate = await db.SUPPLIERS.FindAsync(supplier.ID);
+                        if (supplierToUpdate == null || supplierToUpdate.IsDeleted == true)
+                        {
+                            return HttpNotFound();
+                        }
+
+                        // Check if another supplier with same name exists
+                        var existSupplier = await db.SUPPLIERS
+                            .FirstOrDefaultAsync(x => x.IsDeleted != true && 
+                                                      x.Name.ToLower() == supplier.Name.ToLower() && 
+                                                      x.ID != supplier.ID);
+
+                        if (existSupplier != null)
+                        {
+                            ModelState.AddModelError("", "Bunday nom bilan boshqa Ta'minotchi mavjud");
+                            return View(supplier);
+                        }
+
+                        // Update fields
+                        supplierToUpdate.Name = supplier.Name;
+                        supplierToUpdate.Address = supplier.Address;
+                        supplierToUpdate.Country = supplier.Country;
+                        supplierToUpdate.City = supplier.City;
+                        supplierToUpdate.Telephone = supplier.Telephone;
+                        supplierToUpdate.Email = supplier.Email;
+                        supplierToUpdate.ContactPersonName = supplier.ContactPersonName;
+                        supplierToUpdate.DirectorName = supplier.DirectorName;
+                        supplierToUpdate.DUNS = supplier.DUNS;
+                        supplierToUpdate.Type = supplier.Type;
+                        supplierToUpdate.IsDeleted = false;
+
+                        await db.SaveChangesAsync();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "Supplier", $"Edit - {supplierToUpdate.Name} ta'minotchi tahrirlandi");
+
+                        return RedirectToAction("Index");
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    }
+                }
+            }
+
+            return View(supplier);
         }
 
         public async Task<ActionResult> Delete(int? id)

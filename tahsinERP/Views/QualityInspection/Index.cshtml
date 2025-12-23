@@ -100,7 +100,6 @@
                                                     <th>Tekshirilgan</th>
                                                     <th>Qabul qilingan</th>
                                                     <th>Rad etilgan</th>
-                                                    <th>Nuqson turi</th>
                                                     <th>Holat</th>
                                                     <th>Amallar</th>
                                                 </tr>
@@ -112,11 +111,10 @@
                                                     {
                                                         <tr>
                                                             <td>@item.InspectionDate.ToString("dd.MM.yyyy")</td>
-                                                            <td>@(item.PRODUCT?.PNo ?? item.ProductID.ToString())</td>
+                                                            <td>@(item.PRODUCT != null ? item.PRODUCT.PNo : item.ProductID.ToString())</td>
                                                             <td>@item.QtyInspected.ToString("N3")</td>
                                                             <td>@item.QtyAccepted.ToString("N3")</td>
                                                             <td>@item.QtyRejected.ToString("N3")</td>
-                                                            <td>@(item.DEFECT_TYPES?.Name ?? "-")</td>
                                                             <td>
                                                                 <span class="badge badge-@(item.StatusCode == "APPROVED" ? "success" : item.StatusCode == "REJECTED" ? "danger" : "warning")">
                                                                     @item.StatusCode

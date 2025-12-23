@@ -434,6 +434,12 @@
                             <a href="~/Tender"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Tender taqqoslash</span></a>
                         </li>
                     }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
+                    {
+                        <li class="nav-item">
+                            <a href="~/SupplierBase"><i class="bx bx-book"></i><span class="menu-title">Справочник</span></a>
+                        </li>
+                    }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Logistika -->
@@ -944,7 +950,6 @@
         <!-- Scripts -->
         @Scripts.Render("~/bundles/jquery")
         <script src="~/Scripts/bootstrap.bundle.js"></script>
-        <script src="~/Scripts/device-identifier.js"></script>
         @RenderSection("scripts", required: false)
 
         <!-- Vendor JS -->

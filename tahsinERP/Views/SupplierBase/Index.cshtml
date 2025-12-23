@@ -1,0 +1,162 @@
+@model List<tahsinERP.Models.SUPPLIER_BASE>
+@{
+    ViewBag.Title = "Справочник";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase", "Index"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase") ||
+                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBases") ||
+                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase", "Create");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Справочник
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="invoice-create-btn mb-1">
+                        @if (changePermit)
+                        {
+                            <a href="@Url.Action("Create", "SupplierBase")" class="btn btn-success bg-light invoice-create">
+                                <i class="bx bx-plus"></i> Yangi qo'shish
+                            </a>
+                        }
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="supplierBaseTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Korxona / Do'kon</th>
+                                                    <th>Maxsulot turi</th>
+                                                    <th>Davlat</th>
+                                                    <th>Viloyat</th>
+                                                    <th>Region</th>
+                                                    <th>Aloqa uchun</th>
+                                                    <th>Lavozimi</th>
+                                                    <th>Telefon</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "SupplierBase", new { id = item.ID })">@(item.CompanyName ?? "-")</a>
+                                                            </td>
+                                                            <td>@(item.ProductType ?? "-")</td>
+                                                            <td>@(item.Country ?? "-")</td>
+                                                            <td>@(item.Province ?? "-")</td>
+                                                            <td>@(item.Region ?? "-")</td>
+                                                            <td>@(item.ContactPerson ?? "-")</td>
+                                                            <td>@(item.Position ?? "-")</td>
+                                                            <td>@(item.Phone ?? "-")</td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <a href="@Url.Action("Edit", "SupplierBase", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Tahrirlash">
+                                                                            <i class="bx bx-edit-alt"></i>
+                                                                        </a>
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplierBase(@item.ID, '@(item.CompanyName ?? "Yozuv")')" title="O'chirish">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function deleteSupplierBase(id, name) {
+            if (!confirm('"' + name + '" ni o\'chirishni tasdiqlaysizmi?')) {
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '@Url.Action("DeleteAjax", "SupplierBase")',
+                type: 'POST',
+                data: { id: id, __RequestVerificationToken: token },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Xatolik: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Server xatoligi yuz berdi');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $('#supplierBaseTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

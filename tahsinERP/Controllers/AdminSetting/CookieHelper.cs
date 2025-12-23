@@ -28,24 +28,8 @@ namespace tahsinERP.Controllers
                 clientIp = NetworkHelper.GetClientIpAddress(contextToUse);
             }
             
-            // Get device identifier from session (set by client-side JavaScript)
+            // MAC address - use default value (device ID functionality disabled)
             string macAddress = "00:00:00:00:00:00";
-            if (contextToUse != null && contextToUse.Session != null)
-            {
-                object deviceId = contextToUse.Session["DeviceId"];
-                if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
-                {
-                    macAddress = deviceId.ToString();
-                }
-            }
-            else if (HttpContext.Current != null && HttpContext.Current.Session != null)
-            {
-                object deviceId = HttpContext.Current.Session["DeviceId"];
-                if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
-                {
-                    macAddress = deviceId.ToString();
-                }
-            }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -80,24 +64,8 @@ namespace tahsinERP.Controllers
                     clientIp = NetworkHelper.GetClientIpAddress(contextToUse);
                 }
                 
-                // Get device identifier from session (set by client-side JavaScript)
+                // MAC address - use default value (device ID functionality disabled)
                 string macAddress = "00:00:00:00:00:00";
-                if (contextToUse != null && contextToUse.Session != null)
-                {
-                    object deviceId = contextToUse.Session["DeviceId"];
-                    if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
-                    {
-                        macAddress = deviceId.ToString();
-                    }
-                }
-                else if (HttpContext.Current != null && HttpContext.Current.Session != null)
-                {
-                    object deviceId = HttpContext.Current.Session["DeviceId"];
-                    if (deviceId != null && !string.IsNullOrEmpty(deviceId.ToString()))
-                    {
-                        macAddress = deviceId.ToString();
-                    }
-                }
 
                 var cookieConfirm = new COOKIES_CONFIRMATION
                 {

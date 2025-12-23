@@ -62,5 +62,8 @@ namespace tahsinERP.ViewModels
 
         [Display(Name = "Project")]
         public string ProjectName { get; set; }
+
+        [Display(Name = "User Comment")]
+        public string UserComment { get; set; }
     }
 }

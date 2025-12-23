@@ -135,6 +135,11 @@
                                                                 <span>-</span>
                                                             }
                                                         </p>
+                                                        @if (!string.IsNullOrEmpty(Model.UserComment))
+                                                        {
+                                                            <p><b>Bajaruvchi izohi:</b></p>
+                                                            <p class="border rounded p-2 bg-light">@Html.Raw(Model.UserComment.Replace("\n", "<br />"))</p>
+                                                        }
                                                     </div>
                                                 </div>
                                                 <hr>
