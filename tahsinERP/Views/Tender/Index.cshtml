@@ -132,13 +132,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        $(document).ready(function () {
-            $('.select2').select2();
+        // Wait for jQuery to be loaded
+        (function() {
+            function initTenderScripts() {
+                // Check if jQuery and Select2 are available
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+                    // Retry after a short delay
+                    setTimeout(initTenderScripts, 100);
+                    return;
+                }
+
+                // Use jQuery - $ might be conflicted, so use jQuery explicitly
+                var $ = jQuery;
+
+                $(document).ready(function () {
+                    // Initialize Select2
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('.select2').select2();
+                    }
             
-            var offers = [];
-            var selectedMaterialId = null;
-            var materialLocked = false;
-            var comparisonChart = null;
+                    var offers = [];
+                    var selectedMaterialId = null;
+                    var materialLocked = false;
+                    var comparisonChart = null;
 
             // Lock material after first offer
             $('#materialSelect').on('change', function () {
@@ -352,7 +368,16 @@
                 printWindow.document.close();
                 printWindow.print();
             });
-        });
+                });
+            }
+
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTenderScripts);
+            } else {
+                initTenderScripts();
+            }
+        })();
     </script>
 }
 else

@@ -302,72 +302,161 @@ else
 
             // Helper function to escape HTML
             function escapeHtml(text) {
-                if (!text) return '';
-                var map = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                };
-                return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+                if (text == null || text === undefined) return '';
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             }
 
-            // Helper function to escape attribute values
+            // Helper function to escape attribute values (for HTML attributes)
             function escapeAttr(text) {
-                if (!text) return '';
-                return String(text).replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                if (text == null || text === undefined) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#x27;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
             }
 
             function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation) {
-                // Escape all user input to prevent XSS and syntax errors
-                var safeProductPNo = escapeAttr(productPNo || '');
-                var safeProductName = escapeAttr(productName || '');
-                var safeAmount = amount || 0;
-                var safePrice = price || 0;
-                var safeMoq = moq || 0;
-                var safeCalcExplanation = escapeAttr(calculationExplanation || '');
-                var safeCalcDisplay = calculationExplanation ? escapeHtml(calculationExplanation.length > 50 ? calculationExplanation.substring(0, 50) + '...' : calculationExplanation) : '-';
+                // Ensure all values are safe
+                var safeProductPNo = productPNo || '';
+                var safeProductName = productName || '';
+                var safeAmount = parseFloat(amount) || 0;
+                var safePrice = parseFloat(price) || 0;
+                var safeMoq = parseFloat(moq) || 0;
+                var safeCalcExplanation = calculationExplanation || '';
+                var safeCalcDisplay = safeCalcExplanation ? (safeCalcExplanation.length > 50 ? safeCalcExplanation.substring(0, 50) + '...' : safeCalcExplanation) : '-';
 
-                var row = '<tr data-row-index="' + productRowIndex + '">' +
-                    '<td>' +
-                        '<select name="OrderProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
-                        '<option value="">---Tanlang---</option>';
+                // Create row using jQuery for safer DOM manipulation
+                var $row = $('<tr>').attr('data-row-index', productRowIndex);
+                
+                // Product select column
+                var $productCell = $('<td>');
+                var $productSelect = $('<select>')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].ProductID')
+                    .addClass('form-control product-select')
+                    .attr('required', 'required');
+                $productSelect.append($('<option>').attr('value', '').text('---Tanlang---'));
                 
                 purchasableProducts.forEach(function (product) {
-                    var selected = product.Value == productId ? 'selected' : '';
-                    var safeProductText = escapeHtml(product.Text);
-                    var safeProductValue = escapeAttr(product.Value);
-                    row += '<option value="' + safeProductValue + '" ' + selected + ' data-pno="' + safeProductText + '">' + safeProductText + '</option>';
+                    var $option = $('<option>')
+                        .attr('value', product.Value)
+                        .attr('data-pno', product.Text)
+                        .text(product.Text);
+                    if (product.Value == productId) {
+                        $option.attr('selected', 'selected');
+                    }
+                    $productSelect.append($option);
                 });
                 
-                row += '</select>' +
-                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + safeProductPNo + '" />' +
-                    '</td>' +
-                    '<td><input type="text" name="OrderProducts[' + productRowIndex + '].ProductName" class="form-control product-name" value="' + safeProductName + '" readonly /></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + safeAmount + '" step="0.01" min="0" required /></td>' +
-                    '<td>' +
-                        '<select name="OrderProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
-                        '<option value="">---Tanlang---</option>';
+                $productCell.append($productSelect);
+                $productCell.append($('<input>')
+                    .attr('type', 'hidden')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].ProductPNo')
+                    .addClass('product-pno')
+                    .val(safeProductPNo));
+                
+                // Product name column
+                var $nameCell = $('<td>');
+                $nameCell.append($('<input>')
+                    .attr('type', 'text')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].ProductName')
+                    .addClass('form-control product-name')
+                    .val(safeProductName)
+                    .attr('readonly', 'readonly'));
+                
+                // Amount column
+                var $amountCell = $('<td>');
+                $amountCell.append($('<input>')
+                    .attr('type', 'number')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].Amount')
+                    .addClass('form-control amount-input')
+                    .val(safeAmount)
+                    .attr('step', '0.01')
+                    .attr('min', '0')
+                    .attr('required', 'required'));
+                
+                // Unit select column
+                var $unitCell = $('<td>');
+                var $unitSelect = $('<select>')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].UnitID')
+                    .addClass('form-control unit-select')
+                    .attr('required', 'required');
+                $unitSelect.append($('<option>').attr('value', '').text('---Tanlang---'));
                 
                 units.forEach(function (unit) {
-                    var selected = unit.Value == unitId ? 'selected' : '';
-                    var safeUnitText = escapeHtml(unit.Text);
-                    var safeUnitValue = escapeAttr(unit.Value);
-                    row += '<option value="' + safeUnitValue + '" ' + selected + '>' + safeUnitText + '</option>';
+                    var $option = $('<option>')
+                        .attr('value', unit.Value)
+                        .text(unit.Text);
+                    if (unit.Value == unitId) {
+                        $option.attr('selected', 'selected');
+                    }
+                    $unitSelect.append($option);
                 });
+                $unitCell.append($unitSelect);
                 
-                row += '</select></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + safePrice + '" step="0.01" min="0" required /></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + safeMoq + '" step="0.01" min="0" /></td>' +
-                    '<td><small class="text-muted calculation-explanation" title="' + safeCalcExplanation + '">' + safeCalcDisplay + '</small>' +
-                        '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + safeCalcExplanation + '" />' +
-                        '</td>' +
-                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
-                    '</tr>';
-
-                $('#orderProductsTable tbody').append(row);
+                // Price column
+                var $priceCell = $('<td>');
+                $priceCell.append($('<input>')
+                    .attr('type', 'number')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].Price')
+                    .addClass('form-control price-input')
+                    .val(safePrice)
+                    .attr('step', '0.01')
+                    .attr('min', '0')
+                    .attr('required', 'required'));
+                
+                // Total price column
+                var $totalCell = $('<td>');
+                $totalCell.append($('<input>')
+                    .attr('type', 'number')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].TotalPrice')
+                    .addClass('form-control total-price')
+                    .val(0)
+                    .attr('readonly', 'readonly'));
+                
+                // MOQ column
+                var $moqCell = $('<td>');
+                $moqCell.append($('<input>')
+                    .attr('type', 'number')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].MOQ')
+                    .addClass('form-control moq-input')
+                    .val(safeMoq)
+                    .attr('step', '0.01')
+                    .attr('min', '0'));
+                
+                // Calculation explanation column
+                var $calcCell = $('<td>');
+                $calcCell.append($('<small>')
+                    .addClass('text-muted calculation-explanation')
+                    .attr('title', safeCalcExplanation)
+                    .text(safeCalcDisplay));
+                $calcCell.append($('<input>')
+                    .attr('type', 'hidden')
+                    .attr('name', 'OrderProducts[' + productRowIndex + '].CalculationExplanation')
+                    .val(safeCalcExplanation));
+                
+                // Actions column
+                var $actionCell = $('<td>');
+                $actionCell.append($('<button>')
+                    .attr('type', 'button')
+                    .addClass('btn btn-sm btn-danger remove-row')
+                    .html('<i class="bx bx-trash"></i>'));
+                
+                // Assemble row
+                $row.append($productCell)
+                    .append($nameCell)
+                    .append($amountCell)
+                    .append($unitCell)
+                    .append($priceCell)
+                    .append($totalCell)
+                    .append($moqCell)
+                    .append($calcCell)
+                    .append($actionCell);
+                
+                $('#orderProductsTable tbody').append($row);
                 
                 // Initialize Select2 for new row
                 $('select.product-select').last().select2();

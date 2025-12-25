@@ -431,6 +431,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedByUserID" Type="int" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="BalanceCategoryID" Type="int" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORIES">
           <Key>
@@ -442,6 +443,7 @@
           <Property Name="ParentID" Type="int" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CalculationType" Type="tinyint" Nullable="false" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_SNAPSHOTS">
           <Key>
@@ -1458,6 +1460,22 @@
           <Property Name="VersionNo" Type="int" Nullable="false" />
           <Property Name="Notes" Type="nvarchar(max)" />
         </EntityType>
+        <EntityType Name="SUPPLIER_BASE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CompanyName" Type="nvarchar" MaxLength="255" />
+          <Property Name="ProductType" Type="nvarchar" MaxLength="255" />
+          <Property Name="Country" Type="nvarchar" MaxLength="100" />
+          <Property Name="Province" Type="nvarchar" MaxLength="100" />
+          <Property Name="Region" Type="nvarchar" MaxLength="100" />
+          <Property Name="ContactPerson" Type="nvarchar" MaxLength="255" />
+          <Property Name="Position" Type="nvarchar" MaxLength="100" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="50" />
+          <Property Name="Comment" Type="nvarchar(max)" />
+          <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
         <EntityType Name="SUPPLIERS">
           <Key>
             <PropertyRef Name="ID" />
@@ -2338,6 +2356,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Principal>
             <Dependent Role="F_WAYBILLS">
               <PropertyRef Name="TTNKID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_ACCOUNTS_BalanceCategory">
+          <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="0..1" />
+          <End Role="FIN_ACCOUNTS" Type="Self.FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="BalanceCategoryID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4635,6 +4665,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="SHOPS" EntityType="Self.SHOPS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SORDER_DELIVERY_SCHEDULE" EntityType="Self.SORDER_DELIVERY_SCHEDULE" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="Self.STD_COMPANY_STANDARDS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SUPPLIER_BASE" EntityType="Self.SUPPLIER_BASE" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TANNARX" EntityType="Self.TANNARX" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UNITS" EntityType="Self.UNITS" Schema="dbo" store:Type="Tables" />
@@ -4922,6 +4953,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_F_WAYBILLS_TTNK" Association="Self.FK_F_WAYBILLS_TTNK">
             <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_ACCOUNTS_BalanceCategory" Association="Self.FK_FIN_ACCOUNTS_BalanceCategory">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
           </AssociationSet>
           <AssociationSet Name="FK_FIN_ACCOUNTS_CREATEDBY" Association="Self.FK_FIN_ACCOUNTS_CREATEDBY">
             <End Role="USERS" EntitySet="USERS" />
@@ -6179,6 +6214,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_FIN_ACCOUNTS_CURRENCY" FromRole="FIN_ACCOUNTS" ToRole="CURRENCIES" />
           <NavigationProperty Name="USER" Relationship="Self.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="FIN_ACCOUNTS" ToRole="USERS" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_ACCOUNT" FromRole="FIN_ACCOUNTS" ToRole="FIN_TRANSACTIONS" />
+          <Property Name="BalanceCategoryID" Type="Int32" />
+          <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_ACCOUNTS" ToRole="FIN_BALANCE_CATEGORIES" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORIES">
           <Key>
@@ -6193,6 +6230,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES1" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES1" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES2" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES1" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="Self.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_SNAPSHOTS" />
+          <Property Name="CalculationType" Type="Byte" Nullable="false" />
+          <NavigationProperty Name="FIN_ACCOUNTS" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_ACCOUNTS" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_SNAPSHOTS">
           <Key>
@@ -11392,6 +11431,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <Parameter Name="Year" Mode="In" Type="Int32" />
             <Parameter Name="Month" Mode="In" Type="Int32" />
           </FunctionImport>
+          <EntitySet Name="SUPPLIER_BASE" EntityType="DBTHSNModel.SUPPLIER_BASE" />
+          <AssociationSet Name="FK_FIN_ACCOUNTS_BalanceCategory" Association="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="sp_Fin_CashSummary_Result">
           <Property Type="Int32" Name="AccountID" Nullable="false" />
@@ -11610,6 +11654,34 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Month" Type="Int32" />
           <Property Name="ActualMaterialTransportCost" Type="Double" />
         </EntityType>
+        <EntityType Name="SUPPLIER_BASE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="ProductType" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Country" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Province" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Region" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ContactPerson" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Position" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsDeleted" Type="Boolean" />
+        </EntityType>
+        <Association Name="FK_FIN_ACCOUNTS_BalanceCategory">
+          <End Type="DBTHSNModel.FIN_BALANCE_CATEGORIES" Role="FIN_BALANCE_CATEGORIES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.FIN_ACCOUNTS" Role="FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="BalanceCategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -12061,6 +12133,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_ACCOUNTS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_ACCOUNTS">
               <MappingFragment StoreEntitySet="FIN_ACCOUNTS">
+                <ScalarProperty Name="BalanceCategoryID" ColumnName="BalanceCategoryID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12077,6 +12150,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_BALANCE_CATEGORIES">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_BALANCE_CATEGORIES">
               <MappingFragment StoreEntitySet="FIN_BALANCE_CATEGORIES">
+                <ScalarProperty Name="CalculationType" ColumnName="CalculationType" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Type" ColumnName="Type" />
@@ -13470,6 +13544,23 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </EntityTypeMapping>
           </EntitySetMapping>
           <FunctionImportMapping FunctionImportName="SP_TANNARX_UPDATE_ACTUAL_COSTS" FunctionName="DBTHSNModel.Store.SP_TANNARX_UPDATE_ACTUAL_COSTS" />
+          <EntitySetMapping Name="SUPPLIER_BASE">
+            <EntityTypeMapping TypeName="DBTHSNModel.SUPPLIER_BASE">
+              <MappingFragment StoreEntitySet="SUPPLIER_BASE">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Position" ColumnName="Position" />
+                <ScalarProperty Name="ContactPerson" ColumnName="ContactPerson" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="Province" ColumnName="Province" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="ProductType" ColumnName="ProductType" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

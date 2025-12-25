@@ -40,10 +40,26 @@ namespace tahsinERP.Controllers
                     OutboundTrends = new List<TrendData>()
                 };
 
-                // Get all warehouses if not specified
-                var warehouses = warehouseId.HasValue
-                    ? await db.WAREHOUSES.Where(w => w.ID == warehouseId.Value && w.IsDeleted != true).ToListAsync()
-                    : await db.WAREHOUSES.Where(w => w.IsDeleted != true).ToListAsync();
+                // Get warehouse IDs first (as simple list of integers)
+                var warehouseIds = warehouseId.HasValue
+                    ? new List<int> { warehouseId.Value }
+                    : await db.WAREHOUSES.Where(w => w.IsDeleted != true).Select(w => w.ID).ToListAsync();
+
+                if (!warehouseIds.Any())
+                {
+                    ViewBag.Error = "Ombor topilmadi";
+                    return View(new InventoryDashboardViewModel
+                    {
+                        FromDate = fromDateValue,
+                        ToDate = toDateValue,
+                        HighDOHItems = new List<InventoryDashboardItem>(),
+                        LowDOHItems = new List<InventoryDashboardItem>(),
+                        StockItems = new List<InventoryDashboardItem>(),
+                        StockByCategory = new List<CategoryStockSummary>(),
+                        InboundTrends = new List<TrendData>(),
+                        OutboundTrends = new List<TrendData>()
+                    });
+                }
 
                 // Get all stocks
                 var stocks = await db.PRODUCT_STOCKS
@@ -51,7 +67,7 @@ namespace tahsinERP.Controllers
                     .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
                     .Include(s => s.UNIT)
                     .Include(s => s.Warehouse)
-                    .Where(s => warehouses.Select(w => w.ID).Contains(s.WHID) && s.Amount > 0)
+                    .Where(s => warehouseIds.Contains(s.WHID) && s.Amount > 0)
                     .ToListAsync();
 
                 // Filter by category if specified

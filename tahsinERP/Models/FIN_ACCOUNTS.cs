@@ -30,10 +30,12 @@ namespace tahsinERP.Models
         public bool IsActive { get; set; }
         public int CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public Nullable<int> BalanceCategoryID { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual USER USER { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
+        public virtual FIN_BALANCE_CATEGORIES FIN_BALANCE_CATEGORIES { get; set; }
     }
 }

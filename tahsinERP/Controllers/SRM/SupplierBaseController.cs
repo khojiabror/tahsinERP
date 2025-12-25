@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var list = await db.SUPPLIER_BASES
+                var list = await db.SUPPLIER_BASE
                     .Where(s => s.IsDeleted != true)
                     .OrderBy(s => s.CompanyName)
                     .ToListAsync();
@@ -45,7 +45,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var supplierBase = await db.SUPPLIER_BASES.FindAsync(id);
+                var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
                 if (supplierBase == null || supplierBase.IsDeleted == true)
                 {
                     return HttpNotFound();
@@ -82,7 +82,7 @@ namespace tahsinERP.Controllers
                     try
                     {
                         supplierBase.IsDeleted = false;
-                        db.SUPPLIER_BASES.Add(supplierBase);
+                        db.SUPPLIER_BASE.Add(supplierBase);
                         await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SupplierBase", $"Create - {supplierBase.CompanyName} yaratildi");
@@ -114,7 +114,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var supplierBase = await db.SUPPLIER_BASES.FindAsync(id);
+                var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
                 if (supplierBase == null || supplierBase.IsDeleted == true)
                 {
                     return HttpNotFound();
@@ -140,7 +140,7 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        var supplierBaseToUpdate = await db.SUPPLIER_BASES.FindAsync(supplierBase.ID);
+                        var supplierBaseToUpdate = await db.SUPPLIER_BASE.FindAsync(supplierBase.ID);
                         if (supplierBaseToUpdate == null || supplierBaseToUpdate.IsDeleted == true)
                         {
                             return HttpNotFound();
@@ -189,7 +189,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var supplierBase = await db.SUPPLIER_BASES.FindAsync(id);
+                var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
                 if (supplierBase == null || supplierBase.IsDeleted == true)
                 {
                     return HttpNotFound();
@@ -213,7 +213,7 @@ namespace tahsinERP.Controllers
             {
                 try
                 {
-                    var supplierBase = await db.SUPPLIER_BASES.FindAsync(id);
+                    var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
                     if (supplierBase == null || supplierBase.IsDeleted == true)
                     {
                         return Json(new { success = false, message = "Yozuv topilmadi" });
@@ -247,7 +247,7 @@ namespace tahsinERP.Controllers
             {
                 try
                 {
-                    var supplierBase = await db.SUPPLIER_BASES.FindAsync(id);
+                    var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
                     if (supplierBase == null || supplierBase.IsDeleted == true)
                     {
                         return Json(new { success = false, message = "Yozuv topilmadi" });

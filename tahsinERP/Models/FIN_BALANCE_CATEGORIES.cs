@@ -19,6 +19,8 @@ namespace tahsinERP.Models
         {
             this.FIN_BALANCE_CATEGORIES1 = new HashSet<FIN_BALANCE_CATEGORIES>();
             this.FIN_BALANCE_SNAPSHOTS = new HashSet<FIN_BALANCE_SNAPSHOTS>();
+            this.FIN_ACCOUNTS = new HashSet<FIN_ACCOUNTS>();
+            this.FIN_CATEGORIES = new HashSet<FIN_CATEGORIES>();
         }
     
         public int ID { get; set; }
@@ -27,11 +29,16 @@ namespace tahsinERP.Models
         public Nullable<int> ParentID { get; set; }
         public int SortOrder { get; set; }
         public bool IsActive { get; set; }
+        public byte CalculationType { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_BALANCE_CATEGORIES> FIN_BALANCE_CATEGORIES1 { get; set; }
         public virtual FIN_BALANCE_CATEGORIES FIN_BALANCE_CATEGORIES2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_BALANCE_SNAPSHOTS> FIN_BALANCE_SNAPSHOTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_ACCOUNTS> FIN_ACCOUNTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_CATEGORIES> FIN_CATEGORIES { get; set; }
     }
 }

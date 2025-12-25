@@ -132,6 +132,13 @@
         </div>
     </div>
 
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts {
     <script>
         $(document).ready(function() {
             $('#productPlanTable').DataTable({
@@ -143,8 +150,4 @@
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

@@ -483,6 +483,7 @@
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
     <Compile Include="Controllers\Engineering\NormController.cs" />
+    <Compile Include="Controllers\Engineering\ProductCategoryController.cs" />
     <Compile Include="Controllers\Engineering\TannarxAnalyticsController.cs" />
     <Compile Include="Controllers\Engineering\TannarxController.cs" />
     <Compile Include="Controllers\Finance\FinAccountsController.cs" />
@@ -540,6 +541,7 @@
     <Compile Include="Controllers\SRM\ProductionControlController.cs" />
     <Compile Include="Controllers\SRM\ProductionToSalesTransferController.cs" />
     <Compile Include="Controllers\SRM\ProductStockController.cs" />
+    <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
     <Compile Include="Controllers\SRM\WarehouseController.cs" />
     <Compile Include="Controllers\AdminSetting\ErrorController.cs" />
@@ -870,6 +872,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\SUPPLIER.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SUPPLIER_BASE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\S_CONTRACTS.cs">
@@ -3207,6 +3212,16 @@
     <Content Include="Views\TannarxAnalytics\ProductDetails.cshtml" />
     <Content Include="Views\TannarxAnalytics\Report.cshtml" />
     <Content Include="Views\TaskChangeStatus\ChangeStatus.cshtml" />
+    <Content Include="Views\SupplierBase\Create.cshtml" />
+    <Content Include="Views\SupplierBase\Delete.cshtml" />
+    <Content Include="Views\SupplierBase\Details.cshtml" />
+    <Content Include="Views\SupplierBase\Edit.cshtml" />
+    <Content Include="Views\SupplierBase\Index.cshtml" />
+    <Content Include="Views\ProductCategory\Create.cshtml" />
+    <Content Include="Views\ProductCategory\Delete.cshtml" />
+    <Content Include="Views\ProductCategory\Details.cshtml" />
+    <Content Include="Views\ProductCategory\Edit.cshtml" />
+    <Content Include="Views\ProductCategory\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

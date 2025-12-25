@@ -38,6 +38,7 @@
                                     <div class="heading-elements">
                                         <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
                                         <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
+                                        <a href="@Url.Action("MapCategories", new { id = Model.ID })" class="btn btn-sm btn-info">Kategoriyalarni bog'lash</a>
                                     </div>
                                 }
                             </div>
@@ -82,6 +83,21 @@
                                             @foreach (var child in (List<tahsinERP.Models.FIN_BALANCE_CATEGORIES>)ViewBag.ChildCategories)
                                             {
                                                 <li><a href="@Url.Action("Details", new { id = child.ID })">@child.Name</a></li>
+                                            }
+                                        </ul>
+                                    }
+                                    
+                                    @if (ViewBag.MappedCategories != null && ((List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.MappedCategories).Any())
+                                    {
+                                        <h5 class="mt-3">Bog'langan kategoriyalar:</h5>
+                                        <ul>
+                                            @foreach (var category in (List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.MappedCategories)
+                                            {
+                                                <li>@category.Name 
+                                                    <span class="badge badge-@(category.Type == 1 ? "success" : category.Type == 2 ? "danger" : "secondary")">
+                                                        @(category.Type == 1 ? "Daromad" : category.Type == 2 ? "Chiqim" : "Boshqa")
+                                                    </span>
+                                                </li>
                                             }
                                         </ul>
                                     }

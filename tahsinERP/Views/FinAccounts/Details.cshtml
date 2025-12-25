@@ -54,7 +54,7 @@
                                         <dd class="col-sm-8">@(Model.OwnerName ?? "-")</dd>
                                         
                                         <dt class="col-sm-4">Valyuta:</dt>
-                                        <dd class="col-sm-8">@(Model.CURRENCy != null ? $"{Model.CURRENCy.Name} ({Model.CURRENCy.Shortname})" : "-")</dd>
+                                        <dd class="col-sm-8">@(Model.CURRENCy != null ? (!string.IsNullOrEmpty(Model.CURRENCy.Longname) ? string.Format("{0} ({1})", Model.CURRENCy.Longname, Model.CURRENCy.Shortname) : Model.CURRENCy.Shortname) : "-")</dd>
                                         
                                         <dt class="col-sm-4">Turi:</dt>
                                         <dd class="col-sm-8">

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -141,6 +141,7 @@ namespace tahsinERP.Controllers
             var product = await db.PRODUCTS
                             .Include(p => p.UNIT)
                             .Include(p => p.SHOP)
+                            .Include(p => p.PRODUCT_CATEGORIES)
                             .FirstOrDefaultAsync(p => p.ID == id && p.IsDeleted == false);
 
             if (product == null)

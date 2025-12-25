@@ -1,4 +1,4 @@
-﻿@model List<tahsinERP.Models.PRODUCT>
+@model List<tahsinERP.Models.PRODUCT>
 
 @{
     ViewBag.Title = "Maxsulotlar";
@@ -107,9 +107,9 @@
                                                         @if (changePermit)
                                                         {
                                                             <td>
-                                                                <a href="@Url.Action("Details", "Product", new { id = item.ID })" title="Ko'rish"><i class="bx bx-show"></i></a>
-                                                                <a href="@Url.Action("Edit", "Product", new { id = item.ID })" title="Tahrirlash"><i class="bx bx-pencil"></i></a>
-                                                                <a href="@Url.Action("Delete", "Product", new { id = item.ID })" title="O'chirish"><i class="bx bx-trash text-danger"></i></a>
+                                                                <a href="@Url.Action("Details", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
+                                                                <a href="@Url.Action("Edit", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-pencil"></i></a>
+                                                                <a href="@Url.Action("Delete", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
                                                             </td>
                                                         }
                                                     </tr>

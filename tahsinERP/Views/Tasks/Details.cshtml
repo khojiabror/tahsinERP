@@ -135,10 +135,14 @@
                                                                 <span>-</span>
                                                             }
                                                         </p>
-                                                        @if (!string.IsNullOrEmpty(Model.UserComment))
+                                                        <p><b>Bajaruvchi izohi:</b></p>
+                                                        @if (!string.IsNullOrWhiteSpace(Model.UserComment))
                                                         {
-                                                            <p><b>Bajaruvchi izohi:</b></p>
-                                                            <p class="border rounded p-2 bg-light">@Html.Raw(Model.UserComment.Replace("\n", "<br />"))</p>
+                                                            <div class="border rounded p-2 bg-light" style="white-space: pre-wrap;">@Model.UserComment</div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <p class="text-muted font-italic">Izoh yo'q</p>
                                                         }
                                                     </div>
                                                 </div>

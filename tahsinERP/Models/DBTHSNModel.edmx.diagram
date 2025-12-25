@@ -350,6 +350,8 @@
         <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS" Width="1.5" PointX="8.375" PointY="3.75" />
         <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS" Width="1.5" PointX="9.375" PointY="6.75" />
         <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" Width="1.5" PointX="7.375" PointY="9.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.SUPPLIER_BASE" Width="1.5" PointX="9.375" PointY="9.75" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

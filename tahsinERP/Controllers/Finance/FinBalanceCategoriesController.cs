@@ -108,6 +108,29 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.SnapshotCount = db.FIN_BALANCE_SNAPSHOTS.Count(s => s.CategoryID == id);
 
+                // Get mapped categories - handle case where relationship might not be configured
+                List<FIN_CATEGORIES> mappedCategories = new List<FIN_CATEGORIES>();
+                try
+                {
+                    var balanceCategoryWithCategories = db.FIN_BALANCE_CATEGORIES
+                        .Include(c => c.FIN_CATEGORIES)
+                        .FirstOrDefault(c => c.ID == id);
+                        
+                    if (balanceCategoryWithCategories?.FIN_CATEGORIES != null)
+                    {
+                        mappedCategories = balanceCategoryWithCategories.FIN_CATEGORIES
+                            .Where(c => c.IsActive)
+                            .ToList();
+                    }
+                }
+                catch
+                {
+                    // If relationship is not configured, return empty list
+                    mappedCategories = new List<FIN_CATEGORIES>();
+                }
+                
+                ViewBag.MappedCategories = mappedCategories;
+
                 return View(category);
             }
         }
@@ -123,7 +146,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name),
+                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", parentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
@@ -132,10 +155,17 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte)3, Text = "Kapital" }
                 }, "Value", "Text");
 
+                ViewBag.CalculationTypeList = new SelectList(new[] {
+                    new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
+                    new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
+                    new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
+                }, "Value", "Text", 1); // Default: Account-Based
+
                 var model = new FIN_BALANCE_CATEGORIES
                 {
                     ParentID = parentID,
                     IsActive = true,
+                    CalculationType = 1, // Default: Account-Based
                     SortOrder = db.FIN_BALANCE_CATEGORIES.Where(c => c.ParentID == parentID).Count() + 1
                 };
 
@@ -174,7 +204,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name),
+                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
@@ -182,6 +212,12 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte)2, Text = "Passiv" },
                     new { Value = (byte)3, Text = "Kapital" }
                 }, "Value", "Text", category.Type);
+
+                ViewBag.CalculationTypeList = new SelectList(new[] {
+                    new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
+                    new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
+                    new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
+                }, "Value", "Text", category.CalculationType);
 
                 return View(category);
             }
@@ -212,7 +248,7 @@ namespace tahsinERP.Controllers.Finance
                 excludeIds.Add(id.Value);
 
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name),
+                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
@@ -220,6 +256,12 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte)2, Text = "Passiv" },
                     new { Value = (byte)3, Text = "Kapital" }
                 }, "Value", "Text", category.Type);
+
+                ViewBag.CalculationTypeList = new SelectList(new[] {
+                    new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
+                    new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
+                    new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
+                }, "Value", "Text", category.CalculationType);
 
                 return View(category);
             }
@@ -248,13 +290,18 @@ namespace tahsinERP.Controllers.Finance
                         {
                             ModelState.AddModelError("ParentID", "Ota kategoriya sifatida o'zini yoki farzandini tanlash mumkin emas.");
                             ViewBag.ParentID = new SelectList(
-                                db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name),
+                                db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                                 "ID", "Name", category.ParentID);
                             ViewBag.TypeList = new SelectList(new[] {
                                 new { Value = (byte)1, Text = "Aktiv" },
                                 new { Value = (byte)2, Text = "Passiv" },
                                 new { Value = (byte)3, Text = "Kapital" }
                             }, "Value", "Text", category.Type);
+                            ViewBag.CalculationTypeList = new SelectList(new[] {
+                                new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
+                                new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
+                                new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
+                            }, "Value", "Text", category.CalculationType);
                             return View(category);
                         }
 
@@ -262,6 +309,7 @@ namespace tahsinERP.Controllers.Finance
                         categoryToUpdate.Type = category.Type;
                         categoryToUpdate.ParentID = category.ParentID;
                         categoryToUpdate.SortOrder = category.SortOrder;
+                        categoryToUpdate.CalculationType = category.CalculationType;
 
                         db.SaveChanges();
 
@@ -274,13 +322,19 @@ namespace tahsinERP.Controllers.Finance
                 var excludeIds2 = GetDescendantIds(db, category.ID);
                 excludeIds2.Add(category.ID);
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && !excludeIds2.Contains(c.ID)).OrderBy(c => c.Name),
+                    db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && !excludeIds2.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
                 ViewBag.TypeList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Aktiv" },
                     new { Value = (byte)2, Text = "Passiv" },
                     new { Value = (byte)3, Text = "Kapital" }
                 }, "Value", "Text", category.Type);
+
+                ViewBag.CalculationTypeList = new SelectList(new[] {
+                    new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
+                    new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
+                    new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
+                }, "Value", "Text", category.CalculationType);
 
                 return View(category);
             }
@@ -336,6 +390,143 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 return RedirectToAction("Index");
+            }
+        }
+
+        // GET: FinBalanceCategories/MapCategories/5
+        public ActionResult MapCategories(int? id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var category = db.FIN_BALANCE_CATEGORIES.Find(id);
+                    
+                if (category == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var allCategories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
+                
+                // Get mapped category IDs from relationship - handle case where relationship might not be configured
+                List<int> mappedCategoryIds = new List<int>();
+                try
+                {
+                    var categoryWithMappings = db.FIN_BALANCE_CATEGORIES
+                        .Include(c => c.FIN_CATEGORIES)
+                        .FirstOrDefault(c => c.ID == id);
+                        
+                    if (categoryWithMappings?.FIN_CATEGORIES != null)
+                    {
+                        mappedCategoryIds = categoryWithMappings.FIN_CATEGORIES
+                            .Select(c => c.ID)
+                            .ToList();
+                    }
+                }
+                catch
+                {
+                    // If relationship is not configured, return empty list
+                    mappedCategoryIds = new List<int>();
+                }
+
+                ViewBag.AllCategories = allCategories;
+                ViewBag.MappedCategoryIds = mappedCategoryIds;
+
+                return View(category);
+            }
+        }
+
+        // POST: FinBalanceCategories/MapCategories/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MapCategories(int id, int[] categoryIds)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var category = db.FIN_BALANCE_CATEGORIES.Find(id);
+                    
+                if (category == null)
+                {
+                    return HttpNotFound();
+                }
+
+                try
+                {
+                    // Try to use relationship if it exists
+                    var categoryWithMappings = db.FIN_BALANCE_CATEGORIES
+                        .Include(c => c.FIN_CATEGORIES)
+                        .FirstOrDefault(c => c.ID == id);
+                        
+                    if (categoryWithMappings?.FIN_CATEGORIES != null)
+                    {
+                        // Clear existing mappings
+                        categoryWithMappings.FIN_CATEGORIES.Clear();
+
+                        // Add new mappings
+                        if (categoryIds != null && categoryIds.Length > 0)
+                        {
+                            var categories = db.FIN_CATEGORIES.Where(c => categoryIds.Contains(c.ID)).ToList();
+                            foreach (var cat in categories)
+                            {
+                                categoryWithMappings.FIN_CATEGORIES.Add(cat);
+                            }
+                        }
+
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "FinBalanceCategories", "MapCategories", 
+                            $"Balans kategoriyasi kategoriyalari yangilandi: {category.Name}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // If relationship doesn't work, try direct SQL approach
+                    try
+                    {
+                        // First, delete existing mappings
+                        var deleteSql = @"
+                            DELETE FROM FIN_BALANCE_CATEGORY_CATEGORIES 
+                            WHERE BalanceCategoryID = @p0";
+                        db.Database.ExecuteSqlCommand(deleteSql, id);
+
+                        // Then insert new mappings
+                        if (categoryIds != null && categoryIds.Length > 0)
+                        {
+                            foreach (var catId in categoryIds)
+                            {
+                                var insertSql = @"
+                                    INSERT INTO FIN_BALANCE_CATEGORY_CATEGORIES (BalanceCategoryID, CategoryID)
+                                    VALUES (@p0, @p1)";
+                                db.Database.ExecuteSqlCommand(insertSql, id, catId);
+                            }
+                        }
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "FinBalanceCategories", "MapCategories", 
+                            $"Balans kategoriyasi kategoriyalari yangilandi (SQL): {category.Name}");
+                    }
+                    catch (Exception sqlEx)
+                    {
+                        // Log error if both approaches fail
+                        LogHelper.LogToDatabase(User.Identity.Name, "FinBalanceCategories", "MapCategories", 
+                            $"Xatolik: {sqlEx.Message}");
+                    }
+                }
+
+                return RedirectToAction("Details", new { id = id });
             }
         }
 

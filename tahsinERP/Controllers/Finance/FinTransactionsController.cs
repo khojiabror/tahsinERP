@@ -8,6 +8,7 @@ using tahsinERP.Controllers;
 using OfficeOpenXml;
 using System.IO;
 using System.Collections.Generic;
+using System.Web;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -87,34 +88,11 @@ namespace tahsinERP.Controllers.Finance
                         (t.ContractNo != null && t.ContractNo.Contains(searchTerm)));
                 }
 
-                // Sorting
-                switch (sortOrder)
-                {
-                    case "date_desc":
-                        query = query.OrderByDescending(t => t.TxnDate);
-                        break;
-                    case "amount_desc":
-                        query = query.OrderByDescending(t => t.Amount);
-                        break;
-                    case "amount":
-                        query = query.OrderBy(t => t.Amount);
-                        break;
-                    default:
-                        query = query.OrderByDescending(t => t.TxnDate);
-                        break;
-                }
+                // Default sorting - DataTable will handle client-side sorting
+                query = query.OrderByDescending(t => t.TxnDate);
 
-                // Pagination
-                pageSize = pageSize ?? 25;
-                page = page ?? 1;
-                ViewBag.PageSize = pageSize;
-                ViewBag.CurrentPage = page;
-                ViewBag.TotalRecords = query.Count();
-
-                var transactions = query
-                    .Skip((page.Value - 1) * pageSize.Value)
-                    .Take(pageSize.Value)
-                    .ToList();
+                // Load all transactions for client-side DataTable (no server-side pagination)
+                var transactions = query.ToList();
 
                 // Ensure navigation properties are loaded for all transactions
                 var accountIds = transactions.Where(t => t.AccountID > 0).Select(t => t.AccountID).Distinct().ToList();
@@ -260,7 +238,7 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.CurrencyID = new SelectList(
                     db.CURRENCIES.ToList(),
-                    "ID", "Name");
+                    "ID", "Shortname");
 
                 ViewBag.DirectionList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Kirim" },
@@ -342,7 +320,7 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.CurrencyID = new SelectList(
                     db.CURRENCIES,
-                    "ID", "Name", transaction.CurrencyID);
+                    "ID", "Shortname", transaction.CurrencyID);
 
                 ViewBag.DirectionList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Kirim" },
@@ -401,7 +379,7 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.CurrencyID = new SelectList(
                     db.CURRENCIES.ToList(),
-                    "ID", "Name", transaction.CurrencyID);
+                    "ID", "Shortname", transaction.CurrencyID);
 
                 ViewBag.DirectionList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Kirim" },
@@ -488,7 +466,7 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.CurrencyID = new SelectList(
                     db.CURRENCIES.ToList(),
-                    "ID", "Name", transaction.CurrencyID);
+                    "ID", "Shortname", transaction.CurrencyID);
 
                 ViewBag.DirectionList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Kirim" },
@@ -640,6 +618,506 @@ namespace tahsinERP.Controllers.Finance
                     return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         $"FinTransactions_{DateTime.Now:yyyyMMdd}.xlsx");
                 }
+            }
+        }
+
+        // GET: FinTransactions/Import
+        public ActionResult Import()
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            return View();
+        }
+
+        // GET: FinTransactions/DownloadTemplate
+        public ActionResult DownloadTemplate()
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Tranzaksiyalar");
+
+                    // Header row
+                    worksheet.Cells[1, 1].Value = "Sana (DD.MM.YYYY)";
+                    worksheet.Cells[1, 2].Value = "Vaqt (HH:mm)";
+                    worksheet.Cells[1, 3].Value = "Hisob kodi";
+                    worksheet.Cells[1, 4].Value = "Kategoriya nomi";
+                    worksheet.Cells[1, 5].Value = "Yo'nalish (1=Kirim, 2=Chiqim)";
+                    worksheet.Cells[1, 6].Value = "Summa";
+                    worksheet.Cells[1, 7].Value = "Valyuta qisqa nomi (masalan: UZS, USD)";
+                    worksheet.Cells[1, 8].Value = "Kontragent nomi (ixtiyoriy)";
+                    worksheet.Cells[1, 9].Value = "Maqsad (ixtiyoriy)";
+                    worksheet.Cells[1, 10].Value = "Shartnoma raqami (ixtiyoriy)";
+                    worksheet.Cells[1, 11].Value = "Izoh (ixtiyoriy)";
+                    worksheet.Cells[1, 12].Value = "Miqdor (ixtiyoriy)";
+                    worksheet.Cells[1, 13].Value = "Narx birligi (ixtiyoriy)";
+
+                    // Style header
+                    using (var range = worksheet.Cells[1, 1, 1, 13])
+                    {
+                        range.Style.Font.Bold = true;
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    }
+
+                    // Add example row
+                    worksheet.Cells[2, 1].Value = "01.11.2025";
+                    worksheet.Cells[2, 2].Value = "10:30";
+                    worksheet.Cells[2, 3].Value = "9000";
+                    worksheet.Cells[2, 4].Value = "Sotuv";
+                    worksheet.Cells[2, 5].Value = "1";
+                    worksheet.Cells[2, 6].Value = "1000000.00";
+                    worksheet.Cells[2, 7].Value = "UZS";
+                    worksheet.Cells[2, 8].Value = "Mijoz nomi";
+                    worksheet.Cells[2, 9].Value = "Mahsulot sotuvi";
+                    worksheet.Cells[2, 10].Value = "K-001";
+                    worksheet.Cells[2, 11].Value = "Qo'shimcha izoh";
+
+                    // Get available accounts and categories for reference
+                    var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Code).ToList();
+                    var categories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
+                    var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
+
+                    // Add reference sheets
+                    var accountsSheet = package.Workbook.Worksheets.Add("Hisoblar");
+                    accountsSheet.Cells[1, 1].Value = "Kod";
+                    accountsSheet.Cells[1, 2].Value = "Nomi";
+                    int accRow = 2;
+                    foreach (var acc in accounts)
+                    {
+                        accountsSheet.Cells[accRow, 1].Value = acc.Code;
+                        accountsSheet.Cells[accRow, 2].Value = acc.Name;
+                        accRow++;
+                    }
+
+                    var categoriesSheet = package.Workbook.Worksheets.Add("Kategoriyalar");
+                    categoriesSheet.Cells[1, 1].Value = "Nomi";
+                    int catRow = 2;
+                    foreach (var cat in categories)
+                    {
+                        categoriesSheet.Cells[catRow, 1].Value = cat.Name;
+                        catRow++;
+                    }
+
+                    var currenciesSheet = package.Workbook.Worksheets.Add("Valyutalar");
+                    currenciesSheet.Cells[1, 1].Value = "Qisqa nomi";
+                    currenciesSheet.Cells[1, 2].Value = "To'liq nomi";
+                    int currRow = 2;
+                    foreach (var curr in currencies)
+                    {
+                        currenciesSheet.Cells[currRow, 1].Value = curr.Shortname;
+                        currenciesSheet.Cells[currRow, 2].Value = curr.Shortname;
+                        currRow++;
+                    }
+
+                    worksheet.Cells.AutoFitColumns();
+                    accountsSheet.Cells.AutoFitColumns();
+                    categoriesSheet.Cells.AutoFitColumns();
+                    currenciesSheet.Cells.AutoFitColumns();
+
+                    var stream = new MemoryStream();
+                    package.SaveAs(stream);
+                    stream.Position = 0;
+
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "FinTransactions_Template.xlsx");
+                }
+            }
+        }
+
+        // POST: FinTransactions/Import
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Import(HttpPostedFileBase file)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (file == null || file.ContentLength == 0)
+            {
+                ViewBag.Error = "Fayl yuklanmadi yoki bo'sh!";
+                return View();
+            }
+
+            if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.Error = "Faqat .xlsx formatidagi fayllarni yuklash mumkin!";
+                return View();
+            }
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                var transactions = new List<FIN_TRANSACTIONS>();
+                var errors = new List<string>();
+
+                using (var package = new ExcelPackage(file.InputStream))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                    if (rowCount < 2)
+                    {
+                        ViewBag.Error = "Excel faylda ma'lumot yo'q!";
+                        return View();
+                    }
+
+                    // Get lookup dictionaries and current user
+                    using (DBTHSNEntities db = new DBTHSNEntities())
+                    {
+                        // Use UserHelper to get current user ID (standard approach in this codebase)
+                        int currentUserId;
+                        try
+                        {
+                            currentUserId = UserHelper.GetUserId(User.Identity.Name);
+                        }
+                        catch (Exception userEx)
+                        {
+                            ViewBag.Error = $"Foydalanuvchi topilmadi: {User.Identity.Name}. Xatolik: {userEx.Message}. Iltimos, tizimga qayta kiring yoki administratorga murojaat qiling.";
+                            return View();
+                        }
+
+                        var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).ToDictionary(a => a.Code, a => a.ID, StringComparer.OrdinalIgnoreCase);
+                        var categories = db.FIN_CATEGORIES.Where(c => c.IsActive).ToDictionary(c => c.Name, c => c.ID, StringComparer.OrdinalIgnoreCase);
+                        var currencies = db.CURRENCIES.ToDictionary(c => c.Shortname, c => c.ID, StringComparer.OrdinalIgnoreCase);
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            try
+                            {
+                                // Read date - try to get as DateTime value first (Excel stores dates as numbers)
+                                DateTime txnDate;
+                                var dateCell = worksheet.Cells[row, 1];
+                                
+                                // First try to get as DateTime value (if Excel stored it as date)
+                                if (dateCell.Value != null)
+                                {
+                                    if (dateCell.Value is DateTime dateTimeValue)
+                                    {
+                                        txnDate = dateTimeValue;
+                                    }
+                                    else if (dateCell.Value is double dateDouble)
+                                    {
+                                        // Excel stores dates as serial numbers (days since 1900-01-01)
+                                        txnDate = DateTime.FromOADate(dateDouble);
+                                    }
+                                    else
+                                    {
+                                        // Try to parse as string
+                                        var dateStr = dateCell.Value.ToString()?.Trim();
+                                        if (string.IsNullOrEmpty(dateStr))
+                                        {
+                                            continue; // Skip empty rows
+                                        }
+                                        
+                                        // Try multiple date formats
+                                        var dateFormats = new[] { 
+                                            "dd.MM.yyyy", "dd/MM/yyyy", "d.M.yyyy", "d/M/yyyy",
+                                            "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy",
+                                            "yyyy-MM-dd", "yyyy/MM/dd",
+                                            "dd-MM-yyyy", "d-M-yyyy"
+                                        };
+                                        
+                                        if (!DateTime.TryParseExact(dateStr, dateFormats, 
+                                            System.Globalization.CultureInfo.InvariantCulture, 
+                                            System.Globalization.DateTimeStyles.None, out txnDate))
+                                        {
+                                            // Last resort: try general DateTime parsing
+                                            if (!DateTime.TryParse(dateStr, 
+                                                System.Globalization.CultureInfo.InvariantCulture, 
+                                                System.Globalization.DateTimeStyles.None, out txnDate))
+                                            {
+                                                errors.Add($"Qator {row}: Sana noto'g'ri format - {dateStr}");
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    // Cell is empty or null
+                                    var dateStr = dateCell.Text?.Trim();
+                                    if (string.IsNullOrEmpty(dateStr))
+                                    {
+                                        continue; // Skip empty rows
+                                    }
+                                    
+                                    // Try multiple date formats
+                                    var dateFormats = new[] { 
+                                        "dd.MM.yyyy", "dd/MM/yyyy", "d.M.yyyy", "d/M/yyyy",
+                                        "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy",
+                                        "yyyy-MM-dd", "yyyy/MM/dd",
+                                        "dd-MM-yyyy", "d-M-yyyy"
+                                    };
+                                    
+                                    if (!DateTime.TryParseExact(dateStr, dateFormats, 
+                                        System.Globalization.CultureInfo.InvariantCulture, 
+                                        System.Globalization.DateTimeStyles.None, out txnDate))
+                                    {
+                                        // Last resort: try general DateTime parsing
+                                        if (!DateTime.TryParse(dateStr, 
+                                            System.Globalization.CultureInfo.InvariantCulture, 
+                                            System.Globalization.DateTimeStyles.None, out txnDate))
+                                        {
+                                            errors.Add($"Qator {row}: Sana noto'g'ri format - {dateStr}");
+                                            continue;
+                                        }
+                                    }
+                                }
+
+                                // Read time - try to get as DateTime value first
+                                var timeCell = worksheet.Cells[row, 2];
+                                if (timeCell.Value != null)
+                                {
+                                    if (timeCell.Value is DateTime timeDateTime)
+                                    {
+                                        txnDate = txnDate.Date.Add(timeDateTime.TimeOfDay);
+                                    }
+                                    else if (timeCell.Value is double timeDouble && timeDouble < 1.0)
+                                    {
+                                        // Excel stores time as fraction of day (0.0 to 0.999...)
+                                        var timeSpan = TimeSpan.FromDays(timeDouble);
+                                        txnDate = txnDate.Date.Add(timeSpan);
+                                    }
+                                    else
+                                    {
+                                        var timeStr = timeCell.Value.ToString()?.Trim();
+                                        if (!string.IsNullOrEmpty(timeStr))
+                                        {
+                                            TimeSpan time;
+                                            if (TimeSpan.TryParse(timeStr, out time))
+                                            {
+                                                txnDate = txnDate.Date.Add(time);
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var timeStr = timeCell.Text?.Trim();
+                                    if (!string.IsNullOrEmpty(timeStr))
+                                    {
+                                        TimeSpan time;
+                                        if (TimeSpan.TryParse(timeStr, out time))
+                                        {
+                                            txnDate = txnDate.Date.Add(time);
+                                        }
+                                    }
+                                }
+
+                                // Read account code
+                                var accountCode = worksheet.Cells[row, 3].Text?.Trim();
+                                if (string.IsNullOrEmpty(accountCode) || !accounts.ContainsKey(accountCode))
+                                {
+                                    errors.Add($"Qator {row}: Hisob kodi topilmadi - {accountCode}");
+                                    continue;
+                                }
+                                int accountId = accounts[accountCode];
+
+                                // Read category name
+                                var categoryName = worksheet.Cells[row, 4].Text?.Trim();
+                                if (string.IsNullOrEmpty(categoryName) || !categories.ContainsKey(categoryName))
+                                {
+                                    errors.Add($"Qator {row}: Kategoriya topilmadi - {categoryName}");
+                                    continue;
+                                }
+                                int categoryId = categories[categoryName];
+
+                                // Read direction
+                                var directionStr = worksheet.Cells[row, 5].Text?.Trim();
+                                byte direction;
+                                if (!byte.TryParse(directionStr, out direction) || (direction != 1 && direction != 2))
+                                {
+                                    errors.Add($"Qator {row}: Yo'nalish noto'g'ri (1 yoki 2 bo'lishi kerak) - {directionStr}");
+                                    continue;
+                                }
+
+                                // Read amount
+                                var amountStr = worksheet.Cells[row, 6].Text?.Trim();
+                                if (string.IsNullOrEmpty(amountStr) || !decimal.TryParse(amountStr.Replace(" ", "").Replace(",", "."), 
+                                    System.Globalization.NumberStyles.Any, 
+                                    System.Globalization.CultureInfo.InvariantCulture, out decimal amount))
+                                {
+                                    errors.Add($"Qator {row}: Summa noto'g'ri - {amountStr}");
+                                    continue;
+                                }
+
+                                // Read currency
+                                var currencyShortname = worksheet.Cells[row, 7].Text?.Trim();
+                                if (string.IsNullOrEmpty(currencyShortname) || !currencies.ContainsKey(currencyShortname))
+                                {
+                                    errors.Add($"Qator {row}: Valyuta topilmadi - {currencyShortname}");
+                                    continue;
+                                }
+                                int currencyId = currencies[currencyShortname];
+
+                                // Read optional fields
+                                var counterpartyName = worksheet.Cells[row, 8].Text?.Trim();
+                                var purpose = worksheet.Cells[row, 9].Text?.Trim();
+                                var contractNo = worksheet.Cells[row, 10].Text?.Trim();
+                                var comment = worksheet.Cells[row, 11].Text?.Trim();
+                                var qtyStr = worksheet.Cells[row, 12].Text?.Trim();
+                                var pricePerUnitStr = worksheet.Cells[row, 13].Text?.Trim();
+
+                                decimal? qty = null;
+                                if (!string.IsNullOrEmpty(qtyStr) && decimal.TryParse(qtyStr.Replace(",", "."), 
+                                    System.Globalization.NumberStyles.Any, 
+                                    System.Globalization.CultureInfo.InvariantCulture, out decimal qtyVal))
+                                {
+                                    qty = qtyVal;
+                                }
+
+                                decimal? pricePerUnit = null;
+                                if (!string.IsNullOrEmpty(pricePerUnitStr) && decimal.TryParse(pricePerUnitStr.Replace(",", "."), 
+                                    System.Globalization.NumberStyles.Any, 
+                                    System.Globalization.CultureInfo.InvariantCulture, out decimal priceVal))
+                                {
+                                    pricePerUnit = priceVal;
+                                }
+
+                                var transaction = new FIN_TRANSACTIONS
+                                {
+                                    TxnDate = txnDate,
+                                    AccountID = accountId,
+                                    CategoryID = categoryId,
+                                    Direction = direction,
+                                    Amount = amount,
+                                    CurrencyID = currencyId,
+                                    CounterpartyName = string.IsNullOrEmpty(counterpartyName) ? null : counterpartyName,
+                                    Purpose = string.IsNullOrEmpty(purpose) ? null : purpose,
+                                    ContractNo = string.IsNullOrEmpty(contractNo) ? null : contractNo,
+                                    Comment = string.IsNullOrEmpty(comment) ? null : comment,
+                                    Qty = qty,
+                                    PricePerUnit = pricePerUnit,
+                                    SourceDocType = "Manual",
+                                    CreatedByUserID = currentUserId,
+                                    CreatedDT = DateTime.Now
+                                };
+
+                                transactions.Add(transaction);
+                            }
+                            catch (Exception ex)
+                            {
+                                var errorMsg = $"Qator {row}: {ex.Message}";
+                                if (ex.InnerException != null)
+                                {
+                                    errorMsg += $" ({ex.InnerException.Message})";
+                                }
+                                errors.Add(errorMsg);
+                            }
+                        }
+
+                        if (transactions.Count == 0)
+                        {
+                            ViewBag.Error = "Hech qanday to'g'ri tranzaksiya topilmadi!";
+                            if (errors.Count > 0)
+                            {
+                                ViewBag.Errors = errors;
+                            }
+                            return View();
+                        }
+
+                        // Bulk insert with detailed error handling
+                        try
+                        {
+                            db.FIN_TRANSACTIONS.AddRange(transactions);
+                            db.SaveChanges();
+                        }
+                        catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+                        {
+                            var validationErrors = new List<string>();
+                            foreach (var validationError in dbEx.EntityValidationErrors)
+                            {
+                                foreach (var error in validationError.ValidationErrors)
+                                {
+                                    validationErrors.Add($"Property: {error.PropertyName}, Error: {error.ErrorMessage}");
+                                }
+                            }
+                            ViewBag.Error = $"Ma'lumotlar validatsiyadan o'tmadi: {string.Join("; ", validationErrors)}";
+                            if (dbEx.InnerException != null)
+                            {
+                                ViewBag.Error += $" | Inner Exception: {dbEx.InnerException.Message}";
+                            }
+                            if (errors.Count > 0)
+                            {
+                                ViewBag.Errors = errors;
+                            }
+                            return View();
+                        }
+                        catch (System.Data.Entity.Infrastructure.DbUpdateException dbUpdateEx)
+                        {
+                            var updateErrors = new List<string>();
+                            updateErrors.Add($"Database update xatolik: {dbUpdateEx.Message}");
+                            
+                            Exception innerEx = dbUpdateEx.InnerException;
+                            while (innerEx != null)
+                            {
+                                updateErrors.Add($"Inner: {innerEx.Message}");
+                                innerEx = innerEx.InnerException;
+                            }
+                            
+                            ViewBag.Error = string.Join(" -> ", updateErrors);
+                            if (errors.Count > 0)
+                            {
+                                ViewBag.Errors = errors;
+                            }
+                            return View();
+                        }
+
+                        ViewBag.Success = $"{transactions.Count} ta tranzaksiya muvaffaqiyatli import qilindi!";
+                        if (errors.Count > 0)
+                        {
+                            ViewBag.Errors = errors;
+                            ViewBag.Warning = $"{errors.Count} ta qatorda xatolik bo'ldi.";
+                        }
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "FinTransactionsController",
+                            $"{transactions.Count} ta tranzaksiya Excel dan import qilindi");
+                    }
+                }
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                // Get all inner exception messages recursively
+                var errorMessages = new List<string>();
+                Exception currentEx = ex;
+                while (currentEx != null)
+                {
+                    if (!string.IsNullOrEmpty(currentEx.Message))
+                    {
+                        errorMessages.Add(currentEx.Message);
+                    }
+                    currentEx = currentEx.InnerException;
+                }
+
+                ViewBag.Error = $"Import jarayonida xatolik: {string.Join(" -> ", errorMessages)}";
+                
+                // Also log full exception details for debugging
+                try
+                {
+                    LogHelper.LogToDatabase(User.Identity.Name, "FinTransactionsController",
+                        $"Import xatolik: {ex.Message}", ex.ToString());
+                }
+                catch
+                {
+                    // Ignore logging errors
+                }
+
+                return View();
             }
         }
 

@@ -1,4 +1,4 @@
-﻿@model tahsinERP.Models.PRODUCT
+@model tahsinERP.Models.PRODUCT
 
 @{
     ViewBag.Title = "Details";
@@ -75,6 +75,13 @@
                                                     }
                                                 </div>
                                             </div>
+                                            @if (Model.IsRawMaterial == true && Model.PRODUCT_CATEGORIES != null)
+                                            {
+                                                <div class="row mb-2">
+                                                    <div class="col-4"><b>Maxsulot turi:</b></div>
+                                                    <div class="col-8">@Model.PRODUCT_CATEGORIES.Name</div>
+                                                </div>
+                                            }
                                             <div class="row mb-2">
                                                 <div class="col-4"><b>O'lchov birligi:</b></div>
                                                 <div class="col-8">@(Model.UNIT != null ? Model.UNIT.ShortName : "-")</div>

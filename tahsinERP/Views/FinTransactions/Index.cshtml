@@ -32,11 +32,14 @@
                     @if (changePermit)
                     {
                         <div class="invoice-create-btn mb-1">
-                            <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/FinTransactions/Create';">
-                                <span class="align-middle ml-25">Tranzaksiya qo'shish</span>
-                            </button>
-                            <a href="@Url.Action("ExportExcel", new { fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, accountID = ViewBag.AccountID, categoryID = ViewBag.CategoryID })" class="btn btn-outline-info mr-1 mb-1">
-                                <span class="align-middle ml-25">Excel ga eksport</span>
+                            <a href="@Url.Action("Create")" class="btn btn-success mr-1 mb-1">
+                                <i class="bx bx-plus"></i> <span class="align-middle ml-25">Tranzaksiya qo'shish</span>
+                            </a>
+                            <a href="@Url.Action("Import")" class="btn btn-warning mr-1 mb-1">
+                                <i class="bx bx-upload"></i> <span class="align-middle ml-25">Excel dan import</span>
+                            </a>
+                            <a href="@Url.Action("ExportExcel", new { fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, accountID = ViewBag.AccountID, categoryID = ViewBag.CategoryID })" class="btn btn-info mr-1 mb-1">
+                                <i class="bx bx-download"></i> <span class="align-middle ml-25">Excel ga eksport</span>
                             </a>
                         </div>
                     }
@@ -44,36 +47,33 @@
                     <div class="card">
                         <div class="card-content">
                             <div class="card-body">
-                                <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <form method="get" action="@Url.Action("Index")" class="mb-3" id="filterForm">
                                     <div class="row">
                                         <div class="col-md-2">
-                                            <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" placeholder="Dan" />
+                                            <label class="form-label small">Dan</label>
+                                            <input type="date" name="fromDate" class="form-control form-control-sm" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
                                         </div>
                                         <div class="col-md-2">
-                                            <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" placeholder="Gacha" />
+                                            <label class="form-label small">Gacha</label>
+                                            <input type="date" name="toDate" class="form-control form-control-sm" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
                                         </div>
                                         <div class="col-md-2">
-                                            @Html.DropDownList("accountID", ViewBag.AccountList as SelectList, "Barcha hisoblar", new { @class = "form-control" })
+                                            <label class="form-label small">Hisob</label>
+                                            @Html.DropDownList("accountID", ViewBag.AccountList as SelectList, "Barcha", new { @class = "form-control form-control-sm" })
                                         </div>
                                         <div class="col-md-2">
-                                            @Html.DropDownList("categoryID", ViewBag.CategoryList as SelectList, "Barcha kategoriyalar", new { @class = "form-control" })
+                                            <label class="form-label small">Kategoriya</label>
+                                            @Html.DropDownList("categoryID", ViewBag.CategoryList as SelectList, "Barcha", new { @class = "form-control form-control-sm" })
                                         </div>
                                         <div class="col-md-2">
-                                            @Html.DropDownList("direction", ViewBag.DirectionList as SelectList, new { @class = "form-control" })
+                                            <label class="form-label small">Yo'nalish</label>
+                                            @Html.DropDownList("direction", ViewBag.DirectionList as SelectList, new { @class = "form-control form-control-sm" })
                                         </div>
                                         <div class="col-md-2">
-                                            <input type="text" name="searchTerm" class="form-control" placeholder="Qidirish..." value="@ViewBag.SearchTerm" />
-                                        </div>
-                                    </div>
-                                    <div class="row mt-1">
-                                        <div class="col-md-2">
-                                            @Html.DropDownList("counterpartyType", ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control" })
-                                        </div>
-                                        <div class="col-md-2">
-                                            @Html.DropDownList("sourceDocType", ViewBag.SourceDocTypeList as SelectList, new { @class = "form-control" })
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="submit" class="btn btn-primary">Qidirish</button>
+                                            <label class="form-label small">&nbsp;</label>
+                                            <button type="submit" class="btn btn-primary btn-sm btn-block">
+                                                <i class="bx bx-filter"></i> Filtrlash
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -83,6 +83,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Sana</th>
+                                                <th>Vaqt</th>
                                                 <th>Hisob</th>
                                                 <th>Kategoriya</th>
                                                 <th>Yo'nalish</th>
@@ -101,7 +102,8 @@
                                             @foreach (var item in Model)
                                             {
                                                 <tr>
-                                                    <td>@item.TxnDate.ToString("dd.MM.yyyy")</td>
+                                                    <td data-order="@item.TxnDate.ToString("yyyy-MM-dd")" class="text-center">@item.TxnDate.ToString("dd.MM.yyyy")</td>
+                                                    <td data-order="@item.TxnDate.ToString("HH:mm:ss")" class="text-center">@item.TxnDate.ToString("HH:mm")</td>
                                                     <td>@(item.FIN_ACCOUNTS != null ? item.FIN_ACCOUNTS.Name : "-")</td>
                                                     <td>@(item.FIN_CATEGORIES != null ? item.FIN_CATEGORIES.Name : "-")</td>
                                                     <td>
@@ -110,8 +112,8 @@
                                                         else
                                                         { <span class="badge badge-danger">Chiqim</span> }
                                                     </td>
-                                                    <td>@item.Amount.ToString("N2")</td>
-                                                    <td>@(item.CURRENCy != null ? item.CURRENCy.Shortname : "-")</td>
+                                                    <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                    <td class="text-center">@(item.CURRENCy != null ? item.CURRENCy.Shortname : "-")</td>
                                                     <td>@(item.CounterpartyName ?? "-")</td>
                                                     <td>@(item.Purpose ?? "-")</td>
                                                     <td>
@@ -124,12 +126,18 @@
                                                     </td>
                                                     @if (changePermit)
                                                     {
-                                                        <td>
-                                                            <a href="@Url.Action("Details", new { id = item.ID })"><i class="bx bx-show"></i></a>
+                                                        <td class="text-center">
+                                                            <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
+                                                                <i class="bx bx-show"></i>
+                                                            </a>
                                                             @if (string.IsNullOrEmpty(item.SourceDocType) || item.SourceDocType == "Manual")
                                                             {
-                                                                <a href="@Url.Action("Edit", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                <a href="@Url.Action("Delete", new { id = item.ID })"><i class="bx bx-trash"></i></a>
+                                                                <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                    <i class="bx bx-edit"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                    <i class="bx bx-trash"></i>
+                                                                </a>
                                                             }
                                                         </td>
                                                     }
@@ -149,6 +157,14 @@
     @section Scripts {
         <script>
             $(document).ready(function () {
+                // Define changePermit in JavaScript
+                var changePermit = @(changePermit ? "true" : "false");
+                
+                // Destroy existing DataTable if it exists
+                if ($.fn.DataTable.isDataTable('#transactionsTable')) {
+                    $('#transactionsTable').DataTable().destroy();
+                }
+                
                 var table = $('#transactionsTable').DataTable({
                     "language": {
                         "search": "Qidirish:",
@@ -164,22 +180,83 @@
                         },
                         "zeroRecords": "Ma'lumot topilmadi"
                     },
+                    "paging": true, // Pagination'ni faollashtirish
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                    "order": [[0, "desc"]], // Default: Sana bo'yicha teskari tartib
+                    "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]], // Remove -1 to keep pagination always active
+                    "order": [[0, "desc"], [1, "desc"]], // Default: Sana va Vaqt bo'yicha teskari tartib
                     "columnDefs": [
+                        { "className": "text-center", "targets": [0, 1, 2, 3, 4, 6, 7, 8, 9] }, // Center all except amount
+                        { "className": "text-right", "targets": 5 }, // Right align amount
+                        { "type": "date", "targets": 0 }, // Sana ustuni date type
+                        { "type": "date", "targets": 1 }, // Vaqt ustuni date type
                         @if (changePermit)
                         {
                             <text>
-                            { "orderable": false, "targets": -1 } // Amallar ustuni sorting'siz
+                            { "orderable": false, "targets": -1, "className": "text-center" } // Amallar ustuni sorting'siz
                             </text>
                         }
                     ],
-                    "dom": 'lBfrtip',
-                    "pagingType": "full_numbers" // Page raqamlarini ko'rsatish (1, 2, 3...)
+                    "dom": 'lBfrtip', // l=length, B=buttons, f=filter, r=processing, t=table, i=info, p=pagination
+                    "pagingType": "full_numbers", // Page raqamlarini ko'rsatish (1, 2, 3...)
+                    "processing": true,
+                    "serverSide": false, // Client-side processing - all data loaded
+                    "deferRender": true, // Performance optimization for large datasets
+                    "scrollX": true, // Horizontal scroll for wide tables
+                    "buttons": [
+                        {
+                            extend: 'excelHtml5',
+                            text: '<i class="bx bxs-file-excel"></i> Excel',
+                            titleAttr: 'Excelga yuklash',
+                            className: 'btn btn-success mr-1',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() + 
+                                    String(now.getMonth() + 1).padStart(2, '0') + 
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') + 
+                                    String(now.getMinutes()).padStart(2, '0') + 
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'FinTransactions_' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: changePermit ? ':not(:last-child)' : ':visible',
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        return data.replace(/<[^>]*>/g, '').trim();
+                                    }
+                                }
+                            }
+                        }
+                    ]
                 });
+                
+                // Force pagination to be visible on initial load
+                setTimeout(function() {
+                    var wrapper = $('#transactionsTable_wrapper');
+                    if (wrapper.find('.dataTables_paginate').length > 0) {
+                        wrapper.find('.dataTables_paginate').show().css('display', 'block');
+                    }
+                    if (wrapper.find('.dataTables_length').length > 0) {
+                        wrapper.find('.dataTables_length').show().css('display', 'block');
+                    }
+                }, 200);
             });
         </script>
+        <style>
+            /* Ensure DataTable pagination is visible */
+            #transactionsTable_wrapper .dataTables_paginate {
+                display: block !important;
+                visibility: visible !important;
+            }
+            #transactionsTable_wrapper .dataTables_length {
+                display: block !important;
+                visibility: visible !important;
+            }
+            #transactionsTable_wrapper .dataTables_info {
+                display: block !important;
+                visibility: visible !important;
+            }
+        </style>
     }
 }
 else

@@ -130,7 +130,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name),
+                    db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", parentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
@@ -181,7 +181,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name),
+                    db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
@@ -220,7 +220,7 @@ namespace tahsinERP.Controllers.Finance
                 excludeIds.Add(id.Value);
 
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name),
+                    db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
@@ -257,7 +257,7 @@ namespace tahsinERP.Controllers.Finance
                         {
                             ModelState.AddModelError("ParentID", "Ota kategoriya sifatida o'zini yoki farzandini tanlash mumkin emas.");
                             ViewBag.ParentID = new SelectList(
-                                db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name),
+                                db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                                 "ID", "Name", category.ParentID);
                             ViewBag.TypeList = new SelectList(new[] {
                                 new { Value = (byte)1, Text = "Daromad" },
@@ -283,7 +283,7 @@ namespace tahsinERP.Controllers.Finance
                 var excludeIds2 = GetDescendantIds(db, category.ID);
                 excludeIds2.Add(category.ID);
                 ViewBag.ParentID = new SelectList(
-                    db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds2.Contains(c.ID)).OrderBy(c => c.Name),
+                    db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds2.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
                 ViewBag.TypeList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Daromad" },

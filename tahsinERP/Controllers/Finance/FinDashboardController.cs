@@ -42,19 +42,64 @@ namespace tahsinERP.Controllers.Finance
                 var outflow = transactions.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m;
                 var netCashflow = inflow - outflow;
 
-                // Get current cash balance
+                // Get current cash balance - only from Cash and Bank accounts
+                // Separate calculation for Cash (naqd pul) and Bank accounts
                 var cashAccounts = db.FIN_ACCOUNTS
-                    .Where(a => (a.IsCash || a.IsBank) && a.IsActive)
+                    .Where(a => a.IsCash && a.IsActive)
                     .ToList();
 
-                var currentBalance = 0m;
+                var bankAccounts = db.FIN_ACCOUNTS
+                    .Where(a => a.IsBank && a.IsActive)
+                    .ToList();
+
+                // Calculate cash balance (naqd pul)
+                var cashBalance = 0m;
                 foreach (var account in cashAccounts)
                 {
                     var accountBalance = db.FIN_TRANSACTIONS
                         .Where(t => t.AccountID == account.ID)
                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
-                    currentBalance += accountBalance;
+                    cashBalance += accountBalance;
                 }
+
+                // Calculate bank balance
+                var bankBalance = 0m;
+                foreach (var account in bankAccounts)
+                {
+                    var accountBalance = db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID)
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                    bankBalance += accountBalance;
+                }
+
+                // Total current balance = Cash + Bank
+                var currentBalance = cashBalance + bankBalance;
+
+                // Get primary currency (most used currency in transactions, or from cash/bank accounts)
+                var primaryCurrency = transactions
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault();
+
+                // Fallback: get currency from cash/bank accounts if no transactions
+                if (primaryCurrency == null)
+                {
+                    var firstCashAccount = cashAccounts.FirstOrDefault() ?? bankAccounts.FirstOrDefault();
+                    if (firstCashAccount != null)
+                    {
+                        primaryCurrency = db.CURRENCIES.Find(firstCashAccount.CurrencyID);
+                    }
+                }
+
+                // Final fallback: get first currency from database
+                if (primaryCurrency == null)
+                {
+                    primaryCurrency = db.CURRENCIES.FirstOrDefault();
+                }
+
+                var currencyShortname = primaryCurrency?.Shortname ?? "UZS";
 
                 // Group by day
                 var dailyData = transactions
@@ -80,6 +125,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.Outflow = outflow;
                 ViewBag.NetCashflow = netCashflow;
                 ViewBag.CurrentBalance = currentBalance;
+                ViewBag.CurrencyShortname = currencyShortname;
                 ViewBag.DailyData = dailyData;
 
                 return View();
@@ -188,19 +234,188 @@ namespace tahsinERP.Controllers.Finance
                     })
                     .ToDictionary(x => x.CategoryID, x => x.Amount);
 
-                // Calculate from transactions if snapshots don't exist
+                // Calculate from transactions and accounts
+                // Map accounts to balance categories by name matching
+                var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).ToList();
+                var accountBalances = new Dictionary<int, decimal>();
+                
+                foreach (var account in accounts)
+                {
+                    var balance = db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID && t.TxnDate <= asOfDate.Value)
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                    accountBalances[account.ID] = balance;
+                }
+
+                // Create mapping: Account -> Balance Category (by name matching)
+                // For proper implementation, you should create a mapping table like FIN_ACCOUNT_BALANCE_CATEGORIES
+                var accountToBalanceCategory = new Dictionary<int, int>();
+                foreach (var account in accounts)
+                {
+                    var matchingCategory = categories.FirstOrDefault(c => 
+                        (c.Name.Contains(account.Name) || account.Name.Contains(c.Name)) ||
+                        (c.Name == "Naqd pul" && account.IsCash) ||
+                        (c.Name == "Bank hisobi" && account.IsBank)
+                    );
+                    if (matchingCategory != null)
+                    {
+                        accountToBalanceCategory[account.ID] = matchingCategory.ID;
+                    }
+                }
+
+                // Calculate balance data based on CalculationType
+                // 1 = Account-Based: Calculate from account balances
+                // 2 = Transaction-Based: Calculate from transaction categories
+                // 3 = Document-Based: Calculate from documents (invoices, etc.)
                 var balanceData = new List<BalanceCategoryData>();
                 foreach (var category in categories)
                 {
                     decimal amount = 0;
+                    
+                    // First check snapshots (highest priority)
                     if (snapshots.ContainsKey(category.ID))
                     {
                         amount = snapshots[category.ID];
                     }
                     else
                     {
-                        // Calculate from transactions (simplified - you may need more complex logic)
-                        // This is a placeholder - actual calculation depends on category type
+                        // Calculate based on CalculationType
+                        switch (category.CalculationType)
+                        {
+                            case 1: // Account-Based
+                                // Get accounts mapped to this balance category
+                                var mappedAccountIds = db.FIN_ACCOUNTS
+                                    .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
+                                    .Select(a => a.ID)
+                                    .ToList();
+                                
+                                // Fallback to old name matching if BalanceCategoryID is not set
+                                if (mappedAccountIds.Count == 0)
+                                {
+                                    mappedAccountIds = accountToBalanceCategory
+                                        .Where(kvp => kvp.Value == category.ID)
+                                        .Select(kvp => kvp.Key)
+                                        .ToList();
+                                }
+                                
+                                foreach (var accountId in mappedAccountIds)
+                                {
+                                    if (accountBalances.ContainsKey(accountId))
+                                    {
+                                        amount += accountBalances[accountId];
+                                    }
+                                }
+                                break;
+                                
+                            case 2: // Transaction-Based
+                                // Get categories mapped to this balance category
+                                var categoryIds = new List<int>();
+                                try
+                                {
+                                    var categoryWithMappings = db.FIN_BALANCE_CATEGORIES
+                                        .Include(c => c.FIN_CATEGORIES)
+                                        .FirstOrDefault(c => c.ID == category.ID);
+                                    
+                                    if (categoryWithMappings?.FIN_CATEGORIES != null)
+                                    {
+                                        categoryIds = categoryWithMappings.FIN_CATEGORIES
+                                            .Where(c => c.IsActive)
+                                            .Select(c => c.ID)
+                                            .ToList();
+                                    }
+                                }
+                                catch
+                                {
+                                    // If relationship doesn't work, use raw SQL to query junction table
+                                    try
+                                    {
+                                        var sql = @"
+                                            SELECT CategoryID 
+                                            FROM FIN_BALANCE_CATEGORY_CATEGORIES 
+                                            WHERE BalanceCategoryID = {0}";
+                                        var categoryIdList = db.Database.SqlQuery<int>(sql, category.ID).ToList();
+                                        
+                                        // Get active categories from the junction table results
+                                        categoryIds = db.FIN_CATEGORIES
+                                            .Where(c => categoryIdList.Contains(c.ID) && c.IsActive)
+                                            .Select(c => c.ID)
+                                            .ToList();
+                                    }
+                                    catch
+                                    {
+                                        // If junction table doesn't exist or query fails, return empty list
+                                        categoryIds = new List<int>();
+                                    }
+                                }
+                                
+                                if (categoryIds.Count > 0)
+                                {
+                                    // Calculate from transactions in mapped categories
+                                    amount = db.FIN_TRANSACTIONS
+                                        .Where(t => categoryIds.Contains(t.CategoryID) && 
+                                                   t.TxnDate <= asOfDate.Value)
+                                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                                }
+                                break;
+                                
+                            case 3: // Document-Based
+                                // Calculate from documents based on category name
+                                if (category.Name == "Ta'minotchilardan qarzlar")
+                                {
+                                    // To'lanmagan xarid invoyslari
+                                    var unpaidInvoices = db.P_INVOICES
+                                        .Where(i => i.InvoiceDate <= asOfDate.Value && 
+                                                   (i.IsDeleted == null || i.IsDeleted == false))
+                                        .ToList();
+                                    
+                                    foreach (var invoice in unpaidInvoices)
+                                    {
+                                        // Calculate total payments for this invoice
+                                        var totalPaid = db.FIN_TRANSACTIONS
+                                            .Where(t => t.SourceDocType == "PurchaseInvoice" && 
+                                                       t.SourceDocID == invoice.ID && 
+                                                       t.TxnDate <= asOfDate.Value &&
+                                                       t.Direction == 1) // Payments (incoming to supplier)
+                                            .Sum(t => (decimal?)t.Amount) ?? 0m;
+                                        
+                                        var invoiceAmount = (decimal)invoice.Amount;
+                                        
+                                        // If not fully paid, add unpaid amount
+                                        if (totalPaid < invoiceAmount)
+                                        {
+                                            amount += (invoiceAmount - totalPaid);
+                                        }
+                                    }
+                                }
+                                else if (category.Name == "Xaridorlardan haqlarimiz")
+                                {
+                                    // To'lanmagan sotuv invoyslari
+                                    var unpaidInvoices = db.SALES_INVOICES
+                                        .Where(i => i.InvoiceDate <= asOfDate.Value && 
+                                                   (i.StatusCode == null || i.StatusCode != "Paid"))
+                                        .ToList();
+                                    
+                                    foreach (var invoice in unpaidInvoices)
+                                    {
+                                        // Calculate total payments for this invoice
+                                        var totalPaid = db.FIN_TRANSACTIONS
+                                            .Where(t => t.SourceDocType == "SalesInvoice" && 
+                                                       t.SourceDocID == invoice.ID && 
+                                                       t.TxnDate <= asOfDate.Value &&
+                                                       t.Direction == 1) // Payments (incoming from customer)
+                                            .Sum(t => (decimal?)t.Amount) ?? 0m;
+                                        
+                                        var invoiceAmount = invoice.TotalAmount;
+                                        
+                                        // If not fully paid, add unpaid amount
+                                        if (totalPaid < invoiceAmount)
+                                        {
+                                            amount += (invoiceAmount - totalPaid);
+                                        }
+                                    }
+                                }
+                                break;
+                        }
                     }
 
                     balanceData.Add(new BalanceCategoryData

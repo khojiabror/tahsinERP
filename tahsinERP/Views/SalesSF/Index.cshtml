@@ -111,10 +111,10 @@
                                                                 </span>
                                                             </td>
                                                             <td>
-                                                                <a href="@Url.Action("Details", "SalesSF", new { id = item.ID })" title="Ko'rish"><i class="bx bx-show"></i></a>
+                                                                <a href="@Url.Action("Details", "SalesSF", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
                                                                 @if (changePermit && item.StatusCode != "SENT" && item.StatusCode != "ACCEPTED")
                                                                 {
-                                                                    <a href="@Url.Action("Edit", "SalesSF", new { id = item.ID })" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                    <a href="@Url.Action("Edit", "SalesSF", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
                                                                 }
                                                             </td>
                                                         </tr>

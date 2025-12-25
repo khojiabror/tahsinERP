@@ -1,4 +1,4 @@
-﻿@model List<tahsinERP.Models.HSCODE>
+@model List<tahsinERP.Models.HSCODE>
 
 @{
     ViewBag.Title = "Index";
@@ -74,8 +74,8 @@
                                                         {
                                                             <td>
                                                                 <div>
-                                                                    <a href="@Url.Action("Edit", "HSCODE", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "HSCODE", new { id = item.ID })"><i class="bx bx-trash"></i></a>
+                                                                    <a href="@Url.Action("Edit", "HSCODE", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                    <a href="@Url.Action("Delete", "HSCODE", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
                                                                 </div>
                                                             </td>
                                                         }

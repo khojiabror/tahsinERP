@@ -358,11 +358,10 @@ namespace tahsinERP.Controllers.Finance
                     .Select(c => c.ID)
                     .ToList();
 
-                ViewBag.Item = item;
                 ViewBag.AllCategories = allCategories;
                 ViewBag.MappedCategoryIds = mappedCategoryIds;
 
-                return View();
+                return View(item);
             }
         }
 

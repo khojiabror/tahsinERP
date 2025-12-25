@@ -149,6 +149,12 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name");
+                ViewBag.BalanceCategoryID = new SelectList(
+                    db.FIN_BALANCE_CATEGORIES
+                        .Where(c => c.IsActive && c.CalculationType == 1) // Faqat Account-Based
+                        .OrderBy(c => c.Name)
+                        .ToList(),
+                    "ID", "Name");
                 return View();
             }
         }
@@ -186,6 +192,12 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name", account.CurrencyID);
+                ViewBag.BalanceCategoryID = new SelectList(
+                    db.FIN_BALANCE_CATEGORIES
+                        .Where(c => c.IsActive && c.CalculationType == 1) // Faqat Account-Based
+                        .OrderBy(c => c.Name)
+                        .ToList(),
+                    "ID", "Name", account.BalanceCategoryID);
                 return View(account);
             }
         }
@@ -211,7 +223,13 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name", account.CurrencyID);
+                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", account.CurrencyID);
+                ViewBag.BalanceCategoryID = new SelectList(
+                    db.FIN_BALANCE_CATEGORIES
+                        .Where(c => c.IsActive && c.CalculationType == 1) // Faqat Account-Based
+                        .OrderBy(c => c.Name)
+                        .ToList(),
+                    "ID", "Name", account.BalanceCategoryID);
                 return View(account);
             }
         }
@@ -245,6 +263,7 @@ namespace tahsinERP.Controllers.Finance
                         accountToUpdate.CurrencyID = account.CurrencyID;
                         accountToUpdate.IsCash = account.IsCash;
                         accountToUpdate.IsBank = account.IsBank;
+                        accountToUpdate.BalanceCategoryID = account.BalanceCategoryID;
 
                         db.SaveChanges();
 
@@ -254,7 +273,13 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name", account.CurrencyID);
+                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", account.CurrencyID);
+                ViewBag.BalanceCategoryID = new SelectList(
+                    db.FIN_BALANCE_CATEGORIES
+                        .Where(c => c.IsActive && c.CalculationType == 1) // Faqat Account-Based
+                        .OrderBy(c => c.Name)
+                        .ToList(),
+                    "ID", "Name", account.BalanceCategoryID);
                 return View(account);
             }
         }

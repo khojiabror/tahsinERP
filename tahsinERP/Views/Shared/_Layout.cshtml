@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/datatables.min.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/tables/datatable/responsive.bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/forms/select/select2.min.css">
-    
+
     <!-- Theme CSS -->
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap-extended.css">
@@ -22,14 +22,14 @@
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/components.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/dark-layout.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/semi-dark-layout.css">
-    
+
     <!-- Page CSS -->
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/core/menu/menu-types/vertical-menu.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-invoice.css">
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="~/assets/css/app.css" />
     <link rel="stylesheet" type="text/css" href="~/Content/flatpickr.css" />
-    
+
     <!-- Custom Styles for iPack Branding - Green Theme -->
     <style>
         /* To'q yashil rang - iPack korxonasi rangi */
@@ -39,187 +39,244 @@
             --ipack-green-hover: #157347;
             --ipack-green-dark: #146c43;
         }
-        
+
         /* tahsinERP yozuvini to'q yashil rangga o'zgartirish */
         .main-menu .navbar-header .navbar-brand .brand-text {
             color: var(--ipack-green) !important;
         }
-        
+
         /* Active menu item text color - yashil rang */
         .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a {
             color: var(--ipack-green) !important;
         }
-        
+
         .main-menu.menu-light .navigation > li ul .active > a {
             color: var(--ipack-green) !important;
         }
-        
-        /* Active menu item icon rangi - yashil */
-        .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a i,
-        .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a .menu-livicon,
-        .main-menu.menu-light .navigation > li ul .active > a i,
-        .main-menu.menu-light .navigation > li ul .active > a .menu-livicon {
-            color: var(--ipack-green) !important;
-        }
-        
+
+            /* Active menu item icon rangi - yashil */
+            .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a i,
+            .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a .menu-livicon,
+            .main-menu.menu-light .navigation > li ul .active > a i,
+            .main-menu.menu-light .navigation > li ul .active > a .menu-livicon {
+                color: var(--ipack-green) !important;
+            }
+
         /* Active menu item background - yashil rang bilan */
         .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a {
             background: var(--ipack-green-light) !important;
         }
-        
+
         .main-menu.menu-light .navigation > li ul .active {
             background: var(--ipack-green-light) !important;
         }
-        
-        /* Buttonlar - yashil rang */
+
+        /* Buttonlar - yashil rang va gradient effekt */
         .btn-primary,
         button.btn-primary,
         input[type="submit"].btn-primary,
         input[type="button"].btn-primary {
-            background-color: var(--ipack-green) !important;
-            border-color: var(--ipack-green-dark) !important;
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+            border: none !important;
             color: #fff !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
         }
-        
-        .btn-primary:hover,
-        .btn-primary.hover,
-        button.btn-primary:hover,
-        input[type="submit"].btn-primary:hover {
-            background-color: var(--ipack-green-hover) !important;
-            border-color: var(--ipack-green-dark) !important;
-            color: #fff !important;
-        }
-        
-        .btn-primary:focus,
-        .btn-primary:active,
-        .btn-primary.active,
-        button.btn-primary:focus,
-        button.btn-primary:active {
-            background-color: var(--ipack-green-dark) !important;
-            border-color: var(--ipack-green-dark) !important;
-            color: #fff !important;
-        }
-        
+
+            .btn-primary:hover,
+            .btn-primary.hover,
+            button.btn-primary:hover,
+            input[type="submit"].btn-primary:hover,
+            .btn-primary:hover *,
+            button.btn-primary:hover *,
+            input[type="submit"].btn-primary:hover * {
+                background: linear-gradient(135deg, #157347 0%, #198754 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+                .btn-primary:hover i,
+                .btn-primary:hover svg,
+                .btn-primary:hover span,
+                button.btn-primary:hover i,
+                button.btn-primary:hover svg,
+                button.btn-primary:hover span {
+                    color: #fff !important;
+                }
+
+            .btn-primary:focus,
+            .btn-primary:active,
+            .btn-primary.active,
+            button.btn-primary:focus,
+            button.btn-primary:active {
+                background: linear-gradient(135deg, #146c43 0%, #157347 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(0) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
         /* Outline buttons */
         .btn-outline-primary {
-            border-color: var(--ipack-green) !important;
+            border: 2px solid var(--ipack-green) !important;
             color: var(--ipack-green) !important;
+            background: transparent !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
         }
-        
-        .btn-outline-primary:hover {
-            background-color: var(--ipack-green) !important;
-            color: #fff !important;
+
+        .btn-outline-success {
+            border: 2px solid #28a745 !important;
+            color: #28a745 !important;
+            background: transparent !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
         }
-        
+
+        .btn-outline-warning {
+            border: 2px solid #ffc107 !important;
+            color: #ffc107 !important;
+            background: transparent !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-outline-danger {
+            border: 2px solid #dc3545 !important;
+            color: #dc3545 !important;
+            background: transparent !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-outline-info {
+            border: 2px solid #17a2b8 !important;
+            color: #17a2b8 !important;
+            background: transparent !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid #6c757d !important;
+            color: #6c757d !important;
+            background: transparent !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+
         /* Primary color classes */
         .primary,
         .text-primary {
             color: var(--ipack-green) !important;
         }
-        
+
         .bg-primary,
         .bg-rgba-primary {
             background-color: var(--ipack-green) !important;
         }
-        
+
         .bg-rgba-primary {
             background: var(--ipack-green-light) !important;
         }
-        
+
         /* Badges */
         .badge-primary,
         .badge.badge-primary {
             background-color: var(--ipack-green) !important;
         }
-        
+
         .badge-light-primary,
         .badge.badge-light-primary {
             background-color: var(--ipack-green-light) !important;
             color: var(--ipack-green) !important;
         }
-        
+
         /* Borders */
         .border-primary {
             border-color: var(--ipack-green) !important;
         }
-        
+
         /* Active page elements */
         .card-header.bg-primary,
         .card-footer.bg-primary {
             background-color: var(--ipack-green) !important;
         }
-        
+
         /* Summary boxes va boshqa primary elementlar */
         .bg-primary-light,
         .bg-light-primary {
             background-color: var(--ipack-green-light) !important;
             color: var(--ipack-green) !important;
         }
-        
+
         /* Progress bars */
         .progress-bar.bg-primary {
             background-color: var(--ipack-green) !important;
         }
-        
+
         /* Links */
         a.primary,
         a.text-primary {
             color: var(--ipack-green) !important;
         }
-        
-        a.primary:hover,
-        a.text-primary:hover {
-            color: var(--ipack-green-hover) !important;
-        }
-        
+
+            a.primary:hover,
+            a.text-primary:hover {
+                color: var(--ipack-green-hover) !important;
+            }
+
         /* Breadcrumb - Page Name (Rasmiy Maktublar va boshqalar) */
         .breadcrumb.breadcrumb-divider .breadcrumb-item.active {
             background-color: var(--ipack-green) !important;
             color: #FFFFFF !important;
         }
-        
+
         .breadcrumb .breadcrumb-item.active {
             color: var(--ipack-green) !important;
         }
-        
+
         /* Breadcrumb link hover */
         .breadcrumb-wrapper .breadcrumb .breadcrumb-item a:hover,
         .breadcrumb-wrapper .breadcrumb .breadcrumb-item a i:hover {
             color: var(--ipack-green) !important;
         }
-        
+
         /* Breadcrumb rounded pill active */
         .breadcrumb.rounded-pill.breadcrumb-divider .breadcrumb-item.active {
             background-color: var(--ipack-green) !important;
             color: #FFFFFF !important;
         }
-        
+
         /* Barcha linklar (a tag) - yashil rang */
         a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active) {
             color: var(--ipack-green) !important;
         }
-        
-        /* Link hover state */
-        a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):hover {
-            color: var(--ipack-green-hover) !important;
-        }
-        
-        /* Link visited state */
-        a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):visited {
-            color: var(--ipack-green-dark) !important;
-        }
-        
-        /* Table ichidagi linklar - umumiy */
-        table a:not(.dataTable a),
-        .table a:not(.dataTable a) {
+
+            /* Link hover state */
+            a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):hover {
+                color: var(--ipack-green-hover) !important;
+            }
+
+            /* Link visited state */
+            a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):visited {
+                color: var(--ipack-green-dark) !important;
+            }
+
+        /* Table ichidagi linklar - umumiy (DataTable bo'lmagan jadvallar) */
+        table:not(.dataTable) a,
+        .table:not(.dataTable) a {
             color: var(--ipack-green) !important;
         }
-        
-        table a:not(.dataTable a):hover,
-        .table a:not(.dataTable a):hover {
-            color: var(--ipack-green-hover) !important;
-        }
-        
+
+            table:not(.dataTable) a:hover,
+            .table:not(.dataTable) a:hover {
+                color: var(--ipack-green-hover) !important;
+            }
+
         /* DataTable ichidagi linklar - yashil va bold */
         .dataTable a,
         table.dataTable a,
@@ -230,34 +287,578 @@
             color: #33cc00 !important;
             font-weight: bold !important;
         }
-        
-        .dataTable a:hover,
-        table.dataTable a:hover,
-        .dataTable tbody a:hover,
-        table.dataTable tbody a:hover,
-        .dataTable tbody td a:hover,
-        table.dataTable tbody td a:hover {
-            color: #2db300 !important;
-            font-weight: bold !important;
+
+            .dataTable a:hover,
+            table.dataTable a:hover,
+            .dataTable tbody a:hover,
+            table.dataTable tbody a:hover,
+            .dataTable tbody td a:hover,
+            table.dataTable tbody td a:hover {
+                color: #2db300 !important;
+                font-weight: bold !important;
+            }
+
+        /* DataTable first column center alignment */
+        .dataTable thead th:first-child,
+        table.dataTable thead th:first-child,
+        .dataTable tbody td:first-child,
+        table.dataTable tbody td:first-child {
+            text-align: center !important;
         }
-        
+
+        /* DataTable ichidagi action button'lar - default holatda background yo'q */
+        .dataTable .btn,
+        table.dataTable .btn,
+        .dataTable tbody .btn,
+        table.dataTable tbody .btn,
+        .dataTable tbody td .btn,
+        table.dataTable tbody td .btn,
+        .dataTable button,
+        table.dataTable button,
+        .dataTable tbody button,
+        table.dataTable tbody button,
+        .dataTable tbody td button,
+        table.dataTable tbody td button,
+        .dataTable a.btn,
+        table.dataTable a.btn,
+        .dataTable tbody a.btn,
+        table.dataTable tbody a.btn,
+        /* DataTable ichidagi oddiy link'lar (btn class'i bo'lmagan) */
+        .dataTable tbody td a[href*="Action"],
+        table.dataTable tbody td a[href*="Action"],
+        .dataTable tbody td a[href*="Edit"],
+        table.dataTable tbody td a[href*="Edit"],
+        .dataTable tbody td a[href*="Delete"],
+        table.dataTable tbody td a[href*="Delete"],
+        .dataTable tbody td a[href*="Details"],
+        table.dataTable tbody td a[href*="Details"] {
+            background: transparent !important;
+            border: 2px solid !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: none !important;
+            display: inline-block !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 0.25rem !important;
+            text-decoration: none !important;
+        }
+
+            /* DataTable ichidagi oddiy link'lar uchun icon'lar */
+            .dataTable tbody td a[href*="Action"] i,
+            .dataTable tbody td a[href*="Edit"] i,
+            .dataTable tbody td a[href*="Delete"] i,
+            .dataTable tbody td a[href*="Details"] i {
+                font-size: 1rem !important;
+            }
+
+        /* DataTable ichidagi solid button'larni outline qilish */
+        .dataTable .btn-primary:not(.btn-outline-primary),
+        table.dataTable .btn-primary:not(.btn-outline-primary),
+        .dataTable .btn-success:not(.btn-outline-success),
+        table.dataTable .btn-success:not(.btn-outline-success),
+        .dataTable .btn-danger:not(.btn-outline-danger),
+        table.dataTable .btn-danger:not(.btn-outline-danger),
+        .dataTable .btn-warning:not(.btn-outline-warning),
+        table.dataTable .btn-warning:not(.btn-outline-warning),
+        .dataTable .btn-info:not(.btn-outline-info),
+        table.dataTable .btn-info:not(.btn-outline-info),
+        .dataTable .btn-secondary:not(.btn-outline-secondary),
+        table.dataTable .btn-secondary:not(.btn-outline-secondary) {
+            background: transparent !important;
+        }
+
+        /* DataTable ichidagi primary button'lar */
+        .dataTable .btn-primary,
+        table.dataTable .btn-primary,
+        .dataTable .btn-info,
+        table.dataTable .btn-info {
+            border-color: var(--ipack-green) !important;
+            color: var(--ipack-green) !important;
+            background: transparent !important;
+        }
+
+            .dataTable .btn-primary:hover,
+            table.dataTable .btn-primary:hover,
+            .dataTable .btn-info:hover,
+            table.dataTable .btn-info:hover,
+            .dataTable .btn-primary:hover i,
+            .dataTable .btn-primary:hover svg,
+            .dataTable .btn-info:hover i,
+            .dataTable .btn-info:hover svg {
+                background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        /* DataTable ichidagi success button'lar */
+        .dataTable .btn-success,
+        table.dataTable .btn-success {
+            border-color: #28a745 !important;
+            color: #28a745 !important;
+            background: transparent !important;
+        }
+
+            .dataTable .btn-success:hover,
+            table.dataTable .btn-success:hover,
+            .dataTable .btn-success:hover i,
+            .dataTable .btn-success:hover svg {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        /* DataTable ichidagi warning button'lar */
+        .dataTable .btn-warning,
+        table.dataTable .btn-warning {
+            border-color: #ffc107 !important;
+            color: #ffc107 !important;
+            background: transparent !important;
+        }
+
+            .dataTable .btn-warning:hover,
+            table.dataTable .btn-warning:hover,
+            .dataTable .btn-warning:hover i,
+            .dataTable .btn-warning:hover svg {
+                background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        /* DataTable ichidagi danger button'lar */
+        .dataTable .btn-danger,
+        table.dataTable .btn-danger {
+            border-color: #dc3545 !important;
+            color: #dc3545 !important;
+            background: transparent !important;
+        }
+
+            .dataTable .btn-danger:hover,
+            table.dataTable .btn-danger:hover,
+            .dataTable .btn-danger:hover i,
+            .dataTable .btn-danger:hover svg {
+                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        /* DataTable ichidagi secondary button'lar */
+        .dataTable .btn-secondary,
+        table.dataTable .btn-secondary {
+            border-color: #6c757d !important;
+            color: #6c757d !important;
+            background: transparent !important;
+        }
+
+            .dataTable .btn-secondary:hover,
+            table.dataTable .btn-secondary:hover,
+            .dataTable .btn-secondary:hover i,
+            .dataTable .btn-secondary:hover svg {
+                background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        /* DataTable ichidagi outline button'lar ham shu qoidaga bo'ysunadi */
+        .dataTable .btn-outline-primary,
+        .dataTable .btn-outline-success,
+        .dataTable .btn-outline-warning,
+        .dataTable .btn-outline-danger,
+        .dataTable .btn-outline-info,
+        .dataTable .btn-outline-secondary,
+        table.dataTable .btn-outline-primary,
+        table.dataTable .btn-outline-success,
+        table.dataTable .btn-outline-warning,
+        table.dataTable .btn-outline-danger,
+        table.dataTable .btn-outline-info,
+        table.dataTable .btn-outline-secondary {
+            background: transparent !important;
+        }
+
+        /* DataTable ichidagi oddiy link'lar uchun ranglar (icon rangiga qarab) */
+        .dataTable tbody td a[href*="Details"],
+        table.dataTable tbody td a[href*="Details"],
+        .dataTable tbody td a[href*="Details"] i {
+            border-color: var(--ipack-green) !important;
+            color: var(--ipack-green) !important;
+        }
+
+            .dataTable tbody td a[href*="Details"]:hover,
+            table.dataTable tbody td a[href*="Details"]:hover,
+            .dataTable tbody td a[href*="Details"]:hover i {
+                background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        .dataTable tbody td a[href*="Edit"],
+        table.dataTable tbody td a[href*="Edit"],
+        .dataTable tbody td a[href*="Edit"] i {
+            border-color: #28a745 !important;
+            color: #28a745 !important;
+        }
+
+            .dataTable tbody td a[href*="Edit"]:hover,
+            table.dataTable tbody td a[href*="Edit"]:hover,
+            .dataTable tbody td a[href*="Edit"]:hover i {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        .dataTable tbody td a[href*="Delete"],
+        table.dataTable tbody td a[href*="Delete"],
+        .dataTable tbody td a[href*="Delete"] i,
+        .dataTable tbody td a.text-danger,
+        table.dataTable tbody td a.text-danger {
+            border-color: #dc3545 !important;
+            color: #dc3545 !important;
+        }
+
+            .dataTable tbody td a[href*="Delete"]:hover,
+            table.dataTable tbody td a[href*="Delete"]:hover,
+            .dataTable tbody td a[href*="Delete"]:hover i,
+            .dataTable tbody td a.text-danger:hover,
+            table.dataTable tbody td a.text-danger:hover {
+                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+        /* DataTable ichidagi barcha action link'lar uchun umumiy hover effekt */
+        .dataTable tbody td a[href*="Action"]:hover,
+        table.dataTable tbody td a[href*="Action"]:hover,
+        .dataTable tbody td a[href*="Action"]:hover i {
+            color: #fff !important;
+        }
+
+        /* Barcha button'lar uchun gradient effekt */
+        .btn-success,
+        button.btn-success,
+        input[type="submit"].btn-success,
+        input[type="button"].btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+
+            .btn-success:hover,
+            button.btn-success:hover,
+            input[type="submit"].btn-success:hover,
+            .btn-success:hover i,
+            .btn-success:hover svg,
+            .btn-success:hover span,
+            button.btn-success:hover i,
+            button.btn-success:hover svg,
+            button.btn-success:hover span {
+                background: linear-gradient(135deg, #218838 0%, #28a745 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+            .btn-success:focus,
+            .btn-success:active,
+            .btn-success.active,
+            button.btn-success:focus,
+            button.btn-success:active {
+                background: linear-gradient(135deg, #1e7e34 0%, #218838 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(0) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
+        .btn-warning,
+        button.btn-warning,
+        input[type="submit"].btn-warning,
+        input[type="button"].btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+
+            .btn-warning:hover,
+            button.btn-warning:hover,
+            input[type="submit"].btn-warning:hover,
+            .btn-warning:hover i,
+            .btn-warning:hover svg,
+            .btn-warning:hover span,
+            button.btn-warning:hover i,
+            button.btn-warning:hover svg,
+            button.btn-warning:hover span {
+                background: linear-gradient(135deg, #e0a800 0%, #ffc107 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+            .btn-warning:focus,
+            .btn-warning:active,
+            .btn-warning.active,
+            button.btn-warning:focus,
+            button.btn-warning:active {
+                background: linear-gradient(135deg, #d39e00 0%, #e0a800 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(0) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
+        .btn-danger,
+        button.btn-danger,
+        input[type="submit"].btn-danger,
+        input[type="button"].btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+
+            .btn-danger:hover,
+            button.btn-danger:hover,
+            input[type="submit"].btn-danger:hover,
+            .btn-danger:hover i,
+            .btn-danger:hover svg,
+            .btn-danger:hover span,
+            button.btn-danger:hover i,
+            button.btn-danger:hover svg,
+            button.btn-danger:hover span {
+                background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+            .btn-danger:focus,
+            .btn-danger:active,
+            .btn-danger.active,
+            button.btn-danger:focus,
+            button.btn-danger:active {
+                background: linear-gradient(135deg, #bd2130 0%, #b21f2d 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(0) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
+        .btn-info,
+        button.btn-info,
+        input[type="submit"].btn-info,
+        input[type="button"].btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #00cfdd 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+
+            .btn-info:hover,
+            button.btn-info:hover,
+            input[type="submit"].btn-info:hover,
+            .btn-info:hover i,
+            .btn-info:hover svg,
+            .btn-info:hover span,
+            button.btn-info:hover i,
+            button.btn-info:hover svg,
+            button.btn-info:hover span {
+                background: linear-gradient(135deg, #138496 0%, #17a2b8 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+            .btn-info:focus,
+            .btn-info:active,
+            .btn-info.active,
+            button.btn-info:focus,
+            button.btn-info:active {
+                background: linear-gradient(135deg, #117a8b 0%, #138496 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(0) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
+        .btn-secondary,
+        button.btn-secondary,
+        input[type="submit"].btn-secondary,
+        input[type="button"].btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+
+            .btn-secondary:hover,
+            button.btn-secondary:hover,
+            input[type="submit"].btn-secondary:hover,
+            .btn-secondary:hover i,
+            .btn-secondary:hover svg,
+            .btn-secondary:hover span,
+            button.btn-secondary:hover i,
+            button.btn-secondary:hover svg,
+            button.btn-secondary:hover span {
+                background: linear-gradient(135deg, #5a6268 0%, #545b62 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            }
+
+            .btn-secondary:focus,
+            .btn-secondary:active,
+            .btn-secondary.active,
+            button.btn-secondary:focus,
+            button.btn-secondary:active {
+                background: linear-gradient(135deg, #545b62 0%, #4e555b 100%) !important;
+                border: none !important;
+                color: #fff !important;
+                transform: translateY(0) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
+        /* Outline button'lar uchun ham hover'da gradient */
+        .btn-outline-primary:hover,
+        .btn-outline-primary:hover i,
+        .btn-outline-primary:hover svg,
+        .btn-outline-primary:hover span {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        .btn-outline-success:hover,
+        .btn-outline-success:hover i,
+        .btn-outline-success:hover svg,
+        .btn-outline-success:hover span {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        .btn-outline-warning:hover,
+        .btn-outline-warning:hover i,
+        .btn-outline-warning:hover svg,
+        .btn-outline-warning:hover span {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        .btn-outline-danger:hover,
+        .btn-outline-danger:hover i,
+        .btn-outline-danger:hover svg,
+        .btn-outline-danger:hover span {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        .btn-outline-info:hover,
+        .btn-outline-info:hover i,
+        .btn-outline-info:hover svg,
+        .btn-outline-info:hover span {
+            background: linear-gradient(135deg, #17a2b8 0%, #00cfdd 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        .btn-outline-secondary:hover,
+        .btn-outline-secondary:hover i,
+        .btn-outline-secondary:hover svg,
+        .btn-outline-secondary:hover span {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        /* Barcha button'larda hover holatida text va icon'lar oq bo'lishi */
+        .btn:hover,
+        button:hover,
+        input[type="submit"]:hover,
+        input[type="button"]:hover,
+        .btn:hover *,
+        button:hover *,
+        input[type="submit"]:hover *,
+        input[type="button"]:hover * {
+            color: #fff !important;
+        }
+
+            .btn:hover i,
+            .btn:hover svg,
+            .btn:hover span,
+            button:hover i,
+            button:hover svg,
+            button:hover span,
+            input[type="submit"]:hover i,
+            input[type="submit"]:hover svg,
+            input[type="submit"]:hover span,
+            input[type="button"]:hover i,
+            input[type="button"]:hover svg,
+            input[type="button"]:hover span {
+                color: #fff !important;
+            }
+
         /* Card ichidagi linklar */
         .card a:not(.btn) {
             color: var(--ipack-green) !important;
         }
-        
-        .card a:not(.btn):hover {
-            color: var(--ipack-green-hover) !important;
-        }
-        
+
+            .card a:not(.btn):hover {
+                color: var(--ipack-green-hover) !important;
+            }
+
         /* Navigation linklar (menu ichida emas) */
         .content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link) {
             color: var(--ipack-green) !important;
         }
-        
-        .content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link):hover {
-            color: var(--ipack-green-hover) !important;
-        }
+
+            .content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link):hover {
+                color: var(--ipack-green-hover) !important;
+            }
     </style>
 </head>
 
@@ -315,7 +916,7 @@
                                             using (var db = new tahsinERP.Models.DBTHSNEntities())
                                             {
                                                 var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                                                userTaskCount = db.APP_TASKS.Count(t => t.AssigneeUserID == userId && t.IsDeleted == false && 
+                                                userTaskCount = db.APP_TASKS.Count(t => t.AssigneeUserID == userId && t.IsDeleted == false &&
                                                     (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE"));
                                             }
                                         }
@@ -405,9 +1006,17 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
                     {
                         <li class="navigation-header"><span>Ta'minot (SRM)</span></li>
-                        
+
                         <li class="nav-item">
                             <a href="~/Supplier"><i class="bx bxs-factory"></i><span class="menu-title">Ta'minotchilar</span></a>
+                            <ul class="menu-content">
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
+                                {
+                                    <li class="nav-item">
+                                        <a href="~/SupplierBase"><i class="bx bx-book"></i><span class="menu-title">Ma'lumotnoma</span></a>
+                                    </li>
+                                }
+                            </ul>
                         </li>
                     }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts"))
@@ -434,12 +1043,6 @@
                             <a href="~/Tender"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Tender taqqoslash</span></a>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
-                    {
-                        <li class="nav-item">
-                            <a href="~/SupplierBase"><i class="bx bx-book"></i><span class="menu-title">Справочник</span></a>
-                        </li>
-                    }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Logistika -->
@@ -447,7 +1050,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder"))
                     {
                         <li class="navigation-header"><span>Logistika</span></li>
-                        
+
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-truck"></i><span class="menu-title">Yuk tashish</span></a>
                             <ul class="menu-content">
@@ -463,7 +1066,7 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Omborxona -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse") || 
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory") ||
@@ -471,7 +1074,7 @@
                          RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionToSalesTransfer"))
                     {
                         <li class="navigation-header"><span>Omborxona</span></li>
-                        
+
                         <li class="nav-item">
                             <a href="#"><i class="bx bxs-home"></i><span class="menu-title">Ombor operatsiyalari</span></a>
                             <ul class="menu-content">
@@ -509,7 +1112,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchasingOrder"))
                     {
                         <li class="navigation-header"><span>Xarid</span></li>
-                        
+
                         <li class="nav-item">
                             <a href="#"><i class="bx bxs-cart"></i><span class="menu-title">Xaridlar</span></a>
                             <ul class="menu-content">
@@ -523,15 +1126,15 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Moliya -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") || 
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
                     {
                         <li class="navigation-header"><span>Moliya</span></li>
-                        
-                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") || 
+
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") ||
                              RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions") ||
                              RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
                         {
@@ -565,7 +1168,7 @@
                                 </ul>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
                         {
                             <li class="nav-item">
@@ -577,7 +1180,7 @@
                                 </ul>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
                         {
                             <li class="nav-item">
@@ -588,7 +1191,7 @@
                                 </ul>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
                         {
                             <li class="nav-item">
@@ -603,7 +1206,7 @@
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM") || RoleHelper.IsViewPermitted(User.Identity.Name, "Norm"))
                     {
                         <li class="navigation-header"><span>Engineering</span></li>
-                        
+
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-git-compare"></i><span class="menu-title">BOM</span></a>
                             <ul class="menu-content">
@@ -618,15 +1221,24 @@
                             </ul>
                         </li>
                     }
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product") || RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory"))
                     {
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-box"></i><span class="menu-title">Maxsulotlar</span></a>
                             <ul class="menu-content">
-                                <li><a href="@Url.Action("Index", "Product")"><i class="bx bx-list-ul"></i><span class="menu-item">Barcha maxsulotlar</span></a></li>
-                                <li><a href="@Url.Action("Index", "Product", new { typeFilter = "MAXSULOT" })"><i class="bx bx-package"></i><span class="menu-item">Tayyor maxsulot</span></a></li>
-                                <li><a href="@Url.Action("Index", "Product", new { typeFilter = "YARIM_TAYYOR" })"><i class="bx bx-cog"></i><span class="menu-item">Yarim tayyor</span></a></li>
-                                <li><a href="@Url.Action("Index", "Product", new { typeFilter = "XOMASHYO" })"><i class="bx bx-cube"></i><span class="menu-item">Xomashyo</span></a></li>
+                                <li>
+                                    <a href="#"><i class="bx bx-list-ul"></i><span class="menu-item">Barcha maxsulotlar</span></a>
+                                    <ul class="menu-content">
+                                        <li><a href="@Url.Action("Index", "Product")"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Barcha maxsulotlar</span></a></li>
+                                        <li><a href="@Url.Action("Index", "Product", new { typeFilter = "MAXSULOT" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tayyor maxsulot</span></a></li>
+                                        <li><a href="@Url.Action("Index", "Product", new { typeFilter = "YARIM_TAYYOR" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Yarim tayyor</span></a></li>
+                                        <li><a href="@Url.Action("Index", "Product", new { typeFilter = "XOMASHYO" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xomashyo</span></a></li>
+                                    </ul>
+                                </li>
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory"))
+                                {
+                                    <li><a href="@Url.Action("Index", "ProductCategory")"><i class="bx bx-category"></i><span class="menu-item">Maxsulot turlari</span></a></li>
+                                }
                             </ul>
                         </li>
                     }
@@ -645,34 +1257,34 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- MES - Ishlab chiqarish boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") || 
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "MESDashboard"))
                     {
                         <li class="navigation-header"><span>MES - Ishlab chiqarish</span></li>
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "MESDashboard"))
                         {
                             <li class="nav-item">
                                 <a href="~/MESDashboard/Dashboard"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">MES Dashboard</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan"))
                         {
                             <li class="nav-item">
                                 <a href="~/ProductPlan/Index"><i class="bx bx-line-chart"></i><span class="menu-title">Ishlab chiqarish rejasi</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction"))
                         {
                             <li class="nav-item">
                                 <a href="~/ProductProduction/Index"><i class="bx bx-cog"></i><span class="menu-title">Kunlik ishlab chiqarish</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection"))
                         {
                             <li class="nav-item">
@@ -684,7 +1296,7 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- CRM - Mijozlar bilan ishlash -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer") || 
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices") ||
@@ -692,42 +1304,42 @@
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SalesTTNK"))
                     {
                         <li class="navigation-header"><span>Sotuvlar (CRM)</span></li>
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer"))
                         {
                             <li class="nav-item">
                                 <a href="~/Customer/Index"><i class="bx bxs-user-detail"></i><span class="menu-title">Xaridorlar</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "SContract"))
                         {
                             <li class="nav-item">
                                 <a href="~/SContract/Index"><i class="bx bxs-book-bookmark"></i><span class="menu-title">Shartnomalar</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder"))
                         {
                             <li class="nav-item">
                                 <a href="~/SOrder/Index"><i class="bx bxs-book"></i><span class="menu-title">Buyurtmalar</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
                         {
                             <li class="nav-item">
                                 <a href="~/SalesInvoices/Index"><i class="bx bx-file"></i><span class="menu-title">Invoyslar</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesSF"))
                         {
                             <li class="nav-item">
                                 <a href="~/SalesSF/Index"><i class="bx bx-receipt"></i><span class="menu-title">Счёт-фактура</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesTTNK"))
                         {
                             <li class="nav-item">
@@ -747,14 +1359,14 @@
                          RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
                     {
                         <li class="navigation-header"><span>Kadrlar (HR)</span></li>
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
                         {
                             <li class="nav-item">
                                 <a href="~/HrDashboard"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">HR Dashboard</span></a>
                             </li>
                         }
-                        
+
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-group"></i><span class="menu-title">Kadrlar boshqaruvi</span></a>
                             <ul class="menu-content">
@@ -780,7 +1392,7 @@
                                 }
                             </ul>
                         </li>
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets") ||
                              RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets") ||
                              RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
@@ -812,7 +1424,7 @@
                                 </ul>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
                         {
                             <li class="nav-item">
@@ -831,7 +1443,7 @@
                          RoleHelper.IsViewPermitted(User.Identity.Name, "TaskProject"))
                     {
                         <li class="navigation-header"><span>Tasks / Vazifalar</span></li>
-                        
+
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-task"></i><span class="menu-title">Tasks / Vazifalar</span></a>
                             <ul class="menu-content">
@@ -851,7 +1463,8 @@
                                      RoleHelper.IsViewPermitted(User.Identity.Name, "TaskPriority") ||
                                      RoleHelper.IsViewPermitted(User.Identity.Name, "TaskProject"))
                                 {
-                                    <li><a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Task Sozlamalari</span></a>
+                                    <li>
+                                        <a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Task Sozlamalari</span></a>
                                         <ul class="menu-content">
                                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskStatus"))
                                             {
@@ -875,18 +1488,18 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Hujjatlar boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index") || 
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
                     {
                         <li class="navigation-header"><span>Hujjatlar</span></li>
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index"))
                         {
                             <li class="nav-item">
                                 <a href="~/CompanyOrders"><i class="bx bx-file-blank"></i><span class="menu-title">Kompaniya Buyruqlari</span></a>
                             </li>
                         }
-                        
+
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
                         {
                             <li class="nav-item">
@@ -899,7 +1512,7 @@
                     <!-- Sozlamalar -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <li class="navigation-header"><span>Sozlamalar</span></li>
-                    
+
                     <li class="nav-item">
                         <a href="#"><i class="bx bx-wrench"></i><span class="menu-title">Tizim sozlamalari</span></a>
                         <ul class="menu-content">
@@ -909,7 +1522,7 @@
                             <li><a href="~/Currency/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Valyutalar</span></a></li>
                         </ul>
                     </li>
-                    
+
                     <li class="nav-item">
                         <a href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
                             <i class="bx bx-user-circle"></i><span class="menu-title">Profil sozlamalari</span>
@@ -963,7 +1576,7 @@
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/responsive.bootstrap.min.js"></script>
-        
+
         <!-- Select2 -->
         <script src="~/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 
@@ -1005,14 +1618,14 @@
                 $('.select').select2({ width: '100%' });
             });
         </script>
-        
+
         <!-- Menu Active State Handler -->
         <script>
             $(document).ready(function () {
                 var currentPath = window.location.pathname.toLowerCase();
-                var currentController = '@ViewContext.RouteData.Values["controller"]'.toLowerCase();
-                var currentAction = '@ViewContext.RouteData.Values["action"]'.toLowerCase();
-                
+                var currentController = '@(ViewContext?.RouteData?.Values["controller"]?.ToString() ?? "")'.toLowerCase();
+                var currentAction = '@(ViewContext?.RouteData?.Values["action"]?.ToString() ?? "")'.toLowerCase();
+
                 // Helper function to normalize URL
                 function normalizeUrl(url) {
                     if (!url) return '';
@@ -1023,42 +1636,50 @@
                     }
                     return url;
                 }
-                
-                // Helper function to check if URLs match
+
+                // Helper function to check if URLs match - faqat to'liq segment match
                 function urlsMatch(current, link) {
                     var normalizedLink = normalizeUrl(link);
                     var normalizedCurrent = normalizeUrl(current);
-                    
-                    // Exact match
-                    if (normalizedCurrent === normalizedLink && normalizedLink !== '') {
+
+                    // Agar link bo'sh bo'lsa, match qilmaydi
+                    if (!normalizedLink || normalizedLink === '') {
+                        return false;
+                    }
+
+                    // 1. To'liq exact match (eng ustun)
+                    if (normalizedCurrent === normalizedLink) {
                         return true;
                     }
-                    
-                    // Controller match
-                    if (normalizedLink.indexOf('/' + currentController) !== -1 || 
-                        normalizedLink.indexOf(currentController + '/') !== -1) {
-                        return true;
+
+                    // 2. Current path link bilan boshlanadi va keyin / yoki end bo'lsa
+                    // Masalan: /TannarxAnalytics/Dashboard /Tannarx bilan match bo'lmasligi kerak
+                    // Lekin /Tannarx /Tannarx bilan match bo'lishi kerak
+                    if (normalizedCurrent.startsWith(normalizedLink + '/')) {
+                        // Keyingi segment to'liq bo'lishi kerak
+                        // Masalan: /TannarxAnalytics /Tannarx bilan match bo'lmasligi kerak
+                        return true; // Agar / bilan ajratilgan bo'lsa, to'liq segment
                     }
-                    
-                    // Path contains link
-                    if (normalizedCurrent.indexOf(normalizedLink) !== -1 && normalizedLink !== '') {
-                        return true;
+
+                    // 3. Link current path bilan boshlanadi va keyin / yoki end bo'lsa
+                    if (normalizedLink.startsWith(normalizedCurrent + '/')) {
+                        return true; // Agar / bilan ajratilgan bo'lsa, to'liq segment
                     }
-                    
+
                     return false;
                 }
-                
+
                 // Barcha menu linklarini tekshirish
                 var foundMatch = false;
                 $('#main-menu-navigation a').each(function () {
                     var $link = $(this);
                     var href = $link.attr('href');
-                    
+
                     if (href && urlsMatch(currentPath, href)) {
                         var $li = $link.closest('li');
                         $li.addClass('active');
                         foundMatch = true;
-                        
+
                         // Parent menu item'larni ham open qilish
                         var $parentUl = $li.closest('ul');
                         if ($parentUl.length > 0 && $parentUl.attr('class') === 'menu-content') {
@@ -1069,27 +1690,34 @@
                         }
                     }
                 });
-                
+
                 // Agar hech qanday match topilmasa, controller nomiga qarab qidirish
+                // Lekin faqat to'liq controller nomi bilan match bo'lishi kerak
                 if (!foundMatch && currentController) {
                     $('#main-menu-navigation a').each(function () {
                         var $link = $(this);
                         var href = $link.attr('href') || '';
                         href = normalizeUrl(href);
-                        
-                        // Controller nomini tekshirish
-                        if (href.indexOf('/' + currentController) !== -1 || 
-                            href.indexOf(currentController + '/') !== -1 ||
-                            href === '/' + currentController) {
-                            var $li = $link.closest('li');
-                            $li.addClass('active');
-                            
-                            // Parent menu item'larni ham open qilish
-                            var $parentUl = $li.closest('ul');
-                            if ($parentUl.length > 0 && $parentUl.attr('class') === 'menu-content') {
-                                var $parentLi = $parentUl.closest('li');
-                                if ($parentLi.length > 0) {
-                                    $parentLi.addClass('open active');
+
+                        // Faqat to'liq controller nomi bilan match
+                        // Masalan: /TannarxAnalytics /Tannarx bilan match bo'lmasligi kerak
+                        var controllerPath = '/' + currentController;
+                        if (href === controllerPath ||
+                            href === controllerPath + '/index' ||
+                            href.startsWith(controllerPath + '/')) {
+                            // Lekin keyingi segment to'liq bo'lishi kerak
+                            var remainingPath = href.substring(controllerPath.length);
+                            if (remainingPath === '' || remainingPath.startsWith('/')) {
+                                var $li = $link.closest('li');
+                                $li.addClass('active');
+
+                                // Parent menu item'larni ham open qilish
+                                var $parentUl = $li.closest('ul');
+                                if ($parentUl.length > 0 && $parentUl.attr('class') === 'menu-content') {
+                                    var $parentLi = $parentUl.closest('li');
+                                    if ($parentLi.length > 0) {
+                                        $parentLi.addClass('open active');
+                                    }
                                 }
                             }
                         }

@@ -1,4 +1,4 @@
-﻿@model List<tahsinERP.Models.PART_WRHS_INCOMES>
+@model List<tahsinERP.Models.PART_WRHS_INCOMES>
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -134,8 +134,8 @@
                                                             {
                                                                 <td>
                                                                     <div>
-                                                                        <a href="@Url.Action("Edit", "WhIncome", new { id = item.ID })"><i class="bx bx-edit-alt"></i></a>
-                                                                        <a href="@Url.Action("Delete", "WhIncome", new { id = item.ID })"><i class="bx bx-trash"></i></a>
+                                                                        <a href="@Url.Action("Edit", "WhIncome", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                        <a href="@Url.Action("Delete", "WhIncome", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
                                                                     </div>
                                                                 </td>
                                                             }
