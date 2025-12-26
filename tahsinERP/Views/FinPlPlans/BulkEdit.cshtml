@@ -30,7 +30,7 @@
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">P&L rejalarni to'plamda tahrirlash - @ViewBag.Year yil, @new DateTime(2000, ViewBag.Month, 1).ToString("MMMM") oy</h4>
+                                <h4 class="card-title">P&L rejalarni to'plamda tahrirlash - @ViewBag.Year yil, @(new DateTime(2000, (int)(ViewBag.Month ?? 1), 1).ToString("MMMM")) oy</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">

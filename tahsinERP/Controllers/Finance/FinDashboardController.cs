@@ -154,14 +154,20 @@ namespace tahsinERP.Controllers.Finance
                     .Where(t => t.TxnDate >= startDate && t.TxnDate <= endDate)
                     .ToList();
 
-                // Get PL items with their mapped categories
-                var plItems = db.FIN_PL_ITEMS
+                // Get all PL items with their mapped categories
+                var allPlItems = db.FIN_PL_ITEMS
+                    .Include(i => i.FIN_PL_ITEMS1)
                     .Where(i => i.IsActive)
                     .OrderBy(i => i.SortOrder)
                     .ToList();
 
-                var plData = new List<PLItemData>();
-                foreach (var item in plItems)
+                // Get all plans for the period
+                var plans = db.FIN_PL_PLANS
+                    .Where(p => p.Year == year.Value && p.Month == month.Value)
+                    .ToDictionary(p => p.ItemID, p => p.AmountPlan);
+
+                // Helper method to calculate PL item data
+                PLItemData CalculateItemData(FIN_PL_ITEMS item)
                 {
                     // Get categories mapped to this PL item
                     var categoryIds = db.FIN_CATEGORIES
@@ -175,23 +181,45 @@ namespace tahsinERP.Controllers.Finance
                         .Sum(t => (decimal?)(item.Sign == 1 ? (t.Direction == 1 ? t.Amount : -t.Amount) : (t.Direction == 2 ? t.Amount : -t.Amount))) ?? 0m;
 
                     // Get plan
-                    var plan = db.FIN_PL_PLANS
-                        .FirstOrDefault(p => p.Year == year.Value && p.Month == month.Value && p.ItemID == item.ID);
+                    var planAmount = plans.ContainsKey(item.ID) ? plans[item.ID] : 0m;
 
-                    plData.Add(new PLItemData
+                    return new PLItemData
                     {
                         Item = item,
                         Actual = actual,
-                        Plan = plan?.AmountPlan ?? 0,
-                        Variance = actual - (plan?.AmountPlan ?? 0),
-                        VariancePercent = plan?.AmountPlan > 0 ? ((actual - plan.AmountPlan) / plan.AmountPlan * 100) : 0
-                    });
+                        Plan = planAmount,
+                        Variance = actual - planAmount,
+                        VariancePercent = planAmount > 0 ? ((actual - planAmount) / planAmount * 100) : 0,
+                        Children = new List<PLItemData>()
+                    };
                 }
 
-                // Get plans
-                var plans = db.FIN_PL_PLANS
-                    .Where(p => p.Year == year.Value && p.Month == month.Value)
-                    .ToDictionary(p => p.ItemID, p => p.AmountPlan);
+                // Build hierarchical structure - only get parent items (ParentID == null)
+                var plData = new List<PLItemData>();
+                var parentItems = allPlItems.Where(i => i.ParentID == null).OrderBy(i => i.SortOrder).ToList();
+
+                foreach (var parentItem in parentItems)
+                {
+                    var parentData = CalculateItemData(parentItem);
+                    
+                    // Get and calculate children
+                    var childItems = allPlItems.Where(i => i.ParentID == parentItem.ID).OrderBy(i => i.SortOrder).ToList();
+                    foreach (var childItem in childItems)
+                    {
+                        var childData = CalculateItemData(childItem);
+                        parentData.Children.Add(childData);
+                        
+                        // Add child's actual to parent's actual (for summary)
+                        parentData.Actual += childData.Actual;
+                        parentData.Plan += childData.Plan;
+                    }
+                    
+                    // Recalculate variance after adding children
+                    parentData.Variance = parentData.Actual - parentData.Plan;
+                    parentData.VariancePercent = parentData.Plan > 0 ? ((parentData.Variance / parentData.Plan) * 100) : 0;
+                    
+                    plData.Add(parentData);
+                }
 
                 ViewBag.Year = year;
                 ViewBag.Month = month;
@@ -518,6 +546,572 @@ namespace tahsinERP.Controllers.Finance
 
             return value;
         }
+
+        // GET: FinDashboard/FinancialOverview
+        public ActionResult FinancialOverview(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Get summary statistics
+                var transactions = db.FIN_TRANSACTIONS
+                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    .ToList();
+
+                var totalIncome = transactions.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m;
+                var totalExpense = transactions.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m;
+                var netCashflow = totalIncome - totalExpense;
+
+                // Get account balances
+                var cashAccounts = db.FIN_ACCOUNTS.Where(a => a.IsCash && a.IsActive).ToList();
+                var bankAccounts = db.FIN_ACCOUNTS.Where(a => a.IsBank && a.IsActive).ToList();
+                
+                var cashBalance = 0m;
+                foreach (var account in cashAccounts)
+                {
+                    cashBalance += db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID)
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                }
+
+                var bankBalance = 0m;
+                foreach (var account in bankAccounts)
+                {
+                    bankBalance += db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID)
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                }
+
+                // Top categories by expense
+                var topExpenseCategories = transactions
+                    .Where(t => t.Direction == 2 && t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
+                    .Select(g => new { g.Key.CategoryName, Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m })
+                    .OrderByDescending(x => x.Amount)
+                    .Take(10)
+                    .ToList();
+
+                // Top categories by income
+                var topIncomeCategories = transactions
+                    .Where(t => t.Direction == 1 && t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
+                    .Select(g => new { g.Key.CategoryName, Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m })
+                    .OrderByDescending(x => x.Amount)
+                    .Take(10)
+                    .ToList();
+
+                // Monthly trend
+                var monthlyData = transactions
+                    .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
+                    .Select(g => new
+                    {
+                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        Income = g.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m,
+                        Expense = g.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Period)
+                    .ToList();
+
+                // Get primary currency
+                var primaryCurrency = transactions
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault() ?? db.CURRENCIES.FirstOrDefault();
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.TotalIncome = totalIncome;
+                ViewBag.TotalExpense = totalExpense;
+                ViewBag.NetCashflow = netCashflow;
+                ViewBag.CashBalance = cashBalance;
+                ViewBag.BankBalance = bankBalance;
+                ViewBag.TopExpenseCategories = topExpenseCategories;
+                ViewBag.TopIncomeCategories = topIncomeCategories;
+                ViewBag.MonthlyData = monthlyData;
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
+
+                return View();
+            }
+        }
+
+        // GET: FinDashboard/CategoryAnalytics
+        public ActionResult CategoryAnalytics(DateTime? fromDate, DateTime? toDate, int? categoryID)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var query = db.FIN_TRANSACTIONS
+                    .Include(t => t.FIN_CATEGORIES)
+                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value);
+
+                if (categoryID.HasValue)
+                {
+                    query = query.Where(t => t.CategoryID == categoryID.Value);
+                }
+
+                var transactions = query.ToList();
+
+                // Category breakdown by expense
+                var expenseByCategory = transactions
+                    .Where(t => t.Direction == 2 && t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name, CategoryType = t.FIN_CATEGORIES.Type })
+                    .Select(g => new
+                    {
+                        CategoryID = g.Key.CategoryID,
+                        CategoryName = g.Key.CategoryName,
+                        CategoryType = g.Key.CategoryType,
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
+                        TransactionCount = g.Count()
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                // Category breakdown by income
+                var incomeByCategory = transactions
+                    .Where(t => t.Direction == 1 && t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name, CategoryType = t.FIN_CATEGORIES.Type })
+                    .Select(g => new
+                    {
+                        CategoryID = g.Key.CategoryID,
+                        CategoryName = g.Key.CategoryName,
+                        CategoryType = g.Key.CategoryType,
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
+                        TransactionCount = g.Count()
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                // Daily trend by category
+                var dailyTrend = transactions
+                    .Where(t => t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { Date = t.TxnDate.Date, CategoryName = t.FIN_CATEGORIES.Name, Direction = t.Direction })
+                    .Select(g => new
+                    {
+                        Date = g.Key.Date.ToString("yyyy-MM-dd"),
+                        CategoryName = g.Key.CategoryName,
+                        Direction = g.Key.Direction,
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+
+                // Get primary currency
+                var primaryCurrency = transactions
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault() ?? db.CURRENCIES.FirstOrDefault();
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.CategoryID = categoryID;
+                ViewBag.CategoryList = new SelectList(
+                    db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
+                    "ID", "Name", categoryID);
+                ViewBag.ExpenseByCategory = expenseByCategory;
+                ViewBag.IncomeByCategory = incomeByCategory;
+                ViewBag.DailyTrend = dailyTrend;
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
+
+                return View();
+            }
+        }
+
+        // GET: FinDashboard/AccountAnalytics
+        public ActionResult AccountAnalytics(DateTime? fromDate, DateTime? toDate, int? accountID)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var query = db.FIN_TRANSACTIONS
+                    .Include(t => t.FIN_ACCOUNTS)
+                    .Include(t => t.CURRENCy)
+                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value);
+
+                if (accountID.HasValue)
+                {
+                    query = query.Where(t => t.AccountID == accountID.Value);
+                }
+
+                var transactions = query.ToList();
+
+                // Account usage breakdown
+                var accountUsage = transactions
+                    .Where(t => t.FIN_ACCOUNTS != null && !string.IsNullOrEmpty(t.FIN_ACCOUNTS.Name))
+                    .GroupBy(t => new { 
+                        t.AccountID, 
+                        AccountName = t.FIN_ACCOUNTS.Name ?? "", 
+                        AccountCode = t.FIN_ACCOUNTS.Code ?? "", 
+                        IsCash = t.FIN_ACCOUNTS.IsCash, 
+                        IsBank = t.FIN_ACCOUNTS.IsBank 
+                    })
+                    .Select(g => new AccountUsageData
+                    {
+                        AccountID = g.Key.AccountID,
+                        AccountName = g.Key.AccountName ?? "",
+                        AccountCode = g.Key.AccountCode ?? "",
+                        AccountType = g.Key.IsCash ? "Naqd pul" : (g.Key.IsBank ? "Bank" : "Boshqa"),
+                        TotalInflow = g.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m,
+                        TotalOutflow = g.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m,
+                        TransactionCount = g.Count(),
+                        NetAmount = (g.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m) - (g.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m)
+                    })
+                    .OrderByDescending(x => Math.Abs(x.NetAmount))
+                    .ToList();
+
+                // Daily account activity
+                var dailyAccountActivity = transactions
+                    .Where(t => t.FIN_ACCOUNTS != null)
+                    .GroupBy(t => new { Date = t.TxnDate.Date, AccountName = t.FIN_ACCOUNTS.Name })
+                    .Select(g => new
+                    {
+                        Date = g.Key.Date.ToString("yyyy-MM-dd"),
+                        AccountName = g.Key.AccountName,
+                        Inflow = g.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m,
+                        Outflow = g.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+
+                // Get primary currency
+                var primaryCurrency = transactions
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault() ?? db.CURRENCIES.FirstOrDefault();
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.AccountID = accountID;
+                ViewBag.AccountList = new SelectList(
+                    db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
+                    "ID", "Name", accountID);
+                ViewBag.AccountUsage = accountUsage;
+                ViewBag.DailyAccountActivity = dailyAccountActivity;
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
+
+                return View();
+            }
+        }
+
+        // GET: FinDashboard/ExpenseAnalysis
+        public ActionResult ExpenseAnalysis(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var expenses = db.FIN_TRANSACTIONS
+                    .Include(t => t.FIN_CATEGORIES)
+                    .Include(t => t.FIN_ACCOUNTS)
+                    .Where(t => t.Direction == 2 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    .ToList();
+
+                // Expense by category (pie chart data)
+                var expenseByCategory = expenses
+                    .Where(t => t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
+                    .Select(g => new ExpenseByCategoryData
+                    {
+                        CategoryName = g.Key.CategoryName ?? "",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
+                        Percentage = 0m // Will calculate below
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                var totalExpense = expenseByCategory.Sum(x => x.Amount);
+                if (totalExpense > 0)
+                {
+                    foreach (var item in expenseByCategory)
+                    {
+                        item.Percentage = (item.Amount / totalExpense) * 100;
+                    }
+                }
+
+                // Expense by account
+                var expenseByAccount = expenses
+                    .Where(t => t.FIN_ACCOUNTS != null)
+                    .GroupBy(t => new { t.AccountID, AccountName = t.FIN_ACCOUNTS.Name })
+                    .Select(g => new ExpenseByAccountData
+                    {
+                        AccountName = g.Key.AccountName ?? "",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                // Monthly expense trend
+                var monthlyExpense = expenses
+                    .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
+                    .Select(g => new MonthlyData
+                    {
+                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Period)
+                    .ToList();
+
+                // Get primary currency
+                var primaryCurrency = expenses
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault() ?? db.CURRENCIES.FirstOrDefault();
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.ExpenseByCategory = expenseByCategory;
+                ViewBag.ExpenseByAccount = expenseByAccount;
+                ViewBag.MonthlyExpense = monthlyExpense;
+                ViewBag.TotalExpense = totalExpense;
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
+
+                return View();
+            }
+        }
+
+        // GET: FinDashboard/IncomeAnalysis
+        public ActionResult IncomeAnalysis(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var incomes = db.FIN_TRANSACTIONS
+                    .Include(t => t.FIN_CATEGORIES)
+                    .Include(t => t.FIN_ACCOUNTS)
+                    .Where(t => t.Direction == 1 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    .ToList();
+
+                // Income by category (pie chart data)
+                var incomeByCategory = incomes
+                    .Where(t => t.FIN_CATEGORIES != null)
+                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
+                    .Select(g => new IncomeByCategoryData
+                    {
+                        CategoryName = g.Key.CategoryName ?? "",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
+                        Percentage = 0m // Will calculate below
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                var totalIncome = incomeByCategory.Sum(x => x.Amount);
+                if (totalIncome > 0)
+                {
+                    foreach (var item in incomeByCategory)
+                    {
+                        item.Percentage = (item.Amount / totalIncome) * 100;
+                    }
+                }
+
+                // Income by account
+                var incomeByAccount = incomes
+                    .Where(t => t.FIN_ACCOUNTS != null)
+                    .GroupBy(t => new { t.AccountID, AccountName = t.FIN_ACCOUNTS.Name })
+                    .Select(g => new IncomeByAccountData
+                    {
+                        AccountName = g.Key.AccountName ?? "",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                // Monthly income trend
+                var monthlyIncome = incomes
+                    .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
+                    .Select(g => new MonthlyData
+                    {
+                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Period)
+                    .ToList();
+
+                // Get primary currency
+                var primaryCurrency = incomes
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault() ?? db.CURRENCIES.FirstOrDefault();
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.IncomeByCategory = incomeByCategory;
+                ViewBag.IncomeByAccount = incomeByAccount;
+                ViewBag.MonthlyIncome = monthlyIncome;
+                ViewBag.TotalIncome = totalIncome;
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
+
+                return View();
+            }
+        }
+
+        // GET: FinDashboard/AccountBalances
+        public ActionResult AccountBalances(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Get all active accounts with currency
+                var accounts = db.FIN_ACCOUNTS
+                    .Include(a => a.CURRENCy)
+                    .Where(a => a.IsActive)
+                    .OrderBy(a => a.Code)
+                    .ToList();
+
+                var accountBalances = new List<AccountBalanceData>();
+
+                foreach (var account in accounts)
+                {
+                    // Get transactions for this account within date range
+                    var transactions = db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID && 
+                                   t.TxnDate >= fromDate.Value && 
+                                   t.TxnDate <= toDate.Value)
+                        .ToList();
+
+                    var kirim = transactions
+                        .Where(t => t.Direction == 1)
+                        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                    var chiqim = transactions
+                        .Where(t => t.Direction == 2)
+                        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                    var qoldiq = kirim - chiqim;
+
+                    // Get currency for this account
+                    var currency = account.CURRENCy;
+                    if (currency == null && account.CurrencyID > 0)
+                    {
+                        currency = db.CURRENCIES.Find(account.CurrencyID);
+                    }
+                    var currencyShortname = currency?.Shortname ?? "UZS";
+
+                    accountBalances.Add(new AccountBalanceData
+                    {
+                        AccountID = account.ID,
+                        AccountCode = account.Code ?? "",
+                        AccountName = account.Name ?? "",
+                        OwnerName = account.OwnerName ?? "-",
+                        CurrencyShortname = currencyShortname,
+                        Kirim = kirim,
+                        Chiqim = chiqim,
+                        Qoldiq = qoldiq
+                    });
+                }
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.AccountBalances = accountBalances;
+
+                return View();
+            }
+        }
+    }
+
+    public class AccountBalanceData
+    {
+        public int AccountID { get; set; }
+        public string AccountCode { get; set; }
+        public string AccountName { get; set; }
+        public string OwnerName { get; set; }
+        public string CurrencyShortname { get; set; }
+        public decimal Kirim { get; set; }
+        public decimal Chiqim { get; set; }
+        public decimal Qoldiq { get; set; }
+    }
+
+    public class AccountUsageData
+    {
+        public int AccountID { get; set; }
+        public string AccountCode { get; set; }
+        public string AccountName { get; set; }
+        public string AccountType { get; set; }
+        public decimal TotalInflow { get; set; }
+        public decimal TotalOutflow { get; set; }
+        public int TransactionCount { get; set; }
+        public decimal NetAmount { get; set; }
+    }
+
+    public class ExpenseByCategoryData
+    {
+        public string CategoryName { get; set; }
+        public decimal Amount { get; set; }
+        public decimal Percentage { get; set; }
+    }
+
+    public class ExpenseByAccountData
+    {
+        public string AccountName { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class IncomeByCategoryData
+    {
+        public string CategoryName { get; set; }
+        public decimal Amount { get; set; }
+        public decimal Percentage { get; set; }
+    }
+
+    public class IncomeByAccountData
+    {
+        public string AccountName { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class MonthlyData
+    {
+        public string Period { get; set; }
+        public decimal Amount { get; set; }
     }
 
     public class PLItemData
@@ -527,6 +1121,7 @@ namespace tahsinERP.Controllers.Finance
         public decimal Plan { get; set; }
         public decimal Variance { get; set; }
         public decimal VariancePercent { get; set; }
+        public List<PLItemData> Children { get; set; }
     }
 
     public class BalanceCategoryData

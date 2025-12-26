@@ -59,18 +59,40 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (var item in plData)
+                                                @foreach (var parentItem in plData)
                                                 {
-                                                    var varianceClass = item.Variance >= 0 ? "text-success" : "text-danger";
-                                                    var variancePercentClass = item.VariancePercent >= 0 ? "text-success" : "text-danger";
+                                                    var parentVarianceClass = parentItem.Variance >= 0 ? "text-success" : "text-danger";
+                                                    var parentVariancePercentClass = parentItem.VariancePercent >= 0 ? "text-success" : "text-danger";
                                                     
-                                                    <tr>
-                                                        <td><strong>@item.Item.Name</strong></td>
-                                                        <td class="text-right">@item.Actual.ToString("N2")</td>
-                                                        <td class="text-right">@item.Plan.ToString("N2")</td>
-                                                        <td class="text-right @varianceClass">@item.Variance.ToString("N2")</td>
-                                                        <td class="text-right @variancePercentClass">@item.VariancePercent.ToString("N2")%</td>
+                                                    // Parent item row
+                                                    <tr style="background-color: #f8f9fa;">
+                                                        <td><strong>@parentItem.Item.Name</strong></td>
+                                                        <td class="text-right"><strong>@parentItem.Actual.ToString("N2")</strong></td>
+                                                        <td class="text-right"><strong>@parentItem.Plan.ToString("N2")</strong></td>
+                                                        <td class="text-right @parentVarianceClass"><strong>@parentItem.Variance.ToString("N2")</strong></td>
+                                                        <td class="text-right @parentVariancePercentClass"><strong>@parentItem.VariancePercent.ToString("N2")%</strong></td>
                                                     </tr>
+                                                    
+                                                    // Child items rows
+                                                    if (parentItem.Children != null && parentItem.Children.Count > 0)
+                                                    {
+                                                        foreach (var childItem in parentItem.Children)
+                                                        {
+                                                            var childVarianceClass = childItem.Variance >= 0 ? "text-success" : "text-danger";
+                                                            var childVariancePercentClass = childItem.VariancePercent >= 0 ? "text-success" : "text-danger";
+                                                            
+                                                            <tr>
+                                                                <td style="padding-left: 30px;">
+                                                                    <span style="margin-right: 5px; color: #6c757d;">•</span>
+                                                                    @childItem.Item.Name
+                                                                </td>
+                                                                <td class="text-right">@childItem.Actual.ToString("N2")</td>
+                                                                <td class="text-right">@childItem.Plan.ToString("N2")</td>
+                                                                <td class="text-right @childVarianceClass">@childItem.Variance.ToString("N2")</td>
+                                                                <td class="text-right @childVariancePercentClass">@childItem.VariancePercent.ToString("N2")%</td>
+                                                            </tr>
+                                                        }
+                                                    }
                                                 }
                                             </tbody>
                                         </table>

@@ -1,7 +1,30 @@
 @model tahsinERP.Controllers.PInvoiceCreateViewModel
+@using System.Collections.Generic
 @{
     ViewBag.Title = "Yangi xarid invoysi";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Prepare data for JavaScript
+    var purchasableProductsList = ViewBag.PurchasableProducts as SelectList;
+    var unitsList = ViewBag.Units as SelectList;
+    var purchasableProductsData = new List<object>();
+    var unitsData = new List<object>();
+    
+    if (purchasableProductsList != null)
+    {
+        foreach (SelectListItem item in purchasableProductsList)
+        {
+            purchasableProductsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+    
+    if (unitsList != null)
+    {
+        foreach (SelectListItem item in unitsList)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
@@ -58,6 +81,7 @@
                                                     <label for="OrderID">Buyurtma</label>
                                                     @Html.DropDownListFor(model => model.OrderID, ViewBag.POrders as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "orderSelect" })
                                                     @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
+                                                    <small class="text-muted">Ixtiyoriy</small>
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <button type="button" class="btn btn-outline-primary mt-2" id="loadOrderBtn" style="display:none;">
@@ -66,14 +90,15 @@
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="CompanyID">Korxona</label>
-                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
+                                                    <label for="ContractID">Shartnoma</label>
+                                                    @Html.DropDownListFor(model => model.ContractID, new SelectList(new List<SelectListItem>(), "Value", "Text"), "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
+                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                 </div>
+                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="CurrencyID">Valyuta</label>
                                                     @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
@@ -141,62 +166,129 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            $('.select2').select2();
-
-            var productRowIndex = 0;
-            var purchasableProducts = @Html.Raw(Json.Encode((ViewBag.PurchasableProducts as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
-            var units = @Html.Raw(Json.Encode((ViewBag.Units as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
-
-            $('#orderSelect').on('change', function () {
-                if ($(this).val()) {
-                    $('#loadOrderBtn').show();
-                } else {
-                    $('#loadOrderBtn').hide();
-                }
-            });
-
-            $('#loadOrderBtn').click(function () {
-                var orderId = $('#orderSelect').val();
-                if (!orderId) {
-                    alert('Buyurtmani tanlang');
+        // Wait for jQuery to be available
+        (function() {
+            function initInvoiceScripts() {
+                if (typeof jQuery === 'undefined') {
+                    setTimeout(initInvoiceScripts, 100);
                     return;
                 }
 
-                $.ajax({
-                    url: '@Url.Action("LoadOrderProducts", "PInvoices")',
-                    type: 'POST',
-                    data: { orderId: orderId },
-                    success: function (response) {
-                        if (response.success) {
-                            $('#invoiceProductsTable tbody').empty();
-                            productRowIndex = 0;
+                var $ = jQuery;
 
-                            response.data.forEach(function (item) {
-                                addProductRow(item.ProductID, item.ProductPNo, item.ProductName, 
-                                             item.Quantity, item.UnitID, item.Price);
-                            });
-
-                            updateTotal();
-                            alert('Buyurtma mahsulotlari muvaffaqiyatli yuklandi');
-                        } else {
-                            alert('Xatolik: ' + response.message);
-                        }
-                    },
-                    error: function () {
-                        alert('Server xatoligi yuz berdi');
+                $(document).ready(function () {
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('.select2').select2();
                     }
-                });
-            });
 
-            $('#addRowBtn').click(function () {
-                addProductRow(null, '', '', 0, null, 0);
-            });
+                    var productRowIndex = 0;
+                    var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
+                    var units = @Html.Raw(Json.Encode(unitsData));
 
-            function addProductRow(productId, productPNo, productName, quantity, unitId, price) {
+                    // Load contracts when supplier changes
+                    $('#supplierSelect').on('change', function () {
+                        var supplierId = $(this).val();
+                        var $contractSelect = $('#contractSelect');
+                        
+                        // Clear and disable contract dropdown
+                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
+                        $contractSelect.prop('disabled', true);
+                        
+                        if (supplierId) {
+                            // Load contracts for selected supplier
+                            $.ajax({
+                                url: '@Url.Action("GetContractsBySupplier", "PInvoices")',
+                                type: 'POST',
+                                data: { supplierId: supplierId },
+                                success: function (response) {
+                                    if (response && response.success) {
+                                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
+                                        
+                                        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                                            response.data.forEach(function (contract) {
+                                                $contractSelect.append($('<option>')
+                                                    .attr('value', contract.ID)
+                                                    .text(contract.ContractNo));
+                                            });
+                                        }
+                                        
+                                        $contractSelect.prop('disabled', false);
+                                        
+                                        // Reinitialize Select2
+                                        if (typeof $.fn.select2 !== 'undefined') {
+                                            $contractSelect.select2();
+                                        }
+                                    } else {
+                                        // No contracts found or error in response
+                                        $contractSelect.prop('disabled', false);
+                                        if (typeof $.fn.select2 !== 'undefined') {
+                                            $contractSelect.select2();
+                                        }
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Contract loading error:', status, error, xhr);
+                                    var errorMsg = 'Shartnomalarni yuklashda xatolik yuz berdi';
+                                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                                        errorMsg = xhr.responseJSON.message;
+                                    }
+                                    alert(errorMsg);
+                                    // Enable dropdown even on error
+                                    $contractSelect.prop('disabled', false);
+                                }
+                            });
+                        }
+                    });
+
+                    $('#orderSelect').on('change', function () {
+                        if ($(this).val()) {
+                            $('#loadOrderBtn').show();
+                        } else {
+                            $('#loadOrderBtn').hide();
+                        }
+                    });
+
+                    $('#loadOrderBtn').click(function () {
+                        var orderId = $('#orderSelect').val();
+                        if (!orderId) {
+                            alert('Buyurtmani tanlang');
+                            return;
+                        }
+
+                        $.ajax({
+                            url: '@Url.Action("LoadOrderProducts", "PInvoices")',
+                            type: 'POST',
+                            data: { orderId: orderId },
+                            success: function (response) {
+                                if (response.success) {
+                                    $('#invoiceProductsTable tbody').empty();
+                                    productRowIndex = 0;
+
+                                    response.data.forEach(function (item) {
+                                        addProductRow(item.ProductID, item.ProductPNo, item.ProductName, 
+                                                     item.Quantity, item.UnitID, item.Price);
+                                    });
+
+                                    updateTotal();
+                                    alert('Buyurtma mahsulotlari muvaffaqiyatli yuklandi');
+                                } else {
+                                    alert('Xatolik: ' + response.message);
+                                }
+                            },
+                            error: function () {
+                                alert('Server xatoligi yuz berdi');
+                            }
+                        });
+                    });
+
+                    $(document).on('click', '#addRowBtn', function () {
+                        addProductRow(null, '', '', 0, null, 0);
+                    });
+
+                    function addProductRow(productId, productPNo, productName, quantity, unitId, price) {
                 var row = '<tr data-row-index="' + productRowIndex + '">' +
                     '<td>' +
-                        '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                        '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
                         '<option value="">---Tanlang---</option>';
                 
                 purchasableProducts.forEach(function (product) {
@@ -207,7 +299,7 @@
                 row += '</select></td>' +
                     '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
                     '<td>' +
-                        '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
+                        '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
                         '<option value="">---Tanlang---</option>';
                 
                 units.forEach(function (unit) {
@@ -221,44 +313,55 @@
                     '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                     '</tr>';
 
-                $('#invoiceProductsTable tbody').append(row);
-                
-                $('select.product-select').last().select2();
-                $('select.unit-select').last().select2();
+                        $('#invoiceProductsTable tbody').append(row);
+                        
+                        if (typeof $.fn.select2 !== 'undefined') {
+                            $('select.product-select').last().select2();
+                            $('select.unit-select').last().select2();
+                        }
 
-                productRowIndex++;
-            }
+                        productRowIndex++;
+                    }
 
-            $(document).on('click', '.remove-row', function () {
-                $(this).closest('tr').remove();
-                updateTotal();
-            });
+                    $(document).on('click', '.remove-row', function () {
+                        $(this).closest('tr').remove();
+                        updateTotal();
+                    });
 
-            $(document).on('input', '.quantity-input, .price-input', function () {
-                var $row = $(this).closest('tr');
-                var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
-                var price = parseFloat($row.find('.price-input').val()) || 0;
-                var total = quantity * price;
-                $row.find('.total-price').val(total.toFixed(2));
-                updateTotal();
-            });
+                    $(document).on('input', '.quantity-input, .price-input', function () {
+                        var $row = $(this).closest('tr');
+                        var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                        var price = parseFloat($row.find('.price-input').val()) || 0;
+                        var total = quantity * price;
+                        $row.find('.total-price').val(total.toFixed(2));
+                        updateTotal();
+                    });
 
-            function updateTotal() {
-                var total = 0;
-                $('.total-price').each(function () {
-                    total += parseFloat($(this).val()) || 0;
+                    function updateTotal() {
+                        var total = 0;
+                        $('.total-price').each(function () {
+                            total += parseFloat($(this).val()) || 0;
+                        });
+                        $('#totalAmount').text(total.toFixed(2));
+                    }
+
+                    $('#invoiceForm').submit(function (e) {
+                        if ($('#invoiceProductsTable tbody tr').length === 0) {
+                            e.preventDefault();
+                            alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                            return false;
+                        }
+                    });
                 });
-                $('#totalAmount').text(total.toFixed(2));
             }
-
-            $('#invoiceForm').submit(function (e) {
-                if ($('#invoiceProductsTable tbody tr').length === 0) {
-                    e.preventDefault();
-                    alert('Kamida bitta mahsulot qo\'shilishi kerak');
-                    return false;
-                }
-            });
-        });
+            
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initInvoiceScripts);
+            } else {
+                initInvoiceScripts();
+            }
+        })();
     </script>
 }
 else

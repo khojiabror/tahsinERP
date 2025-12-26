@@ -218,6 +218,14 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="card-footer">
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tasks", "Create"))
+                                    {
+                                        <a href="@Url.Action("Create", "Tasks", new { projectID = Model.ID })" class="btn btn-success">
+                                            <i class="bx bx-plus"></i> Yangi vazifa qo'shish
+                                        </a>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>

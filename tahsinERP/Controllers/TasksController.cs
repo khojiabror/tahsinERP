@@ -244,7 +244,7 @@ namespace tahsinERP.Controllers
         }
 
         // GET: Tasks/Create
-        public async Task<ActionResult> Create()
+        public async Task<ActionResult> Create(int? projectID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -257,7 +257,8 @@ namespace tahsinERP.Controllers
                 {
                     CreatedDT = DateTime.Now,
                     ReporterUserID = UserHelper.GetUserId(User.Identity.Name),
-                    ReporterFullName = UserHelper.GetFullName(User.Identity.Name)
+                    ReporterFullName = UserHelper.GetFullName(User.Identity.Name),
+                    ProjectID = projectID
                 };
 
                 // Get default TODO status
@@ -270,7 +271,7 @@ namespace tahsinERP.Controllers
                 ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
                 ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name");
                 ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName");
-                ViewBag.ProjectID = new SelectList(await db.APP_TASK_PROJECTS.Where(p => p.IsActive).ToListAsync(), "ID", "Name");
+                ViewBag.ProjectID = new SelectList(await db.APP_TASK_PROJECTS.Where(p => p.IsActive).ToListAsync(), "ID", "Name", projectID);
 
                 return View(viewModel);
             }

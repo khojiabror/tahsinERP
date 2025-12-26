@@ -122,30 +122,74 @@ namespace tahsinERP.Services
 
         /// <summary>
         /// Check if product has norms (NORM_INPUT_LINES or NORMLINES) for the given month
+        /// Supports multiple Month formats: "2025-09", "2025-9", "Sentabr-25", etc.
+        /// If NORM_INPUT_LINES exists for the month, return true.
+        /// If NORMVERSION exists (regardless of date range) and has NORMLINES, return true.
         /// </summary>
-        private async Task<bool> HasNormsForMonthAsync(int productID, string monthString)
+        public async Task<bool> HasNormsForMonthAsync(int productID, int year, int month)
         {
-            // Check NORM_INPUT_LINES for the specific month
-            var hasNormInputLines = await _db.NORM_INPUT_LINES
-                .AnyAsync(n => n.ProductID == productID && n.Month == monthString);
+            // Try different Month format variations (based on how NormController saves it)
+            var monthFormats = new List<string>
+            {
+                $"{year}-{month:D2}",      // "2025-09" (standard format from NormController)
+                $"{year}-{month}",         // "2025-9" (without leading zero)
+                $"{GetMonthName(month)}-{year % 100:D2}",  // "Sentabr-25"
+                $"{GetMonthName(month)}-{year % 100}",    // "Sentabr-25" (without leading zero)
+            };
+
+            // Check NORM_INPUT_LINES for the specific month (try all formats)
+            // Use ToListAsync first, then check in memory to support multiple formats
+            var normInputLines = await _db.NORM_INPUT_LINES
+                .Where(n => n.ProductID == productID && n.Month != null)
+                .Select(n => n.Month)
+                .ToListAsync();
+
+            var hasNormInputLines = normInputLines.Any(m => monthFormats.Contains(m));
 
             if (hasNormInputLines)
                 return true;
 
             // Check NORMLINES through NORMVERSION
-            // Get active NORMVERSION for the product
-            var now = DateTime.Now;
+            // IMPORTANT: Check ALL NORMVERSIONS for the product (not just active ones)
+            // because NormController shows all versions regardless of date range
             var normVersions = await _db.NORMVERSIONS
                 .Include(nv => nv.NORMLINES)
-                .Where(nv => nv.ProductID == productID
-                    && (nv.EffectiveFrom == null || nv.EffectiveFrom <= now)
-                    && (nv.EffectiveTo == null || nv.EffectiveTo >= now))
+                .Where(nv => nv.ProductID.HasValue && nv.ProductID.Value == productID)
                 .ToListAsync();
 
             // Check if any NORMVERSION has NORMLINES
             var hasNormLines = normVersions.Any(nv => nv.NORMLINES != null && nv.NORMLINES.Any());
 
             return hasNormLines;
+        }
+
+        /// <summary>
+        /// Get count of finished goods products that have norms for a specific month
+        /// </summary>
+        public async Task<int> GetFinishedGoodsWithNormsCountAsync(int year, int month)
+        {
+            // Get all finished goods products
+            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
+            var finishedGoods = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Where(p => p.IsDeleted == false 
+                    && (p.IsFinishedGood == true 
+                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
+                .Select(p => p.ID)
+                .ToListAsync();
+
+            int count = 0;
+            
+            // Check each product for norms
+            foreach (var productId in finishedGoods)
+            {
+                if (await HasNormsForMonthAsync(productId, year, month))
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         /// <summary>
@@ -158,12 +202,12 @@ namespace tahsinERP.Services
             var monthName = GetMonthName(month);
             var monthStringDisplay = $"{monthName}-{year % 100:D2}";
 
-            // Get all products where product_category.IsFinishedGood == true
+            // Get all products where product_category.IsFinishedGood == true or PRODUCT.IsFinishedGood == true
             var finishedGoods = await _db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => p.IsDeleted == false 
-                    && p.PRODUCT_CATEGORIES != null 
-                    && p.PRODUCT_CATEGORIES.IsFinishedGood == true)
+                    && (p.IsFinishedGood == true 
+                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
                 .ToListAsync();
 
             int generatedCount = 0;
@@ -181,7 +225,7 @@ namespace tahsinERP.Services
                     continue; // Skip if already exists
 
                 // Check if product has norms (NORM_INPUT_LINES or NORMLINES) for this month
-                var hasNorms = await HasNormsForMonthAsync(product.ID, monthString);
+                var hasNorms = await HasNormsForMonthAsync(product.ID, year, month);
                 if (!hasNorms)
                     continue; // Skip if no norms exist
 
@@ -329,7 +373,7 @@ namespace tahsinERP.Services
         /// <summary>
         /// Get month name in Uzbek
         /// </summary>
-        private string GetMonthName(int month)
+        public string GetMonthName(int month)
         {
             var monthNames = new Dictionary<int, string>
             {

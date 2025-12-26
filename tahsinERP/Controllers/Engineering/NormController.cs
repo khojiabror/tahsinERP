@@ -261,30 +261,48 @@ namespace tahsinERP.Controllers.Engineering
                 }
             }
 
-            // Calculate totals - Umumiy norma faqat RequiresCutting == true bo'lgan materiallar uchun
-            // Get material categories to check RequiresCutting
+            // Calculate totals - Umumiy norma faqat yog'och kategoriyasidagi materiallar uchun
+            // Get material categories to check if it's wood (yog'och)
             var materialIds = viewModel.CuttingLines.Select(l => l.MaterialID).Distinct().ToList();
             var materialCategories = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => materialIds.Contains(p.ID))
-                .Select(p => new { p.ID, RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting })
-                .ToDictionaryAsync(p => p.ID, p => p.RequiresCutting);
+                .Select(p => new { 
+                    p.ID, 
+                    RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting,
+                    IsWood = p.PRODUCT_CATEGORIES != null && (
+                        (p.PRODUCT_CATEGORIES.RawMaterialGroup != null && 
+                         (p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yo'goch") || 
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yog'och") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yog'och") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yo'goch"))) ||
+                        (p.PRODUCT_CATEGORIES.Name != null && 
+                         (p.PRODUCT_CATEGORIES.Name.Contains("Yo'goch") || 
+                          p.PRODUCT_CATEGORIES.Name.Contains("Yog'och") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("yog'och") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("yo'goch")))
+                    )
+                })
+                .ToDictionaryAsync(p => p.ID, p => new { p.RequiresCutting, p.IsWood });
             
-            // TotalNorm: faqat kesiladigan materiallar uchun
+            // TotalNorm: faqat yog'och kategoriyasidagi materiallar uchun
             viewModel.TotalNorm = viewModel.CuttingLines
-                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID])
+                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID].IsWood)
                 .Sum(l => l.ConsumptionPerProduct);
             
-            // TotalWaste: faqat kesiladigan materiallar uchun
+            // TotalWaste: faqat yog'och kategoriyasidagi materiallar uchun
             viewModel.TotalWaste = viewModel.CuttingLines
-                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID])
+                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID].IsWood)
                 .Sum(l => l.WastePerProduct);
             
             // TotalCost: barcha materiallar uchun
             viewModel.TotalCost = viewModel.CuttingLines.Sum(l => l.TotalCostPerProduct);
             
-            // Pass materialCategories to view for sum calculations
-            ViewBag.MaterialCategories = materialCategories;
+            // Pass materialCategories to view for sum calculations (convert to simple bool dictionary for compatibility)
+            ViewBag.MaterialCategories = materialCategories.ToDictionary(
+                kvp => kvp.Key, 
+                kvp => kvp.Value.IsWood // Use IsWood instead of RequiresCutting
+            );
 
             ViewBag.IsReadOnly = true;
             return View("ViewDetails", viewModel);
@@ -587,23 +605,38 @@ namespace tahsinERP.Controllers.Engineering
                 }
             }
 
-            // Calculate totals - Umumiy norma faqat RequiresCutting == true bo'lgan materiallar uchun
-            // Get material categories to check RequiresCutting
+            // Calculate totals - Umumiy norma faqat yog'och kategoriyasidagi materiallar uchun
+            // Get material categories to check if it's wood (yog'och)
             var materialIdsEdit = viewModel.CuttingLines.Select(l => l.MaterialID).Distinct().ToList();
             var materialCategoriesEdit = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => materialIdsEdit.Contains(p.ID))
-                .Select(p => new { p.ID, RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting })
-                .ToDictionaryAsync(p => p.ID, p => p.RequiresCutting);
+                .Select(p => new { 
+                    p.ID, 
+                    RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting,
+                    IsWood = p.PRODUCT_CATEGORIES != null && (
+                        (p.PRODUCT_CATEGORIES.RawMaterialGroup != null && 
+                         (p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yo'goch") || 
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yog'och") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yog'och") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yo'goch"))) ||
+                        (p.PRODUCT_CATEGORIES.Name != null && 
+                         (p.PRODUCT_CATEGORIES.Name.Contains("Yo'goch") || 
+                          p.PRODUCT_CATEGORIES.Name.Contains("Yog'och") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("yog'och") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("yo'goch")))
+                    )
+                })
+                .ToDictionaryAsync(p => p.ID, p => new { p.RequiresCutting, p.IsWood });
             
-            // TotalNorm: faqat kesiladigan materiallar uchun
+            // TotalNorm: faqat yog'och kategoriyasidagi materiallar uchun
             viewModel.TotalNorm = viewModel.CuttingLines
-                .Where(l => materialCategoriesEdit.ContainsKey(l.MaterialID) && materialCategoriesEdit[l.MaterialID])
+                .Where(l => materialCategoriesEdit.ContainsKey(l.MaterialID) && materialCategoriesEdit[l.MaterialID].IsWood)
                 .Sum(l => l.ConsumptionPerProduct);
             
-            // TotalWaste: faqat kesiladigan materiallar uchun
+            // TotalWaste: faqat yog'och kategoriyasidagi materiallar uchun
             viewModel.TotalWaste = viewModel.CuttingLines
-                .Where(l => materialCategoriesEdit.ContainsKey(l.MaterialID) && materialCategoriesEdit[l.MaterialID])
+                .Where(l => materialCategoriesEdit.ContainsKey(l.MaterialID) && materialCategoriesEdit[l.MaterialID].IsWood)
                 .Sum(l => l.WastePerProduct);
             
             // TotalCost: barcha materiallar uchun
@@ -961,6 +994,63 @@ namespace tahsinERP.Controllers.Engineering
             {
                 try
                 {
+                    // IMPORTANT: Collect ALL CuttingLines from Request.Form to ensure nothing is missed
+                    // Model binding might miss some rows, so we rebuild the list from form data
+                    var allFormLines = new List<NormLineViewModel>();
+                    var formKeys = Request.Form.AllKeys.Where(k => k != null && k.StartsWith("CuttingLines[") && k.Contains("].MaterialID")).ToList();
+                    
+                    // Extract all line indices from form keys
+                    var lineIndices = formKeys
+                        .Select(k => {
+                            var match = System.Text.RegularExpressions.Regex.Match(k, @"CuttingLines\[(\d+)\]");
+                            return match.Success ? int.Parse(match.Groups[1].Value) : -1;
+                        })
+                        .Where(i => i >= 0)
+                        .Distinct()
+                        .OrderBy(i => i)
+                        .ToList();
+                    
+                    // Build complete list from form data
+                    foreach (var index in lineIndices)
+                    {
+                        var materialIdStr = Request.Form[$"CuttingLines[{index}].MaterialID"];
+                        if (!string.IsNullOrEmpty(materialIdStr) && int.TryParse(materialIdStr, out int materialId) && materialId > 0)
+                        {
+                            var line = new NormLineViewModel
+                            {
+                                ID = int.TryParse(Request.Form[$"CuttingLines[{index}].ID"] ?? "0", out int id) ? id : 0,
+                                MaterialID = materialId,
+                                CalculatedLengthMm = double.TryParse(Request.Form[$"CuttingLines[{index}].CalculatedLengthMm"] ?? "0", out double len) ? (double?)len : null,
+                                Quantity = int.TryParse(Request.Form[$"CuttingLines[{index}].Quantity"] ?? "1", out int qty) ? qty : 1,
+                                WastePerProduct = decimal.TryParse(Request.Form[$"CuttingLines[{index}].WastePerProduct"] ?? "0", out decimal waste) ? waste : 0,
+                                UnitPrice = decimal.TryParse(Request.Form[$"CuttingLines[{index}].UnitPrice"] ?? "0", out decimal price) ? (decimal?)price : null,
+                                IsSelected = Request.Form[$"CuttingLines[{index}].IsSelected"] == "true"
+                            };
+                            
+                            // Try to get ConsumptionPerProduct and TotalCostPerProduct from hidden fields
+                            if (decimal.TryParse(Request.Form[$"CuttingLines[{index}].ConsumptionPerProduct"] ?? "0", out decimal consumption))
+                            {
+                                line.ConsumptionPerProduct = consumption;
+                            }
+                            if (decimal.TryParse(Request.Form[$"CuttingLines[{index}].TotalCostPerProduct"] ?? "0", out decimal totalCost))
+                            {
+                                line.TotalCostPerProduct = totalCost;
+                            }
+                            
+                            allFormLines.Add(line);
+                        }
+                    }
+                    
+                    // Use form data if it has more lines than viewModel, otherwise use viewModel
+                    if (allFormLines.Count > (viewModel.CuttingLines?.Count ?? 0))
+                    {
+                        viewModel.CuttingLines = allFormLines;
+                    }
+                    else if (viewModel.CuttingLines == null || viewModel.CuttingLines.Count == 0)
+                    {
+                        viewModel.CuttingLines = allFormLines;
+                    }
+                    
                     // Recalculate fields
                     RecalculateLineFields(viewModel.CuttingLines);
 
@@ -1038,8 +1128,10 @@ namespace tahsinERP.Controllers.Engineering
                     }
 
                     // Save detailed cutting variants to NORM_INPUT_LINES
+                    // IMPORTANT: Save ALL lines from viewModel, not just IsSelected ones
+                    // This ensures all datatable rows are saved, even if checkbox was not checked
                     int inputLinesCount = 0;
-                    foreach (var line in viewModel.CuttingLines.Where(l => l.IsSelected && l.MaterialID > 0))
+                    foreach (var line in viewModel.CuttingLines.Where(l => l.MaterialID > 0))
                     {
                         // Get material to check if it requires cutting and get standard length
                         var material = await db.PRODUCTS
@@ -1121,9 +1213,9 @@ namespace tahsinERP.Controllers.Engineering
                     }
 
                     // Now update NORM_LINES based on NORM_INPUT_LINES data
-                    // Group by MaterialID and aggregate
+                    // Group by MaterialID and aggregate - use ALL lines, not just IsSelected
                     var materialGroups = viewModel.CuttingLines
-                        .Where(l => l.IsSelected && l.MaterialID > 0)
+                        .Where(l => l.MaterialID > 0)
                         .GroupBy(l => l.MaterialID)
                         .ToList();
 

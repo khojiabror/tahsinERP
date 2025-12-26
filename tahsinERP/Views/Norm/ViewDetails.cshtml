@@ -134,9 +134,9 @@
                                         <h4 class="text-primary mb-3">Jami hisoblar</h4>
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="card bg-success text-white">
+                                                <div class="card text-white" style="background: linear-gradient(135deg, #a8e6cf 0%, #7dd3a0 100%); border: none;">
                                                     <div class="card-body">
-                                                        <h4>Umumiy norma (m)</h4>
+                                                        <h4>Umumiy norma Yo'goch (m)</h4>
                                                         <br />
                                                         <small>faqat kesiladigan lar uchun</small>
                                                         <h4>@Model.TotalNorm.ToString("F4")</h4>
@@ -144,11 +144,11 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <div class="card bg-light">
+                                                <div class="card text-white" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border: none;">
                                                     <div class="card-body">
                                                         <h6>Umumiy chiqindi (m)</h6>
                                                         <br />
-                                                        <small class="text-muted">faqat kesiladigan lar uchun</small>
+                                                        <small>faqat kesiladigan lar uchun</small>
                                                         <h4>@Model.TotalWaste.ToString("F4")</h4>
                                                     </div>
                                                 </div>
@@ -159,39 +159,37 @@
 
                                         <h4 class="text-primary mb-3">Summa hisoblar</h4>
                                         @{
-                                            // Calculate sums from model - faqat kesiladigan materiallar uchun
-                                            var materialCategories = ViewBag.MaterialCategories as Dictionary<int, bool> ?? new Dictionary<int, bool>();
-                                            
-                                            // TotalSarfSumma: faqat kesiladigan materiallar uchun
+                                            // Calculate sums from model - barcha elementlar uchun (jami narx summa)
+                                            // TotalSarfSumma: barcha materiallar uchun (TotalCostPerProduct = ConsumptionPerProduct * UnitPrice)
                                             decimal totalSarfSumma = Model.CuttingLines
-                                                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID] && l.ConsumptionPerProduct > 0 && l.UnitPrice.HasValue)
-                                                .Sum(l => l.ConsumptionPerProduct * l.UnitPrice.Value);
+                                                .Where(l => l.TotalCostPerProduct > 0)
+                                                .Sum(l => l.TotalCostPerProduct);
                                             
-                                            // Chiqindi summa: faqat kesiladigan materiallar uchun
+                                            // Chiqindi summa: barcha elementlar uchun
                                             // Price * wasteAmount (wasteAmount allaqachon metrlarda, umumiy chiqindi miqdori)
                                             decimal totalChiqindiSumma = Model.CuttingLines
-                                                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID] && l.UnitPrice.HasValue && l.WastePerProduct > 0)
+                                                .Where(l => l.UnitPrice.HasValue && l.WastePerProduct > 0)
                                                 .Sum(l => l.UnitPrice.Value * l.WastePerProduct);
                                             
                                             decimal umumiySumma = totalSarfSumma + totalChiqindiSumma;
                                         }
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="card" style="background-color: #d4edda; border-color: #c3e6cb;">
+                                                <div class="card text-white" style="background: linear-gradient(135deg, #a8e6cf 0%, #7dd3a0 100%); border: none;">
                                                     <div class="card-body">
                                                         <h6>Umumiy toza sarf summa</h6>
                                                         <br />
-                                                        <small class="text-muted">faqat kesiladigan lar uchun</small>
+                                                        <small>barcha elementlar uchun</small>
                                                         <h4>@totalSarfSumma.ToString("F2")</h4>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <div class="card bg-light">
+                                                <div class="card text-white" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border: none;">
                                                     <div class="card-body">
                                                         <h6>Umumiy chiqindi summa</h6>
                                                         <br />
-                                                        <small class="text-muted">faqat kesiladigan lar uchun</small>
+                                                        <small>barcha elementlar uchun</small>
                                                         <h4>@totalChiqindiSumma.ToString("F2")</h4>
                                                     </div>
                                                 </div>
@@ -201,7 +199,7 @@
                                                     <div class="card-body">
                                                         <h6>Umumiy summa</h6>
                                                         <br />
-                                                        <small class="text-muted">faqat kesiladigan lar uchun</small>
+                                                        <small class="text-muted">barcha elementlar uchun</small>
                                                         <h4>@umumiySumma.ToString("F2")</h4>
                                                     </div>
                                                 </div>

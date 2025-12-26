@@ -5,6 +5,30 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+        .card, .card * {
+            visibility: visible;
+        }
+        .card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .card-header .text-right,
+        .btn {
+            display: none !important;
+        }
+        .card-header h4 {
+            display: block !important;
+        }
+    }
+</style>
+
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
 {
     <div class="app-content content">
@@ -35,6 +59,9 @@
                             <div class="card-header">
                                 <h4 class="card-title">@Model.ProductPNo - @Model.ProductName</h4>
                                 <div class="text-right">
+                                    <button type="button" onclick="window.print()" class="btn btn-danger mr-1">
+                                        <i class="bx bxs-file-pdf"></i> PDF
+                                    </button>
                                     <a href="@Url.Action("Report", "TannarxAnalytics", new { year = Model.Year, month = Model.Month, productID = Model.ProductID })" 
                                        class="btn btn-secondary">
                                         <i class="bx bx-arrow-back"></i> Orqaga

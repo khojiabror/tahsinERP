@@ -59,17 +59,18 @@ namespace tahsinERP.Controllers.Engineering
             ViewBag.Months = new SelectList(months, "Value", "Text", currentMonth);
 
             // Get products for dropdown (finished goods only)
+            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
             var products = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => p.IsDeleted == false 
-                    && p.PRODUCT_CATEGORIES != null 
-                    && p.PRODUCT_CATEGORIES.IsFinishedGood == true)
+                    && (p.IsFinishedGood == true 
+                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
                 .OrderBy(p => p.PNo)
                 .ToListAsync();
 
-            ViewBag.Products = new SelectList(
-                products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }),
-                "ID", "Name", productID);
+            // Add "Barchasi" option to the product list
+            var productList = products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }).ToList();
+            ViewBag.Products = new SelectList(productList, "ID", "Name", productID);
 
             // Get dashboard data
             var dashboard = await _analyticsService.GetDashboardDataAsync(currentYear, currentMonth, productID);
@@ -111,18 +112,19 @@ namespace tahsinERP.Controllers.Engineering
             };
             ViewBag.Months = new SelectList(months, "Value", "Text", month);
 
-            // Get products for dropdown
+            // Get products for dropdown (finished goods only)
+            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
             var products = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => !p.IsDeleted 
-                    && p.PRODUCT_CATEGORIES != null 
-                    && p.PRODUCT_CATEGORIES.IsFinishedGood == true)
+                .Where(p => p.IsDeleted == false 
+                    && (p.IsFinishedGood == true 
+                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
                 .OrderBy(p => p.PNo)
                 .ToListAsync();
 
-            ViewBag.Products = new SelectList(
-                products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }),
-                "ID", "Name", productID);
+            // Add "Barchasi" option to the product list
+            var productList = products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }).ToList();
+            ViewBag.Products = new SelectList(productList, "ID", "Name", productID);
 
             // Get report data
             var report = await _analyticsService.GetAnalyticsReportAsync(year, month, productID);

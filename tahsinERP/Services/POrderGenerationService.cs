@@ -49,100 +49,100 @@ namespace tahsinERP.Services
                 foreach (var sOrderProduct in sOrder.S_ORDER_PRODUCTS)
                 {
                     var product = sOrderProduct.PRODUCT;
+                    if (product == null) continue;
 
-                    // Check if product is finished good
-                    if (product.PRODUCT_CATEGORIES != null && 
-                        product.PRODUCT_CATEGORIES.IsFinishedGood == true)
+                    // Get product quantity from sales order
+                    double productQty = sOrderProduct.Amount;
+
+                    // Find latest active BOM for this product (try for all products, not just finished goods)
+                    var bomHeader = await GetLatestActiveBOMAsync(product.ID);
+
+                    if (bomHeader != null && bomHeader.BOM_LINES != null && bomHeader.BOM_LINES.Any())
                     {
-                        // Get finished good quantity from sales order
-                        double finishedGoodQty = sOrderProduct.Amount;
-
-                        // Find latest active BOM for this finished good
-                        var bomHeader = await GetLatestActiveBOMAsync(product.ID);
-
-                        if (bomHeader != null && bomHeader.BOM_LINES != null && bomHeader.BOM_LINES.Any())
+                        // Process each BOM line
+                        foreach (var bomLine in bomHeader.BOM_LINES)
                         {
-                            // Process each BOM line
-                            foreach (var bomLine in bomHeader.BOM_LINES)
+                            // Check if BOM line has required data
+                            if (!bomLine.ComponentID.HasValue || !bomLine.Qty.HasValue || bomLine.Qty.Value <= 0)
                             {
-                                if (bomLine.ComponentID.HasValue && bomLine.Qty.HasValue)
+                                continue; // Skip invalid BOM lines
+                            }
+
+                            int componentId = bomLine.ComponentID.Value;
+                            decimal bomQtyPerUnit = bomLine.Qty.Value;
+                            
+                            // Calculate required quantity: BOM quantity × Product quantity
+                            decimal requiredQty = bomQtyPerUnit * (decimal)productQty;
+
+                            // Load component product with category
+                            var component = await _db.PRODUCTS
+                                .Include(p => p.PRODUCT_CATEGORIES)
+                                .FirstOrDefaultAsync(p => p.ID == componentId && p.IsDeleted != true);
+
+                            if (component != null)
+                            {
+                                // Check if component is purchasable (not a finished good)
+                                // If category is null, assume it's purchasable
+                                bool isPurchasable = component.PRODUCT_CATEGORIES == null ||
+                                                    component.PRODUCT_CATEGORIES.IsFinishedGood == false;
+
+                                if (isPurchasable)
                                 {
-                                    int componentId = bomLine.ComponentID.Value;
-                                    decimal bomQtyPerUnit = bomLine.Qty.Value;
-                                    
-                                    // Calculate required quantity: BOM quantity × Finished Good quantity
-                                    decimal requiredQty = bomQtyPerUnit * (decimal)finishedGoodQty;
+                                    // Get BOM unit ID (from BOM_LINES)
+                                    int bomUnitId = bomLine.UnitID ?? component.UnitID;
 
-                                    // Load component product with category
-                                    var component = await _db.PRODUCTS
-                                        .Include(p => p.PRODUCT_CATEGORIES)
-                                        .FirstOrDefaultAsync(p => p.ID == componentId && p.IsDeleted != true);
+                                    // Check if conversion is needed
+                                    bool requiresConversion = await _conversionService.RequiresCuttingAsync(componentId);
+                                    decimal finalQuantity = requiredQty;
+                                    int finalUnitId = bomUnitId;
+                                    string calculationExplanation = "";
 
-                                    if (component != null)
+                                    // If BOM unit is METER (5) and product requires cutting, convert to pieces
+                                    if (requiresConversion && bomUnitId == 5)
                                     {
-                                        // Check if component is purchasable (not a finished good)
-                                        bool isPurchasable = component.PRODUCT_CATEGORIES == null ||
-                                                            component.PRODUCT_CATEGORIES.IsFinishedGood == false;
-
-                                        if (isPurchasable)
+                                        try
                                         {
-                                            // Get BOM unit ID (from BOM_LINES)
-                                            int bomUnitId = bomLine.UnitID ?? component.UnitID;
-
-                                            // Check if conversion is needed
-                                            bool requiresConversion = await _conversionService.RequiresCuttingAsync(componentId);
-                                            decimal finalQuantity = requiredQty;
-                                            int finalUnitId = bomUnitId;
-                                            string calculationExplanation = "";
-
-                                            // If BOM unit is METER (5) and product requires cutting, convert to pieces
-                                            if (requiresConversion && bomUnitId == 5)
-                                            {
-                                                try
-                                                {
-                                                    finalQuantity = await _conversionService.ConvertMeterToPieceAsync(
-                                                        componentId, requiredQty);
-                                                    finalUnitId = 1; // Piece
-                                                    calculationExplanation = 
-                                                        $"{requiredQty:F2} m (BOM) × {finishedGoodQty} (FG qty) = {requiredQty:F2} m → " +
-                                                        $"Converted to {finalQuantity:F0} pcs using Length: {component.Length}mm";
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    calculationExplanation = 
-                                                        $"Error converting: {ex.Message}. Using original quantity: {requiredQty:F2}";
-                                                }
-                                            }
-                                            else
-                                            {
-                                                calculationExplanation = 
-                                                    $"{bomQtyPerUnit:F2} (BOM qty) × {finishedGoodQty} (FG qty) = {requiredQty:F2}";
-                                            }
-
-                                            // Aggregate quantities
-                                            if (componentRequirements.ContainsKey(componentId))
-                                            {
-                                                var existing = componentRequirements[componentId];
-                                                existing.RequiredQty += finalQuantity;
-                                                existing.CalculationExplanation += $"; {calculationExplanation}";
-                                            }
-                                            else
-                                            {
-                                                // Get estimated price from NORM_INPUT_LINES
-                                                decimal? estimatedPrice = await GetEstimatedPriceAsync(product.ID, componentId);
-
-                                                componentRequirements[componentId] = new RawMaterialRequirement
-                                                {
-                                                    ComponentID = componentId,
-                                                    ComponentPNo = component.PNo,
-                                                    ComponentName = component.Name,
-                                                    UnitID = finalUnitId,
-                                                    RequiredQty = finalQuantity,
-                                                    EstimatedPrice = estimatedPrice,
-                                                    CalculationExplanation = calculationExplanation
-                                                };
-                                            }
+                                            finalQuantity = await _conversionService.ConvertMeterToPieceAsync(
+                                                componentId, requiredQty);
+                                            finalUnitId = 1; // Piece
+                                            calculationExplanation = 
+                                                $"{requiredQty:F2} m (BOM) × {productQty} (Product qty) = {requiredQty:F2} m → " +
+                                                $"Converted to {finalQuantity:F0} pcs using Length: {component.Length}mm";
                                         }
+                                        catch (Exception ex)
+                                        {
+                                            calculationExplanation = 
+                                                $"Error converting: {ex.Message}. Using original quantity: {requiredQty:F2}";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        calculationExplanation = 
+                                            $"{bomQtyPerUnit:F2} (BOM qty) × {productQty} (Product qty) = {requiredQty:F2}";
+                                    }
+
+                                    // Aggregate quantities
+                                    if (componentRequirements.ContainsKey(componentId))
+                                    {
+                                        var existing = componentRequirements[componentId];
+                                        existing.RequiredQty += finalQuantity;
+                                        existing.CalculationExplanation += $"; {calculationExplanation}";
+                                    }
+                                    else
+                                    {
+                                        // Get estimated price from NORM_INPUT_LINES
+                                        decimal? estimatedPrice = await GetEstimatedPriceAsync(product.ID, componentId);
+
+                                        componentRequirements[componentId] = new RawMaterialRequirement
+                                        {
+                                            ComponentID = componentId,
+                                            ComponentPNo = component.PNo,
+                                            ComponentName = component.Name,
+                                            UnitID = finalUnitId,
+                                            RequiredQty = finalQuantity,
+                                            EstimatedPrice = estimatedPrice,
+                                            CalculationExplanation = calculationExplanation
+                                        };
                                     }
                                 }
                             }
@@ -159,11 +159,13 @@ namespace tahsinERP.Services
         /// </summary>
         private async Task<BOM_HEADERS> GetLatestActiveBOMAsync(int productId)
         {
+            // Get BOM headers - IsActive can be null, true, or false
+            // Consider active if IsActive == true OR IsActive == null (treat null as active)
             var bomHeaders = await _db.BOM_HEADERS
                 .Include(b => b.BOM_LINES)
                 .Include(b => b.BOM_LINES.Select(bl => bl.PRODUCT))
                 .Include(b => b.BOM_LINES.Select(bl => bl.UNIT))
-                .Where(b => b.ProductID == productId && b.IsActive == true)
+                .Where(b => b.ProductID == productId && (b.IsActive == true || b.IsActive == null))
                 .ToListAsync();
 
             if (!bomHeaders.Any())

@@ -100,7 +100,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -261,7 +268,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -375,7 +389,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -399,6 +420,38 @@ namespace tahsinERP.Controllers
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Remove ModelState errors for ContractProducts if collection is null or empty
+            if (model.ContractProducts == null || !model.ContractProducts.Any())
+            {
+                var keysToRemove = ModelState.Keys.Where(k => k.StartsWith("ContractProducts")).ToList();
+                foreach (var key in keysToRemove)
+                {
+                    ModelState.Remove(key);
+                }
+                ModelState.AddModelError("", "Kamida bitta mahsulot qo'shish kerak");
+            }
+
+            // Validate ContractProducts collection
+            if (model.ContractProducts != null)
+            {
+                for (int i = 0; i < model.ContractProducts.Count; i++)
+                {
+                    var product = model.ContractProducts[i];
+                    if (product.ProductID <= 0)
+                    {
+                        ModelState.AddModelError($"ContractProducts[{i}].ProductID", "Mahsulot tanlang");
+                    }
+                    if (product.Quantity <= 0)
+                    {
+                        ModelState.AddModelError($"ContractProducts[{i}].Quantity", "Miqdor 0 dan katta bo'lishi kerak");
+                    }
+                    if (product.Price <= 0)
+                    {
+                        ModelState.AddModelError($"ContractProducts[{i}].Price", "Narx 0 dan katta bo'lishi kerak");
+                    }
+                }
             }
 
             if (ModelState.IsValid)
@@ -545,7 +598,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),

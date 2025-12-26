@@ -975,7 +975,24 @@
                             <li><a href="~/Home"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Umumiy Dashboard</span></a></li>
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
                             {
-                                <li><a href="/FinDashboard/Cashflow"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Moliya Dashboard</span></a></li>
+                                <li>
+                                    <a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Moliya Dashboard</span></a>
+                                    <ul class="menu-content">
+                                        <li><a href="/FinDashboard/FinancialOverview"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Umumiy ko'rinish</span></a></li>
+                                        <li><a href="/FinDashboard/Cashflow"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kassa oqimi</span></a></li>
+                                        <li><a href="/FinDashboard/CategoryAnalytics"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kategoriyalar tahlili</span></a></li>
+                                        <li><a href="/FinDashboard/AccountAnalytics"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisoblar tahlili</span></a></li>
+                                        <li><a href="/FinDashboard/ExpenseAnalysis"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Chiqimlar tahlili</span></a></li>
+                                        <li><a href="/FinDashboard/IncomeAnalysis"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kirimlar tahlili</span></a></li>
+                                        <li><a href="/FinDashboard/AccountBalances"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisoblardagi qoldiq</span></a></li>
+                                        <li><a href="/FinDashboard/PL"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Foyda va zarar</span></a></li>
+                                        <li><a href="/FinDashboard/BalanceSheet"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans</span></a></li>
+                                    </ul>
+                                </li>
+                            }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+                            {
+                                <li><a href="~/TannarxAnalytics/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tannarx Dashboard</span></a></li>
                             }
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
                             {
@@ -989,10 +1006,6 @@
                             {
                                 <li><a href="~/InventoryReports/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor Dashboard</span></a></li>
                             }
-                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
-                            {
-                                <li><a href="~/TannarxAnalytics/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tannarx Dashboard</span></a></li>
-                            }
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskDashboard"))
                             {
                                 <li><a href="~/TaskDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Task Dashboard</span></a></li>
@@ -1003,13 +1016,17 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- SRM - Ta'minot zanjiri boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
                     {
                         <li class="navigation-header"><span>Ta'minot (SRM)</span></li>
 
                         <li class="nav-item">
-                            <a href="~/Supplier"><i class="bx bxs-factory"></i><span class="menu-title">Ta'minotchilar</span></a>
+
                             <ul class="menu-content">
+                                <li class="nav-item">
+                                    <a href="~/Supplier"><i class="bx bxs-factory"></i><span class="menu-title">Ta'minotchilar</span></a>
+                                </li>
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
                                 {
                                     <li class="nav-item">
@@ -1556,7 +1573,7 @@
         <!-- Footer -->
         <footer class="footer footer-static footer-light">
             <p class="clearfix mb-0">
-                <span class="float-left d-inline-block">@DateTime.Now.Year &copy; tahsinERP</span>
+                <span class="float-left d-inline-block">"iPack Eco Solutions" MChJ @DateTime.Now.Year &copy; tahsinERP</span>
             </p>
         </footer>
 
@@ -1576,6 +1593,12 @@
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/responsive.bootstrap.min.js"></script>
+        
+        <!-- DataTables Buttons Extension -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
         <!-- Select2 -->
         <script src="~/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
@@ -1623,8 +1646,8 @@
         <script>
             $(document).ready(function () {
                 var currentPath = window.location.pathname.toLowerCase();
-                var currentController = '@(ViewContext?.RouteData?.Values["controller"]?.ToString() ?? "")'.toLowerCase();
-                var currentAction = '@(ViewContext?.RouteData?.Values["action"]?.ToString() ?? "")'.toLowerCase();
+                var currentController = '@Html.Raw((ViewContext?.RouteData?.Values["controller"]?.ToString() ?? ""))'.toLowerCase();
+                var currentAction = '@Html.Raw((ViewContext?.RouteData?.Values["action"]?.ToString() ?? ""))'.toLowerCase();
 
                 // Helper function to normalize URL
                 function normalizeUrl(url) {

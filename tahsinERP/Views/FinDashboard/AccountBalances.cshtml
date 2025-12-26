@@ -1,0 +1,132 @@
+@{
+    ViewBag.Title = "Hisoblardagi qoldiq";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Dashboard</li>
+                                    <li class="breadcrumb-item">Moliya Dashboard</li>
+                                    <li class="breadcrumb-item active">Hisoblardagi qoldiq</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Hisoblardagi qoldiq</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("AccountBalances")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="control-label">Dan sana:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="control-label">Gacha sana:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class="table-responsive">
+                                        <table id="accountBalancesTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center">Nº</th>
+                                                    <th class="text-center">Hisob raqam</th>
+                                                    <th class="text-center">Egasi</th>
+                                                    <th class="text-center" style="background-color: #e3f2fd;">Kirim</th>
+                                                    <th class="text-center" style="background-color: #ffebee;">Chiqim</th>
+                                                    <th class="text-center" style="background-color: #e8f5e9; font-weight: bold;">Qoldiq</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (ViewBag.AccountBalances != null)
+                                                {
+                                                    var balances = ViewBag.AccountBalances as System.Collections.IEnumerable;
+                                                    if (balances != null)
+                                                    {
+                                                        int index = 1;
+                                                        foreach (tahsinERP.Controllers.Finance.AccountBalanceData item in balances)
+                                                        {
+                                                            var qoldiqClass = item.Qoldiq >= 0 ? "text-success" : "text-danger";
+                                                            var currency = item.CurrencyShortname ?? "UZS";
+                                                            <tr>
+                                                                <td class="text-center">@index</td>
+                                                                <td class="text-center">@(item.AccountCode ?? "-")</td>
+                                                                <td>@(item.OwnerName ?? "-")</td>
+                                                                <td class="text-right" style="background-color: #e3f2fd;">
+                                                                    @item.Kirim.ToString("N2") @currency
+                                                                </td>
+                                                                <td class="text-right" style="background-color: #ffebee;">
+                                                                    @item.Chiqim.ToString("N2") @currency
+                                                                </td>
+                                                                <td class="text-right" style="background-color: #e8f5e9; font-weight: bold;">
+                                                                    <span class="@qoldiqClass">@item.Qoldiq.ToString("N2") @currency</span>
+                                                                </td>
+                                                            </tr>
+                                                            index++;
+                                                        }
+                                                    }
+                                                }
+                                                @if (ViewBag.AccountBalances == null || (ViewBag.AccountBalances as System.Collections.IEnumerable) == null || !(ViewBag.AccountBalances as System.Collections.IEnumerable).Cast<object>().Any())
+                                                {
+                                                    <tr>
+                                                        <td colspan="6" class="text-center">Ma'lumot topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#accountBalancesTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                },
+                "order": [[5, "desc"]], // Sort by Qoldiq column
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "columnDefs": [
+                    { "orderable": true, "targets": [0, 1, 2, 3, 4, 5] },
+                    { "type": "num", "targets": [0] }
+                ]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -132,10 +132,9 @@ namespace tahsinERP.Controllers
                     "ID", "OrderNo"
                 );
 
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name"
-                );
+                // Get default company (first active company)
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
@@ -149,7 +148,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -202,6 +208,9 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
+                        // Get default company (first active company)
+                        var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+
                         // Generate InvoiceNo if not provided
                         if (string.IsNullOrEmpty(model.InvoiceNo))
                         {
@@ -215,7 +224,8 @@ namespace tahsinERP.Controllers
                             InvoiceDate = model.InvoiceDate,
                             OrderID = model.OrderID,
                             SupplierID = model.SupplierID,
-                            CompanyID = model.CompanyID,
+                            ContractID = model.ContractID ?? 0,
+                            CompanyID = model.CompanyID ?? (defaultCompany?.ID ?? 0),
                             CurrencyID = model.CurrencyID,
                             Amount = 0,
                             IsDeleted = false
@@ -348,7 +358,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -415,6 +432,7 @@ namespace tahsinERP.Controllers
                     OrderID = invoice.OrderID ?? 0,
                     SupplierID = invoice.SupplierID,
                     CompanyID = invoice.CompanyID,
+                    ContractID = invoice.ContractID,
                     CurrencyID = invoice.CurrencyID ?? 0,
                     Amount = invoice.Amount,
                     InvoiceProducts = invoice.P_INVOICE_PRODUCTS.Select(ip => new PInvoiceProductViewModel
@@ -457,7 +475,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -495,7 +520,8 @@ namespace tahsinERP.Controllers
                         invoice.InvoiceDate = model.InvoiceDate;
                         invoice.OrderID = model.OrderID;
                         invoice.SupplierID = model.SupplierID;
-                        invoice.CompanyID = model.CompanyID;
+                        invoice.ContractID = model.ContractID ?? 0;
+                        invoice.CompanyID = model.CompanyID ?? (await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync())?.ID ?? 0;
                         invoice.CurrencyID = model.CurrencyID;
 
                         // Remove existing invoice products
@@ -624,7 +650,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
+                // Create SelectList with "PNo - Name" format
+                var productSelectList = purchasableProducts.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -712,6 +745,33 @@ namespace tahsinERP.Controllers
                 return File(doc.Doc, "application/pdf", $"Invoice_{doc.InvoiceID}.pdf");
             }
         }
+
+        // AJAX: Get contracts by supplier
+        [HttpPost]
+        public async Task<JsonResult> GetContractsBySupplier(int supplierId)
+        {
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var contracts = await db.P_CONTRACTS
+                        .Where(c => c.SupplierID == supplierId && c.IsDeleted != true)
+                        .OrderByDescending(c => c.IssuedDate)
+                        .Select(c => new
+                        {
+                            ID = c.ID,
+                            ContractNo = c.ContractNo
+                        })
+                        .ToListAsync();
+
+                    return Json(new { success = true, data = contracts }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 
     // ViewModels
@@ -719,9 +779,10 @@ namespace tahsinERP.Controllers
     {
         public string InvoiceNo { get; set; }
         public DateTime InvoiceDate { get; set; } = DateTime.Now;
-        public int OrderID { get; set; }
+        public int? OrderID { get; set; }
         public int SupplierID { get; set; }
         public int? CompanyID { get; set; }
+        public int? ContractID { get; set; }
         public int CurrencyID { get; set; }
         public List<PInvoiceProductViewModel> InvoiceProducts { get; set; }
 
@@ -736,9 +797,10 @@ namespace tahsinERP.Controllers
         public int ID { get; set; }
         public string InvoiceNo { get; set; }
         public DateTime InvoiceDate { get; set; }
-        public int OrderID { get; set; }
+        public int? OrderID { get; set; }
         public int SupplierID { get; set; }
         public int? CompanyID { get; set; }
+        public int? ContractID { get; set; }
         public int CurrencyID { get; set; }
         public double Amount { get; set; }
         public List<PInvoiceProductViewModel> InvoiceProducts { get; set; }

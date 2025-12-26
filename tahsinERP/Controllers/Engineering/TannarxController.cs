@@ -61,11 +61,12 @@ namespace tahsinERP.Controllers.Engineering
             ViewBag.Months = new SelectList(months, "Value", "Text", currentMonth);
 
             // Get products for dropdown (finished goods only)
+            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
             var products = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => p.IsDeleted == false 
-                    && p.PRODUCT_CATEGORIES != null 
-                    && p.PRODUCT_CATEGORIES.IsFinishedGood == true)
+                    && (p.IsFinishedGood == true 
+                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
                 .OrderBy(p => p.PNo)
                 .ToListAsync();
 
@@ -91,45 +92,8 @@ namespace tahsinERP.Controllers.Engineering
                 .ToListAsync();
 
             // Get count of finished goods products that have norms for this month
-            var monthString = $"{currentYear}-{currentMonth:D2}";
-            var now = DateTime.Now;
-            
-            // Get all finished goods products
-            var allFinishedGoods = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => p.IsDeleted == false 
-                    && p.PRODUCT_CATEGORIES != null 
-                    && p.PRODUCT_CATEGORIES.IsFinishedGood == true)
-                .Select(p => p.ID)
-                .ToListAsync();
-
-            int finishedGoodsWithNorms = 0;
-            
-            foreach (var productId in allFinishedGoods)
-            {
-                // Check NORM_INPUT_LINES
-                var hasNormInputLines = await db.NORM_INPUT_LINES
-                    .AnyAsync(n => n.ProductID == productId && n.Month == monthString);
-
-                if (hasNormInputLines)
-                {
-                    finishedGoodsWithNorms++;
-                    continue;
-                }
-
-                // Check NORMLINES through NORMVERSION
-                var normVersions = await db.NORMVERSIONS
-                    .Include(nv => nv.NORMLINES)
-                    .Where(nv => nv.ProductID == productId
-                        && (nv.EffectiveFrom == null || nv.EffectiveFrom <= now)
-                        && (nv.EffectiveTo == null || nv.EffectiveTo >= now))
-                    .ToListAsync();
-
-                if (normVersions.Any(nv => nv.NORMLINES != null && nv.NORMLINES.Any()))
-                {
-                    finishedGoodsWithNorms++;
-                }
-            }
+            // Use TannarxService method for consistent logic
+            var finishedGoodsWithNorms = await _tannarxService.GetFinishedGoodsWithNormsCountAsync(currentYear, currentMonth);
 
             ViewBag.FinishedGoodsWithNormsCount = finishedGoodsWithNorms;
             ViewBag.TannarxCount = tannarxList.Count;

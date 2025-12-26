@@ -117,26 +117,50 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            $('#pOrdersTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[2, "desc"]]
-            });
-        });
+        // Wait for jQuery and DataTables to be loaded
+        (function() {
+            function initPOrdersTable() {
+                // Check if jQuery and DataTables are available
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') {
+                    // Retry after a short delay
+                    setTimeout(initPOrdersTable, 100);
+                    return;
+                }
+
+                // Use jQuery - $ might be conflicted, so use jQuery explicitly
+                var $ = jQuery;
+
+                $(document).ready(function () {
+                    if ($('#pOrdersTable').length > 0) {
+                        $('#pOrdersTable').DataTable({
+                            "language": {
+                                "search": "Qidirish:",
+                                "lengthMenu": "_MENU_ ta ko'rsatish",
+                                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                                "infoEmpty": "Yozuvlar yo'q",
+                                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                                "paginate": {
+                                    "first": "Birinchi",
+                                    "last": "Oxirgi",
+                                    "next": "Keyingi",
+                                    "previous": "Oldingi"
+                                },
+                                "zeroRecords": "Ma'lumot topilmadi"
+                            },
+                            "pageLength": 25,
+                            "order": [[2, "desc"]]
+                        });
+                    }
+                });
+            }
+
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPOrdersTable);
+            } else {
+                initPOrdersTable();
+            }
+        })();
     </script>
 }
 else

@@ -1,0 +1,240 @@
+@{
+    ViewBag.Title = "Kategoriyalar tahlili";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb p-0 mb-0">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Dashboard</li>
+                                    <li class="breadcrumb-item">Moliya Dashboard</li>
+                                    <li class="breadcrumb-item active">Kategoriyalar tahlili</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Kategoriyalar bo'yicha tahlil</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("CategoryAnalytics")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label class="control-label">Dan sana:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Gacha sana:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Kategoriya:</label>
+                                                @Html.DropDownList("categoryID", ViewBag.CategoryList as SelectList, "Barcha kategoriyalar", new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Chiqimlar bo'yicha kategoriyalar (Pie Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="expensePieChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Kirimlar bo'yicha kategoriyalar (Pie Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="incomePieChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Chiqimlar bo'yicha kategoriyalar (Bar Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="expenseBarChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Kirimlar bo'yicha kategoriyalar (Bar Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="incomeBarChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Expense Pie Chart
+        var expenseData = @Html.Raw(Json.Encode(ViewBag.ExpenseByCategory));
+        var expenseLabels = expenseData.map(function(item) { return item.CategoryName; });
+        var expenseAmounts = expenseData.map(function(item) { return item.Amount; });
+
+        var expensePieCtx = document.getElementById('expensePieChart').getContext('2d');
+        new Chart(expensePieCtx, {
+            type: 'pie',
+            data: {
+                labels: expenseLabels,
+                datasets: [{
+                    data: expenseAmounts,
+                    backgroundColor: [
+                        'rgba(234, 84, 85, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(201, 203, 207, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(255, 205, 86, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // Income Pie Chart
+        var incomeData = @Html.Raw(Json.Encode(ViewBag.IncomeByCategory));
+        var incomeLabels = incomeData.map(function(item) { return item.CategoryName; });
+        var incomeAmounts = incomeData.map(function(item) { return item.Amount; });
+
+        var incomePieCtx = document.getElementById('incomePieChart').getContext('2d');
+        new Chart(incomePieCtx, {
+            type: 'pie',
+            data: {
+                labels: incomeLabels,
+                datasets: [{
+                    data: incomeAmounts,
+                    backgroundColor: [
+                        'rgba(40, 199, 111, 0.8)',
+                        'rgba(0, 207, 232, 0.8)',
+                        'rgba(115, 103, 240, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(201, 203, 207, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // Expense Bar Chart
+        var expenseBarCtx = document.getElementById('expenseBarChart').getContext('2d');
+        new Chart(expenseBarCtx, {
+            type: 'bar',
+            data: {
+                labels: expenseLabels,
+                datasets: [{
+                    label: 'Chiqimlar',
+                    data: expenseAmounts,
+                    backgroundColor: 'rgba(234, 84, 85, 0.8)',
+                    borderColor: 'rgb(234, 84, 85)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Income Bar Chart
+        var incomeBarCtx = document.getElementById('incomeBarChart').getContext('2d');
+        new Chart(incomeBarCtx, {
+            type: 'bar',
+            data: {
+                labels: incomeLabels,
+                datasets: [{
+                    label: 'Kirimlar',
+                    data: incomeAmounts,
+                    backgroundColor: 'rgba(40, 199, 111, 0.8)',
+                    borderColor: 'rgb(40, 199, 111)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

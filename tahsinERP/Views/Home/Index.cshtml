@@ -340,12 +340,13 @@
                 }
             });
             
-            $(window).on("load", function () {
+            // Chartlarni yuklash - DOM ready bo'lganda
+            $(document).ready(function() {
                 // Loading overlay'ni majburiy ravishda yashirish (agar xato bo'lsa ham)
                 setTimeout(function() {
                     $('html').removeClass('loading').addClass('loaded');
                     $('.content-overlay').hide();
-                }, 1500);
+                }, 500);
                 
                 // iPack korxonasi yashil ranglari
                 var $primary = '#198754'; // To'q yashil
@@ -1119,16 +1120,17 @@
             method: 'GET',
             timeout: 30000,
             success: function (data) {
-            if (data && data.length > 0) {
-                var total = data.reduce((sum, x) => sum + x.fact, 0);
-                $('#finance-total').text(total.toLocaleString());
+                if (data && data.length > 0) {
+                    var total = data.reduce((sum, x) => sum + x.fact, 0);
+                    $('#finance-total').text(total.toLocaleString());
+                }
             },
             error: function(xhr, status, error) {
                 console.error('Finance Total xatosi:', error);
                 $('#finance-total').text('0');
             }
         });
-            });
+            }); // $(document).ready() yopilishi
         }
         
         // DOM yuklangandan keyin ishga tushirish

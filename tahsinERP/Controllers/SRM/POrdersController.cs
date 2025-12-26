@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.ViewModels.POrder;
 
 namespace tahsinERP.Controllers
 {
@@ -99,11 +101,9 @@ namespace tahsinERP.Controllers
                     "ID", "Name"
                 );
 
-                // Get companies
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name"
-                );
+                // Get default company (first active company)
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
                 // Get currencies
                 ViewBag.Currencies = new SelectList(
@@ -145,8 +145,31 @@ namespace tahsinERP.Controllers
             {
                 try
                 {
+                    // Verify sales orders exist and have products
+                    var salesOrders = await db.S_ORDERS
+                        .Include(o => o.S_ORDER_PRODUCTS)
+                        .Where(o => salesOrderIds.Contains(o.ID) && o.IsDeleted != true)
+                        .ToListAsync();
+
+                    if (!salesOrders.Any())
+                    {
+                        return Json(new { success = false, message = "Tanlangan sotuv buyurtmalari topilmadi." });
+                    }
+
+                    // Check if sales orders have products
+                    var hasProducts = salesOrders.Any(o => o.S_ORDER_PRODUCTS != null && o.S_ORDER_PRODUCTS.Any());
+                    if (!hasProducts)
+                    {
+                        return Json(new { success = false, message = "Tanlangan sotuv buyurtmalarida mahsulotlar topilmadi." });
+                    }
+
                     var generationService = new POrderGenerationService(db);
                     var requirements = await generationService.GenerateRequirementsFromSalesOrdersAsync(salesOrderIds);
+
+                    if (requirements == null || !requirements.Any())
+                    {
+                        return Json(new { success = false, message = "BOM asosida xom ashyo ehtiyojlari topilmadi. Mahsulotlar uchun faol BOM mavjud emas yoki BOM'da xom ashyo yo'q." });
+                    }
 
                     // Convert to list for JSON response
                     var result = requirements.Select(cr => new
@@ -155,17 +178,23 @@ namespace tahsinERP.Controllers
                         ComponentPNo = cr.ComponentPNo,
                         ComponentName = cr.ComponentName,
                         UnitID = cr.UnitID,
-                        RequiredQty = cr.RequiredQty,
+                        RequiredQty = (double)cr.RequiredQty,
                         EstimatedPrice = cr.EstimatedPrice.HasValue ? (double?)cr.EstimatedPrice.Value : null,
                         EstimatedAmount = cr.EstimatedAmount.HasValue ? (double?)cr.EstimatedAmount.Value : null,
-                        CalculationExplanation = cr.CalculationExplanation
+                        MOQ = (double?)null,
+                        CalculationExplanation = cr.CalculationExplanation ?? ""
                     }).ToList();
 
                     return Json(new { success = true, data = result });
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
+                    var errorMessage = $"Xatolik: {ex.Message}";
+                    if (ex.InnerException != null)
+                    {
+                        errorMessage += $" | Ichki xatolik: {ex.InnerException.Message}";
+                    }
+                    return Json(new { success = false, message = errorMessage });
                 }
             }
         }
@@ -184,79 +213,112 @@ namespace tahsinERP.Controllers
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    try
+                    using (var transaction = db.Database.BeginTransaction())
                     {
-                        // Generate OrderNo if not provided
-                        if (string.IsNullOrEmpty(model.OrderNo))
+                        try
                         {
-                            model.OrderNo = await GenerateOrderNo(db);
-                        }
-
-                        // Create order header
-                        var order = new P_ORDERS
-                        {
-                            OrderNo = model.OrderNo,
-                            IssuedDate = model.IssuedDate,
-                            CompanyID = model.CompanyID,
-                            SupplierID = model.SupplierID,
-                            ContractID = model.ContractID,
-                            CurrencyID = model.CurrencyID,
-                            Description = model.Description,
-                            IsDeleted = false,
-                            Amount = 0
-                        };
-
-                        db.P_ORDERS.Add(order);
-                        await db.SaveChangesAsync();
-
-                        // Add order products - simple and straightforward
-                        double totalAmount = 0;
-                        if (model.OrderProducts != null && model.OrderProducts.Any())
-                        {
-                            foreach (var orderProduct in model.OrderProducts)
+                            // Generate OrderNo if not provided
+                            if (string.IsNullOrEmpty(model.OrderNo))
                             {
-                                var product = await db.PRODUCTS.FindAsync(orderProduct.ProductID);
-                                if (product != null)
+                                model.OrderNo = await GenerateOrderNo(db);
+                            }
+
+                            // Get default company if not provided
+                            var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                            var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
+
+                            // Create order header
+                            var order = new P_ORDERS
+                            {
+                                OrderNo = model.OrderNo,
+                                IssuedDate = model.IssuedDate,
+                                CompanyID = companyId,
+                                SupplierID = model.SupplierID ?? 0,
+                                ContractID = model.ContractID,
+                                CurrencyID = model.CurrencyID ?? 0,
+                                Description = model.Description,
+                                IsDeleted = false,
+                                Amount = 0
+                            };
+
+                            db.P_ORDERS.Add(order);
+                            await db.SaveChangesAsync();
+
+                            // Add order products
+                            double totalAmount = 0;
+                            if (model.OrderProducts != null && model.OrderProducts.Any())
+                            {
+                                foreach (var orderProduct in model.OrderProducts)
                                 {
-                                    var pOrderProduct = new P_ORDER_PRODUCTS
+                                    if (orderProduct.ProductID <= 0)
                                     {
-                                        OrderID = order.ID,
-                                        ProductID = orderProduct.ProductID,
-                                        Price = orderProduct.Price,
-                                        Amount = orderProduct.Amount,
-                                        UnitID = orderProduct.UnitID ?? product.UnitID,
-                                        TotalPrice = orderProduct.Price * orderProduct.Amount,
-                                        MOQ = orderProduct.MOQ
-                                    };
+                                        continue; // Skip invalid products
+                                    }
+
+                                    var product = await db.PRODUCTS.FindAsync(orderProduct.ProductID);
+                                    if (product == null || product.IsDeleted == true)
+                                    {
+                                        continue; // Skip deleted or missing products
+                                    }
+
+                                        var pOrderProduct = new P_ORDER_PRODUCTS
+                                        {
+                                            OrderID = order.ID,
+                                            ProductID = orderProduct.ProductID,
+                                            Price = orderProduct.Price,
+                                            Amount = orderProduct.Amount,
+                                            UnitID = orderProduct.UnitID ?? (product.UnitID > 0 ? product.UnitID : 1),
+                                            TotalPrice = orderProduct.Price * orderProduct.Amount,
+                                            MOQ = orderProduct.MOQ
+                                        };
 
                                     db.P_ORDER_PRODUCTS.Add(pOrderProduct);
                                     totalAmount += pOrderProduct.TotalPrice;
                                 }
+
+                                // Update order total amount
+                                order.Amount = totalAmount;
+                                await db.SaveChangesAsync();
                             }
 
-                            // Update order total amount
-                            order.Amount = totalAmount;
-                            await db.SaveChangesAsync();
+                            // Commit transaction only after everything succeeds
+                            transaction.Commit();
+
+                            // Log the action
+                            LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Create - {order.OrderNo} buyurtmasi yaratildi");
+
+                            return RedirectToAction("Index");
                         }
-
-                        // Log the action
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Create - {order.OrderNo} buyurtmasi yaratildi");
-
-                        return RedirectToAction("Index");
-                    }
-                    catch (Exception ex)
-                    {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
+                        catch (Exception ex)
                         {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
+                            // Safely rollback transaction - connection might be null if exception occurred during SaveChanges
+                            try
+                            {
+                                var dbTransaction = transaction as DbContextTransaction;
+                                if (dbTransaction != null)
+                                {
+                                    dbTransaction.Rollback();
+                                }
+                            }
+                            catch (Exception rollbackEx)
+                            {
+                                // Ignore rollback errors - transaction might already be in invalid state
+                                // This can happen if SaveChangesAsync failed and closed the connection
+                            }
+
+                            var errorMessage = $"Xatolik: {ex.Message}";
+                            var innerEx = ex.InnerException;
+                            while (innerEx != null)
+                            {
+                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                                innerEx = innerEx.InnerException;
+                            }
+                            ModelState.AddModelError("", errorMessage);
                         }
-                        ModelState.AddModelError("", errorMessage);
                     }
                 }
             }
+
 
             // Repopulate ViewBag on error
             using (var db = new DBTHSNEntities())
@@ -438,8 +500,12 @@ namespace tahsinERP.Controllers
 
                         // Update order header
                         order.OrderNo = model.OrderNo;
+                        // Get default company if not provided
+                        var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                        var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
+
                         order.IssuedDate = model.IssuedDate;
-                        order.CompanyID = model.CompanyID;
+                        order.CompanyID = companyId;
                         order.SupplierID = model.SupplierID;
                         order.ContractID = model.ContractID;
                         order.CurrencyID = model.CurrencyID;
@@ -467,7 +533,7 @@ namespace tahsinERP.Controllers
                                         ProductID = orderProduct.ProductID,
                                         Price = orderProduct.Price,
                                         Amount = orderProduct.Amount,
-                                        UnitID = orderProduct.UnitID ?? product.UnitID,
+                                        UnitID = orderProduct.UnitID ?? (product.UnitID > 0 ? product.UnitID : 1),
                                         TotalPrice = orderProduct.Price * orderProduct.Amount,
                                         MOQ = orderProduct.MOQ
                                     };
@@ -594,54 +660,5 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index");
             }
         }
-    }
-
-    // ViewModels
-    public class POrderCreateViewModel
-    {
-        public string OrderNo { get; set; }
-        public DateTime IssuedDate { get; set; } = DateTime.Now;
-        public int CompanyID { get; set; }
-        public int SupplierID { get; set; }
-        public int? ContractID { get; set; }
-        public int CurrencyID { get; set; }
-        public string Description { get; set; }
-        public List<POrderProductViewModel> OrderProducts { get; set; }
-
-        public POrderCreateViewModel()
-        {
-            OrderProducts = new List<POrderProductViewModel>();
-        }
-    }
-
-    public class POrderEditViewModel
-    {
-        public int ID { get; set; }
-        public string OrderNo { get; set; }
-        public DateTime IssuedDate { get; set; }
-        public int CompanyID { get; set; }
-        public int SupplierID { get; set; }
-        public int? ContractID { get; set; }
-        public int CurrencyID { get; set; }
-        public string Description { get; set; }
-        public List<POrderProductViewModel> OrderProducts { get; set; }
-
-        public POrderEditViewModel()
-        {
-            OrderProducts = new List<POrderProductViewModel>();
-        }
-    }
-
-    public class POrderProductViewModel
-    {
-        public int? ID { get; set; }
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public double Price { get; set; }
-        public double Amount { get; set; }
-        public int? UnitID { get; set; }
-        public double TotalPrice { get; set; }
-        public double? MOQ { get; set; }
     }
 }
