@@ -17,8 +17,8 @@ namespace tahsinERP.Models
         public long DocumentID { get; set; }
         public string StandardCode { get; set; }
         public string Area { get; set; }
-        public int VersionNo { get; set; }
         public string Notes { get; set; }
+        public decimal VersionNo { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
     }

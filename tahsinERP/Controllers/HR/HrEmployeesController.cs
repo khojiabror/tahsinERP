@@ -43,32 +43,59 @@ namespace tahsinERP.Controllers.HR
                 query = query.Where(e => e.PositionID == positionId.Value);
             }
 
+            // Default: show only active employees (not dismissed)
             if (status == "InActive")
             {
-                query = query.Where(e => !e.IsActive);
+                query = query.Where(e => !e.IsActive || e.DismissalDate != null);
             }
             else
             {
-                query = query.Where(e => e.IsActive);
+                // Show only active employees (IsActive = true and DismissalDate is null)
+                query = query.Where(e => e.IsActive && e.DismissalDate == null);
             }
 
             var employees = await query.OrderBy(e => e.FullName).ToListAsync();
 
-            var viewModels = employees.Select(e => new HrEmployeeViewModel
-            {
-                ID = e.ID,
-                TabNo = e.TabNo,
-                FullName = e.FullName,
-                OrgUnitID = e.OrgUnitID,
-                OrgUnitName = e.HR_ORG_UNITS?.Name,
-                PositionID = e.PositionID,
-                PositionName = e.HR_POSITIONS?.Name,
-                BaseSalary = e.BaseSalary,
-                SalaryGradeID = e.SalaryGradeID,
-                SalaryGradeName = e.HR_SALARY_GRADES?.Name,
-                EmploymentDate = e.EmploymentDate,
-                DismissalDate = e.DismissalDate,
-                IsActive = e.IsActive
+            // Get latest position for each employee from history
+            var employeeIds = employees.Select(e => e.ID).ToList();
+            var latestHistory = await db.HR_EMPLOYEE_HISTORY
+                .Include(h => h.HR_ORG_UNITS1) // ToOrgUnitID navigation
+                .Include(h => h.HR_POSITIONS1) // ToPositionID navigation
+                .Where(h => employeeIds.Contains(h.EmployeeID) && h.ActionType == "Transfer")
+                .GroupBy(h => h.EmployeeID)
+                .Select(g => new { 
+                    EmployeeID = g.Key, 
+                    LatestHistory = g.OrderByDescending(x => x.EffectiveDate).FirstOrDefault() 
+                })
+                .ToListAsync();
+
+            var viewModels = employees.Select(e => {
+                var latestTransfer = latestHistory.FirstOrDefault(h => h.EmployeeID == e.ID)?.LatestHistory;
+                
+                // Use current position if no transfer history, otherwise use latest transfer position
+                var currentOrgUnitID = latestTransfer?.ToOrgUnitID ?? e.OrgUnitID;
+                var currentPositionID = latestTransfer?.ToPositionID ?? e.PositionID;
+                
+                // Get names
+                var currentOrgUnit = latestTransfer?.HR_ORG_UNITS1 ?? e.HR_ORG_UNITS;
+                var currentPosition = latestTransfer?.HR_POSITIONS1 ?? e.HR_POSITIONS;
+
+                return new HrEmployeeViewModel
+                {
+                    ID = e.ID,
+                    TabNo = e.TabNo,
+                    FullName = e.FullName,
+                    OrgUnitID = currentOrgUnitID,
+                    OrgUnitName = currentOrgUnit?.Name,
+                    PositionID = currentPositionID,
+                    PositionName = currentPosition?.Name,
+                    BaseSalary = e.BaseSalary,
+                    SalaryGradeID = e.SalaryGradeID,
+                    SalaryGradeName = e.HR_SALARY_GRADES?.Name,
+                    EmploymentDate = e.EmploymentDate,
+                    DismissalDate = e.DismissalDate,
+                    IsActive = e.IsActive
+                };
             }).ToList();
 
             ViewBag.OrgUnitID = new SelectList(
@@ -107,6 +134,16 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
+            // Get employee history (transfers and dismissals)
+            var history = await db.HR_EMPLOYEE_HISTORY
+                .Include(h => h.HR_ORG_UNITS) // FromOrgUnitID
+                .Include(h => h.HR_POSITIONS) // FromPositionID
+                .Include(h => h.HR_ORG_UNITS1) // ToOrgUnitID
+                .Include(h => h.HR_POSITIONS1) // ToPositionID
+                .Where(h => h.EmployeeID == id)
+                .OrderByDescending(h => h.EffectiveDate)
+                .ToListAsync();
+
             var viewModel = new HrEmployeeViewModel
             {
                 ID = employee.ID,
@@ -123,6 +160,18 @@ namespace tahsinERP.Controllers.HR
                 DismissalDate = employee.DismissalDate,
                 IsActive = employee.IsActive
             };
+
+            // Pass history to view
+            ViewBag.History = history.Select(h => new
+            {
+                ActionType = h.ActionType,
+                FromOrgUnitName = h.HR_ORG_UNITS?.Name ?? "-",
+                FromPositionName = h.HR_POSITIONS?.Name ?? "-",
+                ToOrgUnitName = h.HR_ORG_UNITS1?.Name ?? "-",
+                ToPositionName = h.HR_POSITIONS1?.Name ?? "-",
+                EffectiveDate = h.EffectiveDate,
+                Reason = h.Reason
+            }).ToList();
 
             logger.Log("HrEmployees", "Details", $"ID: {id}");
             return View(viewModel);
@@ -327,6 +376,195 @@ namespace tahsinERP.Controllers.HR
             ViewBag.SalaryGradeID = new SelectList(
                 await db.HR_SALARY_GRADES.OrderBy(sg => sg.GradeCode).ToListAsync(),
                 "ID", "Name", viewModel.SalaryGradeID);
+        }
+
+        // GET: HR/Employees/Dismiss/5
+        public async Task<ActionResult> Dismiss(int? id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var employee = await db.HR_EMPLOYEES
+                .Include(e => e.HR_ORG_UNITS)
+                .Include(e => e.HR_POSITIONS)
+                .FirstOrDefaultAsync(e => e.ID == id);
+
+            if (employee == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (employee.DismissalDate != null)
+            {
+                TempData["Error"] = "Bu xodim allaqachon ishdan bo'shatilgan";
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Employee = employee;
+            return View();
+        }
+
+        // POST: HR/Employees/Dismiss/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Dismiss(int id, DateTime dismissalDate, string reason)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var employee = await db.HR_EMPLOYEES
+                .Include(e => e.HR_ORG_UNITS)
+                .Include(e => e.HR_POSITIONS)
+                .FirstOrDefaultAsync(e => e.ID == id);
+
+            if (employee == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (employee.DismissalDate != null)
+            {
+                TempData["Error"] = "Bu xodim allaqachon ishdan bo'shatilgan";
+                return RedirectToAction("Index");
+            }
+
+            // Create history record
+            var history = new HR_EMPLOYEE_HISTORY
+            {
+                EmployeeID = id,
+                ActionType = "Dismissal",
+                FromOrgUnitID = employee.OrgUnitID,
+                FromPositionID = employee.PositionID,
+                EffectiveDate = dismissalDate,
+                Reason = reason,
+                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                CreatedDT = DateTime.Now
+            };
+
+            db.HR_EMPLOYEE_HISTORY.Add(history);
+
+            // Update employee
+            employee.DismissalDate = dismissalDate;
+            employee.IsActive = false;
+            employee.UpdatedDT = DateTime.Now;
+
+            await db.SaveChangesAsync();
+
+            logger.Log("HrEmployees", "Dismiss", $"ID: {id}, Date: {dismissalDate}");
+            TempData["Success"] = "Xodim muvaffaqiyatli ishdan bo'shatildi";
+            return RedirectToAction("Index");
+        }
+
+        // GET: HR/Employees/Transfer/5
+        public async Task<ActionResult> Transfer(int? id)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var employee = await db.HR_EMPLOYEES
+                .Include(e => e.HR_ORG_UNITS)
+                .Include(e => e.HR_POSITIONS)
+                .FirstOrDefaultAsync(e => e.ID == id);
+
+            if (employee == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (employee.DismissalDate != null)
+            {
+                TempData["Error"] = "Ishdan bo'shatilgan xodimni transfer qilib bo'lmaydi";
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Employee = employee;
+            ViewBag.FromOrgUnitID = employee.OrgUnitID;
+            ViewBag.FromPositionID = employee.PositionID;
+            ViewBag.ToOrgUnitID = new SelectList(
+                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                "ID", "Name");
+            ViewBag.ToPositionID = new SelectList(
+                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
+                "ID", "Name");
+
+            return View();
+        }
+
+        // POST: HR/Employees/Transfer/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Transfer(int id, int toOrgUnitId, int toPositionId, DateTime effectiveDate, string reason)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var employee = await db.HR_EMPLOYEES
+                .Include(e => e.HR_ORG_UNITS)
+                .Include(e => e.HR_POSITIONS)
+                .FirstOrDefaultAsync(e => e.ID == id);
+
+            if (employee == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (employee.DismissalDate != null)
+            {
+                TempData["Error"] = "Ishdan bo'shatilgan xodimni transfer qilib bo'lmaydi";
+                return RedirectToAction("Index");
+            }
+
+            if (employee.OrgUnitID == toOrgUnitId && employee.PositionID == toPositionId)
+            {
+                TempData["Error"] = "Xodim allaqachon ushbu bo'lim va lavozimda";
+                return RedirectToAction("Transfer", new { id });
+            }
+
+            // Create history record
+            var history = new HR_EMPLOYEE_HISTORY
+            {
+                EmployeeID = id,
+                ActionType = "Transfer",
+                FromOrgUnitID = employee.OrgUnitID,
+                FromPositionID = employee.PositionID,
+                ToOrgUnitID = toOrgUnitId,
+                ToPositionID = toPositionId,
+                EffectiveDate = effectiveDate,
+                Reason = reason,
+                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                CreatedDT = DateTime.Now
+            };
+
+            db.HR_EMPLOYEE_HISTORY.Add(history);
+
+            // Update employee to new position
+            employee.OrgUnitID = toOrgUnitId;
+            employee.PositionID = toPositionId;
+            employee.UpdatedDT = DateTime.Now;
+
+            await db.SaveChangesAsync();
+
+            logger.Log("HrEmployees", "Transfer", $"ID: {id}, ToOrgUnit: {toOrgUnitId}, ToPosition: {toPositionId}");
+            TempData["Success"] = "Xodim muvaffaqiyatli transfer qilindi";
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)

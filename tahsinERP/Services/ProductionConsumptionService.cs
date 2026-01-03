@@ -92,36 +92,83 @@ namespace tahsinERP.Services
                     var wasteQty = 0.0;
                     var totalConsumption = requiredQty;
 
-                    // Check if material requires cutting
-                    bool requiresCutting = material.CategoryID.HasValue &&
-                                           material.PRODUCT_CATEGORIES != null &&
-                                           material.PRODUCT_CATEGORIES.RequiresCutting;
+                            // Check if material requires cutting
+                            bool requiresCutting = material.CategoryID.HasValue &&
+                                                   material.PRODUCT_CATEGORIES != null &&
+                                                   material.PRODUCT_CATEGORIES.RequiresCutting;
 
-                    if (requiresCutting)
-                    {
-                        // Convert meters to pieces
-                        requiredQtyMeters = requiredQty;
-                        requiredQtyPieces = (double)await _conversionService.ConvertMeterToPieceAsync(
-                            material.ID, (decimal)requiredQty);
+                            // Check if material should use weight-based calculations
+                            bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(material.ID);
 
-                        // Calculate waste
-                        if (normLine.WastePercent.HasValue)
-                        {
-                            var wastePercent = (double)normLine.WastePercent.Value;
-                            wasteQty = requiredQtyPieces * (wastePercent / 100.0);
-                            totalConsumption = requiredQtyPieces + wasteQty;
-                        }
-                    }
-                    else
-                    {
-                        // For non-cutting materials, waste is applied directly
-                        if (normLine.WastePercent.HasValue)
-                        {
-                            var wastePercent = (double)normLine.WastePercent.Value;
-                            wasteQty = requiredQty * (wastePercent / 100.0);
-                            totalConsumption = requiredQty + wasteQty;
-                        }
-                    }
+                            if (calculateByWeight)
+                            {
+                                // Convert to pieces first if needed, then to kg
+                                decimal pieceQuantity = (decimal)requiredQty;
+                                
+                                if (requiresCutting)
+                                {
+                                    // Convert meters to pieces first
+                                    requiredQtyMeters = requiredQty;
+                                    pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(
+                                        material.ID, (decimal)requiredQty);
+                                    requiredQtyPieces = (double)pieceQuantity;
+                                }
+                                else
+                                {
+                                    requiredQtyPieces = requiredQty;
+                                }
+
+                                // Calculate waste in pieces
+                                if (normLine.WastePercent.HasValue)
+                                {
+                                    var wastePercent = (double)normLine.WastePercent.Value;
+                                    var wastePieces = requiredQtyPieces * (wastePercent / 100.0);
+                                    wasteQty = wastePieces;
+                                    totalConsumption = requiredQtyPieces + wasteQty;
+                                }
+                                else
+                                {
+                                    totalConsumption = requiredQtyPieces;
+                                }
+
+                                // Convert total consumption (pieces) to kg
+                                try
+                                {
+                                    decimal totalConsumptionKg = await _conversionService.ConvertPieceToKgAsync(
+                                        material.ID, (decimal)totalConsumption);
+                                    totalConsumption = (double)totalConsumptionKg;
+                                    requiredQtyPieces = (double)pieceQuantity; // Keep original piece quantity for reference
+                                }
+                                catch
+                                {
+                                    // If conversion fails, keep in pieces
+                                }
+                            }
+                            else if (requiresCutting)
+                            {
+                                // Convert meters to pieces
+                                requiredQtyMeters = requiredQty;
+                                requiredQtyPieces = (double)await _conversionService.ConvertMeterToPieceAsync(
+                                    material.ID, (decimal)requiredQty);
+
+                                // Calculate waste
+                                if (normLine.WastePercent.HasValue)
+                                {
+                                    var wastePercent = (double)normLine.WastePercent.Value;
+                                    wasteQty = requiredQtyPieces * (wastePercent / 100.0);
+                                    totalConsumption = requiredQtyPieces + wasteQty;
+                                }
+                            }
+                            else
+                            {
+                                // For non-cutting materials, waste is applied directly
+                                if (normLine.WastePercent.HasValue)
+                                {
+                                    var wastePercent = (double)normLine.WastePercent.Value;
+                                    wasteQty = requiredQty * (wastePercent / 100.0);
+                                    totalConsumption = requiredQty + wasteQty;
+                                }
+                            }
 
                     requirements.Add(new ProductionRawMaterialRequirement
                     {
@@ -161,7 +208,41 @@ namespace tahsinERP.Services
                                                    material.PRODUCT_CATEGORIES != null &&
                                                    material.PRODUCT_CATEGORIES.RequiresCutting;
 
-                            if (requiresCutting)
+                            // Check if material should use weight-based calculations
+                            bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(material.ID);
+
+                            if (calculateByWeight)
+                            {
+                                // Convert to pieces first if needed, then to kg
+                                decimal pieceQuantity = (decimal)requiredQty;
+                                
+                                if (requiresCutting)
+                                {
+                                    // Convert meters to pieces first
+                                    requiredQtyMeters = requiredQty;
+                                    pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(
+                                        material.ID, (decimal)requiredQty);
+                                    requiredQtyPieces = (double)pieceQuantity;
+                                }
+                                else
+                                {
+                                    requiredQtyPieces = requiredQty;
+                                }
+
+                                // Convert total consumption (pieces) to kg
+                                try
+                                {
+                                    decimal totalConsumptionKg = await _conversionService.ConvertPieceToKgAsync(
+                                        material.ID, pieceQuantity);
+                                    totalConsumption = (double)totalConsumptionKg;
+                                }
+                                catch
+                                {
+                                    // If conversion fails, keep in pieces
+                                    totalConsumption = requiredQtyPieces;
+                                }
+                            }
+                            else if (requiresCutting)
                             {
                                 // Convert to pieces if needed
                                 requiredQtyMeters = requiredQty;

@@ -22,9 +22,11 @@ namespace tahsinERP.Models
             this.HR_JOB_DESCRIPTIONS = new HashSet<HR_JOB_DESCRIPTIONS>();
             this.HR_ORG_UNITS1 = new HashSet<HR_ORG_UNITS>();
             this.HR_PAYROLL_HEADERS = new HashSet<HR_PAYROLL_HEADERS>();
+            this.HR_PIECE_RATE_TIMESHEET_APPROVALS = new HashSet<HR_PIECE_RATE_TIMESHEET_APPROVALS>();
             this.HR_STAFFING_PLAN = new HashSet<HR_STAFFING_PLAN>();
             this.HR_TIMESHEET_HEADERS = new HashSet<HR_TIMESHEET_HEADERS>();
-            this.HR_PIECE_RATE_TIMESHEET_APPROVALS = new HashSet<HR_PIECE_RATE_TIMESHEET_APPROVALS>();
+            this.HR_EMPLOYEE_HISTORY = new HashSet<HR_EMPLOYEE_HISTORY>();
+            this.HR_EMPLOYEE_HISTORY1 = new HashSet<HR_EMPLOYEE_HISTORY>();
         }
     
         public int ID { get; set; }
@@ -48,10 +50,14 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_PAYROLL_HEADERS> HR_PAYROLL_HEADERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_STAFFING_PLAN> HR_STAFFING_PLAN { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
+        public virtual ICollection<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY1 { get; set; }
     }
 }

@@ -32,6 +32,7 @@ namespace tahsinERP.Models
             this.P_CONTRACT_PRODUCTS = new HashSet<P_CONTRACT_PRODUCTS>();
             this.P_INVOICE_PRODUCTS = new HashSet<P_INVOICE_PRODUCTS>();
             this.P_ORDER_PRODUCTS = new HashSet<P_ORDER_PRODUCTS>();
+            this.P_REQUISITION_PRODUCTS = new HashSet<P_REQUISITION_PRODUCTS>();
             this.PRODUCT_PRODUCTION = new HashSet<PRODUCT_PRODUCTION>();
             this.PRODUCT_STOCKS = new HashSet<PRODUCT_STOCKS>();
             this.PRODUCTIMAGES = new HashSet<PRODUCTIMAGE>();
@@ -69,6 +70,7 @@ namespace tahsinERP.Models
         public int ShopID { get; set; }
         public Nullable<double> StandardLengthMm { get; set; }
         public Nullable<byte> OptimizationType { get; set; }
+        public Nullable<bool> CalculateByWeight { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BOM_HEADERS> BOM_HEADERS { get; set; }
@@ -101,6 +103,8 @@ namespace tahsinERP.Models
         public virtual ICollection<P_INVOICE_PRODUCTS> P_INVOICE_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<P_REQUISITION_PRODUCTS> P_REQUISITION_PRODUCTS { get; set; }
         public virtual PRODUCT_CATEGORIES PRODUCT_CATEGORIES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCT_PRODUCTION> PRODUCT_PRODUCTION { get; set; }

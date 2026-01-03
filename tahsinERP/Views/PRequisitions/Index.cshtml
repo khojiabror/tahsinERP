@@ -1,0 +1,215 @@
+@model List<tahsinERP.Models.P_REQUISITIONS>
+@{
+    ViewBag.Title = "Xarid arizalari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PRequisitions", "Index"))
+{
+    bool changePermit = false;
+    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PRequisitions"))
+    {
+        changePermit = true;
+    }
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Xarid arizalari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "PRequisitions")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Yangi ariza
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Status Filter -->
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            @using (Html.BeginForm("Index", "PRequisitions", FormMethod.Get))
+                            {
+                                <div class="form-group">
+                                    <label for="statusFilter">Status bo'yicha filtrlash</label>
+                                    @Html.DropDownList("statusFilter", ViewBag.StatusList as SelectList, new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="requisitionsTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ariza raqami</th>
+                                                    <th>Sana</th>
+                                                    <th>Bo'lim</th>
+                                                    <th>So'rovchi</th>
+                                                    <th>Status</th>
+                                                    <th>Mahsulotlar soni</th>
+                                                    <th>Jami summa</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "PRequisitions", new { id = item.ID })">@item.RequisitionNo</a>
+                                                            </td>
+                                                            <td>@item.RequisitionDate.ToString("dd.MM.yyyy")</td>
+                                                            <td>
+                                                                @{
+                                                                    var departmentsDict = ViewBag.DepartmentsDict as Dictionary<int, string>;
+                                                                    var deptName = item.DepartmentID.HasValue && departmentsDict != null && departmentsDict.ContainsKey(item.DepartmentID.Value) 
+                                                                        ? departmentsDict[item.DepartmentID.Value] : null;
+                                                                }
+                                                                @(deptName ?? "-")
+                                                            </td>
+                                                            <td>
+                                                                @{
+                                                                    var employeesDict = ViewBag.EmployeesDict as Dictionary<int, string>;
+                                                                    var empName = employeesDict != null && employeesDict.ContainsKey(item.RequesterID) 
+                                                                        ? employeesDict[item.RequesterID] : null;
+                                                                }
+                                                                @(empName ?? "-")
+                                                            </td>
+                                                            <td>
+                                                                @{
+                                                                    var statusClass = "badge-secondary";
+                                                                    switch (item.Status)
+                                                                    {
+                                                                        case "Draft":
+                                                                            statusClass = "badge-secondary";
+                                                                            break;
+                                                                        case "Submitted":
+                                                                            statusClass = "badge-info";
+                                                                            break;
+                                                                        case "Approved":
+                                                                            statusClass = "badge-success";
+                                                                            break;
+                                                                        case "Rejected":
+                                                                            statusClass = "badge-danger";
+                                                                            break;
+                                                                        case "ConvertedToOrder":
+                                                                            statusClass = "badge-primary";
+                                                                            break;
+                                                                    }
+                                                                }
+                                                                <span class="badge @statusClass">@item.Status</span>
+                                                            </td>
+                                                            <td>@(item.P_REQUISITION_PRODUCTS?.Count ?? 0)</td>
+                                                            <td>
+                                                                @{
+                                                                    var totalAmount = item.P_REQUISITION_PRODUCTS?.Sum(p => p.Amount ?? 0) ?? 0;
+                                                                }
+                                                                @totalAmount.ToString("N2")
+                                                            </td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <a href="@Url.Action("Details", "PRequisitions", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
+                                                                            <i class="bx bx-show"></i>
+                                                                        </a>
+                                                                        @if (item.Status == "Approved")
+                                                                        {
+                                                                            <a href="@Url.Action("ConvertToOrder", "PRequisitions", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-success mr-1" title="Buyurtmaga aylantirish">
+                                                                                <i class="bx bx-cart"></i>
+                                                                            </a>
+                                                                        }
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function initRequisitionsTable() {
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initRequisitionsTable, 100);
+                    return;
+                }
+
+                var $ = jQuery;
+
+                $(document).ready(function () {
+                    if ($('#requisitionsTable').length > 0) {
+                        $('#requisitionsTable').DataTable({
+                            "language": {
+                                "search": "Qidirish:",
+                                "lengthMenu": "_MENU_ ta ko'rsatish",
+                                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                                "infoEmpty": "Yozuvlar yo'q",
+                                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                                "paginate": {
+                                    "first": "Birinchi",
+                                    "last": "Oxirgi",
+                                    "next": "Keyingi",
+                                    "previous": "Oldingi"
+                                },
+                                "zeroRecords": "Ma'lumot topilmadi"
+                            },
+                            "pageLength": 25,
+                            "order": [[1, "desc"]]
+                        });
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initRequisitionsTable);
+            } else {
+                initRequisitionsTable();
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

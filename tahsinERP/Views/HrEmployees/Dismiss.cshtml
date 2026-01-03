@@ -1,0 +1,96 @@
+﻿@model tahsinERP.ViewModels.HR.HrEmployeeViewModel
+@{
+    ViewBag.Title = "Mehnat shartnomasini bekor qilish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+{
+    var employee = ViewBag.Employee as tahsinERP.Models.HR_EMPLOYEES;
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Mehnat shartnomasini bekor qilish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Xodimlar</a></li>
+                                    <li class="breadcrumb-item active">Mehnat shartnomasini bekor qilish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <strong>Diqqat!</strong> Bu amalni bekor qilib bo'lmaydi. Xodim ishdan chiqib ketgan deb belgilanadi.
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <strong>Xodim:</strong> @employee.FullName
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Tab.№:</strong> @employee.TabNo
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <strong>Bo'lim:</strong> @(employee.HR_ORG_UNITS?.Name ?? "-")
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Lavozim:</strong> @(employee.HR_POSITIONS?.Name ?? "-")
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <strong>Ishga kirgan sana:</strong> @(employee.EmploymentDate?.ToString("dd.MM.yyyy") ?? "-")
+                                </div>
+                            </div>
+
+                            @using (Html.BeginForm("Dismiss", "HrEmployees", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("id", employee.ID)
+
+                                <div class="form-group">
+                                    <label for="dismissalDate">Ishdan bo'shatish sanasi <span class="text-danger">*</span></label>
+                                    <input type="date" name="dismissalDate" id="dismissalDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="reason">Sabab</label>
+                                    <textarea name="reason" id="reason" class="form-control" rows="3"></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Xodimni ishdan bo\'shatishni tasdiqlaysizmi?');">
+                                        <i class="bx bx-check"></i> Tasdiqlash
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="bx bx-x"></i> Bekor qilish
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

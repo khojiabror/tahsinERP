@@ -179,5 +179,63 @@ namespace tahsinERP.Services
                 return product.UnitID > 0 ? product.UnitID : 1;
             }
         }
+
+        /// <summary>
+        /// Converts piece quantity to kg using product's Weight property
+        /// Formula: kg = pieces × Weight (kg per piece)
+        /// </summary>
+        /// <param name="productId">Product ID</param>
+        /// <param name="pieceQuantity">Quantity in pieces</param>
+        /// <returns>Quantity in kg</returns>
+        public async Task<decimal> ConvertPieceToKgAsync(int productId, decimal pieceQuantity)
+        {
+            var product = await _db.PRODUCTS
+                .FirstOrDefaultAsync(p => p.ID == productId);
+
+            if (product == null)
+            {
+                throw new ArgumentException($"Product with ID {productId} not found.");
+            }
+
+            if (!product.Weight.HasValue || product.Weight.Value <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"Product {product.PNo} does not have a valid Weight value. Cannot convert piece to kg.");
+            }
+
+            // Calculate kg: kg = pieces × Weight (kg per piece)
+            decimal kgQuantity = pieceQuantity * (decimal)product.Weight.Value;
+
+            return kgQuantity;
+        }
+
+        /// <summary>
+        /// Checks if a product should use weight-based calculations based on its category
+        /// </summary>
+        /// <param name="productId">Product ID</param>
+        /// <returns>True if product should use weight-based calculations, false otherwise</returns>
+        public async Task<bool> ShouldCalculateByWeightAsync(int productId)
+        {
+            var product = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .FirstOrDefaultAsync(p => p.ID == productId);
+
+            if (product == null)
+            {
+                return false;
+            }
+
+            // Check category-level CalculateByWeight setting
+            bool categoryCalculateByWeight = false;
+            if (product.CategoryID.HasValue && product.PRODUCT_CATEGORIES != null)
+            {
+                categoryCalculateByWeight = product.PRODUCT_CATEGORIES.CalculateByWeight ?? false;
+            }
+
+            // Product must have valid Weight value
+            bool hasValidWeight = product.Weight.HasValue && product.Weight.Value > 0;
+
+            return categoryCalculateByWeight && hasValidWeight;
+        }
     }
 }

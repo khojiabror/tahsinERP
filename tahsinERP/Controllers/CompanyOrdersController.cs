@@ -345,14 +345,28 @@ namespace tahsinERP.Controllers
             {
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.ADM_COMPANY_ORDERS)
+                    .Include(d => d.DOC_FILES)
                     .FirstOrDefaultAsync(d => d.ID == id);
 
                 if (doc != null)
                 {
+                    // First, delete all related DOC_FILES
+                    if (doc.DOC_FILES != null && doc.DOC_FILES.Any())
+                    {
+                        var files = doc.DOC_FILES.ToList();
+                        foreach (var file in files)
+                        {
+                            db.DOC_FILES.Remove(file);
+                        }
+                    }
+
+                    // Then delete the company order record
                     if (doc.ADM_COMPANY_ORDERS != null)
                     {
                         db.ADM_COMPANY_ORDERS.Remove(doc.ADM_COMPANY_ORDERS);
                     }
+
+                    // Finally, delete the document record
                     db.DOC_DOCUMENTS.Remove(doc);
                     await db.SaveChangesAsync();
 
@@ -404,17 +418,38 @@ namespace tahsinERP.Controllers
                     { "ORDER_NO", order.OrderNo }, // Template uses ORDER_NO
                     { "ORDER NO", order.OrderNo }, // Also support space version
                     { "ORDER_DATE", order.OrderDate.ToString("dd.MM.yyyy") },
+                    { "Order_date", order.OrderDate.ToString("dd.MM.yyyy") }, // Support lowercase variant
                     { "ORDER_TOPIC", doc.Title ?? "" }, // Template uses ORDER_TOPIC, not ORDER_TITLE
                     { "ORDER_BODY", order.Notes ?? "" }, // Full body text without splitting
                     { "ORG_UNIT_NAME", doc.HR_ORG_UNITS?.Name ?? "" },
                     { "DIRECTOR_NAME", "X.M. Maxmudov" } // TODO: Get from settings or user table
                 };
 
-                // Also add body text as ORDER_BODY for full text replacement
-                // Template might use {{ORDER_BODY}} for the complete text
+                // Parse Notes into individual content items (ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.)
+                // Split by newlines and filter out empty lines
                 if (!string.IsNullOrEmpty(order.Notes))
                 {
-                    placeholders["ORDER_BODY"] = order.Notes;
+                    var lines = order.Notes.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(line => !string.IsNullOrWhiteSpace(line))
+                        .Select(line => line.Trim())
+                        .ToList();
+
+                    // Remove existing numbering patterns (1., 2., 3., etc.) from the beginning of each line
+                    for (int i = 0; i < lines.Count; i++)
+                    {
+                        var line = lines[i];
+                        // Remove patterns like "1.", "1)", "1-", etc. at the start
+                        line = System.Text.RegularExpressions.Regex.Replace(line, @"^\s*\d+[\.\)\-\s]+\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        lines[i] = line.Trim();
+                    }
+
+                    // Add each line as ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.
+                    // Template uses ORDER_DECREE_1_CONTENT_N format
+                    for (int i = 0; i < lines.Count; i++)
+                    {
+                        string key = $"ORDER_DECREE_1_CONTENT_{i + 1}";
+                        placeholders[key] = lines[i];
+                    }
                 }
 
                 // Generate document

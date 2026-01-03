@@ -495,6 +495,7 @@
     <Compile Include="Controllers\Finance\FinTransactionsController.cs" />
     <Compile Include="Controllers\Finance\ShareholderController.cs" />
     <Compile Include="Controllers\HR\HrDashboardController.cs" />
+    <Compile Include="Controllers\HR\HrEmployeeHistoryController.cs" />
     <Compile Include="Controllers\HR\HrEmployeesController.cs" />
     <Compile Include="Controllers\HR\HrOrgUnitsController.cs" />
     <Compile Include="Controllers\HR\HrPayrollController.cs" />
@@ -504,6 +505,7 @@
     <Compile Include="Controllers\HR\HrSalaryGradesController.cs" />
     <Compile Include="Controllers\HR\HrStaffingPlanController.cs" />
     <Compile Include="Controllers\HR\HrTimesheetsController.cs" />
+    <Compile Include="Controllers\JobDescController.cs" />
     <Compile Include="Controllers\Logistic\LogisticsDashboardController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
     <Compile Include="Controllers\MES\DailyPlanUpdateItem.cs" />
@@ -538,9 +540,11 @@
     <Compile Include="Controllers\SRM\PContractsController.cs" />
     <Compile Include="Controllers\SRM\PInvoicesController.cs" />
     <Compile Include="Controllers\SRM\POrdersController.cs" />
+    <Compile Include="Controllers\SRM\PRequisitionsController.cs" />
     <Compile Include="Controllers\SRM\ProductionControlController.cs" />
     <Compile Include="Controllers\SRM\ProductionToSalesTransferController.cs" />
     <Compile Include="Controllers\SRM\ProductStockController.cs" />
+    <Compile Include="Controllers\SRM\PurchaseOrderTrackingController.cs" />
     <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
     <Compile Include="Controllers\SRM\WarehouseController.cs" />
@@ -562,6 +566,7 @@
     <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
+    <Compile Include="Controllers\STDCompanyStandardsController.cs" />
     <Compile Include="Controllers\TaskChangeStatusController.cs" />
     <Compile Include="Controllers\TaskDashboardController.cs" />
     <Compile Include="Controllers\TaskKanbanController.cs" />
@@ -703,6 +708,9 @@
     <Compile Include="Models\HR_EMPLOYEES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\HR_EMPLOYEE_HISTORY.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\HR_JOB_DESCRIPTIONS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -749,6 +757,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\INCOME_PRODUCTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\JOB_DESC.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\NORMLINE.cs">
@@ -812,6 +823,15 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\P_ORDER_PRODUCTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\P_REQUISITIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\P_REQUISITION_APPROVALS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\P_REQUISITION_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\QUALITY_INSPECTION.cs">
@@ -956,6 +976,7 @@
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
+    <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
     <Compile Include="Services\ITextSuggestionService.cs" />
     <Compile Include="Services\IUserActionLogger.cs" />
@@ -972,6 +993,8 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\WasteHandlingService.cs" />
+    <Compile Include="Services\WordDocumentConverterService.cs" />
+    <Compile Include="Services\WordDocumentImageService.cs" />
     <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomIndexViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomTreeNodeViewModel.cs" />
@@ -983,7 +1006,9 @@
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\HR\HrDashboardViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrEmployeeHistoryViewModel.cs" />
     <Compile Include="ViewModels\HR\HrEmployeeViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrOrgUnitStaffingPlanViewModel.cs" />
     <Compile Include="ViewModels\HR\HrOrgUnitViewModel.cs" />
     <Compile Include="ViewModels\HR\HrPayrollViewModel.cs" />
     <Compile Include="ViewModels\HR\HrSalaryGradeViewModel.cs" />
@@ -994,6 +1019,7 @@
     <Compile Include="ViewModels\HR\OrgChartNodeViewModel.cs" />
     <Compile Include="ViewModels\IncomeViewModel.cs" />
     <Compile Include="ViewModels\IncomingLetterRegisterVm.cs" />
+    <Compile Include="ViewModels\JobDescViewModel.cs" />
     <Compile Include="ViewModels\MESDashboardViewModel.cs" />
     <Compile Include="ViewModels\NormLineViewModel.cs" />
     <Compile Include="ViewModels\OfficialLetterCreateVm.cs" />
@@ -1002,6 +1028,7 @@
     <Compile Include="ViewModels\PContractSViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
+    <Compile Include="ViewModels\PRequisition\PRequisitionViewModel.cs" />
     <Compile Include="ViewModels\ProductNormViewModel.cs" />
     <Compile Include="ViewModels\ProductPlanDailyViewModel.cs" />
     <Compile Include="ViewModels\ProductPlanViewModel.cs" />
@@ -1019,6 +1046,7 @@
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
+    <Compile Include="ViewModels\STDCompanyStandardsViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxAnalyticsDashboardViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxAnalyticsReportViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxDetailsViewModel.cs" />
@@ -3222,6 +3250,30 @@
     <Content Include="Views\ProductCategory\Details.cshtml" />
     <Content Include="Views\ProductCategory\Edit.cshtml" />
     <Content Include="Views\ProductCategory\Index.cshtml" />
+    <Content Include="Views\FinTransactions\Import.cshtml" />
+    <Content Include="Views\JobDesc\Create.cshtml" />
+    <Content Include="Views\JobDesc\Delete.cshtml" />
+    <Content Include="Views\JobDesc\Details.cshtml" />
+    <Content Include="Views\JobDesc\Edit.cshtml" />
+    <Content Include="Views\JobDesc\Index.cshtml" />
+    <Content Include="Views\PRequisitions\Create.cshtml" />
+    <Content Include="Views\PRequisitions\Details.cshtml" />
+    <Content Include="Views\PRequisitions\Index.cshtml" />
+    <Content Include="Views\PurchaseOrderTracking\Details.cshtml" />
+    <Content Include="Views\PurchaseOrderTracking\Index.cshtml" />
+    <Content Include="Views\STDCompanyStandards\Create.cshtml" />
+    <Content Include="Views\STDCompanyStandards\Delete.cshtml" />
+    <Content Include="Views\STDCompanyStandards\Details.cshtml" />
+    <Content Include="Views\STDCompanyStandards\Edit.cshtml" />
+    <Content Include="Views\STDCompanyStandards\Index.cshtml" />
+    <Content Include="Views\FinBalanceCategories\MapCategories.cshtml" />
+    <Content Include="Views\HrEmployeeHistory\Index.cshtml" />
+    <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />
+    <Content Include="Views\FinDashboard\AccountBalances.cshtml" />
+    <Content Include="Views\FinDashboard\CategoryAnalytics.cshtml" />
+    <Content Include="Views\FinDashboard\ExpenseAnalysis.cshtml" />
+    <Content Include="Views\FinDashboard\FinancialOverview.cshtml" />
+    <Content Include="Views\FinDashboard\IncomeAnalysis.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

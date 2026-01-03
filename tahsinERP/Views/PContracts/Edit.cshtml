@@ -86,11 +86,7 @@
                                                     @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                 </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="CompanyID">Korxona</label>
-                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
-                                                </div>
+                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? Model.CompanyID ?? 0 })
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>
                                                     @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })

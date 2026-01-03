@@ -72,6 +72,7 @@ namespace tahsinERP.Models
         public virtual DbSet<HR_PAYROLL_LINES> HR_PAYROLL_LINES { get; set; }
         public virtual DbSet<HR_PIECE_RATE_OPERATIONS> HR_PIECE_RATE_OPERATIONS { get; set; }
         public virtual DbSet<HR_PIECE_RATE_TARIFFS> HR_PIECE_RATE_TARIFFS { get; set; }
+        public virtual DbSet<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
         public virtual DbSet<HR_PIECE_RATE_WORK_ENTRIES> HR_PIECE_RATE_WORK_ENTRIES { get; set; }
         public virtual DbSet<HR_POSITIONS> HR_POSITIONS { get; set; }
         public virtual DbSet<HR_SALARY_GRADES> HR_SALARY_GRADES { get; set; }
@@ -81,6 +82,7 @@ namespace tahsinERP.Models
         public virtual DbSet<HSCODE> HSCODES { get; set; }
         public virtual DbSet<INCOME_PRODUCTS> INCOME_PRODUCTS { get; set; }
         public virtual DbSet<INCOME> INCOMES { get; set; }
+        public virtual DbSet<JOB_DESC> JOB_DESC { get; set; }
         public virtual DbSet<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
         public virtual DbSet<NORMLINE> NORMLINES { get; set; }
         public virtual DbSet<NORMVERSION> NORMVERSIONS { get; set; }
@@ -92,6 +94,9 @@ namespace tahsinERP.Models
         public virtual DbSet<P_INVOICES> P_INVOICES { get; set; }
         public virtual DbSet<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
         public virtual DbSet<P_ORDERS> P_ORDERS { get; set; }
+        public virtual DbSet<P_REQUISITION_APPROVALS> P_REQUISITION_APPROVALS { get; set; }
+        public virtual DbSet<P_REQUISITION_PRODUCTS> P_REQUISITION_PRODUCTS { get; set; }
+        public virtual DbSet<P_REQUISITIONS> P_REQUISITIONS { get; set; }
         public virtual DbSet<PERMISSIONMODULE> PERMISSIONMODULES { get; set; }
         public virtual DbSet<PERMISSION> PERMISSIONS { get; set; }
         public virtual DbSet<PRODUCT_CATEGORIES> PRODUCT_CATEGORIES { get; set; }
@@ -123,7 +128,9 @@ namespace tahsinERP.Models
         public virtual DbSet<SHOP> SHOPS { get; set; }
         public virtual DbSet<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
         public virtual DbSet<STD_COMPANY_STANDARDS> STD_COMPANY_STANDARDS { get; set; }
+        public virtual DbSet<SUPPLIER_BASE> SUPPLIER_BASE { get; set; }
         public virtual DbSet<SUPPLIER> SUPPLIERS { get; set; }
+        public virtual DbSet<TANNARX> TANNARXes { get; set; }
         public virtual DbSet<UNIT> UNITS { get; set; }
         public virtual DbSet<USER_ENTRIES> USER_ENTRIES { get; set; }
         public virtual DbSet<USER_LICENSES> USER_LICENSES { get; set; }
@@ -137,14 +144,12 @@ namespace tahsinERP.Models
         public virtual DbSet<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual DbSet<V_FIN_PL_FACT_MONTHLY> V_FIN_PL_FACT_MONTHLY { get; set; }
         public virtual DbSet<V_FIN_PL_PLAN_VS_FACT_MONTHLY> V_FIN_PL_PLAN_VS_FACT_MONTHLY { get; set; }
-        public virtual DbSet<HR_PIECE_RATE_TIMESHEET_APPROVALS> HR_PIECE_RATE_TIMESHEET_APPROVALS { get; set; }
-        public virtual DbSet<TANNARX> TANNARXes { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_ADMIN_EXPENSES> V_TANNARX_ACTUAL_ADMIN_EXPENSES { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT> V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_LABOR_COSTS> V_TANNARX_ACTUAL_LABOR_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_COSTS> V_TANNARX_ACTUAL_MATERIAL_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_TRANSPORT> V_TANNARX_ACTUAL_MATERIAL_TRANSPORT { get; set; }
-        public virtual DbSet<SUPPLIER_BASE> SUPPLIER_BASE { get; set; }
+        public virtual DbSet<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
     
         public virtual int sp_Fin_AddTransaction(Nullable<System.DateTime> txnDate, Nullable<int> accountID, Nullable<int> categoryID, Nullable<byte> direction, Nullable<decimal> amount, Nullable<int> currencyID, Nullable<decimal> qty, Nullable<decimal> pricePerUnit, Nullable<byte> counterpartyType, Nullable<int> counterpartyID, string counterpartyName, string purpose, string sourceDocType, Nullable<int> sourceDocID, string contractNo, string comment, Nullable<int> createdByUserID, ObjectParameter newID)
         {

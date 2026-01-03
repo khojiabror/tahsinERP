@@ -64,6 +64,31 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
+            // Get staffing plans for this org unit
+            var staffingPlans = await db.HR_STAFFING_PLAN
+                .Include(sp => sp.HR_POSITIONS)
+                .Where(sp => sp.OrgUnitID == id && sp.IsActive)
+                .ToListAsync();
+
+            // Get employees for this org unit
+            var employees = await db.HR_EMPLOYEES
+                .Include(e => e.HR_POSITIONS)
+                .Where(e => e.OrgUnitID == id && e.IsActive && e.DismissalDate == null)
+                .ToListAsync();
+
+            // Create staffing plan view models with employee assignments
+            var staffingPlanViewModels = staffingPlans.Select(sp => {
+                var assignedEmployees = employees.Where(e => e.PositionID == sp.PositionID).ToList();
+                return new HrOrgUnitStaffingPlanViewModel
+                {
+                    PositionID = sp.PositionID,
+                    PositionName = sp.HR_POSITIONS?.Name ?? "-",
+                    PlannedHeadcount = (int)sp.PlannedHeadcount,
+                    AssignedEmployees = assignedEmployees.Select(e => e.FullName).ToList(),
+                    AssignedCount = assignedEmployees.Count
+                };
+            }).ToList();
+
             var viewModel = new HrOrgUnitViewModel
             {
                 ID = orgUnit.ID,
@@ -74,8 +99,9 @@ namespace tahsinERP.Controllers.HR
                 SortOrder = orgUnit.SortOrder,
                 IsActive = orgUnit.IsActive,
                 CreatedDT = orgUnit.CreatedDT,
-                PlannedHeadcount = (int)(orgUnit.HR_STAFFING_PLAN.Where(sp => sp.IsActive).Sum(sp => (decimal?)sp.PlannedHeadcount) ?? 0),
-                ActualHeadcount = await db.HR_EMPLOYEES.CountAsync(e => e.OrgUnitID == id && e.IsActive)
+                PlannedHeadcount = (int)(staffingPlans.Sum(sp => (decimal?)sp.PlannedHeadcount) ?? 0),
+                ActualHeadcount = employees.Count,
+                StaffingPlans = staffingPlanViewModels
             };
 
             if (orgUnit.ParentID.HasValue)

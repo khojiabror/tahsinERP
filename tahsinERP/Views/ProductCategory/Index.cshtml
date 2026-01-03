@@ -52,91 +52,85 @@
                                 <div class="card-body">
                                     <!-- datatable start -->
                                     <div class="card-datatable table-responsive">
-                                        <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>Kod</th>
-                                                    <th>Nomi</th>
-                                                    <th>Xomashyo</th>
-                                                    <th>Tayyor maxsulot</th>
-                                                    <th>Yarim tayyor</th>
-                                                    <th>Sarflanish</th>
-                                                    <th>Tartib raqami</th>
-                                                    @if (changePermit)
-                                                    {
-                                                        <th>Amallar</th>
-                                                    }
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td>
-                                                            <a href="~/ProductCategory/Details/@item.ID">@item.Code</a>
-                                                        </td>
-                                                        <td>@item.Name</td>
-                                                        <td>
-                                                            @if (item.IsRawMaterial)
+                                        <table class="table table-striped table-bordered" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Kod</th>
+                                                            <th>Nomi</th>
+                                                            <th>Xomashyo</th>
+                                                            <th>Tayyor maxsulot</th>
+                                                            <th>Yarim tayyor</th>
+                                                            <th>Sarflanish</th>
+                                                            @if (changePermit)
                                                             {
-                                                                <span class="badge badge-info">Ha</span>
+                                                                <th>Amallar</th>
                                                             }
-                                                            else
-                                                            {
-                                                                <span class="badge badge-secondary">Yo'q</span>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            @if (item.IsFinishedGood)
-                                                            {
-                                                                <span class="badge badge-success">Ha</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge badge-secondary">Yo'q</span>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            @if (item.IsComponent)
-                                                            {
-                                                                <span class="badge badge-warning">Ha</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge badge-secondary">Yo'q</span>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            @if (item.IsConsumable)
-                                                            {
-                                                                <span class="badge badge-primary">Ha</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge badge-secondary">Yo'q</span>
-                                                            }
-                                                        </td>
-                                                        <td>@item.SortOrder</td>
-                                                        @if (changePermit)
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in Model)
                                                         {
-                                                            <td>
-                                                                <div>
-                                                                    <a href="@Url.Action("Edit", "ProductCategory", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "ProductCategory", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
-                                                                </div>
-                                                            </td>
+                                                            <tr>
+                                                                <td>
+                                                                    <a href="~/ProductCategory/Details/@item.ID">@item.Code</a>
+                                                                </td>
+                                                                <td>@item.Name</td>
+                                                                <td>
+                                                                    @if (item.IsRawMaterial)
+                                                                    {
+                                                                        <span class="badge badge-info">Ha</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge badge-secondary">Yo'q</span>
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    @if (item.IsFinishedGood)
+                                                                    {
+                                                                        <span class="badge badge-success">Ha</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge badge-secondary">Yo'q</span>
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    @if (item.IsComponent)
+                                                                    {
+                                                                        <span class="badge badge-warning">Ha</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge badge-secondary">Yo'q</span>
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    @if (item.IsConsumable)
+                                                                    {
+                                                                        <span class="badge badge-primary">Ha</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge badge-secondary">Yo'q</span>
+                                                                    }
+                                                                </td>
+                                                                @if (changePermit)
+                                                                {
+                                                                    <td>
+                                                                        <div>
+                                                                            <a href="@Url.Action("Edit", "ProductCategory", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                            <a href="@Url.Action("Delete", "ProductCategory", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                        </div>
+                                                                    </td>
+                                                                }
+                                                            </tr>
                                                         }
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- datatable ends -->
-                                </div>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <!-- datatable ends -->
+</div>
                             </div>
                         </div>
                     </div>

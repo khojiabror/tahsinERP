@@ -8,7 +8,7 @@
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
 {
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions");
-    
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -17,7 +17,7 @@
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb p-0 mb-0">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item">Moliya</li>
                                     <li class="breadcrumb-item active">Tranzaksiyalar</li>
@@ -43,7 +43,7 @@
                             </a>
                         </div>
                     }
-                    
+
                     <div class="card">
                         <div class="card-content">
                             <div class="card-body">
@@ -77,13 +77,12 @@
                                         </div>
                                     </div>
                                 </form>
-                                
+
                                 <div class="table-responsive">
                                     <table id="transactionsTable" class="table table-striped table-bordered" style="width:100%">
                                         <thead>
                                             <tr>
                                                 <th>Sana</th>
-                                                <th>Vaqt</th>
                                                 <th>Hisob</th>
                                                 <th>Kategoriya</th>
                                                 <th>Yo'nalish</th>
@@ -91,7 +90,6 @@
                                                 <th>Valyuta</th>
                                                 <th>Kontragent</th>
                                                 <th>Maqsad</th>
-                                                <th>Manba</th>
                                                 @if (changePermit)
                                                 {
                                                     <th>Amallar</th>
@@ -103,34 +101,26 @@
                                             {
                                                 <tr>
                                                     <td data-order="@item.TxnDate.ToString("yyyy-MM-dd")" class="text-center">@item.TxnDate.ToString("dd.MM.yyyy")</td>
-                                                    <td data-order="@item.TxnDate.ToString("HH:mm:ss")" class="text-center">@item.TxnDate.ToString("HH:mm")</td>
                                                     <td>@(item.FIN_ACCOUNTS != null ? item.FIN_ACCOUNTS.Name : "-")</td>
                                                     <td>@(item.FIN_CATEGORIES != null ? item.FIN_CATEGORIES.Name : "-")</td>
                                                     <td>
                                                         @if (item.Direction == 1)
-                                                        { <span class="badge badge-success">Kirim</span> }
+                                                        {<span class="badge badge-success">Kirim</span> }
                                                         else
-                                                        { <span class="badge badge-danger">Chiqim</span> }
+                                                        { <span class="badge badge-danger">Chiqim</span>}
                                                     </td>
                                                     <td class="text-right">@item.Amount.ToString("N2")</td>
                                                     <td class="text-center">@(item.CURRENCy != null ? item.CURRENCy.Shortname : "-")</td>
                                                     <td>@(item.CounterpartyName ?? "-")</td>
                                                     <td>@(item.Purpose ?? "-")</td>
-                                                    <td>
-                                                        @if (!string.IsNullOrEmpty(item.SourceDocType) && item.SourceDocID.HasValue)
+
+                                                    <td class="text-center">
+                                                        <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                        @if (changePermit)
                                                         {
-                                                            <a href="@Url.Action("Details", item.SourceDocType, new { id = item.SourceDocID })">@item.SourceDocType</a>
-                                                        }
-                                                        else
-                                                        { <span>Qo'lda</span> }
-                                                    </td>
-                                                    @if (changePermit)
-                                                    {
-                                                        <td class="text-center">
-                                                            <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
-                                                                <i class="bx bx-show"></i>
-                                                            </a>
-                                                            @if (string.IsNullOrEmpty(item.SourceDocType) || item.SourceDocType == "Manual")
+                                                            if (string.IsNullOrEmpty(item.SourceDocType) || item.SourceDocType == "Manual")
                                                             {
                                                                 <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
                                                                     <i class="bx bx-edit"></i>
@@ -139,8 +129,9 @@
                                                                     <i class="bx bx-trash"></i>
                                                                 </a>
                                                             }
-                                                        </td>
-                                                    }
+                                                        }
+                                                    </td>
+
                                                 </tr>
                                             }
                                         </tbody>
@@ -159,12 +150,12 @@
             $(document).ready(function () {
                 // Define changePermit in JavaScript
                 var changePermit = @(changePermit ? "true" : "false");
-                
+
                 // Destroy existing DataTable if it exists
                 if ($.fn.DataTable.isDataTable('#transactionsTable')) {
                     $('#transactionsTable').DataTable().destroy();
                 }
-                
+
                 var table = $('#transactionsTable').DataTable({
                     "language": {
                         "search": "Qidirish:",
@@ -180,15 +171,16 @@
                         },
                         "zeroRecords": "Ma'lumot topilmadi"
                     },
-                    "paging": true, // Pagination'ni faollashtirish
+                    "paging": true,
+                    "searching": true, // Search'ni faollashtirish
+                    "lengthChange": true, // Show entries'ni faollashtirish
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]], // Remove -1 to keep pagination always active
-                    "order": [[0, "desc"], [1, "desc"]], // Default: Sana va Vaqt bo'yicha teskari tartib
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "order": [[0, "desc"]], // Default: Sana bo'yicha teskari tartib
                     "columnDefs": [
-                        { "className": "text-center", "targets": [0, 1, 2, 3, 4, 6, 7, 8, 9] }, // Center all except amount
-                        { "className": "text-right", "targets": 5 }, // Right align amount
+                        { "className": "text-center", "targets": [0, 3, 5, 6, 7] }, // Center alignment
+                        { "className": "text-right", "targets": 4 }, // Right align amount
                         { "type": "date", "targets": 0 }, // Sana ustuni date type
-                        { "type": "date", "targets": 1 }, // Vaqt ustuni date type
                         @if (changePermit)
                         {
                             <text>
@@ -196,40 +188,14 @@
                             </text>
                         }
                     ],
-                    "dom": 'lBfrtip', // l=length, B=buttons, f=filter, r=processing, t=table, i=info, p=pagination
-                    "pagingType": "full_numbers", // Page raqamlarini ko'rsatish (1, 2, 3...)
+                    "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>', // l=length, f=filter, r=processing, t=table, i=info, p=pagination
+                    "pagingType": "full_numbers",
                     "processing": true,
-                    "serverSide": false, // Client-side processing - all data loaded
-                    "deferRender": true, // Performance optimization for large datasets
-                    "scrollX": true, // Horizontal scroll for wide tables
-                    "buttons": [
-                        {
-                            extend: 'excelHtml5',
-                            text: '<i class="bx bxs-file-excel"></i> Excel',
-                            titleAttr: 'Excelga yuklash',
-                            className: 'btn btn-success mr-1',
-                            filename: function () {
-                                var now = new Date();
-                                var dateStr = now.getFullYear() + 
-                                    String(now.getMonth() + 1).padStart(2, '0') + 
-                                    String(now.getDate()).padStart(2, '0') + '_' +
-                                    String(now.getHours()).padStart(2, '0') + 
-                                    String(now.getMinutes()).padStart(2, '0') + 
-                                    String(now.getSeconds()).padStart(2, '0');
-                                return 'FinTransactions_' + dateStr;
-                            },
-                            exportOptions: {
-                                columns: changePermit ? ':not(:last-child)' : ':visible',
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        return data.replace(/<[^>]*>/g, '').trim();
-                                    }
-                                }
-                            }
-                        }
-                    ]
+                    "serverSide": false,
+                    "deferRender": true,
+                    "scrollX": true
                 });
-                
+
                 // Force pagination to be visible on initial load
                 setTimeout(function() {
                     var wrapper = $('#transactionsTable_wrapper');
@@ -243,18 +209,45 @@
             });
         </script>
         <style>
-            /* Ensure DataTable pagination is visible */
-            #transactionsTable_wrapper .dataTables_paginate {
-                display: block !important;
-                visibility: visible !important;
-            }
+            /* Ensure DataTable controls are visible */
             #transactionsTable_wrapper .dataTables_length {
                 display: block !important;
                 visibility: visible !important;
+                margin-bottom: 10px;
             }
+
+            #transactionsTable_wrapper .dataTables_filter {
+                display: block !important;
+                visibility: visible !important;
+                margin-bottom: 10px;
+            }
+
+            #transactionsTable_wrapper .dataTables_paginate {
+                display: block !important;
+                visibility: visible !important;
+                margin-top: 10px;
+            }
+
             #transactionsTable_wrapper .dataTables_info {
                 display: block !important;
                 visibility: visible !important;
+                margin-top: 10px;
+            }
+
+            /* Style for search input */
+            #transactionsTable_wrapper .dataTables_filter input {
+                margin-left: 5px;
+                padding: 5px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+
+            /* Style for length select */
+            #transactionsTable_wrapper .dataTables_length select {
+                margin: 0 5px;
+                padding: 5px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
             }
         </style>
     }

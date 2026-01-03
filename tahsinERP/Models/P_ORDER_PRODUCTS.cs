@@ -22,6 +22,8 @@ namespace tahsinERP.Models
         public double TotalPrice { get; set; }
         public Nullable<double> MOQ { get; set; }
         public Nullable<int> UnitID { get; set; }
+        public string Priority { get; set; }
+        public Nullable<System.DateTime> RequiredDate { get; set; }
     
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual P_ORDERS P_ORDERS { get; set; }

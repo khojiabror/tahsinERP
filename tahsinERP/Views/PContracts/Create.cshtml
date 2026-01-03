@@ -55,7 +55,11 @@
                                         <a href="~/PContracts/Index">Xarid shartnomalari</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Yangi shartnoma
+                                        @{
+                                            var purchaseType = Request.QueryString["purchaseType"];
+                                            var purchaseTypeText = purchaseType == "Indirect" ? "Yangi shartnoma (Indirect)" : "Yangi shartnoma (Direct)";
+                                        }
+                                        @purchaseTypeText
                                     </li>
                                 </ol>
                             </div>
@@ -75,7 +79,20 @@
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
+                                            if (purchaseType == "Indirect")
+                                            {
+                                                <input type="hidden" name="PurchaseType" value="Indirect" />
+                                            }
+
                                             <div class="row">
+                                                @if (purchaseType == "Indirect")
+                                                {
+                                                    <div class="col-12 mb-2">
+                                                        <div class="alert alert-info">
+                                                            <i class="bx bx-info-circle"></i> <strong>Indirect Purchase:</strong> Bu shartnoma jihozlar, dastgohlar, sarf materiallar va yordamchi mahsulotlar uchun yaratilmoqda.
+                                                        </div>
+                                                    </div>
+                                                }
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="ContractNo">Shartnoma raqami</label>
                                                     @Html.TextBoxFor(model => model.ContractNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
@@ -86,11 +103,6 @@
                                                     <label for="IssuedDate">Sana</label>
                                                     @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="CompanyID">Korxona</label>
-                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>

@@ -39,10 +39,31 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "POrders")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi buyurtma
+                                <i class="bx bx-plus"></i> Yangi buyurtma (Direct)
+                            </a>
+                            <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-info bg-light invoice-create ml-1" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Xarid arizasi (Indirect)
                             </a>
                         </div>
                     }
+
+                    <!-- Purchase Type Filter -->
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            @using (Html.BeginForm("Index", "POrders", FormMethod.Get))
+                            {
+                                <div class="form-group">
+                                    <label for="purchaseTypeFilter">Xarid turi</label>
+                                    @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
+                                    {
+                                        new { Value = "", Text = "Barchasi" },
+                                        new { Value = "Direct", Text = "Direct Purchase" },
+                                        new { Value = "Indirect", Text = "Indirect Purchase" }
+                                    }, "Value", "Text", Request.QueryString["purchaseTypeFilter"]), new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                </div>
+                            }
+                        </div>
+                    </div>
 
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
@@ -54,9 +75,11 @@
                                                 <tr>
                                                     <th>Buyurtma raqami</th>
                                                     <th>Ta'minotchi</th>
+                                                    <th>Turi</th>
                                                     <th>Sana</th>
                                                     <th>Summa</th>
                                                     <th>Valyuta</th>
+                                                    <th>Status</th>
                                                     @if (changePermit)
                                                     {
                                                         <th>Amallar</th>
@@ -82,9 +105,29 @@
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
+                                                            <td>
+                                                                @{
+                                                                    var orderType = item.PurchaseType == 1 ? "Indirect" : "Direct";
+                                                                    var orderTypeClass = item.PurchaseType == 1 ? "badge-info" : "badge-primary";
+                                                                }
+                                                                <span class="badge @orderTypeClass">@orderType</span>
+                                                            </td>
                                                             <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
                                                             <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
                                                             <td>@(item.CURRENCy?.Shortname ?? "")</td>
+                                                            <td>
+                                                                @{
+                                                                    var statusClass = "badge-secondary";
+                                                                    switch (item.Status)
+                                                                    {
+                                                                        case "Created": statusClass = "badge-info"; break;
+                                                                        case "ContractCreated": statusClass = "badge-warning"; break;
+                                                                        case "Invoiced": statusClass = "badge-primary"; break;
+                                                                        case "Received": statusClass = "badge-success"; break;
+                                                                    }
+                                                                }
+                                                                <span class="badge @statusClass">@(item.Status ?? "Created")</span>
+                                                            </td>
                                                             @if (changePermit)
                                                             {
                                                                 <td>
@@ -147,8 +190,8 @@
                                 },
                                 "zeroRecords": "Ma'lumot topilmadi"
                             },
-                            "pageLength": 25,
-                            "order": [[2, "desc"]]
+                "pageLength": 25,
+                "order": [[3, "desc"]]
                         });
                     }
                 });

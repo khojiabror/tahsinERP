@@ -121,15 +121,15 @@ namespace tahsinERP.Services
                 .ToList();
 
             // Monthly trends (last 12 months)
-            dashboard.MonthlyTrends = await GetMonthlyTrendsAsync(year, month);
+            dashboard.MonthlyTrends = await GetMonthlyTrendsAsync(year, month, productID);
 
             return dashboard;
         }
 
         /// <summary>
-        /// Get monthly trends for the last 12 months
+        /// Get monthly trends for the last 12 months for a specific product (or all products if productID is null)
         /// </summary>
-        private async Task<List<TannarxMonthlyTrendViewModel>> GetMonthlyTrendsAsync(int currentYear, int currentMonth)
+        private async Task<List<TannarxMonthlyTrendViewModel>> GetMonthlyTrendsAsync(int currentYear, int currentMonth, int? productID = null)
         {
             var trends = new List<TannarxMonthlyTrendViewModel>();
             var date = new DateTime(currentYear, currentMonth, 1);
@@ -140,21 +140,60 @@ namespace tahsinERP.Services
                 var year = trendDate.Year;
                 var month = trendDate.Month;
 
-                var tannarxList = await _db.TANNARXes
+                var query = _db.TANNARXes
                     .Where(t => t.Year == year 
                         && t.Month == month 
-                        && !t.IsDeleted)
-                    .ToListAsync();
+                        && !t.IsDeleted);
 
-                trends.Add(new TannarxMonthlyTrendViewModel
+                // Filter by productID if specified
+                if (productID.HasValue)
                 {
-                    Year = year,
-                    Month = month,
-                    MonthString = GetMonthName(month),
-                    PlannedTotal = tannarxList.Sum(t => t.SetPriceEXWWithVAT ?? t.SalesPriceEXWWithVAT),
-                    ActualTotal = tannarxList.Sum(t => t.ActualSalesPriceEXWWithVAT ?? 0),
-                    Variance = tannarxList.Sum(t => (t.ActualSalesPriceEXWWithVAT ?? 0) - (t.SetPriceEXWWithVAT ?? t.SalesPriceEXWWithVAT))
-                });
+                    query = query.Where(t => t.ProductID == productID.Value);
+                }
+
+                var tannarxList = await query.ToListAsync();
+
+                // If productID is specified, get only the first record (single product)
+                // Otherwise, sum all products
+                if (productID.HasValue && tannarxList.Any())
+                {
+                    var tannarx = tannarxList.First();
+                    trends.Add(new TannarxMonthlyTrendViewModel
+                    {
+                        Year = year,
+                        Month = month,
+                        MonthString = GetMonthName(month),
+                        PlannedTotal = tannarx.SetPriceEXWWithVAT ?? tannarx.SalesPriceEXWWithVAT,
+                        ActualTotal = tannarx.ActualSalesPriceEXWWithVAT ?? 0,
+                        Variance = (tannarx.ActualSalesPriceEXWWithVAT ?? 0) - (tannarx.SetPriceEXWWithVAT ?? tannarx.SalesPriceEXWWithVAT)
+                    });
+                }
+                else if (!productID.HasValue)
+                {
+                    // Sum all products only if productID is not specified
+                    trends.Add(new TannarxMonthlyTrendViewModel
+                    {
+                        Year = year,
+                        Month = month,
+                        MonthString = GetMonthName(month),
+                        PlannedTotal = tannarxList.Sum(t => t.SetPriceEXWWithVAT ?? t.SalesPriceEXWWithVAT),
+                        ActualTotal = tannarxList.Sum(t => t.ActualSalesPriceEXWWithVAT ?? 0),
+                        Variance = tannarxList.Sum(t => (t.ActualSalesPriceEXWWithVAT ?? 0) - (t.SetPriceEXWWithVAT ?? t.SalesPriceEXWWithVAT))
+                    });
+                }
+                else
+                {
+                    // No data for this month for the selected product
+                    trends.Add(new TannarxMonthlyTrendViewModel
+                    {
+                        Year = year,
+                        Month = month,
+                        MonthString = GetMonthName(month),
+                        PlannedTotal = 0,
+                        ActualTotal = 0,
+                        Variance = 0
+                    });
+                }
             }
 
             return trends;

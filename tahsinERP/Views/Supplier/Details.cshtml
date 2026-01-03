@@ -116,6 +116,26 @@
                                             </table>
                                         </div>
                                     </div>
+
+                                    <hr />
+
+                                    <!-- Related Documents Section -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("Index", "PContracts", new { supplierID = Model.ID })" class="btn btn-outline-primary">
+                                                    <i class="bx bx-file"></i> Shartnomalar (@ViewBag.ContractsCount)
+                                                </a>
+                                                <a href="@Url.Action("Index", "POrders", new { supplierID = Model.ID })" class="btn btn-outline-primary">
+                                                    <i class="bx bx-list-ul"></i> Buyurtmalar (@ViewBag.OrdersCount)
+                                                </a>
+                                                <a href="@Url.Action("Index", "PInvoices", new { supplierID = Model.ID })" class="btn btn-outline-primary">
+                                                    <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

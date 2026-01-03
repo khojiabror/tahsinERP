@@ -127,8 +127,8 @@ namespace tahsinERP.Services
 
             string combinedText = fullText.ToString();
             
-            // Step 2: Check if any placeholder exists
-            bool hasPlaceholder = combinedText.Contains("{{");
+            // Step 2: Check if any placeholder exists (check both {{ and { formats)
+            bool hasPlaceholder = combinedText.Contains("{{") || combinedText.Contains("{");
             if (!hasPlaceholder)
                 return;
 
@@ -273,7 +273,9 @@ namespace tahsinERP.Services
                 { "{{Content}}", placeholders.ContainsKey("LETTER_BODY") ? placeholders["LETTER_BODY"] : "" },
                 // Company Orders placeholders
                 { "{{ORDER_NO}}", placeholders.ContainsKey("ORDER_NO") ? placeholders["ORDER_NO"] : (placeholders.ContainsKey("ORDER NO") ? placeholders["ORDER NO"] : "") },
-                { "{{ORDER NO}}", placeholders.ContainsKey("ORDER_NO") ? placeholders["ORDER_NO"] : (placeholders.ContainsKey("ORDER NO") ? placeholders["ORDER NO"] : "") }
+                { "{{ORDER NO}}", placeholders.ContainsKey("ORDER_NO") ? placeholders["ORDER_NO"] : (placeholders.ContainsKey("ORDER NO") ? placeholders["ORDER NO"] : "") },
+                { "{{Order_date}}", placeholders.ContainsKey("Order_date") ? placeholders["Order_date"] : (placeholders.ContainsKey("ORDER_DATE") ? placeholders["ORDER_DATE"] : "") },
+                { "{{ORDER_DATE}}", placeholders.ContainsKey("ORDER_DATE") ? placeholders["ORDER_DATE"] : (placeholders.ContainsKey("Order_date") ? placeholders["Order_date"] : "") }
             };
 
             // Replace nested format placeholders
@@ -286,14 +288,30 @@ namespace tahsinERP.Services
             }
 
             // Then replace standard format placeholders ({{KEY}})
-            foreach (var kvp in placeholders)
+            // Also support single brace format ({KEY}) for compatibility
+            // Sort by key length (longest first) to avoid partial replacements
+            var sortedPlaceholders = placeholders.OrderByDescending(kvp => kvp.Key.Length).ToList();
+            
+            foreach (var kvp in sortedPlaceholders)
             {
-                string placeholderKey = "{{" + kvp.Key + "}}";
                 string value = kvp.Value ?? string.Empty;
                 
-                if (result.Contains(placeholderKey))
+                // Replace {{KEY}} format - exact match only, case-insensitive
+                string placeholderKeyDouble = "{{" + kvp.Key + "}}";
+                int indexDouble = result.IndexOf(placeholderKeyDouble, StringComparison.OrdinalIgnoreCase);
+                while (indexDouble >= 0)
                 {
-                    result = result.Replace(placeholderKey, value);
+                    result = result.Substring(0, indexDouble) + value + result.Substring(indexDouble + placeholderKeyDouble.Length);
+                    indexDouble = result.IndexOf(placeholderKeyDouble, indexDouble + value.Length, StringComparison.OrdinalIgnoreCase);
+                }
+                
+                // Replace {KEY} format (single braces) - exact match only, case-insensitive
+                string placeholderKeySingle = "{" + kvp.Key + "}";
+                int indexSingle = result.IndexOf(placeholderKeySingle, StringComparison.OrdinalIgnoreCase);
+                while (indexSingle >= 0)
+                {
+                    result = result.Substring(0, indexSingle) + value + result.Substring(indexSingle + placeholderKeySingle.Length);
+                    indexSingle = result.IndexOf(placeholderKeySingle, indexSingle + value.Length, StringComparison.OrdinalIgnoreCase);
                 }
             }
 

@@ -1,4 +1,4 @@
-@model List<tahsinERP.ViewModels.HR.HrPieceRateTimesheetIndexViewModel>
+﻿@model List<tahsinERP.ViewModels.HR.HrPieceRateTimesheetIndexViewModel>
 @{
     ViewBag.Title = "Ishbay tabel";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -18,7 +18,7 @@
                         <div class="col-12">
                             <h5 class="content-header-title float-left pr-1 mb-0">Ishbay tabel</h5>
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb p-0 mb-0">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item active">Ishbay tabel</li>
                                 </ol>
@@ -47,11 +47,11 @@
                                         <input type="number" name="year" class="form-control" value="@ViewBag.Year" placeholder="Yil" min="2000" max="2100" />
                                     </div>
                                     <div class="col-md-2">
-                                        <select name="month" class="form-control">
+                                        <select name="month" class="form-control" id="monthFilter">
                                             <option value="">Barcha oylar</option>
                                             @for (int i = 1; i <= 12; i++)
                                             {
-                                                <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                                <option value="@i" @(ViewBag.Month != null && (int)ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
                                             }
                                         </select>
                                     </div>
@@ -113,9 +113,9 @@
                                                             using (Html.BeginForm("Approve", "HrPieceRateTimesheets", FormMethod.Post, new { style = "display: inline-block;", onsubmit = "return confirm('Bu tabelni tasdiqlashni xohlaysizmi?');" }))
                                                             {
                                                                 @Html.AntiForgeryToken()
-                                                                @Html.Hidden("year", item.Year)
-                                                                @Html.Hidden("month", item.Month)
-                                                                @Html.Hidden("orgUnitId", item.OrgUnitID)
+                                                                <input type="hidden" name="year" value="@item.Year" />
+                                                                <input type="hidden" name="month" value="@item.Month" />
+                                                                <input type="hidden" name="orgUnitId" value="@item.OrgUnitID" />
                                                                 <button type="submit" class="btn btn-sm btn-success">
                                                                     <i class="bx bx-check"></i>
                                                                 </button>
@@ -143,12 +143,29 @@
 
     <script>
         $(document).ready(function() {
-            $('#timesheetsTable').DataTable({
+            var table = $('#timesheetsTable').DataTable({
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
                 },
                 "pageLength": 25,
                 "order": [[0, "desc"], [1, "desc"]]
+            });
+
+            // Handle month filter change - reload page with new filter
+            $('#monthFilter').on('change', function() {
+                var month = $(this).val();
+                var year = $('input[name="year"]').val();
+                var orgUnitId = $('select[name="orgUnitId"]').val();
+                
+                var url = '@Url.Action("Index")' + '?year=' + year;
+                if (month) {
+                    url += '&month=' + month;
+                }
+                if (orgUnitId) {
+                    url += '&orgUnitId=' + orgUnitId;
+                }
+                
+                window.location.href = url;
             });
         });
     </script>

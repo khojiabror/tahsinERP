@@ -1,4 +1,4 @@
-@model tahsinERP.Models.FIN_TRANSACTIONS
+﻿@model tahsinERP.Models.FIN_TRANSACTIONS
 
 @{
     ViewBag.Title = "Yangi tranzaksiya qo'shish";
@@ -15,7 +15,7 @@
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
                             <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb p-0 mb-0">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="~/FinTransactions">Tranzaksiyalar</a></li>
                                     <li class="breadcrumb-item active">Yangi tranzaksiya</li>
@@ -50,7 +50,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.AccountID, "Hisob *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountID as SelectList, "Tanlang...", new { @class = "form-control", required = "required", onchange = "loadAccountCurrency()" })
+                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountID as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required", onchange = "loadAccountCurrency()" })
                                                     @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
@@ -60,14 +60,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.CategoryID, "Kategoriya *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoryID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                                    @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoryID as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
                                                     @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.Direction, "Yo'nalish *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.Direction, ViewBag.DirectionList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                                    @Html.DropDownListFor(m => m.Direction, ViewBag.DirectionList as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
                                                     @Html.ValidationMessageFor(m => m.Direction, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
@@ -84,7 +84,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.CurrencyID, "Valyuta *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                                    @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
                                                     @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
@@ -94,7 +94,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.CounterpartyType, "Kontragent turi", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control" })
+                                                    @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control select2" })
                                                 </div>
                                             </div>
                                             <div class="col-md-6">

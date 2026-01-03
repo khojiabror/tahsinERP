@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers
     public class PInvoicesController : Controller
     {
         // GET: PInvoices
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Index"))
             {
@@ -23,14 +23,40 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var invoices = await db.P_INVOICES
+                var query = db.P_INVOICES
                     .Include(i => i.SUPPLIER)
                     .Include(i => i.COMPANy)
                     .Include(i => i.CURRENCy)
                     .Include(i => i.P_ORDERS)
                     .Where(i => i.IsDeleted != true)
+                    .AsQueryable();
+
+                // Filter by supplier
+                if (supplierID.HasValue && supplierID.Value > 0)
+                {
+                    query = query.Where(i => i.SupplierID == supplierID.Value);
+                }
+
+                // Filter by contract
+                if (contractID.HasValue && contractID.Value > 0)
+                {
+                    query = query.Where(i => i.ContractID == contractID.Value);
+                }
+
+                // Filter by purchase type
+                if (!string.IsNullOrEmpty(purchaseTypeFilter))
+                {
+                    byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
+                    query = query.Where(i => i.PurchaseType == purchaseType);
+                }
+
+                var invoices = await query
                     .OrderByDescending(i => i.InvoiceDate)
                     .ToListAsync();
+
+                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+                ViewBag.SupplierID = supplierID;
+                ViewBag.ContractID = contractID;
 
                 return View(invoices);
             }
@@ -141,10 +167,29 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname"
                 );
 
+                // Determine purchase type from order if available (from query string)
+                byte purchaseType = 0;
+                if (Request.QueryString["orderId"] != null && int.TryParse(Request.QueryString["orderId"], out int orderId))
+                {
+                    var order = await db.P_ORDERS.FindAsync(orderId);
+                    if (order != null)
+                    {
+                        purchaseType = order.PurchaseType;
+                    }
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -217,6 +262,21 @@ namespace tahsinERP.Controllers
                             model.InvoiceNo = await GenerateInvoiceNo(db);
                         }
 
+                        // Determine purchase type from order if available
+                        byte purchaseType = 0; // Default: Direct
+                        if (model.OrderID.HasValue)
+                        {
+                            var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                            if (order != null)
+                            {
+                                purchaseType = order.PurchaseType;
+                            }
+                        }
+                        else if (Request.Form["PurchaseType"] != null && Request.Form["PurchaseType"] == "Indirect")
+                        {
+                            purchaseType = 1;
+                        }
+
                         // Create invoice header
                         var invoice = new P_INVOICES
                         {
@@ -228,7 +288,8 @@ namespace tahsinERP.Controllers
                             CompanyID = model.CompanyID ?? (defaultCompany?.ID ?? 0),
                             CurrencyID = model.CurrencyID,
                             Amount = 0,
-                            IsDeleted = false
+                            IsDeleted = false,
+                            PurchaseType = purchaseType
                         };
 
                         db.P_INVOICES.Add(invoice);
@@ -351,10 +412,29 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
+                // Determine purchase type from order if available
+                byte purchaseType = 0;
+                if (model.OrderID.HasValue)
+                {
+                    var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                    if (order != null)
+                    {
+                        purchaseType = order.PurchaseType;
+                    }
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -468,10 +548,29 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
+                // Determine purchase type from order if available
+                byte purchaseType = 0;
+                if (model.OrderID.HasValue)
+                {
+                    var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                    if (order != null)
+                    {
+                        purchaseType = order.PurchaseType;
+                    }
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -515,6 +614,17 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
+                        // Determine purchase type from order if available
+                        byte purchaseType = 0;
+                        if (model.OrderID.HasValue)
+                        {
+                            var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                            if (order != null)
+                            {
+                                purchaseType = order.PurchaseType;
+                            }
+                        }
+
                         // Update invoice header
                         invoice.InvoiceNo = model.InvoiceNo;
                         invoice.InvoiceDate = model.InvoiceDate;
@@ -523,6 +633,7 @@ namespace tahsinERP.Controllers
                         invoice.ContractID = model.ContractID ?? 0;
                         invoice.CompanyID = model.CompanyID ?? (await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync())?.ID ?? 0;
                         invoice.CurrencyID = model.CurrencyID;
+                        invoice.PurchaseType = purchaseType;
 
                         // Remove existing invoice products
                         var existingProducts = db.P_INVOICE_PRODUCTS.Where(ip => ip.InvoiceID == invoice.ID).ToList();
@@ -643,10 +754,29 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
+                // Determine purchase type from order if available
+                byte purchaseType = 0;
+                if (model.OrderID.HasValue)
+                {
+                    var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                    if (order != null)
+                    {
+                        purchaseType = order.PurchaseType;
+                    }
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true &&
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 

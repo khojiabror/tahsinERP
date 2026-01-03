@@ -43,28 +43,47 @@
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <!-- Sales Orders Selection for BOM Generation -->
-                                            <div class="row mb-2 border-bottom pb-3">
-                                                <div class="col-12">
-                                                    <h5 class="mb-2">Sotuv buyurtmalaridan generatsiya qilish</h5>
-                                                    <div class="row">
-                                                        <div class="col-md-8 col-12 form-group">
-                                                            <label for="SelectedSalesOrderIds">Sotuv buyurtmalari (bir yoki bir nechta tanlash mumkin)</label>
-                                                            @Html.ListBoxFor(model => model.SelectedSalesOrderIds, 
-                                                                ViewBag.SalesOrders as MultiSelectList, 
-                                                                new { @class = "form-control select2", @multiple = "multiple", @id = "salesOrdersSelect" })
-                                                            @Html.ValidationMessageFor(model => model.SelectedSalesOrderIds, "", new { @class = "text-danger" })
+                                            {
+                                                var purchaseType = ViewBag.PurchaseType != null ? (int)ViewBag.PurchaseType : 0;
+                                                var isIndirect = purchaseType == 1;
+                                            
+
+                                            if (!isIndirect)
+                                            {
+                                                <!-- Sales Orders Selection for BOM Generation - Only for Direct Purchase -->
+                                                <div class="row mb-2 border-bottom pb-3">
+                                                    <div class="col-12">
+                                                        <h5 class="mb-2">Sotuv buyurtmalaridan generatsiya qilish</h5>
+                                                        <div class="row">
+                                                            <div class="col-md-8 col-12 form-group">
+                                                                <label for="SelectedSalesOrderIds">Sotuv buyurtmalari (bir yoki bir nechta tanlash mumkin)</label>
+                                                                @Html.ListBoxFor(model => model.SelectedSalesOrderIds, 
+                                                                    ViewBag.SalesOrders as MultiSelectList, 
+                                                                    new { @class = "form-control select2", @multiple = "multiple", @id = "salesOrdersSelect" })
+                                                                @Html.ValidationMessageFor(model => model.SelectedSalesOrderIds, "", new { @class = "text-danger" })
+                                                            </div>
+                                                            <div class="col-md-4 col-12 form-group d-flex align-items-end">
+                                                                <button type="button" class="btn btn-primary w-100" id="generateBtn">
+                                                                    <i class="bx bx-cog"></i> Generatsiya qilish
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div class="col-md-4 col-12 form-group d-flex align-items-end">
-                                                            <button type="button" class="btn btn-primary w-100" id="generateBtn">
-                                                                <i class="bx bx-cog"></i> Generatsiya qilish
-                                                            </button>
+                                                        <small class="text-muted">Sotuv buyurtmalarini tanlab, BOM asosida xom ashyo ehtiyojlarini avtomatik hisoblang</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <!-- Indirect Purchase Info -->
+                                                <div class="row mb-2">
+                                                    <div class="col-12">
+                                                        <div class="alert alert-info">
+                                                            <i class="bx bx-info-circle"></i> <strong>Indirect Purchase:</strong> Bu buyurtma PRequisition asosida yaratilmoqda. Mahsulotlar avtomatik yuklanadi.
                                                         </div>
                                                     </div>
-                                                    <small class="text-muted">Sotuv buyurtmalarini tanlab, BOM asosida xom ashyo ehtiyojlarini avtomatik hisoblang</small>
                                                 </div>
-                                            </div>
-
+                                            }
+                                            }
                                             <!-- Order Header -->
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
@@ -168,6 +187,10 @@ else
     var unitsList = ViewBag.Units as SelectList;
     var purchasableProductsData = new List<object>();
     var unitsData = new List<object>();
+    var purchaseTypee = ViewBag.PurchaseType != null ? (int)ViewBag.PurchaseType : 0;
+    var isIndirecto = purchaseTypee == 1;
+    var requisition = ViewBag.Requisition as tahsinERP.Models.P_REQUISITIONS;
+    var requisitionId = requisition != null ? requisition.ID : (int?)null;
     
     if (purchasableProductsList != null)
     {
@@ -218,6 +241,8 @@ else
                     var productRowIndex = 0;
                     var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData ?? new List<object>()));
                     var units = @Html.Raw(Json.Encode(unitsData ?? new List<object>()));
+                    var isIndirect = @(isIndirecto ? "true" : "false");
+                    var requisitionId = @(requisitionId.HasValue ? requisitionId.Value.ToString() : "null");
                     
                     // Ensure arrays are initialized
                     if (!purchasableProducts || !Array.isArray(purchasableProducts)) {
@@ -225,6 +250,58 @@ else
                     }
                     if (!units || !Array.isArray(units)) {
                         units = [];
+                    }
+
+                    // Load products from requisition if this is an indirect purchase
+                    if (isIndirect && requisitionId) {
+                        loadRequisitionProducts(requisitionId);
+                    }
+
+                    // Function to load products from requisition
+                    function loadRequisitionProducts(reqId) {
+                        $.ajax({
+                            url: '@Url.Action("LoadRequisitionProducts", "POrders")',
+                            type: 'POST',
+                            data: { 
+                                requisitionId: reqId,
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            success: function (response) {
+                                if (response && response.success) {
+                                    // Clear existing rows
+                                    $('#orderProductsTable tbody').empty();
+                                    productRowIndex = 0;
+
+                                    // Add requisition products
+                                    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                                        response.data.forEach(function (item) {
+                                            try {
+                                                addProductRow(
+                                                    item.ProductID || null,
+                                                    item.ProductPNo || '',
+                                                    item.ProductName || '',
+                                                    item.Quantity || 0,
+                                                    item.UnitID || null,
+                                                    item.EstimatedPrice || 0,
+                                                    null, // MOQ
+                                                    '' // Calculation explanation
+                                                );
+                                            } catch (err) {
+                                                console.error('Error adding product row:', err, item);
+                                            }
+                                        });
+                                        updateTotal();
+                                    }
+                                } else {
+                                    var errorMsg = response && response.message ? response.message : 'Noma\'lum xatolik';
+                                    alert('Xatolik: ' + errorMsg);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('AJAX Error:', status, error, xhr);
+                                alert('Requisition mahsulotlarini yuklashda xatolik yuz berdi');
+                            }
+                        });
                     }
 
                     // Generate from Sales Orders

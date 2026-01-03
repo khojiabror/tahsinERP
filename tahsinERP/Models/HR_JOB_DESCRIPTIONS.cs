@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class HR_JOB_DESCRIPTIONS
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public HR_JOB_DESCRIPTIONS()
+        {
+            this.JOB_DESC = new HashSet<JOB_DESC>();
+        }
+    
         public long DocumentID { get; set; }
         public int PositionID { get; set; }
         public Nullable<int> OrgUnitID { get; set; }
@@ -23,5 +29,7 @@ namespace tahsinERP.Models
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
         public virtual HR_ORG_UNITS HR_ORG_UNITS { get; set; }
         public virtual HR_POSITIONS HR_POSITIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<JOB_DESC> JOB_DESC { get; set; }
     }
 }

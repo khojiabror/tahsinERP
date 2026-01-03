@@ -322,14 +322,28 @@ namespace tahsinERP.Controllers
             {
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.COM_OFFICIAL_LETTERS)
+                    .Include(d => d.DOC_FILES)
                     .FirstOrDefaultAsync(d => d.ID == id);
 
                 if (doc != null)
                 {
+                    // First, delete all related DOC_FILES
+                    if (doc.DOC_FILES != null && doc.DOC_FILES.Any())
+                    {
+                        var files = doc.DOC_FILES.ToList();
+                        foreach (var file in files)
+                        {
+                            db.DOC_FILES.Remove(file);
+                        }
+                    }
+
+                    // Then delete the official letter record
                     if (doc.COM_OFFICIAL_LETTERS != null)
                     {
                         db.COM_OFFICIAL_LETTERS.Remove(doc.COM_OFFICIAL_LETTERS);
                     }
+
+                    // Finally, delete the document record
                     db.DOC_DOCUMENTS.Remove(doc);
                     await db.SaveChangesAsync();
 

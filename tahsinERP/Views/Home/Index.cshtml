@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "Bosh sahifa - Dashboard";
 }
 <!-- BEGIN: Content-->
@@ -11,7 +11,7 @@
                     @*<div class="col-12">
                         <h2 class="content-header-title float-left mb-0">Dashboard</h2>
                         <div class="breadcrumb-wrapper col-12">
-                            <ol class="breadcrumb p-0 mb-0">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                 <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                 <li class="breadcrumb-item active">Dashboard</li>
                             </ol>
@@ -340,13 +340,12 @@
                 }
             });
             
-            // Chartlarni yuklash - DOM ready bo'lganda
-            $(document).ready(function() {
+            $(window).on("load", function () {
                 // Loading overlay'ni majburiy ravishda yashirish (agar xato bo'lsa ham)
                 setTimeout(function() {
                     $('html').removeClass('loading').addClass('loaded');
                     $('.content-overlay').hide();
-                }, 500);
+                }, 1500);
                 
                 // iPack korxonasi yashil ranglari
                 var $primary = '#198754'; // To'q yashil
@@ -1130,7 +1129,6 @@
                 $('#finance-total').text('0');
             }
         });
-            }); // $(document).ready() yopilishi
         }
         
         // DOM yuklangandan keyin ishga tushirish

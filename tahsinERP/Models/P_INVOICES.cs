@@ -33,6 +33,7 @@ namespace tahsinERP.Models
         public Nullable<bool> IsDeleted { get; set; }
         public Nullable<int> CurrencyID { get; set; }
         public int ContractID { get; set; }
+        public byte PurchaseType { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
         public virtual CURRENCy CURRENCy { get; set; }

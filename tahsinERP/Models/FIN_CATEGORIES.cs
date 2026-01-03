@@ -19,8 +19,8 @@ namespace tahsinERP.Models
         {
             this.FIN_CATEGORIES1 = new HashSet<FIN_CATEGORIES>();
             this.FIN_TRANSACTIONS = new HashSet<FIN_TRANSACTIONS>();
-            this.FIN_PL_ITEMS = new HashSet<FIN_PL_ITEMS>();
             this.FIN_BALANCE_CATEGORIES = new HashSet<FIN_BALANCE_CATEGORIES>();
+            this.FIN_PL_ITEMS = new HashSet<FIN_PL_ITEMS>();
         }
     
         public int ID { get; set; }
@@ -36,8 +36,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<FIN_PL_ITEMS> FIN_PL_ITEMS { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_BALANCE_CATEGORIES> FIN_BALANCE_CATEGORIES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIN_PL_ITEMS> FIN_PL_ITEMS { get; set; }
     }
 }

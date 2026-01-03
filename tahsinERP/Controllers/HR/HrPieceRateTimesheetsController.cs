@@ -33,8 +33,9 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            year = year ?? DateTime.Now.Year;
-            month = month ?? DateTime.Now.Month;
+            // Don't set default values if not provided - allow showing all months
+            // year = year ?? DateTime.Now.Year;
+            // month = month ?? DateTime.Now.Month;
 
             // Get work entries from HR_PIECE_RATE_WORK_ENTRIES
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
@@ -42,12 +43,13 @@ namespace tahsinERP.Controllers.HR
                 .Include(e => e.PRODUCT)
                 .Include(e => e.HR_PIECE_RATE_OPERATIONS);
 
+            // Apply filters only if provided
             if (year.HasValue)
             {
                 query = query.Where(e => e.WorkDate.Year == year.Value);
             }
 
-            if (month.HasValue)
+            if (month.HasValue && month.Value > 0)
             {
                 query = query.Where(e => e.WorkDate.Month == month.Value);
             }
@@ -94,8 +96,8 @@ namespace tahsinERP.Controllers.HR
                 .ThenByDescending(x => x.Month)
                 .ToList();
 
-            ViewBag.Year = year;
-            ViewBag.Month = month;
+            ViewBag.Year = year ?? DateTime.Now.Year;
+            ViewBag.Month = month; // Keep null if not provided to show all months
             ViewBag.OrgUnitID = new SelectList(
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name", orgUnitId);
@@ -490,7 +492,7 @@ namespace tahsinERP.Controllers.HR
         // POST: HR/PieceRateTimesheets/Approve
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Approve(int year, int month, int? orgUnitId)
+        public async Task<ActionResult> Approve(int year, int? month, int? orgUnitId)
         {
             // Check permission for Approve action specifically
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -499,8 +501,15 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
+            // Validate month parameter
+            if (!month.HasValue || month.Value < 1 || month.Value > 12)
+            {
+                TempData["Error"] = "Noto'g'ri oy parametri";
+                return RedirectToAction("Index", new { year, month, orgUnitId });
+            }
+
             // Check if there are any work entries for this period
-            var startDate = new DateTime(year, month, 1);
+            var startDate = new DateTime(year, month.Value, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
@@ -520,14 +529,14 @@ namespace tahsinERP.Controllers.HR
 
             // Get or create approval record
             var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
-                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == orgUnitId);
+                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month.Value && a.OrgUnitID == orgUnitId);
 
             if (approval == null)
             {
                 approval = new HR_PIECE_RATE_TIMESHEET_APPROVALS
                 {
                     Year = year,
-                    Month = month,
+                    Month = month?? 0,
                     OrgUnitID = orgUnitId,
                     Status = "Draft",
                     CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
@@ -552,9 +561,9 @@ namespace tahsinERP.Controllers.HR
 
             await db.SaveChangesAsync();
 
-            logger.Log("HrPieceRateTimesheets", "Approve", $"Year: {year}, Month: {month}, OrgUnitID: {orgUnitId}");
+            logger.Log("HrPieceRateTimesheets", "Approve", $"Year: {year}, Month: {month.Value}, OrgUnitID: {orgUnitId}");
             TempData["Success"] = "Tabel muvaffaqiyatli tasdiqlandi";
-            return RedirectToAction("Index", new { year, month, orgUnitId });
+            return RedirectToAction("Index", new { year, month = month.Value, orgUnitId });
         }
 
         private async Task CreatePieceRateTimesheetLines(int timesheetId, int? orgUnitId)
@@ -897,6 +906,106 @@ namespace tahsinERP.Controllers.HR
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        // GET: HR/PieceRateTimesheets/DeleteEntries
+        public async Task<ActionResult> DeleteEntries(int year, int month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Include(e => e.HR_EMPLOYEES)
+                .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+            if (orgUnitId.HasValue)
+            {
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+            }
+
+            var workEntries = await query.ToListAsync();
+            var entryCount = workEntries.Count;
+
+            ViewBag.Year = year;
+            ViewBag.Month = month;
+            ViewBag.OrgUnitId = orgUnitId;
+            ViewBag.EntryCount = entryCount;
+            ViewBag.MonthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+            ViewBag.OrgUnitName = workEntries.FirstOrDefault()?.HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya";
+
+            return View();
+        }
+
+        // POST: HR/PieceRateTimesheets/DeleteEntries
+        [HttpPost, ActionName("DeleteEntries")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteEntriesConfirmed(int year, int month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Check if there are related payroll records
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            // Get work entries for this period
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+            if (orgUnitId.HasValue)
+            {
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+            }
+
+            var workEntries = await query.ToListAsync();
+
+            // Check if any payroll exists for this period
+            var hasPayrolls = await db.HR_PAYROLL_HEADERS
+                .AnyAsync(p => p.Year == year && p.Month == month && 
+                    p.PayrollType == "PieceRate" &&
+                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value));
+
+            if (hasPayrolls)
+            {
+                TempData["Error"] = "Bu oy uchun ish haqi hisobotlari mavjud. Avval ish haqi hisobotlarini o'chiring.";
+                return RedirectToAction("Index", new { year, month, orgUnitId });
+            }
+
+            // Check if timesheet is approved
+            var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == orgUnitId);
+
+            if (approval != null && approval.Status == "Approved")
+            {
+                TempData["Error"] = "Tasdiqlangan tabelni o'chirib bo'lmaydi. Avval tasdiqlashni bekor qiling.";
+                return RedirectToAction("Index", new { year, month, orgUnitId });
+            }
+
+            // Delete work entries
+            foreach (var entry in workEntries)
+            {
+                db.HR_PIECE_RATE_WORK_ENTRIES.Remove(entry);
+            }
+
+            // Delete approval record if exists
+            if (approval != null)
+            {
+                db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Remove(approval);
+            }
+
+            await db.SaveChangesAsync();
+
+            logger.Log("HrPieceRateTimesheets", "DeleteEntries", $"Year: {year}, Month: {month}, OrgUnitID: {orgUnitId}");
+            TempData["Success"] = $"{workEntries.Count} ta yozuv muvaffaqiyatli o'chirildi";
+            return RedirectToAction("Index", new { year, month, orgUnitId });
         }
     }
 }

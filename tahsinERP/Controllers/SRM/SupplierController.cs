@@ -139,6 +139,22 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                // Get counts for related documents
+                var contractsCount = await db.P_CONTRACTS
+                    .Where(c => c.SupplierID == id && c.IsDeleted != true)
+                    .CountAsync();
+                ViewBag.ContractsCount = contractsCount;
+
+                var ordersCount = await db.P_ORDERS
+                    .Where(o => o.SupplierID == id && o.IsDeleted != true)
+                    .CountAsync();
+                ViewBag.OrdersCount = ordersCount;
+
+                var invoicesCount = await db.P_INVOICES
+                    .Where(i => i.SupplierID == id && i.IsDeleted != true)
+                    .CountAsync();
+                ViewBag.InvoicesCount = invoicesCount;
+
                 return View(supplier);
             }
         }

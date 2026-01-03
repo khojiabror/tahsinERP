@@ -1,0 +1,101 @@
+﻿@model tahsinERP.Models.JOB_DESC
+@{
+    ViewBag.Title = "Lavozim yo'riqnomasini o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <h5 class="content-header-title float-left pr-1 mb-0">Lavozim yo'riqnomasini o'chirish</h5>
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/JobDesc">Job Descriptions</a></li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8 offset-md-2">
+                        <div class="card">
+                            <div class="card-header bg-danger">
+                                <h4 class="card-title text-white"><i class="bx bx-trash mr-1"></i>O'chirishni tasdiqlash</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="alert alert-warning">
+                                        <i class="bx bx-error-circle"></i>
+                                        <strong>Diqqat!</strong> Siz quyidagi lavozim yo'riqnomasini o'chirmoqchisiz. Bu amalni qaytarib bo'lmaydi.
+                                    </div>
+
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Lavozim kodi:</dt>
+                                        <dd class="col-sm-8"><strong>@Model.JobDescriptionCode</strong></dd>
+
+                                        <dt class="col-sm-4">Lavozim nomi:</dt>
+                                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.JobTitle) ? "-" : Model.JobTitle)</dd>
+
+                                        <dt class="col-sm-4">Bo'lim:</dt>
+                                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Department) ? "-" : Model.Department)</dd>
+
+                                        <dt class="col-sm-4">Versiya:</dt>
+                                        <dd class="col-sm-8">
+                                            <span class="badge badge-light-info">v@(Model.VersionNo.ToString("F2"))</span>
+                                        </dd>
+
+                                        @if (!string.IsNullOrEmpty(Model.Notes))
+                                        {
+                                            <dt class="col-sm-4">Eslatma:</dt>
+                                            <dd class="col-sm-8">@Model.Notes</dd>
+                                        }
+                                    </dl>
+
+                                    @using (Html.BeginForm("Delete", "JobDesc", FormMethod.Post, new { id = "deleteForm" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("id", Model.DocumentID)
+
+                                        <div class="form-group mt-3">
+                                            <button type="submit" class="btn btn-danger" id="deleteBtn">
+                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                            </button>
+                                            <a href="@Url.Action("Details", "JobDesc", new { id = Model.DocumentID })" class="btn btn-outline-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#deleteForm').on('submit', function(e) {
+                // O'chirish tugmasini o'chirish (double submit oldini olish)
+                $('#deleteBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> O\'chirilmoqda...');
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

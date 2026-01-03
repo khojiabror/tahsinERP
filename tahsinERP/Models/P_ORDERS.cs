@@ -32,6 +32,16 @@ namespace tahsinERP.Models
         public string Description { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public Nullable<int> CurrencyID { get; set; }
+        public byte PurchaseType { get; set; }
+        public Nullable<int> RequisitionID { get; set; }
+        public string Status { get; set; }
+        public string ContractStatus { get; set; }
+        public string InvoiceStatus { get; set; }
+        public string WarehouseStatus { get; set; }
+        public Nullable<int> DepartmentID { get; set; }
+        public Nullable<int> RequesterID { get; set; }
+        public string ContactPhone { get; set; }
+        public string Purpose { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
         public virtual CURRENCy CURRENCy { get; set; }
@@ -42,6 +52,7 @@ namespace tahsinERP.Models
         public virtual ICollection<P_INVOICES> P_INVOICES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_ORDER_PRODUCTS> P_ORDER_PRODUCTS { get; set; }
+        public virtual P_REQUISITIONS P_REQUISITIONS { get; set; }
         public virtual SUPPLIER SUPPLIER { get; set; }
     }
 }

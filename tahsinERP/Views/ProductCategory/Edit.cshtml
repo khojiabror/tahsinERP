@@ -116,6 +116,20 @@
                                                             @Html.CheckBoxFor(model => model.IsActive, new { @class = "custom-control-input" })
                                                             <label class="custom-control-label" for="IsActive">Faol</label>
                                                         </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @{
+                                                                bool calculateByWeightValue = Model?.CalculateByWeight ?? false;
+                                                            }
+                                                            <input type="checkbox" name="CalculateByWeight" id="CalculateByWeight" value="true" @(calculateByWeightValue ? "checked" : "") class="custom-control-input" />
+                                                            <input type="hidden" name="CalculateByWeight" value="false" />
+                                                            <label class="custom-control-label" for="CalculateByWeight">
+                                                                Hisob-kitoblar og'irlikka nisbatan qilinsin
+                                                            </label>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            BOM da donada, lekin shartnoma/invoice/income/expense da kg/gr da yuritiladigan maxsulotlar uchun (masalan: shurup, bolt va h.k.). 
+                                                            Agar belgilansa, bu kategoriyadagi barcha maxsulotlar uchun POrder generatsiya, ishlab chiqarish expense va shartnoma qoldig'i kg da hisoblanadi.
+                                                        </small>
                                                     </div>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">

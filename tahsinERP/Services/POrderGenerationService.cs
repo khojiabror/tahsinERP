@@ -91,14 +91,47 @@ namespace tahsinERP.Services
                                     // Get BOM unit ID (from BOM_LINES)
                                     int bomUnitId = bomLine.UnitID ?? component.UnitID;
 
+                                    // Check if product should use weight-based calculations
+                                    bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(componentId);
+                                    
                                     // Check if conversion is needed
                                     bool requiresConversion = await _conversionService.RequiresCuttingAsync(componentId);
                                     decimal finalQuantity = requiredQty;
                                     int finalUnitId = bomUnitId;
                                     string calculationExplanation = "";
 
+                                    // If product uses weight-based calculations, convert from pieces to kg
+                                    if (calculateByWeight)
+                                    {
+                                        try
+                                        {
+                                            // First, ensure we have quantity in pieces
+                                            decimal pieceQuantity = requiredQty;
+                                            
+                                            // If BOM unit is METER (5) and product requires cutting, convert to pieces first
+                                            if (requiresConversion && bomUnitId == 5)
+                                            {
+                                                pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(
+                                                    componentId, requiredQty);
+                                                calculationExplanation = 
+                                                    $"{requiredQty:F2} m (BOM) × {productQty} (Product qty) = {requiredQty:F2} m → " +
+                                                    $"Converted to {pieceQuantity:F0} pcs";
+                                            }
+
+                                            // Convert pieces to kg
+                                            finalQuantity = await _conversionService.ConvertPieceToKgAsync(componentId, pieceQuantity);
+                                            // Use component's UnitID (should be kg/gr for weight-based products)
+                                            finalUnitId = component.UnitID > 0 ? component.UnitID : 2; // Default to 2 if not set
+                                            calculationExplanation += $" → {finalQuantity:F2} kg (Weight: {component.Weight} kg/pc)";
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            calculationExplanation = 
+                                                $"Error converting to kg: {ex.Message}. Using original quantity: {requiredQty:F2}";
+                                        }
+                                    }
                                     // If BOM unit is METER (5) and product requires cutting, convert to pieces
-                                    if (requiresConversion && bomUnitId == 5)
+                                    else if (requiresConversion && bomUnitId == 5)
                                     {
                                         try
                                         {

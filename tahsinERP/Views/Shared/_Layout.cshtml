@@ -1036,6 +1036,12 @@
                             </ul>
                         </li>
                     }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PRequisitions"))
+                    {
+                        <li class="nav-item">
+                            <a href="~/PRequisitions"><i class="bx bx-clipboard"></i><span class="menu-title">Xarid arizalari</span></a>
+                        </li>
+                    }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts"))
                     {
                         <li class="nav-item">
@@ -1052,6 +1058,12 @@
                     {
                         <li class="nav-item">
                             <a href="~/PInvoices"><i class="bx bx-file"></i><span class="menu-title">Xarid invoyslari</span></a>
+                        </li>
+                    }
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking"))
+                    {
+                        <li class="nav-item">
+                            <a href="~/PurchaseOrderTracking"><i class="bx bx-tracking"></i><span class="menu-title">Buyurtma kuzatuv</span></a>
                         </li>
                     }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tender"))
@@ -1398,6 +1410,7 @@
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
                                 {
                                     <li><a href="~/HrEmployees"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xodimlar</span></a></li>
+                                    <li><a href="~/HrEmployeeHistory"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xodimlar staji</span></a></li>
                                 }
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrSalaryGrades"))
                                 {
@@ -1506,7 +1519,9 @@
                     <!-- Hujjatlar boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index") ||
-                         RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "STDCompanyStandards", "Index") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "JobDesc", "Index"))
                     {
                         <li class="navigation-header"><span>Hujjatlar</span></li>
 
@@ -1521,6 +1536,20 @@
                         {
                             <li class="nav-item">
                                 <a href="~/OfficialLetters"><i class="bx bx-envelope"></i><span class="menu-title">Rasmiy Maktublar</span></a>
+                            </li>
+                        }
+
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "STDCompanyStandards", "Index"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/STDCompanyStandards"><i class="bx bx-book"></i><span class="menu-title">Korxona Standartlari</span></a>
+                            </li>
+                        }
+
+                        if (RoleHelper.IsViewPermitted(User.Identity.Name, "JobDesc", "Index"))
+                        {
+                            <li class="nav-item">
+                                <a href="~/JobDesc"><i class="bx bx-file-blank"></i><span class="menu-title">Lavozim Yo'riqnomalari</span></a>
                             </li>
                         }
                     }

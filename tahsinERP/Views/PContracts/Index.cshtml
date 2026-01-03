@@ -39,10 +39,31 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "PContracts")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi shartnoma
+                                <i class="bx bx-plus"></i> Yangi shartnoma (Direct)
+                            </a>
+                            <a href="@Url.Action("Create", "PContracts", new { purchaseType = "Indirect" })" class="btn btn-info bg-light invoice-create ml-1" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Yangi shartnoma (Indirect)
                             </a>
                         </div>
                     }
+
+                    <!-- Purchase Type Filter -->
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            @using (Html.BeginForm("Index", "PContracts", FormMethod.Get))
+                            {
+                                <div class="form-group">
+                                    <label for="purchaseTypeFilter">Xarid turi</label>
+                                    @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
+                                    {
+                                        new { Value = "", Text = "Barchasi" },
+                                        new { Value = "Direct", Text = "Direct Purchase" },
+                                        new { Value = "Indirect", Text = "Indirect Purchase" }
+                                    }, "Value", "Text", Request.QueryString["purchaseTypeFilter"]), new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                </div>
+                            }
+                        </div>
+                    </div>
 
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
@@ -54,6 +75,7 @@
                                                 <tr>
                                                     <th>Shartnoma raqami</th>
                                                     <th>Ta'minotchi</th>
+                                                    <th>Turi</th>
                                                     <th>Shartnoma summasi</th>
                                                     <th>To'lov shartlari</th>
                                                     <th>Sana</th>
@@ -81,6 +103,13 @@
                                                                 {
                                                                     <span class="text-muted">-</span>
                                                                 }
+                                                            </td>
+                                                            <td>
+                                                                @{
+                                                                    var contractType = item.PurchaseType == 1 ? "Indirect" : "Direct";
+                                                                    var contractTypeClass = item.PurchaseType == 1 ? "badge-info" : "badge-primary";
+                                                                }
+                                                                <span class="badge @contractTypeClass">@contractType</span>
                                                             </td>
                                                             <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
                                                             <td>@(item.PaymentTerms ?? "-")</td>

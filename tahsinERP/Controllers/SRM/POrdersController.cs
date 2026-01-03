@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers
     public class POrdersController : Controller
     {
         // GET: POrders
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "POrders", "Index"))
             {
@@ -23,13 +23,39 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var orders = await db.P_ORDERS
+                var query = db.P_ORDERS
                     .Include(o => o.SUPPLIER)
                     .Include(o => o.COMPANy)
                     .Include(o => o.CURRENCy)
                     .Where(o => o.IsDeleted != true)
+                    .AsQueryable();
+
+                // Filter by supplier
+                if (supplierID.HasValue && supplierID.Value > 0)
+                {
+                    query = query.Where(o => o.SupplierID == supplierID.Value);
+                }
+
+                // Filter by contract
+                if (contractID.HasValue && contractID.Value > 0)
+                {
+                    query = query.Where(o => o.ContractID == contractID.Value);
+                }
+
+                // Filter by purchase type
+                if (!string.IsNullOrEmpty(purchaseTypeFilter))
+                {
+                    byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
+                    query = query.Where(o => o.PurchaseType == purchaseType);
+                }
+
+                var orders = await query
                     .OrderByDescending(o => o.IssuedDate)
                     .ToListAsync();
+
+                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+                ViewBag.SupplierID = supplierID;
+                ViewBag.ContractID = contractID;
 
                 return View(orders);
             }
@@ -69,7 +95,7 @@ namespace tahsinERP.Controllers
         }
 
         // GET: POrders/Create
-        public async Task<ActionResult> Create()
+        public async Task<ActionResult> Create(int? requisitionId = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
             {
@@ -78,22 +104,54 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Get sales orders for multi-select (S_ORDER orqali yaratish uchun)
-                var salesOrders = await db.S_ORDERS
-                    .Include(o => o.CUSTOMER)
-                    .Where(o => o.IsDeleted != true)
-                    .OrderByDescending(o => o.IssuedDate)
-                    .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name })
-                    .ToListAsync();
+                // Check if creating from requisition (indirect purchase)
+                P_REQUISITIONS requisition = null;
+                if (requisitionId.HasValue)
+                {
+                    requisition = await db.P_REQUISITIONS
+                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.PRODUCT))
+                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.UNIT))
+                        .FirstOrDefaultAsync(r => r.ID == requisitionId.Value && r.IsDeleted != true);
 
-                ViewBag.SalesOrders = new MultiSelectList(
-                    salesOrders.Select(so => new { 
-                        ID = so.ID, 
-                        DisplayText = $"{so.OrderNo} - {so.CustomerName}" 
-                    }),
-                    "ID",
-                    "DisplayText"
-                );
+                    if (requisition == null)
+                    {
+                        TempData["ErrorMessage"] = "Requisition not found.";
+                        return RedirectToAction("Index", "PRequisitions");
+                    }
+
+                    if (requisition.Status != "Approved")
+                    {
+                        TempData["ErrorMessage"] = "Only approved requisitions can be converted to purchase orders.";
+                        return RedirectToAction("Details", "PRequisitions", new { id = requisitionId });
+                    }
+
+                    ViewBag.Requisition = requisition;
+                    ViewBag.PurchaseType = 1; // Indirect
+                }
+                else
+                {
+                    ViewBag.PurchaseType = 0; // Direct
+                }
+
+                // Get sales orders for multi-select (S_ORDER orqali yaratish uchun) - only for direct purchases
+                if (requisition == null)
+                {
+                    var salesOrders = await db.S_ORDERS
+                        .Include(o => o.CUSTOMER)
+                        .Where(o => o.IsDeleted != true)
+                        .OrderByDescending(o => o.IssuedDate)
+                        .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name })
+                        .ToListAsync();
+
+                    ViewBag.SalesOrders = new MultiSelectList(
+                        salesOrders.Select(so => new { 
+                            ID = so.ID, 
+                            DisplayText = $"{so.OrderNo} - {so.CustomerName}" 
+                        }),
+                        "ID",
+                        "DisplayText"
+                    );
+                }
 
                 // Get suppliers
                 ViewBag.Suppliers = new SelectList(
@@ -111,11 +169,18 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname"
                 );
 
-                // Get purchasable products (for manual addition)
+                // Get purchasable products
+                // For indirect: equipment, tools, consumables, auxiliary
+                // For direct: raw materials (BOM)
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => requisition != null 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
@@ -128,7 +193,62 @@ namespace tahsinERP.Controllers
                     "ID", "ShortName"
                 );
 
+                // For indirect purchases, get departments and employees
+                if (requisition != null)
+                {
+                    var departments = await db.HR_ORG_UNITS
+                        .Where(d => d.IsActive == true)
+                        .OrderBy(d => d.Name)
+                        .ToListAsync();
+                    ViewBag.Departments = new SelectList(departments, "ID", "Name", requisition.DepartmentID);
+
+                    var employees = await db.HR_EMPLOYEES
+                        .Where(e => e.IsActive == true)
+                        .OrderBy(e => e.FullName)
+                        .ToListAsync();
+                    ViewBag.Employees = new SelectList(employees, "ID", "FullName", requisition.RequesterID);
+                }
+
                 return View();
+            }
+        }
+
+        // POST: POrders/LoadRequisitionProducts - Load products from requisition
+        [HttpPost]
+        public async Task<JsonResult> LoadRequisitionProducts(int requisitionId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                try
+                {
+                    var requisition = await db.P_REQUISITIONS
+                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.PRODUCT))
+                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.UNIT))
+                        .FirstOrDefaultAsync(r => r.ID == requisitionId && r.IsDeleted != true);
+
+                    if (requisition == null)
+                    {
+                        return Json(new { success = false, message = "Requisition not found." });
+                    }
+
+                    var products = requisition.P_REQUISITION_PRODUCTS.Select(rp => new
+                    {
+                        ProductID = rp.ProductID,
+                        ProductPNo = rp.PRODUCT.PNo,
+                        ProductName = rp.PRODUCT.Name,
+                        Quantity = rp.Quantity,
+                        UnitID = rp.UnitID,
+                        EstimatedPrice = rp.EstimatedPrice,
+                        Priority = rp.Priority,
+                        RequiredDate = rp.RequiredDate.HasValue ? rp.RequiredDate.Value.ToString("yyyy-MM-dd") : null
+                    }).ToList();
+
+                    return Json(new { success = true, data = products });
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = ex.Message });
+                }
             }
         }
 
@@ -227,6 +347,29 @@ namespace tahsinERP.Controllers
                             var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                             var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
 
+                            // Determine purchase type
+                            byte purchaseType = 0; // Default: Direct
+                            int? requisitionId = null;
+                            int? departmentId = null;
+                            int? requesterId = null;
+                            string contactPhone = null;
+                            string purpose = null;
+
+                            // Check if order is created from requisition
+                            if (Request.Form["RequisitionID"] != null && int.TryParse(Request.Form["RequisitionID"], out int reqId))
+                            {
+                                var requisition = await db.P_REQUISITIONS.FindAsync(reqId);
+                                if (requisition != null)
+                                {
+                                    purchaseType = 1; // Indirect
+                                    requisitionId = reqId;
+                                    departmentId = requisition.DepartmentID;
+                                    requesterId = requisition.RequesterID;
+                                    contactPhone = requisition.ContactPhone;
+                                    purpose = requisition.Purpose;
+                                }
+                            }
+
                             // Create order header
                             var order = new P_ORDERS
                             {
@@ -238,7 +381,17 @@ namespace tahsinERP.Controllers
                                 CurrencyID = model.CurrencyID ?? 0,
                                 Description = model.Description,
                                 IsDeleted = false,
-                                Amount = 0
+                                Amount = 0,
+                                PurchaseType = purchaseType,
+                                RequisitionID = requisitionId,
+                                DepartmentID = departmentId,
+                                RequesterID = requesterId,
+                                ContactPhone = contactPhone,
+                                Purpose = purpose,
+                                Status = "Created",
+                                ContractStatus = "NotCreated",
+                                InvoiceStatus = "NotCreated",
+                                WarehouseStatus = "NotReceived"
                             };
 
                             db.P_ORDERS.Add(order);
@@ -261,6 +414,21 @@ namespace tahsinERP.Controllers
                                         continue; // Skip deleted or missing products
                                     }
 
+                                        // Get priority and required date from requisition if available
+                                        string priority = null;
+                                        DateTime? requiredDate = null;
+                                        if (requisitionId.HasValue)
+                                        {
+                                            var reqProduct = await db.P_REQUISITION_PRODUCTS
+                                                .FirstOrDefaultAsync(rp => rp.RequisitionID == requisitionId.Value && 
+                                                                          rp.ProductID == orderProduct.ProductID);
+                                            if (reqProduct != null)
+                                            {
+                                                priority = reqProduct.Priority;
+                                                requiredDate = reqProduct.RequiredDate;
+                                            }
+                                        }
+
                                         var pOrderProduct = new P_ORDER_PRODUCTS
                                         {
                                             OrderID = order.ID,
@@ -269,7 +437,9 @@ namespace tahsinERP.Controllers
                                             Amount = orderProduct.Amount,
                                             UnitID = orderProduct.UnitID ?? (product.UnitID > 0 ? product.UnitID : 1),
                                             TotalPrice = orderProduct.Price * orderProduct.Amount,
-                                            MOQ = orderProduct.MOQ
+                                            MOQ = orderProduct.MOQ,
+                                            Priority = priority,
+                                            RequiredDate = requiredDate
                                         };
 
                                     db.P_ORDER_PRODUCTS.Add(pOrderProduct);
@@ -281,11 +451,24 @@ namespace tahsinERP.Controllers
                                 await db.SaveChangesAsync();
                             }
 
+                            // Update requisition status if created from requisition
+                            if (requisitionId.HasValue)
+                            {
+                                var requisition = await db.P_REQUISITIONS.FindAsync(requisitionId.Value);
+                                if (requisition != null)
+                                {
+                                    requisition.Status = "ConvertedToOrder";
+                                    requisition.ConvertedToOrderID = order.ID;
+                                    requisition.ModifiedDT = DateTime.Now;
+                                    requisition.ModifiedByUserID = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                                }
+                            }
+
                             // Commit transaction only after everything succeeds
                             transaction.Commit();
 
                             // Log the action
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Create - {order.OrderNo} buyurtmasi yaratildi");
+                            LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Create - {order.OrderNo} buyurtmasi yaratildi (PurchaseType: {(purchaseType == 1 ? "Indirect" : "Direct")})");
 
                             return RedirectToAction("Index");
                         }

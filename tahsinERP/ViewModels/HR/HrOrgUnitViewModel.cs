@@ -17,10 +17,12 @@ namespace tahsinERP.ViewModels.HR
         public int PlannedHeadcount { get; set; }
         public int ActualHeadcount { get; set; }
         public List<HrOrgUnitViewModel> Children { get; set; }
+        public List<HrOrgUnitStaffingPlanViewModel> StaffingPlans { get; set; }
         
         public HrOrgUnitViewModel()
         {
             Children = new List<HrOrgUnitViewModel>();
+            StaffingPlans = new List<HrOrgUnitStaffingPlanViewModel>();
         }
     }
 }

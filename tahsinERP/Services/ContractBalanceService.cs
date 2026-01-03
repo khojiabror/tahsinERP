@@ -52,14 +52,22 @@ namespace tahsinERP.Services
 
             // Check if product requires cutting
             bool requiresCutting = await _conversionService.RequiresCuttingAsync(productId);
+            
+            // Check if product should use weight-based calculations
+            bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(productId);
 
-            // Contract quantity (already in CBM for cutting products, or in contract unit for others)
+            // Contract quantity (already in CBM for cutting products, or in contract unit for others, or kg for weight-based)
             decimal contractQty = (decimal)contractProduct.Quantity;
             decimal contractQtyCBM = contractQty;
 
+            // If product uses weight-based calculations, contract is in kg
+            if (calculateByWeight)
+            {
+                // Contract quantity is already in kg
+                contractQtyCBM = contractQty; // Use same value for consistency
+            }
             // If contract is in CBM and product requires cutting, contractQty is already in CBM
-            // If contract is in other unit, we need to check
-            if (requiresCutting)
+            else if (requiresCutting)
             {
                 // For cutting products, contract quantity should be in CBM (UnitID = 11 for m3)
                 // If not, we might need to convert, but typically contracts are in CBM
@@ -87,8 +95,13 @@ namespace tahsinERP.Services
                 decimal qty = (decimal)invoiceProduct.Quantity;
                 invoicedQty += qty;
 
-                // Convert to CBM if needed
-                if (requiresCutting)
+                // Convert based on calculation type
+                if (calculateByWeight)
+                {
+                    // Invoice quantity should already be in kg for weight-based products
+                    invoicedQtyCBM += qty; // kg
+                }
+                else if (requiresCutting)
                 {
                     // Invoice quantity is in pieces, convert to CBM
                     try

@@ -445,6 +445,14 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CalculationType" Type="tinyint" Nullable="false" />
         </EntityType>
+        <EntityType Name="FIN_BALANCE_CATEGORY_CATEGORIES">
+          <Key>
+            <PropertyRef Name="BalanceCategoryID" />
+            <PropertyRef Name="CategoryID" />
+          </Key>
+          <Property Name="BalanceCategoryID" Type="int" Nullable="false" />
+          <Property Name="CategoryID" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="FIN_BALANCE_SNAPSHOTS">
           <Key>
             <PropertyRef Name="ID" />
@@ -536,6 +544,22 @@
           <Property Name="ContactPerson" Type="varchar" MaxLength="50" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="HR_EMPLOYEE_HISTORY">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+          <Property Name="ActionType" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="FromOrgUnitID" Type="int" />
+          <Property Name="FromPositionID" Type="int" />
+          <Property Name="ToOrgUnitID" Type="int" />
+          <Property Name="ToPositionID" Type="int" />
+          <Property Name="EffectiveDate" Type="datetime" Nullable="false" />
+          <Property Name="Reason" Type="nvarchar(max)" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="HR_EMPLOYEES">
           <Key>
@@ -847,6 +871,18 @@
           <Property Name="CurrencyID" Type="int" Nullable="false" />
           <Property Name="InvoiceID" Type="int" />
         </EntityType>
+        <EntityType Name="JOB_DESC">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="JobDescriptionCode" Type="nvarchar" MaxLength="100" />
+          <Property Name="JobTitle" Type="nvarchar" MaxLength="200" />
+          <Property Name="Department" Type="nvarchar" MaxLength="200" />
+          <Property Name="VersionNo" Type="decimal" Precision="5" Scale="2" Nullable="false" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="HRJobDescriptionID" Type="bigint" />
+        </EntityType>
         <EntityType Name="NORM_INPUT_LINES">
           <Key>
             <PropertyRef Name="ID" />
@@ -923,6 +959,7 @@
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="IDN" Type="varchar" MaxLength="25" />
           <Property Name="CurrencyID" Type="int" />
+          <Property Name="PurchaseType" Type="tinyint" Nullable="false" />
         </EntityType>
         <EntityType Name="P_INVOICE_DOCS">
           <Key>
@@ -958,6 +995,7 @@
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" />
           <Property Name="ContractID" Type="int" Nullable="false" />
+          <Property Name="PurchaseType" Type="tinyint" Nullable="false" />
         </EntityType>
         <EntityType Name="P_ORDER_PRODUCTS">
           <Key>
@@ -971,6 +1009,8 @@
           <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="MOQ" Type="float" />
           <Property Name="UnitID" Type="int" />
+          <Property Name="Priority" Type="nvarchar" MaxLength="50" />
+          <Property Name="RequiredDate" Type="datetime" />
         </EntityType>
         <EntityType Name="P_ORDERS">
           <Key>
@@ -986,6 +1026,69 @@
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" />
+          <Property Name="PurchaseType" Type="tinyint" Nullable="false" />
+          <Property Name="RequisitionID" Type="int" />
+          <Property Name="Status" Type="nvarchar" MaxLength="50" />
+          <Property Name="ContractStatus" Type="nvarchar" MaxLength="50" />
+          <Property Name="InvoiceStatus" Type="nvarchar" MaxLength="50" />
+          <Property Name="WarehouseStatus" Type="nvarchar" MaxLength="50" />
+          <Property Name="DepartmentID" Type="int" />
+          <Property Name="RequesterID" Type="int" />
+          <Property Name="ContactPhone" Type="nvarchar" MaxLength="50" />
+          <Property Name="Purpose" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="P_REQUISITION_APPROVALS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RequisitionID" Type="int" Nullable="false" />
+          <Property Name="Role" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="ApproverID" Type="int" />
+          <Property Name="ApproverName" Type="nvarchar" MaxLength="200" />
+          <Property Name="Signature" Type="nvarchar(max)" />
+          <Property Name="ApprovalDate" Type="datetime" />
+          <Property Name="Status" Type="nvarchar" MaxLength="50" />
+          <Property Name="Comments" Type="nvarchar(max)" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="P_REQUISITION_PRODUCTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RequisitionID" Type="int" Nullable="false" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="Quantity" Type="float" Nullable="false" />
+          <Property Name="UnitID" Type="int" Nullable="false" />
+          <Property Name="EstimatedPrice" Type="float" />
+          <Property Name="Amount" Type="float" />
+          <Property Name="Priority" Type="nvarchar" MaxLength="50" />
+          <Property Name="RequiredDate" Type="datetime" />
+          <Property Name="Description" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="P_REQUISITIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RequisitionNo" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="RequisitionDate" Type="datetime" Nullable="false" />
+          <Property Name="DepartmentID" Type="int" />
+          <Property Name="RequesterID" Type="int" Nullable="false" />
+          <Property Name="ContactPhone" Type="nvarchar" MaxLength="50" />
+          <Property Name="Purpose" Type="nvarchar(max)" />
+          <Property Name="Status" Type="nvarchar" MaxLength="50" />
+          <Property Name="ApprovedByID" Type="int" />
+          <Property Name="ApprovedDate" Type="datetime" />
+          <Property Name="RejectedByID" Type="int" />
+          <Property Name="RejectionReason" Type="nvarchar(max)" />
+          <Property Name="ConvertedToOrderID" Type="int" />
+          <Property Name="IsDeleted" Type="bit" />
+          <Property Name="CreatedByUserID" Type="int" />
+          <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="ModifiedByUserID" Type="int" />
+          <Property Name="ModifiedDT" Type="datetime" />
         </EntityType>
         <EntityType Name="PERMISSIONMODULES">
           <Key>
@@ -1030,6 +1133,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
           <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
+          <Property Name="CalculateByWeight" Type="bit" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -1121,6 +1225,7 @@
           <Property Name="ShopID" Type="int" Nullable="false" />
           <Property Name="StandardLengthMm" Type="float" />
           <Property Name="OptimizationType" Type="tinyint" />
+          <Property Name="CalculateByWeight" Type="bit" />
         </EntityType>
         <EntityType Name="QUALITY_INSPECTION">
           <Key>
@@ -1455,10 +1560,10 @@
             <PropertyRef Name="DocumentID" />
           </Key>
           <Property Name="DocumentID" Type="bigint" Nullable="false" />
-          <Property Name="StandardCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="StandardCode" Type="nvarchar" MaxLength="100" />
           <Property Name="Area" Type="nvarchar" MaxLength="200" />
-          <Property Name="VersionNo" Type="int" Nullable="false" />
           <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="VersionNo" Type="decimal" Precision="5" Scale="2" Nullable="false" />
         </EntityType>
         <EntityType Name="SUPPLIER_BASE">
           <Key>
@@ -2407,6 +2512,34 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_FIN_BALANCE_CATEGORY_CATEGORIES_BalanceCategory">
+          <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="FIN_BALANCE_CATEGORY_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORY_CATEGORIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_CATEGORY_CATEGORIES">
+              <PropertyRef Name="BalanceCategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FIN_BALANCE_CATEGORY_CATEGORIES_Category">
+          <End Role="FIN_CATEGORIES" Type="Self.FIN_CATEGORIES" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="FIN_BALANCE_CATEGORY_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORY_CATEGORIES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_BALANCE_CATEGORY_CATEGORIES">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_FIN_BALANCE_SNAPSHOTS_CATEGORY">
           <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="1" />
           <End Role="FIN_BALANCE_SNAPSHOTS" Type="Self.FIN_BALANCE_SNAPSHOTS" Multiplicity="*" />
@@ -2560,6 +2693,78 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Principal>
             <Dependent Role="FIN_TRANSACTIONS">
               <PropertyRef Name="CurrencyID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_CREATED_BY">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEE_HISTORY" Type="Self.HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_EMPLOYEES">
+          <End Role="HR_EMPLOYEES" Type="Self.HR_EMPLOYEES" Multiplicity="1" />
+          <End Role="HR_EMPLOYEE_HISTORY" Type="Self.HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEE_HISTORY" Type="Self.HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="FromOrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEE_HISTORY" Type="Self.HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="FromPositionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEE_HISTORY" Type="Self.HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="ToOrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS">
+          <End Role="HR_POSITIONS" Type="Self.HR_POSITIONS" Multiplicity="0..1" />
+          <End Role="HR_EMPLOYEE_HISTORY" Type="Self.HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_POSITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="ToPositionID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3071,6 +3276,32 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_JOB_DESC_DOC_DOCUMENTS">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="JOB_DESC" Type="Self.JOB_DESC" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="JOB_DESC">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_JOB_DESC_HR_JOB_DESCRIPTIONS">
+          <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
+          <End Role="JOB_DESC" Type="Self.JOB_DESC" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="DocumentID" />
+            </Principal>
+            <Dependent Role="JOB_DESC">
+              <PropertyRef Name="HRJobDescriptionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_NORM_INPUT_LINES_CreatedByUserID_USERS">
           <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
           <End Role="NORM_INPUT_LINES" Type="Self.NORM_INPUT_LINES" Multiplicity="*" />
@@ -3359,6 +3590,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_P_ORDERS_REQUISITION">
+          <End Role="P_REQUISITIONS" Type="Self.P_REQUISITIONS" Multiplicity="0..1" />
+          <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_REQUISITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_ORDERS">
+              <PropertyRef Name="RequisitionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_P_ORDERS_SUPPLIERS">
           <End Role="SUPPLIERS" Type="Self.SUPPLIERS" Multiplicity="0..1" />
           <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="*" />
@@ -3368,6 +3611,58 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Principal>
             <Dependent Role="P_ORDERS">
               <PropertyRef Name="SupplierID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_APPROVALS_REQUISITION">
+          <End Role="P_REQUISITIONS" Type="Self.P_REQUISITIONS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="P_REQUISITION_APPROVALS" Type="Self.P_REQUISITION_APPROVALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_REQUISITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_APPROVALS">
+              <PropertyRef Name="RequisitionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_PRODUCTS_PRODUCT">
+          <End Role="PRODUCTS" Type="Self.PRODUCTS" Multiplicity="1" />
+          <End Role="P_REQUISITION_PRODUCTS" Type="Self.P_REQUISITION_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_PRODUCTS">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_PRODUCTS_REQUISITION">
+          <End Role="P_REQUISITIONS" Type="Self.P_REQUISITIONS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="P_REQUISITION_PRODUCTS" Type="Self.P_REQUISITION_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_REQUISITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_PRODUCTS">
+              <PropertyRef Name="RequisitionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_PRODUCTS_UNIT">
+          <End Role="UNITS" Type="Self.UNITS" Multiplicity="1" />
+          <End Role="P_REQUISITION_PRODUCTS" Type="Self.P_REQUISITION_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_PRODUCTS">
+              <PropertyRef Name="UnitID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4331,8 +4626,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_STD_COMPANY_STANDARDS_Document">
-          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+        <Association Name="FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="STD_COMPANY_STANDARDS" Type="Self.STD_COMPANY_STANDARDS" Multiplicity="0..1" />
           <ReferentialConstraint>
             <Principal Role="DOC_DOCUMENTS">
@@ -4599,6 +4896,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_ACCOUNTS" EntityType="Self.FIN_ACCOUNTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_BALANCE_CATEGORIES" EntityType="Self.FIN_BALANCE_CATEGORIES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FIN_BALANCE_CATEGORY_CATEGORIES" EntityType="Self.FIN_BALANCE_CATEGORY_CATEGORIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_BALANCE_SNAPSHOTS" EntityType="Self.FIN_BALANCE_SNAPSHOTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_CATEGORIES" EntityType="Self.FIN_CATEGORIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_PL_ITEM_CATEGORIES" EntityType="Self.FIN_PL_ITEM_CATEGORIES" Schema="dbo" store:Type="Tables" />
@@ -4606,6 +4904,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="FIN_PL_PLANS" EntityType="Self.FIN_PL_PLANS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FIN_TRANSACTIONS" EntityType="Self.FIN_TRANSACTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="FORWARDERS" EntityType="Self.FORWARDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_EMPLOYEE_HISTORY" EntityType="Self.HR_EMPLOYEE_HISTORY" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_EMPLOYEES" EntityType="Self.HR_EMPLOYEES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_JOB_DESCRIPTIONS" EntityType="Self.HR_JOB_DESCRIPTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_ORG_UNITS" EntityType="Self.HR_ORG_UNITS" Schema="dbo" store:Type="Tables" />
@@ -4623,6 +4922,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="HSCODES" EntityType="Self.HSCODES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOME_PRODUCTS" EntityType="Self.INCOME_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOMES" EntityType="Self.INCOMES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="JOB_DESC" EntityType="Self.JOB_DESC" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NORM_INPUT_LINES" EntityType="Self.NORM_INPUT_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NORMLINES" EntityType="Self.NORMLINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NORMVERSIONS" EntityType="Self.NORMVERSIONS" Schema="dbo" store:Type="Tables" />
@@ -4634,6 +4934,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="P_INVOICES" EntityType="Self.P_INVOICES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_ORDER_PRODUCTS" EntityType="Self.P_ORDER_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="P_ORDERS" EntityType="Self.P_ORDERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="P_REQUISITION_APPROVALS" EntityType="Self.P_REQUISITION_APPROVALS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="P_REQUISITION_PRODUCTS" EntityType="Self.P_REQUISITION_PRODUCTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="P_REQUISITIONS" EntityType="Self.P_REQUISITIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PERMISSIONMODULES" EntityType="Self.PERMISSIONMODULES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PERMISSIONS" EntityType="Self.PERMISSIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PRODUCT_CATEGORIES" EntityType="Self.PRODUCT_CATEGORIES" Schema="dbo" store:Type="Tables" />
@@ -4970,6 +5273,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
             <End Role="FIN_BALANCE_CATEGORIES1" EntitySet="FIN_BALANCE_CATEGORIES" />
           </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_CATEGORY_CATEGORIES_BalanceCategory" Association="Self.FK_FIN_BALANCE_CATEGORY_CATEGORIES_BalanceCategory">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_BALANCE_CATEGORY_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORY_CATEGORIES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FIN_BALANCE_CATEGORY_CATEGORIES_Category" Association="Self.FK_FIN_BALANCE_CATEGORY_CATEGORIES_Category">
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
+            <End Role="FIN_BALANCE_CATEGORY_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORY_CATEGORIES" />
+          </AssociationSet>
           <AssociationSet Name="FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" Association="Self.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY">
             <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
             <End Role="FIN_BALANCE_SNAPSHOTS" EntitySet="FIN_BALANCE_SNAPSHOTS" />
@@ -5021,6 +5332,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_FIN_TRANSACTIONS_CURRENCY" Association="Self.FK_FIN_TRANSACTIONS_CURRENCY">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
             <End Role="FIN_TRANSACTIONS" EntitySet="FIN_TRANSACTIONS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_CREATED_BY" Association="Self.FK_HR_EMPLOYEE_HISTORY_CREATED_BY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_EMPLOYEES" Association="Self.FK_HR_EMPLOYEE_HISTORY_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS" Association="Self.FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" Association="Self.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" Association="Self.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" Association="Self.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
           </AssociationSet>
           <AssociationSet Name="FK_HR_EMPLOYEES_HR_ORG_UNITS" Association="Self.FK_HR_EMPLOYEES_HR_ORG_UNITS">
             <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
@@ -5190,6 +5525,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="P_INVOICES" EntitySet="P_INVOICES" />
             <End Role="INCOMES" EntitySet="INCOMES" />
           </AssociationSet>
+          <AssociationSet Name="FK_JOB_DESC_DOC_DOCUMENTS" Association="Self.FK_JOB_DESC_DOC_DOCUMENTS">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="JOB_DESC" EntitySet="JOB_DESC" />
+          </AssociationSet>
+          <AssociationSet Name="FK_JOB_DESC_HR_JOB_DESCRIPTIONS" Association="Self.FK_JOB_DESC_HR_JOB_DESCRIPTIONS">
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+            <End Role="JOB_DESC" EntitySet="JOB_DESC" />
+          </AssociationSet>
           <AssociationSet Name="FK_NORM_INPUT_LINES_CreatedByUserID_USERS" Association="Self.FK_NORM_INPUT_LINES_CreatedByUserID_USERS">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="NORM_INPUT_LINES" EntitySet="NORM_INPUT_LINES" />
@@ -5286,9 +5629,29 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="P_CONTRACTS" EntitySet="P_CONTRACTS" />
             <End Role="P_ORDERS" EntitySet="P_ORDERS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_ORDERS_REQUISITION" Association="Self.FK_P_ORDERS_REQUISITION">
+            <End Role="P_REQUISITIONS" EntitySet="P_REQUISITIONS" />
+            <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+          </AssociationSet>
           <AssociationSet Name="FK_P_ORDERS_SUPPLIERS" Association="Self.FK_P_ORDERS_SUPPLIERS">
             <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
             <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_APPROVALS_REQUISITION" Association="Self.FK_P_REQUISITION_APPROVALS_REQUISITION">
+            <End Role="P_REQUISITIONS" EntitySet="P_REQUISITIONS" />
+            <End Role="P_REQUISITION_APPROVALS" EntitySet="P_REQUISITION_APPROVALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_PRODUCTS_PRODUCT" Association="Self.FK_P_REQUISITION_PRODUCTS_PRODUCT">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="P_REQUISITION_PRODUCTS" EntitySet="P_REQUISITION_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_PRODUCTS_REQUISITION" Association="Self.FK_P_REQUISITION_PRODUCTS_REQUISITION">
+            <End Role="P_REQUISITIONS" EntitySet="P_REQUISITIONS" />
+            <End Role="P_REQUISITION_PRODUCTS" EntitySet="P_REQUISITION_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_PRODUCTS_UNIT" Association="Self.FK_P_REQUISITION_PRODUCTS_UNIT">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="P_REQUISITION_PRODUCTS" EntitySet="P_REQUISITION_PRODUCTS" />
           </AssociationSet>
           <AssociationSet Name="FK_PCONTRACTS_COMPANIES" Association="Self.FK_PCONTRACTS_COMPANIES">
             <End Role="COMPANIES" EntitySet="COMPANIES" />
@@ -5610,7 +5973,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="S_ORDERS" EntitySet="S_ORDERS" />
             <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
           </AssociationSet>
-          <AssociationSet Name="FK_STD_COMPANY_STANDARDS_Document" Association="Self.FK_STD_COMPANY_STANDARDS_Document">
+          <AssociationSet Name="FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" Association="Self.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="STD_COMPANY_STANDARDS" EntitySet="STD_COMPANY_STANDARDS" />
           </AssociationSet>
@@ -5740,10 +6103,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <Property Name="DueDate" Type="DateTime" Precision="0" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="UserComment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="APP_TASK_PRIORITY_REF" Relationship="Self.FK_APP_TASKS_PRIORITY" FromRole="APP_TASKS" ToRole="APP_TASK_PRIORITY_REF" />
           <NavigationProperty Name="APP_TASK_PROJECTS" Relationship="Self.FK_APP_TASKS_PROJECT" FromRole="APP_TASKS" ToRole="APP_TASK_PROJECTS" />
           <NavigationProperty Name="APP_TASK_STATUS_REF" Relationship="Self.FK_APP_TASKS_STATUS" FromRole="APP_TASKS" ToRole="APP_TASK_STATUS_REF" />
-          <Property Name="UserComment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="BOM_HEADERS">
           <Key>
@@ -5784,8 +6147,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="TheirRefNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="ChannelCode" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="Topic" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_COM_OFFICIAL_LETTERS_Document" FromRole="COM_OFFICIAL_LETTERS" ToRole="DOC_DOCUMENTS" />
           <Property Name="ExternalContactPosition" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_COM_OFFICIAL_LETTERS_Document" FromRole="COM_OFFICIAL_LETTERS" ToRole="DOC_DOCUMENTS" />
         </EntityType>
         <EntityType Name="COMPANy">
           <Key>
@@ -5961,7 +6324,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="DOC_TEMPLATES" Relationship="Self.FK_DOC_DOCUMENTS_Template" FromRole="DOC_DOCUMENTS" ToRole="DOC_TEMPLATES" />
           <NavigationProperty Name="DOC_FILES" Relationship="Self.FK_DOC_FILES_Document" FromRole="DOC_DOCUMENTS" ToRole="DOC_FILES" />
           <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="Self.FK_HR_JOB_DESCRIPTIONS_Document" FromRole="DOC_DOCUMENTS" ToRole="HR_JOB_DESCRIPTIONS" />
-          <NavigationProperty Name="STD_COMPANY_STANDARDS" Relationship="Self.FK_STD_COMPANY_STANDARDS_Document" FromRole="DOC_DOCUMENTS" ToRole="STD_COMPANY_STANDARDS" />
+          <NavigationProperty Name="JOB_DESC" Relationship="Self.FK_JOB_DESC_DOC_DOCUMENTS" FromRole="DOC_DOCUMENTS" ToRole="JOB_DESC" />
+          <NavigationProperty Name="STD_COMPANY_STANDARDS" Relationship="Self.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" FromRole="DOC_DOCUMENTS" ToRole="STD_COMPANY_STANDARDS" />
         </EntityType>
         <EntityType Name="DOC_FILES">
           <Key>
@@ -6211,11 +6575,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="CreatedByUserID" Type="Int32" Nullable="false" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="BalanceCategoryID" Type="Int32" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_FIN_ACCOUNTS_CURRENCY" FromRole="FIN_ACCOUNTS" ToRole="CURRENCIES" />
+          <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="Self.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_ACCOUNTS" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="USER" Relationship="Self.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="FIN_ACCOUNTS" ToRole="USERS" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_ACCOUNT" FromRole="FIN_ACCOUNTS" ToRole="FIN_TRANSACTIONS" />
-          <Property Name="BalanceCategoryID" Type="Int32" />
-          <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_ACCOUNTS" ToRole="FIN_BALANCE_CATEGORIES" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORIES">
           <Key>
@@ -6227,11 +6591,12 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="ParentID" Type="Int32" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CalculationType" Type="Byte" Nullable="false" />
+          <NavigationProperty Name="FIN_ACCOUNTS" Relationship="Self.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_ACCOUNTS" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES1" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES1" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES2" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES1" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="Self.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_SNAPSHOTS" />
-          <Property Name="CalculationType" Type="Byte" Nullable="false" />
-          <NavigationProperty Name="FIN_ACCOUNTS" Relationship="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_ACCOUNTS" />
+          <NavigationProperty Name="FIN_CATEGORIES" Relationship="Self.FIN_BALANCE_CATEGORY_CATEGORIES" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_CATEGORIES" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_SNAPSHOTS">
           <Key>
@@ -6263,6 +6628,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_CATEGORIES1" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES" ToRole="FIN_CATEGORIES1" />
           <NavigationProperty Name="FIN_CATEGORIES2" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES1" ToRole="FIN_CATEGORIES" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
+          <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="Self.FIN_BALANCE_CATEGORY_CATEGORIES" FromRole="FIN_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="FIN_PL_ITEMS" Relationship="Self.FIN_PL_ITEM_CATEGORIES" FromRole="FIN_CATEGORIES" ToRole="FIN_PL_ITEMS" />
         </EntityType>
         <EntityType Name="FIN_PL_ITEMS">
@@ -6362,6 +6728,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="Self.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_PAYROLL_LINES" />
           <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
           <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="Self.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_TIMESHEET_LINES" />
+          <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_EMPLOYEE_HISTORY" />
         </EntityType>
         <EntityType Name="HR_JOB_DESCRIPTIONS">
           <Key>
@@ -6375,6 +6742,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_HR_JOB_DESCRIPTIONS_Document" FromRole="HR_JOB_DESCRIPTIONS" ToRole="DOC_DOCUMENTS" />
           <NavigationProperty Name="HR_ORG_UNITS" Relationship="Self.FK_HR_JOB_DESCRIPTIONS_OrgUnit" FromRole="HR_JOB_DESCRIPTIONS" ToRole="HR_ORG_UNITS" />
           <NavigationProperty Name="HR_POSITIONS" Relationship="Self.FK_HR_JOB_DESCRIPTIONS_Position" FromRole="HR_JOB_DESCRIPTIONS" ToRole="HR_POSITIONS" />
+          <NavigationProperty Name="JOB_DESC" Relationship="Self.FK_JOB_DESC_HR_JOB_DESCRIPTIONS" FromRole="HR_JOB_DESCRIPTIONS" ToRole="JOB_DESC" />
         </EntityType>
         <EntityType Name="HR_ORG_UNITS">
           <Key>
@@ -6394,9 +6762,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_ORG_UNITS1" Relationship="Self.FK_HR_ORG_UNITS_Parent" FromRole="HR_ORG_UNITS" ToRole="HR_ORG_UNITS1" />
           <NavigationProperty Name="HR_ORG_UNITS2" Relationship="Self.FK_HR_ORG_UNITS_Parent" FromRole="HR_ORG_UNITS1" ToRole="HR_ORG_UNITS" />
           <NavigationProperty Name="HR_PAYROLL_HEADERS" Relationship="Self.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_PAYROLL_HEADERS" />
+          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="Self.FK_HR_STAFFING_PLAN_OrgUnit" FromRole="HR_ORG_UNITS" ToRole="HR_STAFFING_PLAN" />
           <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="Self.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_TIMESHEET_HEADERS" />
-          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
+          <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_EMPLOYEE_HISTORY" />
+          <NavigationProperty Name="HR_EMPLOYEE_HISTORY1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_EMPLOYEE_HISTORY" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_HEADERS">
           <Key>
@@ -6483,6 +6853,26 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_POSITIONS" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="HR_POSITIONS" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="PRODUCTS" />
         </EntityType>
+        <EntityType Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Year" Type="Int32" Nullable="false" />
+          <Property Name="Month" Type="Int32" Nullable="false" />
+          <Property Name="OrgUnitID" Type="Int32" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ApprovedByUserID" Type="Int32" />
+          <Property Name="ApprovedDT" Type="DateTime" Precision="3" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ModifiedByUserID" Type="Int32" />
+          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="USER" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USERS" />
+          <NavigationProperty Name="USER1" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USERS" />
+          <NavigationProperty Name="USER2" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USERS" />
+        </EntityType>
         <EntityType Name="HR_PIECE_RATE_WORK_ENTRIES">
           <Key>
             <PropertyRef Name="ID" />
@@ -6519,6 +6909,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="Self.FK_HR_JOB_DESCRIPTIONS_Position" FromRole="HR_POSITIONS" ToRole="HR_JOB_DESCRIPTIONS" />
           <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_PIECE_RATE_TARIFFS" />
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="Self.FK_HR_STAFFING_PLAN_Position" FromRole="HR_POSITIONS" ToRole="HR_STAFFING_PLAN" />
+          <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_EMPLOYEE_HISTORY" />
+          <NavigationProperty Name="HR_EMPLOYEE_HISTORY1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_EMPLOYEE_HISTORY" />
         </EntityType>
         <EntityType Name="HR_SALARY_GRADES">
           <Key>
@@ -6704,6 +7096,20 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="Warehouse" Relationship="Self.FK_PROD_WRHS_INCOMES_PROD_WRHS" FromRole="INCOMES" ToRole="WAREHOUSES" />
           <NavigationProperty Name="Warehouse1" Relationship="Self.FK_PROD_WRHS_INCOMES_PROD_WRHS_SENDER" FromRole="INCOMES" ToRole="WAREHOUSES" />
         </EntityType>
+        <EntityType Name="JOB_DESC">
+          <Key>
+            <PropertyRef Name="DocumentID" />
+          </Key>
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="JobDescriptionCode" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="JobTitle" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="VersionNo" Type="Decimal" Precision="5" Scale="2" Nullable="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HRJobDescriptionID" Type="Int64" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_JOB_DESC_DOC_DOCUMENTS" FromRole="JOB_DESC" ToRole="DOC_DOCUMENTS" />
+          <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="Self.FK_JOB_DESC_HR_JOB_DESCRIPTIONS" FromRole="JOB_DESC" ToRole="HR_JOB_DESCRIPTIONS" />
+        </EntityType>
         <EntityType Name="NORM_INPUT_LINES">
           <Key>
             <PropertyRef Name="ID" />
@@ -6792,6 +7198,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="IDN" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
           <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="PurchaseType" Type="Byte" Nullable="false" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_PCONTRACTS_COMPANIES" FromRole="P_CONTRACTS" ToRole="COMPANIES" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK__P_CONTRAC__Curre__4D4A6ED8" FromRole="P_CONTRACTS" ToRole="CURRENCIES" />
           <NavigationProperty Name="P_CONTRACT_DOCS" Relationship="Self.FK_P_CONTRACT_DOCS_P_CONTRACTS" FromRole="P_CONTRACTS" ToRole="P_CONTRACT_DOCS" />
@@ -6838,6 +7245,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" />
           <Property Name="ContractID" Type="Int32" Nullable="false" />
+          <Property Name="PurchaseType" Type="Byte" Nullable="false" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_P_INVOICES_COMPANIES" FromRole="P_INVOICES" ToRole="COMPANIES" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK__P_INVOICE__Curre__4E3E9311" FromRole="P_INVOICES" ToRole="CURRENCIES" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_P_INVOICES" FromRole="P_INVOICES" ToRole="F_WAYBILLS" />
@@ -6860,6 +7268,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="MOQ" Type="Double" />
           <Property Name="UnitID" Type="Int32" />
+          <Property Name="Priority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="RequiredDate" Type="DateTime" Precision="3" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_P_ORDER_PRODUCTS_ID_PRODUCTS" FromRole="P_ORDER_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="P_ORDERS" Relationship="Self.FK_P_ORDER_PRODUCTS_P_ORDERS" FromRole="P_ORDER_PRODUCTS" ToRole="P_ORDERS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_P_ORDER_PRODUCTS_UNITS" FromRole="P_ORDER_PRODUCTS" ToRole="UNITS" />
@@ -6878,13 +7288,84 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="PurchaseType" Type="Byte" Nullable="false" />
+          <Property Name="RequisitionID" Type="Int32" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ContractStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InvoiceStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="WarehouseStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="DepartmentID" Type="Int32" />
+          <Property Name="RequesterID" Type="Int32" />
+          <Property Name="ContactPhone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Purpose" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_P_ORDERS_COMPANIES" FromRole="P_ORDERS" ToRole="COMPANIES" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK__P_ORDERS__Curren__5026DB83" FromRole="P_ORDERS" ToRole="CURRENCIES" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_P_ORDERS" FromRole="P_ORDERS" ToRole="F_WAYBILLS" />
           <NavigationProperty Name="P_CONTRACTS" Relationship="Self.FK_P_ORDERS_P_CONTRACTS" FromRole="P_ORDERS" ToRole="P_CONTRACTS" />
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_P_INVOICES_P_ORDERS" FromRole="P_ORDERS" ToRole="P_INVOICES" />
           <NavigationProperty Name="P_ORDER_PRODUCTS" Relationship="Self.FK_P_ORDER_PRODUCTS_P_ORDERS" FromRole="P_ORDERS" ToRole="P_ORDER_PRODUCTS" />
+          <NavigationProperty Name="P_REQUISITIONS" Relationship="Self.FK_P_ORDERS_REQUISITION" FromRole="P_ORDERS" ToRole="P_REQUISITIONS" />
           <NavigationProperty Name="SUPPLIER" Relationship="Self.FK_P_ORDERS_SUPPLIERS" FromRole="P_ORDERS" ToRole="SUPPLIERS" />
+        </EntityType>
+        <EntityType Name="P_REQUISITION_APPROVALS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RequisitionID" Type="Int32" Nullable="false" />
+          <Property Name="Role" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ApproverID" Type="Int32" />
+          <Property Name="ApproverName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Signature" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ApprovalDate" Type="DateTime" Precision="3" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Comments" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="P_REQUISITIONS" Relationship="Self.FK_P_REQUISITION_APPROVALS_REQUISITION" FromRole="P_REQUISITION_APPROVALS" ToRole="P_REQUISITIONS" />
+        </EntityType>
+        <EntityType Name="P_REQUISITION_PRODUCTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RequisitionID" Type="Int32" Nullable="false" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Quantity" Type="Double" Nullable="false" />
+          <Property Name="UnitID" Type="Int32" Nullable="false" />
+          <Property Name="EstimatedPrice" Type="Double" />
+          <Property Name="Amount" Type="Double" />
+          <Property Name="Priority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="RequiredDate" Type="DateTime" Precision="3" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="PRODUCT" Relationship="Self.FK_P_REQUISITION_PRODUCTS_PRODUCT" FromRole="P_REQUISITION_PRODUCTS" ToRole="PRODUCTS" />
+          <NavigationProperty Name="P_REQUISITIONS" Relationship="Self.FK_P_REQUISITION_PRODUCTS_REQUISITION" FromRole="P_REQUISITION_PRODUCTS" ToRole="P_REQUISITIONS" />
+          <NavigationProperty Name="UNIT" Relationship="Self.FK_P_REQUISITION_PRODUCTS_UNIT" FromRole="P_REQUISITION_PRODUCTS" ToRole="UNITS" />
+        </EntityType>
+        <EntityType Name="P_REQUISITIONS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RequisitionNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="RequisitionDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="DepartmentID" Type="Int32" />
+          <Property Name="RequesterID" Type="Int32" Nullable="false" />
+          <Property Name="ContactPhone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Purpose" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ApprovedByID" Type="Int32" />
+          <Property Name="ApprovedDate" Type="DateTime" Precision="3" />
+          <Property Name="RejectedByID" Type="Int32" />
+          <Property Name="RejectionReason" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ConvertedToOrderID" Type="Int32" />
+          <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ModifiedByUserID" Type="Int32" />
+          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="P_ORDERS" Relationship="Self.FK_P_ORDERS_REQUISITION" FromRole="P_REQUISITIONS" ToRole="P_ORDERS" />
+          <NavigationProperty Name="P_REQUISITION_APPROVALS" Relationship="Self.FK_P_REQUISITION_APPROVALS_REQUISITION" FromRole="P_REQUISITIONS" ToRole="P_REQUISITION_APPROVALS" />
+          <NavigationProperty Name="P_REQUISITION_PRODUCTS" Relationship="Self.FK_P_REQUISITION_PRODUCTS_REQUISITION" FromRole="P_REQUISITIONS" ToRole="P_REQUISITION_PRODUCTS" />
         </EntityType>
         <EntityType Name="PERMISSIONMODULE">
           <Key>
@@ -6932,6 +7413,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
+          <Property Name="CalculateByWeight" Type="Boolean" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCTS" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
@@ -7036,6 +7518,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="ShopID" Type="Int32" Nullable="false" />
           <Property Name="StandardLengthMm" Type="Double" />
           <Property Name="OptimizationType" Type="Byte" />
+          <Property Name="CalculateByWeight" Type="Boolean" />
           <NavigationProperty Name="BOM_HEADERS" Relationship="Self.FK_BOM_HEADER_PRODUCTS" FromRole="PRODUCTS" ToRole="BOM_HEADERS" />
           <NavigationProperty Name="BOM_LINES" Relationship="Self.FK_BOM_LINES_ComponentID_PRODUCTS" FromRole="PRODUCTS" ToRole="BOM_LINES" />
           <NavigationProperty Name="DAMAGED_PRODUCTS" Relationship="Self.FK_DAMAGED_PRODUCTS_PRODUCTS" FromRole="PRODUCTS" ToRole="DAMAGED_PRODUCTS" />
@@ -7052,6 +7535,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="P_CONTRACT_PRODUCTS" Relationship="Self.FK_P_CONTRACT_PRODUCTS_ID_PRODUCTS" FromRole="PRODUCTS" ToRole="P_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="P_INVOICE_PRODUCTS" Relationship="Self.FK_P_INVOICE_PRODUCTS_ID_PRODUCTS" FromRole="PRODUCTS" ToRole="P_INVOICE_PRODUCTS" />
           <NavigationProperty Name="P_ORDER_PRODUCTS" Relationship="Self.FK_P_ORDER_PRODUCTS_ID_PRODUCTS" FromRole="PRODUCTS" ToRole="P_ORDER_PRODUCTS" />
+          <NavigationProperty Name="P_REQUISITION_PRODUCTS" Relationship="Self.FK_P_REQUISITION_PRODUCTS_PRODUCT" FromRole="PRODUCTS" ToRole="P_REQUISITION_PRODUCTS" />
           <NavigationProperty Name="PRODUCT_CATEGORIES" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCTS" ToRole="PRODUCT_CATEGORIES" />
           <NavigationProperty Name="PRODUCT_PRODUCTION" Relationship="Self.FK_PRODUCT_PRODUCTION_PRODUCTS" FromRole="PRODUCTS" ToRole="PRODUCT_PRODUCTION" />
           <NavigationProperty Name="PRODUCT_STOCKS" Relationship="Self.FK_PROD_STOCKS_PRODUCTS" FromRole="PRODUCTS" ToRole="PRODUCT_STOCKS" />
@@ -7066,7 +7550,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="SALES_SF_LINES" Relationship="Self.FK_SALES_SF_LINES_Product" FromRole="PRODUCTS" ToRole="SALES_SF_LINES" />
           <NavigationProperty Name="SALES_TTNK_LINES" Relationship="Self.FK_SALES_TTNK_LINES_Product" FromRole="PRODUCTS" ToRole="SALES_TTNK_LINES" />
           <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="Self.FK_SORDER_DELIVERY_Product" FromRole="PRODUCTS" ToRole="SORDER_DELIVERY_SCHEDULE" />
-          <NavigationProperty Name="TANNARXes" Relationship="DBTHSNModel.FK_TANNARX_PRODUCTS" FromRole="PRODUCT" ToRole="TANNARX" />
+          <NavigationProperty Name="TANNARXes" Relationship="Self.FK_TANNARX_PRODUCTS" FromRole="PRODUCTS" ToRole="TANNARX" />
         </EntityType>
         <EntityType Name="QUALITY_INSPECTION">
           <Key>
@@ -7489,11 +7973,27 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <PropertyRef Name="DocumentID" />
           </Key>
           <Property Name="DocumentID" Type="Int64" Nullable="false" />
-          <Property Name="StandardCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="StandardCode" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="Area" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="VersionNo" Type="Int32" Nullable="false" />
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_STD_COMPANY_STANDARDS_Document" FromRole="STD_COMPANY_STANDARDS" ToRole="DOC_DOCUMENTS" />
+          <Property Name="VersionNo" Type="Decimal" Precision="5" Scale="2" Nullable="false" />
+          <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" FromRole="STD_COMPANY_STANDARDS" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="SUPPLIER_BASE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="ProductType" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Country" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Province" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Region" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ContactPerson" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Position" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="SUPPLIER">
           <Key>
@@ -7515,6 +8015,54 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_P_INVOICES_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_INVOICES" />
           <NavigationProperty Name="P_ORDERS" Relationship="Self.FK_P_ORDERS_SUPPLIERS" FromRole="SUPPLIERS" ToRole="P_ORDERS" />
         </EntityType>
+        <EntityType Name="TANNARX">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" Nullable="false" />
+          <Property Name="Month" Type="Int32" Nullable="false" />
+          <Property Name="MonthString" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="MaterialPrice" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="MaterialTransportCost" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="LaborCost" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="TaxAndBank" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="AdministrativeExpenses" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="OtherExpenses" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="Profit" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="TaxAndBankPercent" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="AdministrativeExpensesPercent" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="OtherExpensesPercent" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="ProfitPercent" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="SalesPriceEXWWithoutVAT" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="SalesPriceEXWWithVAT" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="SetPriceEXWWithVAT" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="FinishedProductTransportCost" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="SalesPriceCIPWithoutVAT" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="SalesPriceCIPWithVAT" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="SetPriceCIPWithVAT" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="CreatedByUserID" Type="Int32" />
+          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ModifiedByUserID" Type="Int32" />
+          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="ActualMaterialPrice" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualMaterialTransportCost" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualLaborCost" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualTaxAndBank" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualAdministrativeExpenses" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualOtherExpenses" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualProfit" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualFinishedProductTransportCost" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualSalesPriceEXWWithoutVAT" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualSalesPriceEXWWithVAT" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualSalesPriceCIPWithoutVAT" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="ActualSalesPriceCIPWithVAT" Type="Decimal" Precision="18" Scale="4" />
+          <NavigationProperty Name="PRODUCT" Relationship="Self.FK_TANNARX_PRODUCTS" FromRole="TANNARX" ToRole="PRODUCTS" />
+          <NavigationProperty Name="USER" Relationship="Self.FK_TANNARX_USERS_CreatedBy" FromRole="TANNARX" ToRole="USERS" />
+          <NavigationProperty Name="USER1" Relationship="Self.FK_TANNARX_USERS_ModifiedBy" FromRole="TANNARX" ToRole="USERS" />
+        </EntityType>
         <EntityType Name="UNIT">
           <Key>
             <PropertyRef Name="ID" />
@@ -7530,6 +8078,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="P_CONTRACT_PRODUCTS" Relationship="Self.FK_P_CONTRACT_PRODUCTS_UNITS" FromRole="UNITS" ToRole="P_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="P_INVOICE_PRODUCTS" Relationship="Self.FK_P_INVOICE_PRODUCTS_UNITS" FromRole="UNITS" ToRole="P_INVOICE_PRODUCTS" />
           <NavigationProperty Name="P_ORDER_PRODUCTS" Relationship="Self.FK_P_ORDER_PRODUCTS_UNITS" FromRole="UNITS" ToRole="P_ORDER_PRODUCTS" />
+          <NavigationProperty Name="P_REQUISITION_PRODUCTS" Relationship="Self.FK_P_REQUISITION_PRODUCTS_UNIT" FromRole="UNITS" ToRole="P_REQUISITION_PRODUCTS" />
           <NavigationProperty Name="PRODUCT_STOCKS" Relationship="Self.FK__PROD_STOC__UnitI__5F691F13" FromRole="UNITS" ToRole="PRODUCT_STOCKS" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_UNITS" FromRole="UNITS" ToRole="PRODUCTS" />
           <NavigationProperty Name="S_CONTRACT_PRODUCTS" Relationship="Self.FK_S_CONTRACT_PRODUCTS_UNITS" FromRole="UNITS" ToRole="S_CONTRACT_PRODUCTS" />
@@ -7602,6 +8151,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_PIECE_RATE_OPERATIONS1" Relationship="Self.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" FromRole="USERS" ToRole="HR_PIECE_RATE_OPERATIONS" />
           <NavigationProperty Name="HR_PIECE_RATE_TARIFFS" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" FromRole="USERS" ToRole="HR_PIECE_RATE_TARIFFS" />
           <NavigationProperty Name="HR_PIECE_RATE_TARIFFS1" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" FromRole="USERS" ToRole="HR_PIECE_RATE_TARIFFS" />
+          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" FromRole="USERS" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
+          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS1" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" FromRole="USERS" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
+          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS2" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" FromRole="USERS" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
           <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" FromRole="USERS" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
           <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES1" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" FromRole="USERS" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
           <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="Self.FK_HR_TIMESHEET_HEADERS_USERS_Approved" FromRole="USERS" ToRole="HR_TIMESHEET_HEADERS" />
@@ -7612,16 +8164,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="SALES_INVOICES" Relationship="Self.FK_SALES_INVOICES_CreatedBy" FromRole="USERS" ToRole="SALES_INVOICES" />
           <NavigationProperty Name="SALES_SF_HEADERS" Relationship="Self.FK_SALES_SF_HEADERS_CreatedBy" FromRole="USERS" ToRole="SALES_SF_HEADERS" />
           <NavigationProperty Name="SORDER_DELIVERY_SCHEDULE" Relationship="Self.FK_SORDER_DELIVERY_CreatedBy" FromRole="USERS" ToRole="SORDER_DELIVERY_SCHEDULE" />
+          <NavigationProperty Name="TANNARXes" Relationship="Self.FK_TANNARX_USERS_CreatedBy" FromRole="USERS" ToRole="TANNARX" />
+          <NavigationProperty Name="TANNARXes1" Relationship="Self.FK_TANNARX_USERS_ModifiedBy" FromRole="USERS" ToRole="TANNARX" />
           <NavigationProperty Name="USER_ENTRIES" Relationship="Self.FK_USER_ENTRIES_USERS" FromRole="USERS" ToRole="USER_ENTRIES" />
           <NavigationProperty Name="USERIMAGES" Relationship="Self.FK_USERIMAGES_USERS" FromRole="USERS" ToRole="USERIMAGES" />
           <NavigationProperty Name="USERLOGS" Relationship="Self.FK_USERLOGS_USERS" FromRole="USERS" ToRole="USERLOGS" />
           <NavigationProperty Name="WAREHOUSES" Relationship="Self.FK_PROD_WRHS_USERS" FromRole="USERS" ToRole="WAREHOUSES" />
           <NavigationProperty Name="ROLES" Relationship="Self.USERROLES" FromRole="USERS" ToRole="ROLES" />
-          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" FromRole="USER" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" FromRole="USER" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          <NavigationProperty Name="HR_PIECE_RATE_TIMESHEET_APPROVALS2" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" FromRole="USER" ToRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          <NavigationProperty Name="TANNARXes" Relationship="DBTHSNModel.FK_TANNARX_USERS_CreatedBy" FromRole="USER" ToRole="TANNARX" />
-          <NavigationProperty Name="TANNARXes1" Relationship="DBTHSNModel.FK_TANNARX_USERS_ModifiedBy" FromRole="USER" ToRole="TANNARX" />
+          <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_CREATED_BY" FromRole="USER" ToRole="HR_EMPLOYEE_HISTORY" />
         </EntityType>
         <EntityType Name="Warehouse">
           <Key>
@@ -7717,6 +8267,51 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="AmountFact" Type="Decimal" Precision="38" Scale="2" Nullable="false" />
           <Property Name="Delta" Type="Decimal" Precision="38" Scale="2" />
           <Property Name="DeltaPercent" Type="Decimal" Precision="38" Scale="6" />
+        </EntityType>
+        <EntityType Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="ActualAdministrativeExpenses" Type="Decimal" Precision="38" Scale="6" />
+        </EntityType>
+        <EntityType Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="ActualFinishedProductTransportCost" Type="Double" />
+        </EntityType>
+        <EntityType Name="V_TANNARX_ACTUAL_LABOR_COSTS">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="ActualLaborCost" Type="Decimal" Precision="38" Scale="8" />
+        </EntityType>
+        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="ActualMaterialPrice" Type="Decimal" Precision="38" Scale="6" />
+        </EntityType>
+        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="Month" Type="Int32" />
+          <Property Name="ActualMaterialTransportCost" Type="Double" />
         </EntityType>
         <Association Name="FK_ADM_COMPANY_ORDERS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
@@ -8366,8 +8961,24 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_STD_COMPANY_STANDARDS_Document">
-          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
+        <Association Name="FK_JOB_DESC_DOC_DOCUMENTS">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="JOB_DESC" Type="Self.JOB_DESC" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_DOCUMENTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="JOB_DESC">
+              <PropertyRef Name="DocumentID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS">
+          <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="STD_COMPANY_STANDARDS" Type="Self.STD_COMPANY_STANDARDS" Multiplicity="0..1" />
           <ReferentialConstraint>
             <Principal Role="DOC_DOCUMENTS">
@@ -8654,6 +9265,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_FIN_ACCOUNTS_BalanceCategory">
+          <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="0..1" />
+          <End Role="FIN_ACCOUNTS" Type="Self.FIN_ACCOUNTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FIN_BALANCE_CATEGORIES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FIN_ACCOUNTS">
+              <PropertyRef Name="BalanceCategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_FIN_ACCOUNTS_CREATEDBY">
           <End Role="USERS" Type="Self.USER" Multiplicity="1" />
           <End Role="FIN_ACCOUNTS" Type="Self.FIN_ACCOUNTS" Multiplicity="*" />
@@ -8906,6 +9529,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_JOB_DESC_HR_JOB_DESCRIPTIONS">
+          <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
+          <End Role="JOB_DESC" Type="Self.JOB_DESC" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_JOB_DESCRIPTIONS">
+              <PropertyRef Name="DocumentID" />
+            </Principal>
+            <Dependent Role="JOB_DESC">
+              <PropertyRef Name="HRJobDescriptionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_ORG_UNITS_Parent">
           <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
           <End Role="HR_ORG_UNITS1" Type="Self.HR_ORG_UNITS" Multiplicity="*" />
@@ -8926,6 +9561,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="HR_PAYROLL_HEADERS">
+              <PropertyRef Name="OrgUnitID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS">
+          <End Role="HR_ORG_UNITS" Type="Self.HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Type="Self.HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_ORG_UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
               <PropertyRef Name="OrgUnitID" />
             </Dependent>
           </ReferentialConstraint>
@@ -9097,6 +9744,42 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Principal>
             <Dependent Role="HR_PIECE_RATE_TARIFFS">
               <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY">
+          <End Role="USERS" Type="Self.USER" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Type="Self.HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+              <PropertyRef Name="ApprovedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY">
+          <End Role="USERS" Type="Self.USER" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Type="Self.HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY">
+          <End Role="USERS" Type="Self.USER" Multiplicity="0..1" />
+          <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Type="Self.HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+              <PropertyRef Name="ModifiedByUserID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -9594,6 +10277,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_P_ORDERS_REQUISITION">
+          <End Role="P_REQUISITIONS" Type="Self.P_REQUISITIONS" Multiplicity="0..1" />
+          <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_REQUISITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_ORDERS">
+              <PropertyRef Name="RequisitionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_P_ORDERS_SUPPLIERS">
           <End Role="SUPPLIERS" Type="Self.SUPPLIER" Multiplicity="0..1" />
           <End Role="P_ORDERS" Type="Self.P_ORDERS" Multiplicity="*" />
@@ -9603,6 +10298,58 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Principal>
             <Dependent Role="P_ORDERS">
               <PropertyRef Name="SupplierID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_APPROVALS_REQUISITION">
+          <End Role="P_REQUISITIONS" Type="Self.P_REQUISITIONS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="P_REQUISITION_APPROVALS" Type="Self.P_REQUISITION_APPROVALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_REQUISITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_APPROVALS">
+              <PropertyRef Name="RequisitionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_PRODUCTS_PRODUCT">
+          <End Role="PRODUCTS" Type="Self.PRODUCT" Multiplicity="1" />
+          <End Role="P_REQUISITION_PRODUCTS" Type="Self.P_REQUISITION_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_PRODUCTS">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_PRODUCTS_REQUISITION">
+          <End Role="P_REQUISITIONS" Type="Self.P_REQUISITIONS" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="P_REQUISITION_PRODUCTS" Type="Self.P_REQUISITION_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="P_REQUISITIONS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_PRODUCTS">
+              <PropertyRef Name="RequisitionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_P_REQUISITION_PRODUCTS_UNIT">
+          <End Role="UNITS" Type="Self.UNIT" Multiplicity="1" />
+          <End Role="P_REQUISITION_PRODUCTS" Type="Self.P_REQUISITION_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UNITS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="P_REQUISITION_PRODUCTS">
+              <PropertyRef Name="UnitID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -9878,6 +10625,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="SORDER_DELIVERY_SCHEDULE">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TANNARX_PRODUCTS">
+          <End Role="PRODUCTS" Type="Self.PRODUCT" Multiplicity="1" />
+          <End Role="TANNARX" Type="Self.TANNARX" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="TANNARX">
               <PropertyRef Name="ProductID" />
             </Dependent>
           </ReferentialConstraint>
@@ -10266,6 +11025,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TANNARX_USERS_CreatedBy">
+          <End Role="USERS" Type="Self.USER" Multiplicity="0..1" />
+          <End Role="TANNARX" Type="Self.TANNARX" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="TANNARX">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TANNARX_USERS_ModifiedBy">
+          <End Role="USERS" Type="Self.USER" Multiplicity="0..1" />
+          <End Role="TANNARX" Type="Self.TANNARX" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="TANNARX">
+              <PropertyRef Name="ModifiedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK__WASTE_STO__UnitI__5E74FADA">
           <End Role="UNITS" Type="Self.UNIT" Multiplicity="1" />
           <End Role="WASTE_STOCKS" Type="Self.WASTE_STOCKS" Multiplicity="*" />
@@ -10350,6 +11133,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FIN_BALANCE_CATEGORY_CATEGORIES">
+          <End Role="FIN_BALANCE_CATEGORIES" Type="Self.FIN_BALANCE_CATEGORIES" Multiplicity="*" />
+          <End Role="FIN_CATEGORIES" Type="Self.FIN_CATEGORIES" Multiplicity="*" />
+        </Association>
         <Association Name="FIN_PL_ITEM_CATEGORIES">
           <End Role="FIN_CATEGORIES" Type="Self.FIN_CATEGORIES" Multiplicity="*" />
           <End Role="FIN_PL_ITEMS" Type="Self.FIN_PL_ITEMS" Multiplicity="*" />
@@ -10404,6 +11191,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="HR_PAYROLL_LINES" EntityType="Self.HR_PAYROLL_LINES" />
           <EntitySet Name="HR_PIECE_RATE_OPERATIONS" EntityType="Self.HR_PIECE_RATE_OPERATIONS" />
           <EntitySet Name="HR_PIECE_RATE_TARIFFS" EntityType="Self.HR_PIECE_RATE_TARIFFS" />
+          <EntitySet Name="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntityType="Self.HR_PIECE_RATE_TIMESHEET_APPROVALS" />
           <EntitySet Name="HR_PIECE_RATE_WORK_ENTRIES" EntityType="Self.HR_PIECE_RATE_WORK_ENTRIES" />
           <EntitySet Name="HR_POSITIONS" EntityType="Self.HR_POSITIONS" />
           <EntitySet Name="HR_SALARY_GRADES" EntityType="Self.HR_SALARY_GRADES" />
@@ -10413,6 +11201,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="HSCODES" EntityType="Self.HSCODE" />
           <EntitySet Name="INCOME_PRODUCTS" EntityType="Self.INCOME_PRODUCTS" />
           <EntitySet Name="INCOMES" EntityType="Self.INCOME" />
+          <EntitySet Name="JOB_DESC" EntityType="Self.JOB_DESC" />
           <EntitySet Name="NORM_INPUT_LINES" EntityType="Self.NORM_INPUT_LINES" />
           <EntitySet Name="NORMLINES" EntityType="Self.NORMLINE" />
           <EntitySet Name="NORMVERSIONS" EntityType="Self.NORMVERSION" />
@@ -10424,6 +11213,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="P_INVOICES" EntityType="Self.P_INVOICES" />
           <EntitySet Name="P_ORDER_PRODUCTS" EntityType="Self.P_ORDER_PRODUCTS" />
           <EntitySet Name="P_ORDERS" EntityType="Self.P_ORDERS" />
+          <EntitySet Name="P_REQUISITION_APPROVALS" EntityType="Self.P_REQUISITION_APPROVALS" />
+          <EntitySet Name="P_REQUISITION_PRODUCTS" EntityType="Self.P_REQUISITION_PRODUCTS" />
+          <EntitySet Name="P_REQUISITIONS" EntityType="Self.P_REQUISITIONS" />
           <EntitySet Name="PERMISSIONMODULES" EntityType="Self.PERMISSIONMODULE" />
           <EntitySet Name="PERMISSIONS" EntityType="Self.PERMISSION" />
           <EntitySet Name="PRODUCT_CATEGORIES" EntityType="Self.PRODUCT_CATEGORIES" />
@@ -10455,7 +11247,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="SHOPS" EntityType="Self.SHOP" />
           <EntitySet Name="SORDER_DELIVERY_SCHEDULE" EntityType="Self.SORDER_DELIVERY_SCHEDULE" />
           <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="Self.STD_COMPANY_STANDARDS" />
+          <EntitySet Name="SUPPLIER_BASE" EntityType="Self.SUPPLIER_BASE" />
           <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIER" />
+          <EntitySet Name="TANNARXes" EntityType="Self.TANNARX" />
           <EntitySet Name="UNITS" EntityType="Self.UNIT" />
           <EntitySet Name="USER_ENTRIES" EntityType="Self.USER_ENTRIES" />
           <EntitySet Name="USER_LICENSES" EntityType="Self.USER_LICENSES" />
@@ -10469,6 +11263,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="WRHS_INCOME_DOCS" EntityType="Self.WRHS_INCOME_DOCS" />
           <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" />
           <EntitySet Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY" EntityType="Self.V_FIN_PL_PLAN_VS_FACT_MONTHLY" />
+          <EntitySet Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES" EntityType="Self.V_TANNARX_ACTUAL_ADMIN_EXPENSES" />
+          <EntitySet Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" EntityType="Self.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" />
+          <EntitySet Name="V_TANNARX_ACTUAL_LABOR_COSTS" EntityType="Self.V_TANNARX_ACTUAL_LABOR_COSTS" />
+          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_COSTS" EntityType="Self.V_TANNARX_ACTUAL_MATERIAL_COSTS" />
+          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" EntityType="Self.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" />
           <AssociationSet Name="FK_ADM_COMPANY_ORDERS_Document" Association="Self.FK_ADM_COMPANY_ORDERS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="ADM_COMPANY_ORDERS" EntitySet="ADM_COMPANY_ORDERS" />
@@ -10685,7 +11484,11 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
           </AssociationSet>
-          <AssociationSet Name="FK_STD_COMPANY_STANDARDS_Document" Association="Self.FK_STD_COMPANY_STANDARDS_Document">
+          <AssociationSet Name="FK_JOB_DESC_DOC_DOCUMENTS" Association="Self.FK_JOB_DESC_DOC_DOCUMENTS">
+            <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
+            <End Role="JOB_DESC" EntitySet="JOB_DESC" />
+          </AssociationSet>
+          <AssociationSet Name="FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" Association="Self.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="STD_COMPANY_STANDARDS" EntitySet="STD_COMPANY_STANDARDS" />
           </AssociationSet>
@@ -10781,6 +11584,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
           </AssociationSet>
+          <AssociationSet Name="FK_FIN_ACCOUNTS_BalanceCategory" Association="Self.FK_FIN_ACCOUNTS_BalanceCategory">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_FIN_ACCOUNTS_CREATEDBY" Association="Self.FK_FIN_ACCOUNTS_CREATEDBY">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
@@ -10865,6 +11672,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
             <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
           </AssociationSet>
+          <AssociationSet Name="FK_JOB_DESC_HR_JOB_DESCRIPTIONS" Association="Self.FK_JOB_DESC_HR_JOB_DESCRIPTIONS">
+            <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
+            <End Role="JOB_DESC" EntitySet="JOB_DESC" />
+          </AssociationSet>
           <AssociationSet Name="FK_HR_ORG_UNITS_Parent" Association="Self.FK_HR_ORG_UNITS_Parent">
             <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
             <End Role="HR_ORG_UNITS1" EntitySet="HR_ORG_UNITS" />
@@ -10872,6 +11683,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" Association="Self.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS">
             <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
             <End Role="HR_PAYROLL_HEADERS" EntitySet="HR_PAYROLL_HEADERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" Association="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
           </AssociationSet>
           <AssociationSet Name="FK_HR_STAFFING_PLAN_OrgUnit" Association="Self.FK_HR_STAFFING_PLAN_OrgUnit">
             <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
@@ -10928,6 +11743,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" Association="Self.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="HR_PIECE_RATE_TARIFFS" EntitySet="HR_PIECE_RATE_TARIFFS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" Association="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" Association="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" Association="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
           </AssociationSet>
           <AssociationSet Name="FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" Association="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS">
             <End Role="USERS" EntitySet="USERS" />
@@ -11093,9 +11920,29 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="P_ORDER_PRODUCTS" EntitySet="P_ORDER_PRODUCTS" />
           </AssociationSet>
+          <AssociationSet Name="FK_P_ORDERS_REQUISITION" Association="Self.FK_P_ORDERS_REQUISITION">
+            <End Role="P_REQUISITIONS" EntitySet="P_REQUISITIONS" />
+            <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+          </AssociationSet>
           <AssociationSet Name="FK_P_ORDERS_SUPPLIERS" Association="Self.FK_P_ORDERS_SUPPLIERS">
             <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
             <End Role="P_ORDERS" EntitySet="P_ORDERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_APPROVALS_REQUISITION" Association="Self.FK_P_REQUISITION_APPROVALS_REQUISITION">
+            <End Role="P_REQUISITIONS" EntitySet="P_REQUISITIONS" />
+            <End Role="P_REQUISITION_APPROVALS" EntitySet="P_REQUISITION_APPROVALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_PRODUCTS_PRODUCT" Association="Self.FK_P_REQUISITION_PRODUCTS_PRODUCT">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="P_REQUISITION_PRODUCTS" EntitySet="P_REQUISITION_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_PRODUCTS_REQUISITION" Association="Self.FK_P_REQUISITION_PRODUCTS_REQUISITION">
+            <End Role="P_REQUISITIONS" EntitySet="P_REQUISITIONS" />
+            <End Role="P_REQUISITION_PRODUCTS" EntitySet="P_REQUISITION_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_P_REQUISITION_PRODUCTS_UNIT" Association="Self.FK_P_REQUISITION_PRODUCTS_UNIT">
+            <End Role="UNITS" EntitySet="UNITS" />
+            <End Role="P_REQUISITION_PRODUCTS" EntitySet="P_REQUISITION_PRODUCTS" />
           </AssociationSet>
           <AssociationSet Name="FK_PERMISSIONS_PERMISSIONMODULES" Association="Self.FK_PERMISSIONS_PERMISSIONMODULES">
             <End Role="PERMISSIONMODULES" EntitySet="PERMISSIONMODULES" />
@@ -11188,6 +12035,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_SORDER_DELIVERY_Product" Association="Self.FK_SORDER_DELIVERY_Product">
             <End Role="PRODUCTS" EntitySet="PRODUCTS" />
             <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TANNARX_PRODUCTS" Association="Self.FK_TANNARX_PRODUCTS">
+            <End Role="PRODUCTS" EntitySet="PRODUCTS" />
+            <End Role="TANNARX" EntitySet="TANNARXes" />
           </AssociationSet>
           <AssociationSet Name="FK_QUALITY_INSPECTION_S_ORDERS" Association="Self.FK_QUALITY_INSPECTION_S_ORDERS">
             <End Role="S_ORDERS" EntitySet="S_ORDERS" />
@@ -11317,6 +12168,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="USERS" EntitySet="USERS" />
             <End Role="SORDER_DELIVERY_SCHEDULE" EntitySet="SORDER_DELIVERY_SCHEDULE" />
           </AssociationSet>
+          <AssociationSet Name="FK_TANNARX_USERS_CreatedBy" Association="Self.FK_TANNARX_USERS_CreatedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="TANNARX" EntitySet="TANNARXes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TANNARX_USERS_ModifiedBy" Association="Self.FK_TANNARX_USERS_ModifiedBy">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="TANNARX" EntitySet="TANNARXes" />
+          </AssociationSet>
           <AssociationSet Name="FK__WASTE_STO__UnitI__5E74FADA" Association="Self.FK__WASTE_STO__UnitI__5E74FADA">
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="WASTE_STOCKS" EntitySet="WASTE_STOCKS" />
@@ -11344,6 +12203,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_WASTE_STOCKS_WASTES" Association="Self.FK_WASTE_STOCKS_WASTES">
             <End Role="WASTES" EntitySet="WASTES" />
             <End Role="WASTE_STOCKS" EntitySet="WASTE_STOCKS" />
+          </AssociationSet>
+          <AssociationSet Name="FIN_BALANCE_CATEGORY_CATEGORIES" Association="Self.FIN_BALANCE_CATEGORY_CATEGORIES">
+            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
+            <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
           </AssociationSet>
           <AssociationSet Name="FIN_PL_ITEM_CATEGORIES" Association="Self.FIN_PL_ITEM_CATEGORIES">
             <End Role="FIN_CATEGORIES" EntitySet="FIN_CATEGORIES" />
@@ -11392,49 +12255,34 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <FunctionImport Name="sp_SOrder_RecalcDeliveryShippedFromInvoices">
           <Parameter Name="SOrderID" Mode="In" Type="Int32" />
           </FunctionImport>
-          <EntitySet Name="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntityType="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS">
-            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
-            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          </AssociationSet>
-          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY">
-            <End Role="USER" EntitySet="USERS" />
-            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          </AssociationSet>
-          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY">
-            <End Role="USER" EntitySet="USERS" />
-            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          </AssociationSet>
-          <AssociationSet Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY">
-            <End Role="USER" EntitySet="USERS" />
-            <End Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" EntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS" />
-          </AssociationSet>
-          <EntitySet Name="TANNARXes" EntityType="DBTHSNModel.TANNARX" />
-          <AssociationSet Name="FK_TANNARX_PRODUCTS" Association="DBTHSNModel.FK_TANNARX_PRODUCTS">
-            <End Role="PRODUCT" EntitySet="PRODUCTS" />
-            <End Role="TANNARX" EntitySet="TANNARXes" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TANNARX_USERS_CreatedBy" Association="DBTHSNModel.FK_TANNARX_USERS_CreatedBy">
-            <End Role="USER" EntitySet="USERS" />
-            <End Role="TANNARX" EntitySet="TANNARXes" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TANNARX_USERS_ModifiedBy" Association="DBTHSNModel.FK_TANNARX_USERS_ModifiedBy">
-            <End Role="USER" EntitySet="USERS" />
-            <End Role="TANNARX" EntitySet="TANNARXes" />
-          </AssociationSet>
-          <EntitySet Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES" EntityType="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES" />
-          <EntitySet Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" EntityType="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" />
-          <EntitySet Name="V_TANNARX_ACTUAL_LABOR_COSTS" EntityType="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS" />
-          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_COSTS" EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS" />
-          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" />
           <FunctionImport Name="SP_TANNARX_UPDATE_ACTUAL_COSTS" ReturnType="Collection(Int32)">
             <Parameter Name="Year" Mode="In" Type="Int32" />
             <Parameter Name="Month" Mode="In" Type="Int32" />
           </FunctionImport>
-          <EntitySet Name="SUPPLIER_BASE" EntityType="DBTHSNModel.SUPPLIER_BASE" />
-          <AssociationSet Name="FK_FIN_ACCOUNTS_BalanceCategory" Association="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory">
-            <End Role="FIN_BALANCE_CATEGORIES" EntitySet="FIN_BALANCE_CATEGORIES" />
-            <End Role="FIN_ACCOUNTS" EntitySet="FIN_ACCOUNTS" />
+          <EntitySet Name="HR_EMPLOYEE_HISTORY" EntityType="DBTHSNModel.HR_EMPLOYEE_HISTORY" />
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_CREATED_BY" Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_CREATED_BY">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_EMPLOYEES" Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_EMPLOYEES">
+            <End Role="HR_EMPLOYEES" EntitySet="HR_EMPLOYEES" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS" Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS">
+            <End Role="HR_ORG_UNITS" EntitySet="HR_ORG_UNITS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS">
+            <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
+            <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
           </AssociationSet>
         </EntityContainer>
         <ComplexType Name="sp_Fin_CashSummary_Result">
@@ -11457,228 +12305,97 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Type="Double" Name="WasteMm" Nullable="true" />
           <Property Type="Decimal" Name="WastePercent" Nullable="true" Precision="5" Scale="2" />
         </ComplexType>
-        <EntityType Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+        <EntityType Name="HR_EMPLOYEE_HISTORY">
           <Key>
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Year" Type="Int32" Nullable="false" />
-          <Property Name="Month" Type="Int32" Nullable="false" />
-          <Property Name="OrgUnitID" Type="Int32" />
-          <Property Name="Status" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="ApprovedByUserID" Type="Int32" />
-          <Property Name="ApprovedDT" Type="DateTime" Precision="3" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="ActionType" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="FromOrgUnitID" Type="Int32" />
+          <Property Name="FromPositionID" Type="Int32" />
+          <Property Name="ToOrgUnitID" Type="Int32" />
+          <Property Name="ToPositionID" Type="Int32" />
+          <Property Name="EffectiveDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Reason" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CreatedByUserID" Type="Int32" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="ModifiedByUserID" Type="Int32" />
-          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="HR_ORG_UNITS" />
-          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USER" />
-          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USER" />
-          <NavigationProperty Name="USER2" Relationship="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USER" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_CREATED_BY" FromRole="HR_EMPLOYEE_HISTORY" ToRole="USER" />
+          <NavigationProperty Name="HR_EMPLOYEES" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_EMPLOYEES" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_EMPLOYEES" />
+          <NavigationProperty Name="HR_ORG_UNITS" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_POSITIONS" />
+          <NavigationProperty Name="HR_ORG_UNITS1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_ORG_UNITS" />
+          <NavigationProperty Name="HR_POSITIONS1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_POSITIONS" />
         </EntityType>
-        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS">
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_CREATED_BY">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEE_HISTORY" Role="HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="CreatedByUserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_EMPLOYEES">
+          <End Type="DBTHSNModel.HR_EMPLOYEES" Role="HR_EMPLOYEES" Multiplicity="1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEE_HISTORY" Role="HR_EMPLOYEE_HISTORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="HR_EMPLOYEES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS">
           <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+          <End Type="DBTHSNModel.HR_EMPLOYEE_HISTORY" Role="HR_EMPLOYEE_HISTORY" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="HR_ORG_UNITS">
               <PropertyRef Name="ID" />
             </Principal>
-            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
-              <PropertyRef Name="OrgUnitID" />
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="FromOrgUnitID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY">
-          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEE_HISTORY" Role="HR_EMPLOYEE_HISTORY" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="USER">
+            <Principal Role="HR_POSITIONS">
               <PropertyRef Name="ID" />
             </Principal>
-            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
-              <PropertyRef Name="ApprovedByUserID" />
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="FromPositionID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY">
-          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS">
+          <End Type="DBTHSNModel.HR_ORG_UNITS" Role="HR_ORG_UNITS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEE_HISTORY" Role="HR_EMPLOYEE_HISTORY" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="USER">
+            <Principal Role="HR_ORG_UNITS">
               <PropertyRef Name="ID" />
             </Principal>
-            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
-              <PropertyRef Name="CreatedByUserID" />
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="ToOrgUnitID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY">
-          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" Role="HR_PIECE_RATE_TIMESHEET_APPROVALS" Multiplicity="*" />
+        <Association Name="FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS">
+          <End Type="DBTHSNModel.HR_POSITIONS" Role="HR_POSITIONS" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.HR_EMPLOYEE_HISTORY" Role="HR_EMPLOYEE_HISTORY" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="USER">
+            <Principal Role="HR_POSITIONS">
               <PropertyRef Name="ID" />
             </Principal>
-            <Dependent Role="HR_PIECE_RATE_TIMESHEET_APPROVALS">
-              <PropertyRef Name="ModifiedByUserID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="TANNARX">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" Nullable="false" />
-          <Property Name="Month" Type="Int32" Nullable="false" />
-          <Property Name="MonthString" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
-          <Property Name="MaterialPrice" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="MaterialTransportCost" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="LaborCost" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TaxAndBank" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="AdministrativeExpenses" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="OtherExpenses" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="Profit" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TaxAndBankPercent" Type="Decimal" Precision="5" Scale="2" />
-          <Property Name="AdministrativeExpensesPercent" Type="Decimal" Precision="5" Scale="2" />
-          <Property Name="OtherExpensesPercent" Type="Decimal" Precision="5" Scale="2" />
-          <Property Name="ProfitPercent" Type="Decimal" Precision="5" Scale="2" />
-          <Property Name="SalesPriceEXWWithoutVAT" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="SalesPriceEXWWithVAT" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="SetPriceEXWWithVAT" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="FinishedProductTransportCost" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="SalesPriceCIPWithoutVAT" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="SalesPriceCIPWithVAT" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="SetPriceCIPWithVAT" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="CreatedByUserID" Type="Int32" />
-          <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="ModifiedByUserID" Type="Int32" />
-          <Property Name="ModifiedDT" Type="DateTime" Precision="3" />
-          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
-          <Property Name="ActualMaterialPrice" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualMaterialTransportCost" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualLaborCost" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualTaxAndBank" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualAdministrativeExpenses" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualOtherExpenses" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualProfit" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualFinishedProductTransportCost" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualSalesPriceEXWWithoutVAT" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualSalesPriceEXWWithVAT" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualSalesPriceCIPWithoutVAT" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="ActualSalesPriceCIPWithVAT" Type="Decimal" Precision="18" Scale="4" />
-          <NavigationProperty Name="PRODUCT" Relationship="DBTHSNModel.FK_TANNARX_PRODUCTS" FromRole="TANNARX" ToRole="PRODUCT" />
-          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_TANNARX_USERS_CreatedBy" FromRole="TANNARX" ToRole="USER" />
-          <NavigationProperty Name="USER1" Relationship="DBTHSNModel.FK_TANNARX_USERS_ModifiedBy" FromRole="TANNARX" ToRole="USER" />
-        </EntityType>
-        <Association Name="FK_TANNARX_PRODUCTS">
-          <End Type="DBTHSNModel.PRODUCT" Role="PRODUCT" Multiplicity="1" />
-          <End Type="DBTHSNModel.TANNARX" Role="TANNARX" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PRODUCT">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="TANNARX">
-              <PropertyRef Name="ProductID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TANNARX_USERS_CreatedBy">
-          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.TANNARX" Role="TANNARX" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="USER">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="TANNARX">
-              <PropertyRef Name="CreatedByUserID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TANNARX_USERS_ModifiedBy">
-          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.TANNARX" Role="TANNARX" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="USER">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="TANNARX">
-              <PropertyRef Name="ModifiedByUserID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="ActualAdministrativeExpenses" Type="Decimal" Precision="38" Scale="6" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="ActualFinishedProductTransportCost" Type="Double" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_LABOR_COSTS">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="ActualLaborCost" Type="Decimal" Precision="38" Scale="8" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="ActualMaterialPrice" Type="Decimal" Precision="38" Scale="6" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="ActualMaterialTransportCost" Type="Double" />
-        </EntityType>
-        <EntityType Name="SUPPLIER_BASE">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="CompanyName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-          <Property Name="ProductType" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-          <Property Name="Country" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Province" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Region" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="ContactPerson" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-          <Property Name="Position" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Phone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="IsDeleted" Type="Boolean" />
-        </EntityType>
-        <Association Name="FK_FIN_ACCOUNTS_BalanceCategory">
-          <End Type="DBTHSNModel.FIN_BALANCE_CATEGORIES" Role="FIN_BALANCE_CATEGORIES" Multiplicity="0..1" />
-          <End Type="DBTHSNModel.FIN_ACCOUNTS" Role="FIN_ACCOUNTS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="FIN_BALANCE_CATEGORIES">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="FIN_ACCOUNTS">
-              <PropertyRef Name="BalanceCategoryID" />
+            <Dependent Role="HR_EMPLOYEE_HISTORY">
+              <PropertyRef Name="ToPositionID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -11735,7 +12452,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="APP_TASKS">
             <EntityTypeMapping TypeName="DBTHSNModel.APP_TASKS">
               <MappingFragment StoreEntitySet="APP_TASKS">
-                <ScalarProperty Name="UserComment" ColumnName="UserComment" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ProjectID" ColumnName="ProjectID" />
                 <ScalarProperty Name="KeyCode" ColumnName="KeyCode" />
@@ -11749,6 +12465,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
                 <ScalarProperty Name="DueDate" ColumnName="DueDate" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="UserComment" ColumnName="UserComment" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -11777,7 +12494,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="COM_OFFICIAL_LETTERS">
             <EntityTypeMapping TypeName="DBTHSNModel.COM_OFFICIAL_LETTERS">
               <MappingFragment StoreEntitySet="COM_OFFICIAL_LETTERS">
-                <ScalarProperty Name="ExternalContactPosition" ColumnName="ExternalContactPosition" />
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="DirectionCode" ColumnName="DirectionCode" />
                 <ScalarProperty Name="LetterNo" ColumnName="LetterNo" />
@@ -11788,6 +12504,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="TheirRefNo" ColumnName="TheirRefNo" />
                 <ScalarProperty Name="ChannelCode" ColumnName="ChannelCode" />
                 <ScalarProperty Name="Topic" ColumnName="Topic" />
+                <ScalarProperty Name="ExternalContactPosition" ColumnName="ExternalContactPosition" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12133,7 +12850,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_ACCOUNTS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_ACCOUNTS">
               <MappingFragment StoreEntitySet="FIN_ACCOUNTS">
-                <ScalarProperty Name="BalanceCategoryID" ColumnName="BalanceCategoryID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12144,19 +12860,20 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="BalanceCategoryID" ColumnName="BalanceCategoryID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="FIN_BALANCE_CATEGORIES">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_BALANCE_CATEGORIES">
               <MappingFragment StoreEntitySet="FIN_BALANCE_CATEGORIES">
-                <ScalarProperty Name="CalculationType" ColumnName="CalculationType" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Type" ColumnName="Type" />
                 <ScalarProperty Name="ParentID" ColumnName="ParentID" />
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="CalculationType" ColumnName="CalculationType" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12365,6 +13082,23 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS">
+              <MappingFragment StoreEntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
+                <ScalarProperty Name="ApprovedDT" ColumnName="ApprovedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
+                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="HR_PIECE_RATE_WORK_ENTRIES">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES">
               <MappingFragment StoreEntitySet="HR_PIECE_RATE_WORK_ENTRIES">
@@ -12560,6 +13294,19 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="JOB_DESC">
+            <EntityTypeMapping TypeName="DBTHSNModel.JOB_DESC">
+              <MappingFragment StoreEntitySet="JOB_DESC">
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+                <ScalarProperty Name="JobDescriptionCode" ColumnName="JobDescriptionCode" />
+                <ScalarProperty Name="JobTitle" ColumnName="JobTitle" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="HRJobDescriptionID" ColumnName="HRJobDescriptionID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="NORM_INPUT_LINES">
             <EntityTypeMapping TypeName="DBTHSNModel.NORM_INPUT_LINES">
               <MappingFragment StoreEntitySet="NORM_INPUT_LINES">
@@ -12640,6 +13387,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="IDN" ColumnName="IDN" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="PurchaseType" ColumnName="PurchaseType" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12678,6 +13426,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
+                <ScalarProperty Name="PurchaseType" ColumnName="PurchaseType" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12692,6 +13441,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
                 <ScalarProperty Name="MOQ" ColumnName="MOQ" />
                 <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+                <ScalarProperty Name="Priority" ColumnName="Priority" />
+                <ScalarProperty Name="RequiredDate" ColumnName="RequiredDate" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12708,6 +13459,72 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="PurchaseType" ColumnName="PurchaseType" />
+                <ScalarProperty Name="RequisitionID" ColumnName="RequisitionID" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="ContractStatus" ColumnName="ContractStatus" />
+                <ScalarProperty Name="InvoiceStatus" ColumnName="InvoiceStatus" />
+                <ScalarProperty Name="WarehouseStatus" ColumnName="WarehouseStatus" />
+                <ScalarProperty Name="DepartmentID" ColumnName="DepartmentID" />
+                <ScalarProperty Name="RequesterID" ColumnName="RequesterID" />
+                <ScalarProperty Name="ContactPhone" ColumnName="ContactPhone" />
+                <ScalarProperty Name="Purpose" ColumnName="Purpose" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="P_REQUISITION_APPROVALS">
+            <EntityTypeMapping TypeName="DBTHSNModel.P_REQUISITION_APPROVALS">
+              <MappingFragment StoreEntitySet="P_REQUISITION_APPROVALS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RequisitionID" ColumnName="RequisitionID" />
+                <ScalarProperty Name="Role" ColumnName="Role" />
+                <ScalarProperty Name="ApproverID" ColumnName="ApproverID" />
+                <ScalarProperty Name="ApproverName" ColumnName="ApproverName" />
+                <ScalarProperty Name="Signature" ColumnName="Signature" />
+                <ScalarProperty Name="ApprovalDate" ColumnName="ApprovalDate" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="Comments" ColumnName="Comments" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="P_REQUISITION_PRODUCTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.P_REQUISITION_PRODUCTS">
+              <MappingFragment StoreEntitySet="P_REQUISITION_PRODUCTS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RequisitionID" ColumnName="RequisitionID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+                <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+                <ScalarProperty Name="EstimatedPrice" ColumnName="EstimatedPrice" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Priority" ColumnName="Priority" />
+                <ScalarProperty Name="RequiredDate" ColumnName="RequiredDate" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="P_REQUISITIONS">
+            <EntityTypeMapping TypeName="DBTHSNModel.P_REQUISITIONS">
+              <MappingFragment StoreEntitySet="P_REQUISITIONS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RequisitionNo" ColumnName="RequisitionNo" />
+                <ScalarProperty Name="RequisitionDate" ColumnName="RequisitionDate" />
+                <ScalarProperty Name="DepartmentID" ColumnName="DepartmentID" />
+                <ScalarProperty Name="RequesterID" ColumnName="RequesterID" />
+                <ScalarProperty Name="ContactPhone" ColumnName="ContactPhone" />
+                <ScalarProperty Name="Purpose" ColumnName="Purpose" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="ApprovedByID" ColumnName="ApprovedByID" />
+                <ScalarProperty Name="ApprovedDate" ColumnName="ApprovedDate" />
+                <ScalarProperty Name="RejectedByID" ColumnName="RejectedByID" />
+                <ScalarProperty Name="RejectionReason" ColumnName="RejectionReason" />
+                <ScalarProperty Name="ConvertedToOrderID" ColumnName="ConvertedToOrderID" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
+                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12755,6 +13572,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
                 <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
+                <ScalarProperty Name="CalculateByWeight" ColumnName="CalculateByWeight" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -12853,6 +13671,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="ShopID" ColumnName="ShopID" />
                 <ScalarProperty Name="StandardLengthMm" ColumnName="StandardLengthMm" />
                 <ScalarProperty Name="OptimizationType" ColumnName="OptimizationType" />
+                <ScalarProperty Name="CalculateByWeight" ColumnName="CalculateByWeight" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13210,8 +14029,25 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="StandardCode" ColumnName="StandardCode" />
                 <ScalarProperty Name="Area" ColumnName="Area" />
-                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
                 <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SUPPLIER_BASE">
+            <EntityTypeMapping TypeName="DBTHSNModel.SUPPLIER_BASE">
+              <MappingFragment StoreEntitySet="SUPPLIER_BASE">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="ProductType" ColumnName="ProductType" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="Province" ColumnName="Province" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="ContactPerson" ColumnName="ContactPerson" />
+                <ScalarProperty Name="Position" ColumnName="Position" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13230,6 +14066,52 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="DUNS" ColumnName="DUNS" />
                 <ScalarProperty Name="Type" ColumnName="Type" />
                 <ScalarProperty Name="City" ColumnName="City" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TANNARXes">
+            <EntityTypeMapping TypeName="DBTHSNModel.TANNARX">
+              <MappingFragment StoreEntitySet="TANNARX">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="MonthString" ColumnName="MonthString" />
+                <ScalarProperty Name="MaterialPrice" ColumnName="MaterialPrice" />
+                <ScalarProperty Name="MaterialTransportCost" ColumnName="MaterialTransportCost" />
+                <ScalarProperty Name="LaborCost" ColumnName="LaborCost" />
+                <ScalarProperty Name="TaxAndBank" ColumnName="TaxAndBank" />
+                <ScalarProperty Name="AdministrativeExpenses" ColumnName="AdministrativeExpenses" />
+                <ScalarProperty Name="OtherExpenses" ColumnName="OtherExpenses" />
+                <ScalarProperty Name="Profit" ColumnName="Profit" />
+                <ScalarProperty Name="TaxAndBankPercent" ColumnName="TaxAndBankPercent" />
+                <ScalarProperty Name="AdministrativeExpensesPercent" ColumnName="AdministrativeExpensesPercent" />
+                <ScalarProperty Name="OtherExpensesPercent" ColumnName="OtherExpensesPercent" />
+                <ScalarProperty Name="ProfitPercent" ColumnName="ProfitPercent" />
+                <ScalarProperty Name="SalesPriceEXWWithoutVAT" ColumnName="SalesPriceEXWWithoutVAT" />
+                <ScalarProperty Name="SalesPriceEXWWithVAT" ColumnName="SalesPriceEXWWithVAT" />
+                <ScalarProperty Name="SetPriceEXWWithVAT" ColumnName="SetPriceEXWWithVAT" />
+                <ScalarProperty Name="FinishedProductTransportCost" ColumnName="FinishedProductTransportCost" />
+                <ScalarProperty Name="SalesPriceCIPWithoutVAT" ColumnName="SalesPriceCIPWithoutVAT" />
+                <ScalarProperty Name="SalesPriceCIPWithVAT" ColumnName="SalesPriceCIPWithVAT" />
+                <ScalarProperty Name="SetPriceCIPWithVAT" ColumnName="SetPriceCIPWithVAT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
+                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="ActualMaterialPrice" ColumnName="ActualMaterialPrice" />
+                <ScalarProperty Name="ActualMaterialTransportCost" ColumnName="ActualMaterialTransportCost" />
+                <ScalarProperty Name="ActualLaborCost" ColumnName="ActualLaborCost" />
+                <ScalarProperty Name="ActualTaxAndBank" ColumnName="ActualTaxAndBank" />
+                <ScalarProperty Name="ActualAdministrativeExpenses" ColumnName="ActualAdministrativeExpenses" />
+                <ScalarProperty Name="ActualOtherExpenses" ColumnName="ActualOtherExpenses" />
+                <ScalarProperty Name="ActualProfit" ColumnName="ActualProfit" />
+                <ScalarProperty Name="ActualFinishedProductTransportCost" ColumnName="ActualFinishedProductTransportCost" />
+                <ScalarProperty Name="ActualSalesPriceEXWWithoutVAT" ColumnName="ActualSalesPriceEXWWithoutVAT" />
+                <ScalarProperty Name="ActualSalesPriceEXWWithVAT" ColumnName="ActualSalesPriceEXWWithVAT" />
+                <ScalarProperty Name="ActualSalesPriceCIPWithoutVAT" ColumnName="ActualSalesPriceCIPWithoutVAT" />
+                <ScalarProperty Name="ActualSalesPriceCIPWithVAT" ColumnName="ActualSalesPriceCIPWithVAT" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13381,6 +14263,64 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES">
+              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="ActualAdministrativeExpenses" ColumnName="ActualAdministrativeExpenses" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
+              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="ActualFinishedProductTransportCost" ColumnName="ActualFinishedProductTransportCost" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_TANNARX_ACTUAL_LABOR_COSTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS">
+              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_LABOR_COSTS">
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="ActualLaborCost" ColumnName="ActualLaborCost" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS">
+              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_MATERIAL_COSTS">
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="ActualMaterialPrice" ColumnName="ActualMaterialPrice" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
+            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
+              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="ActualMaterialTransportCost" ColumnName="ActualMaterialTransportCost" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="FIN_BALANCE_CATEGORY_CATEGORIES" TypeName="DBTHSNModel.FIN_BALANCE_CATEGORY_CATEGORIES" StoreEntitySet="FIN_BALANCE_CATEGORY_CATEGORIES">
+            <EndProperty Name="FIN_BALANCE_CATEGORIES">
+              <ScalarProperty Name="ID" ColumnName="BalanceCategoryID" />
+            </EndProperty>
+            <EndProperty Name="FIN_CATEGORIES">
+              <ScalarProperty Name="ID" ColumnName="CategoryID" />
+            </EndProperty>
+          </AssociationSetMapping>
           <AssociationSetMapping Name="FIN_PL_ITEM_CATEGORIES" TypeName="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" StoreEntitySet="FIN_PL_ITEM_CATEGORIES">
             <EndProperty Name="FIN_CATEGORIES">
               <ScalarProperty Name="ID" ColumnName="CategoryID" />
@@ -13430,133 +14370,20 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_Norm_SaveCutMaterials" FunctionName="DBTHSNModel.Store.sp_Norm_SaveCutMaterials" />
           <FunctionImportMapping FunctionImportName="sp_SOrder_RecalcDeliveryShippedFromInvoices" FunctionName="DBTHSNModel.Store.sp_SOrder_RecalcDeliveryShippedFromInvoices" />
-          <EntitySetMapping Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
-            <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS">
-              <MappingFragment StoreEntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS">
-                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
-                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
-                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
-                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
-                <ScalarProperty Name="ApprovedDT" ColumnName="ApprovedDT" />
-                <ScalarProperty Name="ApprovedByUserID" ColumnName="ApprovedByUserID" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ID" ColumnName="ID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="TANNARXes">
-            <EntityTypeMapping TypeName="DBTHSNModel.TANNARX">
-              <MappingFragment StoreEntitySet="TANNARX">
-                <ScalarProperty Name="ActualSalesPriceCIPWithVAT" ColumnName="ActualSalesPriceCIPWithVAT" />
-                <ScalarProperty Name="ActualSalesPriceCIPWithoutVAT" ColumnName="ActualSalesPriceCIPWithoutVAT" />
-                <ScalarProperty Name="ActualSalesPriceEXWWithVAT" ColumnName="ActualSalesPriceEXWWithVAT" />
-                <ScalarProperty Name="ActualSalesPriceEXWWithoutVAT" ColumnName="ActualSalesPriceEXWWithoutVAT" />
-                <ScalarProperty Name="ActualFinishedProductTransportCost" ColumnName="ActualFinishedProductTransportCost" />
-                <ScalarProperty Name="ActualProfit" ColumnName="ActualProfit" />
-                <ScalarProperty Name="ActualOtherExpenses" ColumnName="ActualOtherExpenses" />
-                <ScalarProperty Name="ActualAdministrativeExpenses" ColumnName="ActualAdministrativeExpenses" />
-                <ScalarProperty Name="ActualTaxAndBank" ColumnName="ActualTaxAndBank" />
-                <ScalarProperty Name="ActualLaborCost" ColumnName="ActualLaborCost" />
-                <ScalarProperty Name="ActualMaterialTransportCost" ColumnName="ActualMaterialTransportCost" />
-                <ScalarProperty Name="ActualMaterialPrice" ColumnName="ActualMaterialPrice" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="ModifiedDT" ColumnName="ModifiedDT" />
-                <ScalarProperty Name="ModifiedByUserID" ColumnName="ModifiedByUserID" />
-                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
-                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
-                <ScalarProperty Name="SetPriceCIPWithVAT" ColumnName="SetPriceCIPWithVAT" />
-                <ScalarProperty Name="SalesPriceCIPWithVAT" ColumnName="SalesPriceCIPWithVAT" />
-                <ScalarProperty Name="SalesPriceCIPWithoutVAT" ColumnName="SalesPriceCIPWithoutVAT" />
-                <ScalarProperty Name="FinishedProductTransportCost" ColumnName="FinishedProductTransportCost" />
-                <ScalarProperty Name="SetPriceEXWWithVAT" ColumnName="SetPriceEXWWithVAT" />
-                <ScalarProperty Name="SalesPriceEXWWithVAT" ColumnName="SalesPriceEXWWithVAT" />
-                <ScalarProperty Name="SalesPriceEXWWithoutVAT" ColumnName="SalesPriceEXWWithoutVAT" />
-                <ScalarProperty Name="ProfitPercent" ColumnName="ProfitPercent" />
-                <ScalarProperty Name="OtherExpensesPercent" ColumnName="OtherExpensesPercent" />
-                <ScalarProperty Name="AdministrativeExpensesPercent" ColumnName="AdministrativeExpensesPercent" />
-                <ScalarProperty Name="TaxAndBankPercent" ColumnName="TaxAndBankPercent" />
-                <ScalarProperty Name="Profit" ColumnName="Profit" />
-                <ScalarProperty Name="OtherExpenses" ColumnName="OtherExpenses" />
-                <ScalarProperty Name="AdministrativeExpenses" ColumnName="AdministrativeExpenses" />
-                <ScalarProperty Name="TaxAndBank" ColumnName="TaxAndBank" />
-                <ScalarProperty Name="LaborCost" ColumnName="LaborCost" />
-                <ScalarProperty Name="MaterialTransportCost" ColumnName="MaterialTransportCost" />
-                <ScalarProperty Name="MaterialPrice" ColumnName="MaterialPrice" />
-                <ScalarProperty Name="MonthString" ColumnName="MonthString" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="ID" ColumnName="ID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-                <ScalarProperty Name="ActualAdministrativeExpenses" ColumnName="ActualAdministrativeExpenses" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-                <ScalarProperty Name="ActualFinishedProductTransportCost" ColumnName="ActualFinishedProductTransportCost" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_LABOR_COSTS">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_LABOR_COSTS">
-                <ScalarProperty Name="ActualLaborCost" ColumnName="ActualLaborCost" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-                <ScalarProperty Name="ActualMaterialPrice" ColumnName="ActualMaterialPrice" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-                <ScalarProperty Name="ActualMaterialTransportCost" ColumnName="ActualMaterialTransportCost" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <FunctionImportMapping FunctionImportName="SP_TANNARX_UPDATE_ACTUAL_COSTS" FunctionName="DBTHSNModel.Store.SP_TANNARX_UPDATE_ACTUAL_COSTS" />
-          <EntitySetMapping Name="SUPPLIER_BASE">
-            <EntityTypeMapping TypeName="DBTHSNModel.SUPPLIER_BASE">
-              <MappingFragment StoreEntitySet="SUPPLIER_BASE">
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="Comment" ColumnName="Comment" />
-                <ScalarProperty Name="Phone" ColumnName="Phone" />
-                <ScalarProperty Name="Position" ColumnName="Position" />
-                <ScalarProperty Name="ContactPerson" ColumnName="ContactPerson" />
-                <ScalarProperty Name="Region" ColumnName="Region" />
-                <ScalarProperty Name="Province" ColumnName="Province" />
-                <ScalarProperty Name="Country" ColumnName="Country" />
-                <ScalarProperty Name="ProductType" ColumnName="ProductType" />
-                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+          <EntitySetMapping Name="HR_EMPLOYEE_HISTORY">
+            <EntityTypeMapping TypeName="DBTHSNModel.HR_EMPLOYEE_HISTORY">
+              <MappingFragment StoreEntitySet="HR_EMPLOYEE_HISTORY">
+                <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
+                <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
+                <ScalarProperty Name="Reason" ColumnName="Reason" />
+                <ScalarProperty Name="EffectiveDate" ColumnName="EffectiveDate" />
+                <ScalarProperty Name="ToPositionID" ColumnName="ToPositionID" />
+                <ScalarProperty Name="ToOrgUnitID" ColumnName="ToOrgUnitID" />
+                <ScalarProperty Name="FromPositionID" ColumnName="FromPositionID" />
+                <ScalarProperty Name="FromOrgUnitID" ColumnName="FromOrgUnitID" />
+                <ScalarProperty Name="ActionType" ColumnName="ActionType" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
               </MappingFragment>
             </EntityTypeMapping>

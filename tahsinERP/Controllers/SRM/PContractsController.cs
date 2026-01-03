@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers
     public class PContractsController : Controller
     {
         // GET: PContracts
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts", "Index"))
             {
@@ -23,13 +23,32 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var contracts = await db.P_CONTRACTS
+                var query = db.P_CONTRACTS
                     .Include(c => c.SUPPLIER)
                     .Include(c => c.COMPANy)
                     .Include(c => c.CURRENCy)
                     .Where(c => c.IsDeleted != true)
+                    .AsQueryable();
+
+                // Filter by supplier
+                if (supplierID.HasValue && supplierID.Value > 0)
+                {
+                    query = query.Where(c => c.SupplierID == supplierID.Value);
+                }
+
+                // Filter by purchase type
+                if (!string.IsNullOrEmpty(purchaseTypeFilter))
+                {
+                    byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
+                    query = query.Where(c => c.PurchaseType == purchaseType);
+                }
+
+                var contracts = await query
                     .OrderByDescending(c => c.IssuedDate)
                     .ToListAsync();
+
+                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+                ViewBag.SupplierID = supplierID;
 
                 return View(contracts);
             }
@@ -64,6 +83,32 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                // Get linked invoices
+                var linkedInvoices = await db.P_INVOICES
+                    .Include(i => i.CURRENCy)
+                    .Where(i => i.ContractID == id && i.IsDeleted != true)
+                    .OrderByDescending(i => i.InvoiceDate)
+                    .ToListAsync();
+                ViewBag.LinkedInvoices = linkedInvoices;
+                ViewBag.InvoicesCount = linkedInvoices.Count;
+
+                // Get linked orders count
+                var ordersCount = await db.P_ORDERS
+                    .Where(o => o.ContractID == id && o.IsDeleted != true)
+                    .CountAsync();
+                ViewBag.OrdersCount = ordersCount;
+
+                // Calculate totals
+                var contractedTotal = contract.Amount ?? 0;
+                var orderedTotal = await db.P_ORDERS
+                    .Where(o => o.ContractID == id && o.IsDeleted != true)
+                    .SumAsync(o => (double?)o.Amount) ?? 0;
+                var invoicedTotal = linkedInvoices.Sum(i => (double?)i.Amount) ?? 0;
+
+                ViewBag.ContractedTotal = contractedTotal;
+                ViewBag.OrderedTotal = orderedTotal;
+                ViewBag.InvoicedTotal = invoicedTotal;
+
                 return View(contract);
             }
         }
@@ -83,20 +128,30 @@ namespace tahsinERP.Controllers
                     "ID", "Name"
                 );
 
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name"
-                );
-
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
                     "ID", "Shortname"
                 );
 
+                // Determine purchase type from query string or form
+                byte purchaseType = 0;
+                if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
+                {
+                    purchaseType = 1;
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -139,10 +194,21 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
+                        // Get default company if not provided
+                        var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                        var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
+
                         // Generate ContractNo if not provided
                         if (string.IsNullOrEmpty(model.ContractNo))
                         {
                             model.ContractNo = await GenerateContractNo(db);
+                        }
+
+                        // Determine purchase type (0 = Direct, 1 = Indirect)
+                        byte purchaseType = 0; // Default: Direct
+                        if (Request.Form["PurchaseType"] != null && Request.Form["PurchaseType"] == "Indirect")
+                        {
+                            purchaseType = 1;
                         }
 
                         // Create contract header
@@ -150,14 +216,15 @@ namespace tahsinERP.Controllers
                         {
                             ContractNo = model.ContractNo,
                             IssuedDate = model.IssuedDate,
-                            CompanyID = model.CompanyID,
+                            CompanyID = companyId,
                             SupplierID = model.SupplierID,
                             CurrencyID = model.CurrencyID,
                             Incoterms = model.Incoterms,
                             PaymentTerms = model.PaymentTerms,
                             DueDate = model.DueDate,
                             IDN = model.IDN,
-                            IsDeleted = false
+                            IsDeleted = false,
+                            PurchaseType = purchaseType
                         };
 
                         db.P_CONTRACTS.Add(contract);
@@ -251,20 +318,34 @@ namespace tahsinERP.Controllers
                     "ID", "Name", model.SupplierID
                 );
 
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name", model.CompanyID
-                );
+                // Get default company (first active company)
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
                     "ID", "Shortname", model.CurrencyID
                 );
 
+                // Determine purchase type from query string or form
+                byte purchaseType = 0;
+                if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
+                {
+                    purchaseType = 1;
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -372,20 +453,34 @@ namespace tahsinERP.Controllers
                     "ID", "Name", model.SupplierID
                 );
 
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name", model.CompanyID
-                );
+                // Get default company (first active company)
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
                     "ID", "Shortname", model.CurrencyID
                 );
 
+                // Determine purchase type from query string or form
+                byte purchaseType = 0;
+                if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
+                {
+                    purchaseType = 1;
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -466,10 +561,14 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
+                        // Get default company if not provided
+                        var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                        var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
+
                         // Update contract header
                         contract.ContractNo = model.ContractNo;
                         contract.IssuedDate = model.IssuedDate;
-                        contract.CompanyID = model.CompanyID;
+                        contract.CompanyID = companyId;
                         contract.SupplierID = model.SupplierID;
                         contract.CurrencyID = model.CurrencyID;
                         contract.Incoterms = model.Incoterms;
@@ -581,20 +680,34 @@ namespace tahsinERP.Controllers
                     "ID", "Name", model.SupplierID
                 );
 
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name", model.CompanyID
-                );
+                // Get default company (first active company)
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
                     "ID", "Shortname", model.CurrencyID
                 );
 
+                // Determine purchase type from query string or form
+                byte purchaseType = 0;
+                if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
+                {
+                    purchaseType = 1;
+                }
+
+                ViewBag.PurchaseType = purchaseType;
+
+                // Get purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
+                    .Where(p => p.IsDeleted != true)
+                    .Where(p => purchaseType == 1 
+                        ? (p.PRODUCT_CATEGORIES == null || 
+                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
+                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
+                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
+                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -704,7 +817,7 @@ namespace tahsinERP.Controllers
     {
         public string ContractNo { get; set; }
         public DateTime IssuedDate { get; set; } = DateTime.Now;
-        public int CompanyID { get; set; }
+        public int? CompanyID { get; set; }
         public int SupplierID { get; set; }
         public int CurrencyID { get; set; }
         public double? Amount { get; set; }
@@ -725,7 +838,7 @@ namespace tahsinERP.Controllers
         public int ID { get; set; }
         public string ContractNo { get; set; }
         public DateTime IssuedDate { get; set; }
-        public int CompanyID { get; set; }
+        public int? CompanyID { get; set; }
         public int SupplierID { get; set; }
         public int CurrencyID { get; set; }
         public double? Amount { get; set; }

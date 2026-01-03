@@ -388,57 +388,104 @@ namespace tahsinERP.Controllers.Finance
                                 
                             case 3: // Document-Based
                                 // Calculate from documents based on category name
+                                // NOTE: "Ta'minotchilardan qarzlar" uchun Account-Based (CalculationType = 1) ishlatish tavsiya etiladi
+                                // Bu ERP standartlariga mos (SAP, Oracle, Microsoft Dynamics)
+                                // Account-Based: Payables_5 account qoldig'i to'g'ridan-to'g'ri ishlatiladi
                                 if (category.Name == "Ta'minotchilardan qarzlar")
                                 {
-                                    // To'lanmagan xarid invoyslari
-                                    var unpaidInvoices = db.P_INVOICES
-                                        .Where(i => i.InvoiceDate <= asOfDate.Value && 
-                                                   (i.IsDeleted == null || i.IsDeleted == false))
+                                    // Yechim 2: Account-Based ishlatish (Document-Based o'rniga)
+                                    // Avval Account-Based orqali hisoblashga harakat qilamiz
+                                    var payablesAccountIds = db.FIN_ACCOUNTS
+                                        .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
+                                        .Select(a => a.ID)
                                         .ToList();
                                     
-                                    foreach (var invoice in unpaidInvoices)
+                                    if (payablesAccountIds.Count > 0)
                                     {
-                                        // Calculate total payments for this invoice
-                                        var totalPaid = db.FIN_TRANSACTIONS
-                                            .Where(t => t.SourceDocType == "PurchaseInvoice" && 
-                                                       t.SourceDocID == invoice.ID && 
-                                                       t.TxnDate <= asOfDate.Value &&
-                                                       t.Direction == 1) // Payments (incoming to supplier)
-                                            .Sum(t => (decimal?)t.Amount) ?? 0m;
-                                        
-                                        var invoiceAmount = (decimal)invoice.Amount;
-                                        
-                                        // If not fully paid, add unpaid amount
-                                        if (totalPaid < invoiceAmount)
+                                        // Account-Based: Account qoldiqlarini yig'ish
+                                        foreach (var accountId in payablesAccountIds)
                                         {
-                                            amount += (invoiceAmount - totalPaid);
+                                            if (accountBalances.ContainsKey(accountId))
+                                            {
+                                                amount += accountBalances[accountId];
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Fallback: Document-Based (eski usul, Account-Based sozlanmagan bo'lsa)
+                                        // To'lanmagan xarid invoyslari
+                                        var unpaidInvoices = db.P_INVOICES
+                                            .Where(i => i.InvoiceDate <= asOfDate.Value && 
+                                                       (i.IsDeleted == null || i.IsDeleted == false))
+                                            .ToList();
+                                        
+                                        foreach (var invoice in unpaidInvoices)
+                                        {
+                                            // Calculate total payments for this invoice
+                                            var totalPaid = db.FIN_TRANSACTIONS
+                                                .Where(t => t.SourceDocType == "PurchaseInvoice" && 
+                                                           t.SourceDocID == invoice.ID && 
+                                                           t.TxnDate <= asOfDate.Value &&
+                                                           t.Direction == 1) // Payments (incoming to supplier)
+                                                .Sum(t => (decimal?)t.Amount) ?? 0m;
+                                            
+                                            var invoiceAmount = (decimal)invoice.Amount;
+                                            
+                                            // If not fully paid, add unpaid amount
+                                            if (totalPaid < invoiceAmount)
+                                            {
+                                                amount += (invoiceAmount - totalPaid);
+                                            }
                                         }
                                     }
                                 }
                                 else if (category.Name == "Xaridorlardan haqlarimiz")
                                 {
-                                    // To'lanmagan sotuv invoyslari
-                                    var unpaidInvoices = db.SALES_INVOICES
-                                        .Where(i => i.InvoiceDate <= asOfDate.Value && 
-                                                   (i.StatusCode == null || i.StatusCode != "Paid"))
+                                    // Yechim 2: Account-Based ishlatish (Document-Based o'rniga)
+                                    // Avval Account-Based orqali hisoblashga harakat qilamiz
+                                    var receivablesAccountIds = db.FIN_ACCOUNTS
+                                        .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
+                                        .Select(a => a.ID)
                                         .ToList();
                                     
-                                    foreach (var invoice in unpaidInvoices)
+                                    if (receivablesAccountIds.Count > 0)
                                     {
-                                        // Calculate total payments for this invoice
-                                        var totalPaid = db.FIN_TRANSACTIONS
-                                            .Where(t => t.SourceDocType == "SalesInvoice" && 
-                                                       t.SourceDocID == invoice.ID && 
-                                                       t.TxnDate <= asOfDate.Value &&
-                                                       t.Direction == 1) // Payments (incoming from customer)
-                                            .Sum(t => (decimal?)t.Amount) ?? 0m;
-                                        
-                                        var invoiceAmount = invoice.TotalAmount;
-                                        
-                                        // If not fully paid, add unpaid amount
-                                        if (totalPaid < invoiceAmount)
+                                        // Account-Based: Account qoldiqlarini yig'ish
+                                        foreach (var accountId in receivablesAccountIds)
                                         {
-                                            amount += (invoiceAmount - totalPaid);
+                                            if (accountBalances.ContainsKey(accountId))
+                                            {
+                                                amount += accountBalances[accountId];
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Fallback: Document-Based (eski usul, Account-Based sozlanmagan bo'lsa)
+                                        // To'lanmagan sotuv invoyslari
+                                        var unpaidInvoices = db.SALES_INVOICES
+                                            .Where(i => i.InvoiceDate <= asOfDate.Value && 
+                                                       (i.StatusCode == null || i.StatusCode != "Paid"))
+                                            .ToList();
+                                        
+                                        foreach (var invoice in unpaidInvoices)
+                                        {
+                                            // Calculate total payments for this invoice
+                                            var totalPaid = db.FIN_TRANSACTIONS
+                                                .Where(t => t.SourceDocType == "SalesInvoice" && 
+                                                           t.SourceDocID == invoice.ID && 
+                                                           t.TxnDate <= asOfDate.Value &&
+                                                           t.Direction == 1) // Payments (incoming from customer)
+                                                .Sum(t => (decimal?)t.Amount) ?? 0m;
+                                            
+                                            var invoiceAmount = invoice.TotalAmount;
+                                            
+                                            // If not fully paid, add unpaid amount
+                                            if (totalPaid < invoiceAmount)
+                                            {
+                                                amount += (invoiceAmount - totalPaid);
+                                            }
                                         }
                                     }
                                 }
@@ -988,7 +1035,7 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // GET: FinDashboard/AccountBalances
-        public ActionResult AccountBalances(DateTime? fromDate, DateTime? toDate)
+        public ActionResult AccountBalances(DateTime? fromDate, DateTime? toDate, int? accountType)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
             {
@@ -1000,10 +1047,30 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get all active accounts with currency
-                var accounts = db.FIN_ACCOUNTS
+                // Get all active accounts with currency and balance category
+                var accountsQuery = db.FIN_ACCOUNTS
                     .Include(a => a.CURRENCy)
-                    .Where(a => a.IsActive)
+                    .Include(a => a.FIN_BALANCE_CATEGORIES)
+                    .Where(a => a.IsActive);
+
+                // Filter by Asset (Type = 1) or Liability (Type = 2)
+                if (accountType.HasValue)
+                {
+                    if (accountType.Value == 1) // Asset (Aktiv)
+                    {
+                        accountsQuery = accountsQuery.Where(a => 
+                            a.FIN_BALANCE_CATEGORIES != null && 
+                            a.FIN_BALANCE_CATEGORIES.Type == 1);
+                    }
+                    else if (accountType.Value == 2) // Liability (Majburiyat)
+                    {
+                        accountsQuery = accountsQuery.Where(a => 
+                            a.FIN_BALANCE_CATEGORIES != null && 
+                            a.FIN_BALANCE_CATEGORIES.Type == 2);
+                    }
+                }
+
+                var accounts = accountsQuery
                     .OrderBy(a => a.Code)
                     .ToList();
 
@@ -1011,22 +1078,30 @@ namespace tahsinERP.Controllers.Finance
 
                 foreach (var account in accounts)
                 {
-                    // Get transactions for this account within date range
-                    var transactions = db.FIN_TRANSACTIONS
+                    // Yechim 1: Account qoldig'i hisoblashda barcha transactionlar (toDate gacha)
+                    // Cumulative balance - barcha vaqt uchun, faqat toDate gacha
+                    var allTransactions = db.FIN_TRANSACTIONS
                         .Where(t => t.AccountID == account.ID && 
-                                   t.TxnDate >= fromDate.Value && 
                                    t.TxnDate <= toDate.Value)
                         .ToList();
 
-                    var kirim = transactions
+                    // Account qoldig'i = barcha transactionlar yig'indisi (cumulative)
+                    var qoldiq = allTransactions
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+
+                    // Vaqt oralig'idagi kirim/chiqim (faqat ko'rsatish uchun)
+                    var periodTransactions = allTransactions
+                        .Where(t => t.TxnDate >= fromDate.Value && 
+                                   t.TxnDate <= toDate.Value)
+                        .ToList();
+
+                    var kirim = periodTransactions
                         .Where(t => t.Direction == 1)
                         .Sum(t => (decimal?)t.Amount) ?? 0m;
 
-                    var chiqim = transactions
+                    var chiqim = periodTransactions
                         .Where(t => t.Direction == 2)
                         .Sum(t => (decimal?)t.Amount) ?? 0m;
-
-                    var qoldiq = kirim - chiqim;
 
                     // Get currency for this account
                     var currency = account.CURRENCy;
@@ -1052,6 +1127,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.FromDate = fromDate;
                 ViewBag.ToDate = toDate;
                 ViewBag.AccountBalances = accountBalances;
+                ViewBag.AccountType = accountType;
 
                 return View();
             }
@@ -1065,9 +1141,9 @@ namespace tahsinERP.Controllers.Finance
         public string AccountName { get; set; }
         public string OwnerName { get; set; }
         public string CurrencyShortname { get; set; }
-        public decimal Kirim { get; set; }
-        public decimal Chiqim { get; set; }
-        public decimal Qoldiq { get; set; }
+        public decimal Kirim { get; set; } // Period kirim (vaqt oralig'idagi)
+        public decimal Chiqim { get; set; } // Period chiqim (vaqt oralig'idagi)
+        public decimal Qoldiq { get; set; } // Cumulative balance (barcha vaqt uchun, toDate gacha)
     }
 
     public class AccountUsageData

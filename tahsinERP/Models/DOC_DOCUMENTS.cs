@@ -51,6 +51,7 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DOC_FILES> DOC_FILES { get; set; }
         public virtual HR_JOB_DESCRIPTIONS HR_JOB_DESCRIPTIONS { get; set; }
+        public virtual JOB_DESC JOB_DESC { get; set; }
         public virtual STD_COMPANY_STANDARDS STD_COMPANY_STANDARDS { get; set; }
     }
 }

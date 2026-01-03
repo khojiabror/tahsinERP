@@ -2236,12 +2236,12 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 }
 
 .breadcrumb .breadcrumb-item a {
-  color : #596F88;
+  color : #198754;
 }
 
 .breadcrumb .breadcrumb-item a i {
   /* Breadcrumb home icon scss */
-  color : #5A8DEE;
+  color : #198754;
   position : relative;
   top : 2px;
 }
@@ -2293,7 +2293,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 
 .breadcrumb.breadcrumb-divider .breadcrumb-item.active {
   /* Breadcrumb active item */
-  background-color : #5A8DEE;
+  background-color : #198754;
   color : #FFFFFF;
   border-radius : 0.267rem;
   padding-left : 1.67rem;

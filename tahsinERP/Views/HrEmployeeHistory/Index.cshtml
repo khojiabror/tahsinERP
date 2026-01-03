@@ -1,0 +1,125 @@
+@model List<tahsinERP.ViewModels.HR.HrEmployeeHistoryViewModel>
+@{
+    ViewBag.Title = "Xodimlar staji";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Xodimlar staji
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        @Html.DropDownList("positionId", ViewBag.PositionID as SelectList, "Barcha lavozimlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" placeholder="Dan" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" placeholder="Gacha" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary btn-block">Filtr</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table id="historyTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Tab.№</th>
+                                            <th>F.I.O.</th>
+                                            <th>Bo'lim</th>
+                                            <th>Lavozim</th>
+                                            <th>Ishga kirgan sana</th>
+                                            <th>Ishdan chiqqan sana</th>
+                                            <th>Staj</th>
+                                            <th>Sabab</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model != null && Model.Any())
+                                        {
+                                            foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>@(item.TabNo ?? "-")</td>
+                                                    <td>@(item.EmployeeName ?? "-")</td>
+                                                    <td>@(item.FromOrgUnitName ?? "-")</td>
+                                                    <td>@(item.FromPositionName ?? "-")</td>
+                                                    <td>@(item.EmploymentDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                    <td>@(item.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                    <td>
+                                                        @if (item.TenureYears > 0 || item.TenureMonths > 0 || item.TenureDays > 0)
+                                                        {
+                                                            <text>
+                                                                @(item.TenureYears > 0 ? $"{item.TenureYears} yil " : "")
+                                                                @(item.TenureMonths > 0 ? $"{item.TenureMonths} oy " : "")
+                                                                @(item.TenureDays > 0 ? $"{item.TenureDays} kun" : "")
+                                                            </text>
+                                                        }
+                                                        else
+                                                        {
+                                                            <text>-</text>
+                                                        }
+                                                    </td>
+                                                    <td>@(item.Reason ?? "-")</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#historyTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                },
+                "pageLength": 25,
+                "order": [[5, "desc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

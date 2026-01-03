@@ -1,4 +1,4 @@
-﻿@model tahsinERP.Models.PRODUCT
+@model tahsinERP.Models.PRODUCT
 @{
     ViewBag.Title = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -85,10 +85,11 @@
                                                         @Html.DropDownListFor(m => m.ShopID, (SelectList)ViewBag.ShopList, "-- tanlang --", new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Og'irligi</h6>
+                                                    <h6 class="invoice-to">Og'irlik (kg da)</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Weight, new { @class = "form-control round", @placeholder = "Og'irligi" })
+                                                        @Html.TextBoxFor(model => model.Weight, new { @class = "form-control round", @placeholder = "kg" })
                                                         @Html.ValidationMessageFor(model => model.Weight, "", new { @class = "text-danger" })
+                                                        <small class="text-muted">Maxsulot kategoriyasida "Hisob-kitoblar og'irlikka nisbatan qilinsin" belgilangan bo'lsa, bu maydon to'ldirilishi shart</small>
                                                     </fieldset>
                                                     <h6 class="invoice-to">O'lchamlari (UxExB)</h6>
                                                     <fieldset class="invoice-address form-group">
