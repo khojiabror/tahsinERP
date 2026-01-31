@@ -27,9 +27,9 @@ namespace tahsinERP.Controllers.Finance
                 month = month ?? DateTime.Now.Month;
 
                 var query = db.FIN_PL_PLANS
+                    .Where(p => (p.IsDeleted == false || p.IsDeleted == null) && p.Year == year.Value && p.Month == month.Value)
                     .Include(p => p.FIN_PL_ITEMS)
-                    .Include(p => p.USER)
-                    .Where(p => p.Year == year.Value && p.Month == month.Value);
+                    .Include(p => p.USER);
 
                 if (itemID.HasValue)
                 {
@@ -276,7 +276,8 @@ namespace tahsinERP.Controllers.Finance
                     var year = plan.Year;
                     var month = plan.Month;
 
-                    db.FIN_PL_PLANS.Remove(plan);
+                    plan.IsDeleted = true;
+                    db.Entry(plan).State = System.Data.Entity.EntityState.Modified;
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "FinPlPlans", "Delete", $"P&L rejasi o'chirildi: {year}-{month}, ElementID: {plan.ItemID}");

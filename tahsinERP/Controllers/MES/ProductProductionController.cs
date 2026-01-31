@@ -20,6 +20,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.PRODUCT_PRODUCTION
+                    .Where(p => p.IsDeleted == false || p.IsDeleted == null)
                     .Include(p => p.PRODUCT)
                     .Include(p => p.SHOP)
                     .AsQueryable();
@@ -341,9 +342,10 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var production = db.PRODUCT_PRODUCTION
+                    .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
                     .Include(p => p.PRODUCT)
                     .Include(p => p.SHOP)
-                    .FirstOrDefault(p => p.ID == id);
+                    .FirstOrDefault();
 
                 if (production == null)
                 {
@@ -434,7 +436,8 @@ namespace tahsinERP.Controllers.MES
                     await RevertMaterialConsumption(production.ProductID, production.Total, db);
                 }
 
-                db.PRODUCT_PRODUCTION.Remove(production);
+                production.IsDeleted = true;
+                db.Entry(production).State = System.Data.Entity.EntityState.Modified;
                 db.SaveChanges();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish o'chirildi: ID {id}");

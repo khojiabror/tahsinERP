@@ -29,6 +29,7 @@ namespace tahsinERP.Models
         public Nullable<int> ParentID { get; set; }
         public int SortOrder { get; set; }
         public bool IsActive { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_CATEGORIES> FIN_CATEGORIES1 { get; set; }

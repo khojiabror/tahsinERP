@@ -30,6 +30,7 @@ namespace tahsinERP.Models
         public System.DateTime CreatedDT { get; set; }
         public Nullable<int> ApprovedByUserID { get; set; }
         public Nullable<System.DateTime> ApprovedDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual HR_ORG_UNITS HR_ORG_UNITS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

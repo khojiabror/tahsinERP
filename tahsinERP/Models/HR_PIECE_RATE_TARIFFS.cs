@@ -27,6 +27,7 @@ namespace tahsinERP.Models
         public Nullable<System.DateTime> ModifiedDT { get; set; }
         public Nullable<int> OperationID { get; set; }
         public Nullable<int> CurrencyID { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual HR_PIECE_RATE_OPERATIONS HR_PIECE_RATE_OPERATIONS { get; set; }

@@ -32,6 +32,7 @@ namespace tahsinERP.Models
         public bool IsManager { get; set; }
         public bool IsActive { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DOC_DOCUMENTS> DOC_DOCUMENTS { get; set; }

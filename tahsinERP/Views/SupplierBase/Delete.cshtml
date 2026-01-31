@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SUPPLIER_BASE
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "O'chirish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -21,7 +21,7 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/SupplierBase">Справочник</a>
+                                            <a href="~/SupplierBase">Ma'lumotnoma</a>
                                         </li>
                                         <li class="breadcrumb-item active">
                                             @Model.CompanyName ni o'chirib yuborish

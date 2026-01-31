@@ -27,6 +27,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_TRANSACTIONS
+                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
@@ -502,10 +503,11 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var transaction = db.FIN_TRANSACTIONS
+                    .Where(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null))
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
-                    .FirstOrDefault(t => t.ID == id);
+                    .FirstOrDefault();
 
                 if (transaction == null)
                 {
@@ -541,7 +543,8 @@ namespace tahsinERP.Controllers.Finance
                     // Only allow deletion of manual transactions
                     if (string.IsNullOrEmpty(transaction.SourceDocType) || transaction.SourceDocType == "Manual")
                     {
-                        db.FIN_TRANSACTIONS.Remove(transaction);
+                        transaction.IsDeleted = true;
+                        db.Entry(transaction).State = System.Data.Entity.EntityState.Modified;
                         db.SaveChanges();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "Delete", 

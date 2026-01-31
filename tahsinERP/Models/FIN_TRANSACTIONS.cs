@@ -39,6 +39,7 @@ namespace tahsinERP.Models
         public string Comment { get; set; }
         public int CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual FIN_ACCOUNTS FIN_ACCOUNTS { get; set; }

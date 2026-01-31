@@ -28,6 +28,7 @@ namespace tahsinERP.Controllers
                     .Include(i => i.COMPANy)
                     .Include(i => i.CURRENCy)
                     .Include(i => i.P_ORDERS)
+                    .Include(i => i.P_CONTRACTS)
                     .Where(i => i.IsDeleted != true)
                     .AsQueryable();
 
@@ -412,9 +413,28 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Determine purchase type from order if available
+                // Get default company
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
+
+                // Load contracts for current supplier
+                var contracts = await db.P_CONTRACTS
+                    .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
+                    .OrderByDescending(c => c.IssuedDate)
+                    .ToListAsync();
+                ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
+
+                // Determine purchase type from contract if available, otherwise from order
                 byte purchaseType = 0;
-                if (model.OrderID.HasValue)
+                if (model.ContractID.HasValue && model.ContractID.Value > 0)
+                {
+                    var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
+                    if (contract != null)
+                    {
+                        purchaseType = contract.PurchaseType;
+                    }
+                }
+                else if (model.OrderID.HasValue && model.OrderID.Value > 0)
                 {
                     var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
                     if (order != null)
@@ -509,7 +529,7 @@ namespace tahsinERP.Controllers
                     ID = invoice.ID,
                     InvoiceNo = invoice.InvoiceNo,
                     InvoiceDate = invoice.InvoiceDate,
-                    OrderID = invoice.OrderID ?? 0,
+                    OrderID = invoice.OrderID,
                     SupplierID = invoice.SupplierID,
                     CompanyID = invoice.CompanyID,
                     ContractID = invoice.ContractID,
@@ -548,9 +568,28 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Determine purchase type from order if available
+                // Get default company (first active company)
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
+
+                // Load contracts for current supplier
+                var contracts = await db.P_CONTRACTS
+                    .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
+                    .OrderByDescending(c => c.IssuedDate)
+                    .ToListAsync();
+                ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
+
+                // Determine purchase type from contract if available, otherwise from order
                 byte purchaseType = 0;
-                if (model.OrderID.HasValue)
+                if (model.ContractID.HasValue && model.ContractID.Value > 0)
+                {
+                    var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
+                    if (contract != null)
+                    {
+                        purchaseType = contract.PurchaseType;
+                    }
+                }
+                else if (model.OrderID.HasValue && model.OrderID.Value > 0)
                 {
                     var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
                     if (order != null)
@@ -614,9 +653,17 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        // Determine purchase type from order if available
+                        // Determine purchase type from contract if available, otherwise from order
                         byte purchaseType = 0;
-                        if (model.OrderID.HasValue)
+                        if (model.ContractID.HasValue && model.ContractID.Value > 0)
+                        {
+                            var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
+                            if (contract != null)
+                            {
+                                purchaseType = contract.PurchaseType;
+                            }
+                        }
+                        else if (model.OrderID.HasValue && model.OrderID.Value > 0)
                         {
                             var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
                             if (order != null)
@@ -628,9 +675,9 @@ namespace tahsinERP.Controllers
                         // Update invoice header
                         invoice.InvoiceNo = model.InvoiceNo;
                         invoice.InvoiceDate = model.InvoiceDate;
-                        invoice.OrderID = model.OrderID;
+                        invoice.OrderID = model.OrderID; // Optional
                         invoice.SupplierID = model.SupplierID;
-                        invoice.ContractID = model.ContractID ?? 0;
+                        invoice.ContractID = model.ContractID ?? 0; // Required for contract-based calculations
                         invoice.CompanyID = model.CompanyID ?? (await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync())?.ID ?? 0;
                         invoice.CurrencyID = model.CurrencyID;
                         invoice.PurchaseType = purchaseType;
@@ -644,7 +691,6 @@ namespace tahsinERP.Controllers
 
                         // Add updated invoice products with conversion logic
                         var conversionService = new UnitConversionService(db);
-                        double totalAmount = 0;
                         
                         if (model.InvoiceProducts != null && model.InvoiceProducts.Any())
                         {
@@ -678,11 +724,8 @@ namespace tahsinERP.Controllers
                                 };
 
                                 db.P_INVOICE_PRODUCTS.Add(invoiceProduct);
-                                totalAmount += invoiceProduct.TotalPrice;
                             }
                         }
-
-                        invoice.Amount = totalAmount;
 
                         // Handle file upload
                         if (invoiceFile != null && invoiceFile.ContentLength > 0)
@@ -754,9 +797,28 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Determine purchase type from order if available
+                // Get default company
+                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
+                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
+
+                // Load contracts for current supplier
+                var contracts = await db.P_CONTRACTS
+                    .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
+                    .OrderByDescending(c => c.IssuedDate)
+                    .ToListAsync();
+                ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
+
+                // Determine purchase type from contract if available, otherwise from order
                 byte purchaseType = 0;
-                if (model.OrderID.HasValue)
+                if (model.ContractID.HasValue && model.ContractID.Value > 0)
+                {
+                    var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
+                    if (contract != null)
+                    {
+                        purchaseType = contract.PurchaseType;
+                    }
+                }
+                else if (model.OrderID.HasValue && model.OrderID.Value > 0)
                 {
                     var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
                     if (order != null)

@@ -244,7 +244,8 @@ namespace tahsinERP.Controllers
                 CUSTOMER customer = db.CUSTOMERS.Find(id);
                 if (customer != null)
                 {
-                    db.CUSTOMERS.Remove(customer);
+                    customer.IsDeleted = true;
+                    db.Entry(customer).State = System.Data.Entity.EntityState.Modified;
                     db.SaveChanges();
                 }
 

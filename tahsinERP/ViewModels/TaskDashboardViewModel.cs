@@ -14,6 +14,7 @@ namespace tahsinERP.ViewModels
         public List<TaskStatusStatViewModel> StatusStatistics { get; set; } = new List<TaskStatusStatViewModel>();
         public List<TaskPriorityStatViewModel> PriorityStatistics { get; set; } = new List<TaskPriorityStatViewModel>();
         public List<TaskOverdueStatViewModel> OverdueTasksStatistics { get; set; } = new List<TaskOverdueStatViewModel>();
+        public List<EmployeeRatingViewModel> EmployeeRatings { get; set; } = new List<EmployeeRatingViewModel>();
     }
 
     public class TaskStatusStatViewModel
@@ -38,5 +39,14 @@ namespace tahsinERP.ViewModels
     {
         public string ProjectName { get; set; }
         public int OverdueCount { get; set; }
+    }
+
+    public class EmployeeRatingViewModel
+    {
+        public int UserID { get; set; }
+        public string FullName { get; set; }
+        public int OnTimeCompletedCount { get; set; }
+        public int OverdueNotCompletedCount { get; set; }
+        public decimal RatingScore { get; set; }
     }
 }

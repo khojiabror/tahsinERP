@@ -32,6 +32,7 @@ namespace tahsinERP.Models
         public Nullable<double> CapableOfLifting { get; set; }
         public Nullable<double> TransportWeight { get; set; }
         public int UnitID { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_CONTRACT_TARIFFS> F_CONTRACT_TARIFFS { get; set; }

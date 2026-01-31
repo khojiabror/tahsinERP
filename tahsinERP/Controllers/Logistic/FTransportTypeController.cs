@@ -24,6 +24,7 @@ namespace tahsinERP.Controllers
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = db.F_TRANSPORT_TYPES
+                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
                     .Include(t => t.UNIT)
                     .ToList();
                 
@@ -132,7 +133,9 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var transportType = db.F_TRANSPORT_TYPES.Find(id);
+                var transportType = db.F_TRANSPORT_TYPES
+                    .Where(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null))
+                    .FirstOrDefault();
                 if (transportType == null)
                     return HttpNotFound();
 
@@ -282,7 +285,8 @@ namespace tahsinERP.Controllers
                     var  transportTypeToDelete = db.F_TRANSPORT_TYPES.Find(ID);
                     if (transportTypeToDelete != null)
                     {
-                        db.F_TRANSPORT_TYPES.Remove(transportTypeToDelete);
+                        transportTypeToDelete.IsDeleted = true;
+                        db.Entry(transportTypeToDelete).State = System.Data.Entity.EntityState.Modified;
 
                         try
                         {

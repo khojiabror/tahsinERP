@@ -30,7 +30,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive)
+                .Where(o => o.IsActive && (o.IsDeleted == false || o.IsDeleted == null))
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();
@@ -57,7 +57,8 @@ namespace tahsinERP.Controllers.HR
             var orgUnit = await db.HR_ORG_UNITS
                 .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_POSITIONS))
                 .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_SALARY_GRADES))
-                .FirstOrDefaultAsync(o => o.ID == id);
+                .Where(o => o.ID == id && (o.IsDeleted == false || o.IsDeleted == null))
+                .FirstOrDefaultAsync();
 
             if (orgUnit == null)
             {
@@ -352,7 +353,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            db.HR_ORG_UNITS.Remove(orgUnit);
+            orgUnit.IsDeleted = true;
+            db.Entry(orgUnit).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrOrgUnits", "Delete", $"ID: {id}");
@@ -412,7 +414,7 @@ namespace tahsinERP.Controllers.HR
         public async Task<JsonResult> GetTreeData()
         {
             var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive)
+                .Where(o => o.IsActive && (o.IsDeleted == false || o.IsDeleted == null))
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();
@@ -430,9 +432,9 @@ namespace tahsinERP.Controllers.HR
             }
 
             var orgUnits = await db.HR_ORG_UNITS
+                .Where(o => o.IsActive && (o.IsDeleted == false || o.IsDeleted == null))
                 .Include(o => o.HR_EMPLOYEES)
                 .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_POSITIONS))
-                .Where(o => o.IsActive)
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();

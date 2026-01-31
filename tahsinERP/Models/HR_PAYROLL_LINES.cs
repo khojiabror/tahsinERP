@@ -27,6 +27,7 @@ namespace tahsinERP.Models
         public Nullable<decimal> NetSalary { get; set; }
         public Nullable<int> CurrencyID { get; set; }
         public string Notes { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual HR_EMPLOYEES HR_EMPLOYEES { get; set; }

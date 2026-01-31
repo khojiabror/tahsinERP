@@ -93,8 +93,9 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var category = db.FIN_BALANCE_CATEGORIES
+                    .Where(c => c.ID == id && (c.IsDeleted == false || c.IsDeleted == null))
                     .Include(c => c.FIN_BALANCE_CATEGORIES2)
-                    .FirstOrDefault(c => c.ID == id);
+                    .FirstOrDefault();
 
                 if (category == null)
                 {

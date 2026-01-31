@@ -25,6 +25,7 @@ namespace tahsinERP.Models
         public System.DateTime EffectiveFrom { get; set; }
         public Nullable<System.DateTime> EffectiveTo { get; set; }
         public bool IsActive { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual HR_ORG_UNITS HR_ORG_UNITS { get; set; }
         public virtual HR_POSITIONS HR_POSITIONS { get; set; }

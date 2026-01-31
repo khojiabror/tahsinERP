@@ -987,6 +987,7 @@
                                         <li><a href="/FinDashboard/AccountBalances"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisoblardagi qoldiq</span></a></li>
                                         <li><a href="/FinDashboard/PL"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Foyda va zarar</span></a></li>
                                         <li><a href="/FinDashboard/BalanceSheet"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans</span></a></li>
+                                        <li><a href="/FinDashboard/LiabilitiesDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Majburiyatlar dashboard</span></a></li>
                                     </ul>
                                 </li>
                             }
@@ -1016,24 +1017,16 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- SRM - Ta'minot zanjiri boshqaruvi -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier") ||
-                         RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
+
+                    <li class="navigation-header"><span>Ta'minot (SRM)</span></li>
+
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
                     {
-                        <li class="navigation-header"><span>Ta'minot (SRM)</span></li>
-
                         <li class="nav-item">
-
-                            <ul class="menu-content">
-                                <li class="nav-item">
-                                    <a href="~/Supplier"><i class="bx bxs-factory"></i><span class="menu-title">Ta'minotchilar</span></a>
-                                </li>
-                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase"))
-                                {
-                                    <li class="nav-item">
-                                        <a href="~/SupplierBase"><i class="bx bx-book"></i><span class="menu-title">Ma'lumotnoma</span></a>
-                                    </li>
-                                }
-                            </ul>
+                            <a href="~/Supplier"><i class="bx bxs-factory"></i><span class="menu-title">Ta'minotchilar</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="~/SupplierBase"><i class="bx bx-book"></i><span class="menu-title">Ma'lumotnoma</span></a>
                         </li>
                     }
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "PRequisitions"))
@@ -1204,6 +1197,7 @@
                                 <a href="#"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Hisobotlar</span></a>
                                 <ul class="menu-content">
                                     <li><a href="/FinDashboard/Cashflow"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Kassa oqimi</span></a></li>
+                                    <li><a href="/FinDashboard/AccountBalances"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisoblardagi qoldiq</span></a></li>
                                     <li><a href="/FinDashboard/PL"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Foyda va zarar</span></a></li>
                                     <li><a href="/FinDashboard/BalanceSheet"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans</span></a></li>
                                 </ul>
@@ -1326,6 +1320,7 @@
                     <!-- CRM - Mijozlar bilan ishlash -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "CustomerBase") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices") ||
@@ -1340,6 +1335,10 @@
                                 <a href="~/Customer/Index"><i class="bx bxs-user-detail"></i><span class="menu-title">Xaridorlar</span></a>
                             </li>
                         }
+
+                        <li class="nav-item">
+                            <a href="~/CustomerBase"><i class="bx bx-book"></i><span class="menu-title">Ma'lumotnoma</span></a>
+                        </li>
 
                         if (RoleHelper.IsViewPermitted(User.Identity.Name, "SContract"))
                         {
@@ -1609,7 +1608,6 @@
         <!-- Scripts -->
         @Scripts.Render("~/bundles/jquery")
         <script src="~/Scripts/bootstrap.bundle.js"></script>
-        @RenderSection("scripts", required: false)
 
         <!-- Vendor JS -->
         <script src="~/app-assets/vendors/js/vendors.min.js"></script>
@@ -1622,7 +1620,7 @@
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/responsive.bootstrap.min.js"></script>
-        
+
         <!-- DataTables Buttons Extension -->
         <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
         <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
@@ -1670,6 +1668,8 @@
                 $('.select').select2({ width: '100%' });
             });
         </script>
+
+        @RenderSection("scripts", required: false)
 
         <!-- Menu Active State Handler -->
         <script>

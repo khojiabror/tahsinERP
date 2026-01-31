@@ -15,6 +15,7 @@
           <Property Name="OrderTypeCode" Type="nvarchar" MaxLength="50" />
           <Property Name="OrgUnitID" Type="int" />
           <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="APP_TASK_PRIORITY_REF">
           <Key>
@@ -24,6 +25,7 @@
           <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="APP_TASK_PROJECTS">
           <Key>
@@ -34,6 +36,7 @@
           <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="APP_TASK_STATUS_REF">
           <Key>
@@ -44,6 +47,7 @@
           <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="APP_TASKS">
           <Key>
@@ -99,6 +103,7 @@
           <Property Name="ChannelCode" Type="nvarchar" MaxLength="20" />
           <Property Name="Topic" Type="nvarchar" MaxLength="500" />
           <Property Name="ExternalContactPosition" Type="nvarchar" MaxLength="200" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="COMPANIES">
           <Key>
@@ -141,6 +146,23 @@
           <Property Name="Longname" Type="varchar(max)" Nullable="false" />
           <Property Name="Shortname" Type="varchar" MaxLength="25" Nullable="false" />
           <Property Name="Description" Type="text" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="CUSTOMER_BASE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CompanyName" Type="nvarchar" MaxLength="255" />
+          <Property Name="ProductType" Type="nvarchar" MaxLength="255" />
+          <Property Name="Country" Type="nvarchar" MaxLength="100" />
+          <Property Name="Province" Type="nvarchar" MaxLength="100" />
+          <Property Name="Region" Type="nvarchar" MaxLength="100" />
+          <Property Name="ContactPerson" Type="nvarchar" MaxLength="255" />
+          <Property Name="Position" Type="nvarchar" MaxLength="100" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="50" />
+          <Property Name="Comment" Type="nvarchar(max)" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="CUSTOMERS">
           <Key>
@@ -223,6 +245,7 @@
           <Property Name="ExternalDocKey" Type="nvarchar" MaxLength="100" />
           <Property Name="IntegrationStatusCode" Type="nvarchar" MaxLength="50" />
           <Property Name="LastSyncDT" Type="datetime2" Precision="0" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="DOC_FILES">
           <Key>
@@ -239,6 +262,7 @@
           <Property Name="IsMain" Type="bit" Nullable="false" />
           <Property Name="CreatedByUserID" Type="int" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="DOC_TEMPLATES">
           <Key>
@@ -342,6 +366,7 @@
           <Property Name="CapableOfLifting" Type="float" />
           <Property Name="TransportWeight" Type="float" />
           <Property Name="UnitID" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="F_WAYBILL_DOCS">
           <Key>
@@ -432,6 +457,7 @@
           <Property Name="CreatedByUserID" Type="int" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
           <Property Name="BalanceCategoryID" Type="int" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORIES">
           <Key>
@@ -444,6 +470,7 @@
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CalculationType" Type="tinyint" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORY_CATEGORIES">
           <Key>
@@ -477,6 +504,7 @@
           <Property Name="ParentID" Type="int" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="FIN_PL_ITEM_CATEGORIES">
           <Key>
@@ -497,6 +525,7 @@
           <Property Name="ParentID" Type="int" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="FIN_PL_PLANS">
           <Key>
@@ -509,6 +538,7 @@
           <Property Name="AmountPlan" Type="decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="CreatedByUserID" Type="int" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="FIN_TRANSACTIONS">
           <Key>
@@ -533,6 +563,7 @@
           <Property Name="Comment" Type="nvarchar" MaxLength="500" />
           <Property Name="CreatedByUserID" Type="int" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="FORWARDERS">
           <Key>
@@ -556,10 +587,11 @@
           <Property Name="FromPositionID" Type="int" />
           <Property Name="ToOrgUnitID" Type="int" />
           <Property Name="ToPositionID" Type="int" />
-          <Property Name="EffectiveDate" Type="datetime" Nullable="false" />
           <Property Name="Reason" Type="nvarchar(max)" />
           <Property Name="CreatedByUserID" Type="int" />
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
+          <Property Name="EffectiveDateFrom" Type="date" Nullable="false" />
+          <Property Name="EffectiveDateTo" Type="date" />
         </EntityType>
         <EntityType Name="HR_EMPLOYEES">
           <Key>
@@ -578,6 +610,7 @@
           <Property Name="CreatedByUserID" Type="int" />
           <Property Name="CreatedDT" Type="datetime2" Precision="7" Nullable="false" />
           <Property Name="UpdatedDT" Type="datetime2" Precision="7" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_JOB_DESCRIPTIONS">
           <Key>
@@ -601,6 +634,7 @@
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_HEADERS">
           <Key>
@@ -617,6 +651,7 @@
           <Property Name="ApprovedDT" Type="datetime2" Precision="7" />
           <Property Name="TimesheetID" Type="int" />
           <Property Name="PayrollType" Type="nvarchar" MaxLength="20" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_LINES">
           <Key>
@@ -635,6 +670,7 @@
           <Property Name="NetSalary" Type="decimal" Precision="18" Scale="2" />
           <Property Name="CurrencyID" Type="int" />
           <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_PIECE_RATE_OPERATIONS">
           <Key>
@@ -668,6 +704,7 @@
           <Property Name="ModifiedDT" Type="datetime" />
           <Property Name="OperationID" Type="int" />
           <Property Name="CurrencyID" Type="int" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
           <Key>
@@ -684,6 +721,7 @@
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
           <Property Name="ModifiedByUserID" Type="int" />
           <Property Name="ModifiedDT" Type="datetime" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_PIECE_RATE_WORK_ENTRIES">
           <Key>
@@ -700,6 +738,7 @@
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
           <Property Name="ModifiedByUserID" Type="int" />
           <Property Name="ModifiedDT" Type="datetime" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_POSITIONS">
           <Key>
@@ -711,6 +750,7 @@
           <Property Name="IsManager" Type="bit" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_SALARY_GRADES">
           <Key>
@@ -724,6 +764,7 @@
           <Property Name="CurrencyCode" Type="char" MaxLength="3" Nullable="false" />
           <Property Name="EffectiveFrom" Type="date" Nullable="false" />
           <Property Name="EffectiveTo" Type="date" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_STAFFING_PLAN">
           <Key>
@@ -740,6 +781,7 @@
           <Property Name="EffectiveFrom" Type="date" Nullable="false" />
           <Property Name="EffectiveTo" Type="date" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_TIMESHEET_HEADERS">
           <Key>
@@ -754,6 +796,7 @@
           <Property Name="CreatedDT" Type="datetime2" Precision="7" Nullable="false" />
           <Property Name="ApprovedByUserID" Type="int" />
           <Property Name="ApprovedDT" Type="datetime2" Precision="7" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HR_TIMESHEET_LINES">
           <Key>
@@ -831,6 +874,7 @@
           <Property Name="Day30Quantity" Type="decimal" Precision="18" Scale="4" />
           <Property Name="Day31Quantity" Type="decimal" Precision="18" Scale="4" />
           <Property Name="TotalQuantity" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="HSCODES">
           <Key>
@@ -882,6 +926,7 @@
           <Property Name="VersionNo" Type="decimal" Precision="5" Scale="2" Nullable="false" />
           <Property Name="Notes" Type="nvarchar(max)" />
           <Property Name="HRJobDescriptionID" Type="bigint" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="NORM_INPUT_LINES">
           <Key>
@@ -919,6 +964,7 @@
           <Property Name="EffectiveFrom" Type="date" />
           <Property Name="EffectiveTo" Type="date" />
           <Property Name="Comment" Type="nvarchar" MaxLength="255" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="P_CONTRACT_DOCS">
           <Key>
@@ -1134,6 +1180,7 @@
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
           <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
           <Property Name="CalculateByWeight" Type="bit" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -1147,6 +1194,7 @@
           <Property Name="NightShift" Type="float" Nullable="false" />
           <Property Name="Total" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="Comment" Type="text" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="PRODUCT_STOCKS">
           <Key>
@@ -1517,6 +1565,7 @@
           <Property Name="Phone" Type="nvarchar" MaxLength="50" />
           <Property Name="Notes" Type="nvarchar" MaxLength="500" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="SHOP_PLANNED_DTS">
           <Key>
@@ -1564,6 +1613,7 @@
           <Property Name="Area" Type="nvarchar" MaxLength="200" />
           <Property Name="Notes" Type="nvarchar(max)" />
           <Property Name="VersionNo" Type="decimal" Precision="5" Scale="2" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="SUPPLIER_BASE">
           <Key>
@@ -1651,6 +1701,7 @@
           <Property Name="UnitName" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="ShortName" Type="varchar" MaxLength="20" Nullable="false" />
           <Property Name="Code" Type="int" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" />
         </EntityType>
         <EntityType Name="USER_ENTRIES">
           <Key>
@@ -4876,6 +4927,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="COMPANY_LICENSES" EntityType="Self.COMPANY_LICENSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COOKIES_CONFIRMATION" EntityType="Self.COOKIES_CONFIRMATION" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CURRENCIES" EntityType="Self.CURRENCIES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CUSTOMER_BASE" EntityType="Self.CUSTOMER_BASE" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CUSTOMERS" EntityType="Self.CUSTOMERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DAMAGED_PRODUCTS" EntityType="Self.DAMAGED_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DEFECT_TYPES" EntityType="Self.DEFECT_TYPES" Schema="dbo" store:Type="Tables" />
@@ -6053,6 +6105,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="OrgUnitID" Type="Int32" />
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_ADM_COMPANY_ORDERS_Document" FromRole="ADM_COMPANY_ORDERS" ToRole="DOC_DOCUMENTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="APP_TASK_PRIORITY_REF">
           <Key>
@@ -6063,6 +6116,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_PRIORITY" FromRole="APP_TASK_PRIORITY_REF" ToRole="APP_TASKS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="APP_TASK_PROJECTS">
           <Key>
@@ -6074,6 +6128,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_PROJECT" FromRole="APP_TASK_PROJECTS" ToRole="APP_TASKS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="APP_TASK_STATUS_REF">
           <Key>
@@ -6085,6 +6140,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_STATUS" FromRole="APP_TASK_STATUS_REF" ToRole="APP_TASKS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="APP_TASKS">
           <Key>
@@ -6149,6 +6205,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Topic" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="ExternalContactPosition" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_COM_OFFICIAL_LETTERS_Document" FromRole="COM_OFFICIAL_LETTERS" ToRole="DOC_DOCUMENTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="COMPANy">
           <Key>
@@ -6222,6 +6279,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="SALES_INVOICES" Relationship="Self.FK_SALES_INVOICES_Currency" FromRole="CURRENCIES" ToRole="SALES_INVOICES" />
           <NavigationProperty Name="SALES_TTNK_HEADERS" Relationship="Self.FK_SALES_TTNK_HEADERS_Currency" FromRole="CURRENCIES" ToRole="SALES_TTNK_HEADERS" />
           <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="Self.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" FromRole="CURRENCIES" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="CUSTOMER">
           <Key>
@@ -6326,6 +6384,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="Self.FK_HR_JOB_DESCRIPTIONS_Document" FromRole="DOC_DOCUMENTS" ToRole="HR_JOB_DESCRIPTIONS" />
           <NavigationProperty Name="JOB_DESC" Relationship="Self.FK_JOB_DESC_DOC_DOCUMENTS" FromRole="DOC_DOCUMENTS" ToRole="JOB_DESC" />
           <NavigationProperty Name="STD_COMPANY_STANDARDS" Relationship="Self.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" FromRole="DOC_DOCUMENTS" ToRole="STD_COMPANY_STANDARDS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="DOC_FILES">
           <Key>
@@ -6343,6 +6402,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="CreatedByUserID" Type="Int32" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_DOC_FILES_Document" FromRole="DOC_FILES" ToRole="DOC_DOCUMENTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="DOC_TEMPLATES">
           <Key>
@@ -6468,6 +6528,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="Self.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_CONTRACT_TARIFFS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_F_TRANSPORT_TYPES_UNITS" FromRole="F_TRANSPORT_TYPES" ToRole="UNITS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_F_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_WAYBILLS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="F_WAYBILL_DOCS">
           <Key>
@@ -6580,6 +6641,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="Self.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_ACCOUNTS" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="USER" Relationship="Self.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="FIN_ACCOUNTS" ToRole="USERS" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_ACCOUNT" FromRole="FIN_ACCOUNTS" ToRole="FIN_TRANSACTIONS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORIES">
           <Key>
@@ -6597,6 +6659,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES2" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES1" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="FIN_BALANCE_SNAPSHOTS" Relationship="Self.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_SNAPSHOTS" />
           <NavigationProperty Name="FIN_CATEGORIES" Relationship="Self.FIN_BALANCE_CATEGORY_CATEGORIES" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_CATEGORIES" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_SNAPSHOTS">
           <Key>
@@ -6630,6 +6693,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES" Relationship="Self.FIN_BALANCE_CATEGORY_CATEGORIES" FromRole="FIN_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES" />
           <NavigationProperty Name="FIN_PL_ITEMS" Relationship="Self.FIN_PL_ITEM_CATEGORIES" FromRole="FIN_CATEGORIES" ToRole="FIN_PL_ITEMS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="FIN_PL_ITEMS">
           <Key>
@@ -6646,6 +6710,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_PL_ITEMS2" Relationship="Self.FK_FIN_PL_ITEMS_PARENT" FromRole="FIN_PL_ITEMS1" ToRole="FIN_PL_ITEMS" />
           <NavigationProperty Name="FIN_PL_PLANS" Relationship="Self.FK_FIN_PL_PLANS_ITEM" FromRole="FIN_PL_ITEMS" ToRole="FIN_PL_PLANS" />
           <NavigationProperty Name="FIN_CATEGORIES" Relationship="Self.FIN_PL_ITEM_CATEGORIES" FromRole="FIN_PL_ITEMS" ToRole="FIN_CATEGORIES" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="FIN_PL_PLANS">
           <Key>
@@ -6660,6 +6725,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
           <NavigationProperty Name="FIN_PL_ITEMS" Relationship="Self.FK_FIN_PL_PLANS_ITEM" FromRole="FIN_PL_PLANS" ToRole="FIN_PL_ITEMS" />
           <NavigationProperty Name="USER" Relationship="Self.FK_FIN_PL_PLANS_CREATEDBY" FromRole="FIN_PL_PLANS" ToRole="USERS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="FIN_TRANSACTIONS">
           <Key>
@@ -6689,6 +6755,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="FIN_CATEGORIES" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_TRANSACTIONS" ToRole="FIN_CATEGORIES" />
           <NavigationProperty Name="USER" Relationship="Self.FK_FIN_TRANSACTIONS_CREATEDBY" FromRole="FIN_TRANSACTIONS" ToRole="USERS" />
           <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="Self.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" FromRole="FIN_TRANSACTIONS" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="FORWARDER">
           <Key>
@@ -6729,6 +6796,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_PIECE_RATE_WORK_ENTRIES" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_PIECE_RATE_WORK_ENTRIES" />
           <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="Self.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_TIMESHEET_LINES" />
           <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_EMPLOYEES" FromRole="HR_EMPLOYEES" ToRole="HR_EMPLOYEE_HISTORY" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_JOB_DESCRIPTIONS">
           <Key>
@@ -6767,6 +6835,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="Self.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_TIMESHEET_HEADERS" />
           <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_EMPLOYEE_HISTORY" />
           <NavigationProperty Name="HR_EMPLOYEE_HISTORY1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" FromRole="HR_ORG_UNITS" ToRole="HR_EMPLOYEE_HISTORY" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_HEADERS">
           <Key>
@@ -6788,6 +6857,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="USER" Relationship="Self.FK_HR_PAYROLL_HEADERS_USERS_Approved" FromRole="HR_PAYROLL_HEADERS" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_HR_PAYROLL_HEADERS_USERS_Created" FromRole="HR_PAYROLL_HEADERS" ToRole="USERS" />
           <NavigationProperty Name="HR_PAYROLL_LINES" Relationship="Self.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" FromRole="HR_PAYROLL_HEADERS" ToRole="HR_PAYROLL_LINES" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_PAYROLL_LINES">
           <Key>
@@ -6809,6 +6879,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_HR_PAYROLL_LINES_CURRENCIES" FromRole="HR_PAYROLL_LINES" ToRole="CURRENCIES" />
           <NavigationProperty Name="HR_EMPLOYEES" Relationship="Self.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" FromRole="HR_PAYROLL_LINES" ToRole="HR_EMPLOYEES" />
           <NavigationProperty Name="HR_PAYROLL_HEADERS" Relationship="Self.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" FromRole="HR_PAYROLL_LINES" ToRole="HR_PAYROLL_HEADERS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_PIECE_RATE_OPERATIONS">
           <Key>
@@ -6852,6 +6923,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="USER1" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="USERS" />
           <NavigationProperty Name="HR_POSITIONS" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="HR_POSITIONS" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" FromRole="HR_PIECE_RATE_TARIFFS" ToRole="PRODUCTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
           <Key>
@@ -6872,6 +6944,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="USER" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USERS" />
           <NavigationProperty Name="USER2" Relationship="Self.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" FromRole="HR_PIECE_RATE_TIMESHEET_APPROVALS" ToRole="USERS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_PIECE_RATE_WORK_ENTRIES">
           <Key>
@@ -6893,6 +6966,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="USER" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="USERS" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" FromRole="HR_PIECE_RATE_WORK_ENTRIES" ToRole="PRODUCTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_POSITIONS">
           <Key>
@@ -6911,6 +6985,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="Self.FK_HR_STAFFING_PLAN_Position" FromRole="HR_POSITIONS" ToRole="HR_STAFFING_PLAN" />
           <NavigationProperty Name="HR_EMPLOYEE_HISTORY" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_EMPLOYEE_HISTORY" />
           <NavigationProperty Name="HR_EMPLOYEE_HISTORY1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" FromRole="HR_POSITIONS" ToRole="HR_EMPLOYEE_HISTORY" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_SALARY_GRADES">
           <Key>
@@ -6926,6 +7001,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="EffectiveTo" Type="DateTime" Precision="0" />
           <NavigationProperty Name="HR_EMPLOYEES" Relationship="Self.FK_HR_EMPLOYEES_HR_SALARY_GRADES" FromRole="HR_SALARY_GRADES" ToRole="HR_EMPLOYEES" />
           <NavigationProperty Name="HR_STAFFING_PLAN" Relationship="Self.FK_HR_STAFFING_PLAN_Grade" FromRole="HR_SALARY_GRADES" ToRole="HR_STAFFING_PLAN" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_STAFFING_PLAN">
           <Key>
@@ -6945,6 +7021,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_ORG_UNITS" Relationship="Self.FK_HR_STAFFING_PLAN_OrgUnit" FromRole="HR_STAFFING_PLAN" ToRole="HR_ORG_UNITS" />
           <NavigationProperty Name="HR_POSITIONS" Relationship="Self.FK_HR_STAFFING_PLAN_Position" FromRole="HR_STAFFING_PLAN" ToRole="HR_POSITIONS" />
           <NavigationProperty Name="HR_SALARY_GRADES" Relationship="Self.FK_HR_STAFFING_PLAN_Grade" FromRole="HR_STAFFING_PLAN" ToRole="HR_SALARY_GRADES" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_TIMESHEET_HEADERS">
           <Key>
@@ -6964,6 +7041,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="USER" Relationship="Self.FK_HR_TIMESHEET_HEADERS_USERS_Approved" FromRole="HR_TIMESHEET_HEADERS" ToRole="USERS" />
           <NavigationProperty Name="USER1" Relationship="Self.FK_HR_TIMESHEET_HEADERS_USERS_Created" FromRole="HR_TIMESHEET_HEADERS" ToRole="USERS" />
           <NavigationProperty Name="HR_TIMESHEET_LINES" Relationship="Self.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" FromRole="HR_TIMESHEET_HEADERS" ToRole="HR_TIMESHEET_LINES" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HR_TIMESHEET_LINES">
           <Key>
@@ -7044,6 +7122,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_EMPLOYEES" Relationship="Self.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" FromRole="HR_TIMESHEET_LINES" ToRole="HR_EMPLOYEES" />
           <NavigationProperty Name="HR_TIMESHEET_HEADERS" Relationship="Self.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" FromRole="HR_TIMESHEET_LINES" ToRole="HR_TIMESHEET_HEADERS" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_HR_TIMESHEET_LINES_PRODUCTS" FromRole="HR_TIMESHEET_LINES" ToRole="PRODUCTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="HSCODE">
           <Key>
@@ -7109,6 +7188,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="HRJobDescriptionID" Type="Int64" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_JOB_DESC_DOC_DOCUMENTS" FromRole="JOB_DESC" ToRole="DOC_DOCUMENTS" />
           <NavigationProperty Name="HR_JOB_DESCRIPTIONS" Relationship="Self.FK_JOB_DESC_HR_JOB_DESCRIPTIONS" FromRole="JOB_DESC" ToRole="HR_JOB_DESCRIPTIONS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="NORM_INPUT_LINES">
           <Key>
@@ -7153,6 +7233,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Comment" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="NORMLINES" Relationship="Self.FK_NORMLINES_NormID_NORMVERSIONS" FromRole="NORMVERSIONS" ToRole="NORMLINES" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_NORMVERSION_PRODUCTS" FromRole="NORMVERSIONS" ToRole="PRODUCTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="P_CONTRACT_DOCS">
           <Key>
@@ -7415,6 +7496,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <Property Name="CalculateByWeight" Type="Boolean" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -7431,6 +7513,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_PRODUCT_PRODUCTION_PRODUCTS" FromRole="PRODUCT_PRODUCTION" ToRole="PRODUCTS" />
           <NavigationProperty Name="SHOP" Relationship="Self.FK_PRODUCT_PRODUCTION_SHOPS" FromRole="PRODUCT_PRODUCTION" ToRole="SHOPS" />
           <NavigationProperty Name="QUALITY_INSPECTION" Relationship="Self.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" FromRole="PRODUCT_PRODUCTION" ToRole="QUALITY_INSPECTION" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="PRODUCT_STOCKS">
           <Key>
@@ -7920,6 +8003,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="Self.FK_SHAREHOLDER_CONTRIBUTIONS_SH" FromRole="SHAREHOLDERS" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
           <NavigationProperty Name="SHAREHOLDER_SHARE_PERIODS" Relationship="Self.FK_SHAREHOLDER_SHARE_PERIODS_SH" FromRole="SHAREHOLDERS" ToRole="SHAREHOLDER_SHARE_PERIODS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="SHOP_PLANNED_DTS">
           <Key>
@@ -7978,6 +8062,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="VersionNo" Type="Decimal" Precision="5" Scale="2" Nullable="false" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" FromRole="STD_COMPANY_STANDARDS" ToRole="DOC_DOCUMENTS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="SUPPLIER_BASE">
           <Key>
@@ -8084,6 +8169,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="S_CONTRACT_PRODUCTS" Relationship="Self.FK_S_CONTRACT_PRODUCTS_UNITS" FromRole="UNITS" ToRole="S_CONTRACT_PRODUCTS" />
           <NavigationProperty Name="S_ORDER_PRODUCTS" Relationship="Self.FK_S_ORDER_PRODUCTS_UNITS" FromRole="UNITS" ToRole="S_ORDER_PRODUCTS" />
           <NavigationProperty Name="WASTE_STOCKS" Relationship="Self.FK__WASTE_STO__UnitI__5E74FADA" FromRole="UNITS" ToRole="WASTE_STOCKS" />
+          <Property Name="IsDeleted" Type="Boolean" />
         </EntityType>
         <EntityType Name="USER_ENTRIES">
           <Key>
@@ -12284,6 +12370,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="HR_POSITIONS" EntitySet="HR_POSITIONS" />
             <End Role="HR_EMPLOYEE_HISTORY" EntitySet="HR_EMPLOYEE_HISTORY" />
           </AssociationSet>
+          <EntitySet Name="CUSTOMER_BASE" EntityType="DBTHSNModel.CUSTOMER_BASE" />
         </EntityContainer>
         <ComplexType Name="sp_Fin_CashSummary_Result">
           <Property Type="Int32" Name="AccountID" Nullable="false" />
@@ -12316,7 +12403,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="FromPositionID" Type="Int32" />
           <Property Name="ToOrgUnitID" Type="Int32" />
           <Property Name="ToPositionID" Type="Int32" />
-          <Property Name="EffectiveDate" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="Reason" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CreatedByUserID" Type="Int32" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
@@ -12326,6 +12412,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="HR_POSITIONS" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_POSITIONS" />
           <NavigationProperty Name="HR_ORG_UNITS1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_ORG_UNITS" />
           <NavigationProperty Name="HR_POSITIONS1" Relationship="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" FromRole="HR_EMPLOYEE_HISTORY" ToRole="HR_POSITIONS" />
+          <Property Name="EffectiveDateFrom" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="EffectiveDateTo" Type="DateTime" Precision="0" />
         </EntityType>
         <Association Name="FK_HR_EMPLOYEE_HISTORY_CREATED_BY">
           <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
@@ -12399,6 +12487,22 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="CUSTOMER_BASE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyName" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="ProductType" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Country" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Province" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Region" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ContactPerson" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Position" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsDeleted" Type="Boolean" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -12408,6 +12512,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="ADM_COMPANY_ORDERS">
             <EntityTypeMapping TypeName="DBTHSNModel.ADM_COMPANY_ORDERS">
               <MappingFragment StoreEntitySet="ADM_COMPANY_ORDERS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="OrderNo" ColumnName="OrderNo" />
                 <ScalarProperty Name="OrderDate" ColumnName="OrderDate" />
@@ -12420,6 +12525,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="APP_TASK_PRIORITY_REF">
             <EntityTypeMapping TypeName="DBTHSNModel.APP_TASK_PRIORITY_REF">
               <MappingFragment StoreEntitySet="APP_TASK_PRIORITY_REF">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12430,6 +12536,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="APP_TASK_PROJECTS">
             <EntityTypeMapping TypeName="DBTHSNModel.APP_TASK_PROJECTS">
               <MappingFragment StoreEntitySet="APP_TASK_PROJECTS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12441,6 +12548,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="APP_TASK_STATUS_REF">
             <EntityTypeMapping TypeName="DBTHSNModel.APP_TASK_STATUS_REF">
               <MappingFragment StoreEntitySet="APP_TASK_STATUS_REF">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12494,6 +12602,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="COM_OFFICIAL_LETTERS">
             <EntityTypeMapping TypeName="DBTHSNModel.COM_OFFICIAL_LETTERS">
               <MappingFragment StoreEntitySet="COM_OFFICIAL_LETTERS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="DirectionCode" ColumnName="DirectionCode" />
                 <ScalarProperty Name="LetterNo" ColumnName="LetterNo" />
@@ -12547,6 +12656,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="CURRENCIES">
             <EntityTypeMapping TypeName="DBTHSNModel.CURRENCy">
               <MappingFragment StoreEntitySet="CURRENCIES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Longname" ColumnName="Longname" />
                 <ScalarProperty Name="Shortname" ColumnName="Shortname" />
@@ -12619,6 +12729,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="DOC_DOCUMENTS">
             <EntityTypeMapping TypeName="DBTHSNModel.DOC_DOCUMENTS">
               <MappingFragment StoreEntitySet="DOC_DOCUMENTS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="DocTypeID" ColumnName="DocTypeID" />
                 <ScalarProperty Name="StatusID" ColumnName="StatusID" />
@@ -12645,6 +12756,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="DOC_FILES">
             <EntityTypeMapping TypeName="DBTHSNModel.DOC_FILES">
               <MappingFragment StoreEntitySet="DOC_FILES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
@@ -12755,6 +12867,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="F_TRANSPORT_TYPES">
             <EntityTypeMapping TypeName="DBTHSNModel.F_TRANSPORT_TYPES">
               <MappingFragment StoreEntitySet="F_TRANSPORT_TYPES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="TransportType" ColumnName="TransportType" />
                 <ScalarProperty Name="ExtLgth" ColumnName="ExtLgth" />
@@ -12850,6 +12963,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_ACCOUNTS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_ACCOUNTS">
               <MappingFragment StoreEntitySet="FIN_ACCOUNTS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12867,6 +12981,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_BALANCE_CATEGORIES">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_BALANCE_CATEGORIES">
               <MappingFragment StoreEntitySet="FIN_BALANCE_CATEGORIES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Type" ColumnName="Type" />
@@ -12895,6 +13010,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_CATEGORIES">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_CATEGORIES">
               <MappingFragment StoreEntitySet="FIN_CATEGORIES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Type" ColumnName="Type" />
@@ -12907,6 +13023,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_PL_ITEMS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_PL_ITEMS">
               <MappingFragment StoreEntitySet="FIN_PL_ITEMS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -12920,6 +13037,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_PL_PLANS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_PL_PLANS">
               <MappingFragment StoreEntitySet="FIN_PL_PLANS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Year" ColumnName="Year" />
                 <ScalarProperty Name="Month" ColumnName="Month" />
@@ -12933,6 +13051,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="FIN_TRANSACTIONS">
             <EntityTypeMapping TypeName="DBTHSNModel.FIN_TRANSACTIONS">
               <MappingFragment StoreEntitySet="FIN_TRANSACTIONS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="TxnDate" ColumnName="TxnDate" />
                 <ScalarProperty Name="AccountID" ColumnName="AccountID" />
@@ -12970,6 +13089,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_EMPLOYEES">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_EMPLOYEES">
               <MappingFragment StoreEntitySet="HR_EMPLOYEES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="TabNo" ColumnName="TabNo" />
                 <ScalarProperty Name="FullName" ColumnName="FullName" />
@@ -13000,6 +13120,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_ORG_UNITS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_ORG_UNITS">
               <MappingFragment StoreEntitySet="HR_ORG_UNITS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ParentID" ColumnName="ParentID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
@@ -13014,6 +13135,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_PAYROLL_HEADERS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PAYROLL_HEADERS">
               <MappingFragment StoreEntitySet="HR_PAYROLL_HEADERS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Year" ColumnName="Year" />
                 <ScalarProperty Name="Month" ColumnName="Month" />
@@ -13031,6 +13153,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_PAYROLL_LINES">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PAYROLL_LINES">
               <MappingFragment StoreEntitySet="HR_PAYROLL_LINES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="PayrollID" ColumnName="PayrollID" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
@@ -13066,6 +13189,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_PIECE_RATE_TARIFFS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_TARIFFS">
               <MappingFragment StoreEntitySet="HR_PIECE_RATE_TARIFFS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
                 <ScalarProperty Name="PositionID" ColumnName="PositionID" />
@@ -13085,6 +13209,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_PIECE_RATE_TIMESHEET_APPROVALS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS">
               <MappingFragment StoreEntitySet="HR_PIECE_RATE_TIMESHEET_APPROVALS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Year" ColumnName="Year" />
                 <ScalarProperty Name="Month" ColumnName="Month" />
@@ -13102,6 +13227,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_PIECE_RATE_WORK_ENTRIES">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES">
               <MappingFragment StoreEntitySet="HR_PIECE_RATE_WORK_ENTRIES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
@@ -13119,6 +13245,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_POSITIONS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_POSITIONS">
               <MappingFragment StoreEntitySet="HR_POSITIONS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -13131,6 +13258,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_SALARY_GRADES">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_SALARY_GRADES">
               <MappingFragment StoreEntitySet="HR_SALARY_GRADES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="GradeCode" ColumnName="GradeCode" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -13145,6 +13273,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_STAFFING_PLAN">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_STAFFING_PLAN">
               <MappingFragment StoreEntitySet="HR_STAFFING_PLAN">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="OrgUnitID" ColumnName="OrgUnitID" />
                 <ScalarProperty Name="PositionID" ColumnName="PositionID" />
@@ -13162,6 +13291,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_TIMESHEET_HEADERS">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_TIMESHEET_HEADERS">
               <MappingFragment StoreEntitySet="HR_TIMESHEET_HEADERS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Year" ColumnName="Year" />
                 <ScalarProperty Name="Month" ColumnName="Month" />
@@ -13177,6 +13307,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_TIMESHEET_LINES">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_TIMESHEET_LINES">
               <MappingFragment StoreEntitySet="HR_TIMESHEET_LINES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="TimesheetID" ColumnName="TimesheetID" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
@@ -13297,6 +13428,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="JOB_DESC">
             <EntityTypeMapping TypeName="DBTHSNModel.JOB_DESC">
               <MappingFragment StoreEntitySet="JOB_DESC">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="JobDescriptionCode" ColumnName="JobDescriptionCode" />
                 <ScalarProperty Name="JobTitle" ColumnName="JobTitle" />
@@ -13339,6 +13471,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="NORMVERSIONS">
             <EntityTypeMapping TypeName="DBTHSNModel.NORMVERSION">
               <MappingFragment StoreEntitySet="NORMVERSIONS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
                 <ScalarProperty Name="EffectiveFrom" ColumnName="EffectiveFrom" />
@@ -13554,6 +13687,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="PRODUCT_CATEGORIES">
             <EntityTypeMapping TypeName="DBTHSNModel.PRODUCT_CATEGORIES">
               <MappingFragment StoreEntitySet="PRODUCT_CATEGORIES">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -13579,6 +13713,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="PRODUCT_PRODUCTION">
             <EntityTypeMapping TypeName="DBTHSNModel.PRODUCT_PRODUCTION">
               <MappingFragment StoreEntitySet="PRODUCT_PRODUCTION">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
                 <ScalarProperty Name="ShopID" ColumnName="ShopID" />
@@ -13975,6 +14110,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="SHAREHOLDERS">
             <EntityTypeMapping TypeName="DBTHSNModel.SHAREHOLDER">
               <MappingFragment StoreEntitySet="SHAREHOLDERS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="FullName" ColumnName="FullName" />
                 <ScalarProperty Name="Phone" ColumnName="Phone" />
@@ -14026,6 +14162,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="STD_COMPANY_STANDARDS">
             <EntityTypeMapping TypeName="DBTHSNModel.STD_COMPANY_STANDARDS">
               <MappingFragment StoreEntitySet="STD_COMPANY_STANDARDS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
                 <ScalarProperty Name="StandardCode" ColumnName="StandardCode" />
                 <ScalarProperty Name="Area" ColumnName="Area" />
@@ -14118,6 +14255,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="UNITS">
             <EntityTypeMapping TypeName="DBTHSNModel.UNIT">
               <MappingFragment StoreEntitySet="UNITS">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="UnitName" ColumnName="UnitName" />
                 <ScalarProperty Name="ShortName" ColumnName="ShortName" />
@@ -14374,16 +14512,34 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="HR_EMPLOYEE_HISTORY">
             <EntityTypeMapping TypeName="DBTHSNModel.HR_EMPLOYEE_HISTORY">
               <MappingFragment StoreEntitySet="HR_EMPLOYEE_HISTORY">
+                <ScalarProperty Name="EffectiveDateTo" ColumnName="EffectiveDateTo" />
+                <ScalarProperty Name="EffectiveDateFrom" ColumnName="EffectiveDateFrom" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
                 <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
                 <ScalarProperty Name="Reason" ColumnName="Reason" />
-                <ScalarProperty Name="EffectiveDate" ColumnName="EffectiveDate" />
                 <ScalarProperty Name="ToPositionID" ColumnName="ToPositionID" />
                 <ScalarProperty Name="ToOrgUnitID" ColumnName="ToOrgUnitID" />
                 <ScalarProperty Name="FromPositionID" ColumnName="FromPositionID" />
                 <ScalarProperty Name="FromOrgUnitID" ColumnName="FromOrgUnitID" />
                 <ScalarProperty Name="ActionType" ColumnName="ActionType" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CUSTOMER_BASE">
+            <EntityTypeMapping TypeName="DBTHSNModel.CUSTOMER_BASE">
+              <MappingFragment StoreEntitySet="CUSTOMER_BASE">
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Position" ColumnName="Position" />
+                <ScalarProperty Name="ContactPerson" ColumnName="ContactPerson" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="Province" ColumnName="Province" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="ProductType" ColumnName="ProductType" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
               </MappingFragment>
             </EntityTypeMapping>

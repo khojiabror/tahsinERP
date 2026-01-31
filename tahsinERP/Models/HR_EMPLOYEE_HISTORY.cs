@@ -21,10 +21,11 @@ namespace tahsinERP.Models
         public Nullable<int> FromPositionID { get; set; }
         public Nullable<int> ToOrgUnitID { get; set; }
         public Nullable<int> ToPositionID { get; set; }
-        public System.DateTime EffectiveDate { get; set; }
         public string Reason { get; set; }
         public Nullable<int> CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public System.DateTime EffectiveDateFrom { get; set; }
+        public Nullable<System.DateTime> EffectiveDateTo { get; set; }
     
         public virtual USER USER { get; set; }
         public virtual HR_EMPLOYEES HR_EMPLOYEES { get; set; }

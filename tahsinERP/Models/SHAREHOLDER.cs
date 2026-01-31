@@ -26,6 +26,7 @@ namespace tahsinERP.Models
         public string Phone { get; set; }
         public string Notes { get; set; }
         public bool IsActive { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SHAREHOLDER_CONTRIBUTIONS> SHAREHOLDER_CONTRIBUTIONS { get; set; }

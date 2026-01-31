@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.Controllers;
 using OfficeOpenXml;
 using System.IO;
 using System.Globalization;
@@ -889,10 +890,12 @@ namespace tahsinERP.Controllers.HR
             var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
             foreach (var line in lines)
             {
-                db.HR_TIMESHEET_LINES.Remove(line);
+                line.IsDeleted = true;
+                db.Entry(line).State = System.Data.Entity.EntityState.Modified;
             }
 
-            db.HR_TIMESHEET_HEADERS.Remove(timesheet);
+            timesheet.IsDeleted = true;
+            db.Entry(timesheet).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrPieceRateTimesheets", "Delete", $"ID: {id}");
@@ -989,16 +992,18 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            // Delete work entries
+            // Soft delete work entries
             foreach (var entry in workEntries)
             {
-                db.HR_PIECE_RATE_WORK_ENTRIES.Remove(entry);
+                entry.IsDeleted = true;
+                db.Entry(entry).State = System.Data.Entity.EntityState.Modified;
             }
 
-            // Delete approval record if exists
+            // Soft delete approval record if exists
             if (approval != null)
             {
-                db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Remove(approval);
+                approval.IsDeleted = true;
+                db.Entry(approval).State = System.Data.Entity.EntityState.Modified;
             }
 
             await db.SaveChangesAsync();
@@ -1006,6 +1011,336 @@ namespace tahsinERP.Controllers.HR
             logger.Log("HrPieceRateTimesheets", "DeleteEntries", $"Year: {year}, Month: {month}, OrgUnitID: {orgUnitId}");
             TempData["Success"] = $"{workEntries.Count} ta yozuv muvaffaqiyatli o'chirildi";
             return RedirectToAction("Index", new { year, month, orgUnitId });
+        }
+
+        // GET: HR/PieceRateTimesheets/ImportFromExcel
+        public ActionResult ImportFromExcel()
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            return View();
+        }
+
+        // POST: HR/PieceRateTimesheets/ImportFromExcel
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ImportFromExcel(HttpPostedFileBase file)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (file == null || file.ContentLength == 0)
+            {
+                TempData["Error"] = "Fayl yuklanmadi yoki bo'sh!";
+                return View();
+            }
+
+            if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Faqat .xlsx formatidagi fayllarni yuklash mumkin!";
+                return View();
+            }
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                var importResults = new List<string>();
+                int successCount = 0;
+                int skipCount = 0;
+                int errorCount = 0;
+
+                using (var package = new ExcelPackage(file.InputStream))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    if (worksheet.Dimension == null)
+                    {
+                        TempData["Error"] = "Excel fayl bo'sh!";
+                        return View();
+                    }
+
+                    int rowCount = worksheet.Dimension.Rows;
+                    int colCount = worksheet.Dimension.Columns;
+
+                    // Find column indices
+                    // Excel shablon struktura:
+                    // Row 1: Header (A1:J1)
+                    //   A: # (raqam - e'tiborsiz)
+                    //   B: Tabel. Code
+                    //   C: Ф.И.О
+                    //   D: Sana
+                    //   E: Maxsulot kodi
+                    //   F: kesish
+                    //   G: poddon
+                    //   H: ramka
+                    //   I: selofan /DVP /Karton
+                    //   J: ichki sxema
+                    // Row 2+: Data rows
+                    
+                    int colIndex = -1, fullNameColIndex = -1, dateColIndex = -1, productCodeColIndex = -1;
+                    Dictionary<string, int> operationColumns = new Dictionary<string, int>();
+
+                    // Read header row (row 1) to find column indices
+                    for (int col = 1; col <= colCount; col++)
+                    {
+                        string header = worksheet.Cells[1, col].Text.Trim();
+                        string headerLower = header.ToLower();
+                        string headerNormalized = headerLower.Replace(" ", "").Replace("/", "").Replace("\\", "").Replace(".", "");
+                        
+                        // Tabel. Code ustuni (B ustuni)
+                        if (headerNormalized.Contains("tabel") && headerNormalized.Contains("code"))
+                            colIndex = col;
+                        // Ф.И.О ustuni (C ustuni) - Cyrillic yoki Latin
+                        else if (header.Contains("Ф.И.О") || header.Contains("Ф.И.О") || 
+                                 headerNormalized.Contains("fio") || headerNormalized.Contains("fullname"))
+                            fullNameColIndex = col;
+                        // Sana ustuni (D ustuni)
+                        else if (headerLower == "sana" || headerLower.Contains("date"))
+                            dateColIndex = col;
+                        // Maxsulot kodi ustuni (E ustuni)
+                        else if ((headerLower.Contains("maxsulot") && headerLower.Contains("kodi")) ||
+                                 (headerLower.Contains("product") && headerLower.Contains("code")))
+                            productCodeColIndex = col;
+                        // Operatsiya ustunlari
+                        // kesish (F ustuni)
+                        else if (headerLower == "kesish" || headerLower.Contains("cutting"))
+                            operationColumns["kesish"] = col;
+                        // poddon (G ustuni)
+                        else if (headerLower == "poddon" || headerLower.Contains("pallet"))
+                            operationColumns["poddon"] = col;
+                        // ramka (H ustuni)
+                        else if (headerLower == "ramka" || headerLower.Contains("frame"))
+                            operationColumns["ramka"] = col;
+                        // selofan /DVP /Karton (I ustuni)
+                        else if (headerLower.Contains("selofan") || headerLower.Contains("dvp") || 
+                                 headerLower.Contains("karton") || headerLower.Contains("cellophane") || 
+                                 headerLower.Contains("carton"))
+                            operationColumns["selofan"] = col;
+                        // ichki sxema (J ustuni)
+                        else if (headerLower.Contains("ichki") && headerLower.Contains("sxema") ||
+                                 headerLower.Contains("internal") && headerLower.Contains("scheme"))
+                            operationColumns["ichki sxema"] = col;
+                    }
+
+                    // Tabel. Code majburiy, Ф.И.О ixtiyoriy (faqat tekshirish uchun)
+                    if (colIndex == -1 || dateColIndex == -1 || productCodeColIndex == -1)
+                    {
+                        TempData["Error"] = "Excel faylda kerakli ustunlar topilmadi! (Tabel. Code, Sana, Maxsulot kodi)";
+                        return View();
+                    }
+
+                    if (operationColumns.Count == 0)
+                    {
+                        TempData["Error"] = "Excel faylda operatsiya ustunlari topilmadi!";
+                        return View();
+                    }
+
+                    // Get all employees (including inactive) for lookup
+                    var allEmployees = await db.HR_EMPLOYEES
+                        .ToListAsync();
+
+                    // Get all products with IsFinishedGood category
+                    var validProducts = await db.PRODUCTS
+                        .Include(p => p.PRODUCT_CATEGORIES)
+                        .Where(p => p.IsDeleted == false && 
+                            (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true))
+                        .ToListAsync();
+
+                    // Get all operations
+                    var allOperations = await db.HR_PIECE_RATE_OPERATIONS
+                        .Where(o => o.IsActive)
+                        .ToListAsync();
+
+                    // Get all tariffs
+                    var allTariffs = await db.HR_PIECE_RATE_TARIFFS
+                        .Where(t => t.IsActive && t.IsDeleted != true)
+                        .Include(t => t.PRODUCT)
+                        .ToListAsync();
+
+                    var userId = UserHelper.GetUserId(User.Identity.Name);
+                    var currentDate = DateTime.Now;
+
+                    // Process data rows (starting from row 2, as row 1 is header)
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        try
+                        {
+                            // Read row data
+                            string tabelCode = colIndex > 0 ? worksheet.Cells[row, colIndex].Text.Trim() : "";
+                            string fullName = fullNameColIndex > 0 ? worksheet.Cells[row, fullNameColIndex].Text.Trim() : "";
+                            string dateStr = worksheet.Cells[row, dateColIndex].Text.Trim();
+                            string productCode = worksheet.Cells[row, productCodeColIndex].Text.Trim();
+
+                            // Skip empty rows
+                            if (string.IsNullOrWhiteSpace(tabelCode) && string.IsNullOrWhiteSpace(productCode))
+                                continue;
+
+                            // Tabel. Code majburiy
+                            if (string.IsNullOrWhiteSpace(tabelCode))
+                            {
+                                importResults.Add($"Qator {row}: Tabel. Code bo'sh bo'lishi mumkin emas");
+                                errorCount++;
+                                continue;
+                            }
+
+                            // Parse date
+                            DateTime workDate;
+                            if (!DateTime.TryParse(dateStr, out workDate))
+                            {
+                                importResults.Add($"Qator {row}: Sana noto'g'ri format - {dateStr}");
+                                errorCount++;
+                                continue;
+                            }
+
+                            // Find employee by Tabel. Code (TabNo)
+                            var employee = allEmployees.FirstOrDefault(e => 
+                                e.TabNo != null && e.TabNo.Trim().Equals(tabelCode.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                            if (employee == null)
+                            {
+                                importResults.Add($"Qator {row}: Tabel. Code bo'yicha xodim topilmadi - {tabelCode}");
+                                skipCount++;
+                                continue;
+                            }
+
+                            // Optional: Verify FullName matches if provided (for validation)
+                            if (!string.IsNullOrWhiteSpace(fullName))
+                            {
+                                if (!employee.FullName.Trim().Equals(fullName.Trim(), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    importResults.Add($"Qator {row}: Tabel. Code ({tabelCode}) va Ф.И.О ({fullName}) mos kelmaydi. Xodim: {employee.FullName}");
+                                    // Continue anyway, as Tabel. Code is the primary identifier
+                                }
+                            }
+
+                            // Find product by PNo
+                            var product = validProducts.FirstOrDefault(p => 
+                                p.PNo != null && p.PNo.Trim().Equals(productCode, StringComparison.OrdinalIgnoreCase));
+
+                            if (product == null)
+                            {
+                                importResults.Add($"Qator {row}: Maxsulot topilmadi yoki IsFinishedGood emas - {productCode}");
+                                skipCount++;
+                                continue;
+                            }
+
+                            // Process each operation column
+                            foreach (var operationCol in operationColumns)
+                            {
+                                string operationName = operationCol.Key;
+                                int operationColIndex = operationCol.Value;
+
+                                string quantityStr = worksheet.Cells[row, operationColIndex].Text.Trim();
+                                if (string.IsNullOrWhiteSpace(quantityStr))
+                                    continue;
+
+                                // Parse quantity
+                                decimal quantity;
+                                if (!decimal.TryParse(quantityStr, out quantity) || quantity <= 0)
+                                    continue;
+
+                                // Find operation by name (case-insensitive partial match)
+                                var operation = allOperations.FirstOrDefault(o => 
+                                    o.Name != null && o.Name.Trim().ToLower().Contains(operationName.ToLower()));
+
+                                if (operation == null)
+                                {
+                                    importResults.Add($"Qator {row}: Operatsiya topilmadi - {operationName}");
+                                    skipCount++;
+                                    continue;
+                                }
+
+                                // Check for duplicate entry
+                                bool exists = await db.HR_PIECE_RATE_WORK_ENTRIES
+                                    .AnyAsync(e => e.EmployeeID == employee.ID &&
+                                                  e.ProductID == product.ID &&
+                                                  e.OperationID == operation.ID &&
+                                                  e.WorkDate == workDate.Date &&
+                                                  e.Quantity == quantity &&
+                                                  e.IsDeleted != true);
+
+                                if (exists)
+                                {
+                                    importResults.Add($"Qator {row}: Bu yozuv allaqachon mavjud (Tabel. Code: {tabelCode}, Xodim: {employee.FullName}, Maxsulot: {productCode}, Operatsiya: {operationName}, Miqdor: {quantity}, Sana: {workDate:dd.MM.yyyy})");
+                                    skipCount++;
+                                    continue;
+                                }
+
+                                // Find tariff for this product and operation
+                                var tariff = allTariffs
+                                    .Where(t => t.ProductID == product.ID &&
+                                               t.OperationID == operation.ID &&
+                                               t.EffectiveFrom <= workDate &&
+                                               (t.EffectiveTo == null || t.EffectiveTo >= workDate))
+                                    .OrderByDescending(t => t.PositionID) // Prefer position-specific
+                                    .FirstOrDefault();
+
+                                // If not found, try general tariff (PositionID == null)
+                                if (tariff == null)
+                                {
+                                    tariff = allTariffs
+                                        .Where(t => t.ProductID == product.ID &&
+                                                   t.OperationID == operation.ID &&
+                                                   t.PositionID == null &&
+                                                   t.EffectiveFrom <= workDate &&
+                                                   (t.EffectiveTo == null || t.EffectiveTo >= workDate))
+                                        .FirstOrDefault();
+                                }
+
+                                // Create work entry
+                                var workEntry = new HR_PIECE_RATE_WORK_ENTRIES
+                                {
+                                    EmployeeID = employee.ID,
+                                    ProductID = product.ID,
+                                    OperationID = operation.ID,
+                                    WorkDate = workDate.Date,
+                                    Quantity = quantity,
+                                    CreatedByUserID = userId,
+                                    CreatedDT = currentDate,
+                                    IsDeleted = false
+                                };
+
+                                db.HR_PIECE_RATE_WORK_ENTRIES.Add(workEntry);
+                                successCount++;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            importResults.Add($"Qator {row}: Xatolik - {ex.Message}");
+                            errorCount++;
+                        }
+                    }
+
+                    // Save all changes
+                    await db.SaveChangesAsync();
+
+                    // Prepare result message
+                    string resultMessage = $"Muvaffaqiyatli: {successCount} ta yozuv qo'shildi. ";
+                    if (skipCount > 0)
+                        resultMessage += $"O'tkazib yuborildi: {skipCount} ta. ";
+                    if (errorCount > 0)
+                        resultMessage += $"Xatoliklar: {errorCount} ta.";
+
+                    if (importResults.Count > 0)
+                    {
+                        TempData["ImportResults"] = importResults;
+                    }
+
+                    TempData["Success"] = resultMessage;
+                    logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"Success: {successCount}, Skipped: {skipCount}, Errors: {errorCount}");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xatolik: {ex.Message}";
+                logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"Error: {ex.Message}");
+            }
+
+            return View();
         }
     }
 }

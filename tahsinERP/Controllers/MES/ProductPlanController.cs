@@ -80,8 +80,9 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var plan = db.PRODUCTPLANS
+                    .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
                     .Include(p => p.PRODUCT)
-                    .FirstOrDefault(p => p.ID == id);
+                    .FirstOrDefault();
 
                 if (plan == null)
                 {

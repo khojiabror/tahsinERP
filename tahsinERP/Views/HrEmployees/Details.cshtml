@@ -15,7 +15,6 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Xodim tafsilotlari</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -51,16 +50,16 @@
                                 <dt class="col-sm-3">Tarif tarmog'i:</dt>
                                 <dd class="col-sm-9">@(Model.SalaryGradeName ?? "-")</dd>
 
-                                <dt class="col-sm-3">Qabul qilingan sana:</dt>
+                                <dt class="col-sm-3">Ushbu lavozimda ish boshlagan sana:</dt>
                                 <dd class="col-sm-9">@(Model.EmploymentDate?.ToString("dd.MM.yyyy") ?? "-")</dd>
 
-                                <dt class="col-sm-3">Ishdan bo'shatilgan sana:</dt>
+                                <dt class="col-sm-3">Lavozimdan bo'shatilgan sana:</dt>
                                 <dd class="col-sm-9">@(Model.DismissalDate?.ToString("dd.MM.yyyy") ?? "-")</dd>
 
-                                <dt class="col-sm-3">Holat:</dt>
+                                <dt class="col-sm-3">Hozirdagi status:</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
-                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                        @(Model.IsActive ? "Ishlaydi" : "Ishdan ketgan")
                                     </span>
                                 </dd>
                             </dl>
@@ -68,44 +67,41 @@
                             <hr />
 
                             <h5 class="mb-2">Xodim tarixi</h5>
-                            @{
-                                var history = ViewBag.History as List<dynamic>;
-                            }
-                            @if (history != null && history.Any())
+                            @if (ViewBag.History != null)
                             {
-                                <div class="table-responsive">
-                                    <table id="historyTable" class="table table-striped table-bordered" style="width:100%">
-                                        <thead>
-                                            <tr>
-                                                <th>Amal turi</th>
-                                                <th>Eski bo'lim</th>
-                                                <th>Eski lavozim</th>
-                                                <th>Yangi bo'lim</th>
-                                                <th>Yangi lavozim</th>
-                                                <th>Sana</th>
-                                                <th>Sabab</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in history)
-                                            {
+                                var history = ViewBag.History as List<tahsinERP.ViewModels.HR.HrEmployeeHistoryViewModel>;
+                                if (history != null && history.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table id="historyTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
                                                 <tr>
-                                                    <td>
-                                                        <span class="badge badge-@(item.ActionType == "Transfer" ? "info" : "danger")">
-                                                            @(item.ActionType == "Transfer" ? "Transfer" : "Ishdan bo'shatish")
-                                                        </span>
-                                                    </td>
-                                                    <td>@item.FromOrgUnitName</td>
-                                                    <td>@item.FromPositionName</td>
-                                                    <td>@(item.ActionType == "Transfer" ? item.ToOrgUnitName : "-")</td>
-                                                    <td>@(item.ActionType == "Transfer" ? item.ToPositionName : "-")</td>
-                                                    <td>@(((DateTime)item.EffectiveDate).ToString("dd.MM.yyyy"))</td>
-                                                    <td>@(item.Reason ?? "-")</td>
+                                                    <th>Bo'lim</th>
+                                                    <th>Lavozim</th>
+                                                    <th>Ishga kirgan sana</th>
+                                                    <th>Ishdan chiqqan sana</th>
+                                                    <th>Sabab</th>
                                                 </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in history)
+                                                {
+                                                    <tr>
+                                                        <td>@(item.FromOrgUnitName ?? "-")</td>
+                                                        <td>@(item.FromPositionName ?? "-")</td>
+                                                        <td>@(item.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                        <td>@(item.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                        <td>@(item.Reason ?? "-")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">Xodim tarixi bo'yicha ma'lumotlar mavjud emas.</p>
+                                }
                             }
                             else
                             {
@@ -133,7 +129,18 @@
             if ($('#historyTable').length) {
                 $('#historyTable').DataTable({
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "zeroRecords": "Yozuvlar topilmadi",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "search": "Qidirish:",
+                        "paginate": {
+                            "first": "Birinchi",
+                            "last": "Oxirgi",
+                            "next": "Keyingi",
+                            "previous": "Oldingi"
+                        }
                     },
                     "pageLength": 10,
                     "order": [[5, "desc"]]

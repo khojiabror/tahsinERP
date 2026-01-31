@@ -150,6 +150,7 @@ namespace tahsinERP.Models
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_COSTS> V_TANNARX_ACTUAL_MATERIAL_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_TRANSPORT> V_TANNARX_ACTUAL_MATERIAL_TRANSPORT { get; set; }
         public virtual DbSet<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
+        public virtual DbSet<CUSTOMER_BASE> CUSTOMER_BASE { get; set; }
     
         public virtual int sp_Fin_AddTransaction(Nullable<System.DateTime> txnDate, Nullable<int> accountID, Nullable<int> categoryID, Nullable<byte> direction, Nullable<decimal> amount, Nullable<int> currencyID, Nullable<decimal> qty, Nullable<decimal> pricePerUnit, Nullable<byte> counterpartyType, Nullable<int> counterpartyID, string counterpartyName, string purpose, string sourceDocType, Nullable<int> sourceDocID, string contractNo, string comment, Nullable<int> createdByUserID, ObjectParameter newID)
         {

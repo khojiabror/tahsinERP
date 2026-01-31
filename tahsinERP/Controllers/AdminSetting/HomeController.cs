@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -32,34 +33,99 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var query = db.V_FIN_PL_PLAN_VS_FACT_MONTHLY.AsQueryable();
-                    
-                    if (fromDate.HasValue)
-                        query = query.Where(x => x.PeriodStartDate >= fromDate.Value);
-                    if (toDate.HasValue)
-                        query = query.Where(x => x.PeriodStartDate <= toDate.Value);
-
-                    var data = query.OrderBy(x => x.PeriodStartDate).ThenBy(x => x.SortOrder).ToList();
-                    
-                    // Ma'lumotlarni memory'ga yuklab, keyin formatlash
-                    var result = data.GroupBy(x => new { x.Year, x.Month, x.PeriodStartDate })
+                    // Get plans
+                    var plans = db.FIN_PL_PLANS
+                        .Where(p => (!fromDate.HasValue || p.Year * 100 + p.Month >= fromDate.Value.Year * 100 + fromDate.Value.Month) &&
+                                   (!toDate.HasValue || p.Year * 100 + p.Month <= toDate.Value.Year * 100 + toDate.Value.Month))
+                        .GroupBy(p => new { p.Year, p.Month })
                         .Select(g => new
                         {
                             Year = g.Key.Year,
                             Month = g.Key.Month,
-                            PeriodStartDate = g.Key.PeriodStartDate,
-                            plan = g.Sum(x => (double?)x.AmountPlan) ?? 0,
-                            fact = g.Sum(x => (double?)x.AmountFact) ?? 0,
-                            delta = g.Sum(x => (double?)x.Delta) ?? 0
+                            Plan = g.Sum(x => (double?)x.AmountPlan) ?? 0
                         })
-                        .ToList()
-                        .Select(g => new
+                        .ToList();
+
+                    // Get actuals from transactions - exclude liability transactions (only real transactions)
+                    var transactions = db.FIN_TRANSACTIONS
+                        .Include(t => t.FIN_CATEGORIES)
+                        .Where(t => (!fromDate.HasValue || t.TxnDate >= fromDate.Value) &&
+                                   (!toDate.HasValue || t.TxnDate <= toDate.Value) &&
+                                   // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real transactions
+                                   ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
+                        .ToList();
+
+                    // Get PL items with mapped categories
+                    var plItems = db.FIN_PL_ITEMS
+                        .Where(i => i.IsActive)
+                        .ToList();
+
+                    var factByPeriod = new Dictionary<string, double>();
+
+                    foreach (var plItem in plItems)
+                    {
+                        // Get categories mapped to this PL item
+                        var categoryIds = db.FIN_CATEGORIES
+                            .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == plItem.ID))
+                            .Select(c => c.ID)
+                            .ToList();
+
+                        if (categoryIds.Count > 0)
                         {
-                            period = g.PeriodStartDate?.ToString("yyyy-MM") ?? string.Format("{0}-{1:D2}", g.Year, g.Month),
-                            plan = g.plan,
-                            fact = g.fact,
-                            delta = g.delta
-                        }).ToList();
+                            var itemTransactions = transactions
+                                .Where(t => categoryIds.Contains(t.CategoryID))
+                                .ToList();
+
+                            var itemAmounts = itemTransactions
+                                .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
+                                .Select(g => new
+                                {
+                                    Year = g.Key.Year,
+                                    Month = g.Key.Month,
+                                    Amount = g.Sum(t => (double?)(plItem.Sign == 1 ? 
+                                        (t.Direction == 1 ? (double)t.Amount : -(double)t.Amount) : 
+                                        (t.Direction == 2 ? (double)t.Amount : -(double)t.Amount))) ?? 0
+                                })
+                                .ToList();
+
+                            foreach (var itemAmount in itemAmounts)
+                            {
+                                var periodKey = $"{itemAmount.Year}-{itemAmount.Month:D2}";
+                                if (!factByPeriod.ContainsKey(periodKey))
+                                {
+                                    factByPeriod[periodKey] = 0;
+                                }
+                                factByPeriod[periodKey] += itemAmount.Amount;
+                            }
+                        }
+                    }
+
+                    // Combine plans and facts
+                    var allPeriods = plans.Select(p => $"{p.Year}-{p.Month:D2}")
+                        .Union(factByPeriod.Keys)
+                        .Distinct()
+                        .OrderBy(p => p)
+                        .ToList();
+
+                    var result = allPeriods.Select(period => 
+                    {
+                        var parts = period.Split('-');
+                        var year = int.Parse(parts[0]);
+                        var month = int.Parse(parts[1]);
+                        var periodStartDate = new DateTime(year, month, 1);
+
+                        var plan = plans.FirstOrDefault(p => $"{p.Year}-{p.Month:D2}" == period)?.Plan ?? 0;
+                        var fact = factByPeriod.ContainsKey(period) ? factByPeriod[period] : 0;
+                        var delta = fact - plan;
+
+                        return new
+                        {
+                            period = period,
+                            plan = plan,
+                            fact = fact,
+                            delta = delta
+                        };
+                    }).ToList();
 
                     return Json(result, JsonRequestBehavior.AllowGet);
                 }
@@ -115,17 +181,64 @@ namespace tahsinERP.Controllers
                     var from = fromDate ?? DateTime.Now.AddMonths(-6);
                     var to = toDate ?? DateTime.Now;
                     
-                    var results = db.sp_Fin_CashSummary(from, to).ToList();
-                    
-                    var data = results.Select(x => new
+                    // Get cash and bank accounts only
+                    var accounts = db.FIN_ACCOUNTS
+                        .Where(a => (a.IsCash || a.IsBank) && a.IsActive)
+                        .ToList();
+
+                    var data = new List<object>();
+
+                    foreach (var account in accounts)
                     {
-                        accountName = x.AccountName,
-                        accountCode = x.AccountCode,
-                        openingBalance = (double)x.OpeningBalance,
-                        income = (double)x.Income,
-                        expense = (double)x.Expense,
-                        closingBalance = (double)(x.ClosingBalance ?? 0)
-                    }).ToList();
+                        // Opening balance (before from date) - exclude liability transactions
+                        var openingTransactions = db.FIN_TRANSACTIONS
+                            .Where(t => t.AccountID == account.ID && 
+                                       t.TxnDate < from &&
+                                       // Exclude liability transactions
+                                       ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
+                            .ToList();
+
+                        var openingBalance = openingTransactions
+                            .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+
+                        // Income (within date range) - exclude liability transactions
+                        var incomeTransactions = db.FIN_TRANSACTIONS
+                            .Where(t => t.AccountID == account.ID && 
+                                       t.Direction == 1 &&
+                                       t.TxnDate >= from && 
+                                       t.TxnDate <= to &&
+                                       // Exclude liability transactions
+                                       ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
+                            .ToList();
+
+                        var income = incomeTransactions
+                            .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                        // Expense (within date range) - exclude liability transactions
+                        var expenseTransactions = db.FIN_TRANSACTIONS
+                            .Where(t => t.AccountID == account.ID && 
+                                       t.Direction == 2 &&
+                                       t.TxnDate >= from && 
+                                       t.TxnDate <= to &&
+                                       // Exclude liability transactions
+                                       ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
+                            .ToList();
+
+                        var expense = expenseTransactions
+                            .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                        var closingBalance = openingBalance + income - expense;
+
+                        data.Add(new
+                        {
+                            accountName = account.Name ?? "",
+                            accountCode = account.Code ?? "",
+                            openingBalance = (double)openingBalance,
+                            income = (double)income,
+                            expense = (double)expense,
+                            closingBalance = (double)closingBalance
+                        });
+                    }
 
                     return Json(data, JsonRequestBehavior.AllowGet);
                 }

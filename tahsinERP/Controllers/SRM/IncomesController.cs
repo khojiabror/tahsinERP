@@ -117,6 +117,30 @@ namespace tahsinERP.Controllers.SRM
                     "ID", "Shortname"
                 );
 
+                var products = await db.PRODUCTS
+                    .Where(p => p.IsDeleted != true)
+                    .OrderBy(p => p.PNo)
+                    .ToListAsync();
+
+                var productSelectList = products.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.Products = new SelectList(productSelectList, "Value", "Text");
+                ViewBag.ProductsData = products.Select(p => new ViewModels.ProductLookupItem
+                {
+                    Value = p.ID.ToString(),
+                    PNo = p.PNo,
+                    Name = p.Name ?? ""
+                }).ToList();
+
+                ViewBag.Units = new SelectList(
+                    await db.UNITS.ToListAsync(),
+                    "ID", "ShortName"
+                );
+
                 return View();
             }
         }
@@ -447,6 +471,30 @@ namespace tahsinERP.Controllers.SRM
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
                     "ID", "Shortname", model.CurrencyID
+                );
+
+                var products = await db.PRODUCTS
+                    .Where(p => p.IsDeleted != true)
+                    .OrderBy(p => p.PNo)
+                    .ToListAsync();
+
+                var productSelectList = products.Select(p => new SelectListItem
+                {
+                    Value = p.ID.ToString(),
+                    Text = $"{p.PNo} - {p.Name ?? ""}"
+                }).ToList();
+
+                ViewBag.Products = new SelectList(productSelectList, "Value", "Text");
+                ViewBag.ProductsData = products.Select(p => new ViewModels.ProductLookupItem
+                {
+                    Value = p.ID.ToString(),
+                    PNo = p.PNo,
+                    Name = p.Name ?? ""
+                }).ToList();
+
+                ViewBag.Units = new SelectList(
+                    await db.UNITS.ToListAsync(),
+                    "ID", "ShortName"
                 );
 
                 return View(model);

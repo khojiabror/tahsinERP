@@ -40,6 +40,7 @@ namespace tahsinERP.Models
         public string ExternalDocKey { get; set; }
         public string IntegrationStatusCode { get; set; }
         public Nullable<System.DateTime> LastSyncDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual ADM_COMPANY_ORDERS ADM_COMPANY_ORDERS { get; set; }
         public virtual COM_OFFICIAL_LETTERS COM_OFFICIAL_LETTERS { get; set; }

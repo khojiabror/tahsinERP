@@ -17,7 +17,9 @@ namespace tahsinERP.Controllers.Settings
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = await db.CURRENCIES.ToListAsync();
+                var list = await db.CURRENCIES
+                    .Where(c => c.IsDeleted == false || c.IsDeleted == null)
+                    .ToListAsync();
                 return View(list);
             }
         }
@@ -64,7 +66,9 @@ namespace tahsinERP.Controllers.Settings
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var currency = await db.CURRENCIES.FindAsync(id);
+                var currency = await db.CURRENCIES
+                    .Where(c => c.ID == id && (c.IsDeleted == false || c.IsDeleted == null))
+                    .FirstOrDefaultAsync();
                 if (currency == null)
                     return HttpNotFound();
                 return View(currency);
@@ -92,7 +96,8 @@ namespace tahsinERP.Controllers.Settings
                 {
                     try
                     {
-                        db.CURRENCIES.Remove(currencyToDelete);
+                        currencyToDelete.IsDeleted = true;
+                        db.Entry(currencyToDelete).State = System.Data.Entity.EntityState.Modified;
                         await db.SaveChangesAsync();
                         LogHelper.LogToDatabase(User.Identity.Name, "Valyutalar", $"{currencyToDelete.Shortname} - o'lchov birligini o'chirdi");
 

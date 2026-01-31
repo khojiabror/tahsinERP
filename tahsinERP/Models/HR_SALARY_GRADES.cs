@@ -29,6 +29,7 @@ namespace tahsinERP.Models
         public string CurrencyCode { get; set; }
         public System.DateTime EffectiveFrom { get; set; }
         public Nullable<System.DateTime> EffectiveTo { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }

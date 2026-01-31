@@ -574,8 +574,9 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var standard = await db.STD_COMPANY_STANDARDS
+                    .Where(s => s.DocumentID == id && (s.IsDeleted == false || s.IsDeleted == null))
                     .Include(s => s.DOC_DOCUMENTS)
-                    .FirstOrDefaultAsync(s => s.DocumentID == id);
+                    .FirstOrDefaultAsync();
 
                 if (standard == null)
                 {
@@ -693,14 +694,16 @@ namespace tahsinERP.Controllers
 
                     var standardCode = standard.StandardCode;
 
-                    // DOC_DOCUMENTS ni o'chirish (CASCADE orqali STD_COMPANY_STANDARDS va DOC_FILES ham o'chadi)
+                    // DOC_DOCUMENTS ni soft delete qilish
                     if (standard.DOC_DOCUMENTS != null)
                     {
-                        db.DOC_DOCUMENTS.Remove(standard.DOC_DOCUMENTS);
+                        standard.DOC_DOCUMENTS.IsDeleted = true;
+                        db.Entry(standard.DOC_DOCUMENTS).State = System.Data.Entity.EntityState.Modified;
                     }
                     else
                     {
-                        db.STD_COMPANY_STANDARDS.Remove(standard);
+                        standard.IsDeleted = true;
+                        db.Entry(standard).State = System.Data.Entity.EntityState.Modified;
                     }
 
                     await db.SaveChangesAsync();

@@ -17,7 +17,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var categories = db.PRODUCT_CATEGORIES
-                    .Where(x => x.IsActive == true)
+                    .Where(x => x.IsActive == true && (x.IsDeleted == false || x.IsDeleted == null))
                     .OrderBy(x => x.SortOrder)
                     .ThenBy(x => x.Name)
                     .ToList();
@@ -36,8 +36,10 @@ namespace tahsinERP.Controllers
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var category = db.PRODUCT_CATEGORIES.Find(id);
-                if (category == null || !category.IsActive)
+                var category = db.PRODUCT_CATEGORIES
+                    .Where(c => c.ID == id && (c.IsDeleted == false || c.IsDeleted == null) && c.IsActive)
+                    .FirstOrDefault();
+                if (category == null)
                 {
                     return HttpNotFound();
                 }
@@ -245,6 +247,8 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
+                category.IsDeleted = true;
+                db.Entry(category).State = System.Data.Entity.EntityState.Modified;
 
                 try
                 {

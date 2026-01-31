@@ -168,4 +168,11 @@ namespace tahsinERP.ViewModels
             IncomeProducts = new List<IncomeProductViewModel>();
         }
     }
+
+    public class ProductLookupItem
+    {
+        public string Value { get; set; }
+        public string PNo { get; set; }
+        public string Name { get; set; }
+    }
 }

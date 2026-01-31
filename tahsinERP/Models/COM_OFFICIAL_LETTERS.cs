@@ -25,6 +25,7 @@ namespace tahsinERP.Models
         public string ChannelCode { get; set; }
         public string Topic { get; set; }
         public string ExternalContactPosition { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
     }

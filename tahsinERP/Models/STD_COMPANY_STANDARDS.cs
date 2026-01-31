@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         public string Area { get; set; }
         public string Notes { get; set; }
         public decimal VersionNo { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
     }

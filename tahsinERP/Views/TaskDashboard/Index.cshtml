@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.TaskDashboardViewModel
+@model tahsinERP.ViewModels.TaskDashboardViewModel
 @{
     ViewBag.Title = "Task Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -13,7 +13,6 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Task Dashboard</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -244,6 +243,20 @@
                             </div>
                             <div class="card-body">
                                 <div id="overdueTasksChart" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employee Rating Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Xodimlar reytingi</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="employeeRatingChart" style="min-height: 400px;"></div>
                             </div>
                         </div>
                     </div>
@@ -608,6 +621,125 @@ else
                 <text>
                 console.log('No overdue tasks statistics available');
                 document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-muted">Muddatidan o\'tgan vazifalar yo\'q</p>';
+                </text>
+            }
+
+            // Employee Rating Chart
+            @if (Model.EmployeeRatings != null && Model.EmployeeRatings.Any())
+            {
+                <text>
+                var employeeNames = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>'@emp.FullName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                var ratingScores = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>@emp.RatingScore,</text>
+                    }
+                ];
+                var onTimeCompleted = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>@emp.OnTimeCompletedCount,</text>
+                    }
+                ];
+                var overdueNotCompleted = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>@emp.OverdueNotCompletedCount,</text>
+                    }
+                ];
+
+                // Determine if we should show on-time completed or overdue
+                var hasOnTimeCompleted = @(Model.EmployeeRatings.Any(r => r.OnTimeCompletedCount > 0) ? "true" : "false");
+
+                var employeeRatingOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: @(Model.EmployeeRatings.Count * 50 + 100),
+                        toolbar: {
+                            show: true
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            borderRadius: 4,
+                            dataLabels: {
+                                position: 'top'
+                            }
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val, opts) {
+                            if (hasOnTimeCompleted) {
+                                return onTimeCompleted[opts.dataPointIndex] + ' ta muddatida bajarilgan';
+                            } else {
+                                return overdueNotCompleted[opts.dataPointIndex] + ' ta muddati o\'tgan';
+                            }
+                        },
+                        offsetX: 0,
+                        offsetY: -5,
+                        style: {
+                            fontSize: '12px',
+                            colors: ['#333']
+                        }
+                    },
+                    series: [{
+                        name: hasOnTimeCompleted ? 'Muddatida bajarilgan' : 'Muddati o\'tgan',
+                        data: hasOnTimeCompleted ? onTimeCompleted : overdueNotCompleted
+                    }],
+                    xaxis: {
+                        categories: employeeNames,
+                        title: {
+                            text: hasOnTimeCompleted ? 'Muddatida bajarilgan vazifalar soni' : 'Muddati o\'tgan vazifalar soni'
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Xodimlar'
+                        }
+                    },
+                    colors: hasOnTimeCompleted ? ['#28A745'] : ['#DC3545'],
+                    legend: {
+                        position: 'top'
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val, opts) {
+                                var index = opts.dataPointIndex;
+                                if (hasOnTimeCompleted) {
+                                    return 'Muddatida bajarilgan: ' + val + ' ta<br/>Muddati o\'tgan: ' + overdueNotCompleted[index] + ' ta';
+                                } else {
+                                    return 'Muddati o\'tgan: ' + val + ' ta';
+                                }
+                            }
+                        }
+                    }
+                };
+
+                try {
+                    var employeeRatingChart = new ApexCharts(document.querySelector("#employeeRatingChart"), employeeRatingOptions);
+                    employeeRatingChart.render();
+                    console.log('Employee Rating Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Employee Rating Chart:', e);
+                    document.querySelector("#employeeRatingChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No employee ratings available');
+                document.querySelector("#employeeRatingChart").innerHTML = '<p class="text-center text-muted">Xodimlar reytingi ma\'lumotlari yo\'q</p>';
                 </text>
             }
         });

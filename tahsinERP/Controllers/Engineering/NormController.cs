@@ -375,8 +375,9 @@ namespace tahsinERP.Controllers.Engineering
                             $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedNormLinesCount} ta NORMLINE o'chirildi.");
                     }
 
-                    // Delete NORMVERSION
-                    db.NORMVERSIONS.Remove(normVersion);
+                    // Soft delete NORMVERSION
+                    normVersion.IsDeleted = true;
+                    db.Entry(normVersion).State = System.Data.Entity.EntityState.Modified;
                     await db.SaveChangesAsync();
                     
                     // Note: BOM_HEADERS va BOM_LINES product ga bog'liq, norm versiyasiga emas

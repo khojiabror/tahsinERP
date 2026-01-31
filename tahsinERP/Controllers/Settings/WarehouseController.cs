@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -17,11 +17,17 @@ namespace tahsinERP.Controllers.Settings
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = await db.WAREHOUSES
-                    .Where(w => w.IsDeleted != true)
-                    .Include(w => w.USER)
-                    .Include(w => w.SHOP)
-                    .OrderBy(w => w.WHName)
-                    .ToListAsync();
+        .Where(w => w.IsDeleted != true)
+        .OrderBy(w => w.WHName)
+        .ToListAsync();
+
+                // Load related entities
+                foreach (var w in list)
+                {
+                    db.Entry(w).Reference(x => x.USER).Load();
+                    db.Entry(w).Reference(x => x.SHOP).Load(); // SHOP null bo‘lsa ham ok
+                }
+
                 return View(list);
             }
         }
@@ -34,11 +40,11 @@ namespace tahsinERP.Controllers.Settings
                 ViewBag.ShopList = new SelectList(
                     await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
                     "ID", "ShopName");
-                
+
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "MRP") && u.IsDeleted != true)
-                        .ToListAsync(), 
+                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .ToListAsync(),
                     "ID", "FullName");
 
                 return View();
@@ -79,7 +85,7 @@ namespace tahsinERP.Controllers.Settings
                 
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "MRP") && u.IsDeleted != true)
+                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
                         .ToListAsync(), 
                     "ID", "FullName", warehouse.MRP);
 
@@ -97,19 +103,23 @@ namespace tahsinERP.Controllers.Settings
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                // 1️⃣ Asl warehouse ni oling
                 var warehouse = await db.WAREHOUSES
-                    .Include(w => w.USER)
-                    .Include(w => w.SHOP)
-                    .FirstOrDefaultAsync(w => w.ID == id);
+                    .FirstOrDefaultAsync(w => w.ID == id && w.IsDeleted != true);
 
                 if (warehouse == null)
                 {
                     return HttpNotFound();
                 }
 
+                // 2️⃣ Lazy load related entities (null-safe)
+                await db.Entry(warehouse).Reference(w => w.USER).LoadAsync();   // USER nullable bo‘lsa ham ok
+                await db.Entry(warehouse).Reference(w => w.SHOP).LoadAsync();   // SHOP nullable bo‘lsa ham ok
+
                 return View(warehouse);
             }
         }
+
 
         // GET: Warehouse/Edit/5
         public async Task<ActionResult> Edit(int? id)
@@ -130,11 +140,11 @@ namespace tahsinERP.Controllers.Settings
                 ViewBag.ShopList = new SelectList(
                     await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
                     "ID", "ShopName", warehouse.ShopID);
-                
+
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "MRP") && u.IsDeleted != true)
-                        .ToListAsync(), 
+                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .ToListAsync(),
                     "ID", "FullName", warehouse.MRP);
 
                 return View(warehouse);
@@ -172,11 +182,11 @@ namespace tahsinERP.Controllers.Settings
                 ViewBag.ShopList = new SelectList(
                     await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
                     "ID", "ShopName", warehouse.ShopID);
-                
+
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "MRP") && u.IsDeleted != true)
-                        .ToListAsync(), 
+                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .ToListAsync(),
                     "ID", "FullName", warehouse.MRP);
 
                 return View(warehouse);

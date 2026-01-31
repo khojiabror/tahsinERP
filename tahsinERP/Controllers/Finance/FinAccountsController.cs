@@ -111,9 +111,10 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var account = db.FIN_ACCOUNTS
+                    .Where(a => a.ID == id && (a.IsDeleted == false || a.IsDeleted == null))
                     .Include(a => a.CURRENCy)
                     .Include(a => a.USER)
-                    .FirstOrDefault(a => a.ID == id);
+                    .FirstOrDefault();
 
                 if (account == null)
                 {

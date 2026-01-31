@@ -43,6 +43,7 @@ namespace tahsinERP.Models
         public string Longname { get; set; }
         public string Shortname { get; set; }
         public string Description { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }

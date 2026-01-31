@@ -25,6 +25,7 @@ namespace tahsinERP.Models
         public bool IsMain { get; set; }
         public Nullable<int> CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
     }

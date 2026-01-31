@@ -1,4 +1,5 @@
 @model tahsinERP.Controllers.PInvoiceEditViewModel
+@using System.Collections.Generic
 @{
     ViewBag.Title = "Invoysni tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -55,20 +56,22 @@
                                                     @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="OrderID">Buyurtma</label>
-                                                    @Html.DropDownListFor(model => model.OrderID, ViewBag.POrders as SelectList, "---Tanlang---", new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="CompanyID">Korxona</label>
-                                                    @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
+                                                    <label for="ContractID">Shartnoma</label>
+                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
+                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                 </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="OrderID">Buyurtma</label>
+                                                    @Html.DropDownListFor(model => model.OrderID, ViewBag.POrders as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "orderSelect" })
+                                                    @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
+                                                    <small class="text-muted">Ixtiyoriy</small>
+                                                </div>
+                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? Model.CompanyID })
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="CurrencyID">Valyuta</label>
                                                     @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
@@ -82,7 +85,7 @@
 
                                             <br />
                                             <h5>Invoys mahsulotlari</h5>
-                                            
+
                                             <div class="table-responsive">
                                                 <table id="invoiceProductsTable" class="table table-bordered">
                                                     <thead>
@@ -103,14 +106,14 @@
                                                                 var product = Model.InvoiceProducts[i];
                                                                 <tr data-row-index="@i">
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control product-select", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
                                                                         @Html.HiddenFor(m => m.InvoiceProducts[i].ID)
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.InvoiceProducts[i].Quantity, new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.InvoiceProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
@@ -165,87 +168,194 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            $('.select2').select2();
+        (function () {
+            function initInvoiceScripts() {
+                if (typeof jQuery === 'undefined') {
+                    setTimeout(initInvoiceScripts, 100);
+                    return;
+                }
 
-            var productRowIndex = @(Model.InvoiceProducts?.Count ?? 0);
-            var purchasableProducts = @Html.Raw(Json.Encode((ViewBag.PurchasableProducts as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
-            var units = @Html.Raw(Json.Encode((ViewBag.Units as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+                var $ = jQuery;
 
-            // Calculate totals for existing rows
-            $('.quantity-input, .price-input').each(function () {
-                var $row = $(this).closest('tr');
-                var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
-                var price = parseFloat($row.find('.price-input').val()) || 0;
-                var total = quantity * price;
-                $row.find('.total-price').val(total.toFixed(2));
-            });
-            updateTotal();
+                $(document).ready(function () {
 
-            $('#addRowBtn').click(function () {
-                addProductRow(null, 0, null, 0);
-            });
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('.select2').select2();
+                    }
 
-            function addProductRow(productId, quantity, unitId, price) {
-                var row = '<tr data-row-index="' + productRowIndex + '">' +
-                    '<td>' +
-                        '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
-                        '<option value="">---Tanlang---</option>';
-                
-                purchasableProducts.forEach(function (product) {
-                    var selected = product.Value == productId ? 'selected' : '';
-                    row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
-                });
-                
-                row += '</select>' +
-                    '<input type="hidden" name="InvoiceProducts[' + productRowIndex + '].ID" value="" />' +
-                    '</td>' +
-                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
-                    '<td>' +
-                        '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
-                        '<option value="">---Tanlang---</option>';
-                
-                units.forEach(function (unit) {
-                    var selected = unit.Value == unitId ? 'selected' : '';
-                    row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
-                });
-                
-                row += '</select></td>' +
-                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
-                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
-                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
-                    '</tr>';
+                    var productRowIndex = @(Model.InvoiceProducts?.Count ?? 0);
 
-                $('#invoiceProductsTable tbody').append(row);
-                
-                $('select.product-select').last().select2();
-                $('select.unit-select').last().select2();
+            @{
+                var purchasableProductsList = new List<object>();
+                if (ViewBag.PurchasableProducts != null)
+                {
+                    var purchasableProductsSelectList = ViewBag.PurchasableProducts as System.Web.Mvc.SelectList;
+                    if (purchasableProductsSelectList != null)
+                    {
+                        foreach (System.Web.Mvc.SelectListItem item in purchasableProductsSelectList.Items)
+                        {
+                            purchasableProductsList.Add(new { Value = item.Value, Text = item.Text });
+                        }
+                    }
+                }
 
-                productRowIndex++;
+                var unitsList = new List<object>();
+                if (ViewBag.Units != null)
+                {
+                    var unitsSelectList = ViewBag.Units as System.Web.Mvc.SelectList;
+                    if (unitsSelectList != null)
+                    {
+                        foreach (var unit in unitsSelectList.Items)
+                        {
+                            var unitEntity = unit as tahsinERP.Models.UNIT;
+                            if (unitEntity != null)
+                            {
+                                unitsList.Add(new { Value = unitEntity.ID.ToString(), Text = unitEntity.ShortName ?? "" });
+                            }
+                        }
+                    }
+                }
             }
 
-            $(document).on('click', '.remove-row', function () {
-                $(this).closest('tr').remove();
-                updateTotal();
-            });
+                    var purchasableProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(purchasableProductsList));
+                    var units = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(unitsList));
 
-            $(document).on('input', '.quantity-input, .price-input', function () {
-                var $row = $(this).closest('tr');
-                var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
-                var price = parseFloat($row.find('.price-input').val()) || 0;
-                var total = quantity * price;
-                $row.find('.total-price').val(total.toFixed(2));
-                updateTotal();
-            });
+                    // Load contracts when supplier changes
+                    $('#supplierSelect').on('change', function () {
+                        var supplierId = $(this).val();
+                        var $contractSelect = $('#contractSelect');
 
-            function updateTotal() {
-                var total = 0;
-                $('.total-price').each(function () {
-                    total += parseFloat($(this).val()) || 0;
+                        if (supplierId) {
+                            $contractSelect.prop('disabled', true);
+
+                            $.ajax({
+                                url: '@Url.Action("GetContractsBySupplier", "PInvoices")',
+                                type: 'POST',
+                                data: { supplierId: supplierId },
+                                success: function (response) {
+                                    if (response && response.success) {
+                                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
+
+                                        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                                            response.data.forEach(function (contract) {
+                                                $contractSelect.append($('<option>')
+                                                    .attr('value', contract.ID)
+                                                    .text(contract.ContractNo));
+                                            });
+                                        }
+
+                                        $contractSelect.prop('disabled', false);
+
+                                        // Reinitialize Select2
+                                        if (typeof $.fn.select2 !== 'undefined') {
+                                            $contractSelect.select2();
+                                        }
+                                    } else {
+                                        $contractSelect.prop('disabled', false);
+                                        if (typeof $.fn.select2 !== 'undefined') {
+                                            $contractSelect.select2();
+                                        }
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Contract loading error:', status, error, xhr);
+                                    $contractSelect.prop('disabled', false);
+                                    if (typeof $.fn.select2 !== 'undefined') {
+                                        $contractSelect.select2();
+                                    }
+                                }
+                            });
+                        } else {
+                            $contractSelect.empty().append('<option value="">---Tanlang---</option>');
+                            if (typeof $.fn.select2 !== 'undefined') {
+                                $contractSelect.select2();
+                            }
+                        }
+                    });
+
+                    // Calculate totals for existing rows
+                    $('.quantity-input, .price-input').each(function () {
+                        var $row = $(this).closest('tr');
+                        var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                        var price = parseFloat($row.find('.price-input').val()) || 0;
+                        var total = quantity * price;
+                        $row.find('.total-price').val(total.toFixed(2));
+                    });
+                    updateTotal();
+
+                    $('#addRowBtn').click(function () {
+                        addProductRow(null, 0, null, 0);
+                    });
+
+                    function addProductRow(productId, quantity, unitId, price) {
+                        var row = '<tr data-row-index="' + productRowIndex + '">' +
+                            '<td>' +
+                            '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control select2" required>' +
+                            '<option value="">---Tanlang---</option>';
+
+                        purchasableProducts.forEach(function (product) {
+                            var selected = product.Value == productId ? 'selected' : '';
+                            row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
+                        });
+
+                        row += '</select>' +
+                            '<input type="hidden" name="InvoiceProducts[' + productRowIndex + '].ID" value="" />' +
+                            '</td>' +
+                            '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
+                            '<td>' +
+                            '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control select2" required>' +
+                            '<option value="">---Tanlang---</option>';
+
+                        units.forEach(function (unit) {
+                            var selected = unit.Value == unitId ? 'selected' : '';
+                            row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                        });
+
+                        row += '</select></td>' +
+                            '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
+                            '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
+                            '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                            '</tr>';
+
+                        $('#invoiceProductsTable tbody').append(row);
+
+                        $('select.product-select').last().select2();
+                        $('select.unit-select').last().select2();
+
+                        productRowIndex++;
+                    }
+
+                    $(document).on('click', '.remove-row', function () {
+                        $(this).closest('tr').remove();
+                        updateTotal();
+                    });
+
+                    $(document).on('input', '.quantity-input, .price-input', function () {
+                        var $row = $(this).closest('tr');
+                        var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                        var price = parseFloat($row.find('.price-input').val()) || 0;
+                        var total = quantity * price;
+                        $row.find('.total-price').val(total.toFixed(2));
+                        updateTotal();
+                    });
+
+                    function updateTotal() {
+                        var total = 0;
+                        $('.total-price').each(function () {
+                            total += parseFloat($(this).val()) || 0;
+                        });
+                        $('#totalAmount').text(total.toFixed(2));
+                    }
                 });
-                $('#totalAmount').text(total.toFixed(2));
             }
-        });
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initInvoiceScripts);
+            } else {
+                initInvoiceScripts();
+            }
+            }) ();
+
     </script>
 }
 else

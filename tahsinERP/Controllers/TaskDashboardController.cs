@@ -137,6 +137,86 @@ namespace tahsinERP.Controllers
 
                 viewModel.OverdueTasksStatistics = overdueStats;
 
+                // Employee Rating Statistics (Xodimlar rating)
+                var allUsersWithTasks = allTasks
+                    .Where(t => t.AssigneeUserID.HasValue)
+                    .Select(t => t.AssigneeUserID.Value)
+                    .Distinct()
+                    .ToList();
+
+                var employeeRatings = new List<EmployeeRatingViewModel>();
+                var today = DateTime.Now.Date;
+
+                foreach (var assigneeId in allUsersWithTasks)
+                {
+                    var userTasks = allTasks.Where(t => t.AssigneeUserID == assigneeId).ToList();
+                    
+                    // Muddatida bajarilgan tasklar (UpdatedDT <= DueDate va status = 'bajarildi')
+                    var onTimeCompleted = userTasks.Count(t =>
+                        t.DueDate.HasValue &&
+                        t.UpdatedDT.HasValue &&
+                        t.UpdatedDT.Value.Date <= t.DueDate.Value.Date &&
+                        (t.APP_TASK_STATUS_REF?.Code == "DONE" || 
+                         (t.APP_TASK_STATUS_REF?.Name != null && t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi"))));
+
+                    // Muddati o'tgan va bajarilmagan tasklar
+                    var overdueNotCompleted = userTasks.Count(t =>
+                        t.DueDate.HasValue &&
+                        t.DueDate.Value.Date < today &&
+                        (t.APP_TASK_STATUS_REF == null || 
+                         (t.APP_TASK_STATUS_REF.Code != "DONE" && 
+                          (t.APP_TASK_STATUS_REF.Name == null || !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi")))));
+
+                    // Rating score: agar muddatida bajarilgan tasklar bo'lsa, ular soni (yaxshi)
+                    // Agar yo'q bo'lsa, muddati o'tgan tasklar soni (yomon, lekin teskari tartibda)
+                    decimal ratingScore;
+                    if (onTimeCompleted > 0)
+                    {
+                        // Muddatida bajarilgan tasklar soni - eng ko'p = eng yaxshi
+                        ratingScore = onTimeCompleted;
+                    }
+                    else
+                    {
+                        // Muddati o'tgan tasklar soni - eng kam = eng yaxshi (teskari)
+                        // Katta manfiy raqam qo'shamiz, shunda eng kam overdue = eng katta rating
+                        ratingScore = -overdueNotCompleted;
+                    }
+
+                    var user = await db.USERS.FirstOrDefaultAsync(u => u.ID == assigneeId);
+                    if (user != null)
+                    {
+                        employeeRatings.Add(new EmployeeRatingViewModel
+                        {
+                            UserID = assigneeId,
+                            FullName = user.FullName ?? user.Uname ?? "Noma'lum",
+                            OnTimeCompletedCount = onTimeCompleted,
+                            OverdueNotCompletedCount = overdueNotCompleted,
+                            RatingScore = ratingScore
+                        });
+                    }
+                }
+
+                // Sort: agar muddatida bajarilgan tasklar bo'lsa, descending (eng ko'p = eng yaxshi)
+                // Agar yo'q bo'lsa, ratingScore bo'yicha descending (eng katta = eng yaxshi, ya'ni eng kam overdue)
+                var hasOnTimeCompleted = employeeRatings.Any(r => r.OnTimeCompletedCount > 0);
+                if (hasOnTimeCompleted)
+                {
+                    // Muddatida bajarilgan tasklar bo'yicha descending
+                    employeeRatings = employeeRatings
+                        .OrderByDescending(r => r.OnTimeCompletedCount)
+                        .ThenBy(r => r.OverdueNotCompletedCount) // Keyin overdue bo'yicha ascending
+                        .ToList();
+                }
+                else
+                {
+                    // Muddati o'tgan tasklar bo'yicha ascending (eng kam = eng yaxshi)
+                    employeeRatings = employeeRatings
+                        .OrderBy(r => r.OverdueNotCompletedCount)
+                        .ToList();
+                }
+
+                viewModel.EmployeeRatings = employeeRatings;
+
                 // ViewBag for user dropdown
                 if (isAdminOrDeveloper)
                 {

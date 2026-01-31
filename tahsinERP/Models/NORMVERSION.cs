@@ -25,6 +25,7 @@ namespace tahsinERP.Models
         public Nullable<System.DateTime> EffectiveFrom { get; set; }
         public Nullable<System.DateTime> EffectiveTo { get; set; }
         public string Comment { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NORMLINE> NORMLINES { get; set; }

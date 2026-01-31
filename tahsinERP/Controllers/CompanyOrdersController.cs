@@ -36,7 +36,7 @@ namespace tahsinERP.Controllers
                 var query = from doc in db.DOC_DOCUMENTS
                             join order in db.ADM_COMPANY_ORDERS on doc.ID equals order.DocumentID
                             join docType in db.DOC_DOCUMENT_TYPES on doc.DocTypeID equals docType.ID
-                            where docType.Code == "COMP_ORDER"
+                            where docType.Code == "COMP_ORDER" && (doc.IsDeleted == false || doc.IsDeleted == null) && (order.IsDeleted == false || order.IsDeleted == null)
                             select new { doc, order, docType };
 
                 if (year.HasValue)
@@ -207,10 +207,11 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var doc = await db.DOC_DOCUMENTS
+                    .Where(d => d.ID == id && (d.IsDeleted == false || d.IsDeleted == null))
                     .Include(d => d.ADM_COMPANY_ORDERS)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                    .FirstOrDefaultAsync();
 
-                if (doc == null || doc.ADM_COMPANY_ORDERS == null)
+                if (doc == null || doc.ADM_COMPANY_ORDERS == null || (doc.ADM_COMPANY_ORDERS.IsDeleted == true))
                 {
                     return HttpNotFound();
                 }
@@ -350,24 +351,27 @@ namespace tahsinERP.Controllers
 
                 if (doc != null)
                 {
-                    // First, delete all related DOC_FILES
+                    // First, soft delete all related DOC_FILES
                     if (doc.DOC_FILES != null && doc.DOC_FILES.Any())
                     {
                         var files = doc.DOC_FILES.ToList();
                         foreach (var file in files)
                         {
-                            db.DOC_FILES.Remove(file);
+                            file.IsDeleted = true;
+                            db.Entry(file).State = System.Data.Entity.EntityState.Modified;
                         }
                     }
 
-                    // Then delete the company order record
+                    // Then soft delete the company order record
                     if (doc.ADM_COMPANY_ORDERS != null)
                     {
-                        db.ADM_COMPANY_ORDERS.Remove(doc.ADM_COMPANY_ORDERS);
+                        doc.ADM_COMPANY_ORDERS.IsDeleted = true;
+                        db.Entry(doc.ADM_COMPANY_ORDERS).State = System.Data.Entity.EntityState.Modified;
                     }
 
-                    // Finally, delete the document record
-                    db.DOC_DOCUMENTS.Remove(doc);
+                    // Finally, soft delete the document record
+                    doc.IsDeleted = true;
+                    db.Entry(doc).State = System.Data.Entity.EntityState.Modified;
                     await db.SaveChangesAsync();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Delete", $"Order {doc.Code} deleted");

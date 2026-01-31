@@ -12,6 +12,7 @@ namespace tahsinERP.ViewModels.HR
         public string FromOrgUnitName { get; set; }
         public string FromPositionName { get; set; }
         public DateTime? EffectiveDate { get; set; }
+        public DateTime? EffectiveDateTo { get; set; }
         public string Reason { get; set; }
         public DateTime? EmploymentDate { get; set; }
         public int TenureYears { get; set; }

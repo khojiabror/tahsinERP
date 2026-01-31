@@ -84,13 +84,14 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION
+                    .Where(q => q.ID == id && (q.IsDeleted == false || q.IsDeleted == null))
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
                     .Include(q => q.S_ORDERS)
                     .Include(q => q.SORDER_DELIVERY_SCHEDULE)
                     .Include(q => q.PRODUCTPLANS_DAILY)
                     .Include(q => q.PRODUCT_PRODUCTION)
-                    .FirstOrDefault(q => q.ID == id);
+                    .FirstOrDefault();
 
                 if (inspection == null)
                 {

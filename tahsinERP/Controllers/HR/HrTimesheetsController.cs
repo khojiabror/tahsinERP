@@ -34,7 +34,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             year = year ?? DateTime.Now.Year;
-            month = month ?? DateTime.Now.Month;
+            // Don't set default month - allow null for "all months" filter
 
             // Get only hourly employees (non-piece-rate)
             var hourlyPositionIds = await db.HR_STAFFING_PLAN
@@ -49,8 +49,8 @@ namespace tahsinERP.Controllers.HR
                 .ToListAsync();
 
             IQueryable<HR_TIMESHEET_HEADERS> query = db.HR_TIMESHEET_HEADERS
-                .Include(t => t.HR_ORG_UNITS)
-                .Where(t => t.HR_TIMESHEET_LINES.Any(l => hourlyEmployeeIds.Contains(l.EmployeeID)));
+                .Where(t => (t.IsDeleted == false || t.IsDeleted == null) && t.HR_TIMESHEET_LINES.Any(l => hourlyEmployeeIds.Contains(l.EmployeeID)))
+                .Include(t => t.HR_ORG_UNITS);
 
             if (year.HasValue)
             {
@@ -178,6 +178,8 @@ namespace tahsinERP.Controllers.HR
 
             var header = await db.HR_TIMESHEET_HEADERS
                 .Include(t => t.HR_ORG_UNITS)
+                .Include(t => t.HR_TIMESHEET_LINES)
+                .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES))
                 .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
                 .FirstOrDefaultAsync(t => t.ID == id);
 
@@ -207,7 +209,16 @@ namespace tahsinERP.Controllers.HR
                 .Where(sp => sp.IsActive && sp.OrgUnitID == header.OrgUnitID)
                 .ToListAsync();
 
-            viewModel.Lines = header.HR_TIMESHEET_LINES.Select(l =>
+            // Filter out piece-rate employees
+            var hourlyPositionIds = await db.HR_STAFFING_PLAN
+                .Where(sp => sp.IsActive && sp.IsPieceRate == false)
+                .Select(sp => sp.PositionID)
+                .Distinct()
+                .ToListAsync();
+
+            viewModel.Lines = header.HR_TIMESHEET_LINES
+                .Where(l => l.HR_EMPLOYEES.PositionID != null && hourlyPositionIds.Contains(l.HR_EMPLOYEES.PositionID.Value))
+                .Select(l =>
             {
                 var employee = l.HR_EMPLOYEES;
                 var staffingPlan = staffingPlans.FirstOrDefault(sp => sp.PositionID == employee.PositionID);
@@ -556,6 +567,8 @@ namespace tahsinERP.Controllers.HR
 
             var header = await db.HR_TIMESHEET_HEADERS
                 .Include(t => t.HR_ORG_UNITS)
+                .Include(t => t.HR_TIMESHEET_LINES)
+                .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES))
                 .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
                 .FirstOrDefaultAsync(t => t.ID == id);
 
@@ -576,7 +589,16 @@ namespace tahsinERP.Controllers.HR
 
             var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
 
-            viewModel.Lines = header.HR_TIMESHEET_LINES.Select(l => new HrTimesheetLineViewModel
+            // Filter out piece-rate employees
+            var hourlyPositionIds = await db.HR_STAFFING_PLAN
+                .Where(sp => sp.IsActive && sp.IsPieceRate == false)
+                .Select(sp => sp.PositionID)
+                .Distinct()
+                .ToListAsync();
+
+            viewModel.Lines = header.HR_TIMESHEET_LINES
+                .Where(l => l.HR_EMPLOYEES.PositionID == null || hourlyPositionIds.Contains(l.HR_EMPLOYEES.PositionID ?? 0))
+                .Select(l => new HrTimesheetLineViewModel
             {
                 ID = l.ID,
                 EmployeeTabNo = l.HR_EMPLOYEES.TabNo,
@@ -620,7 +642,7 @@ namespace tahsinERP.Controllers.HR
                 DaysInMonth = daysInMonth
             }).OrderBy(l => l.EmployeeTabNo).ToList();
 
-            return View("~/Views/HR/HrReports/TimesheetReport.cshtml", viewModel);
+            return View("~/Views/HrReports/TimesheetReport.cshtml", viewModel);
         }
 
         // GET: HR/Timesheets/Export/5
@@ -719,6 +741,552 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
+        // POST: HR/Timesheets/UploadExcel (first step - get sheet list)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UploadExcel(HttpPostedFileBase file, int year, int? month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (file == null || file.ContentLength == 0)
+            {
+                TempData["Error"] = "Fayl tanlanmagan";
+                ViewBag.OrgUnitID = new SelectList(
+                    await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                    "ID", "Name", orgUnitId);
+                return View("Import");
+            }
+
+            try
+            {
+                // Store file in session first (before reading with ExcelPackage)
+                byte[] fileBytes;
+                using (var ms = new System.IO.MemoryStream())
+                {
+                    file.InputStream.Position = 0;
+                    file.InputStream.CopyTo(ms);
+                    fileBytes = ms.ToArray();
+                }
+                Session[$"ExcelFile_{User.Identity.Name}"] = fileBytes;
+                Session[$"ExcelFileName_{User.Identity.Name}"] = file.FileName;
+
+                // Now read sheet names using the byte array
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                var sheetNames = new List<string>();
+                using (var ms = new System.IO.MemoryStream(fileBytes))
+                using (var package = new ExcelPackage(ms))
+                {
+                    foreach (var worksheet in package.Workbook.Worksheets)
+                    {
+                        sheetNames.Add(worksheet.Name);
+                    }
+                }
+
+                ViewBag.Year = year;
+                ViewBag.OrgUnitId = orgUnitId;
+                ViewBag.SheetNames = new SelectList(sheetNames);
+                ViewBag.OrgUnitID = new SelectList(
+                    await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                    "ID", "Name", orgUnitId);
+
+                return View("ImportSheets");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Faylni o'qishda xatolik: {ex.Message}";
+                
+                // Try to re-read sheet names from session if file exists
+                byte[] currentFileBytes = Session[$"ExcelFile_{User.Identity.Name}"] as byte[];
+                if (currentFileBytes != null)
+                {
+                    try
+                    {
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                        using (var ms = new System.IO.MemoryStream(currentFileBytes))
+                        using (var package = new ExcelPackage(ms))
+                        {
+                            ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
+                        }
+                    }
+                    catch
+                    {
+                        ViewBag.SheetNames = null;
+                    }
+                }
+                else
+                {
+                    ViewBag.SheetNames = null;
+                }
+                
+                ViewBag.Year = year;
+                ViewBag.OrgUnitId = orgUnitId;
+                ViewBag.OrgUnitID = new SelectList(
+                    await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                    "ID", "Name", orgUnitId);
+                return View("ImportSheets");
+            }
+        }
+
+        // POST: HR/Timesheets/ImportFromSheet (second step - import selected sheet)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ImportFromSheet(string sheetName, int year, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            byte[] fileBytes = Session[$"ExcelFile_{User.Identity.Name}"] as byte[];
+            if (fileBytes == null)
+            {
+                TempData["Error"] = "Fayl topilmadi. Qayta yuklang.";
+                ViewBag.OrgUnitID = new SelectList(
+                    await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                    "ID", "Name", orgUnitId);
+                return View("Import");
+            }
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(new System.IO.MemoryStream(fileBytes)))
+                {
+                    var worksheet = package.Workbook.Worksheets[sheetName];
+                    if (worksheet == null)
+                    {
+                        TempData["Error"] = $"List '{sheetName}' topilmadi.";
+                        ViewBag.Year = year;
+                        ViewBag.OrgUnitId = orgUnitId;
+                        ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
+                        ViewBag.OrgUnitID = new SelectList(
+                            await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                            "ID", "Name", orgUnitId);
+                        return View("ImportSheets");
+                    }
+
+                    // Parse month and year from sheet name (e.g., "Dekabr-2025" or "Декабрь-2025")
+                    int month = ParseMonthFromSheetName(sheetName);
+                    int sheetYear = ParseYearFromSheetName(sheetName);
+                    if (month == 0 || sheetYear == 0)
+                    {
+                        // Use provided year and try to parse month, or use current month
+                        month = ParseMonthFromSheetName(sheetName);
+                        sheetYear = year;
+                    }
+
+                    if (month == 0)
+                    {
+                        TempData["Error"] = $"List nomidan oy aniqlanmadi. List nomi 'Oy-Yil' formatida bo'lishi kerak (masalan: 'Dekabr-2025').";
+                        ViewBag.Year = year;
+                        ViewBag.OrgUnitId = orgUnitId;
+                        ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
+                        ViewBag.OrgUnitID = new SelectList(
+                            await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                            "ID", "Name", orgUnitId);
+                        return View("ImportSheets");
+                    }
+
+                    var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                    // Find or create timesheet header
+                    var header = await db.HR_TIMESHEET_HEADERS
+                        .FirstOrDefaultAsync(t => t.Year == sheetYear && t.Month == month &&
+                            (orgUnitId == null ? t.OrgUnitID == null : t.OrgUnitID == orgUnitId.Value));
+
+                    if (header == null)
+                    {
+                        header = new HR_TIMESHEET_HEADERS
+                        {
+                            Year = sheetYear,
+                            Month = month,
+                            OrgUnitID = orgUnitId,
+                            Status = "Draft",
+                            CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                            CreatedDT = DateTime.Now
+                        };
+                        db.HR_TIMESHEET_HEADERS.Add(header);
+                        await db.SaveChangesAsync();
+                        await CreateTimesheetLines(header.ID, orgUnitId);
+                    }
+
+                    // Get hourly position IDs for validation
+                    var hourlyPositionIds = await db.HR_STAFFING_PLAN
+                        .Where(sp => sp.IsActive && sp.IsPieceRate == false)
+                        .Select(sp => sp.PositionID)
+                        .Distinct()
+                        .ToListAsync();
+
+                    // Get all existing lines for this header to prevent duplicates
+                    var existingLineEmployeeIds = await db.HR_TIMESHEET_LINES
+                        .Where(l => l.TimesheetID == header.ID)
+                        .Select(l => l.EmployeeID)
+                        .ToListAsync();
+
+                    var errorMessages = new List<string>();
+
+                    // Parse data starting from row 3 (A3 range - data starts here)
+                    // Track processed employees to avoid duplicates
+                    var processedEmployees = new HashSet<int>();
+                    
+                    // Get actual row count from worksheet
+                    var actualRowCount = worksheet.Dimension?.End.Row ?? 0;
+                    
+                    // Start from row 3 (A3 range where data begins)
+                    for (int row = 3; row <= actualRowCount; row++)
+                    {
+                        try
+                        {
+                            // TabNo is in column 2 (B column)
+                            var tabNoCell = worksheet.Cells[row, 2];
+                            var tabNoRaw = tabNoCell?.Value;
+                            string tabNo = null;
+                            
+                            // Handle different data types (string, double, int)
+                            if (tabNoRaw != null)
+                            {
+                                if (tabNoRaw is string str)
+                                {
+                                    tabNo = str.Trim();
+                                }
+                                else if (tabNoRaw is double d)
+                                {
+                                    // Convert double to string with leading zeros if needed (e.g., 1111 -> "1111", 11 -> "0011")
+                                    tabNo = ((int)d).ToString();
+                                }
+                                else if (tabNoRaw is int i)
+                                {
+                                    tabNo = i.ToString();
+                                }
+                                else
+                                {
+                                    tabNo = tabNoRaw.ToString()?.Trim();
+                                }
+                            }
+                            
+                            if (string.IsNullOrWhiteSpace(tabNo))
+                            {
+                                // Skip empty rows
+                                continue;
+                            }
+
+                            // IMPORTANT: Remove ALL IsActive checks - import ALL employees regardless of status
+                            // They might have worked during that period even if inactive now
+                            // Normalize TabNo in memory (PadLeft/TrimStart cannot be translated to SQL)
+                            string normalizedTabNo = tabNo.PadLeft(4, '0');
+                            string trimmedTabNo = tabNo.TrimStart('0');
+                            if (string.IsNullOrWhiteSpace(trimmedTabNo))
+                                trimmedTabNo = "0";
+                            
+                            // Try exact match first
+                            var employee = await db.HR_EMPLOYEES
+                                .Include(e => e.HR_POSITIONS)
+                                .FirstOrDefaultAsync(e => e.TabNo == tabNo || e.TabNo == normalizedTabNo || e.TabNo == trimmedTabNo);
+                            
+                            // If still not found, try loading candidates and matching in memory
+                            if (employee == null)
+                            {
+                                var candidates = await db.HR_EMPLOYEES
+                                    .Include(e => e.HR_POSITIONS)
+                                    .Where(e => e.TabNo.Length == tabNo.Length || 
+                                                e.TabNo.Length == normalizedTabNo.Length ||
+                                                e.TabNo.Length == trimmedTabNo.Length)
+                                    .ToListAsync();
+                                
+                                employee = candidates.FirstOrDefault(e => 
+                                    e.TabNo == tabNo || 
+                                    e.TabNo == normalizedTabNo || 
+                                    e.TabNo == trimmedTabNo ||
+                                    e.TabNo.PadLeft(4, '0') == normalizedTabNo ||
+                                    e.TabNo.TrimStart('0') == trimmedTabNo ||
+                                    (e.TabNo.TrimStart('0') == "0" && tabNo.TrimStart('0') == "0"));
+                            }
+
+                            // If employee not found, log and skip this row
+                            if (employee == null)
+                            {
+                                // Log missing employee for debugging
+                                errorMessages.Add($"Tab.№ {tabNo} - bu tabel raqamli xodim topilmadi (Qator: {row}).");
+                                continue; // Skip and continue to next employee
+                            }
+
+                            // Skip if this employee was already processed in this import
+                            if (processedEmployees.Contains(employee.ID))
+                            {
+                                errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodim allaqachon qayta ishlangan (Qator: {row}).");
+                                continue;
+                            }
+
+                            // Check if employee is piece-rate
+                            if (employee.PositionID.HasValue && !hourlyPositionIds.Contains(employee.PositionID.Value))
+                            {
+                                errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodimning to'lov turi ishbay. Unga soatbay tabel kirita olmaymiz (Qator: {row}).");
+                                continue;
+                            }
+
+                            // CRITICAL: Check if timesheet line already exists for this employee in this month/year
+                            // This prevents duplicate inserts
+                            
+                            // Check if employee already has a line in database (from CreateTimesheetLines or previous import)
+                            if (existingLineEmployeeIds.Contains(employee.ID))
+                            {
+                                // Employee already has timesheet data for this month/year, skip
+                                continue;
+                            }
+
+                            // Also check local context (entities added but not yet saved to database in this import session)
+                            var existingLineInLocal = db.HR_TIMESHEET_LINES
+                                .Local
+                                .FirstOrDefault(l => l.TimesheetID == header.ID && l.EmployeeID == employee.ID);
+                            
+                            if (existingLineInLocal != null)
+                            {
+                                // Already being added in this import session, skip
+                                continue;
+                            }
+
+                            // Only create line if it doesn't exist in database OR local context
+                            var line = new HR_TIMESHEET_LINES
+                            {
+                                TimesheetID = header.ID,
+                                EmployeeID = employee.ID
+                            };
+                            db.HR_TIMESHEET_LINES.Add(line);
+
+                            // Excel struktura:
+                            // Column A: №
+                            // Column B: Tab.№
+                            // Column C: F.I.O.
+                            // Column D: Smena (Shift) - tashlab ketiladi
+                            // Column E: (bo'sh yoki boshqa ma'lumot) - tashlab ketiladi
+                            // Column F: Day 1 (kunlar bu yerdan boshlanadi)
+                            
+                            // Read daily hours starting from column 6 (F column = day 1)
+                            int daysInMonth = DateTime.DaysInMonth(sheetYear, month);
+                            int startCol = 6; // Column F (day 1 starts here)
+
+                            for (int day = 1; day <= daysInMonth; day++)
+                            {
+                                int col = startCol + (day - 1); // Calculate column for each day
+                                var hoursCell = worksheet.Cells[row, col];
+                                decimal? hours = null;
+                                
+                                if (hoursCell?.Value != null)
+                                {
+                                    var hoursValue = hoursCell.Value;
+                                    
+                                    // Handle different data types directly (more reliable)
+                                    if (hoursValue is double d)
+                                    {
+                                        hours = (decimal)d;
+                                    }
+                                    else if (hoursValue is int i)
+                                    {
+                                        hours = (decimal)i;
+                                    }
+                                    else if (hoursValue is decimal dec)
+                                    {
+                                        hours = dec;
+                                    }
+                                    else
+                                    {
+                                        var hoursStr = hoursValue.ToString()?.Trim();
+                                        
+                                        // Skip if value is 'r', 'R', or other non-numeric values that indicate absence
+                                        if (hoursStr != null && (hoursStr.Equals("r", StringComparison.OrdinalIgnoreCase) || 
+                                                                 hoursStr.Equals("R", StringComparison.OrdinalIgnoreCase)))
+                                        {
+                                            hours = null; // Mark as absent
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(hoursStr))
+                                        {
+                                            // Try to parse as decimal
+                                            if (decimal.TryParse(hoursStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal h))
+                                            {
+                                                hours = h;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Set hours for this day
+                                var propertyName = $"Day{day:D2}Hours";
+                                var property = typeof(HR_TIMESHEET_LINES).GetProperty(propertyName);
+                                if (property != null)
+                                {
+                                    property.SetValue(line, hours);
+                                }
+                            }
+
+                            // Recalculate totals for this line
+                            await RecalculateLineTotals(line);
+                            
+                            // Mark employee as processed
+                            processedEmployees.Add(employee.ID);
+                        }
+                        catch (Exception rowEx)
+                        {
+                            errorMessages.Add($"Qator {row} ni o'qishda xatolik: {rowEx.Message}");
+                            continue; // Continue processing next row
+                        }
+                    }
+
+                    if (errorMessages.Any())
+                    {
+                        TempData["Warning"] = string.Join("<br/>", errorMessages);
+                    }
+
+                    await db.SaveChangesAsync();
+
+                    // Clear session
+                    Session.Remove($"ExcelFile_{User.Identity.Name}");
+                    Session.Remove($"ExcelFileName_{User.Identity.Name}");
+
+                    logger.Log("HrTimesheets", "ImportFromSheet", $"Year: {sheetYear}, Month: {month}, Sheet: {sheetName}");
+                    TempData["Success"] = $"Tabel muvaffaqiyatli import qilindi. Oy: {month}, Yil: {sheetYear}";
+                    return RedirectToAction("Edit", new { id = header.ID });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Store detailed error message with inner exception and stack trace
+                var errorMsg = $"Import xatosi: {ex.Message}";
+                if (ex.InnerException != null)
+                {
+                    errorMsg += $"<br/>Ichki xatolik: {ex.InnerException.Message}";
+                }
+                errorMsg += $"<br/><small>Stack Trace: {ex.StackTrace?.Replace("\r\n", "<br/>")}</small>";
+                TempData["Error"] = errorMsg;
+                
+                // Reload sheet names from session file
+                byte[] fileBytesForError = Session[$"ExcelFile_{User.Identity.Name}"] as byte[];
+                if (fileBytesForError != null)
+                {
+                    try
+                    {
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                        using (var package = new ExcelPackage(new System.IO.MemoryStream(fileBytesForError)))
+                        {
+                            ViewBag.Year = year;
+                            ViewBag.OrgUnitId = orgUnitId;
+                            ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
+                            ViewBag.OrgUnitID = new SelectList(
+                                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                                "ID", "Name", orgUnitId);
+                            return View("ImportSheets");
+                        }
+                    }
+                    catch (Exception reloadEx)
+                    {
+                        TempData["Error"] = errorMsg + $"<br/>Faylni qayta yuklashda xatolik: {reloadEx.Message}";
+                        ViewBag.Year = year;
+                        ViewBag.OrgUnitId = orgUnitId;
+                        ViewBag.SheetNames = null;
+                        ViewBag.OrgUnitID = new SelectList(
+                            await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                            "ID", "Name", orgUnitId);
+                        return View("ImportSheets");
+                    }
+                }
+                else
+                {
+                    ViewBag.Year = year;
+                    ViewBag.OrgUnitId = orgUnitId;
+                    ViewBag.SheetNames = null;
+                    ViewBag.OrgUnitID = new SelectList(
+                        await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                        "ID", "Name", orgUnitId);
+                    return View("ImportSheets");
+                }
+            }
+        }
+
+        private int ParseMonthFromSheetName(string sheetName)
+        {
+            // Use dictionary with indexer syntax to avoid duplicate key exception
+            // Note: "may" appears in both Uzbek and English, but we'll use indexer to handle it
+            var monthNames = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            
+            // Uzbek months
+            monthNames["yanvar"] = 1;
+            monthNames["fevral"] = 2;
+            monthNames["mart"] = 3;
+            monthNames["aprel"] = 4;
+            monthNames["may"] = 5; // Uzbek "may"
+            monthNames["iyun"] = 6;
+            monthNames["iyul"] = 7;
+            monthNames["avgust"] = 8;
+            monthNames["sentyabr"] = 9;
+            monthNames["sentabr"] = 9; // Alternative spelling
+            monthNames["oktyabr"] = 10;
+            monthNames["noyabr"] = 11;
+            monthNames["dekabr"] = 12;
+            
+            // Russian months
+            monthNames["январь"] = 1;
+            monthNames["февраль"] = 2;
+            monthNames["март"] = 3;
+            monthNames["апрель"] = 4;
+            monthNames["май"] = 5;
+            monthNames["июнь"] = 6;
+            monthNames["июль"] = 7;
+            monthNames["август"] = 8;
+            monthNames["сентябрь"] = 9;
+            monthNames["октябрь"] = 10;
+            monthNames["ноябрь"] = 11;
+            monthNames["декабрь"] = 12;
+            
+            // English months
+            monthNames["january"] = 1;
+            monthNames["february"] = 2;
+            monthNames["march"] = 3;
+            monthNames["april"] = 4;
+            // "may" already added above (Uzbek), but indexer will just overwrite with same value
+            monthNames["june"] = 6;
+            monthNames["july"] = 7;
+            monthNames["august"] = 8;
+            monthNames["september"] = 9;
+            monthNames["october"] = 10;
+            monthNames["november"] = 11;
+            monthNames["december"] = 12;
+
+            try
+            {
+                var parts = sheetName.Split('-');
+                if (parts.Length < 1) return 0;
+
+                var monthPart = parts[0].Trim().ToLower();
+                if (monthNames.ContainsKey(monthPart))
+                {
+                    return monthNames[monthPart];
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return 0
+                System.Diagnostics.Debug.WriteLine($"ParseMonthFromSheetName error for '{sheetName}': {ex.Message}");
+                throw; // Re-throw to be caught by ImportFromSheet
+            }
+        }
+
+        private int ParseYearFromSheetName(string sheetName)
+        {
+            var parts = sheetName.Split('-');
+            if (parts.Length < 2) return 0;
+
+            if (int.TryParse(parts[1].Trim(), out int year) && year >= 2000 && year <= 2100)
+            {
+                return year;
+            }
+
+            return 0;
+        }
+
         // POST: HR/Timesheets/Import
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -767,18 +1335,91 @@ namespace tahsinERP.Controllers.HR
                         await CreateTimesheetLines(header.ID, orgUnitId);
                     }
 
+                    // Get hourly position IDs for validation
+                    var hourlyPositionIds = await db.HR_STAFFING_PLAN
+                        .Where(sp => sp.IsActive && sp.IsPieceRate == false)
+                        .Select(sp => sp.PositionID)
+                        .Distinct()
+                        .ToListAsync();
+
+                    var errorMessages = new List<string>();
+
                     // Parse data starting from row 2 (skip header)
                     for (int row = 2; row <= rowCount; row++)
                     {
-                        var tabNo = worksheet.Cells[row, 2]?.Value?.ToString();
+                        var tabNoCell = worksheet.Cells[row, 2];
+                        var tabNoRaw = tabNoCell?.Value;
+                        string tabNo = null;
+                        
+                        // Handle different data types (string, double, int)
+                        if (tabNoRaw != null)
+                        {
+                            if (tabNoRaw is string str)
+                            {
+                                tabNo = str.Trim();
+                            }
+                            else if (tabNoRaw is double d)
+                            {
+                                // Convert double to string with leading zeros if needed
+                                tabNo = ((int)d).ToString();
+                            }
+                            else if (tabNoRaw is int i)
+                            {
+                                tabNo = i.ToString();
+                            }
+                            else
+                            {
+                                tabNo = tabNoRaw.ToString()?.Trim();
+                            }
+                        }
+                        
                         if (string.IsNullOrWhiteSpace(tabNo))
                             continue;
 
+                        // IMPORTANT: Remove ALL IsActive checks - import ALL employees regardless of status
+                        // They might have worked during that period even if inactive now
+                        // Normalize TabNo in memory (PadLeft/TrimStart cannot be translated to SQL)
+                        string normalizedTabNo = tabNo.PadLeft(4, '0');
+                        string trimmedTabNo = tabNo.TrimStart('0');
+                        if (string.IsNullOrWhiteSpace(trimmedTabNo))
+                            trimmedTabNo = "0";
+                        
+                        // Try exact match first
                         var employee = await db.HR_EMPLOYEES
-                            .FirstOrDefaultAsync(e => e.TabNo == tabNo && e.IsActive);
+                            .Include(e => e.HR_POSITIONS)
+                            .FirstOrDefaultAsync(e => e.TabNo == tabNo || e.TabNo == normalizedTabNo || e.TabNo == trimmedTabNo);
+                        
+                        // If still not found, try loading candidates and matching in memory
+                        if (employee == null)
+                        {
+                            var candidates = await db.HR_EMPLOYEES
+                                .Include(e => e.HR_POSITIONS)
+                                .Where(e => e.TabNo.Length == tabNo.Length || 
+                                            e.TabNo.Length == normalizedTabNo.Length ||
+                                            e.TabNo.Length == trimmedTabNo.Length)
+                                .ToListAsync();
+                            
+                            employee = candidates.FirstOrDefault(e => 
+                                e.TabNo == tabNo || 
+                                e.TabNo == normalizedTabNo || 
+                                e.TabNo == trimmedTabNo ||
+                                e.TabNo.PadLeft(4, '0') == normalizedTabNo ||
+                                e.TabNo.TrimStart('0') == trimmedTabNo ||
+                                (e.TabNo.TrimStart('0') == "0" && tabNo.TrimStart('0') == "0"));
+                        }
 
                         if (employee == null)
+                        {
+                            errorMessages.Add($"Tab.№ {tabNo} - bu tabel raqamli xodim topilmadi (Qator: {row}).");
                             continue;
+                        }
+
+                        // Check if employee is piece-rate
+                        if (employee.PositionID.HasValue && !hourlyPositionIds.Contains(employee.PositionID.Value))
+                        {
+                            errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodimning to'lov turi ishbay. Unga soatbay tabel kirita olmaymiz.");
+                            continue;
+                        }
 
                         var line = await db.HR_TIMESHEET_LINES
                             .FirstOrDefaultAsync(l => l.TimesheetID == header.ID && l.EmployeeID == employee.ID);
@@ -798,13 +1439,36 @@ namespace tahsinERP.Controllers.HR
 
                         for (int day = 1; day <= daysInMonth; day++)
                         {
-                            var hoursValue = worksheet.Cells[row, col]?.Value;
+                            var hoursCell = worksheet.Cells[row, col];
                             decimal? hours = null;
-                            if (hoursValue != null)
+                            
+                            if (hoursCell?.Value != null)
                             {
-                                if (decimal.TryParse(hoursValue.ToString(), out decimal h))
+                                var hoursValue = hoursCell.Value;
+                                
+                                // Handle different data types directly (more reliable)
+                                if (hoursValue is double d)
                                 {
-                                    hours = h;
+                                    hours = (decimal)d;
+                                }
+                                else if (hoursValue is int i)
+                                {
+                                    hours = (decimal)i;
+                                }
+                                else if (hoursValue is decimal dec)
+                                {
+                                    hours = dec;
+                                }
+                                else
+                                {
+                                    var hoursStr = hoursValue.ToString()?.Trim();
+                                    if (!string.IsNullOrWhiteSpace(hoursStr))
+                                    {
+                                        if (decimal.TryParse(hoursStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal h))
+                                        {
+                                            hours = h;
+                                        }
+                                    }
                                 }
                             }
 
@@ -836,7 +1500,15 @@ namespace tahsinERP.Controllers.HR
 
         private async Task CreateTimesheetLines(int timesheetId, int? orgUnitId)
         {
-            IQueryable<HR_EMPLOYEES> employeesQuery = db.HR_EMPLOYEES.Where(e => e.IsActive);
+            // Get only hourly employees (non-piece-rate)
+            var hourlyPositionIds = await db.HR_STAFFING_PLAN
+                .Where(sp => sp.IsActive && sp.IsPieceRate == false)
+                .Select(sp => sp.PositionID)
+                .Distinct()
+                .ToListAsync();
+
+            IQueryable<HR_EMPLOYEES> employeesQuery = db.HR_EMPLOYEES
+                .Where(e => e.IsActive && (e.PositionID == null || hourlyPositionIds.Contains(e.PositionID ?? 0)));
 
             if (orgUnitId.HasValue)
             {
@@ -1059,14 +1731,16 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Delete timesheet lines first
+            // Soft delete timesheet lines first
             var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
             foreach (var line in lines)
             {
-                db.HR_TIMESHEET_LINES.Remove(line);
+                line.IsDeleted = true;
+                db.Entry(line).State = System.Data.Entity.EntityState.Modified;
             }
 
-            db.HR_TIMESHEET_HEADERS.Remove(timesheet);
+            timesheet.IsDeleted = true;
+            db.Entry(timesheet).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrTimesheets", "Delete", $"ID: {id}");
@@ -1080,6 +1754,69 @@ namespace tahsinERP.Controllers.HR
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        // POST: HR/Timesheets/DeleteLine (single line)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteLine(int lineId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+            {
+                TempData["Error"] = "Ruxsat yo'q";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                var line = await db.HR_TIMESHEET_LINES.FindAsync(lineId);
+
+                if (line == null)
+                {
+                    TempData["Error"] = "Qator topilmadi";
+                    return RedirectToAction("Index");
+                }
+
+                var timesheetId = line.TimesheetID;
+                var header = await db.HR_TIMESHEET_HEADERS.FindAsync(timesheetId);
+                
+                if (header == null)
+                {
+                    TempData["Error"] = "Tabel topilmadi";
+                    return RedirectToAction("Index");
+                }
+
+                if (header.Status != "Draft")
+                {
+                    TempData["Error"] = "Faqat qoralama holatidagi tabeldan qatorlarni o'chirish mumkin";
+                    return RedirectToAction("Edit", new { id = timesheetId });
+                }
+
+                // Delete the line from database
+                db.HR_TIMESHEET_LINES.Remove(line);
+                await db.SaveChangesAsync();
+
+                logger.Log("HrTimesheets", "DeleteLine", $"LineID: {lineId}, TimesheetID: {timesheetId}");
+                TempData["Success"] = "Qator muvaffaqiyatli o'chirildi";
+                return RedirectToAction("Edit", new { id = timesheetId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xatolik: {ex.Message}";
+                
+                // Try to get timesheetId to redirect back
+                try
+                {
+                    var line = await db.HR_TIMESHEET_LINES.FindAsync(lineId);
+                    if (line != null)
+                    {
+                        return RedirectToAction("Edit", new { id = line.TimesheetID });
+                    }
+                }
+                catch { }
+                
+                return RedirectToAction("Index");
+            }
         }
     }
 }

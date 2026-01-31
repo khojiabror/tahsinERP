@@ -28,7 +28,9 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
-                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value);
+                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real cash flow
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "");
 
                 if (accountID.HasValue)
                 {
@@ -148,10 +150,12 @@ namespace tahsinERP.Controllers.Finance
                 var startDate = new DateTime(year.Value, month.Value, 1);
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
-                // Get transactions for the period
+                // Get transactions for the period - exclude liability transactions (only real P&L)
                 var transactions = db.FIN_TRANSACTIONS
                     .Include(t => t.FIN_CATEGORIES)
                     .Where(t => t.TxnDate >= startDate && t.TxnDate <= endDate)
+                    // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real transactions
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
                 // Get all PL items with their mapped categories
@@ -607,9 +611,11 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get summary statistics
+                // Get summary statistics - exclude liability transactions (only real cash flow)
                 var transactions = db.FIN_TRANSACTIONS
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real transactions
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
                 var totalIncome = transactions.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m;
@@ -705,7 +711,9 @@ namespace tahsinERP.Controllers.Finance
             {
                 var query = db.FIN_TRANSACTIONS
                     .Include(t => t.FIN_CATEGORIES)
-                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value);
+                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    // Exclude liability transactions - only show real transactions
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "");
 
                 if (categoryID.HasValue)
                 {
@@ -797,7 +805,9 @@ namespace tahsinERP.Controllers.Finance
                 var query = db.FIN_TRANSACTIONS
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.CURRENCy)
-                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value);
+                    .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    // Exclude liability transactions - only show real transactions
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "");
 
                 if (accountID.HasValue)
                 {
@@ -883,6 +893,8 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Where(t => t.Direction == 2 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    // Exclude liability transactions (PurchaseInvoice) - only show real expenses
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
                 // Expense by category (pie chart data)
@@ -967,6 +979,8 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Where(t => t.Direction == 1 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                    // Exclude liability transactions (SalesInvoice) - only show real income
+                    .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
                 // Income by category (pie chart data)
@@ -1128,6 +1142,212 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.ToDate = toDate;
                 ViewBag.AccountBalances = accountBalances;
                 ViewBag.AccountType = accountType;
+
+                return View();
+            }
+        }
+
+        // GET: FinDashboard/LiabilitiesDashboard
+        public ActionResult LiabilitiesDashboard(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
+            toDate = toDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Get only liability transactions (PurchaseInvoice and SalesInvoice)
+                var payablesTransactions = db.FIN_TRANSACTIONS
+                    .Include(t => t.FIN_ACCOUNTS)
+                    .Include(t => t.FIN_CATEGORIES)
+                    .Include(t => t.CURRENCy)
+                    .Where(t => t.SourceDocType == "PurchaseInvoice" && 
+                               t.TxnDate >= fromDate.Value && 
+                               t.TxnDate <= toDate.Value)
+                    .ToList();
+
+                var receivablesTransactions = db.FIN_TRANSACTIONS
+                    .Include(t => t.FIN_ACCOUNTS)
+                    .Include(t => t.FIN_CATEGORIES)
+                    .Include(t => t.CURRENCy)
+                    .Where(t => t.SourceDocType == "SalesInvoice" && 
+                               t.TxnDate >= fromDate.Value && 
+                               t.TxnDate <= toDate.Value)
+                    .ToList();
+
+                // Payables summary
+                var totalPayables = payablesTransactions
+                    .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                // Receivables summary
+                var totalReceivables = receivablesTransactions
+                    .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                // Payables by supplier (counterparty)
+                var payablesBySupplier = payablesTransactions
+                    .Where(t => !string.IsNullOrEmpty(t.CounterpartyName))
+                    .GroupBy(t => t.CounterpartyName)
+                    .Select(g => new
+                    {
+                        SupplierName = g.Key,
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
+                        TransactionCount = g.Count()
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                // Receivables by customer (counterparty)
+                var receivablesByCustomer = receivablesTransactions
+                    .Where(t => !string.IsNullOrEmpty(t.CounterpartyName))
+                    .GroupBy(t => t.CounterpartyName)
+                    .Select(g => new
+                    {
+                        CustomerName = g.Key,
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
+                        TransactionCount = g.Count()
+                    })
+                    .OrderByDescending(x => x.Amount)
+                    .ToList();
+
+                // Monthly payables trend
+                var monthlyPayables = payablesTransactions
+                    .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
+                    .Select(g => new MonthlyData
+                    {
+                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Period)
+                    .ToList();
+
+                // Monthly receivables trend
+                var monthlyReceivables = receivablesTransactions
+                    .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
+                    .Select(g => new MonthlyData
+                    {
+                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
+                    })
+                    .OrderBy(x => x.Period)
+                    .ToList();
+
+                // Get account balances for Payables and Receivables
+                var payablesAccounts = db.FIN_ACCOUNTS
+                    .Where(a => (a.Code.StartsWith("PAYABLES_") || a.Name.Contains("Kreditorlar")) && a.IsActive)
+                    .ToList();
+
+                var receivablesAccounts = db.FIN_ACCOUNTS
+                    .Where(a => (a.Code.StartsWith("RECEIVABLES_") || a.Name.Contains("Debitorlar")) && a.IsActive)
+                    .ToList();
+
+                var payablesAccountBalances = new List<AccountBalanceData>();
+                foreach (var account in payablesAccounts)
+                {
+                    var allTransactions = db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID && t.TxnDate <= toDate.Value)
+                        .ToList();
+
+                    var qoldiq = allTransactions
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+
+                    var periodTransactions = allTransactions
+                        .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                        .ToList();
+
+                    var kirim = periodTransactions
+                        .Where(t => t.Direction == 1)
+                        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                    var chiqim = periodTransactions
+                        .Where(t => t.Direction == 2)
+                        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                    var currency = account.CURRENCy;
+                    if (currency == null && account.CurrencyID > 0)
+                    {
+                        currency = db.CURRENCIES.Find(account.CurrencyID);
+                    }
+                    var currencyShortname = currency?.Shortname ?? "UZS";
+
+                    payablesAccountBalances.Add(new AccountBalanceData
+                    {
+                        AccountID = account.ID,
+                        AccountCode = account.Code ?? "",
+                        AccountName = account.Name ?? "",
+                        OwnerName = account.OwnerName ?? "-",
+                        CurrencyShortname = currencyShortname,
+                        Kirim = kirim,
+                        Chiqim = chiqim,
+                        Qoldiq = qoldiq
+                    });
+                }
+
+                var receivablesAccountBalances = new List<AccountBalanceData>();
+                foreach (var account in receivablesAccounts)
+                {
+                    var allTransactions = db.FIN_TRANSACTIONS
+                        .Where(t => t.AccountID == account.ID && t.TxnDate <= toDate.Value)
+                        .ToList();
+
+                    var qoldiq = allTransactions
+                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+
+                    var periodTransactions = allTransactions
+                        .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
+                        .ToList();
+
+                    var kirim = periodTransactions
+                        .Where(t => t.Direction == 1)
+                        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                    var chiqim = periodTransactions
+                        .Where(t => t.Direction == 2)
+                        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+                    var currency = account.CURRENCy;
+                    if (currency == null && account.CurrencyID > 0)
+                    {
+                        currency = db.CURRENCIES.Find(account.CurrencyID);
+                    }
+                    var currencyShortname = currency?.Shortname ?? "UZS";
+
+                    receivablesAccountBalances.Add(new AccountBalanceData
+                    {
+                        AccountID = account.ID,
+                        AccountCode = account.Code ?? "",
+                        AccountName = account.Name ?? "",
+                        OwnerName = account.OwnerName ?? "-",
+                        CurrencyShortname = currencyShortname,
+                        Kirim = kirim,
+                        Chiqim = chiqim,
+                        Qoldiq = qoldiq
+                    });
+                }
+
+                // Get primary currency
+                var primaryCurrency = payablesTransactions
+                    .Concat(receivablesTransactions)
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.First().CURRENCy)
+                    .FirstOrDefault() ?? db.CURRENCIES.FirstOrDefault();
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.TotalPayables = totalPayables;
+                ViewBag.TotalReceivables = totalReceivables;
+                ViewBag.PayablesBySupplier = payablesBySupplier;
+                ViewBag.ReceivablesByCustomer = receivablesByCustomer;
+                ViewBag.MonthlyPayables = monthlyPayables;
+                ViewBag.MonthlyReceivables = monthlyReceivables;
+                ViewBag.PayablesAccountBalances = payablesAccountBalances;
+                ViewBag.ReceivablesAccountBalances = receivablesAccountBalances;
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
 
                 return View();
             }

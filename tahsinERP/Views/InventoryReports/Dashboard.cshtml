@@ -252,6 +252,12 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function () {
@@ -278,7 +284,7 @@
             // Category Distribution Chart
             var categoryCtx = document.getElementById('categoryChart').getContext('2d');
             var categoryData = @Html.Raw(Json.Encode(Model.StockByCategory.Select(c => new { CategoryName = c.CategoryName, TotalStock = c.TotalStock })));
-            
+
             new Chart(categoryCtx, {
                 type: 'doughnut',
                 data: {
@@ -305,7 +311,7 @@
             var trendCtx = document.getElementById('trendChart').getContext('2d');
             var inboundData = @Html.Raw(Json.Encode(Model.InboundTrends.Select(t => new { Date = t.Date.ToString("yyyy-MM-dd"), Amount = t.Amount })));
             var outboundData = @Html.Raw(Json.Encode(Model.OutboundTrends.Select(t => new { Date = t.Date.ToString("yyyy-MM-dd"), Amount = t.Amount })));
-            
+
             // Group by date
             var dates = [...new Set([...inboundData.map(d => d.Date), ...outboundData.map(d => d.Date)])].sort();
             var inboundAmounts = dates.map(date => {

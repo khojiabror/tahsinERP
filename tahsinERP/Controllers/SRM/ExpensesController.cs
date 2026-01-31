@@ -93,6 +93,11 @@ namespace tahsinERP.Controllers.SRM
                     "ID", "Shortname"
                 );
 
+                ViewBag.Units = new SelectList(
+                    await db.UNITS.ToListAsync(),
+                    "ID", "ShortName"
+                );
+
                 return View();
             }
         }
@@ -140,6 +145,11 @@ namespace tahsinERP.Controllers.SRM
                     {
                         try
                         {
+                            if (model.ExpenseProducts == null)
+                            {
+                                model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
+                            }
+
                             // Validate stock availability
                             foreach (var product in model.ExpenseProducts)
                             {
@@ -358,7 +368,8 @@ namespace tahsinERP.Controllers.SRM
             using (var db = new DBTHSNEntities())
             {
                 var expense = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.PRODUCT))
+                    .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.UNIT))
                     .FirstOrDefaultAsync(e => e.ID == id && e.IsDeleted != true);
 
                 if (expense == null)
@@ -372,6 +383,11 @@ namespace tahsinERP.Controllers.SRM
                     TempData["Error"] = "Bu chiqim hujjati allaqachon yuborilgan va tahrirlash mumkin emas.";
                     return RedirectToAction("Index");
                 }
+
+                var productIds = expense.EXPENSE_PRODUCTS.Select(ep => ep.ProductID).ToList();
+                var stockMap = await db.PRODUCT_STOCKS
+                    .Where(s => s.WHID == expense.SenderWHID && productIds.Contains(s.ProductID))
+                    .ToListAsync();
 
                 var model = new ViewModels.ExpenseEditViewModel
                 {
@@ -392,9 +408,11 @@ namespace tahsinERP.Controllers.SRM
                         ProductName = ep.PRODUCT.Name,
                         Amount = ep.Amount,
                         UnitID = ep.UnitID,
+                        UnitName = ep.UNIT != null ? ep.UNIT.ShortName : null,
                         PiecePrice = ep.PiecePrice,
                         TotalPrice = ep.TotalPrice,
-                        Comment = ep.Comment
+                        Comment = ep.Comment,
+                        AvailableStock = stockMap.FirstOrDefault(s => s.ProductID == ep.ProductID)?.Amount ?? 0
                     }).ToList()
                 };
 
@@ -411,6 +429,11 @@ namespace tahsinERP.Controllers.SRM
                 ViewBag.Currencies = new SelectList(
                     await db.CURRENCIES.ToListAsync(),
                     "ID", "Shortname", model.CurrencyID
+                );
+
+                ViewBag.Units = new SelectList(
+                    await db.UNITS.ToListAsync(),
+                    "ID", "ShortName"
                 );
 
                 return View(model);
@@ -478,6 +501,11 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             // Validate new stock availability
+                            if (model.ExpenseProducts == null)
+                            {
+                                model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
+                            }
+
                             foreach (var product in model.ExpenseProducts)
                             {
                                 var stock = await db.PRODUCT_STOCKS

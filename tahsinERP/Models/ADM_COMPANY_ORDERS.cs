@@ -20,6 +20,7 @@ namespace tahsinERP.Models
         public string OrderTypeCode { get; set; }
         public Nullable<int> OrgUnitID { get; set; }
         public string Notes { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
     }

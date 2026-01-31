@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="be2b119b78804b3a9dc915107b11d9a5" Name="Diagram1">
+      <Diagram DiagramId="be2b119b78804b3a9dc915107b11d9a5" Name="Diagram1" ZoomLevel="55">
         <EntityTypeShape EntityType="DBTHSNModel.ADM_COMPANY_ORDERS" Width="1.5" PointX="19.5" PointY="110.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.APP_TASK_PRIORITY_REF" Width="1.5" PointX="0.75" PointY="2.25" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.APP_TASK_PROJECTS" Width="1.5" PointX="0.75" PointY="6.125" IsExpanded="true" />
@@ -371,6 +371,7 @@
         <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" />
         <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" />
         <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" />
+        <EntityTypeShape EntityType="DBTHSNModel.CUSTOMER_BASE" Width="1.5" PointX="3.375" PointY="10.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

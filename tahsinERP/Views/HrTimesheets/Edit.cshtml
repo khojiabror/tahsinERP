@@ -14,7 +14,6 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Tabel @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month) @Model.Year</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -71,6 +70,9 @@
                                 <table class="table table-bordered table-striped" id="timesheetGrid">
                                     <thead class="thead-light" style="position: sticky; top: 0; z-index: 10; background: white;">
                                         <tr>
+                                            <th rowspan="2" style="min-width: 30px;">
+                                                <input type="checkbox" id="selectAll" title="Barchasini tanlash" />
+                                            </th>
                                             <th rowspan="2" style="min-width: 50px;">№</th>
                                             <th rowspan="2" style="min-width: 80px;">Tab.№</th>
                                             <th rowspan="2" style="min-width: 200px;">F.I.O.</th>
@@ -85,6 +87,10 @@
                                                 <th rowspan="2" style="min-width: 150px;">Maxsulot</th>
                                                 <th rowspan="2" style="min-width: 80px;">Jami miqdor</th>
                                             }
+                                            @if (Model.Status == "Draft")
+                                            {
+                                                <th rowspan="2" style="min-width: 60px;">Amallar</th>
+                                            }
                                         </tr>
                                         <tr>
                                             @for (int day = 1; day <= daysInMonth; day++)
@@ -98,6 +104,9 @@
                                         @foreach (var line in Model.Lines)
                                         {
                                             <tr data-employee-id="@line.EmployeeID">
+                                                <td>
+                                                    <input type="checkbox" class="row-checkbox" data-employee-id="@line.EmployeeID" />
+                                                </td>
                                                 <td>@rowNum</td>
                                                 <td>@line.EmployeeTabNo</td>
                                                 <td>@line.EmployeeFullName</td>
@@ -159,6 +168,21 @@
                                                     </td>
                                                     <td class="total-quantity">@(line.TotalQuantity?.ToString("F2") ?? "0")</td>
                                                 }
+                                                @if (Model.Status == "Draft")
+                                                {
+                                                    <td style="text-align: center;">
+                                                        @using (Html.BeginForm("DeleteLine", "HrTimesheets", FormMethod.Post, new { @class = "delete-line-form", style = "display: inline;" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            @Html.Hidden("lineId", line.ID)
+                                                            <button type="submit" class="btn btn-sm btn-danger" 
+                                                                    onclick="return confirm('@line.EmployeeFullName qatorini o\'chirishni xohlaysizmi? Bu amalni qaytarib bo\'lmaydi.');"
+                                                                    title="O'chirish">
+                                                                <i class="bx bx-trash"></i>
+                                                            </button>
+                                                        }
+                                                    </td>
+                                                }
                                             </tr>
                                             rowNum++;
                                         }
@@ -190,7 +214,14 @@
             background-color: #f5f5f5;
         }
     </style>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
 
+@section Scripts
+{
     <script>
         var timesheetId = @Model.ID;
         var daysInMonth = @daysInMonth;
@@ -273,12 +304,23 @@
                 }
             });
 
-            // Select row on click
-            $('#timesheetGrid tbody tr').on('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    $(this).toggleClass('table-active');
-                }
+            // Select all checkbox
+            $('#selectAll').on('change', function() {
+                var isChecked = $(this).prop('checked');
+                $('.row-checkbox').prop('checked', isChecked);
+                $('#timesheetGrid tbody tr').toggleClass('table-active', isChecked);
             });
+
+            // Individual checkbox change
+            $('.row-checkbox').on('change', function() {
+                $(this).closest('tr').toggleClass('table-active', $(this).prop('checked'));
+                
+                // Update select all checkbox
+                var totalCheckboxes = $('.row-checkbox').length;
+                var checkedCheckboxes = $('.row-checkbox:checked').length;
+                $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+            });
+
         });
 
         function recalculateRow($row) {
@@ -317,7 +359,10 @@
         }
 
         function importFromProduction() {
-            var selectedRows = $('#timesheetGrid tbody tr.table-active');
+            var selectedRows = $('#timesheetGrid tbody tr').filter(function() {
+                return $(this).find('.row-checkbox').prop('checked');
+            });
+            
             if (selectedRows.length === 0) {
                 alert('Iltimos, kamida bitta xodimni tanlang');
                 return;
@@ -349,13 +394,16 @@
         }
 
         function setDefaultHours(hours) {
-            var selectedRows = $('#timesheetGrid tbody tr.table-active');
+            var selectedRows = $('#timesheetGrid tbody tr').filter(function() {
+                return $(this).find('.row-checkbox').prop('checked');
+            });
+            
             if (selectedRows.length === 0) {
-                alert('Qatorlarni tanlang (qatorga bosing)');
+                alert('Qatorlarni tanlang (checkbox\'larni belgilang)');
                 return;
             }
 
-            if (confirm('Установить ' + hours + ' часов для выбранных сотрудников?')) {
+            if (confirm('Belgilanganlarga ' + hours + ' soat qo\'yish?')) {
                 var employeeIds = [];
                 selectedRows.each(function() {
                     employeeIds.push($(this).data('employee-id'));
@@ -380,9 +428,12 @@
         }
 
         function markWeekend() {
-            var selectedRows = $('#timesheetGrid tbody tr.table-active');
+            var selectedRows = $('#timesheetGrid tbody tr').filter(function() {
+                return $(this).find('.row-checkbox').prop('checked');
+            });
+            
             if (selectedRows.length === 0) {
-                alert('Выберите строки');
+                alert('Qatorlarni tanlang (checkbox\'larni belgilang)');
                 return;
             }
 
@@ -409,10 +460,7 @@
 
             location.reload();
         }
+
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

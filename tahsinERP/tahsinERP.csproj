@@ -479,6 +479,7 @@
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
+    <Compile Include="Controllers\CRM\CustomerBaseController.cs" />
     <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
@@ -547,7 +548,6 @@
     <Compile Include="Controllers\SRM\PurchaseOrderTrackingController.cs" />
     <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
-    <Compile Include="Controllers\SRM\WarehouseController.cs" />
     <Compile Include="Controllers\AdminSetting\ErrorController.cs" />
     <Compile Include="Controllers\AdminSetting\Helper.cs" />
     <Compile Include="Controllers\AdminSetting\HomeController.cs" />
@@ -612,6 +612,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CUSTOMER.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CUSTOMER_BASE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DAMAGED_PRODUCTS.cs">
@@ -976,6 +979,7 @@
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
+    <Compile Include="Services\HR\EmployeeTenureService.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
     <Compile Include="Services\ITextSuggestionService.cs" />
@@ -1006,6 +1010,7 @@
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\HR\HrDashboardViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrEmployeeHistoryGroupedViewModel.cs" />
     <Compile Include="ViewModels\HR\HrEmployeeHistoryViewModel.cs" />
     <Compile Include="ViewModels\HR\HrEmployeeViewModel.cs" />
     <Compile Include="ViewModels\HR\HrOrgUnitStaffingPlanViewModel.cs" />
@@ -2829,6 +2834,7 @@
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
+    <Content Include="Scripts\device-identifier.js" />
     <Content Include="Scripts\flatpickr.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
     <Content Include="Scripts\jquery-3.7.1.min.js" />
@@ -3173,36 +3179,6 @@
     <Content Include="Views\Tasks\Details.cshtml" />
     <Content Include="Views\Tasks\Edit.cshtml" />
     <Content Include="Views\Tasks\Index.cshtml" />
-    <Content Include="Views\HR\HrDashboard\Index.cshtml" />
-    <Content Include="Views\HR\HrEmployees\Create.cshtml" />
-    <Content Include="Views\HR\HrEmployees\Details.cshtml" />
-    <Content Include="Views\HR\HrEmployees\Edit.cshtml" />
-    <Content Include="Views\HR\HrEmployees\Index.cshtml" />
-    <Content Include="Views\HR\HrOrgUnits\Create.cshtml" />
-    <Content Include="Views\HR\HrOrgUnits\Details.cshtml" />
-    <Content Include="Views\HR\HrOrgUnits\Edit.cshtml" />
-    <Content Include="Views\HR\HrOrgUnits\Index.cshtml" />
-    <Content Include="Views\HR\HrOrgUnits\OrgChart.cshtml" />
-    <Content Include="Views\HR\HrOrgUnits\_OrgUnitDetails.cshtml" />
-    <Content Include="Views\HR\HrPayroll\Edit.cshtml" />
-    <Content Include="Views\HR\HrPayroll\Generate.cshtml" />
-    <Content Include="Views\HR\HrPayroll\Index.cshtml" />
-    <Content Include="Views\HR\HrReports\PayrollReport.cshtml" />
-    <Content Include="Views\HR\HrReports\TimesheetReport.cshtml" />
-    <Content Include="Views\HR\HrSalaryGrades\Create.cshtml" />
-    <Content Include="Views\HR\HrSalaryGrades\Details.cshtml" />
-    <Content Include="Views\HR\HrSalaryGrades\Edit.cshtml" />
-    <Content Include="Views\HR\HrSalaryGrades\Index.cshtml" />
-    <Content Include="Views\HR\HrStaffingPlan\Create.cshtml" />
-    <Content Include="Views\HR\HrStaffingPlan\Details.cshtml" />
-    <Content Include="Views\HR\HrStaffingPlan\Edit.cshtml" />
-    <Content Include="Views\HR\HrStaffingPlan\GenerateFromEmployees.cshtml" />
-    <Content Include="Views\HR\HrStaffingPlan\Import.cshtml" />
-    <Content Include="Views\HR\HrStaffingPlan\Index.cshtml" />
-    <Content Include="Views\HR\HrTimesheets\Create.cshtml" />
-    <Content Include="Views\HR\HrTimesheets\Edit.cshtml" />
-    <Content Include="Views\HR\HrTimesheets\Import.cshtml" />
-    <Content Include="Views\HR\HrTimesheets\Index.cshtml" />
     <Content Include="Views\ProductPlan\_DailyGridPartial.cshtml" />
     <Content Include="Views\Logistic\TransportLoadSimulation\Index.cshtml" />
     <Content Include="Views\TaskPriority\Create.cshtml" />
@@ -3274,6 +3250,18 @@
     <Content Include="Views\FinDashboard\ExpenseAnalysis.cshtml" />
     <Content Include="Views\FinDashboard\FinancialOverview.cshtml" />
     <Content Include="Views\FinDashboard\IncomeAnalysis.cshtml" />
+    <Content Include="Views\HrEmployeeHistory\Create.cshtml" />
+    <Content Include="Views\HrPieceRateTimesheets\DeleteEntries.cshtml" />
+    <Content Include="Views\HrEmployees\Dismiss.cshtml" />
+    <Content Include="Views\HrEmployees\Transfer.cshtml" />
+    <Content Include="Views\HrTimesheets\ImportSheets.cshtml" />
+    <Content Include="Views\Home\StatusView.cshtml" />
+    <Content Include="Views\HrEmployeeHistory\Edit.cshtml" />
+    <Content Include="Views\CustomerBase\Create.cshtml" />
+    <Content Include="Views\CustomerBase\Delete.cshtml" />
+    <Content Include="Views\CustomerBase\Details.cshtml" />
+    <Content Include="Views\CustomerBase\Edit.cshtml" />
+    <Content Include="Views\CustomerBase\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,139 @@
+@{
+    ViewBag.Title = "Ishbay tabel Excel orqali yuklash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ishbay tabel</a></li>
+                                    <li class="breadcrumb-item active">Excel orqali yuklash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                @if (TempData["ImportResults"] != null)
+                {
+                    var importResults = TempData["ImportResults"] as List<string>;
+                    if (importResults != null && importResults.Count > 0)
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Import natijalari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Natija</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var result in importResults)
+                                                {
+                                                    <tr>
+                                                        <td>@result</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Excel fayl yuklash</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h5>Excel fayl formati:</h5>
+                                <p>Excel faylda quyidagi ustunlar bo'lishi kerak:</p>
+                                <ul>
+                                    <li><strong>Tabel. Code</strong> (majburiy) - Xodim tabel raqami (TabNo). Xodim Tabel. Code bo'yicha aniqlanadi.</li>
+                                    <li><strong>Ф.И.О</strong> (ixtiyoriy) - Xodimning to'liq ismi (faqat tekshirish uchun, Tabel. Code asosiy)</li>
+                                    <li><strong>Sana</strong> (majburiy) - Ish sanasi (DD.MM.YYYY yoki YYYY-MM-DD formatida)</li>
+                                    <li><strong>Maxsulot kodi</strong> (majburiy) - Maxsulot kodi (PNo)</li>
+                                    <li><strong>Operatsiya ustunlari</strong> (kamida bitta majburiy):
+                                        <ul>
+                                            <li>kesish (cutting)</li>
+                                            <li>poddon (pallet)</li>
+                                            <li>ramka (frame)</li>
+                                            <li>selofan / DVP / Karton</li>
+                                            <li>ichki sxema (internal scheme)</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <p class="mb-0"><strong>Eslatma:</strong> Faqat PRODUCT_CATEGORIES.IsFinishedGood == true bo'lgan maxsulotlar qabul qilinadi. Xodimlar HR_EMPLOYEES jadvalidan Tabel. Code (TabNo) bo'yicha topiladi (IsActive == false bo'lsa ham). Ф.И.О noto'g'ri yozilgan bo'lsa ham, Tabel. Code to'g'ri bo'lsa xodim topiladi.</p>
+                            </div>
+
+                            @using (Html.BeginForm("ImportFromExcel", "HrPieceRateTimesheets", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form" }))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="form-group">
+                                    <label for="file">Excel fayl (.xlsx) <span class="text-danger">*</span></label>
+                                    <input type="file" name="file" id="file" class="form-control" accept=".xlsx" required />
+                                    <small class="text-muted">Faqat .xlsx formatidagi fayllarni yuklash mumkin</small>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-upload"></i> Yuklash va import qilish
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="bx bx-x"></i> Bekor qilish
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

@@ -36,6 +36,7 @@ namespace tahsinERP.Models
         public Nullable<int> CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
         public Nullable<System.DateTime> UpdatedDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual HR_ORG_UNITS HR_ORG_UNITS { get; set; }
         public virtual HR_POSITIONS HR_POSITIONS { get; set; }

@@ -21,6 +21,7 @@ namespace tahsinERP.Controllers.TaskSettings
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var priorities = await db.APP_TASK_PRIORITY_REF
+                    .Where(p => p.IsDeleted == false || p.IsDeleted == null)
                     .OrderBy(p => p.SortOrder)
                     .ToListAsync();
                 return View(priorities);
@@ -42,7 +43,9 @@ namespace tahsinERP.Controllers.TaskSettings
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var priority = await db.APP_TASK_PRIORITY_REF.FindAsync(id);
+                var priority = await db.APP_TASK_PRIORITY_REF
+                    .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
+                    .FirstOrDefaultAsync();
                 if (priority == null)
                 {
                     return HttpNotFound();
@@ -188,7 +191,8 @@ namespace tahsinERP.Controllers.TaskSettings
                     return RedirectToAction("Index");
                 }
 
-                db.APP_TASK_PRIORITY_REF.Remove(priority);
+                priority.IsDeleted = true;
+                db.Entry(priority).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskPriorityController", $"Priority {priority.Code} - {priority.Name} o'chirildi");

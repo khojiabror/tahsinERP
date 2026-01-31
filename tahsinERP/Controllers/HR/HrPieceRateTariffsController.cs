@@ -29,6 +29,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             IQueryable<HR_PIECE_RATE_TARIFFS> query = db.HR_PIECE_RATE_TARIFFS
+                .Where(t => t.IsDeleted == false || t.IsDeleted == null)
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)
@@ -86,13 +87,14 @@ namespace tahsinERP.Controllers.HR
             }
 
             var tariff = await db.HR_PIECE_RATE_TARIFFS
+                .Where(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null))
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)
                 .Include(t => t.CURRENCy)
                 .Include(t => t.USER)
                 .Include(t => t.USER1)
-                .FirstOrDefaultAsync(t => t.ID == id);
+                .FirstOrDefaultAsync();
 
             if (tariff == null)
             {
@@ -304,7 +306,8 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            db.HR_PIECE_RATE_TARIFFS.Remove(tariff);
+            tariff.IsDeleted = true;
+            db.Entry(tariff).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrPieceRateTariffs", "Delete", $"ID: {id}");

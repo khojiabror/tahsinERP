@@ -86,6 +86,7 @@ namespace tahsinERP.Models
         public Nullable<decimal> Day30Quantity { get; set; }
         public Nullable<decimal> Day31Quantity { get; set; }
         public Nullable<decimal> TotalQuantity { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual HR_EMPLOYEES HR_EMPLOYEES { get; set; }
         public virtual HR_TIMESHEET_HEADERS HR_TIMESHEET_HEADERS { get; set; }

@@ -1,5 +1,8 @@
 @model List<tahsinERP.ViewModels.HR.HrEmployeeHistoryViewModel>
 @{
+    var groupedViewModels = ViewBag.GroupedViewModels as List<tahsinERP.ViewModels.HR.HrEmployeeHistoryGroupedViewModel>;
+}
+@{
     ViewBag.Title = "Xodimlar staji";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -32,6 +35,14 @@
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
+                            @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                            {
+                                <div class="mb-2">
+                                    <a href="@Url.Action("Create")" class="btn btn-primary">
+                                        <i class="bx bx-plus"></i> Qo'shish
+                                    </a>
+                                </div>
+                            }
                             <form method="get" action="@Url.Action("Index")" class="mb-2">
                                 <div class="row">
                                     <div class="col-md-2">
@@ -39,6 +50,13 @@
                                     </div>
                                     <div class="col-md-2">
                                         @Html.DropDownList("positionId", ViewBag.PositionID as SelectList, "Barcha lavozimlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="status" class="form-control">
+                                            <option value="">Barcha xodimlar</option>
+                                            <option value="active" @(ViewBag.Status == "active" ? "selected" : "")>Faol xodimlar</option>
+                                            <option value="inactive" @(ViewBag.Status == "inactive" ? "selected" : "")>Chiqib ketganlar</option>
+                                        </select>
                                     </div>
                                     <div class="col-md-2">
                                         <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" placeholder="Dan" />
@@ -63,37 +81,99 @@
                                             <th>Ishga kirgan sana</th>
                                             <th>Ishdan chiqqan sana</th>
                                             <th>Staj</th>
-                                            <th>Sabab</th>
+                                            @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                            {
+                                                <th>Amallar</th>
+                                            }
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @if (Model != null && Model.Any())
+                                        @if (groupedViewModels != null && groupedViewModels.Any())
                                         {
-                                            foreach (var item in Model)
+                                            foreach (var employeeGroup in groupedViewModels)
                                             {
-                                                <tr>
-                                                    <td>@(item.TabNo ?? "-")</td>
-                                                    <td>@(item.EmployeeName ?? "-")</td>
-                                                    <td>@(item.FromOrgUnitName ?? "-")</td>
-                                                    <td>@(item.FromPositionName ?? "-")</td>
-                                                    <td>@(item.EmploymentDate?.ToString("dd.MM.yyyy") ?? "-")</td>
-                                                    <td>@(item.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                // Show latest position as main row
+                                                var latest = employeeGroup.Positions.OrderByDescending(p => p.EffectiveDate ?? DateTime.MinValue).First();
+                                                <tr class="parent-row" data-employee-id="@employeeGroup.EmployeeID" data-has-children="@(employeeGroup.Positions.Count > 1 ? "true" : "false")">
+                                                    <td><a href="@Url.Action("Details", "HrEmployees", new { id = employeeGroup.EmployeeID })">@(employeeGroup.TabNo ?? "-")</a></td>
+                                                    <td>@(employeeGroup.EmployeeName ?? "-")</td>
+                                                    <td>@(latest.FromOrgUnitName ?? "-")</td>
+                                                    <td>@(latest.FromPositionName ?? "-")</td>
+                                                    <td>@(latest.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                    <td>@(latest.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                     <td>
-                                                        @if (item.TenureYears > 0 || item.TenureMonths > 0 || item.TenureDays > 0)
+                                                        <strong>
+                                                            @(employeeGroup.TotalTenureYears > 0 ? $"{employeeGroup.TotalTenureYears} yil " : "")
+                                                            @(employeeGroup.TotalTenureMonths > 0 ? $"{employeeGroup.TotalTenureMonths} oy " : "")
+                                                            @(employeeGroup.TotalTenureDays > 0 ? $"{employeeGroup.TotalTenureDays} kun" : "")
+                                                        </strong>
+                                                        @if (employeeGroup.Positions.Count > 1)
                                                         {
-                                                            <text>
-                                                                @(item.TenureYears > 0 ? $"{item.TenureYears} yil " : "")
-                                                                @(item.TenureMonths > 0 ? $"{item.TenureMonths} oy " : "")
-                                                                @(item.TenureDays > 0 ? $"{item.TenureDays} kun" : "")
-                                                            </text>
-                                                        }
-                                                        else
-                                                        {
-                                                            <text>-</text>
+                                                            <br />
+                                                            <small class="text-muted">
+                                                                (Oxirgi: @(latest.TenureMonths > 0 ? $"{latest.TenureMonths} oy " : "")@(latest.TenureDays > 0 ? $"{latest.TenureDays} kun" : ""))
+                                                            </small>
                                                         }
                                                     </td>
-                                                    <td>@(item.Reason ?? "-")</td>
+                                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                                    {
+                                                        <td>
+                                                            <a href="@Url.Action("Edit", new { id = latest.ID })" class="btn btn-sm btn-warning">
+                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                            </a>
+                                                        </td>
+                                                    }
                                                 </tr>
+                                                
+                                                // Store child rows data in data attribute
+                                                if (employeeGroup.Positions.Count > 1)
+                                                {
+                                                    <tr class="child-rows-data" data-employee-id="@employeeGroup.EmployeeID" style="display: none;">
+                                                        <td colspan="@(tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()) ? 9 : 8)" style="padding: 0;">
+                                                            <div class="child-rows-wrapper" style="padding: 10px; background-color: #f8f9fa;">
+                                                                <h6>Barcha lavozimlar:</h6>
+                                                                <table class="table table-sm table-bordered mb-0" style="margin: 0;">
+                                                                    <thead>
+                                                                        <tr style="background-color: #e9ecef;">
+                                                                            <th>Bo'lim</th>
+                                                                            <th>Lavozim</th>
+                                                                            <th>Ishga kirgan sana</th>
+                                                                            <th>Ishdan chiqqan sana</th>
+                                                                            <th>Staj</th>
+                                                                            <th>Sabab</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach (var position in employeeGroup.Positions.OrderBy(p => p.EffectiveDate))
+                                                                        {
+                                                                            <tr>
+                                                                                <td>@(position.FromOrgUnitName ?? "-")</td>
+                                                                                <td>@(position.FromPositionName ?? "-")</td>
+                                                                                <td>@(position.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                                                <td>@(position.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                                                <td>
+                                                                                    @if (position.TenureYears > 0 || position.TenureMonths > 0 || position.TenureDays > 0)
+                                                                                    {
+                                                                                        <text>
+                                                                                            @(position.TenureYears > 0 ? $"{position.TenureYears} yil " : "")
+                                                                                            @(position.TenureMonths > 0 ? $"{position.TenureMonths} oy " : "")
+                                                                                            @(position.TenureDays > 0 ? $"{position.TenureDays} kun" : "")
+                                                                                        </text>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <text>-</text>
+                                                                                    }
+                                                                                </td>
+                                                                                <td>@(position.Reason ?? "-")</td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             }
                                         }
                                     </tbody>
@@ -105,21 +185,79 @@
             </div>
         </div>
     </div>
-
-    <script>
-        $(document).ready(function() {
-            $('#historyTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
-                },
-                "pageLength": 25,
-                "order": [[5, "desc"]]
-            });
-        });
-    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Remove child rows from DOM before DataTables initialization
+            var childRows = [];
+            $('.child-rows-data').each(function() {
+                var employeeId = $(this).data('employee-id');
+                childRows.push({
+                    employeeId: employeeId,
+                    html: $(this)[0].outerHTML
+                });
+                $(this).detach();
+            });
+
+            // Initialize DataTables
+            var table = $('#historyTable').DataTable({
+                "language": {
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "zeroRecords": "Yozuvlar topilmadi",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "search": "Qidirish:",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    }
+                },
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "searching": true,
+                "order": [[1, "asc"]],
+                "dom": "lfrtip"
+            });
+
+            // Handle click on parent row to show/hide child rows
+            $('#historyTable tbody').on('click', 'tr.parent-row', function () {
+                var tr = $(this);
+                var employeeId = tr.data('employee-id');
+                var hasChildren = tr.data('has-children') === 'true';
+                
+                if (!hasChildren) return;
+
+                var childRow = tr.next('.child-rows-data[data-employee-id="' + employeeId + '"]');
+
+                if (tr.hasClass('shown')) {
+                    // Collapse
+                    childRow.hide();
+                    tr.removeClass('shown');
+                } else {
+                    // Expand
+                    if (childRow.length === 0) {
+                        // Re-insert child row
+                        var childRowData = childRows.find(function(cr) {
+                            return cr.employeeId === employeeId;
+                        });
+                        if (childRowData) {
+                            $(childRowData.html).insertAfter(tr);
+                            childRow = tr.next('.child-rows-data[data-employee-id="' + employeeId + '"]');
+                        }
+                    }
+                    childRow.show();
+                    tr.addClass('shown');
+                }
+            });
+        });
+    </script>
+}

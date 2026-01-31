@@ -28,6 +28,7 @@ namespace tahsinERP.Models
         public double NightShift { get; set; }
         public double Total { get; set; }
         public string Comment { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual SHOP SHOP { get; set; }

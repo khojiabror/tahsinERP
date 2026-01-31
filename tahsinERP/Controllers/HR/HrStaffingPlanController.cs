@@ -33,6 +33,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             IQueryable<HR_STAFFING_PLAN> query = db.HR_STAFFING_PLAN
+                .Where(sp => sp.IsDeleted == false || sp.IsDeleted == null)
                 .Include(sp => sp.HR_ORG_UNITS)
                 .Include(sp => sp.HR_POSITIONS)
                 .Include(sp => sp.HR_SALARY_GRADES);
@@ -58,6 +59,13 @@ namespace tahsinERP.Controllers.HR
 
             var staffingPlans = await query.OrderBy(sp => sp.HR_ORG_UNITS.Name).ThenBy(sp => sp.HR_POSITIONS.Name).ToListAsync();
 
+            // Get all employee counts in one query to avoid N+1 problem
+            var employeeCounts = await db.HR_EMPLOYEES
+                .Where(e => e.IsActive && e.OrgUnitID.HasValue && e.PositionID.HasValue)
+                .GroupBy(e => new { e.OrgUnitID, e.PositionID })
+                .Select(g => new { g.Key.OrgUnitID, g.Key.PositionID, Count = g.Count() })
+                .ToListAsync();
+
             var viewModels = staffingPlans.Select(sp =>
             {
                 var vm = new HrStaffingPlanViewModel
@@ -78,11 +86,10 @@ namespace tahsinERP.Controllers.HR
                     IsActive = sp.IsActive
                 };
 
-                // Get actual headcount from employees
-                vm.ActualHeadcount = db.HR_EMPLOYEES
-                    .Count(e => e.OrgUnitID == sp.OrgUnitID && 
-                                e.PositionID == sp.PositionID && 
-                                e.IsActive);
+                // Get actual headcount from pre-loaded employee counts
+                var countData = employeeCounts.FirstOrDefault(c => 
+                    c.OrgUnitID == sp.OrgUnitID && c.PositionID == sp.PositionID);
+                vm.ActualHeadcount = countData?.Count ?? 0;
 
                 return vm;
             }).ToList();
@@ -113,10 +120,11 @@ namespace tahsinERP.Controllers.HR
             }
 
             var staffingPlan = await db.HR_STAFFING_PLAN
+                .Where(sp => sp.ID == id && (sp.IsDeleted == false || sp.IsDeleted == null))
                 .Include(sp => sp.HR_ORG_UNITS)
                 .Include(sp => sp.HR_POSITIONS)
                 .Include(sp => sp.HR_SALARY_GRADES)
-                .FirstOrDefaultAsync(sp => sp.ID == id);
+                .FirstOrDefaultAsync();
 
             if (staffingPlan == null)
             {
@@ -292,7 +300,8 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            db.HR_STAFFING_PLAN.Remove(staffingPlan);
+            staffingPlan.IsDeleted = true;
+            db.Entry(staffingPlan).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrStaffingPlan", "Delete", $"ID: {id}");

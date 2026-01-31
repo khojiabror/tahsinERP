@@ -27,6 +27,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var jobDescriptions = await db.JOB_DESC
+                    .Where(s => (s.IsDeleted == false || s.IsDeleted == null) && (s.DOC_DOCUMENTS == null || s.DOC_DOCUMENTS.IsDeleted == false || s.DOC_DOCUMENTS.IsDeleted == null))
                     .Include(s => s.DOC_DOCUMENTS)
                     .OrderByDescending(s => s.DOC_DOCUMENTS.CreatedDT)
                     .Select(s => new JobDescIndexViewModel
@@ -397,9 +398,10 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var jobDescription = await db.JOB_DESC
+                    .Where(s => s.DocumentID == id && (s.IsDeleted == false || s.IsDeleted == null))
                     .Include(s => s.DOC_DOCUMENTS)
                     .Include(s => s.HR_JOB_DESCRIPTIONS)
-                    .FirstOrDefaultAsync(s => s.DocumentID == id);
+                    .FirstOrDefaultAsync();
 
                 if (jobDescription == null)
                 {
@@ -500,14 +502,16 @@ namespace tahsinERP.Controllers
 
                     var jobDescriptionCode = jobDescription.JobDescriptionCode;
 
-                    // DOC_DOCUMENTS ni o'chirish (CASCADE orqali JOB_DESC va DOC_FILES ham o'chadi)
+                    // DOC_DOCUMENTS ni soft delete qilish
                     if (jobDescription.DOC_DOCUMENTS != null)
                     {
-                        db.DOC_DOCUMENTS.Remove(jobDescription.DOC_DOCUMENTS);
+                        jobDescription.DOC_DOCUMENTS.IsDeleted = true;
+                        db.Entry(jobDescription.DOC_DOCUMENTS).State = System.Data.Entity.EntityState.Modified;
                     }
                     else
                     {
-                        db.JOB_DESC.Remove(jobDescription);
+                        jobDescription.IsDeleted = true;
+                        db.Entry(jobDescription).State = System.Data.Entity.EntityState.Modified;
                     }
 
                     await db.SaveChangesAsync();

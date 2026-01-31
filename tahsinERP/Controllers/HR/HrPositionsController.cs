@@ -27,7 +27,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            IQueryable<HR_POSITIONS> query = db.HR_POSITIONS;
+            IQueryable<HR_POSITIONS> query = db.HR_POSITIONS
+                .Where(p => p.IsDeleted == false || p.IsDeleted == null);
 
             if (isActive.HasValue)
             {
@@ -65,7 +66,9 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var position = await db.HR_POSITIONS.FindAsync(id);
+            var position = await db.HR_POSITIONS
+                .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
+                .FirstOrDefaultAsync();
             if (position == null)
             {
                 return HttpNotFound();
@@ -212,7 +215,8 @@ namespace tahsinERP.Controllers.HR
                     return RedirectToAction("Index");
                 }
 
-                db.HR_POSITIONS.Remove(position);
+                position.IsDeleted = true;
+                db.Entry(position).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
 
                 logger.Log("HrPositions", "Delete", $"ID: {id}, Name: {position.Name}");

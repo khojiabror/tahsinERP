@@ -29,6 +29,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var grades = await db.HR_SALARY_GRADES
+                .Where(sg => sg.IsDeleted == false || sg.IsDeleted == null)
                 .OrderBy(sg => sg.GradeCode)
                 .ToListAsync();
 
@@ -61,7 +62,9 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var grade = await db.HR_SALARY_GRADES.FindAsync(id);
+            var grade = await db.HR_SALARY_GRADES
+                .Where(sg => sg.ID == id && (sg.IsDeleted == false || sg.IsDeleted == null))
+                .FirstOrDefaultAsync();
             if (grade == null)
             {
                 return HttpNotFound();
@@ -287,7 +290,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            db.HR_SALARY_GRADES.Remove(grade);
+            grade.IsDeleted = true;
+            db.Entry(grade).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrSalaryGrades", "Delete", $"ID: {id}");

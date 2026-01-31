@@ -17,7 +17,9 @@ namespace tahsinERP.Controllers.Settings
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = await db.UNITS.ToListAsync();
+                var list = await db.UNITS
+                    .Where(u => u.IsDeleted == false || u.IsDeleted == null)
+                    .ToListAsync();
                 return View(list);
             }
         }
@@ -59,7 +61,9 @@ namespace tahsinERP.Controllers.Settings
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var unit = await db.UNITS.FindAsync(id);
+                var unit = await db.UNITS
+                    .Where(u => u.ID == id && (u.IsDeleted == false || u.IsDeleted == null))
+                    .FirstOrDefaultAsync();
                 if (unit == null)
                     return HttpNotFound();
                 return View(unit);
@@ -88,7 +92,8 @@ namespace tahsinERP.Controllers.Settings
                 {
                     try
                     {
-                        db.UNITS.Remove(unitToDelete);
+                        unitToDelete.IsDeleted = true;
+                        db.Entry(unitToDelete).State = System.Data.Entity.EntityState.Modified;
                         await db.SaveChangesAsync();
                         LogHelper.LogToDatabase(User.Identity.Name, "O'lchov birliklar", $"{unitToDelete.UnitName} - o'lchov birligini o'chirdi");
 

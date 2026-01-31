@@ -700,6 +700,7 @@
                 crmCustomersChart.render();
 
                 $('#crm-orders').text(data.totalOrders);
+            }
             },
             error: function(xhr, status, error) {
                 console.error('CRM Customers Stats xatosi:', error);
@@ -779,6 +780,7 @@
                 srmMaterialRequirementsChart.render();
 
                 $('#srm-materials').text(data.length);
+            }
             },
             error: function(xhr, status, error) {
                 console.error('SRM Material Requirements xatosi:', error);
@@ -864,6 +866,7 @@
                 mesProductionChart.render();
 
                 $('#mes-plans').text(data.reduce((sum, x) => sum + x.planCount, 0));
+            }
             },
             error: function(xhr, status, error) {
                 console.error('MES Production Stats xatosi:', error);
@@ -1129,7 +1132,8 @@
                 $('#finance-total').text('0');
             }
         });
-        }
+            }); // Close $(window).on("load")
+        } // Close initCharts function
         
         // DOM yuklangandan keyin ishga tushirish
         if (document.readyState === 'loading') {

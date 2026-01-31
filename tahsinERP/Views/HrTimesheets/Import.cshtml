@@ -12,7 +12,6 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Exceldan tabel import qilish</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -37,23 +36,14 @@
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
-                            @using (Html.BeginForm("Import", "HrTimesheets", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                            @using (Html.BeginForm("UploadExcel", "HrTimesheets", FormMethod.Post, new { enctype = "multipart/form-data" }))
                             {
                                 @Html.AntiForgeryToken()
 
                                 <div class="form-group">
                                     <label>Yil</label>
                                     <input type="number" name="year" class="form-control" value="@DateTime.Now.Year" min="2000" max="2100" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Oy</label>
-                                    <select name="month" class="form-control" required>
-                                        @for (int i = 1; i <= 12; i++)
-                                        {
-                                            <option value="@i" @(i == DateTime.Now.Month ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
-                                        }
-                                    </select>
+                                    <small class="text-muted">List nomidan yil aniqlanmasa, bu yil ishlatiladi</small>
                                 </div>
 
                                 <div class="form-group">
@@ -62,14 +52,14 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Excel fayli</label>
+                                    <label>Excel fayli <span class="text-danger">*</span></label>
                                     <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required />
-                                    <small class="text-muted">Format: Excel fayl bilan tabel (iPack - TABEL.xlsx)</small>
+                                    <small class="text-muted">Format: Excel fayl bilan tabel (iPack - TABEL.xlsx). Fayl yuklangandan keyin listlarni tanlash oynasi ochiladi.</small>
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-import"></i> Import qilish
+                                        <i class="bx bx-upload"></i> Faylni yuklash
                                     </button>
                                     <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
                                 </div>

@@ -35,6 +35,7 @@ namespace tahsinERP.Controllers.HR
             month = month ?? DateTime.Now.Month;
 
             IQueryable<HR_PAYROLL_HEADERS> query = db.HR_PAYROLL_HEADERS
+                .Where(p => p.IsDeleted == false || p.IsDeleted == null)
                 .Include(p => p.HR_ORG_UNITS);
 
             if (year.HasValue)
@@ -176,6 +177,88 @@ namespace tahsinERP.Controllers.HR
 
             logger.Log("HrPayroll", "GenerateHourly", $"ID: {payroll.ID}, TimesheetID: {timesheetId}");
             return RedirectToAction("Edit", new { id = payroll.ID });
+        }
+
+        // GET: HR/Payroll/GetTimesheets (AJAX endpoint)
+        [HttpGet]
+        public async Task<JsonResult> GetTimesheets(int year, int month, int? orgUnitId, string payrollType)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
+            {
+                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                List<object> timesheetList = new List<object>();
+
+                if (payrollType == "PieceRate")
+                {
+                    // Get piece-rate work entries grouped by year, month, and org unit
+                    var startDate = new DateTime(year, month, 1);
+                    var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                    IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                        .Include(e => e.HR_EMPLOYEES)
+                        .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
+                        .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+                    if (orgUnitId.HasValue)
+                    {
+                        query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+                    }
+
+                    var workEntries = await query.ToListAsync();
+
+                    // Group by year, month, and org unit
+                    var groupedData = workEntries
+                        .GroupBy(e => new { 
+                            Year = e.WorkDate.Year, 
+                            Month = e.WorkDate.Month,
+                            OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
+                        })
+                        .Select(g => new
+                        {
+                            Year = g.Key.Year,
+                            Month = g.Key.Month,
+                            OrgUnitID = g.Key.OrgUnitID,
+                            OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                            EntryCount = g.Count()
+                        })
+                        .OrderBy(x => x.OrgUnitName)
+                        .ToList();
+
+                    // Create timesheet list for dropdown
+                    timesheetList = groupedData.Select(g => new
+                    {
+                        ID = $"{g.Year}-{g.Month}-{g.OrgUnitID}",
+                        Name = $"{g.OrgUnitName} - {g.Year}-{g.Month:D2} ({g.EntryCount} ta yozuv)"
+                    }).Cast<object>().ToList();
+                }
+                else
+                {
+                    // Get approved hourly timesheets (non-piece-rate)
+                    var timesheets = await db.HR_TIMESHEET_HEADERS
+                        .Include(t => t.HR_ORG_UNITS)
+                        .Where(t => t.Year == year && t.Month == month && 
+                            t.Status == "Approved" &&
+                            (orgUnitId == null ? true : t.OrgUnitID == orgUnitId.Value))
+                        .OrderBy(t => t.HR_ORG_UNITS.Name)
+                        .ToListAsync();
+
+                    timesheetList = timesheets.Select(t => new
+                    {
+                        ID = t.ID.ToString(),
+                        Name = $"{t.HR_ORG_UNITS?.Name ?? "Butun kompaniya"} - {t.Year}-{t.Month:D2}"
+                    }).Cast<object>().ToList();
+                }
+
+                return Json(new { success = true, data = timesheetList }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         // GET: HR/Payroll/GeneratePieceRate
@@ -596,7 +679,7 @@ namespace tahsinERP.Controllers.HR
             viewModel.TotalGrossSalary = viewModel.Lines.Sum(l => l.GrossSalary);
             viewModel.TotalNetSalary = viewModel.Lines.Sum(l => l.NetSalary);
 
-            return View("~/Views/HR/HrReports/PayrollReport.cshtml", viewModel);
+            return View("~/Views/HrReports/PayrollReport.cshtml", viewModel);
         }
 
         // GET: HR/Payroll/Export/5
@@ -826,6 +909,7 @@ namespace tahsinERP.Controllers.HR
                             .Where(t => t.ProductID == timesheetLine.ProductID.Value &&
                                        (t.PositionID == employee.PositionID || t.PositionID == null) &&
                                        t.IsActive &&
+                                       (t.IsDeleted == false || t.IsDeleted == null) &&
                                        t.EffectiveFrom <= payroll.CreatedDT &&
                                        (t.EffectiveTo == null || t.EffectiveTo >= payroll.CreatedDT))
                             .OrderByDescending(t => t.PositionID) // Prefer position-specific over general
@@ -917,12 +1001,14 @@ namespace tahsinERP.Controllers.HR
 
                 // Get staffing plan for employee
                 var staffingPlan = await db.HR_STAFFING_PLAN
-                    .FirstOrDefaultAsync(sp => sp.OrgUnitID == employee.OrgUnitID &&
-                                              sp.PositionID == employee.PositionID &&
-                                              sp.IsActive &&
-                                              sp.IsPieceRate == true &&
-                                              sp.EffectiveFrom <= payroll.CreatedDT &&
-                                              (sp.EffectiveTo == null || sp.EffectiveTo >= payroll.CreatedDT));
+                    .Where(sp => sp.OrgUnitID == employee.OrgUnitID &&
+                                sp.PositionID == employee.PositionID &&
+                                sp.IsActive &&
+                                (sp.IsDeleted == false || sp.IsDeleted == null) &&
+                                sp.IsPieceRate == true &&
+                                sp.EffectiveFrom <= payroll.CreatedDT &&
+                                (sp.EffectiveTo == null || sp.EffectiveTo >= payroll.CreatedDT))
+                    .FirstOrDefaultAsync();
 
                 decimal baseSalary = employee.BaseSalary ?? 0;
                 decimal grossSalary = 0;
@@ -938,6 +1024,7 @@ namespace tahsinERP.Controllers.HR
                         .Where(t => t.ProductID == entry.ProductID &&
                                    t.OperationID == entry.OperationID &&
                                    t.IsActive &&
+                                   (t.IsDeleted == false || t.IsDeleted == null) &&
                                    t.EffectiveFrom <= entry.WorkDate &&
                                    (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
                                    (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
@@ -952,6 +1039,7 @@ namespace tahsinERP.Controllers.HR
                                        t.OperationID == entry.OperationID &&
                                        t.PositionID == null &&
                                        t.IsActive &&
+                                       (t.IsDeleted == false || t.IsDeleted == null) &&
                                        t.EffectiveFrom <= entry.WorkDate &&
                                        (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
                             .FirstOrDefaultAsync();
@@ -1047,14 +1135,16 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Delete payroll lines first
+            // Soft delete payroll lines first
             var lines = await db.HR_PAYROLL_LINES.Where(l => l.PayrollID == id).ToListAsync();
             foreach (var line in lines)
             {
-                db.HR_PAYROLL_LINES.Remove(line);
+                line.IsDeleted = true;
+                db.Entry(line).State = System.Data.Entity.EntityState.Modified;
             }
 
-            db.HR_PAYROLL_HEADERS.Remove(payroll);
+            payroll.IsDeleted = true;
+            db.Entry(payroll).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
             logger.Log("HrPayroll", "Delete", $"ID: {id}");

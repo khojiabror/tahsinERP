@@ -60,13 +60,13 @@
                                             </div>
                                             
                                             <div class="form-group">
-                                                <label for="ShopID">Sex <span class="text-danger">*</span></label>
-                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                <label for="ShopID">Sex</label>
+                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, "---Tanlang---", new { @class = "form-control select2"})
                                                 @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                             </div>
                                             
                                             <div class="form-group">
-                                                <label for="MRP">MRP (Mas'ul shaxs)</label>
+                                                <label for="MRP">MRP (Moddiy javobgar shaxs) <span class="text-danger">*</span></label>
                                                 @Html.DropDownListFor(model => model.MRP, ViewBag.MRPUsers as SelectList, "---Tanlang---", new { @class = "form-control select2" })
                                                 @Html.ValidationMessageFor(model => model.MRP, "", new { @class = "text-danger" })
                                                 <small class="text-muted">Material Requirements Planning mas'ul shaxsi</small>

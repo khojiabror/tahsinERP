@@ -60,7 +60,7 @@
                                             
                                             <div class="form-group">
                                                 <label for="ShopID">Sex <span class="text-danger">*</span></label>
-                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, "---Tanlang---", new { @class = "form-control select2"})
                                                 @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                             </div>
                                             

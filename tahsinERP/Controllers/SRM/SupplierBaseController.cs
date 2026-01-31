@@ -12,7 +12,7 @@ namespace tahsinERP.Controllers
     public class SupplierBaseController : Controller
     {
         // GET: SupplierBase
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string productType)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase", "Index"))
             {
@@ -21,8 +21,24 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var list = await db.SUPPLIER_BASE
-                    .Where(s => s.IsDeleted != true)
+                var productTypes = await db.SUPPLIER_BASE
+                    .Where(s => s.IsDeleted != true && s.ProductType != null && s.ProductType != "")
+                    .Select(s => s.ProductType)
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToListAsync();
+
+                ViewBag.ProductTypeList = new SelectList(productTypes, productType);
+                ViewBag.ProductType = productType;
+
+                IQueryable<SUPPLIER_BASE> query = db.SUPPLIER_BASE.Where(s => s.IsDeleted != true);
+
+                if (!string.IsNullOrEmpty(productType))
+                {
+                    query = query.Where(s => s.ProductType == productType);
+                }
+
+                var list = await query
                     .OrderBy(s => s.CompanyName)
                     .ToListAsync();
 

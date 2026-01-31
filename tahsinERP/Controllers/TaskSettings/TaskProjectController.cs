@@ -50,7 +50,9 @@ namespace tahsinERP.Controllers.TaskSettings
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var project = await db.APP_TASK_PROJECTS.FindAsync(id);
+                var project = await db.APP_TASK_PROJECTS
+                    .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
+                    .FirstOrDefaultAsync();
                 if (project == null)
                 {
                     return HttpNotFound();
@@ -231,7 +233,8 @@ namespace tahsinERP.Controllers.TaskSettings
                     return RedirectToAction("Index");
                 }
 
-                db.APP_TASK_PROJECTS.Remove(project);
+                project.IsDeleted = true;
+                db.Entry(project).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} o'chirildi");

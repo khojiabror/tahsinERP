@@ -120,9 +120,9 @@
                                                                 }
                                                             </td>
                                                             <td>
-                                                                @if (item.P_ORDERS != null && item.P_ORDERS.P_CONTRACTS != null)
+                                                                @if (item.P_CONTRACTS != null)
                                                                 {
-                                                                    <a href="@Url.Action("Details", "PContracts", new { id = item.P_ORDERS.ContractID })">@item.P_ORDERS.P_CONTRACTS.ContractNo</a>
+                                                                    <a href="@Url.Action("Details", "PContracts", new { id = item.ContractID })">@item.P_CONTRACTS.ContractNo</a>
                                                                 }
                                                                 else
                                                                 {

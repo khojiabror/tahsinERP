@@ -21,6 +21,7 @@ namespace tahsinERP.Controllers.TaskSettings
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var statuses = await db.APP_TASK_STATUS_REF
+                    .Where(s => s.IsDeleted == false || s.IsDeleted == null)
                     .OrderBy(s => s.SortOrder)
                     .ToListAsync();
                 return View(statuses);
@@ -42,7 +43,9 @@ namespace tahsinERP.Controllers.TaskSettings
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var status = await db.APP_TASK_STATUS_REF.FindAsync(id);
+                var status = await db.APP_TASK_STATUS_REF
+                    .Where(s => s.ID == id && (s.IsDeleted == false || s.IsDeleted == null))
+                    .FirstOrDefaultAsync();
                 if (status == null)
                 {
                     return HttpNotFound();
@@ -188,7 +191,8 @@ namespace tahsinERP.Controllers.TaskSettings
                     return RedirectToAction("Index");
                 }
 
-                db.APP_TASK_STATUS_REF.Remove(status);
+                status.IsDeleted = true;
+                db.Entry(status).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} o'chirildi");

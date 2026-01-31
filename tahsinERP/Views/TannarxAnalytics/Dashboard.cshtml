@@ -16,7 +16,6 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Tannarx Analytics Dashboard</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -327,116 +326,92 @@
     </div>
 
     @section scripts
-    {
+{
         <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
-        <script type="text/javascript">
-            document.addEventListener('DOMContentLoaded', function() {
-                if (typeof jQuery === 'undefined') {
-                    console.error('jQuery is not loaded');
-                    return;
-                }
 
-                // Monthly Trend Chart using ApexCharts
-                // Only show chart if productID is selected
-                var productID = @(ViewBag.ProductID != null ? ViewBag.ProductID.ToString() : "null");
-                
-                @if (ViewBag.ProductID != null)
-                {
-                    <text>
-                    var monthlyTrendData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new {
-                        labels = Model.MonthlyTrends?.Select(t => t.MonthString).ToArray() ?? new string[0],
-                        planned = Model.MonthlyTrends?.Select(t => (double)t.PlannedTotal).ToArray() ?? new double[0],
-                        actual = Model.MonthlyTrends?.Select(t => (double)t.ActualTotal).ToArray() ?? new double[0]
-                    }));
+        <script>
+document.addEventListener('DOMContentLoaded', function () {
 
-                    // Wait for ApexCharts to load
-                    function initChart() {
-                        if (typeof ApexCharts !== 'undefined') {
-                    </text>
-                }
-                else
-                {
-                    <text>
-                    // Chart not shown - product not selected
-                    function initChart() {
-                        // Do nothing if product not selected
-                        return;
-                    }
-                    </text>
-                }
-                            var monthlyTrendOptions = {
-                                chart: {
-                                    height: 350,
-                                    type: 'line',
-                                    zoom: {
-                                        enabled: false
-                                    },
-                                    toolbar: {
-                                        show: false
-                                    }
-                                },
-                                dataLabels: {
-                                    enabled: false
-                                },
-                                stroke: {
-                                    curve: 'straight',
-                                    width: 3
-                                },
-                                legend: {
-                                    position: 'top',
-                                    horizontalAlign: 'right'
-                                },
-                                colors: ['#198754', '#dc3545'],
-                                series: [{
-                                    name: 'Planned',
-                                    data: monthlyTrendData.planned
-                                }, {
-                                    name: 'Actual',
-                                    data: monthlyTrendData.actual
-                                }],
-                                xaxis: {
-                                    categories: monthlyTrendData.labels
-                                },
-                                yaxis: {
-                                    labels: {
-                                        formatter: function(val) {
-                                            return Math.round(val).toLocaleString('uz-UZ') + ' so\'m';
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    y: {
-                                        formatter: function(val) {
-                                            return Math.round(val).toLocaleString('uz-UZ') + ' so\'m';
-                                        }
-                                    }
-                                }
-                            };
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery is not loaded');
+        return;
+    }
 
-                            var monthlyTrendChart = new ApexCharts(
-                                document.querySelector("#monthly-trend-chart"),
-                                monthlyTrendOptions
-                            );
-                            monthlyTrendChart.render();
-                        } else {
-                            // Retry after a short delay if ApexCharts is not loaded yet
-                            setTimeout(initChart, 100);
-                        }
-                    }
-                    </text>
-                }
-                    </text>
-                }
+    var productID = @(ViewBag.ProductID != null ? ViewBag.ProductID : "null");
 
-                initChart();
+    var monthlyTrendData = null;
 
-                // Filter change handlers
-                jQuery('#yearFilter, #monthFilter, #productFilter').on('change', function () {
-                    jQuery('#filterForm').submit();
-                });
-            });
+    @if (ViewBag.ProductID != null)
+    {
+        <text>
+        monthlyTrendData = {
+            labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                Model.MonthlyTrends?.Select(t => t.MonthString).ToArray() ?? new string[0]
+            )),
+            planned: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                Model.MonthlyTrends?.Select(t => (double)t.PlannedTotal).ToArray() ?? new double[0]
+            )),
+            actual: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                Model.MonthlyTrends?.Select(t => (double)t.ActualTotal).ToArray() ?? new double[0]
+            ))
+        };
+        </text>
+    }
+
+    function initChart() {
+
+        if (!productID || !monthlyTrendData) {
+            return; // product tanlanmagan
+        }
+
+        if (typeof ApexCharts === 'undefined') {
+            setTimeout(initChart, 100);
+            return;
+        }
+
+        var options = {
+            chart: {
+                height: 350,
+                type: 'line',
+                toolbar: { show: false }
+            },
+            stroke: {
+                curve: 'straight',
+                width: 3
+            },
+            colors: ['#198754', '#dc3545'],
+            series: [
+                { name: 'Planned', data: monthlyTrendData.planned },
+                { name: 'Actual', data: monthlyTrendData.actual }
+            ],
+            xaxis: {
+                categories: monthlyTrendData.labels
+            },
+            yaxis: {
+                labels: {
+                    formatter: val =>
+                        Math.round(val).toLocaleString('uz-UZ') + " so'm"
+                }
+            }
+        };
+
+        new ApexCharts(
+            document.querySelector('#monthly-trend-chart'),
+            options
+        ).render();
+    }
+
+    initChart();
+
+    jQuery('#yearFilter, #monthFilter, #productFilter')
+        .on('change', function () {
+            jQuery('#filterForm').submit();
+        });
+
+});
         </script>
     }
+
 }
 else
 {

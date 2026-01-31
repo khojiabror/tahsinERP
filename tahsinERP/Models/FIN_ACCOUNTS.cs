@@ -31,6 +31,7 @@ namespace tahsinERP.Models
         public int CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
         public Nullable<int> BalanceCategoryID { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual FIN_BALANCE_CATEGORIES FIN_BALANCE_CATEGORIES { get; set; }

@@ -21,6 +21,7 @@ namespace tahsinERP.Models
         public decimal AmountPlan { get; set; }
         public int CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual FIN_PL_ITEMS FIN_PL_ITEMS { get; set; }
         public virtual USER USER { get; set; }

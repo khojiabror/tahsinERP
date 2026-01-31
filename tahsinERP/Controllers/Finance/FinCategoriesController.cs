@@ -21,7 +21,8 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_CATEGORIES.Where(c => c.IsActive);
+                var query = db.FIN_CATEGORIES
+                    .Where(c => c.IsActive && (c.IsDeleted == false || c.IsDeleted == null));
 
                 // Search filter
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -98,8 +99,9 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var category = db.FIN_CATEGORIES
+                    .Where(c => c.ID == id && (c.IsDeleted == false || c.IsDeleted == null))
                     .Include(c => c.FIN_CATEGORIES2)
-                    .FirstOrDefault(c => c.ID == id);
+                    .FirstOrDefault();
 
                 if (category == null)
                 {

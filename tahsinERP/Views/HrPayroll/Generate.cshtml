@@ -12,7 +12,6 @@
                 <div class="content-header-left col-12 mb-2 mt-1">
                     <div class="row breadcrumbs-top">
                         <div class="col-12">
-                            <h5 class="content-header-title float-left pr-1 mb-0">Ish haqi hisobini yaratish (@(ViewBag.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay"))</h5>
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
@@ -37,17 +36,29 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label>Yil <span class="text-danger">*</span></label>
-                                            <input type="number" name="year" class="form-control" value="@ViewBag.Year" min="2000" max="2100" required />
+                                            <select name="year" id="year" class="form-control" required>
+                                                @{
+                                                    int currentYear = ViewBag.Year ?? DateTime.Now.Year;
+                                                    for (int y = currentYear - 5; y <= currentYear + 5; y++)
+                                                    {
+                                                        <option value="@y" @(y == currentYear ? "selected" : "")>@y</option>
+                                                    }
+                                                }
+                                            </select>
                                         </div>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label>Oy <span class="text-danger">*</span></label>
-                                            <select name="month" class="form-control" required>
-                                                @for (int i = 1; i <= 12; i++)
-                                                {
-                                                    <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                            <select name="month" id="month" class="form-control" required>
+                                                @{
+                                                    int currentMonth = ViewBag.Month ?? DateTime.Now.Month;
+                                                    string[] uzbekMonths = { "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr" };
+                                                    for (int i = 1; i <= 12; i++)
+                                                    {
+                                                        <option value="@i" @(i == currentMonth ? "selected" : "")>@uzbekMonths[i]</option>
+                                                    }
                                                 }
                                             </select>
                                         </div>
@@ -56,14 +67,14 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label>Bo'lim</label>
-                                            @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2" })
+                                            @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2", @id = "orgUnitId" })
                                         </div>
                                     </div>
 
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label>Tabel (ma'lumot manbai) <span class="text-danger">*</span></label>
-                                            @Html.DropDownList("timesheetId", ViewBag.TimesheetID as SelectList, "Tasdiqlangan tabelni tanlang", new { @class = "form-control select2", @required = "required" })
+                                            @Html.DropDownList("timesheetId", ViewBag.TimesheetID as SelectList, "Tasdiqlangan tabelni tanlang", new { @class = "form-control select2", @id = "timesheetId", @required = "required" })
                                             <small class="text-muted">Ish haqi hisobi uchun tasdiqlangan tabelni tanlang</small>
                                         </div>
                                     </div>
@@ -85,6 +96,8 @@
 
     @section scripts {
         <script>
+            var payrollType = '@ViewBag.PayrollType';
+            
             // Wait for jQuery and Select2 to be loaded
             function initSelect2() {
                 if (typeof jQuery !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
@@ -95,13 +108,75 @@
                 }
             }
             
+            // Function to update timesheet dropdown
+            function updateTimesheetDropdown() {
+                var year = $('#year').val();
+                var month = $('#month').val();
+                var orgUnitId = $('#orgUnitId').val();
+                
+                if (!year || !month) {
+                    return;
+                }
+                
+                $.ajax({
+                    url: '@Url.Action("GetTimesheets", "HrPayroll")',
+                    type: 'GET',
+                    data: {
+                        year: year,
+                        month: month,
+                        orgUnitId: orgUnitId || null,
+                        payrollType: payrollType
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            var timesheetDropdown = $('#timesheetId');
+                            timesheetDropdown.empty();
+                            
+                            // Add default option
+                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                            
+                            // Add timesheet options
+                            $.each(response.data, function (index, item) {
+                                timesheetDropdown.append(new Option(item.Name, item.ID));
+                            });
+                            
+                            // Trigger Select2 update
+                            timesheetDropdown.trigger('change');
+                        } else {
+                            console.error('Xatolik: ' + response.message);
+                            var timesheetDropdown = $('#timesheetId');
+                            timesheetDropdown.empty();
+                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                            timesheetDropdown.trigger('change');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Tabel ro\'yxatini olishda xatolik:', error);
+                        var timesheetDropdown = $('#timesheetId');
+                        timesheetDropdown.empty();
+                        timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                        timesheetDropdown.trigger('change');
+                    }
+                });
+            }
+            
             // Start initialization when DOM is ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(initSelect2, 500);
+                    
+                    // Attach change event listeners
+                    $('#year, #month, #orgUnitId').on('change', function() {
+                        updateTimesheetDropdown();
+                    });
                 });
             } else {
                 setTimeout(initSelect2, 500);
+                
+                // Attach change event listeners
+                $('#year, #month, #orgUnitId').on('change', function() {
+                    updateTimesheetDropdown();
+                });
             }
         </script>
     }

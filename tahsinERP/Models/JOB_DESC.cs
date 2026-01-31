@@ -21,6 +21,7 @@ namespace tahsinERP.Models
         public decimal VersionNo { get; set; }
         public string Notes { get; set; }
         public Nullable<long> HRJobDescriptionID { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
         public virtual HR_JOB_DESCRIPTIONS HR_JOB_DESCRIPTIONS { get; set; }

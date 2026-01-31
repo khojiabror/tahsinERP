@@ -52,9 +52,10 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var shareholder = db.SHAREHOLDERS
+                    .Where(s => s.ID == id && (s.IsDeleted == false || s.IsDeleted == null))
                     .Include(s => s.SHAREHOLDER_SHARE_PERIODS)
                     .Include(s => s.SHAREHOLDER_CONTRIBUTIONS)
-                    .FirstOrDefault(s => s.ID == id);
+                    .FirstOrDefault();
 
                 if (shareholder == null)
                 {
@@ -235,7 +236,8 @@ namespace tahsinERP.Controllers.Finance
                 var shareholder = db.SHAREHOLDERS.Find(id);
                 if (shareholder != null)
                 {
-                    shareholder.IsActive = false;
+                    shareholder.IsDeleted = true;
+                    db.Entry(shareholder).State = System.Data.Entity.EntityState.Modified;
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Shareholder", "Delete", $"Aksiyador o'chirildi: {shareholder.FullName}");

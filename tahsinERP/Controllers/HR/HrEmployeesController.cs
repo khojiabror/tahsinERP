@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,17 @@ using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
 {
+    // Helper class for SQL query result
+    public class HistoryWithDates
+    {
+        public int ID { get; set; }
+        public DateTime EffectiveDateFrom { get; set; }
+        public DateTime? EffectiveDateTo { get; set; }
+        public string FromOrgUnitName { get; set; }
+        public string FromPositionName { get; set; }
+        public string Reason { get; set; }
+    }
+
     [Authorize]
     public class HrEmployeesController : Controller
     {
@@ -65,7 +77,7 @@ namespace tahsinERP.Controllers.HR
                 .GroupBy(h => h.EmployeeID)
                 .Select(g => new { 
                     EmployeeID = g.Key, 
-                    LatestHistory = g.OrderByDescending(x => x.EffectiveDate).FirstOrDefault() 
+                    LatestHistory = g.OrderByDescending(x => x.EffectiveDateFrom).FirstOrDefault() 
                 })
                 .ToListAsync();
 
@@ -134,15 +146,13 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Get employee history (transfers and dismissals)
-            var history = await db.HR_EMPLOYEE_HISTORY
-                .Include(h => h.HR_ORG_UNITS) // FromOrgUnitID
-                .Include(h => h.HR_POSITIONS) // FromPositionID
-                .Include(h => h.HR_ORG_UNITS1) // ToOrgUnitID
-                .Include(h => h.HR_POSITIONS1) // ToPositionID
-                .Where(h => h.EmployeeID == id)
-                .OrderByDescending(h => h.EffectiveDate)
-                .ToListAsync();
+            // Get employee history - simple query
+            var allHistory = db.HR_EMPLOYEE_HISTORY
+                .Include(h => h.HR_ORG_UNITS)
+                .Include(h => h.HR_POSITIONS)
+                .Where(h => h.EmployeeID == id.Value)
+                .OrderBy(h => h.EffectiveDateFrom)
+                .ToList();
 
             var viewModel = new HrEmployeeViewModel
             {
@@ -161,17 +171,51 @@ namespace tahsinERP.Controllers.HR
                 IsActive = employee.IsActive
             };
 
-            // Pass history to view
-            ViewBag.History = history.Select(h => new
+            // Pass history to view with EffectiveDateFrom and EffectiveDateTo from database
+            var historyList = new List<HrEmployeeHistoryViewModel>();
+            
+            // Use Entity Framework with Include to ensure navigation properties are loaded
+            var historyRecords = await db.HR_EMPLOYEE_HISTORY
+                .Include(h => h.HR_ORG_UNITS)
+                .Include(h => h.HR_POSITIONS)
+                .Where(h => h.EmployeeID == id.Value)
+                .OrderBy(h => h.EffectiveDateFrom)
+                .ToListAsync();
+
+            foreach (var h in historyRecords)
             {
-                ActionType = h.ActionType,
-                FromOrgUnitName = h.HR_ORG_UNITS?.Name ?? "-",
-                FromPositionName = h.HR_POSITIONS?.Name ?? "-",
-                ToOrgUnitName = h.HR_ORG_UNITS1?.Name ?? "-",
-                ToPositionName = h.HR_POSITIONS1?.Name ?? "-",
-                EffectiveDate = h.EffectiveDate,
-                Reason = h.Reason
-            }).ToList();
+                DateTime effectiveDateFrom = h.EffectiveDateFrom;
+                DateTime? effectiveDateTo = h.EffectiveDateTo;
+                
+                // If EffectiveDateTo is null, try to get from next record or employee DismissalDate
+                if (!effectiveDateTo.HasValue)
+                {
+                    var nextRecord = historyRecords
+                        .Where(h2 => h2.EffectiveDateFrom > effectiveDateFrom)
+                        .OrderBy(h2 => h2.EffectiveDateFrom)
+                        .FirstOrDefault();
+                    
+                    if (nextRecord != null)
+                    {
+                        effectiveDateTo = nextRecord.EffectiveDateFrom;
+                    }
+                    else if (employee.DismissalDate.HasValue)
+                    {
+                        effectiveDateTo = employee.DismissalDate;
+                    }
+                }
+
+                historyList.Add(new HrEmployeeHistoryViewModel
+                {
+                    FromOrgUnitName = h.HR_ORG_UNITS?.Name ?? "-",
+                    FromPositionName = h.HR_POSITIONS?.Name ?? "-",
+                    EffectiveDate = effectiveDateFrom,
+                    EffectiveDateTo = effectiveDateTo,
+                    Reason = h.Reason ?? "-"
+                });
+            }
+            
+            ViewBag.History = historyList;
 
             logger.Log("HrEmployees", "Details", $"ID: {id}");
             return View(viewModel);
@@ -185,6 +229,9 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            // Generate next TabNo automatically
+            string nextTabNo = await GenerateNextTabNo();
+
             ViewBag.OrgUnitID = new SelectList(
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name");
@@ -196,6 +243,8 @@ namespace tahsinERP.Controllers.HR
             ViewBag.SalaryGradeID = new SelectList(
                 await db.HR_SALARY_GRADES.OrderBy(sg => sg.GradeCode).ToListAsync(),
                 "ID", "Name");
+
+            ViewBag.NextTabNo = nextTabNo;
 
             return View();
         }
@@ -212,9 +261,16 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
+                // Generate TabNo automatically if not provided or empty
+                string tabNo = viewModel.TabNo;
+                if (string.IsNullOrWhiteSpace(tabNo))
+                {
+                    tabNo = await GenerateNextTabNo();
+                }
+
                 // Check if TabNo already exists
                 var existing = await db.HR_EMPLOYEES
-                    .FirstOrDefaultAsync(e => e.TabNo == viewModel.TabNo && e.IsActive);
+                    .FirstOrDefaultAsync(e => e.TabNo == tabNo);
                 if (existing != null)
                 {
                     ModelState.AddModelError("TabNo", "Табельный номер уже существует");
@@ -224,7 +280,7 @@ namespace tahsinERP.Controllers.HR
 
                 var employee = new HR_EMPLOYEES
                 {
-                    TabNo = viewModel.TabNo,
+                    TabNo = tabNo,
                     FullName = viewModel.FullName,
                     OrgUnitID = viewModel.OrgUnitID,
                     PositionID = viewModel.PositionID,
@@ -239,6 +295,28 @@ namespace tahsinERP.Controllers.HR
 
                 db.HR_EMPLOYEES.Add(employee);
                 await db.SaveChangesAsync();
+
+                // Create HrEmployeeHistory record for the new employee
+                if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
+                {
+                    var history = new HR_EMPLOYEE_HISTORY
+                    {
+                        EmployeeID = employee.ID,
+                        ActionType = "Initial Employment",
+                        FromOrgUnitID = employee.OrgUnitID,
+                        FromPositionID = employee.PositionID,
+                        ToOrgUnitID = null,
+                        ToPositionID = null,
+                        EffectiveDateFrom = employee.EmploymentDate.Value, // Employment start date
+                        EffectiveDateTo = employee.DismissalDate, // Dismissal date (if any)
+                        Reason = "Ishga qabul qilingan",
+                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                        CreatedDT = DateTime.Now
+                    };
+
+                    db.HR_EMPLOYEE_HISTORY.Add(history);
+                    await db.SaveChangesAsync(); // Save history record
+                }
 
                 logger.Log("HrEmployees", "Create", $"ID: {employee.ID}, TabNo: {employee.TabNo}");
                 return RedirectToAction("Index");
@@ -363,6 +441,49 @@ namespace tahsinERP.Controllers.HR
             return RedirectToAction("Index");
         }
 
+        /// <summary>
+        /// Generates the next TabNo by finding the highest TabNo that starts with '0' and adding 1
+        /// Format: 4 digits with leading zeros (e.g., 0001, 0009, 0010, 0099, 0100)
+        /// </summary>
+        private async Task<string> GenerateNextTabNo()
+        {
+            // Get all TabNo values that start with '0' (4-digit format)
+            var tabNos = await db.HR_EMPLOYEES
+                .Where(e => e.TabNo != null && e.TabNo.StartsWith("0") && e.TabNo.Length == 4)
+                .Select(e => e.TabNo)
+                .ToListAsync();
+
+            if (tabNos == null || !tabNos.Any())
+            {
+                // No TabNo starting with 0 exists, start from 0001
+                return "0001";
+            }
+
+            // Parse all TabNo values to integers and find the maximum
+            int maxTabNo = 0;
+            foreach (var tabNo in tabNos)
+            {
+                if (int.TryParse(tabNo, out int tabNoInt))
+                {
+                    if (tabNoInt > maxTabNo)
+                    {
+                        maxTabNo = tabNoInt;
+                    }
+                }
+            }
+
+            // Increment by 1 and format as 4-digit string with leading zeros
+            int nextTabNo = maxTabNo + 1;
+            
+            // Ensure it doesn't exceed 9999 (4 digits max)
+            if (nextTabNo > 9999)
+            {
+                throw new InvalidOperationException("TabNo has reached the maximum value (9999). Please contact administrator.");
+            }
+
+            return nextTabNo.ToString("D4"); // Format as 4-digit string with leading zeros
+        }
+
         private async Task PopulateViewBags(HrEmployeeViewModel viewModel)
         {
             ViewBag.OrgUnitID = new SelectList(
@@ -437,27 +558,50 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Create history record
-            var history = new HR_EMPLOYEE_HISTORY
+            // Create history record for the last position (from EmploymentDate to dismissalDate)
+            if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
             {
-                EmployeeID = id,
-                ActionType = "Dismissal",
-                FromOrgUnitID = employee.OrgUnitID,
-                FromPositionID = employee.PositionID,
-                EffectiveDate = dismissalDate,
-                Reason = reason,
-                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                CreatedDT = DateTime.Now
-            };
+                try
+                {
+                    // Create HR_EMPLOYEE_HISTORY object using Entity Framework
+                    var history = new HR_EMPLOYEE_HISTORY
+                    {
+                        EmployeeID = id,
+                        ActionType = "History",
+                        FromOrgUnitID = employee.OrgUnitID,
+                        FromPositionID = employee.PositionID,
+                        ToOrgUnitID = null,
+                        ToPositionID = null,
+                        EffectiveDateFrom = employee.EmploymentDate.Value, // Employment start date
+                        EffectiveDateTo = dismissalDate, // Dismissal date
+                        Reason = reason,
+                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                        CreatedDT = DateTime.Now
+                    };
 
-            db.HR_EMPLOYEE_HISTORY.Add(history);
+                    db.HR_EMPLOYEE_HISTORY.Add(history);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue with employee update
+                    System.Diagnostics.Debug.WriteLine($"Error creating history record: {ex.Message}");
+                }
+            }
 
             // Update employee
             employee.DismissalDate = dismissalDate;
             employee.IsActive = false;
             employee.UpdatedDT = DateTime.Now;
 
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                return RedirectToAction("Dismiss", new { id });
+            }
 
             logger.Log("HrEmployees", "Dismiss", $"ID: {id}, Date: {dismissalDate}");
             TempData["Success"] = "Xodim muvaffaqiyatli ishdan bo'shatildi";
@@ -538,29 +682,51 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Transfer", new { id });
             }
 
-            // Create history record
-            var history = new HR_EMPLOYEE_HISTORY
+            // Create history record for the OLD position (from EmploymentDate to effectiveDate - new position start date)
+            if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
             {
-                EmployeeID = id,
-                ActionType = "Transfer",
-                FromOrgUnitID = employee.OrgUnitID,
-                FromPositionID = employee.PositionID,
-                ToOrgUnitID = toOrgUnitId,
-                ToPositionID = toPositionId,
-                EffectiveDate = effectiveDate,
-                Reason = reason,
-                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                CreatedDT = DateTime.Now
-            };
+                try
+                {
+                    // Create HR_EMPLOYEE_HISTORY object using Entity Framework
+                    var history = new HR_EMPLOYEE_HISTORY
+                    {
+                        EmployeeID = id,
+                        ActionType = "History",
+                        FromOrgUnitID = employee.OrgUnitID,
+                        FromPositionID = employee.PositionID,
+                        ToOrgUnitID = toOrgUnitId,
+                        ToPositionID = toPositionId,
+                        EffectiveDateFrom = employee.EmploymentDate.Value, // Old position start date
+                        EffectiveDateTo = effectiveDate, // Old position end date (new position start date)
+                        Reason = reason ?? "Boshqa lavozimga o'tkazilgan",
+                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                        CreatedDT = DateTime.Now
+                    };
 
-            db.HR_EMPLOYEE_HISTORY.Add(history);
+                    db.HR_EMPLOYEE_HISTORY.Add(history);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue with employee update
+                    System.Diagnostics.Debug.WriteLine($"Error creating history record: {ex.Message}");
+                }
+            }
 
             // Update employee to new position
             employee.OrgUnitID = toOrgUnitId;
             employee.PositionID = toPositionId;
+            employee.EmploymentDate = effectiveDate; // New position start date
             employee.UpdatedDT = DateTime.Now;
 
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                return RedirectToAction("Transfer", new { id });
+            }
 
             logger.Log("HrEmployees", "Transfer", $"ID: {id}, ToOrgUnit: {toOrgUnitId}, ToPosition: {toPositionId}");
             TempData["Success"] = "Xodim muvaffaqiyatli transfer qilindi";
