@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -23,11 +24,19 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                var expenses = await db.EXPENSES
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                var expensesQuery = db.EXPENSES
                     .Include(e => e.Warehouse)
                     .Include(e => e.Warehouse1)
                     .Include(e => e.CURRENCy)
-                    .Where(e => e.IsDeleted != true)
+                    .Where(e => e.IsDeleted != true);
+
+                if (assignedWarehouseId.HasValue)
+                {
+                    expensesQuery = expensesQuery.Where(e => e.SenderWHID == assignedWarehouseId.Value);
+                }
+
+                var expenses = await expensesQuery
                     .OrderByDescending(e => e.IssueDateTime)
                     .ToListAsync();
 
@@ -64,6 +73,12 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
                 return View(expense);
             }
         }
@@ -78,8 +93,15 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (!assignedWarehouseId.HasValue)
+                {
+                    ViewBag.NoWarehouseError = "Sizga biriktirilgan ombor mavjud emas";
+                    return View();
+                }
+
                 ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    await db.WAREHOUSES.Where(w => w.ID == assignedWarehouseId.Value).OrderBy(w => w.WHName).ToListAsync(),
                     "ID", "WHName"
                 );
 
@@ -104,14 +126,58 @@ namespace tahsinERP.Controllers.SRM
 
         // POST: Expenses/GetAvailableProducts
         [HttpPost]
-        public async Task<JsonResult> GetAvailableProducts(int warehouseId)
+        public async Task<JsonResult> GetAvailableProducts(int warehouseId, int? receiverWarehouseId)
         {
             using (var db = new DBTHSNEntities())
             {
-                var products = await db.PRODUCT_STOCKS
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (!assignedWarehouseId.HasValue)
+                {
+                    return Json(new { success = false, message = "Sizga biriktirilgan ombor mavjud emas" });
+                }
+
+                if (warehouseId != assignedWarehouseId.Value)
+                {
+                    return Json(new { success = false, message = "Siz faqat biriktirilgan ombor bo'yicha chiqim qila olasiz." });
+                }
+
+                var productsQuery = db.PRODUCT_STOCKS
                     .Include(s => s.PRODUCT)
                     .Include(s => s.UNIT)
                     .Where(s => s.WHID == warehouseId && s.Amount > 0)
+                    .AsQueryable();
+
+                var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+                var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+
+                var isProductionToSales = productionWH != null
+                    && salesWH != null
+                    && warehouseId == productionWH.ID
+                    && receiverWarehouseId.HasValue
+                    && receiverWarehouseId.Value == salesWH.ID;
+
+                Dictionary<int, decimal> approvedRemaining = null;
+                if (isProductionToSales)
+                {
+                    var approvedByProduct = await db.QUALITY_INSPECTION
+                        .Where(q => q.StatusCode == "APPROVED" && (q.IsDeleted == false || q.IsDeleted == null))
+                        .GroupBy(q => q.ProductID)
+                        .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
+                        .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+
+                    var transferredByProduct = await db.EXPENSE_PRODUCTS
+                        .Where(ep => ep.EXPENS.SenderWHID == productionWH.ID
+                            && ep.EXPENS.ReceiverWhID == salesWH.ID
+                            && (ep.EXPENS.IsDeleted == false || ep.EXPENS.IsDeleted == null))
+                        .GroupBy(ep => ep.ProductID)
+                        .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
+                        .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+
+                    approvedRemaining = approvedByProduct
+                        .ToDictionary(k => k.Key, k => k.Value - (transferredByProduct.ContainsKey(k.Key) ? transferredByProduct[k.Key] : 0));
+                }
+
+                var products = await productsQuery
                     .Select(s => new
                     {
                         ProductID = s.ProductID,
@@ -122,6 +188,22 @@ namespace tahsinERP.Controllers.SRM
                         UnitName = s.UNIT.ShortName
                     })
                     .ToListAsync();
+
+                if (isProductionToSales && approvedRemaining != null)
+                {
+                    products = products
+                        .Select(p => new
+                        {
+                            p.ProductID,
+                            p.ProductPNo,
+                            p.ProductName,
+                            AvailableStock = Math.Max(0, Math.Min((double)(approvedRemaining.ContainsKey(p.ProductID) ? approvedRemaining[p.ProductID] : 0), p.AvailableStock)),
+                            p.UnitID,
+                            p.UnitName
+                        })
+                        .Where(p => p.AvailableStock > 0)
+                        .ToList();
+                }
 
                 return Json(new { success = true, data = products });
             }
@@ -145,6 +227,19 @@ namespace tahsinERP.Controllers.SRM
                     {
                         try
                         {
+                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                            if (!assignedWarehouseId.HasValue)
+                            {
+                                TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                                return RedirectToAction("Index");
+                            }
+
+                            if (model.SenderWHID != assignedWarehouseId.Value)
+                            {
+                                TempData["Error"] = "Siz faqat biriktirilgan ombordan chiqim qilishingiz mumkin.";
+                                return RedirectToAction("Index");
+                            }
+
                             if (model.ExpenseProducts == null)
                             {
                                 model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
@@ -161,6 +256,51 @@ namespace tahsinERP.Controllers.SRM
                                     ModelState.AddModelError("", $"Mahsulot {product.ProductPNo} uchun yetarli qoldiq yo'q. Mavjud: {(stock?.Amount ?? 0)}, Talab: {product.Amount}");
                                     transaction.Rollback();
                                     goto RepopulateViewBag;
+                                }
+                            }
+
+                            var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+                            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+
+                            var isProductionToSales = productionWH != null
+                                && salesWH != null
+                                && model.SenderWHID == productionWH.ID
+                                && model.ReceiverWhID.HasValue
+                                && model.ReceiverWhID.Value == salesWH.ID;
+
+                            if (isProductionToSales)
+                            {
+                                var approvedByProduct = await db.QUALITY_INSPECTION
+                                    .Where(q => q.StatusCode == "APPROVED" && (q.IsDeleted == false || q.IsDeleted == null))
+                                    .GroupBy(q => q.ProductID)
+                                    .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
+                                    .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+
+                                var transferredByProduct = await db.EXPENSE_PRODUCTS
+                                    .Where(ep => ep.EXPENS.SenderWHID == productionWH.ID
+                                        && ep.EXPENS.ReceiverWhID == salesWH.ID
+                                        && (ep.EXPENS.IsDeleted == false || ep.EXPENS.IsDeleted == null))
+                                    .GroupBy(ep => ep.ProductID)
+                                    .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
+                                    .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+
+                                foreach (var product in model.ExpenseProducts)
+                                {
+                                    var approved = approvedByProduct.ContainsKey(product.ProductID)
+                                        ? approvedByProduct[product.ProductID]
+                                        : 0;
+                                    var transferred = transferredByProduct.ContainsKey(product.ProductID)
+                                        ? transferredByProduct[product.ProductID]
+                                        : 0;
+                                    var remaining = approved - transferred;
+
+                                    if ((decimal)product.Amount > remaining)
+                                    {
+                                        ModelState.AddModelError("",
+                                            $"Mahsulot {product.ProductPNo} uchun sifat nazorati tasdiqlangan miqdor yetarli emas. Qoldiq: {remaining}, Talab: {product.Amount}");
+                                        transaction.Rollback();
+                                        goto RepopulateViewBag;
+                                    }
                                 }
                             }
 
@@ -221,8 +361,8 @@ namespace tahsinERP.Controllers.SRM
                                         if (stock.Amount < 0) stock.Amount = 0;
                                     }
 
-                                    // If receiver warehouse specified, increase stock there
-                                    if (expense.ReceiverWhID.HasValue)
+                                    // If receiver warehouse specified and immediate receive is allowed, increase stock there
+                                    if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                     {
                                         var receiverStock = await db.PRODUCT_STOCKS
                                             .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
@@ -309,8 +449,12 @@ namespace tahsinERP.Controllers.SRM
             // Repopulate ViewBag on error
             using (var db = new DBTHSNEntities())
             {
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                 ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    await db.WAREHOUSES
+                        .Where(w => assignedWarehouseId.HasValue ? w.ID == assignedWarehouseId.Value : w.IsDeleted != true)
+                        .OrderBy(w => w.WHName)
+                        .ToListAsync(),
                     "ID", "WHName", model.SenderWHID
                 );
 
@@ -352,6 +496,33 @@ namespace tahsinERP.Controllers.SRM
             return $"{prefix}{nextNumber}";
         }
 
+        private bool ShouldUpdateReceiverStockImmediately(DBTHSNEntities db, int? receiverWhId)
+        {
+            if (!receiverWhId.HasValue)
+            {
+                return false;
+            }
+
+            var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+
+            if ((productionWH != null && receiverWhId.Value == productionWH.ID) ||
+                (salesWH != null && receiverWhId.Value == salesWH.ID))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
+        {
+            var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+            var warehouse = await db.WAREHOUSES
+                .FirstOrDefaultAsync(w => w.IsDeleted != true && w.MRP == currentUserId);
+            return warehouse?.ID;
+        }
+
         // GET: Expenses/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
@@ -375,6 +546,12 @@ namespace tahsinERP.Controllers.SRM
                 if (expense == null)
                 {
                     return HttpNotFound();
+                }
+
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
                 // Check if already sent (SendStatus == true)
@@ -417,7 +594,7 @@ namespace tahsinERP.Controllers.SRM
                 };
 
                 ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    await db.WAREHOUSES.Where(w => w.ID == expense.SenderWHID).OrderBy(w => w.WHName).ToListAsync(),
                     "ID", "WHName", model.SenderWHID
                 );
 
@@ -464,6 +641,12 @@ namespace tahsinERP.Controllers.SRM
                                 return HttpNotFound();
                             }
 
+                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                            if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                            {
+                                return RedirectToAction("Index", "ViewNotAuthorized");
+                            }
+
                             if (expense.SendStatus == true)
                             {
                                 TempData["Error"] = "Bu chiqim hujjati allaqachon yuborilgan va tahrirlash mumkin emas.";
@@ -487,7 +670,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
 
                                 // Revert receiver warehouse stock if exists
-                                if (expense.ReceiverWhID.HasValue)
+                                if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                 {
                                     var receiverStock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == oldProduct.ProductID);
@@ -567,7 +750,7 @@ namespace tahsinERP.Controllers.SRM
                                     }
 
                                     // Increase receiver warehouse stock if specified
-                                    if (expense.ReceiverWhID.HasValue)
+                                    if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                     {
                                         var receiverStock = await db.PRODUCT_STOCKS
                                             .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
@@ -698,6 +881,12 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
                 return View(expense);
             }
         }
@@ -721,6 +910,12 @@ namespace tahsinERP.Controllers.SRM
                         var expense = await db.EXPENSES.FindAsync(id);
                         if (expense != null)
                         {
+                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                            if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                            {
+                                return RedirectToAction("Index", "ViewNotAuthorized");
+                            }
+
                             // Revert stock changes
                             var expenseProducts = await db.EXPENSE_PRODUCTS
                                 .Where(ep => ep.ExpenseID == expense.ID)
@@ -738,7 +933,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
 
                                 // Revert receiver warehouse stock if exists
-                                if (expense.ReceiverWhID.HasValue)
+                                if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                 {
                                     var receiverStock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
@@ -828,7 +1023,7 @@ namespace tahsinERP.Controllers.SRM
                 Amount = totalAmount,
                 TotalPrice = totalPrice,
                 Description = $"Auto-linked from Expense {expense.DocNo} - {expense.Description}",
-                RecieveStatus = true, // Auto-received for internal transfers
+                RecieveStatus = false, // Pending receive for MRP confirmation
                 IsDeleted = false
             };
 

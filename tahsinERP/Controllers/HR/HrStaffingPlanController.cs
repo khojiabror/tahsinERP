@@ -33,7 +33,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             IQueryable<HR_STAFFING_PLAN> query = db.HR_STAFFING_PLAN
-                .Where(sp => sp.IsDeleted == false || sp.IsDeleted == null)
+                .Where(sp => sp.IsDeleted == false)
                 .Include(sp => sp.HR_ORG_UNITS)
                 .Include(sp => sp.HR_POSITIONS)
                 .Include(sp => sp.HR_SALARY_GRADES);
@@ -120,7 +120,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var staffingPlan = await db.HR_STAFFING_PLAN
-                .Where(sp => sp.ID == id && (sp.IsDeleted == false || sp.IsDeleted == null))
+                .Where(sp => sp.ID == id && sp.IsDeleted == false)
                 .Include(sp => sp.HR_ORG_UNITS)
                 .Include(sp => sp.HR_POSITIONS)
                 .Include(sp => sp.HR_SALARY_GRADES)

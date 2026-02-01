@@ -72,6 +72,19 @@
                                                 <b>Umumiy summasi</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" })
                                             </span>
                                             <hr />
+                                            @{
+                                                var totalAmount = Model.Amount ?? 0d;
+                                                var baseAmount = totalAmount / 1.12d;
+                                                var vatAmount = totalAmount - baseAmount;
+                                            }
+                                            <span>
+                                                <b>QQS (12%)</b>: @vatAmount.ToString("N2")
+                                            </span>
+                                            <hr />
+                                            <span>
+                                                <b>QQSsiz summa (88%)</b>: @baseAmount.ToString("N2")
+                                            </span>
+                                            <hr />
                                             <span>
                                                 <b>Valyuta</b>: @Html.DisplayFor(model => model.CURRENCy.Shortname, new { @class = "form-control" })
                                             </span>
@@ -103,6 +116,8 @@
                                                                             <th>Detal raqami</th>
                                                                             <th>Detal nomi</th>
                                                                             <th>Birlik narxi</th>
+                                                                            <th>QQS (%)</th>
+                                                                            <th>Jami narx</th>
                                                                             <th>O'lchov birligi</th>
                                                                             <th>Miqdori</th>
                                                                         </tr>
@@ -111,6 +126,11 @@
                                                                         @foreach (var item in ViewBag.ProductList)
                                                                         {
                                                                             <tr>
+                                                                                @{
+                                                                                    var baseTotal = item.PiecePrice * item.Amount;
+                                                                                    var vatPercent = 12d;
+                                                                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                                                                }
                                                                                 <td>
                                                                                     <a href="~/Product/Details/@item.PRODUCT.ID">@item.PRODUCT.PNo</a>
                                                                                 </td>
@@ -119,6 +139,12 @@
                                                                                 </td>
                                                                                 <td>
                                                                                     @item.PiecePrice
+                                                                                </td>
+                                                                                <td>
+                                                                                    @vatPercent.ToString("N2")
+                                                                                </td>
+                                                                                <td>
+                                                                                    @totalWithVat.ToString("N2")
                                                                                 </td>
                                                                                 <td>
                                                                                     @item.UNIT.ShortName

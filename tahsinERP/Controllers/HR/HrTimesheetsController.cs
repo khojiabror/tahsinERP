@@ -127,6 +127,18 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
+                // Validate: Cannot create timesheet for future months
+                var currentDate = DateTime.Now;
+                var timesheetMonth = new DateTime(viewModel.Year, viewModel.Month, 1);
+                var currentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+
+                if (timesheetMonth > currentMonth)
+                {
+                    ModelState.AddModelError("", "Kelajakka tabel kirita olmaysiz");
+                    await PopulateViewBags(viewModel);
+                    return View(viewModel);
+                }
+
                 // Check if timesheet already exists
                 var existing = await db.HR_TIMESHEET_HEADERS
                     .FirstOrDefaultAsync(t => t.Year == viewModel.Year && t.Month == viewModel.Month && 
@@ -1013,6 +1025,14 @@ namespace tahsinERP.Controllers.HR
                                 continue; // Skip and continue to next employee
                             }
 
+                            // Check if employee was active during this period using EmployeeHistory
+                            bool isActiveInPeriod = await IsEmployeeActiveInPeriod(employee.ID, sheetYear, month);
+                            if (!isActiveInPeriod)
+                            {
+                                errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodim ushbu muddatda ({sheetYear}-{month:D2}) ishda bo'lmagan (Qator: {row}).");
+                                continue;
+                            }
+
                             // Skip if this employee was already processed in this import
                             if (processedEmployees.Contains(employee.ID))
                             {
@@ -1414,10 +1434,18 @@ namespace tahsinERP.Controllers.HR
                             continue;
                         }
 
+                        // Check if employee was active during this period using EmployeeHistory
+                        bool isActiveInPeriod = await IsEmployeeActiveInPeriod(employee.ID, year, month);
+                        if (!isActiveInPeriod)
+                        {
+                            errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodim ushbu muddatda ({year}-{month:D2}) ishda bo'lmagan (Qator: {row}).");
+                            continue;
+                        }
+
                         // Check if employee is piece-rate
                         if (employee.PositionID.HasValue && !hourlyPositionIds.Contains(employee.PositionID.Value))
                         {
-                            errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodimning to'lov turi ishbay. Unga soatbay tabel kirita olmaymiz.");
+                            errorMessages.Add($"Tab.№ {tabNo} ({employee.FullName}) - bu xodimning to'lov turi ishbay. Unga soatbay tabel kirita olmaymiz (Qator: {row}).");
                             continue;
                         }
 
@@ -1498,8 +1526,101 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
+        // Helper method to check if employee was active during the specified period
+        private async Task<bool> IsEmployeeActiveInPeriod(int employeeId, int year, int month)
+        {
+            var timesheetDate = new DateTime(year, month, 1);
+            var timesheetEndDate = timesheetDate.AddMonths(1).AddDays(-1);
+
+            // Get employee history records ordered by date
+            var histories = await db.HR_EMPLOYEE_HISTORY
+                .Where(h => h.EmployeeID == employeeId)
+                .OrderBy(h => h.EffectiveDateFrom)
+                .ToListAsync();
+
+            // If no history, check current IsActive status
+            if (histories.Count == 0)
+            {
+                var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
+                return employee?.IsActive ?? false;
+            }
+
+            // Find the last action that was effective before or during the timesheet period
+            var lastActionBeforePeriod = histories
+                .Where(h => h.EffectiveDateFrom.Date <= timesheetEndDate)
+                .OrderByDescending(h => h.EffectiveDateFrom)
+                .FirstOrDefault();
+
+            if (lastActionBeforePeriod == null)
+            {
+                // No history before this period, check current IsActive status
+                var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
+                return employee?.IsActive ?? false;
+            }
+
+            // Check ActionType
+            var actionType = lastActionBeforePeriod.ActionType?.ToLower().Trim() ?? "";
+            
+            // Check for dismiss action
+            if (actionType.Contains("dismiss") || actionType.Contains("увольнение") || 
+                actionType.Contains("ishdan bo'shatish") || actionType.Contains("ishdan bo'shatilgan"))
+            {
+                // If dismissed, check if dismissal date is after timesheet period
+                // If dismissed on or before timesheet period, employee was not active
+                return lastActionBeforePeriod.EffectiveDateFrom.Date > timesheetEndDate;
+            }
+            
+            // Check for hire or transfer action
+            if (actionType.Contains("hire") || actionType.Contains("прием") || 
+                actionType.Contains("ishga qabul") || actionType.Contains("qabul qilish") ||
+                actionType.Contains("transfer") || actionType.Contains("перевод") || 
+                actionType.Contains("ko'chirish") || actionType.Contains("ko'chirilgan"))
+            {
+                // If hired or transferred, check if timesheet period is after the action date
+                var actionDate = lastActionBeforePeriod.EffectiveDateFrom.Date;
+                
+                // Check if there's a dismiss action after this hire/transfer
+                var dismissAfter = histories
+                    .Where(h => h.EffectiveDateFrom.Date > actionDate && 
+                               h.EffectiveDateFrom.Date <= timesheetEndDate &&
+                               (h.ActionType.ToLower().Contains("dismiss") || 
+                                h.ActionType.ToLower().Contains("увольнение") ||
+                                h.ActionType.ToLower().Contains("ishdan bo'shatish")))
+                    .OrderBy(h => h.EffectiveDateFrom)
+                    .FirstOrDefault();
+
+                if (dismissAfter != null)
+                {
+                    // Employee was dismissed before or during timesheet period
+                    return dismissAfter.EffectiveDateFrom.Date > timesheetEndDate;
+                }
+
+                // Check if timesheet period is within the employment period
+                var toDate = lastActionBeforePeriod.EffectiveDateTo?.Date ?? DateTime.MaxValue;
+                return timesheetDate >= actionDate && timesheetDate <= toDate;
+            }
+
+            // Default: if we have history but unclear action type, check if period overlaps
+            var fromDate = lastActionBeforePeriod.EffectiveDateFrom.Date;
+            var endDate = lastActionBeforePeriod.EffectiveDateTo?.Date ?? DateTime.MaxValue;
+            
+            if (timesheetDate >= fromDate && timesheetDate <= endDate)
+            {
+                // Period overlaps, check current IsActive as fallback
+                var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
+                return employee?.IsActive ?? false;
+            }
+
+            // No overlap, check current IsActive status
+            var emp = await db.HR_EMPLOYEES.FindAsync(employeeId);
+            return emp?.IsActive ?? false;
+        }
+
         private async Task CreateTimesheetLines(int timesheetId, int? orgUnitId)
         {
+            var header = await db.HR_TIMESHEET_HEADERS.FindAsync(timesheetId);
+            if (header == null) return;
+
             // Get only hourly employees (non-piece-rate)
             var hourlyPositionIds = await db.HR_STAFFING_PLAN
                 .Where(sp => sp.IsActive && sp.IsPieceRate == false)
@@ -1508,7 +1629,7 @@ namespace tahsinERP.Controllers.HR
                 .ToListAsync();
 
             IQueryable<HR_EMPLOYEES> employeesQuery = db.HR_EMPLOYEES
-                .Where(e => e.IsActive && (e.PositionID == null || hourlyPositionIds.Contains(e.PositionID ?? 0)));
+                .Where(e => (e.PositionID == null || hourlyPositionIds.Contains(e.PositionID ?? 0)));
 
             if (orgUnitId.HasValue)
             {
@@ -1519,13 +1640,28 @@ namespace tahsinERP.Controllers.HR
 
             foreach (var employee in employees)
             {
-                var line = new HR_TIMESHEET_LINES
+                // Check if employee was active during this period using EmployeeHistory
+                bool isActive = await IsEmployeeActiveInPeriod(employee.ID, header.Year, header.Month);
+                
+                if (!isActive)
                 {
-                    TimesheetID = timesheetId,
-                    EmployeeID = employee.ID
-                };
+                    continue; // Skip employees who were not active during this period
+                }
 
-                db.HR_TIMESHEET_LINES.Add(line);
+                // Check if line already exists
+                var existingLine = await db.HR_TIMESHEET_LINES
+                    .FirstOrDefaultAsync(l => l.TimesheetID == timesheetId && l.EmployeeID == employee.ID);
+
+                if (existingLine == null)
+                {
+                    var line = new HR_TIMESHEET_LINES
+                    {
+                        TimesheetID = timesheetId,
+                        EmployeeID = employee.ID
+                    };
+
+                    db.HR_TIMESHEET_LINES.Add(line);
+                }
             }
 
             await db.SaveChangesAsync();
@@ -1626,6 +1762,32 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
+                // Validate: Cannot create timesheet for future months
+                var currentDate = DateTime.Now;
+                var workDateMonth = new DateTime(WorkDate.Year, WorkDate.Month, 1);
+                var currentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+
+                if (workDateMonth > currentMonth)
+                {
+                    ModelState.AddModelError("", "Kelajakka tabel kirita olmaysiz");
+                    
+                    // Repopulate ViewBags
+                    ViewBag.EmployeeID = new SelectList(
+                        await db.HR_EMPLOYEES.Where(e => e.IsActive).OrderBy(e => e.FullName).ToListAsync(),
+                        "ID", "FullName", EmployeeID);
+
+                    ViewBag.ProductID = new SelectList(
+                        await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                        .OrderBy(p => p.PNo).ToListAsync(),
+                    "ID", "PNo", ProductID);
+
+                    ViewBag.OperationID = new SelectList(
+                        await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
+                        "ID", "Name", OperationID);
+
+                    return View();
+                }
+
                 var workEntry = new HR_PIECE_RATE_WORK_ENTRIES
                 {
                     EmployeeID = EmployeeID,
@@ -1664,8 +1826,8 @@ namespace tahsinERP.Controllers.HR
 
                 ViewBag.ProductID = new SelectList(
                     await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                        .OrderBy(p => p.PNo).ToListAsync(),
-                    "ID", "PNo", ProductID);
+                    .OrderBy(p => p.PNo).ToListAsync(),
+                "ID", "PNo", ProductID);
 
                 ViewBag.OperationID = new SelectList(
                     await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),

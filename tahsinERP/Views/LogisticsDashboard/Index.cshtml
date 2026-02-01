@@ -215,6 +215,8 @@
                                                     <th>Reyslar soni</th>
                                                     <th>Jami tonnaj</th>
                                                     <th>Jami xarajat</th>
+                                                    <th>To'langan</th>
+                                                    <th>Qoldiq</th>
                                                     <th>1 ton uchun</th>
                                                 </tr>
                                             </thead>
@@ -226,6 +228,8 @@
                                                         <td>@forwarder.TripCount</td>
                                                         <td>@forwarder.TotalTonnage.ToString("N2")</td>
                                                         <td>@forwarder.TotalCost.ToString("N2")</td>
+                                                        <td>@forwarder.TotalPaid.ToString("N2")</td>
+                                                        <td>@((forwarder.TotalCost - forwarder.TotalPaid).ToString("N2"))</td>
                                                         <td>@((forwarder.TotalTonnage > 0 ? forwarder.TotalCost / forwarder.TotalTonnage : 0).ToString("N2"))</td>
                                                     </tr>
                                                 }

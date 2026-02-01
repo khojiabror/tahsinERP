@@ -100,9 +100,16 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
-            $('#bomTable').DataTable({
+    <script type="text/javascript">
+        // Wait for document and all scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use jQuery since noConflict(true) is called in _Layout.cshtml
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded');
+                return;
+            }
+
+            jQuery('#bomTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -118,7 +125,9 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
                 "order": [[0, "asc"]],
+                "dom": "lfrtip",
                 "columnDefs": [
                     { "orderable": false, "targets": -1 }
                 ]

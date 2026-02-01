@@ -24,12 +24,20 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                var incomes = await db.INCOMES
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                var incomesQuery = db.INCOMES
                     .Include(i => i.Warehouse)
                     .Include(i => i.Warehouse1)
                     .Include(i => i.CURRENCy1)
                     .Include(i => i.P_INVOICES)
-                    .Where(i => i.IsDeleted != true)
+                    .Where(i => i.IsDeleted != true);
+
+                if (assignedWarehouseId.HasValue)
+                {
+                    incomesQuery = incomesQuery.Where(i => i.ReceivingWHID == assignedWarehouseId.Value);
+                }
+
+                var incomes = await incomesQuery
                     .OrderByDescending(i => i.IssueDateTime)
                     .ToListAsync();
 
@@ -67,6 +75,17 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
+                var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                bool isMrpForWarehouse = await db.WAREHOUSES
+                    .AnyAsync(w => w.ID == income.ReceivingWHID && w.MRP == currentUserId);
+                ViewBag.CanMrpReceive = isMrpForWarehouse && income.RecieveStatus != true;
+
                 return View(income);
             }
         }
@@ -92,6 +111,13 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (!assignedWarehouseId.HasValue)
+                {
+                    ViewBag.NoWarehouseError = "Sizga biriktirilgan ombor mavjud emas";
+                    return View();
+                }
+
                 // Get invoices that are not fully received
                 var invoices = await db.P_INVOICES
                     .Include(i => i.SUPPLIER)
@@ -99,16 +125,24 @@ namespace tahsinERP.Controllers.SRM
                     .OrderByDescending(i => i.InvoiceDate)
                     .ToListAsync();
 
-                ViewBag.Invoices = new SelectList(
-                    invoices.Select(i => new { 
-                        ID = i.ID, 
-                        DisplayText = $"{i.InvoiceNo} - {i.SUPPLIER.Name} ({i.InvoiceDate:dd.MM.yyyy})" 
-                    }),
-                    "ID", "DisplayText"
-                );
+                var invoiceSelectItems = new List<SelectListItem>
+                {
+                    new SelectListItem
+                    {
+                        Value = "",
+                        Text = "---naqdga olingan invoys yo'q---"
+                    }
+                };
+                invoiceSelectItems.AddRange(invoices.Select(i => new SelectListItem
+                {
+                    Value = i.ID.ToString(),
+                    Text = $"{i.InvoiceNo} - {i.SUPPLIER.Name} ({i.InvoiceDate:dd.MM.yyyy})"
+                }));
+
+                ViewBag.Invoices = new SelectList(invoiceSelectItems, "Value", "Text");
 
                 ViewBag.Warehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    await db.WAREHOUSES.Where(w => w.ID == assignedWarehouseId.Value).OrderBy(w => w.WHName).ToListAsync(),
                     "ID", "WHName"
                 );
 
@@ -189,6 +223,19 @@ namespace tahsinERP.Controllers.SRM
                     {
                         try
                         {
+                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                            if (!assignedWarehouseId.HasValue)
+                            {
+                                TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                                return RedirectToAction("Index");
+                            }
+
+                            if (model.ReceivingWHID != assignedWarehouseId.Value)
+                            {
+                                TempData["Error"] = "Siz faqat biriktirilgan omborga kirim qilishingiz mumkin.";
+                                return RedirectToAction("Index");
+                            }
+
                             // Generate DocNo if not provided
                             if (string.IsNullOrEmpty(model.DocNo))
                             {
@@ -207,7 +254,7 @@ namespace tahsinERP.Controllers.SRM
                                 Amount = 0,
                                 TotalPrice = 0,
                                 Description = model.Description,
-                                RecieveStatus = false,
+                                RecieveStatus = model.InvoiceID.HasValue,
                                 IsDeleted = false
                             };
 
@@ -343,22 +390,34 @@ namespace tahsinERP.Controllers.SRM
             // Repopulate ViewBag on error
             using (var db = new DBTHSNEntities())
             {
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                 var invoices = await db.P_INVOICES
                     .Include(i => i.SUPPLIER)
                     .Where(i => i.IsDeleted != true)
                     .OrderByDescending(i => i.InvoiceDate)
                     .ToListAsync();
 
-                ViewBag.Invoices = new SelectList(
-                    invoices.Select(i => new { 
-                        ID = i.ID, 
-                        DisplayText = $"{i.InvoiceNo} - {i.SUPPLIER.Name} ({i.InvoiceDate:dd.MM.yyyy})" 
-                    }),
-                    "ID", "DisplayText", model.InvoiceID
-                );
+                var invoiceSelectItems = new List<SelectListItem>
+                {
+                    new SelectListItem
+                    {
+                        Value = "",
+                        Text = "---naqdga olingan invoys yo'q---"
+                    }
+                };
+                invoiceSelectItems.AddRange(invoices.Select(i => new SelectListItem
+                {
+                    Value = i.ID.ToString(),
+                    Text = $"{i.InvoiceNo} - {i.SUPPLIER.Name} ({i.InvoiceDate:dd.MM.yyyy})"
+                }));
+
+                ViewBag.Invoices = new SelectList(invoiceSelectItems, "Value", "Text", model.InvoiceID?.ToString());
 
                 ViewBag.Warehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    await db.WAREHOUSES
+                        .Where(w => assignedWarehouseId.HasValue ? w.ID == assignedWarehouseId.Value : w.IsDeleted != true)
+                        .OrderBy(w => w.WHName)
+                        .ToListAsync(),
                     "ID", "WHName", model.ReceivingWHID
                 );
 
@@ -428,6 +487,17 @@ namespace tahsinERP.Controllers.SRM
                 if (income == null)
                 {
                     return HttpNotFound();
+                }
+
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (!assignedWarehouseId.HasValue)
+                {
+                    TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                    return RedirectToAction("Index");
+                }
+                if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
                 // Check if already received (RecieveStatus == true)
@@ -511,6 +581,7 @@ namespace tahsinERP.Controllers.SRM
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            ModelState.Remove("InvoiceID");
             if (ModelState.IsValid)
             {
                 using (var db = new DBTHSNEntities())
@@ -523,6 +594,17 @@ namespace tahsinERP.Controllers.SRM
                             if (income == null || income.IsDeleted == true)
                             {
                                 return HttpNotFound();
+                            }
+
+                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                            if (!assignedWarehouseId.HasValue)
+                            {
+                                TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                                return RedirectToAction("Index");
+                            }
+                            if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                            {
+                                return RedirectToAction("Index", "ViewNotAuthorized");
                             }
 
                             if (income.RecieveStatus == true)
@@ -682,6 +764,226 @@ namespace tahsinERP.Controllers.SRM
             return View(model);
         }
 
+        // POST: Incomes/Receive/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Receive(int id)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                using (var transaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var income = await db.INCOMES
+                            .Include(i => i.INCOME_PRODUCTS)
+                            .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
+                        if (income == null)
+                        {
+                            return HttpNotFound();
+                        }
+
+                        var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                        if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                        {
+                            return RedirectToAction("Index", "ViewNotAuthorized");
+                        }
+
+                        var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                        bool isMrpForWarehouse = await db.WAREHOUSES
+                            .AnyAsync(w => w.ID == income.ReceivingWHID && w.MRP == currentUserId);
+                        if (!isMrpForWarehouse)
+                        {
+                            return RedirectToAction("Index", "ViewNotAuthorized");
+                        }
+
+                        if (income.RecieveStatus == true)
+                        {
+                            TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan.";
+                            return RedirectToAction("Details", new { id });
+                        }
+
+                        var isAutoLinkedTransfer = income.Description != null &&
+                            income.Description.Contains("Auto-linked from Expense");
+
+                        if (isAutoLinkedTransfer && income.INCOME_PRODUCTS != null)
+                        {
+                            foreach (var product in income.INCOME_PRODUCTS)
+                            {
+                                var stock = await db.PRODUCT_STOCKS
+                                    .FirstOrDefaultAsync(s => s.WHID == income.ReceivingWHID && s.ProductID == product.ProductID);
+
+                                if (stock != null)
+                                {
+                                    stock.Amount += product.Amount;
+                                }
+                                else
+                                {
+                                    db.PRODUCT_STOCKS.Add(new PRODUCT_STOCKS
+                                    {
+                                        WHID = income.ReceivingWHID,
+                                        ProductID = product.ProductID,
+                                        Amount = product.Amount,
+                                        UnitID = product.UnitID
+                                    });
+                                }
+                            }
+                        }
+
+                        income.RecieveStatus = true;
+                        await db.SaveChangesAsync();
+                        transaction.Commit();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
+                            $"Receive - {income.DocNo} kirim hujjati qabul qilindi");
+
+                        return RedirectToAction("Details", new { id });
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        return RedirectToAction("Details", new { id });
+                    }
+                }
+            }
+        }
+
+        // POST: Incomes/Reject/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Reject(int id)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                using (var transaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var income = await db.INCOMES
+                            .Include(i => i.INCOME_PRODUCTS)
+                            .Include(i => i.WRHS_INCOME_DOCS)
+                            .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
+                        if (income == null)
+                        {
+                            return HttpNotFound();
+                        }
+
+                        var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                        if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                        {
+                            return RedirectToAction("Index", "ViewNotAuthorized");
+                        }
+
+                        var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                        bool isMrpForWarehouse = await db.WAREHOUSES
+                            .AnyAsync(w => w.ID == income.ReceivingWHID && w.MRP == currentUserId);
+                        if (!isMrpForWarehouse)
+                        {
+                            return RedirectToAction("Index", "ViewNotAuthorized");
+                        }
+
+                        if (income.RecieveStatus == true)
+                        {
+                            TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan va rad etib bo'lmaydi.";
+                            return RedirectToAction("Details", new { id });
+                        }
+
+                        var expenseDocNo = ExtractLinkedExpenseDocNo(income.Description);
+                        if (string.IsNullOrWhiteSpace(expenseDocNo))
+                        {
+                            TempData["Error"] = "Linked expense topilmadi. Rad etish mumkin emas.";
+                            return RedirectToAction("Details", new { id });
+                        }
+
+                        var expense = await db.EXPENSES
+                            .Include(e => e.EXPENSE_PRODUCTS)
+                            .Include(e => e.WRHS_EXPENSE_DOCS)
+                            .FirstOrDefaultAsync(e =>
+                                e.DocNo == expenseDocNo &&
+                                e.ReceiverWhID == income.ReceivingWHID &&
+                                e.SenderWHID == income.SenderWHID &&
+                                e.IsDeleted != true);
+
+                        if (expense == null)
+                        {
+                            TempData["Error"] = "Linked expense topilmadi. Rad etish mumkin emas.";
+                            return RedirectToAction("Details", new { id });
+                        }
+
+                        // Revert stock changes made by expense transfer
+                        foreach (var product in expense.EXPENSE_PRODUCTS)
+                        {
+                            var senderStock = await db.PRODUCT_STOCKS
+                                .FirstOrDefaultAsync(s => s.WHID == expense.SenderWHID && s.ProductID == product.ProductID);
+                            if (senderStock != null)
+                            {
+                                senderStock.Amount += product.Amount;
+                            }
+                            else
+                            {
+                                db.PRODUCT_STOCKS.Add(new PRODUCT_STOCKS
+                                {
+                                    WHID = expense.SenderWHID,
+                                    ProductID = product.ProductID,
+                                    Amount = product.Amount,
+                                    UnitID = product.UnitID
+                                });
+                            }
+
+                            if (expense.ReceiverWhID.HasValue)
+                            {
+                                var receiverStock = await db.PRODUCT_STOCKS
+                                    .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
+                                if (receiverStock != null)
+                                {
+                                    receiverStock.Amount -= product.Amount;
+                                    if (receiverStock.Amount < 0) receiverStock.Amount = 0;
+                                }
+                            }
+                        }
+
+                        if (income.WRHS_INCOME_DOCS != null && income.WRHS_INCOME_DOCS.Any())
+                        {
+                            db.WRHS_INCOME_DOCS.RemoveRange(income.WRHS_INCOME_DOCS.ToList());
+                        }
+
+                        if (income.INCOME_PRODUCTS != null && income.INCOME_PRODUCTS.Any())
+                        {
+                            db.INCOME_PRODUCTS.RemoveRange(income.INCOME_PRODUCTS.ToList());
+                        }
+
+                        if (expense.WRHS_EXPENSE_DOCS != null && expense.WRHS_EXPENSE_DOCS.Any())
+                        {
+                            db.WRHS_EXPENSE_DOCS.RemoveRange(expense.WRHS_EXPENSE_DOCS.ToList());
+                        }
+
+                        if (expense.EXPENSE_PRODUCTS != null && expense.EXPENSE_PRODUCTS.Any())
+                        {
+                            db.EXPENSE_PRODUCTS.RemoveRange(expense.EXPENSE_PRODUCTS.ToList());
+                        }
+
+                        db.INCOMES.Remove(income);
+                        db.EXPENSES.Remove(expense);
+
+                        await db.SaveChangesAsync();
+                        transaction.Commit();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
+                            $"Reject - {income.DocNo} kirim hujjati rad etildi va linked expense o'chirildi");
+
+                        return RedirectToAction("Index");
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        return RedirectToAction("Details", new { id });
+                    }
+                }
+            }
+        }
+
         // GET: Incomes/Delete/5
         public async Task<ActionResult> Delete(int? id)
         {
@@ -709,6 +1011,12 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
+                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
                 return View(income);
             }
         }
@@ -732,6 +1040,12 @@ namespace tahsinERP.Controllers.SRM
                         var income = await db.INCOMES.FindAsync(id);
                         if (income != null)
                         {
+                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                            if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                            {
+                                return RedirectToAction("Index", "ViewNotAuthorized");
+                            }
+
                             // Revert stock changes
                             var incomeProducts = await db.INCOME_PRODUCTS
                                 .Where(ip => ip.IncomeID == income.ID)
@@ -787,6 +1101,40 @@ namespace tahsinERP.Controllers.SRM
 
                 return File(doc.Doc, "application/pdf", $"Income_{doc.IncomeID}.pdf");
             }
+        }
+
+        private string ExtractLinkedExpenseDocNo(string description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                return null;
+            }
+
+            const string marker = "Auto-linked from Expense ";
+            var index = description.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+            {
+                return null;
+            }
+
+            var start = index + marker.Length;
+            var rest = description.Substring(start);
+            var end = rest.IndexOf(" - ", StringComparison.Ordinal);
+            if (end < 0)
+            {
+                end = rest.Length;
+            }
+
+            var docNo = rest.Substring(0, end).Trim();
+            return string.IsNullOrWhiteSpace(docNo) ? null : docNo;
+        }
+
+        private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
+        {
+            var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+            var warehouse = await db.WAREHOUSES
+                .FirstOrDefaultAsync(w => w.IsDeleted != true && w.MRP == currentUserId);
+            return warehouse?.ID;
         }
     }
 

@@ -1116,6 +1116,32 @@
             }
         });
 
+        var currencyShortname = '@(ViewBag.CurrencyShortname ?? "")';
+
+        function formatCompactNumber(value) {
+            var abs = Math.abs(value);
+            var sign = value < 0 ? '-' : '';
+
+            if (abs >= 1e9) {
+                return sign + (abs / 1e9).toFixed(2) + 'B';
+            }
+            if (abs >= 1e6) {
+                return sign + (abs / 1e6).toFixed(2) + 'M';
+            }
+            if (abs >= 1e3) {
+                return sign + (abs / 1e3).toFixed(2) + 'K';
+            }
+            return sign + abs.toLocaleString();
+        }
+
+        function formatFinanceTotal(value) {
+            var formatted = formatCompactNumber(value);
+            if (currencyShortname) {
+                return formatted + ' ' + currencyShortname;
+            }
+            return formatted;
+        }
+
         // Update Finance Total
         $.ajax({
             url: '/Home/GetFinancePlanVsFact',
@@ -1124,12 +1150,12 @@
             success: function (data) {
                 if (data && data.length > 0) {
                     var total = data.reduce((sum, x) => sum + x.fact, 0);
-                    $('#finance-total').text(total.toLocaleString());
+                    $('#finance-total').text(formatFinanceTotal(total));
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Finance Total xatosi:', error);
-                $('#finance-total').text('0');
+                $('#finance-total').text(formatFinanceTotal(0));
             }
         });
             }); // Close $(window).on("load")

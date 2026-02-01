@@ -103,80 +103,14 @@ namespace tahsinERP.Controllers.MES
         }
 
         // GET: QualityInspection/Create
-        public ActionResult Create(int? sOrderID, long? deliveryScheduleID, int? productPlanDailyID, int? productionID)
+        public ActionResult Create(DateTime? date)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var viewModel = new QualityInspectionViewModel
-                {
-                    SOrderID = sOrderID,
-                    DeliveryScheduleID = deliveryScheduleID,
-                    ProductPlanDailyID = productPlanDailyID,
-                    ProductionID = productionID,
-                    InspectionDate = DateTime.Now,
-                    StatusCode = "DRAFT"
-                };
+                var inspectionDate = (date ?? DateTime.Now).Date;
+                var viewModel = BuildDailyInspectionViewModel(inspectionDate, db);
 
-                // Pre-fill product and quantities based on source
-                if (productionID.HasValue)
-                {
-                    var production = db.PRODUCT_PRODUCTION
-                        .Include(p => p.PRODUCT)
-                        .FirstOrDefault(p => p.ID == productionID.Value);
-                    if (production != null)
-                    {
-                        viewModel.ProductID = production.ProductID;
-                        viewModel.QtyInspected = (decimal)production.Total;
-                        viewModel.QtyAccepted = (decimal)production.Total;
-                        viewModel.QtyRejected = 0;
-                    }
-                }
-                else if (productPlanDailyID.HasValue)
-                {
-                    var dailyPlan = db.PRODUCTPLANS_DAILY
-                        .Include(d => d.PRODUCTPLAN)
-                        .Include(d => d.PRODUCTPLAN.PRODUCT)
-                        .FirstOrDefault(d => d.ID == productPlanDailyID.Value);
-                    if (dailyPlan != null)
-                    {
-                        viewModel.ProductID = dailyPlan.PRODUCTPLAN.ProductID;
-                        viewModel.QtyInspected = (decimal)dailyPlan.Total;
-                        viewModel.QtyAccepted = (decimal)dailyPlan.Total;
-                        viewModel.QtyRejected = 0;
-                    }
-                }
-                else if (deliveryScheduleID.HasValue)
-                {
-                    var schedule = db.SORDER_DELIVERY_SCHEDULE
-                        .Include(s => s.PRODUCT)
-                        .FirstOrDefault(s => s.ID == deliveryScheduleID.Value);
-                    if (schedule != null)
-                    {
-                        viewModel.ProductID = schedule.ProductID ?? 0;
-                        viewModel.QtyInspected = schedule.QtyPlanned;
-                        viewModel.QtyAccepted = schedule.QtyPlanned;
-                        viewModel.QtyRejected = 0;
-                    }
-                }
-                else if (sOrderID.HasValue)
-                {
-                    var orderProduct = db.S_ORDER_PRODUCTS
-                        .Include(op => op.PRODUCT)
-                        .FirstOrDefault(op => op.OrderID == sOrderID.Value);
-                    if (orderProduct != null)
-                    {
-                        viewModel.ProductID = orderProduct.ProductID;
-                        viewModel.QtyInspected = (decimal)orderProduct.Amount;
-                        viewModel.QtyAccepted = (decimal)orderProduct.Amount;
-                        viewModel.QtyRejected = 0;
-                    }
-                }
-
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
                 ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
-                ViewBag.SOrders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", sOrderID);
-                ViewBag.DeliverySchedules = new SelectList(db.SORDER_DELIVERY_SCHEDULE.ToList(), "ID", "ID", deliveryScheduleID);
-
                 return View(viewModel);
             }
         }
@@ -184,72 +118,111 @@ namespace tahsinERP.Controllers.MES
         // POST: QualityInspection/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(QualityInspectionViewModel viewModel)
+        public ActionResult Create(QualityInspectionDailyViewModel viewModel)
         {
+            if (viewModel == null)
+            {
+                ModelState.AddModelError("", "Ma'lumotlar topilmadi");
+            }
+
+            if (viewModel?.Items == null || !viewModel.Items.Any())
+            {
+                ModelState.AddModelError("", "Tekshiruv uchun mahsulotlar topilmadi");
+            }
+
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     try
                     {
-                        // Validate quantities
-                        if (viewModel.QtyAccepted + viewModel.QtyRejected != viewModel.QtyInspected)
-                        {
-                            ModelState.AddModelError("", "Qabul qilingan va rad etilgan miqdorlar tekshirilgan miqdorga teng bo'lishi kerak");
-                            PopulateViewBags(viewModel, db);
-                            return View(viewModel);
-                        }
+                        var createdCount = 0;
 
-                        // Check if quantities exceed available
-                        if (viewModel.ProductionID.HasValue)
+                        foreach (var item in viewModel.Items)
                         {
-                            var production = db.PRODUCT_PRODUCTION.Find(viewModel.ProductionID.Value);
-                            if (production != null && viewModel.QtyInspected > (decimal)production.Total)
+                            var inspectedQty = item.QtyAccepted + item.QtyRejected;
+                            if (inspectedQty <= 0)
                             {
-                                ModelState.AddModelError("", $"Tekshirilgan miqdor ishlab chiqarilgan miqdordan ({production.Total}) oshib ketdi");
-                                PopulateViewBags(viewModel, db);
-                                return View(viewModel);
+                                continue;
+                            }
+
+                            var production = db.PRODUCT_PRODUCTION
+                                .Include(p => p.PRODUCT)
+                                .FirstOrDefault(p => p.ID == item.ProductionID
+                                    && (p.IsDeleted == false || p.IsDeleted == null));
+
+                            if (production == null)
+                            {
+                                ModelState.AddModelError("", $"Ishlab chiqarish topilmadi: ID {item.ProductionID}");
+                                continue;
+                            }
+
+                            var alreadyInspected = db.QUALITY_INSPECTION
+                                .Where(q => q.ProductionID == item.ProductionID && (q.IsDeleted == false || q.IsDeleted == null))
+                                .Sum(q => (decimal?)q.QtyInspected) ?? 0;
+
+                            var remaining = (decimal)production.Total - alreadyInspected;
+                            if (inspectedQty > remaining)
+                            {
+                                ModelState.AddModelError("",
+                                    $"Tekshirilgan miqdor ishlab chiqarilgan qoldiqdan oshib ketdi. Mahsulot: {production.PRODUCT?.PNo}, Qoldiq: {remaining}");
+                                continue;
+                            }
+
+                            var status = (item.QtyAccepted == 0 && item.QtyRejected > 0)
+                                ? "REJECTED"
+                                : "APPROVED";
+
+                            var inspection = new QUALITY_INSPECTION
+                            {
+                                ProductionID = item.ProductionID,
+                                ProductID = production.ProductID,
+                                QtyInspected = inspectedQty,
+                                QtyAccepted = item.QtyAccepted,
+                                QtyRejected = item.QtyRejected,
+                                DefectTypeID = item.DefectTypeID,
+                                StatusCode = status,
+                                Notes = item.Notes,
+                                InspectionDate = viewModel.InspectionDate,
+                                CreatedDT = DateTime.Now,
+                                IsDeleted = false,
+                                InspectedByUserID = UserHelper.GetUserId(User.Identity.Name)
+                            };
+
+                            db.QUALITY_INSPECTION.Add(inspection);
+                            createdCount++;
+
+                            if (item.QtyRejected > 0 && item.DefectTypeID.HasValue)
+                            {
+                                var damagedProduct = new DAMAGED_PRODUCTS
+                                {
+                                    ProductID = production.ProductID,
+                                    DefectTypeID = item.DefectTypeID.Value,
+                                    Quantity = (double)item.QtyRejected,
+                                    IssueDateTime = DateTime.Now,
+                                    IsDeleted = false
+                                };
+                                db.DAMAGED_PRODUCTS.Add(damagedProduct);
                             }
                         }
 
-                        var inspection = new QUALITY_INSPECTION
+                        if (!ModelState.IsValid)
                         {
-                            SOrderID = viewModel.SOrderID,
-                            DeliveryScheduleID = viewModel.DeliveryScheduleID,
-                            ProductPlanDailyID = viewModel.ProductPlanDailyID,
-                            ProductionID = viewModel.ProductionID,
-                            ProductID = viewModel.ProductID,
-                            QtyInspected = viewModel.QtyInspected,
-                            QtyAccepted = viewModel.QtyAccepted,
-                            QtyRejected = viewModel.QtyRejected,
-                            DefectTypeID = viewModel.DefectTypeID,
-                            StatusCode = viewModel.StatusCode,
-                            Notes = viewModel.Notes,
-                            InspectionDate = viewModel.InspectionDate,
-                            CreatedDT = DateTime.Now,
-                            IsDeleted = false,
-                            InspectedByUserID = UserHelper.GetUserId(User.Identity.Name)
-                        };
-
-                        db.QUALITY_INSPECTION.Add(inspection);
-                        db.SaveChanges();
-
-                        // If approved, move rejected qty to DAMAGED_PRODUCTS
-                        if (viewModel.StatusCode == "APPROVED" && viewModel.QtyRejected > 0 && viewModel.DefectTypeID.HasValue)
-                        {
-                            var damagedProduct = new DAMAGED_PRODUCTS
-                            {
-                                ProductID = viewModel.ProductID,
-                                DefectTypeID = viewModel.DefectTypeID.Value,
-                                Quantity = (double)viewModel.QtyRejected,
-                                IssueDateTime = DateTime.Now,
-                                IsDeleted = false
-                            };
-                            db.DAMAGED_PRODUCTS.Add(damagedProduct);
-                            db.SaveChanges();
+                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
+                            return View(viewModel);
                         }
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController", $"Sifat nazorati yaratildi: ID {inspection.ID}, Mahsulot: {viewModel.ProductID}");
+                        if (createdCount == 0)
+                        {
+                            ModelState.AddModelError("", "Tekshiruv uchun miqdor kiritilmadi");
+                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
+                            return View(viewModel);
+                        }
+
+                        db.SaveChanges();
+
+                        LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController",
+                            $"Sifat nazorati yaratildi: Sana {viewModel.InspectionDate:yyyy-MM-dd}, {createdCount} ta yozuv");
 
                         TempData["Success"] = "Sifat nazorati muvaffaqiyatli yaratildi";
                         return RedirectToAction("Index");
@@ -270,10 +243,59 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                PopulateViewBags(viewModel, db);
+                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
             }
 
             return View(viewModel);
+        }
+
+        private QualityInspectionDailyViewModel BuildDailyInspectionViewModel(DateTime inspectionDate, DBTHSNEntities db)
+        {
+            var dateOnly = inspectionDate.Date;
+
+            var productions = db.PRODUCT_PRODUCTION
+                .Include(p => p.PRODUCT)
+                .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
+                    && DbFunctions.TruncateTime(p.Date) == dateOnly
+                    && p.PRODUCT.IsFinishedGood == true
+                    && (p.PRODUCT.IsDeleted == false || p.PRODUCT.IsDeleted == null))
+                .ToList();
+
+            var items = new List<QualityInspectionDailyItemViewModel>();
+
+            foreach (var production in productions)
+            {
+                var alreadyInspected = db.QUALITY_INSPECTION
+                    .Where(q => q.ProductionID == production.ID && (q.IsDeleted == false || q.IsDeleted == null))
+                    .Sum(q => (decimal?)q.QtyInspected) ?? 0;
+
+                var producedQty = (decimal)production.Total;
+                var remaining = producedQty - alreadyInspected;
+
+                if (remaining <= 0)
+                {
+                    continue;
+                }
+
+                items.Add(new QualityInspectionDailyItemViewModel
+                {
+                    ProductionID = production.ID,
+                    ProductID = production.ProductID,
+                    ProductNo = production.PRODUCT?.PNo,
+                    ProductName = production.PRODUCT?.Name,
+                    ProducedQty = producedQty,
+                    AlreadyInspectedQty = alreadyInspected,
+                    RemainingQty = remaining,
+                    QtyAccepted = remaining,
+                    QtyRejected = 0
+                });
+            }
+
+            return new QualityInspectionDailyViewModel
+            {
+                InspectionDate = dateOnly,
+                Items = items
+            };
         }
 
         // GET: QualityInspection/Edit/5
@@ -534,7 +556,11 @@ namespace tahsinERP.Controllers.MES
         // Helper method to populate ViewBag
         private void PopulateViewBags(QualityInspectionViewModel viewModel, DBTHSNEntities db)
         {
-            ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+            ViewBag.Products = new SelectList(
+                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(),
+                "ID",
+                "PNo",
+                viewModel.ProductID);
             ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name", viewModel.DefectTypeID);
             ViewBag.SOrders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", viewModel.SOrderID);
             ViewBag.DeliverySchedules = new SelectList(db.SORDER_DELIVERY_SCHEDULE.ToList(), "ID", "ID", viewModel.DeliveryScheduleID);

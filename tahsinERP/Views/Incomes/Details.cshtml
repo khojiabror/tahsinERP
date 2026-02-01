@@ -138,6 +138,27 @@
                                                     <td>@(Model.Description ?? "-")</td>
                                                 </tr>
                                             </table>
+                                            @if (ViewBag.CanMrpReceive == true)
+                                            {
+                                                <div class="mt-2">
+                                                    @using (Html.BeginForm("Receive", "Incomes", FormMethod.Post, new { @class = "d-inline" }))
+                                                    {
+                                                        @Html.AntiForgeryToken()
+                                                        @Html.Hidden("id", Model.ID)
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            <i class="bx bx-check"></i> Qabul qilish
+                                                        </button>
+                                                    }
+                                                    @using (Html.BeginForm("Reject", "Incomes", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Rad qilish kirim va chiqim hujjatlarini o\\'chiradi. Davom etasizmi?');" }))
+                                                    {
+                                                        @Html.AntiForgeryToken()
+                                                        @Html.Hidden("id", Model.ID)
+                                                        <button type="submit" class="btn btn-sm btn-danger">
+                                                            <i class="bx bx-x"></i> Rad qilish
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
                                         </div>
                                     </div>
 

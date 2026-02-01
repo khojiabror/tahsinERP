@@ -22,6 +22,14 @@ namespace tahsinERP.Controllers
             {
                 ViewBag.ShowCookieConsent = false;
             }
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var defaultCurrency = db.CURRENCIES
+                    .Where(c => c.IsDeleted != true)
+                    .OrderBy(c => c.ID)
+                    .FirstOrDefault();
+                ViewBag.CurrencyShortname = defaultCurrency?.Shortname ?? "";
+            }
             return View();
         }
 

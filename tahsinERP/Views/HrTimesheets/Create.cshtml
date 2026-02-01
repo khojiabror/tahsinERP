@@ -102,6 +102,24 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2({ width: '100%' });
+
+            // Validate Year and Month - cannot be in future
+            $('form').on('submit', function(e) {
+                var year = parseInt($('#Year').val());
+                var month = parseInt($('select[name="Month"]').val());
+                
+                if (year && month) {
+                    var currentDate = new Date();
+                    var timesheetMonth = new Date(year, month - 1, 1);
+                    var currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+                    if (timesheetMonth > currentMonth) {
+                        e.preventDefault();
+                        alert('Kelajakka tabel kirita olmaysiz');
+                        return false;
+                    }
+                }
+            });
         });
     </script>
 }

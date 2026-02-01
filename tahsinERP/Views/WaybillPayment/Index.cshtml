@@ -42,10 +42,7 @@
                         <div class="invoice-create-btn mb-1">
                             <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/WaybillPayment/Create';">
                                 <span class="align-middle ml-25">Buyurtma to'lovini qo'shish</span>
-                            </button>@*
-                                <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/WaybillPayment/UploadWithExcel'">
-                                    <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali ta'minotchilarni qo'shish</span>
-                                </button>*@
+                            </button>
                         </div>
                     }
                     <div class="col-md-12 col-sm-12">
@@ -60,7 +57,10 @@
                                                     <th>To'liq ma'lumot</th>
                                                     <th>Waybill raqam</th>
                                                     <th>Forwarder</th>
+                                                    <th>To'lov sanasi</th>
                                                     <th>Miqdori</th>
+                                                    <th>Waybill summasi</th>
+                                                    <th>Qoldiq</th>
                                                     <th>Pul birligi</th>
                                                     <th>Izoh</th>
                                                     @if (changePermit)
@@ -72,13 +72,19 @@
                                             <tbody>
                                                 @foreach (var item in Model)
                                                 {
+                                                    var waybill = item.F_WAYBILLS;
+                                                    var totalPaid = waybill?.F_WAYBILL_PAYMENTS?.Where(p => !p.IsDeleted).Sum(p => p.Payment_Amount) ?? 0;
+                                                    var outstanding = (waybill?.Amount ?? 0) - totalPaid;
                                                     <tr>
                                                         <td>
                                                             <a href="~/WaybillPayment/Details/@item.ID">@item.ID</a>
                                                         </td>
                                                         <td><a href="~/Waybill/Details/@item.WaybillID">@item.F_WAYBILLS.WaybillNo</a></td>
                                                         <td><a href="~/Forwarder/Details/@item.ForwarderID">@item.FORWARDER.ForwarderName</a></td>
+                                                        <td>@(item.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
                                                         <td>@item.Payment_Amount</td>
+                                                        <td>@(waybill?.Amount?.ToString("N2") ?? "")</td>
+                                                        <td>@outstanding.ToString("N2")</td>
                                                         <td>@item.CURRENCy.Shortname</td>
                                                         <td>@item.Comment</td>
                                                         @if (changePermit)

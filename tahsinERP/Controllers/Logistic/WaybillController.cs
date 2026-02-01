@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using OfficeOpenXml;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
@@ -16,7 +17,7 @@ namespace tahsinERP.Controllers
     public class WaybillController : Controller
     {
         // GET: Waybill
-        public async Task<ActionResult> Index(string searchTerm, int? direction, int? forwarderId, int? contractId, 
+        public async Task<ActionResult> Index(string searchTerm, int? direction, int? forwarderId, int? contractId,
             int? transportTypeId, DateTime? startDate, DateTime? endDate, string sortOrder, int? page, int? pageSize)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -29,9 +30,9 @@ namespace tahsinERP.Controllers
                 var query = db.F_WAYBILLS
                     .Include(w => w.F_CONTRACTS)
                     .Include(w => w.F_CONTRACTS.FORWARDER)
-                    .Include(w => w.P_INVOICES)
                     .Include(w => w.F_TRANSPORT_TYPES)
                     .Include(w => w.CURRENCy)
+                    .Include(w => w.FORWARDER)
                     .Where(w => w.IsDeleted == false);
 
                 // Apply filters
@@ -95,7 +96,49 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                var waybills = await query.ToListAsync();
+                var waybillList = await query.ToListAsync();
+
+                var waybillIds = waybillList.Select(w => w.ID).ToList();
+                var paymentTotals = await db.F_WAYBILL_PAYMENTS
+                    .Where(p => waybillIds.Contains(p.WaybillID) && p.IsDeleted == false)
+                    .GroupBy(p => p.WaybillID)
+                    .Select(g => new { WaybillID = g.Key, TotalPaid = g.Sum(p => p.Payment_Amount) })
+                    .ToListAsync();
+
+                var paymentLookup = paymentTotals.ToDictionary(x => x.WaybillID, x => x.TotalPaid);
+
+                var waybills = waybillList.Select(w =>
+                {
+                    var totalPaid = paymentLookup.ContainsKey(w.ID) ? paymentLookup[w.ID] : 0;
+                    var amount = w.Amount ?? 0;
+                    var outstanding = amount - totalPaid;
+                    var paymentStatus = outstanding <= 0 ? "To'landi" : outstanding < amount ? "Qisman" : "To'lanmagan";
+
+                    return new WaybillIndexItemViewModel
+                    {
+                        ID = w.ID,
+                        WaybillNo = w.WaybillNo,
+                        IssueDate = w.IssueDate,
+                        Direction = w.Direction,
+                        ForwarderName = w.FORWARDER?.ForwarderName ?? w.F_CONTRACTS?.FORWARDER?.ForwarderName,
+                        ContractNo = w.F_CONTRACTS?.ContractNo,
+                        TransportType = w.F_TRANSPORT_TYPES?.TransportType,
+                        FromLocation = w.FromLocation,
+                        ToLocation = w.ToLocation,
+                        TruckNo = w.TruckNo,
+                        DriverName = w.DriverName,
+                        DistanceKm = w.DistanceKm,
+                        GrWeight = w.GrWeight,
+                        CBM = w.CBM,
+                        Amount = w.Amount,
+                        Currency = w.CURRENCy?.Shortname,
+                        TotalPaid = totalPaid,
+                        Outstanding = outstanding,
+                        PaymentStatus = paymentStatus,
+                        CargoTypeText = GetCargoTypeText(w),
+                        LinkedDoc = GetLinkedDocText(w)
+                    };
+                }).ToList();
 
                 // Prepare ViewBag for filters
                 ViewBag.Forwarders = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", forwarderId);
@@ -126,37 +169,8 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var viewModel = new WaybillCreateViewModel
-                {
-                    IssueDate = DateTime.Now,
-                    Forwarders = db.FORWARDERS.Where(f => f.IsDeleted == false)
-                        .Select(f => new SelectListItem { Value = f.ID.ToString(), Text = f.ForwarderName })
-                        .ToList(),
-                    Contracts = db.F_CONTRACTS.Where(c => c.IsDeleted == false)
-                        .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo })
-                        .ToList(),
-                    TransportTypes = db.F_TRANSPORT_TYPES
-                        .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TransportType })
-                        .ToList(),
-                    PurchaseInvoices = db.P_INVOICES.Where(i => i.IsDeleted == false)
-                        .Select(i => new SelectListItem { Value = i.ID.ToString(), Text = i.InvoiceNo })
-                        .ToList(),
-                    SalesInvoices = db.SALES_INVOICES
-                        .Select(i => new SelectListItem { Value = i.ID.ToString(), Text = i.InvoiceNo })
-                        .ToList(),
-                    SalesOrders = db.S_ORDERS.Where(o => o.IsDeleted == false)
-                        .Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo })
-                        .ToList(),
-                    PurchaseOrders = db.P_ORDERS.Where(o => o.IsDeleted == false)
-                        .Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo })
-                        .ToList(),
-                    TTNKs = db.SALES_TTNK_HEADERS
-                        .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TTNKNumber })
-                        .ToList(),
-                    Currencies = db.CURRENCIES
-                        .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname })
-                        .ToList()
-                };
+                var viewModel = BuildWaybillViewModel(db);
+                viewModel.IssueDate = DateTime.Now;
 
                 return View(viewModel);
             }
@@ -182,12 +196,16 @@ namespace tahsinERP.Controllers
                         viewModel.Amount = calculatedAmount;
                     }
 
+                    var contractForwarder = viewModel.ContractID.HasValue
+                        ? db.F_CONTRACTS.Where(c => c.ID == viewModel.ContractID.Value).Select(c => (int?)c.ForwarderID).FirstOrDefault()
+                        : null;
+
                     var waybill = new F_WAYBILLS
                     {
                         WaybillNo = viewModel.WaybillNo,
                         IssueDate = viewModel.IssueDate,
                         Direction = viewModel.Direction,
-                        ForwarderID = viewModel.ForwarderID,
+                        ForwarderID = viewModel.ForwarderID ?? contractForwarder,
                         ContractID = viewModel.ContractID,
                         TransportTypeID = viewModel.TransportTypeID,
                         FromLocation = viewModel.FromLocation,
@@ -231,18 +249,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Repopulate dropdowns on validation error
-                viewModel.Forwarders = db.FORWARDERS.Where(f => f.IsDeleted == false)
-                    .Select(f => new SelectListItem { Value = f.ID.ToString(), Text = f.ForwarderName })
-                    .ToList();
-                viewModel.Contracts = db.F_CONTRACTS.Where(c => c.IsDeleted == false)
-                    .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo })
-                    .ToList();
-                viewModel.TransportTypes = db.F_TRANSPORT_TYPES
-                    .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TransportType })
-                    .ToList();
-                viewModel.Currencies = db.CURRENCIES
-                    .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname })
-                    .ToList();
+                viewModel = BuildWaybillViewModel(db, viewModel);
 
                 return View(viewModel);
             }
@@ -268,6 +275,7 @@ namespace tahsinERP.Controllers
                     .Include(w => w.P_INVOICES)
                     .Include(w => w.F_TRANSPORT_TYPES)
                     .Include(w => w.CURRENCy)
+                    .Include(w => w.FORWARDER)
                     .Include(w => w.F_WAYBILL_DOCS)
                     .Include(w => w.F_WAYBILL_PAYMENTS)
                     .FirstOrDefaultAsync(w => w.ID == ID);
@@ -391,7 +399,11 @@ namespace tahsinERP.Controllers
                         waybillToUpdate.WaybillNo = viewModel.WaybillNo;
                         waybillToUpdate.IssueDate = viewModel.IssueDate;
                         waybillToUpdate.Direction = viewModel.Direction;
-                        waybillToUpdate.ForwarderID = viewModel.ForwarderID;
+                        var contractForwarder = viewModel.ContractID.HasValue
+                            ? db.F_CONTRACTS.Where(c => c.ID == viewModel.ContractID.Value).Select(c => (int?)c.ForwarderID).FirstOrDefault()
+                            : null;
+
+                        waybillToUpdate.ForwarderID = viewModel.ForwarderID ?? contractForwarder;
                         waybillToUpdate.ContractID = viewModel.ContractID;
                         waybillToUpdate.TransportTypeID = viewModel.TransportTypeID;
                         waybillToUpdate.FromLocation = viewModel.FromLocation;
@@ -441,18 +453,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Repopulate dropdowns
-                viewModel.Forwarders = db.FORWARDERS.Where(f => f.IsDeleted == false)
-                    .Select(f => new SelectListItem { Value = f.ID.ToString(), Text = f.ForwarderName })
-                    .ToList();
-                viewModel.Contracts = db.F_CONTRACTS.Where(c => c.IsDeleted == false)
-                    .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo })
-                    .ToList();
-                viewModel.TransportTypes = db.F_TRANSPORT_TYPES
-                    .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TransportType })
-                    .ToList();
-                viewModel.Currencies = db.CURRENCIES
-                    .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname })
-                    .ToList();
+                viewModel = BuildWaybillViewModel(db, viewModel);
 
                 return View(viewModel);
             }
@@ -476,6 +477,7 @@ namespace tahsinERP.Controllers
                     .Include(w => w.F_CONTRACTS)
                     .Include(w => w.F_TRANSPORT_TYPES)
                     .Include(w => w.P_INVOICES)
+                    .Include(w => w.FORWARDER)
                     .FirstOrDefaultAsync(w => w.ID == Id);
 
                 if (waybill == null)
@@ -485,6 +487,221 @@ namespace tahsinERP.Controllers
 
                 return View(waybill);
             }
+        }
+
+        public ActionResult UploadExcel()
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            return View();
+        }
+
+        public ActionResult DownloadTemplate()
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Waybills");
+                var headers = new[]
+                {
+                    "WaybillNo","IssueDate","Direction","ForwarderID","ForwarderName","ContractID","ContractNo",
+                    "TransportTypeID","TransportType","FromLocation","ToLocation","DistanceKm","GrWeight","NetWeight",
+                    "CBM","PalletsCount","FreightBasis","Rate","Amount","CurrencyID","Currency","PayerType","PayerID",
+                    "InvoiceID","SalesInvoiceID","SalesOrderID","PurchaseOrderID","TTNKID","TruckNo","TrailerNo",
+                    "TruckModel","TrailerModel","DriverName","DriverPINFL","PlannedDeliveryDate","ActualDeliveryDate",
+                    "Description","ManualCorrectionReason"
+                };
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    worksheet.Cells[1, i + 1].Value = headers[i];
+                    worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                }
+
+                worksheet.Cells[2, 1].Value = "WB-0001";
+                worksheet.Cells[2, 2].Value = DateTime.Today;
+                worksheet.Cells[2, 3].Value = "Kirim";
+                worksheet.Cells[2, 10].Value = "Supplier A";
+                worksheet.Cells[2, 11].Value = "Warehouse B";
+                worksheet.Cells[2, 12].Value = 25;
+                worksheet.Cells[2, 13].Value = 12.5;
+                worksheet.Cells[2, 18].Value = 150000;
+                worksheet.Cells[2, 19].Value = 1875000;
+                worksheet.Cells[2, 21].Value = "UZS";
+
+                worksheet.Column(2).Style.Numberformat.Format = "yyyy-mm-dd";
+                worksheet.Column(36).Style.Numberformat.Format = "yyyy-mm-dd";
+                worksheet.Column(37).Style.Numberformat.Format = "yyyy-mm-dd";
+                worksheet.Cells.AutoFitColumns();
+
+                var bytes = package.GetAsByteArray();
+                return File(bytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Waybill_Import_Template.xlsx");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UploadExcel(HttpPostedFileBase file)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (file == null || file.ContentLength == 0)
+            {
+                ViewBag.Error = "Excel fayl yuklanmadi.";
+                return View();
+            }
+
+            var errors = new List<string>();
+            var successCount = 0;
+            var skipCount = 0;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var forwarders = await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync();
+                var contracts = await db.F_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync();
+                var transportTypes = await db.F_TRANSPORT_TYPES.Where(t => t.IsDeleted == false || t.IsDeleted == null).ToListAsync();
+                var currencies = await db.CURRENCIES.ToListAsync();
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(file.InputStream))
+                {
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null || worksheet.Dimension == null)
+                    {
+                        ViewBag.Error = "Excel fayl bo'sh.";
+                        return View();
+                    }
+
+                    var headerMap = BuildHeaderMap(worksheet);
+                    if (!headerMap.ContainsKey("WaybillNo") || !headerMap.ContainsKey("IssueDate"))
+                    {
+                        ViewBag.Error = "Excel faylda majburiy ustunlar yo'q (WaybillNo, IssueDate).";
+                        return View();
+                    }
+
+                    var lastRow = worksheet.Dimension.End.Row;
+                    for (int row = 2; row <= lastRow; row++)
+                    {
+                        var waybillNo = GetCellString(worksheet, row, headerMap, "WaybillNo");
+                        if (string.IsNullOrWhiteSpace(waybillNo))
+                        {
+                            skipCount++;
+                            continue;
+                        }
+
+                        if (db.F_WAYBILLS.Any(w => w.WaybillNo == waybillNo && w.IsDeleted == false))
+                        {
+                            skipCount++;
+                            continue;
+                        }
+
+                        var issueDate = GetCellDate(worksheet, row, headerMap, "IssueDate");
+                        if (!issueDate.HasValue)
+                        {
+                            errors.Add($"Row {row}: IssueDate noto'g'ri formatda.");
+                            continue;
+                        }
+
+                        var contractId = GetCellInt(worksheet, row, headerMap, "ContractID");
+                        var contractNo = GetCellString(worksheet, row, headerMap, "ContractNo");
+                        var contract = contractId.HasValue
+                            ? contracts.FirstOrDefault(c => c.ID == contractId.Value)
+                            : (!string.IsNullOrWhiteSpace(contractNo) ? contracts.FirstOrDefault(c => c.ContractNo == contractNo) : null);
+
+                        if (contract == null)
+                        {
+                            errors.Add($"Row {row}: Shartnoma topilmadi (ContractID/ContractNo).");
+                            continue;
+                        }
+
+                        var forwarderId = GetCellInt(worksheet, row, headerMap, "ForwarderID");
+                        var forwarderName = GetCellString(worksheet, row, headerMap, "ForwarderName");
+                        var forwarder = forwarderId.HasValue
+                            ? forwarders.FirstOrDefault(f => f.ID == forwarderId.Value)
+                            : (!string.IsNullOrWhiteSpace(forwarderName) ? forwarders.FirstOrDefault(f => f.ForwarderName == forwarderName) : null);
+
+                        var transportTypeId = GetCellInt(worksheet, row, headerMap, "TransportTypeID");
+                        var transportTypeName = GetCellString(worksheet, row, headerMap, "TransportType");
+                        var transportType = transportTypeId.HasValue
+                            ? transportTypes.FirstOrDefault(t => t.ID == transportTypeId.Value)
+                            : (!string.IsNullOrWhiteSpace(transportTypeName) ? transportTypes.FirstOrDefault(t => t.TransportType == transportTypeName) : null);
+
+                        if (transportType == null)
+                        {
+                            errors.Add($"Row {row}: Transport turi topilmadi (TransportTypeID/TransportType).");
+                            continue;
+                        }
+
+                        var currencyId = GetCellInt(worksheet, row, headerMap, "CurrencyID");
+                        var currencyCode = GetCellString(worksheet, row, headerMap, "Currency");
+                        var currency = currencyId.HasValue
+                            ? currencies.FirstOrDefault(c => c.ID == currencyId.Value)
+                            : (!string.IsNullOrWhiteSpace(currencyCode) ? currencies.FirstOrDefault(c => c.Shortname == currencyCode) : null);
+
+                        var waybill = new F_WAYBILLS
+                        {
+                            WaybillNo = waybillNo,
+                            IssueDate = issueDate.Value,
+                            Direction = GetCellByte(worksheet, row, headerMap, "Direction", ParseDirection),
+                            ForwarderID = forwarder?.ID ?? contract.ForwarderID,
+                            ContractID = contract.ID,
+                            TransportTypeID = transportType.ID,
+                            FromLocation = GetCellString(worksheet, row, headerMap, "FromLocation"),
+                            ToLocation = GetCellString(worksheet, row, headerMap, "ToLocation"),
+                            DistanceKm = GetCellDouble(worksheet, row, headerMap, "DistanceKm"),
+                            GrWeight = GetCellDouble(worksheet, row, headerMap, "GrWeight"),
+                            NetWeight = GetCellDouble(worksheet, row, headerMap, "NetWeight"),
+                            CBM = GetCellDouble(worksheet, row, headerMap, "CBM"),
+                            PalletsCount = GetCellInt(worksheet, row, headerMap, "PalletsCount"),
+                            FreightBasis = GetCellByte(worksheet, row, headerMap, "FreightBasis", ParseFreightBasis),
+                            Rate = GetCellDouble(worksheet, row, headerMap, "Rate"),
+                            Amount = GetCellDouble(worksheet, row, headerMap, "Amount"),
+                            CurrencyID = currency?.ID,
+                            PayerType = GetCellByte(worksheet, row, headerMap, "PayerType", ParsePayerType),
+                            PayerID = GetCellInt(worksheet, row, headerMap, "PayerID"),
+                            InvoiceID = GetCellInt(worksheet, row, headerMap, "InvoiceID"),
+                            SalesInvoiceID = GetCellLong(worksheet, row, headerMap, "SalesInvoiceID"),
+                            SalesOrderID = GetCellInt(worksheet, row, headerMap, "SalesOrderID"),
+                            PurchaseOrderID = GetCellInt(worksheet, row, headerMap, "PurchaseOrderID"),
+                            TTNKID = GetCellLong(worksheet, row, headerMap, "TTNKID"),
+                            TruckNo = GetCellString(worksheet, row, headerMap, "TruckNo"),
+                            TrailerNo = GetCellString(worksheet, row, headerMap, "TrailerNo"),
+                            TruckModel = GetCellString(worksheet, row, headerMap, "TruckModel"),
+                            TrailerModel = GetCellString(worksheet, row, headerMap, "TrailerModel"),
+                            DriverName = GetCellString(worksheet, row, headerMap, "DriverName"),
+                            DriverPINFL = GetCellString(worksheet, row, headerMap, "DriverPINFL"),
+                            PlannedDeliveryDate = GetCellDate(worksheet, row, headerMap, "PlannedDeliveryDate"),
+                            ActualDeliveryDate = GetCellDate(worksheet, row, headerMap, "ActualDeliveryDate"),
+                            Description = GetCellString(worksheet, row, headerMap, "Description"),
+                            ManualCorrectionReason = GetCellString(worksheet, row, headerMap, "ManualCorrectionReason"),
+                            IsDeleted = false
+                        };
+
+                        db.F_WAYBILLS.Add(waybill);
+                        successCount++;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+            }
+
+            ViewBag.SuccessCount = successCount;
+            ViewBag.SkipCount = skipCount;
+            ViewBag.Errors = errors;
+            return View();
         }
 
         [HttpPost]
@@ -567,15 +784,43 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Try to find matching tariff (this would require F_CONTRACT_TARIFFS table)
-                // For now, return contract base rate
+                var tariffs = await db.F_CONTRACT_TARIFFS
+                    .Include(t => t.CURRENCy)
+                    .Where(t => t.ContractID == contractId.Value && t.IsActive)
+                    .ToListAsync();
+
+                var best = tariffs
+                    .Where(t => t.TransportTypeID == transportTypeId.Value)
+                    .Select(t => new
+                    {
+                        Tariff = t,
+                        Score = MatchTariffScore(t, fromLocation, toLocation)
+                    })
+                    .Where(x => x.Score >= 0)
+                    .OrderByDescending(x => x.Score)
+                    .ThenByDescending(x => x.Tariff.CreatedDT)
+                    .FirstOrDefault();
+
+                if (best != null)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        rate = best.Tariff.Rate,
+                        basis = best.Tariff.FreightBasis,
+                        currencyId = best.Tariff.CurrencyID,
+                        minimumCharge = best.Tariff.MinimumCharge
+                    });
+                }
+
+                // Fallback to contract base amount
                 var contract = await db.F_CONTRACTS.FindAsync(contractId.Value);
                 if (contract != null)
                 {
                     return Json(new { success = true, rate = contract.Amount, currencyId = contract.CurrencyID });
                 }
 
-                return Json(new { success = false, message = "Contract not found" });
+                return Json(new { success = false, message = "Tarif topilmadi" });
             }
         }
 
@@ -627,6 +872,248 @@ namespace tahsinERP.Controllers
                 }
 
                 return Json(new { success = false, message = "Invoice not found" });
+            }
+        }
+
+        private static WaybillCreateViewModel BuildWaybillViewModel(DBTHSNEntities db, WaybillCreateViewModel model = null)
+        {
+            var viewModel = model ?? new WaybillCreateViewModel();
+
+            viewModel.Forwarders = db.FORWARDERS.Where(f => f.IsDeleted == false)
+                .Select(f => new SelectListItem { Value = f.ID.ToString(), Text = f.ForwarderName, Selected = f.ID == viewModel.ForwarderID })
+                .ToList();
+            viewModel.Contracts = db.F_CONTRACTS.Where(c => c.IsDeleted == false)
+                .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == viewModel.ContractID })
+                .ToList();
+            viewModel.TransportTypes = db.F_TRANSPORT_TYPES
+                .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TransportType, Selected = t.ID == viewModel.TransportTypeID })
+                .ToList();
+            viewModel.PurchaseInvoices = db.P_INVOICES.Where(i => i.IsDeleted == false)
+                .Select(i => new SelectListItem { Value = i.ID.ToString(), Text = i.InvoiceNo, Selected = i.ID == viewModel.InvoiceID })
+                .ToList();
+            viewModel.SalesInvoices = db.SALES_INVOICES
+                .Select(i => new SelectListItem { Value = i.ID.ToString(), Text = i.InvoiceNo, Selected = i.ID == viewModel.SalesInvoiceID })
+                .ToList();
+            viewModel.SalesOrders = db.S_ORDERS.Where(o => o.IsDeleted == false)
+                .Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == viewModel.SalesOrderID })
+                .ToList();
+            viewModel.PurchaseOrders = db.P_ORDERS.Where(o => o.IsDeleted == false)
+                .Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == viewModel.PurchaseOrderID })
+                .ToList();
+            viewModel.TTNKs = db.SALES_TTNK_HEADERS
+                .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TTNKNumber, Selected = t.ID == viewModel.TTNKID })
+                .ToList();
+            viewModel.Currencies = db.CURRENCIES
+                .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname, Selected = c.ID == viewModel.CurrencyID })
+                .ToList();
+
+            return viewModel;
+        }
+
+        private static int MatchTariffScore(F_CONTRACT_TARIFFS tariff, string fromLocation, string toLocation)
+        {
+            var score = 0;
+            if (!string.IsNullOrWhiteSpace(tariff.FromCity))
+            {
+                if (string.IsNullOrWhiteSpace(fromLocation) || !fromLocation.Equals(tariff.FromCity, StringComparison.OrdinalIgnoreCase))
+                {
+                    return -1;
+                }
+                score += 4;
+            }
+            if (!string.IsNullOrWhiteSpace(tariff.ToCity))
+            {
+                if (string.IsNullOrWhiteSpace(toLocation) || !toLocation.Equals(tariff.ToCity, StringComparison.OrdinalIgnoreCase))
+                {
+                    return -1;
+                }
+                score += 4;
+            }
+            if (!string.IsNullOrWhiteSpace(tariff.FromRegion))
+            {
+                if (string.IsNullOrWhiteSpace(fromLocation) ||
+                    fromLocation.IndexOf(tariff.FromRegion, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    return -1;
+                }
+                score += 2;
+            }
+            if (!string.IsNullOrWhiteSpace(tariff.ToRegion))
+            {
+                if (string.IsNullOrWhiteSpace(toLocation) ||
+                    toLocation.IndexOf(tariff.ToRegion, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    return -1;
+                }
+                score += 2;
+            }
+
+            return score;
+        }
+
+        private static string GetCargoTypeText(F_WAYBILLS waybill)
+        {
+            if (waybill.SalesInvoiceID.HasValue || waybill.SalesOrderID.HasValue || waybill.TTNKID.HasValue)
+            {
+                return "Tayyor mahsulot";
+            }
+
+            if (waybill.InvoiceID.HasValue || waybill.PurchaseOrderID.HasValue)
+            {
+                return "Xomashyo/material";
+            }
+
+            return "Boshqa";
+        }
+
+        private static string GetLinkedDocText(F_WAYBILLS waybill)
+        {
+            if (waybill.SalesInvoiceID.HasValue)
+            {
+                return $"Sales Invoice #{waybill.SalesInvoiceID}";
+            }
+            if (waybill.InvoiceID.HasValue)
+            {
+                return $"Purchase Invoice #{waybill.InvoiceID}";
+            }
+            if (waybill.TTNKID.HasValue)
+            {
+                return $"TTNK #{waybill.TTNKID}";
+            }
+            if (waybill.SalesOrderID.HasValue)
+            {
+                return $"Sales Order #{waybill.SalesOrderID}";
+            }
+            if (waybill.PurchaseOrderID.HasValue)
+            {
+                return $"Purchase Order #{waybill.PurchaseOrderID}";
+            }
+            return null;
+        }
+
+        private static Dictionary<string, int> BuildHeaderMap(ExcelWorksheet worksheet)
+        {
+            var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var lastCol = worksheet.Dimension.End.Column;
+            for (int col = 1; col <= lastCol; col++)
+            {
+                var header = worksheet.Cells[1, col].Text?.Trim();
+                if (!string.IsNullOrWhiteSpace(header) && !map.ContainsKey(header))
+                {
+                    map[header] = col;
+                }
+            }
+            return map;
+        }
+
+        private static string GetCellString(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        {
+            if (!map.ContainsKey(key)) return null;
+            return worksheet.Cells[row, map[key]].Text?.Trim();
+        }
+
+        private static double? GetCellDouble(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        {
+            var text = GetCellString(worksheet, row, map, key);
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            if (double.TryParse(text, out var value)) return value;
+            return null;
+        }
+
+        private static int? GetCellInt(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        {
+            var text = GetCellString(worksheet, row, map, key);
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            if (int.TryParse(text, out var value)) return value;
+            return null;
+        }
+
+        private static long? GetCellLong(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        {
+            var text = GetCellString(worksheet, row, map, key);
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            if (long.TryParse(text, out var value)) return value;
+            return null;
+        }
+
+        private static byte? GetCellByte(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key, Func<string, byte?> parser = null)
+        {
+            var text = GetCellString(worksheet, row, map, key);
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            if (byte.TryParse(text, out var value)) return value;
+            return parser != null ? parser(text) : (byte?)null;
+        }
+
+        private static DateTime? GetCellDate(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        {
+            if (!map.ContainsKey(key)) return null;
+            var cell = worksheet.Cells[row, map[key]];
+            if (cell.Value == null) return null;
+            if (cell.Value is DateTime dt) return dt;
+            if (double.TryParse(cell.Value.ToString(), out var oaDate))
+            {
+                return DateTime.FromOADate(oaDate);
+            }
+            if (DateTime.TryParse(cell.Text, out var parsed)) return parsed;
+            return null;
+        }
+
+        private static byte? ParseDirection(string text)
+        {
+            switch (text?.Trim().ToLowerInvariant())
+            {
+                case "kirim":
+                case "inbound":
+                    return 0;
+                case "chiqim":
+                case "outbound":
+                    return 1;
+                case "ichki":
+                case "internal":
+                    return 2;
+                default:
+                    return null;
+            }
+        }
+
+        private static byte? ParseFreightBasis(string text)
+        {
+            switch (text?.Trim().ToLowerInvariant())
+            {
+                case "mashina uchun":
+                case "pertruck":
+                    return 0;
+                case "ton uchun":
+                case "perton":
+                    return 1;
+                case "km uchun":
+                case "perkm":
+                    return 2;
+                case "flat":
+                    return 3;
+                default:
+                    return null;
+            }
+        }
+
+        private static byte? ParsePayerType(string text)
+        {
+            switch (text?.Trim().ToLowerInvariant())
+            {
+                case "bizning kompaniya":
+                case "ourcompany":
+                    return 0;
+                case "mijoz":
+                case "customer":
+                    return 1;
+                case "taminotchi":
+                case "supplier":
+                    return 2;
+                case "bo'lib":
+                case "shared":
+                    return 3;
+                default:
+                    return null;
             }
         }
     }

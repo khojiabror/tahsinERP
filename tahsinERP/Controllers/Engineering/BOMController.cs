@@ -27,6 +27,21 @@ namespace tahsinERP.Controllers.Engineering
                 .Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
                 .ToListAsync();
 
+            var productIds = finishedGoods.Select(p => p.ID).ToList();
+            var normVersions = await db.NORMVERSIONS
+                .Where(n => n.ProductID.HasValue
+                    && productIds.Contains(n.ProductID.Value)
+                    && (n.IsDeleted == null || n.IsDeleted == false))
+                .ToListAsync();
+
+            var latestNormByProduct = normVersions
+                .GroupBy(n => n.ProductID.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(n => n.EffectiveFrom ?? DateTime.MinValue)
+                          .ThenByDescending(n => n.ID)
+                          .FirstOrDefault());
+
             // Get the latest BOM version for each product
             var bomIndexList = new List<BomIndexViewModel>();
 
@@ -75,12 +90,26 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (sortedBomHeaders != null)
                 {
+                    string normVersion = null;
+                    if (latestNormByProduct.TryGetValue(product.ID, out var latestNorm) && latestNorm != null)
+                    {
+                        if (latestNorm.EffectiveFrom.HasValue)
+                        {
+                            normVersion = latestNorm.EffectiveFrom.Value.ToString("yyyy-MM");
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(normVersion))
+                    {
+                        normVersion = sortedBomHeaders.VersionNo ?? "N/A";
+                    }
+
                     bomIndexList.Add(new BomIndexViewModel
                     {
                         ProductId = product.ID,
                         ProductPno = product.PNo,
                         ProductName = product.Name,
-                        NormVersion = sortedBomHeaders.VersionNo ?? "N/A"
+                        NormVersion = normVersion
                     });
                 }
             }

@@ -30,7 +30,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive && (o.IsDeleted == false || o.IsDeleted == null))
+                .Where(o => o.IsActive && o.IsDeleted == false)
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();
@@ -57,7 +57,7 @@ namespace tahsinERP.Controllers.HR
             var orgUnit = await db.HR_ORG_UNITS
                 .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_POSITIONS))
                 .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_SALARY_GRADES))
-                .Where(o => o.ID == id && (o.IsDeleted == false || o.IsDeleted == null))
+                .Where(o => o.ID == id && o.IsDeleted == false)
                 .FirstOrDefaultAsync();
 
             if (orgUnit == null)
@@ -414,7 +414,7 @@ namespace tahsinERP.Controllers.HR
         public async Task<JsonResult> GetTreeData()
         {
             var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive && (o.IsDeleted == false || o.IsDeleted == null))
+                .Where(o => o.IsActive && o.IsDeleted == false)
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();
@@ -432,7 +432,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive && (o.IsDeleted == false || o.IsDeleted == null))
+                .Where(o => o.IsActive && o.IsDeleted == false)
                 .Include(o => o.HR_EMPLOYEES)
                 .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_POSITIONS))
                 .OrderBy(o => o.LevelNo)

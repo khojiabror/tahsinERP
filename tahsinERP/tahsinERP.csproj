@@ -529,6 +529,7 @@
     <Compile Include="Controllers\Logistic\FContractController.cs" />
     <Compile Include="Controllers\Logistic\ForwarderController.cs" />
     <Compile Include="Controllers\Logistic\FTransportTypeController.cs" />
+    <Compile Include="Controllers\Logistic\FContractTariffController.cs" />
     <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
     <Compile Include="Controllers\Settings\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\ExpensesController.cs" />
@@ -1067,6 +1068,7 @@
     <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
+    <Compile Include="ViewModels\WaybillIndexItemViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
     <Compile Include="ViewModels\UserViewModel.cs" />
     <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
@@ -2946,11 +2948,16 @@
     <Content Include="Views\Waybill\Details.cshtml" />
     <Content Include="Views\Waybill\Edit.cshtml" />
     <Content Include="Views\Waybill\Delete.cshtml" />
+    <Content Include="Views\Waybill\UploadExcel.cshtml" />
     <Content Include="Views\FContract\Index.cshtml" />
     <Content Include="Views\FContract\Create.cshtml" />
     <Content Include="Views\FContract\Details.cshtml" />
     <Content Include="Views\FContract\Edit.cshtml" />
     <Content Include="Views\FContract\Delete.cshtml" />
+    <Content Include="Views\FContractTariff\Index.cshtml" />
+    <Content Include="Views\FContractTariff\Create.cshtml" />
+    <Content Include="Views\FContractTariff\Edit.cshtml" />
+    <Content Include="Views\FContractTariff\Delete.cshtml" />
     <Content Include="Views\WhIncome\Details.cshtml" />
     <Content Include="Views\WhIncome\Edit.cshtml" />
     <Content Include="Views\WhIncome\EditPart.cshtml" />

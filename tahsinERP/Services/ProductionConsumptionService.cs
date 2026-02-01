@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using tahsinERP.Controllers;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -272,24 +273,70 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Consumes materials from Production warehouse when production is confirmed
+        /// Consumes materials from Supply (raw material) warehouse when production is confirmed
+        /// Creates Expense document without linked Income
         /// </summary>
-        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int productionWarehouseId, int? productionProcessId = null)
+        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int supplyWarehouseId, int? productionProcessId = null)
         {
             var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
             var wasteService = new WasteHandlingService(_db);
 
+            if (requirements == null || !requirements.Any())
+            {
+                return;
+            }
+
+            // Validate stock before creating expense
             foreach (var req in requirements)
             {
-                // Get stock in Production warehouse
                 var stock = await _db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == productionWarehouseId && s.ProductID == req.MaterialID);
+                    .FirstOrDefaultAsync(s => s.WHID == supplyWarehouseId && s.ProductID == req.MaterialID);
 
                 if (stock == null || stock.Amount < req.TotalConsumption)
                 {
                     throw new InvalidOperationException(
                         $"Insufficient stock for material {req.MaterialPNo}. Required: {req.TotalConsumption}, Available: {stock?.Amount ?? 0}");
                 }
+            }
+
+            var expense = new EXPENS
+            {
+                DocNo = $"BOM-{DateTime.Now:yyyyMMddHHmmss}-{productId}",
+                IssueDateTime = DateTime.Now,
+                SenderWHID = supplyWarehouseId,
+                ReceiverWhID = null,
+                CurrencyID = 1,
+                Amount = 0,
+                TotalPrice = 0,
+                Description = $"Ishlab chiqarish uchun xomashyo chiqimi: Product ID {productId}, Qty {producedQty}",
+                SendStatus = true,
+                IsDeleted = false
+            };
+
+            _db.EXPENSES.Add(expense);
+            await _db.SaveChangesAsync();
+
+            double totalAmount = 0;
+
+            foreach (var req in requirements)
+            {
+                var expenseProduct = new EXPENSE_PRODUCTS
+                {
+                    ExpenseID = expense.ID,
+                    ProductID = req.MaterialID,
+                    Amount = req.TotalConsumption,
+                    PiecePrice = 0,
+                    TotalPrice = 0,
+                    UnitID = req.UnitID,
+                    Comment = "BOM/NORM consumption"
+                };
+
+                _db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                totalAmount += req.TotalConsumption;
+
+                // Get stock in Supply warehouse
+                var stock = await _db.PRODUCT_STOCKS
+                    .FirstOrDefaultAsync(s => s.WHID == supplyWarehouseId && s.ProductID == req.MaterialID);
 
                 // Subtract total consumption (including waste)
                 stock.Amount -= req.TotalConsumption;
@@ -305,13 +352,17 @@ namespace tahsinERP.Services
                         req.MaterialID, 
                         req.WasteQty, 
                         productionProcessId.Value, 
-                        productionWarehouseId, 
+                        supplyWarehouseId, 
                         req.UnitID,
                         $"Waste from production of Product ID {productId}, Qty: {producedQty}");
                 }
             }
 
+            expense.Amount = totalAmount;
             await _db.SaveChangesAsync();
+
+            LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
+                $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Product ID: {productId}, Qty: {producedQty}");
         }
     }
 

@@ -43,7 +43,7 @@ namespace tahsinERP.Controllers.Settings
 
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(),
                     "ID", "FullName");
 
@@ -85,7 +85,7 @@ namespace tahsinERP.Controllers.Settings
                 
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(), 
                     "ID", "FullName", warehouse.MRP);
 
@@ -143,7 +143,7 @@ namespace tahsinERP.Controllers.Settings
 
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(),
                     "ID", "FullName", warehouse.MRP);
 
@@ -185,7 +185,7 @@ namespace tahsinERP.Controllers.Settings
 
                 ViewBag.MRPUsers = new SelectList(
                     await db.USERS
-                        .Where(u => u.ROLES.Any(r => r.RName == "Xaridchi" || r.RName == "Savdogar" || r.RName == "Savdo+Ishlab chiqarish" || r.RName == "Ishlab chiqarish") && u.IsDeleted != true)
+                        .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(),
                     "ID", "FullName", warehouse.MRP);
 

@@ -18,6 +18,26 @@ namespace tahsinERP.Services
         private const string SALES_WH_KEYWORDS = "SALES,SOTUV,SALE";
         private const string SUPPLY_WH_KEYWORDS = "SUPPLY,XOMASHYO,SUPPLIER";
 
+        private static string[] SplitKeywords(string keywords)
+        {
+            return (keywords ?? string.Empty)
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(k => k.Trim())
+                .Where(k => k.Length > 0)
+                .ToArray();
+        }
+
+        private static bool NameMatchesKeywords(string name, string[] keywords)
+        {
+            if (string.IsNullOrWhiteSpace(name) || keywords == null || keywords.Length == 0)
+            {
+                return false;
+            }
+
+            return keywords.Any(k =>
+                name.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
         /// <summary>
         /// Get Production Warehouse (for finished goods from production)
         /// </summary>
@@ -26,10 +46,10 @@ namespace tahsinERP.Services
             var query = db.WAREHOUSES.Where(w => w.IsDeleted != true);
 
             // Try to find by name keywords
+            var productionKeywords = SplitKeywords(PRODUCTION_WH_KEYWORDS);
             var productionWH = query
-                .Where(w => PRODUCTION_WH_KEYWORDS.Split(',').Any(keyword => 
-                    w.WHName.ToUpper().Contains(keyword.ToUpper())))
-                .FirstOrDefault();
+                .AsEnumerable()
+                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, productionKeywords));
 
             if (productionWH != null)
                 return productionWH;
@@ -57,11 +77,11 @@ namespace tahsinERP.Services
         public static Warehouse GetSalesWarehouse(DBTHSNEntities db)
         {
             // Try to find by name keywords
+            var salesKeywords = SplitKeywords(SALES_WH_KEYWORDS);
             var salesWH = db.WAREHOUSES
                 .Where(w => w.IsDeleted != true)
-                .Where(w => SALES_WH_KEYWORDS.Split(',').Any(keyword => 
-                    w.WHName.ToUpper().Contains(keyword.ToUpper())))
-                .FirstOrDefault();
+                .AsEnumerable()
+                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, salesKeywords));
 
             // Fallback: get first active warehouse
             if (salesWH == null)
@@ -72,6 +92,27 @@ namespace tahsinERP.Services
             }
 
             return salesWH;
+        }
+
+        /// <summary>
+        /// Get Supply Warehouse (raw materials)
+        /// </summary>
+        public static Warehouse GetSupplyWarehouse(DBTHSNEntities db)
+        {
+            var supplyKeywords = SplitKeywords(SUPPLY_WH_KEYWORDS);
+            var supplyWH = db.WAREHOUSES
+                .Where(w => w.IsDeleted != true)
+                .AsEnumerable()
+                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, supplyKeywords));
+
+            if (supplyWH == null)
+            {
+                supplyWH = db.WAREHOUSES
+                    .Where(w => w.IsDeleted != true)
+                    .FirstOrDefault();
+            }
+
+            return supplyWH;
         }
 
         /// <summary>
@@ -160,6 +201,60 @@ namespace tahsinERP.Services
                         $"Xatolik: {ex.Message}");
                     throw;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Increase stock in Production Warehouse without creating Income document
+        /// </summary>
+        public static void IncreaseProductionStockWithoutIncome(int productID, double quantity, int shopID,
+            DBTHSNEntities db, string userEmail, int? productionID = null)
+        {
+            try
+            {
+                var product = db.PRODUCTS.Find(productID);
+                if (product == null)
+                    throw new Exception($"Mahsulot topilmadi: {productID}");
+
+                if (product.IsFinishedGood != true)
+                {
+                    LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
+                        $"Mahsulot {product.PNo} finished good emas, o'tkazib yuborildi");
+                    return;
+                }
+
+                var productionWH = GetProductionWarehouse(db, shopID);
+                if (productionWH == null)
+                    throw new Exception("Ishlab chiqarish ombori topilmadi");
+
+                var stock = db.PRODUCT_STOCKS
+                    .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == productID);
+
+                if (stock != null)
+                {
+                    stock.Amount += quantity;
+                    db.Entry(stock).State = EntityState.Modified;
+                }
+                else
+                {
+                    var newStock = new PRODUCT_STOCKS
+                    {
+                        WHID = productionWH.ID,
+                        ProductID = productID,
+                        Amount = quantity,
+                        UnitID = product.UnitID
+                    };
+                    db.PRODUCT_STOCKS.Add(newStock);
+                }
+
+                LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
+                    $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Production ID: {productionID}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
+                    $"Xatolik: {ex.Message}");
+                throw;
             }
         }
 

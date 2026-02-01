@@ -80,25 +80,16 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            using (var db = new DBTHSNEntities())
-            {
-                var roles = await db.ROLES
-                    .Where(r => r.IsDeleted != true)
-                    .OrderBy(r => r.RName)
-                    .ToListAsync();
+            ViewBag.ControllerNames = GetAllControllerNames();
+            ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
 
-                ViewBag.Roles = new MultiSelectList(roles, "ID", "RName");
-                ViewBag.ControllerNames = GetAllControllerNames();
-                ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
-
-                return View();
-            }
+            return View();
         }
 
         // POST: PModule/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(PERMISSIONMODULE permissions, int[] RoleID)
+        public async Task<ActionResult> Create(PERMISSIONMODULE permissions)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -153,23 +144,23 @@ namespace tahsinERP.Controllers
                             db.PERMISSIONMODULES.Add(permissions);
                             await db.SaveChangesAsync();
 
-                            // Rollarga permission biriktirish
-                            if (RoleID != null && RoleID.Length > 0)
+                            // Barcha rollarga permission biriktirish
+                            var roleIds = await db.ROLES
+                                .Where(r => r.IsDeleted != true)
+                                .Select(r => r.ID)
+                                .ToListAsync();
+
+                            var permissionsToAdd = roleIds.Select(roleId => new PERMISSION
                             {
-                                var validRoleIds = await db.ROLES
-                                    .Where(r => RoleID.Contains(r.ID) && r.IsDeleted != true)
-                                    .Select(r => r.ID)
-                                    .ToListAsync();
+                                PermissionModuleID = permissions.ID,
+                                RoleID = roleId,
+                                ViewPermit = true,
+                                ChangePermit = false,
+                                DeletePermit = false
+                            }).ToList();
 
-                                var permissionsToAdd = validRoleIds.Select(roleId => new PERMISSION
-                                {
-                                    PermissionModuleID = permissions.ID,
-                                    RoleID = roleId,
-                                    ViewPermit = true,
-                                    ChangePermit = false,
-                                    DeletePermit = false
-                                }).ToList();
-
+                            if (permissionsToAdd.Any())
+                            {
                                 db.PERMISSIONS.AddRange(permissionsToAdd);
                                 await db.SaveChangesAsync();
                             }
@@ -191,17 +182,8 @@ namespace tahsinERP.Controllers
             }
 
             // Error bo'lsa, ViewBag ni qayta yuklash
-            using (var db = new DBTHSNEntities())
-            {
-                var roles = await db.ROLES
-                    .Where(r => r.IsDeleted != true)
-                    .OrderBy(r => r.RName)
-                    .ToListAsync();
-
-                ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", RoleID);
-                ViewBag.ControllerNames = GetAllControllerNames();
-                ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
-            }
+            ViewBag.ControllerNames = GetAllControllerNames();
+            ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
 
             return View(permissions);
         }

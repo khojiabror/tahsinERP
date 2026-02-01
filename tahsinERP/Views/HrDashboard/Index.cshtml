@@ -202,56 +202,77 @@
     <script>
         $(document).ready(function() {
             // Headcount by OrgUnit Chart
-            var headcountCtx = document.getElementById('headcountChart').getContext('2d');
-            var headcountChart = new Chart(headcountCtx, {
-                type: 'bar',
-                data: {
-                    labels: [@Html.Raw(string.Join(",", Model.HeadcountByOrgUnit.Select(x => $"'{x.OrgUnitName}'")))],
-                    datasets: [{
-                        label: 'Rejalashtirilgan',
-                        data: [@string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.PlannedHeadcount))],
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
-                    }, {
-                        label: 'Faktik',
-                        data: [@string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.ActualHeadcount))],
-                        backgroundColor: 'rgba(255, 99, 132, 0.5)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            var headcountCtx = document.getElementById('headcountChart');
+            if (headcountCtx) {
+                var headcountLabels = @Html.Raw(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
+                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => $"'{x.OrgUnitName.Replace("'", "\\'")}'")) + "]"
+                    : "[]");
+                var plannedData = @(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
+                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.PlannedHeadcount)) + "]"
+                    : "[]");
+                var actualData = @(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
+                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.ActualHeadcount)) + "]"
+                    : "[]");
+                
+                var headcountChart = new Chart(headcountCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: headcountLabels,
+                        datasets: [{
+                            label: 'Rejalashtirilgan',
+                            data: plannedData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                        }, {
+                            label: 'Faktik',
+                            data: actualData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // Payroll Trend Chart
-            var payrollCtx = document.getElementById('payrollTrendChart').getContext('2d');
-            var payrollChart = new Chart(payrollCtx, {
-                type: 'line',
-                data: {
-                    labels: [@Html.Raw(string.Join(",", Model.PayrollTrend.Select(x => $"'{x.Year}-{x.Month:D2}'")))],
-                    datasets: [{
-                        label: 'Ish haqi fondi',
-                        data: [@string.Join(",", Model.PayrollTrend.Select(x => x.TotalPayroll))],
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            var payrollCtx = document.getElementById('payrollTrendChart');
+            if (payrollCtx) {
+                var payrollLabels = @Html.Raw(Model.PayrollTrend != null && Model.PayrollTrend.Any() 
+                    ? "[" + string.Join(",", Model.PayrollTrend.Select(x => $"'{x.Year}-{x.Month:D2}'")) + "]"
+                    : "[]");
+                var payrollData = @(Model.PayrollTrend != null && Model.PayrollTrend.Any() 
+                    ? "[" + string.Join(",", Model.PayrollTrend.Select(x => x.TotalPayroll)) + "]"
+                    : "[]");
+                
+                var payrollChart = new Chart(payrollCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: payrollLabels,
+                        datasets: [{
+                            label: 'Ish haqi fondi',
+                            data: payrollData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // DataTable
             $('#headcountTable').DataTable({

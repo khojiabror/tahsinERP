@@ -130,12 +130,11 @@ namespace tahsinERP.Controllers.MES
                                 db.PRODUCT_PRODUCTION.Add(production);
                             }
 
-                            // Update warehouse for finished goods (Production WH)
-                            // Only for finished goods - handled by WarehouseFlowService
+                            // Update warehouse for finished goods (Production WH) without Income doc
                             var product = db.PRODUCTS.Find(item.ProductID);
                             if (product != null && product.IsFinishedGood == true)
                             {
-                                WarehouseFlowService.IncreaseProductionStock(
+                                WarehouseFlowService.IncreaseProductionStockWithoutIncome(
                                     item.ProductID, 
                                     item.Total, 
                                     viewModel.ShopID, 
@@ -144,7 +143,7 @@ namespace tahsinERP.Controllers.MES
                                     existing?.ID
                                 );
 
-                                // Consume raw materials from Production warehouse with waste calculation
+                                // Consume raw materials from Supply warehouse with BOM/NORM calculation
                                 await ConsumeMaterialsForProduction(item.ProductID, item.Total, db);
                             }
                         }
@@ -448,28 +447,19 @@ namespace tahsinERP.Controllers.MES
         }
 
         /// <summary>
-        /// Consumes materials from Production warehouse when production is confirmed
+        /// Consumes materials from Supply warehouse when production is confirmed
         /// </summary>
         private async Task ConsumeMaterialsForProduction(int productId, double producedQty, DBTHSNEntities db)
         {
-            // Get Production warehouse (warehouse type should be configured)
-            var productionWarehouse = db.WAREHOUSES
-                .FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
-            
-            if (productionWarehouse == null)
+            var supplyWarehouse = WarehouseFlowService.GetSupplyWarehouse(db);
+            if (supplyWarehouse == null)
             {
-                // Try to find by ID or use first warehouse
-                productionWarehouse = db.WAREHOUSES.FirstOrDefault();
-            }
-
-            if (productionWarehouse == null)
-            {
-                throw new Exception("Production ombor topilmadi");
+                throw new Exception("Xomashyo ombor topilmadi");
             }
 
             var consumptionService = new ProductionConsumptionService(db);
             await consumptionService.ConsumeMaterialsForProductionAsync(
-                productId, producedQty, productionWarehouse.ID);
+                productId, producedQty, supplyWarehouse.ID);
         }
 
         /// <summary>

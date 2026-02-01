@@ -92,23 +92,37 @@ namespace tahsinERP.Controllers.Engineering
                         .Where(il => il.ProductID == id.Value && il.Month == period)
                         .ToList();
                     
-                    // Umumiy toza sarf summa: Sum of TotalAmount (computed column)
-                    decimal totalSarfSumma = inputLines
-                        .Where(il => il.TotalAmount.HasValue)
-                        .Sum(il => il.TotalAmount.Value);
-                    
-                    // Umumiy chiqindi summa: Price * PiecesPerProduct * wasteAmount (wasteAmount in meters, if in mm divide by 1000)
-                    // Umumiy chiqindi summa: B (Price * wasteAmount). WasteAmount is in meters, if it's in mm, should divide by 1000.
-                    // wasteAmount allaqachon umumiy chiqindi miqdorini ifodalaydi, shuning uchun PiecesPerProduct ga ko'paytirish shart emas
+                    decimal totalSarfSumma = 0;
                     decimal totalChiqindiSumma = 0;
                     foreach (var il in inputLines)
                     {
-                        if (il.Price > 0 && il.WasteAmount.HasValue)
+                        if (il.Price <= 0)
                         {
-                            // WasteAmount is stored in mm, convert to meters
-                            double wasteAmountMeters = il.WasteAmount.Value / 1000.0;
-                            totalChiqindiSumma += il.Price * (decimal)wasteAmountMeters;
+                            continue;
                         }
+
+                        decimal consumptionMeters = 0;
+                        if (il.Consumption.HasValue && il.Consumption.Value > 0)
+                        {
+                            consumptionMeters = (decimal)(il.Consumption.Value / 1000.0);
+                        }
+                        else if (il.CutLengthMm > 0)
+                        {
+                            consumptionMeters = (decimal)(il.CutLengthMm / 1000.0) * il.PiecesPerProduct;
+                        }
+                        else
+                        {
+                            consumptionMeters = il.PiecesPerProduct;
+                        }
+
+                        decimal wasteMeters = 0;
+                        if (il.WasteAmount.HasValue && il.WasteAmount.Value > 0)
+                        {
+                            wasteMeters = (decimal)(il.WasteAmount.Value / 1000.0);
+                        }
+
+                        totalSarfSumma += consumptionMeters * il.Price;
+                        totalChiqindiSumma += wasteMeters * il.Price;
                     }
                     
                     // Umumiy summa: A + B
@@ -192,9 +206,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Use Price from NORM_INPUT_LINES (saved price per product)
                     decimal unitPrice = inputLine.Price;
                     
-                    // Use TotalAmount from NORM_INPUT_LINES if available (computed column)
-                    // TotalAmount = (((CutLengthMm / 1000.0) * PiecesPerProduct) * Price)
-                    decimal totalAmount = inputLine.TotalAmount ?? 0;
+                    decimal totalAmount = 0;
 
                     // Use Consumption and WasteAmount from NORM_INPUT_LINES if available, otherwise calculate
                     bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
@@ -234,10 +246,11 @@ namespace tahsinERP.Controllers.Engineering
                         waste = (decimal)(wastePerBar / 1000.0) * barsNeeded;
                     }
 
-                    // If TotalAmount is not available, calculate it
-                    if (totalAmount == 0 && consumption > 0 && unitPrice > 0)
+                    if (unitPrice > 0)
                     {
-                        totalAmount = consumption * unitPrice;
+                        var cleanCost = consumption * unitPrice;
+                        var wasteCost = waste * unitPrice;
+                        totalAmount = cleanCost + wasteCost;
                     }
 
                     viewModel.CuttingLines.Add(new NormLineViewModel
@@ -537,9 +550,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Use Price from NORM_INPUT_LINES (saved price per product)
                     decimal unitPrice = inputLine.Price;
                     
-                    // Use TotalAmount from NORM_INPUT_LINES if available (computed column)
-                    // TotalAmount = (((CutLengthMm / 1000.0) * PiecesPerProduct) * Price)
-                    decimal totalAmount = inputLine.TotalAmount ?? 0;
+                    decimal totalAmount = 0;
 
                     // Use Consumption and WasteAmount from NORM_INPUT_LINES if available, otherwise calculate
                     bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
@@ -579,10 +590,11 @@ namespace tahsinERP.Controllers.Engineering
                         waste = (decimal)(wastePerBar / 1000.0) * barsNeeded;
                     }
 
-                    // If TotalAmount is not available, calculate it
-                    if (totalAmount == 0 && consumption > 0 && unitPrice > 0)
+                    if (unitPrice > 0)
                     {
-                        totalAmount = consumption * unitPrice;
+                        var cleanCost = consumption * unitPrice;
+                        var wasteCost = waste * unitPrice;
+                        totalAmount = cleanCost + wasteCost;
                     }
 
                     viewModel.CuttingLines.Add(new NormLineViewModel
@@ -1468,7 +1480,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Calculate total cost
                     if (line.UnitPrice.HasValue)
                     {
-                        line.TotalCostPerProduct = line.ConsumptionPerProduct * line.UnitPrice.Value;
+                        line.TotalCostPerProduct = (line.ConsumptionPerProduct + line.WastePerProduct) * line.UnitPrice.Value;
                     }
 
                     // Norma and Chiqindi
@@ -1694,7 +1706,7 @@ namespace tahsinERP.Controllers.Engineering
                 // Recalculate consumption and waste
                 optimizedLine.ConsumptionPerProduct = (decimal)((cutLength / 1000.0) * quantity);
                 optimizedLine.WastePerProduct = (decimal)(totalWaste / 1000.0);
-                optimizedLine.TotalCostPerProduct = optimizedLine.ConsumptionPerProduct * (optimizedLine.UnitPrice ?? 0);
+                optimizedLine.TotalCostPerProduct = (optimizedLine.ConsumptionPerProduct + optimizedLine.WastePerProduct) * (optimizedLine.UnitPrice ?? 0);
                 optimizedLine.Norma = optimizedLine.ConsumptionPerProduct;
                 optimizedLine.Chiqindi = optimizedLine.WastePerProduct;
 

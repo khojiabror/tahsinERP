@@ -75,5 +75,40 @@ namespace tahsinERP.ViewModels
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
     }
+
+    public class QualityInspectionDailyViewModel
+    {
+        [Display(Name = "Tekshiruv sanasi")]
+        [DataType(DataType.Date)]
+        public DateTime InspectionDate { get; set; }
+
+        public List<QualityInspectionDailyItemViewModel> Items { get; set; }
+    }
+
+    public class QualityInspectionDailyItemViewModel
+    {
+        public int ProductionID { get; set; }
+        public int ProductID { get; set; }
+        public string ProductNo { get; set; }
+        public string ProductName { get; set; }
+
+        public decimal ProducedQty { get; set; }
+        public decimal AlreadyInspectedQty { get; set; }
+        public decimal RemainingQty { get; set; }
+
+        [Display(Name = "Qabul qilingan miqdor")]
+        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        public decimal QtyAccepted { get; set; }
+
+        [Display(Name = "Rad etilgan miqdor")]
+        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        public decimal QtyRejected { get; set; }
+
+        [Display(Name = "Nuqson turi")]
+        public int? DefectTypeID { get; set; }
+
+        [Display(Name = "Izohlar")]
+        public string Notes { get; set; }
+    }
 }
 

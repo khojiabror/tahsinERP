@@ -1,4 +1,4 @@
-@model List<tahsinERP.Models.F_WAYBILLS>
+@model List<tahsinERP.ViewModels.WaybillIndexItemViewModel>
 @{
     ViewBag.Title = "Waybill Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -40,9 +40,12 @@
                 <section class="invoice-list-wrapper">
                     @if (changePermit)
                     {
-                        <div class="invoice-create-btn mb-1">
+                        <div class="invoice-create-btn mb-1 d-flex">
                             <a href="@Url.Action("Create", "Waybill")" class="btn btn-success bg-light invoice-create" role="button">
-                                <i class="bx bx-plus"></i> Yangi Waybill qo'shish
+                                <i class="bx bx-plus"></i> Yangi Waybill
+                            </a>
+                            <a href="@Url.Action("UploadExcel", "Waybill")" class="btn btn-outline-primary ml-1" role="button">
+                                <i class="bx bx-file"></i> Excel orqali yuklash
                             </a>
                         </div>
                     }
@@ -63,6 +66,14 @@
                                     <div class="col-md-2">
                                         <label>Forwarder</label>
                                         @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>Shartnoma</label>
+                                        @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>Transport turi</label>
+                                        @Html.DropDownList("transportTypeId", ViewBag.TransportTypes as SelectList, "Barchasi", new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
                                         <label>Boshlanish sanasi</label>
@@ -91,15 +102,21 @@
                                                     <th>Waybill No</th>
                                                     <th>Sana</th>
                                                     <th>Yo'nalish</th>
+                                                    <th>Yuk turi</th>
                                                     <th>Forwarder</th>
+                                                    <th>Shartnoma</th>
                                                     <th>Qayerdan</th>
                                                     <th>Qayerga</th>
+                                                    <th>Mashina</th>
+                                                    <th>Haydovchi</th>
                                                     <th>Masofa (km)</th>
                                                     <th>Vazn (ton)</th>
                                                     <th>CBM</th>
                                                     <th>Summa</th>
                                                     <th>Valyuta</th>
                                                     <th>To'lov holati</th>
+                                                    <th>To'langan</th>
+                                                    <th>Qoldiq</th>
                                                     @if (changePermit)
                                                     {
                                                         <th>Amallar</th>
@@ -113,12 +130,8 @@
                                                     {
                                                         var directionText = item.Direction == 0 ? "Kirim" : item.Direction == 1 ? "Chiqim" : "Ichki";
                                                         var directionClass = item.Direction == 0 ? "badge-info" : item.Direction == 1 ? "badge-success" : "badge-secondary";
-                                                        
-                                                        // Calculate payment status
-                                                        var totalPaid = item.F_WAYBILL_PAYMENTS?.Where(p => !p.IsDeleted).Sum(p => p.Payment_Amount) ?? 0;
-                                                        var outstanding = (item.Amount ?? 0) - totalPaid;
-                                                        var paymentStatus = outstanding <= 0 ? "To'landi" : outstanding < (item.Amount ?? 0) ? "Qisman" : "To'lanmagan";
-                                                        var paymentClass = outstanding <= 0 ? "badge-success" : outstanding < (item.Amount ?? 0) ? "badge-warning" : "badge-danger";
+                                                        var paymentClass = item.PaymentStatus == "To'landi" ? "badge-success" :
+                                                            item.PaymentStatus == "Qisman" ? "badge-warning" : "badge-danger";
 
                                                         <tr>
                                                             <td>
@@ -126,15 +139,21 @@
                                                             </td>
                                                             <td>@(item.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td>
                                                             <td><span class="badge @directionClass">@directionText</span></td>
-                                                            <td>@(item.FORWARDER?.ForwarderName ?? item.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td>
+                                                            <td>@(item.CargoTypeText ?? "")</td>
+                                                            <td>@(item.ForwarderName ?? "")</td>
+                                                            <td>@(item.ContractNo ?? "")</td>
                                                             <td>@(item.FromLocation ?? "")</td>
                                                             <td>@(item.ToLocation ?? "")</td>
+                                                            <td>@(item.TruckNo ?? "")</td>
+                                                            <td>@(item.DriverName ?? "")</td>
                                                             <td>@(item.DistanceKm?.ToString("N2") ?? "")</td>
                                                             <td>@(item.GrWeight?.ToString("N2") ?? "")</td>
                                                             <td>@(item.CBM?.ToString("N2") ?? "")</td>
                                                             <td>@(item.Amount?.ToString("N2") ?? "")</td>
-                                                            <td>@(item.CURRENCy?.Shortname ?? "")</td>
-                                                            <td><span class="badge @paymentClass">@paymentStatus</span></td>
+                                                            <td>@(item.Currency ?? "")</td>
+                                                            <td><span class="badge @paymentClass">@item.PaymentStatus</span></td>
+                                                            <td>@item.TotalPaid.ToString("N2")</td>
+                                                            <td>@item.Outstanding.ToString("N2")</td>
                                                             @if (changePermit)
                                                             {
                                                                 <td>
@@ -150,7 +169,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="@(changePermit ? 13 : 12)" class="text-center">Ma'lumot topilmadi</td>
+                                                        <td colspan="@(changePermit ? 18 : 17)" class="text-center">Ma'lumot topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>

@@ -1,69 +1,8 @@
 ﻿@model tahsinERP.Models.F_WAYBILLS
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Waybill tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var type = ViewBag.Type;
 }
-@*<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-    }
-
-    .container {
-        width: 800px;
-        margin: 0 auto;
-        border: 1px solid #000;
-        padding: 20px;
-    }
-
-    .header, .section, .footer {
-        margin-bottom: 20px;
-    }
-
-    .header h1, .section h2, .footer h3 {
-        margin: 0;
-        padding-bottom: 10px;
-    }
-
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-
-    .header-left, .header-right {
-        width: 45%;
-    }
-
-    .header-right img {
-        width: 100px;
-        height: 100px;
-    }
-
-    .section {
-        border-top: 2px solid #000;
-        padding-top: 20px;
-    }
-
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    .table th, .table td {
-        border: 1px solid #000;
-        padding: 8px;
-        text-align: left;
-    }
-
-    .footer {
-        border-top: 2px solid #000;
-        padding-top: 20px;
-    }
-</style>*@
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
 
@@ -80,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Waybill/Index">AKT lar</a>
+                                        <a href="~/Waybill/Index">Yo'l varaqalari</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        AKT sahifasi
+                                        Waybill tafsilotlari
                                     </li>
                                 </ol>
                             </div>
@@ -97,80 +36,43 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body pb-0 mx-25">
-                                    <div class="container">
-                                        @*<div class="header">
-                                            <div class="header-left">
-                                                <p>Hujjat imzolangan:</p>
-                                                <p>sana: 2024.06.04 14:41:38</p>
-                                                <p>seriya raqami: 78141866</p>
-                                                <p>kompaniya: MCHJ UZLOGISTIC QO`SHMA KORXONA</p>
-                                                <p>STIR: 305881199</p>
-                                                <p>fish: MIRPULATOV SUR`ATJON</p>
-                                                <p>email: <span style="color: blue;">[email]</span></p>
-                                            </div>
-                                            <div class="header-right">
-                                                <p>11EF21A30D482174A3ED1E0008000075</p>
-                                                <p>elektron hujjat identifikatori</p>
-                                                <img src="qr-code.png" alt="QR Code">
-                                            </div>
-                                        </div>
-
-                                        <div class="section">
-                                            <h2>HUJJATLARNI IMZOLASH PROTOKOLI</h2>
-                                            <table class="table">
-                                                <tr>
-                                                    <th>Yetkazib beruvchi</th>
-                                                    <th>Sotib oluvchi</th>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        MCHJ UZLOGISTIC QO`SHMA KORXONA<br>
-                                                        STIR: 305881199<br>
-                                                        Manzil: GOROD TASHKENT MIRABADSKIY RAYON Amir Temur shoh ko`chasi 13-uy
-                                                    </td>
-                                                    <td>
-                                                        "UZ-SEMYUNG KO" AJ<br>
-                                                        STIR: 202128505<br>
-                                                        Manzil: Soy ko`chasi 5-uy
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-
-                                        <div class="footer">
-                                            <h3>Hujjat haqida ma'lumot</h3>
-                                            <table class="table">
-                                                <tr>
-                                                    <th>Hujjat nomi</th>
-                                                    <td>Qo'shimcha Kelishuv</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Hujjat raqami va sanasi</th>
-                                                    <td>№ 4 dan 27.05.2024</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Shartnomaga</th>
-                                                    <td>№ UZI UZSK 001 JV dan 03.01.2024</td>
-                                                </tr>
-                                            </table>
-                                        </div>*@
-                                    </div>
                                     <div class="row">
-                                        <div class="col-lg-12 col-md-6 mt-25">
-                                            <h4 class="text-primary">AKT  ma'lumotlari</h4>
-                                            <hr />
-                                            <span><b>AKT raqami</b>: @Html.DisplayFor(model => model.WaybillNo, new { @class = "form-control" })</span>
-                                            <hr />
-                                            <span><b>Shartnoma raqami</b>:   @Model.F_CONTRACTS.ContractNo</span>
-                                            <hr />
-                                            <span><b>Transport turi</b>: @Html.DisplayFor(model => model.F_TRANSPORT_TYPES.TransportType, new { @class = "form-control" })</span>
-                                            <hr />
-                                            <span><b>Invoice</b>: @Html.DisplayFor(model => model.P_INVOICES.InvoiceNo, new { @class = "form-control" })</span>
-                                            <hr />
-                                            <span><b>CBM</b>: @Html.DisplayFor(model => model.CBM, new { @class = "form-control" })</span>
-                                            <hr />
-                                            <span><b>Umumiy vazni</b>: @Html.DisplayFor(model => model.GrWeight, new { @class = "form-control" })</span>
-                                            <hr />
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h4 class="text-primary mb-0">Waybill ma'lumotlari</h4>
+                                                <span class="badge badge-light">@Html.DisplayFor(model => model.WaybillNo)</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-sm">
+                                                <tr><td><b>Sana</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
+                                                <tr><td><b>Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
+                                                <tr><td><b>Shartnoma</b></td><td>@(Model.F_CONTRACTS?.ContractNo ?? "")</td></tr>
+                                                <tr><td><b>Transport turi</b></td><td>@(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</td></tr>
+                                                <tr><td><b>Qayerdan</b></td><td>@(Model.FromLocation ?? "")</td></tr>
+                                                <tr><td><b>Qayerga</b></td><td>@(Model.ToLocation ?? "")</td></tr>
+                                                <tr><td><b>Masofa (km)</b></td><td>@(Model.DistanceKm?.ToString("N2") ?? "")</td></tr>
+                                                <tr><td><b>Tarif</b></td><td>@(Model.Rate?.ToString("N2") ?? "")</td></tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-sm">
+                                                <tr><td><b>Brut vazn</b></td><td>@(Model.GrWeight?.ToString("N2") ?? "")</td></tr>
+                                                <tr><td><b>Net vazn</b></td><td>@(Model.NetWeight?.ToString("N2") ?? "")</td></tr>
+                                                <tr><td><b>CBM</b></td><td>@(Model.CBM?.ToString("N2") ?? "")</td></tr>
+                                                <tr><td><b>Pallet</b></td><td>@(Model.PalletsCount?.ToString() ?? "")</td></tr>
+                                                <tr><td><b>Jami summa</b></td><td>@(Model.Amount?.ToString("N2") ?? "") @Model.CURRENCy?.Shortname</td></tr>
+                                                <tr><td><b>Haydovchi</b></td><td>@(Model.DriverName ?? "")</td></tr>
+                                                <tr><td><b>Mashina</b></td><td>@(Model.TruckNo ?? "")</td></tr>
+                                                <tr><td><b>To'lov</b></td><td>Jami @ViewBag.TotalPaid?.ToString("N2") / Qoldiq @ViewBag.Outstanding?.ToString("N2")</td></tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-12">
+                                            <table class="table table-sm">
+                                                <tr><td><b>Planned Delivery</b></td><td>@(Model.PlannedDeliveryDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
+                                                <tr><td><b>Actual Delivery</b></td><td>@(Model.ActualDeliveryDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
+                                                <tr><td><b>Izoh</b></td><td>@(Model.Description ?? "")</td></tr>
+                                            </table>
                                         </div>
                                     </div>
                                     <hr>

@@ -25,7 +25,6 @@ namespace tahsinERP.ViewModels
         [Display(Name = "Yuboruvchi ombor")]
         public int? SenderWHID { get; set; }
         
-        [Required(ErrorMessage = "Invoys tanlanishi shart (Supplierdan kirim uchun)")]
         [Display(Name = "Invoys")]
         public int? InvoiceID { get; set; }
         

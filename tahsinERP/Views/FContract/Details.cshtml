@@ -63,6 +63,54 @@
                                                     <hr />
                                                 </div>
                                             </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h5 class="text-primary">Tariflar</h5>
+                                                        <a href="@Url.Action("Create", "FContractTariff", new { contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
+                                                            <i class="bx bx-plus"></i> Tarif qo'shish
+                                                        </a>
+                                                    </div>
+                                                    <div class="table-responsive mt-1">
+                                                        <table class="table table-striped">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Transport</th>
+                                                                    <th>Qayerdan</th>
+                                                                    <th>Qayerga</th>
+                                                                    <th>Basis</th>
+                                                                    <th>Rate</th>
+                                                                    <th>Valyuta</th>
+                                                                    <th>Faol</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @if (Model.F_CONTRACT_TARIFFS != null && Model.F_CONTRACT_TARIFFS.Any())
+                                                                {
+                                                                    foreach (var tariff in Model.F_CONTRACT_TARIFFS)
+                                                                    {
+                                                                        <tr>
+                                                                            <td>@tariff.F_TRANSPORT_TYPES?.TransportType</td>
+                                                                            <td>@(string.IsNullOrEmpty(tariff.FromCity) ? tariff.FromRegion : tariff.FromCity)</td>
+                                                                            <td>@(string.IsNullOrEmpty(tariff.ToCity) ? tariff.ToRegion : tariff.ToCity)</td>
+                                                                            <td>@tariff.FreightBasis</td>
+                                                                            <td>@tariff.Rate.ToString("N2")</td>
+                                                                            <td>@tariff.CURRENCy?.Shortname</td>
+                                                                            <td>@(tariff.IsActive ? "Ha" : "Yo'q")</td>
+                                                                        </tr>
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    <tr>
+                                                                        <td colspan="7" class="text-center">Tariflar yo'q</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <hr>

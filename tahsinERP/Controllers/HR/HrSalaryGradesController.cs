@@ -29,7 +29,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var grades = await db.HR_SALARY_GRADES
-                .Where(sg => sg.IsDeleted == false || sg.IsDeleted == null)
+                .Where(sg => sg.IsDeleted == false)
                 .OrderBy(sg => sg.GradeCode)
                 .ToListAsync();
 
@@ -63,7 +63,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var grade = await db.HR_SALARY_GRADES
-                .Where(sg => sg.ID == id && (sg.IsDeleted == false || sg.IsDeleted == null))
+                .Where(sg => sg.ID == id && sg.IsDeleted == false)
                 .FirstOrDefaultAsync();
             if (grade == null)
             {

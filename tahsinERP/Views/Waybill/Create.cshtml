@@ -1,13 +1,13 @@
 ﻿@model tahsinERP.ViewModels.WaybillCreateViewModel
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Waybill yaratish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    using (Html.BeginForm("Create", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    using (Html.BeginForm("Create", "Waybill", FormMethod.Post))
     {
         @Html.AntiForgeryToken()
         <div class="app-content content">
@@ -23,10 +23,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Waybill/Index">AKT lar</a>
+                                            <a href="~/Waybill/Index">Yo'l varaqalari</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi AKT qo'shish
+                                            Yangi reys (waybill)
                                         </li>
                                     </ol>
                                 </div>
@@ -35,95 +35,254 @@
                     </div>
                 </div>
                 <div class="content-body">
-                    <section class="basic-select2">
-                        <div class="row">
-                            <div class="col-xl-9 col-md-8 col-12">
-                                <div class="card">
-                                    <div class="card-content">
-                                        <div class="card-body pb-0 mx-25">
-                                            <div class="row">
-                                                <div class="col-lg-12 col-md-6 mt-25">
-                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                    <hr>
-                                                    <h6 class="invoice-to">AKT raqami</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.WaybillNo, new { @class = "form-control round", @placeholder = "AKT raqami" })
-                                                        @Html.ValidationMessageFor(model => model.WaybillNo, "", new { @class = "text-danger" })
-                                                    </fieldset>
+                    <div class="row">
+                        <div class="col-xl-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                                    <h6 class="invoice-to">Transport turi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.TransportTypeID, Model.TransportTypes, "Select Transport Type", new { @class = "form-control select2" })
-                                                        @Html.ValidationMessageFor(model => model.TransportTypeID, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Shartnoma raqami</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ContractID, Model.Contracts, new { @class = "form-control select2" })
-                                                        @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Invoice</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.InvoiceID, Model.Invoices, new { @class = "form-control select2" })
-                                                        @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">PackingList</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.PackingListID, Model.PackingLists, new { @class = "form-control select2" })
-                                                        @Html.ValidationMessageFor(model => model.PackingListID, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">CBM</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.CBM, new { @class = "form-control round", @placeholder = "birlik hajm o`lchovi" })
-                                                        @Html.ValidationMessageFor(model => model.CBM, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Yo'l haqi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control round", @placeholder = "birlik hajm o`lchovi" })
-                                                        @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <div class="col-md-6 col-12 form-group position-relative has-icon-left">
-                                                        <label for="dateInput">Sana</label>
-                                                        @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control", @id = "dateInput", @name = "Date", @required = "required", @placeholder = "Tuzilgan sanasi" })
-                                                        @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
-                                                        <div class="form-control-position mt-2">
-                                                            <i class='bx bx-calendar'></i>
-                                                        </div>
-                                                    </div>
-                                                    <h6 class="invoice-to">Umumiy og`irligi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.GrWeight, new { @class = "form-control round", @placeholder = "Foydalanilgan pul birligi" })
-                                                        @Html.ValidationMessageFor(model => model.GrWeight, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Batafsil ma`lumot</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = "Qisqacha tavsifi" })
-                                                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <ul class="list-group list-group-flush">
-                                                        <li class="list-group-item border-0 pb-0">
-                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
-                                                                <i class='bx bx-save'></i>
-                                                                Saqlash
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <hr>
+                                        <div class="mb-1">
+                                            <h5 class="text-primary mb-0">Asosiy ma'lumotlar</h5>
+                                            <small class="text-muted">Reys identifikatori, sana va yo'nalish.</small>
                                         </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label>Waybill raqami</label>
+                                                @Html.TextBoxFor(model => model.WaybillNo, new { @class = "form-control", @placeholder = "WB-0001" })
+                                                @Html.ValidationMessageFor(model => model.WaybillNo, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Sana</label>
+                                                @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control", @type = "date" })
+                                                @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Yo'nalish</label>
+                                                @Html.DropDownListFor(model => model.Direction, new SelectList(new[]
+                                                {
+                                                    new { Value = (byte?)0, Text = "Kirim (Inbound)" },
+                                                    new { Value = (byte?)1, Text = "Chiqim (Outbound)" },
+                                                    new { Value = (byte?)2, Text = "Ichki (Internal)" }
+                                                }, "Value", "Text"), "Tanlang", new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Forwarder</label>
+                                                @Html.DropDownListFor(model => model.ForwarderID, Model.Forwarders, "Tanlang", new { @class = "form-control select2" })
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <div class="mb-1">
+                                            <h5 class="text-primary mb-0">Shartnoma va transport</h5>
+                                            <small class="text-muted">Shartnoma bo'yicha tariflarni avtomatik tanlash uchun kerak.</small>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label>Shartnoma</label>
+                                                @Html.DropDownListFor(model => model.ContractID, Model.Contracts, "Tanlang", new { @class = "form-control select2", @id = "contractSelect" })
+                                                @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Transport turi</label>
+                                                @Html.DropDownListFor(model => model.TransportTypeID, Model.TransportTypes, "Tanlang", new { @class = "form-control select2", @id = "transportTypeSelect" })
+                                                @Html.ValidationMessageFor(model => model.TransportTypeID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Valyuta</label>
+                                                @Html.DropDownListFor(model => model.CurrencyID, Model.Currencies, "Tanlang", new { @class = "form-control", @id = "currencySelect" })
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-1 mt-1">
+                                            <h5 class="text-primary mb-0">Marshrut</h5>
+                                            <small class="text-muted">Qayerdan va qayerga yetkazilishi.</small>
+                                        </div>
+                                        <div class="mb-1 mt-1">
+                                            <h5 class="text-primary mb-0">Yuk parametrlari</h5>
+                                            <small class="text-muted">Vazn, hajm va palletlar soni.</small>
+                                        </div>
+                                        <div class="row mt-1">
+                                            <div class="col-md-4">
+                                                <label>Qayerdan</label>
+                                                @Html.TextBoxFor(model => model.FromLocation, new { @class = "form-control", @placeholder = "Manzil" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Qayerga</label>
+                                                @Html.TextBoxFor(model => model.ToLocation, new { @class = "form-control", @placeholder = "Manzil" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Masofa (km)</label>
+                                                @Html.TextBoxFor(model => model.DistanceKm, new { @class = "form-control", @placeholder = "0.00" })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-1">
+                                            <div class="col-md-3">
+                                                <label>Brut vazn (ton)</label>
+                                                @Html.TextBoxFor(model => model.GrWeight, new { @class = "form-control", @placeholder = "0.00" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Net vazn (ton)</label>
+                                                @Html.TextBoxFor(model => model.NetWeight, new { @class = "form-control", @placeholder = "0.00" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>CBM</label>
+                                                @Html.TextBoxFor(model => model.CBM, new { @class = "form-control", @placeholder = "0.00" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Palletlar soni</label>
+                                                @Html.TextBoxFor(model => model.PalletsCount, new { @class = "form-control", @placeholder = "0" })
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <div class="mb-1">
+                                            <h5 class="text-primary mb-0">Tarif va summa</h5>
+                                            <small class="text-muted">Tarif asosi va yakuniy summa.</small>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label>Tarif asosi</label>
+                                                @Html.DropDownListFor(model => model.FreightBasis, new SelectList(new[]
+                                                {
+                                                    new { Value = (byte?)0, Text = "Mashina uchun" },
+                                                    new { Value = (byte?)1, Text = "Ton uchun" },
+                                                    new { Value = (byte?)2, Text = "KM uchun" },
+                                                    new { Value = (byte?)3, Text = "Flat" }
+                                                }, "Value", "Text"), "Tanlang", new { @class = "form-control", @id = "freightBasisSelect" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Tarif (Rate)</label>
+                                                @Html.TextBoxFor(model => model.Rate, new { @class = "form-control", @placeholder = "0.00", @id = "rateInput" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Jami summa</label>
+                                                @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @placeholder = "0.00", @id = "amountInput" })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-1">
+                                            <div class="col-md-4">
+                                                <label>To'lovchi</label>
+                                                @Html.DropDownListFor(model => model.PayerType, new SelectList(new[]
+                                                {
+                                                    new { Value = (byte?)0, Text = "Bizning kompaniya" },
+                                                    new { Value = (byte?)1, Text = "Mijoz" },
+                                                    new { Value = (byte?)2, Text = "Taminotchi" },
+                                                    new { Value = (byte?)3, Text = "Bo'lib" }
+                                                }, "Value", "Text"), "Tanlang", new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>To'lovchi ID</label>
+                                                @Html.TextBoxFor(model => model.PayerID, new { @class = "form-control", @placeholder = "ID" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>TTNK</label>
+                                                @Html.DropDownListFor(model => model.TTNKID, Model.TTNKs, "Tanlang", new { @class = "form-control select2" })
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <div class="mb-1">
+                                            <h5 class="text-primary mb-0">Bog'langan hujjatlar</h5>
+                                            <small class="text-muted">Xarid/sotuv hujjatlari bilan bog'lash.</small>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label>Purchase Invoice</label>
+                                                @Html.DropDownListFor(model => model.InvoiceID, Model.PurchaseInvoices, "Tanlang", new { @class = "form-control select2", @id = "purchaseInvoiceSelect" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Sales Invoice</label>
+                                                @Html.DropDownListFor(model => model.SalesInvoiceID, Model.SalesInvoices, "Tanlang", new { @class = "form-control select2", @id = "salesInvoiceSelect" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Sales Order</label>
+                                                @Html.DropDownListFor(model => model.SalesOrderID, Model.SalesOrders, "Tanlang", new { @class = "form-control select2" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Purchase Order</label>
+                                                @Html.DropDownListFor(model => model.PurchaseOrderID, Model.PurchaseOrders, "Tanlang", new { @class = "form-control select2" })
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <div class="mb-1">
+                                            <h5 class="text-primary mb-0">Transport va haydovchi</h5>
+                                            <small class="text-muted">Avtomobil va haydovchi ma'lumotlari.</small>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label>Mashina raqami</label>
+                                                @Html.TextBoxFor(model => model.TruckNo, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Traler raqami</label>
+                                                @Html.TextBoxFor(model => model.TrailerNo, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Mashina modeli</label>
+                                                @Html.TextBoxFor(model => model.TruckModel, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Traler modeli</label>
+                                                @Html.TextBoxFor(model => model.TrailerModel, new { @class = "form-control" })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-1">
+                                            <div class="col-md-4">
+                                                <label>Haydovchi</label>
+                                                @Html.TextBoxFor(model => model.DriverName, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>PINFL</label>
+                                                @Html.TextBoxFor(model => model.DriverPINFL, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Rejalashtirilgan yetkazish</label>
+                                                @Html.TextBoxFor(model => model.PlannedDeliveryDate, new { @class = "form-control", @type = "date" })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-1">
+                                            <div class="col-md-4">
+                                                <label>Haqiqiy yetkazish</label>
+                                                @Html.TextBoxFor(model => model.ActualDeliveryDate, new { @class = "form-control", @type = "date" })
+                                            </div>
+                                            <div class="col-md-8">
+                                                <label>Izoh</label>
+                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = 2 })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-1">
+                                            <div class="col-md-12">
+                                                <label>Qo'lda tuzatish sababi</label>
+                                                @Html.TextAreaFor(model => model.ManualCorrectionReason, new { @class = "form-control", @rows = 2 })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-2">
+                                            <div class="col-md-12">
+                                                <button class="btn btn-primary" type="submit">
+                                                    <i class="bx bx-save"></i> Saqlash
+                                                </button>
+                                                <a href="@Url.Action("Index", "Waybill")" class="btn btn-outline-secondary ml-1">Bekor qilish</a>
+                                            </div>
+                                        </div>
+                                        <hr />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </section>
+                    </div>
                 </div>
             </div>
         </div>
@@ -135,15 +294,58 @@ else
 }
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        flatpickr("#dateInput", {
-            dateFormat: "d-m-Y", // You can customize the date format
-            // Optional: restricts the selection to today's date or later
-            altInput: true, // Optional: creates an alternate input (more user-friendly)
-            altFormat: "F j, Y", // Format displayed in alt input
-            weekNumbers: true,
-            showTodayButton: true,
-            locale: "uz",
+    function requestTariff() {
+        var contractId = $("#contractSelect").val();
+        var transportTypeId = $("#transportTypeSelect").val();
+        var fromLocation = $("#FromLocation").val();
+        var toLocation = $("#ToLocation").val();
+
+        if (!contractId || !transportTypeId) {
+            return;
+        }
+
+        $.post("@Url.Action("GetSuggestedRate", "Waybill")", {
+            contractId: contractId,
+            transportTypeId: transportTypeId,
+            fromLocation: fromLocation,
+            toLocation: toLocation
+        }).done(function (result) {
+            if (result && result.success) {
+                if (result.rate !== undefined && $("#rateInput").val() === "") {
+                    $("#rateInput").val(result.rate);
+                }
+                if (result.basis !== undefined) {
+                    $("#freightBasisSelect").val(result.basis);
+                }
+                if (result.currencyId) {
+                    $("#currencySelect").val(result.currencyId);
+                }
+            }
         });
+    }
+
+    function requestInvoiceData(invoiceId, invoiceType) {
+        if (!invoiceId) {
+            return;
+        }
+
+        $.post("@Url.Action("GetDataFromInvoice", "Waybill")", {
+            invoiceId: invoiceId,
+            invoiceType: invoiceType
+        }).done(function (result) {
+            if (result && result.success) {
+                if (result.fromLocation) $("#FromLocation").val(result.fromLocation);
+                if (result.toLocation) $("#ToLocation").val(result.toLocation);
+                if (result.direction !== undefined) $("#Direction").val(result.direction);
+                if (result.currencyId) $("#currencySelect").val(result.currencyId);
+                if (result.payerType !== undefined) $("#PayerType").val(result.payerType);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#contractSelect, #transportTypeSelect, #FromLocation, #ToLocation").on("change", requestTariff);
+        $("#purchaseInvoiceSelect").on("change", function () { requestInvoiceData($(this).val(), "Purchase"); });
+        $("#salesInvoiceSelect").on("change", function () { requestInvoiceData($(this).val(), "Sales"); });
     });
 </script>

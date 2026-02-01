@@ -182,11 +182,25 @@ namespace tahsinERP.Controllers
 
                 try
                 {
-                    // Calculate total amount from products
+                    // Calculate total amount from products (including VAT if provided)
                     decimal totalAmount = 0;
-                    foreach (var product in model.ProductList)
+                    int totalIndex = 0;
+                    while (form[$"ProductList[{totalIndex}].ProductID"] != null)
                     {
-                        totalAmount += (decimal)(product.PiecePrice * product.Amount);
+                        var productIDStr = form[$"ProductList[{totalIndex}].ProductID"];
+                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
+                        {
+                            var piecePrice = double.Parse(form[$"ProductList[{totalIndex}].PiecePrice"] ?? "0");
+                            var amount = int.Parse(form[$"ProductList[{totalIndex}].Amount"] ?? "0");
+                            var vatPercent = double.Parse(form[$"ProductList[{totalIndex}].VatPercent"] ?? "12");
+                            if (piecePrice > 0 && amount > 0)
+                            {
+                                var baseTotal = piecePrice * amount;
+                                var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                totalAmount += (decimal)totalWithVat;
+                            }
+                        }
+                        totalIndex++;
                     }
 
                     // Create contract
@@ -442,8 +456,7 @@ namespace tahsinERP.Controllers
                         db.S_CONTRACT_PRODUCTS.Remove(productToRemove);
                     }
 
-                    // Calculate total amount and update/add products
-                    decimal totalAmount = 0;
+                    // Update/add products
                     foreach (var product in model.ProductList)
                     {
                         if (product.ID > 0)
@@ -472,7 +485,27 @@ namespace tahsinERP.Controllers
                             };
                             db.S_CONTRACT_PRODUCTS.Add(newProduct);
                         }
-                        totalAmount += (decimal)(product.PiecePrice * product.Amount);
+                    }
+
+                    // Calculate total amount (including VAT if provided)
+                    decimal totalAmount = 0;
+                    int totalIndex = 0;
+                    while (form[$"ProductList[{totalIndex}].ProductID"] != null)
+                    {
+                        var productIDStr = form[$"ProductList[{totalIndex}].ProductID"];
+                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
+                        {
+                            var piecePrice = double.Parse(form[$"ProductList[{totalIndex}].PiecePrice"] ?? "0");
+                            var amount = int.Parse(form[$"ProductList[{totalIndex}].Amount"] ?? "0");
+                            var vatPercent = double.Parse(form[$"ProductList[{totalIndex}].VatPercent"] ?? "12");
+                            if (piecePrice > 0 && amount > 0)
+                            {
+                                var baseTotal = piecePrice * amount;
+                                var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                totalAmount += (decimal)totalWithVat;
+                            }
+                        }
+                        totalIndex++;
                     }
 
                     // Update contract amount

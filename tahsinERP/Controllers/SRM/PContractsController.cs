@@ -211,6 +211,27 @@ namespace tahsinERP.Controllers
                             purchaseType = 1;
                         }
 
+                        // Calculate total amount (including VAT if provided)
+                        double totalAmount = 0;
+                        int totalIndex = 0;
+                        while (Request.Form[$"ContractProducts[{totalIndex}].ProductID"] != null)
+                        {
+                            var productIDStr = Request.Form[$"ContractProducts[{totalIndex}].ProductID"];
+                            if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
+                            {
+                                var price = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Price"] ?? "0");
+                                var quantity = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Quantity"] ?? "0");
+                                var vatPercent = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].VatPercent"] ?? "12");
+                                if (price > 0 && quantity > 0)
+                                {
+                                    var baseTotal = price * quantity;
+                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                    totalAmount += totalWithVat;
+                                }
+                            }
+                            totalIndex++;
+                        }
+
                         // Create contract header
                         var contract = new P_CONTRACTS
                         {
@@ -219,6 +240,7 @@ namespace tahsinERP.Controllers
                             CompanyID = companyId,
                             SupplierID = model.SupplierID,
                             CurrencyID = model.CurrencyID,
+                            Amount = totalAmount,
                             Incoterms = model.Incoterms,
                             PaymentTerms = model.PaymentTerms,
                             DueDate = model.DueDate,
@@ -622,6 +644,28 @@ namespace tahsinERP.Controllers
                                 db.P_CONTRACT_PRODUCTS.Add(contractProduct);
                             }
                         }
+
+                        // Calculate total amount (including VAT if provided)
+                        double totalAmount = 0;
+                        int totalIndex = 0;
+                        while (Request.Form[$"ContractProducts[{totalIndex}].ProductID"] != null)
+                        {
+                            var productIDStr = Request.Form[$"ContractProducts[{totalIndex}].ProductID"];
+                            if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
+                            {
+                                var price = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Price"] ?? "0");
+                                var quantity = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Quantity"] ?? "0");
+                                var vatPercent = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].VatPercent"] ?? "12");
+                                if (price > 0 && quantity > 0)
+                                {
+                                    var baseTotal = price * quantity;
+                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                    totalAmount += totalWithVat;
+                                }
+                            }
+                            totalIndex++;
+                        }
+                        contract.Amount = totalAmount;
 
                         await db.SaveChangesAsync();
 

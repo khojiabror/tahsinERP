@@ -29,10 +29,12 @@ namespace tahsinERP.ViewModels
         public int? ForwarderID { get; set; }
         public List<SelectListItem> Forwarders { get; set; }
 
+        [Required(ErrorMessage = "Shartnoma majburiy")]
         [Display(Name = "Shartnoma")]
         public int? ContractID { get; set; }
         public List<SelectListItem> Contracts { get; set; }
 
+        [Required(ErrorMessage = "Transport turi majburiy")]
         [Display(Name = "Transport turi")]
         public int? TransportTypeID { get; set; }
         public List<SelectListItem> TransportTypes { get; set; }

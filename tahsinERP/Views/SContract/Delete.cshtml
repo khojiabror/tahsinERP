@@ -84,6 +84,8 @@
                                                                             <th>Nomi</th>
                                                                             <th>Birligi</th>
                                                                             <th>Narxi</th>
+                                                                            <th>QQS (%)</th>
+                                                                            <th>Jami narx</th>
                                                                             <th>Amallar</th>
                                                                         </tr>
                                                                     </thead>
@@ -91,12 +93,19 @@
                                                                         @foreach (var item in ViewBag.ProductList)
                                                                         {
                                                                             <tr>
+                                                                                @{
+                                                                                    var baseTotal = item.PiecePrice * item.Amount;
+                                                                                    var vatPercent = 0d;
+                                                                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                                                                }
                                                                                 <td>
                                                                                     <a href="~/SContract/Details/@item.ID">@item.PRODUCT.PNo</a>
                                                                                 </td>
                                                                                 <td>@item.PRODUCT.Name</td>
                                                                                 <td>@item.UNIT.UnitName</td>
                                                                                 <td>@item.Amount</td>
+                                                                                <td>@vatPercent.ToString("N2")</td>
+                                                                                <td>@totalWithVat.ToString("N2")</td>
                                                                                 <td>
                                                                                     <!-- Delete button -->
                                                                                     <a href="~/SContract/DeleteProduct/@item.ID" onclick="return confirm(`Ushbu maxsulotni o'chirib yuborishga ishonchingiz komilmi?`)">
@@ -119,7 +128,8 @@
                                             @using (Html.BeginForm("Delete", "SContract", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button class="open-modal btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="button" id="button2">
+                                                @Html.HiddenFor(model => model.ID)
+                                                <button class="open-modal btn btn-danger bg-light btn-block subtotal-preview-btn" type="submit" onclick="return confirm('Ushbu shartnomani o\'chirib yuborishga ishonchingiz komilmi?');">
                                                     <i class='bx bx-trash'></i>
                                                     O'chirish
                                                 </button>

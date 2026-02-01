@@ -28,6 +28,7 @@ namespace tahsinERP.Controllers.Logistic
                     .Include(x => x.FORWARDER)
                     .Include(x => x.CURRENCy)
                     .Include(x => x.F_WAYBILLS)
+                    .Include(x => x.F_WAYBILLS.F_WAYBILL_PAYMENTS)
                     .Where(x => x.IsDeleted == false)
                     .OrderByDescending(x => x.PaymentDate ?? DateTime.MinValue)
                     .ToList();

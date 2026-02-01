@@ -451,7 +451,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", orderID);
                 ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", contractID);
                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname");
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
 
                 return View(invoice);
             }
@@ -468,53 +468,36 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Validate quality inspection for each line
+                        // Validate sales warehouse stock for each line
+                        var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+                        if (salesWH == null)
+                        {
+                            ModelState.AddModelError("", "Sotuv ombori topilmadi");
+                            ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
+                            ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
+                            ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                            ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
+                            ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
+                            return View(invoice);
+                        }
+
                         foreach (var line in lines)
                         {
-                            // QUALITY INSPECTION GATING: Check if quality inspection is approved and has enough accepted qty
-                            var totalAccepted = db.QUALITY_INSPECTION
-                                .Where(q => q.ProductID == line.ProductID 
-                                    && q.StatusCode == "APPROVED" 
-                                    && q.IsDeleted == false)
-                                .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
+                            var stock = db.PRODUCT_STOCKS
+                                .FirstOrDefault(s => s.WHID == salesWH.ID && s.ProductID == line.ProductID);
 
-                            var totalAlreadyInvoicedForProduct = db.SALES_INVOICE_LINES
-                                .Where(l => l.ProductID == line.ProductID)
-                                .Sum(l => (decimal?)l.Qty) ?? 0;
-
-                            var availableQty = totalAccepted - totalAlreadyInvoicedForProduct;
-
-                            if (line.Qty > availableQty)
+                            var availableQty = stock?.Amount ?? 0;
+                            if (line.Qty > (decimal)availableQty)
                             {
                                 var product = db.PRODUCTS.Find(line.ProductID);
-                                ModelState.AddModelError("", 
-                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun sifat nazorati qabul qilingan miqdor yetarli emas. " +
-                                    $"Mavjud: {availableQty}, Talab qilinmoqda: {line.Qty}, Jami qabul qilingan: {totalAccepted}, " +
-                                    $"Allaqachon fakturalangan: {totalAlreadyInvoicedForProduct}");
+                                ModelState.AddModelError("",
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun sotuv omborida yetarli qoldiq yo'q. " +
+                                    $"Mavjud: {availableQty}, Talab: {line.Qty}");
                                 ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
                                 ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
                                 ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
                                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
-                                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
-                                return View(invoice);
-                            }
-
-                            // Check if product has been produced
-                            var totalProduced = db.PRODUCT_PRODUCTION
-                                .Where(p => p.ProductID == line.ProductID)
-                                .Sum(p => (double?)p.Total) ?? 0;
-
-                            if (totalProduced < (double)line.Qty)
-                            {
-                                var product = db.PRODUCTS.Find(line.ProductID);
-                                ModelState.AddModelError("", 
-                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarilgan miqdor yetarli emas. " +
-                                    $"Ishlab chiqarilgan: {totalProduced}, Talab qilinmoqda: {line.Qty}");
-                                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
-                                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
-                                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
-                                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                                ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
                                 return View(invoice);
                             }
                         }
@@ -634,10 +617,35 @@ namespace tahsinERP.Controllers
                 ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
                 ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Products = BuildSalesWarehouseProductSelectList(db, lines?.FirstOrDefault()?.ProductID);
             }
 
             return View(invoice);
+        }
+
+        private SelectList BuildSalesWarehouseProductSelectList(DBTHSNEntities db, int? selectedProductId = null)
+        {
+            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+            if (salesWH == null)
+            {
+                return new SelectList(new List<SelectListItem>(), "Value", "Text", selectedProductId);
+            }
+
+            var products = db.PRODUCT_STOCKS
+                .Include(s => s.PRODUCT)
+                .Where(s => s.WHID == salesWH.ID
+                    && s.Amount > 0
+                    && (s.PRODUCT.IsDeleted == false || s.PRODUCT.IsDeleted == null))
+                .OrderBy(s => s.PRODUCT.PNo)
+                .ToList();
+
+            var selectItems = products.Select(p => new SelectListItem
+            {
+                Value = p.ProductID.ToString(),
+                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} (Mavjud: {p.Amount})"
+            }).ToList();
+
+            return new SelectList(selectItems, "Value", "Text", selectedProductId);
         }
 
         // GET: Edit

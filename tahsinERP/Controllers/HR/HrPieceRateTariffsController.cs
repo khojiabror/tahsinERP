@@ -29,7 +29,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             IQueryable<HR_PIECE_RATE_TARIFFS> query = db.HR_PIECE_RATE_TARIFFS
-                .Where(t => t.IsDeleted == false || t.IsDeleted == null)
+                .Where(t => t.IsDeleted == false)
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)
@@ -87,7 +87,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var tariff = await db.HR_PIECE_RATE_TARIFFS
-                .Where(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null))
+                .Where(t => t.ID == id && t.IsDeleted == false)
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)

@@ -63,9 +63,14 @@ namespace tahsinERP.Controllers
 
                 // Calculate unpaid amount
                 var waybillIds = waybills.Select(w => w.ID).ToList();
-                var totalPaid = await db.F_WAYBILL_PAYMENTS
+                var paymentTotals = await db.F_WAYBILL_PAYMENTS
                     .Where(p => waybillIds.Contains(p.WaybillID) && p.IsDeleted == false)
-                    .SumAsync(p => (double?)p.Payment_Amount) ?? 0;
+                    .GroupBy(p => p.WaybillID)
+                    .Select(g => new { WaybillID = g.Key, TotalPaid = g.Sum(p => p.Payment_Amount) })
+                    .ToListAsync();
+
+                var paymentLookup = paymentTotals.ToDictionary(x => x.WaybillID, x => x.TotalPaid);
+                var totalPaid = paymentTotals.Sum(p => p.TotalPaid);
                 var unpaidAmount = totalCost - totalPaid;
 
                 // Calculate logistics cost as % of sales (for outbound waybills)
@@ -91,7 +96,8 @@ namespace tahsinERP.Controllers
                         ForwarderName = g.First().FORWARDER?.ForwarderName ?? "Unknown",
                         TripCount = g.Count(),
                         TotalCost = g.Sum(w => w.Amount.Value),
-                        TotalTonnage = g.Where(w => w.GrWeight.HasValue).Sum(w => w.GrWeight.Value)
+                        TotalTonnage = g.Where(w => w.GrWeight.HasValue).Sum(w => w.GrWeight.Value),
+                        TotalPaid = g.Sum(w => paymentLookup.ContainsKey(w.ID) ? paymentLookup[w.ID] : 0)
                     })
                     .OrderByDescending(f => f.TotalCost)
                     .Take(10)

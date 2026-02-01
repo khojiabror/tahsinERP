@@ -58,12 +58,12 @@
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
                                                         <label>Tuzilgan sanasi</label>
-                                                        @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control" })
+                                                        @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "IssuedDate", @class = "form-control" })
                                                         @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
                                                         <label>Tugaydigan sana</label>
-                                                        @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @id = "DueDate", @class = "form-control" })
+                                                        @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "DueDate", @class = "form-control" })
                                                         @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
@@ -90,52 +90,72 @@
                                             <div class="row">
                                                 <div class="col-12">
                                                     <div class="card">
-                                                        <div class="card-header">
-                                                            <h4 class="card-title">Shartnoma predmeti</h4>
-                                                        </div>
-                                                        <div class="card-content">
-                                                            <div class="card-body card-dashboard">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-striped" style="width:100%">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Maxsulot</th>
-                                                                                <th>Birlik narxi</th>
-                                                                                <th>O'lchov birligi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>Amallar</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @for (int i = 0; i < Model.ProductList.Count; i++)
-                                                                            {
-                                                                                <tr>
-                                                                                    <td>
-                                                                                        @Html.HiddenFor(m => m.ProductList[i].ID)
-                                                                                        @Html.HiddenFor(m => m.ProductList[i].ProductID)
-                                                                                        @Model.ProductList[i].ProductPNo
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        @Html.TextBoxFor(m => m.ProductList[i].PiecePrice, new { @class = "form-control product-price-edit" })
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        @Html.DropDownListFor(m => m.ProductList[i].UnitID, (SelectList)ViewBag.Units, new { @class = "form-control" })
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        @Html.TextBoxFor(m => m.ProductList[i].Amount, new { @class = "form-control product-amount-edit" })
-                                                                                    </td>
-                                                                                    <td>
+                                                    <div class="card-header">
+                                                        <h4 class="card-title">Shartnoma predmeti</h4>
+                                                        <button type="button" class="btn btn-sm btn-success float-right" id="addProductBtn">
+                                                            <i class="bx bx-plus"></i> Yangi maxsulot qo'shish
+                                                        </button>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <div class="card-body card-dashboard">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-striped" id="productTable" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Maxsulot</th>
+                                                                            <th>Miqdori</th>
+                                                                            <th>O'lchov birligi</th>
+                                                                            <th>Birlik narxi</th>
+                                                                            <th>QQS (%)</th>
+                                                                            <th>Jami narx</th>
+                                                                            <th>Amallar</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="productTableBody">
+                                                                        @for (int i = 0; i < Model.ProductList.Count; i++)
+                                                                        {
+                                                                            <tr data-index="@i">
+                                                                                <td>
+                                                                                    @Html.HiddenFor(m => m.ProductList[i].ID)
+                                                                                    @Html.HiddenFor(m => m.ProductList[i].ProductID)
+                                                                                    <span class="product-display">@Model.ProductList[i].ProductPNo</span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    @Html.TextBoxFor(m => m.ProductList[i].Amount, new { @class = "form-control product-amount-edit" })
+                                                                                </td>
+                                                                                <td>
+                                                                                    @Html.DropDownListFor(m => m.ProductList[i].UnitID, (SelectList)ViewBag.Units, new { @class = "form-control" })
+                                                                                </td>
+                                                                                <td>
+                                                                                    @Html.TextBoxFor(m => m.ProductList[i].PiecePrice, new { @class = "form-control product-price-edit" })
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" name="ProductList[@i].VatPercent" class="form-control vat-input" value="12" step="0.01" min="0" max="100" />
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" class="form-control total-with-vat" value="0" readonly />
+                                                                                </td>
+                                                                                <td>
+                                                                                    @if (Model.ProductList[i].ID > 0)
+                                                                                    {
                                                                                         <a href="~/SContract/DeleteProduct/@Model.ProductList[i].ID" onclick="return confirm('Ushbu shartnoma maxsulotini o\'chirib yuborishga ishonchingiz komilmi?')">
                                                                                             <i class="bx bx-trash"></i>
                                                                                         </a>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            }
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <button type="button" class="btn btn-sm btn-danger remove-product-row" onclick="removeProductRow(this)">
+                                                                                            <i class="bx bx-trash"></i>
+                                                                                        </button>
+                                                                                    }
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
                                                         </div>
+                                                    </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -158,39 +178,110 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            if (typeof flatpickr !== 'undefined') {
-                flatpickr("#IssuedDate", {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d.m.Y",
-                    locale: "uz"
-                });
-                flatpickr("#DueDate", {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d.m.Y",
-                    locale: "uz"
-                });
+        var productIndex = @Model.ProductList.Count;
+        var productsOptions = '';
+        @if (ViewBag.Products != null)
+        {
+            foreach (var item in (ViewBag.Products as SelectList))
+            {
+                <text>
+                productsOptions += '<option value="@item.Value">@item.Text</option>';
+                </text>
             }
+        }
+        var unitsOptions = '';
+        @if (ViewBag.Units != null)
+        {
+            foreach (var item in (ViewBag.Units as SelectList))
+            {
+                <text>
+                unitsOptions += '<option value="@item.Value">@item.Text</option>';
+                </text>
+            }
+        }
 
-            function calculateTotalAmount() {
+        $(document).ready(function () {
+            window.updateRowTotal = function ($row) {
+                var price = parseFloat($row.find('.product-price-edit').val()) || 0;
+                var amount = parseFloat($row.find('.product-amount-edit').val()) || 0;
+                var vatPercent = parseFloat($row.find('.vat-input').val()) || 0;
+                var baseTotal = price * amount;
+                var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                $row.find('.total-with-vat').val(totalWithVat.toFixed(2));
+            };
+
+            window.calculateTotalAmount = function () {
                 var total = 0;
-                $('.product-price-edit').each(function () {
-                    var $row = $(this).closest('tr');
-                    var price = parseFloat($(this).val()) || 0;
-                    var amount = parseFloat($row.find('.product-amount-edit').val()) || 0;
-                    total += price * amount;
+                $('#productTableBody tr').each(function () {
+                    updateRowTotal($(this));
+                    total += parseFloat($(this).find('.total-with-vat').val()) || 0;
                 });
                 $('#Amount').val(Math.round(total));
-            }
+            };
 
-            $(document).on('input change', '.product-price-edit, .product-amount-edit', function () {
+            $(document).on('input change', '.product-price-edit, .product-amount-edit, .vat-input', function () {
                 calculateTotalAmount();
+            });
+
+            $('#addProductBtn').on('click', function () {
+                addProductRow();
             });
 
             calculateTotalAmount();
         });
+
+        function addProductRow() {
+            var productsSelect = '<select name="ProductList[' + productIndex + '].ProductID" class="form-control product-select select2" required>' +
+                '<option value="">Tanlang...</option>' +
+                productsOptions +
+                '</select>';
+
+            var unitsSelect = '<select name="ProductList[' + productIndex + '].UnitID" class="form-control select2" required>' +
+                '<option value="">Tanlang...</option>' +
+                unitsOptions +
+                '</select>';
+
+            var newRow = '<tr data-index="' + productIndex + '">' +
+                '<td>' +
+                '<input type="hidden" name="ProductList[' + productIndex + '].ID" value="0" />' +
+                productsSelect +
+                '</td>' +
+                '<td>' +
+                '<input type="number" name="ProductList[' + productIndex + '].Amount" class="form-control product-amount-edit" min="1" required />' +
+                '</td>' +
+                '<td>' +
+                unitsSelect +
+                '</td>' +
+                '<td>' +
+                '<input type="number" name="ProductList[' + productIndex + '].PiecePrice" class="form-control product-price-edit" step="0.01" min="0" required />' +
+                '</td>' +
+                '<td>' +
+                '<input type="number" name="ProductList[' + productIndex + '].VatPercent" class="form-control vat-input" value="12" step="0.01" min="0" max="100" />' +
+                '</td>' +
+                '<td>' +
+                '<input type="number" class="form-control total-with-vat" value="0" readonly />' +
+                '</td>' +
+                '<td>' +
+                '<button type="button" class="btn btn-sm btn-danger remove-product-row" onclick="removeProductRow(this)">' +
+                '<i class="bx bx-trash"></i>' +
+                '</button>' +
+                '</td>' +
+                '</tr>';
+
+            $('#productTableBody').append(newRow);
+            productIndex++;
+
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('#productTableBody tr:last .select2').select2();
+            }
+
+            calculateTotalAmount();
+        }
+
+        function removeProductRow(button) {
+            $(button).closest('tr').remove();
+            calculateTotalAmount();
+        }
     </script>
 }
 else

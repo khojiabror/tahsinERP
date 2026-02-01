@@ -93,6 +93,12 @@
                                             <hr>
 
                                             <h4 class="text-primary mb-3">Kesish variantlari</h4>
+                                            <div class="form-group">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="autoPriceFromWarehouse" checked />
+                                                    <label class="custom-control-label" for="autoPriceFromWarehouse">material narxlarini ombor avtomatik tortish</label>
+                                                </div>
+                                            </div>
                                             <div class="table-responsive">
                                                 <table class="table table-striped table-bordered" id="cuttingLinesTable">
                                                     <thead class="thead-light">
@@ -108,6 +114,8 @@
                                                             <th>Sarflanish (m)</th>
                                                             <th>Chiqindi (m)</th>
                                                             <th>Narx</th>
+                                                            <th>Toza sarf summa</th>
+                                                            <th>Chiqindi summa</th>
                                                             <th>Jami narx</th>
                                                             <th style="width: 50px;">Amallar</th>
                                                         </tr>
@@ -147,8 +155,20 @@
                                                                     @Html.TextBoxFor(m => m.CuttingLines[i].UnitPrice, new { @class = "form-control price-input", type = "number", step = "0.01" })
                                                                 </td>
                                                                 <td>
-                                                                    <span class="total-cost">@line.TotalCostPerProduct.ToString("F2")</span>
-                                                                    @Html.HiddenFor(m => m.CuttingLines[i].TotalCostPerProduct)
+                                                                @{
+                                                                    var unitPriceValue = line.UnitPrice ?? 0;
+                                                                    var cleanCostValue = line.ConsumptionPerProduct * unitPriceValue;
+                                                                    var wasteCostValue = line.WastePerProduct * unitPriceValue;
+                                                                    var totalCostValue = cleanCostValue + wasteCostValue;
+                                                                }
+                                                                <span class="clean-cost">@cleanCostValue.ToString("F2")</span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="waste-cost">@wasteCostValue.ToString("F2")</span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="total-cost">@totalCostValue.ToString("F2")</span>
+                                                                @Html.HiddenFor(m => m.CuttingLines[i].TotalCostPerProduct, new { @Value = totalCostValue.ToString("F2") })
                                                                 </td>
                                                                 <td>
                                                                     <button type="button" class="btn btn-sm btn-danger remove-line" title="O'chirish">
@@ -276,6 +296,8 @@
                                                                     <th>Sarf (m)</th>
                                                                     <th>Chiqindi (m)</th>
                                                                     <th>Narx</th>
+                                                                    <th>Toza sarf summa</th>
+                                                                    <th>Chiqindi summa</th>
                                                                     <th>Jami narx</th>
                                                                     <th>Izoh</th>
                                                                 </tr>
@@ -331,6 +353,14 @@ else
             console.log('Document ready, materials:', materials);
             console.log('Line index:', lineIndex);
             console.log('Add button exists:', $('#addLineBtn').length > 0);
+
+            function isAutoPriceEnabled() {
+                return $('#autoPriceFromWarehouse').is(':checked');
+            }
+
+            function updatePriceInputsState() {
+                $('.price-input').prop('readonly', isAutoPriceEnabled());
+            }
             
             // Initialize select2 for existing material dropdowns
             $('.material-select.select2').select2({
@@ -338,11 +368,30 @@ else
                 placeholder: 'Tanlang',
                 allowClear: true
             });
+
+            updatePriceInputsState();
+
+            $('#autoPriceFromWarehouse').on('change', function () {
+                updatePriceInputsState();
+                if (isAutoPriceEnabled()) {
+                    $('.line-row').each(function () {
+                        var row = $(this);
+                        var materialId = row.find('.material-select').val();
+                        if (materialId) {
+                            loadMaterialData(materialId, row, { setPrice: true });
+                        }
+                    });
+                }
+            });
             
             // Load material data for existing rows
             $('.line-row').each(function () {
                 var row = $(this);
                 var materialId = row.find('.material-select').val();
+                var existingWaste = parseFloat(row.find('.waste-input').val());
+                if (!isNaN(existingWaste) && existingWaste > 0) {
+                    row.data('manual-waste', true);
+                }
                 // Get standardLength from existing data if available
                 var existingStandardLength = row.find('.standard-length').text();
                 if (existingStandardLength && existingStandardLength !== '-') {
@@ -352,7 +401,7 @@ else
                     }
                 }
                 if (materialId) {
-                    loadMaterialData(materialId, row);
+                    loadMaterialData(materialId, row, { setPrice: isAutoPriceEnabled() });
                 } else {
                     // If no material selected, still try to recalculate with existing data
                     recalculateRow(row);
@@ -376,6 +425,8 @@ else
                     '<td><span class="consumption">0.0000</span></td>' +
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].WastePerProduct" class="form-control waste-input" value="0.0000" step="0.0001" /></td>' +
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].UnitPrice" class="form-control price-input" step="0.01" /></td>' +
+                    '<td><span class="clean-cost">0.00</span></td>' +
+                    '<td><span class="waste-cost">0.00</span></td>' +
                     '<td><span class="total-cost">0.00</span></td>' +
                     '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
                     '<input type="hidden" name="CuttingLines[' + lineIndex + '].ID" value="0" />' +
@@ -389,6 +440,7 @@ else
                     placeholder: 'Tanlang',
                     allowClear: true
                 });
+                updatePriceInputsState();
                 
                 lineIndex++;
             });
@@ -404,13 +456,22 @@ else
                 var materialId = $(this).val();
                 var row = $(this).closest('tr');
                 if (materialId) {
-                    loadMaterialData(materialId, row);
+                    loadMaterialData(materialId, row, { setPrice: isAutoPriceEnabled() });
                 }
             });
 
             // Recalculate on input change
             $(document).on('input', '.length-input, .quantity-input, .price-input, .waste-input', function () {
-                recalculateRow($(this).closest('tr'));
+                var row = $(this).closest('tr');
+                if ($(this).hasClass('waste-input')) {
+                    row.data('manual-waste', true);
+                    recalculateRow(row, { preserveWaste: true });
+                } else {
+                    if ($(this).hasClass('length-input') || $(this).hasClass('quantity-input')) {
+                        row.data('manual-waste', false);
+                    }
+                    recalculateRow(row);
+                }
                 recalculateTotals();
             });
 
@@ -558,10 +619,16 @@ else
                         if (wasteInput.length > 0) {
                             wasteInput.val(optimized.waste.toFixed(4));
                         }
-                        mainRow.find('.total-cost').text(optimized.totalCost.toFixed(2));
+                        mainRow.data('manual-waste', true);
+                        var cleanCost = optimized.consumption * optimized.price;
+                        var wasteCost = optimized.waste * optimized.price;
+                        var totalCost = cleanCost + wasteCost;
+                        mainRow.find('.clean-cost').text(cleanCost.toFixed(2));
+                        mainRow.find('.waste-cost').text(wasteCost.toFixed(2));
+                        mainRow.find('.total-cost').text(totalCost.toFixed(2));
                         var totalCostInput = mainRow.find('input[name*=".TotalCostPerProduct"]');
                         if (totalCostInput.length > 0) {
-                            totalCostInput.val(optimized.totalCost.toFixed(2));
+                            totalCostInput.val(totalCost.toFixed(2));
                         }
                         mainRow.find('.line-select').prop('checked', true);
                         var lengthInput = mainRow.find('input[name*=".CalculatedLengthMm"]');
@@ -591,7 +658,9 @@ else
             return html;
         }
 
-        function loadMaterialData(materialId, row) {
+        function loadMaterialData(materialId, row, options) {
+            options = options || {};
+            var setPrice = options.setPrice !== undefined ? options.setPrice : $('#autoPriceFromWarehouse').is(':checked');
             if (!materialId) {
                 row.find('.material-code').text('-');
                 row.find('.standard-length').text('-');
@@ -619,7 +688,7 @@ else
                         } else {
                             row.find('.standard-length').text('-');
                         }
-                        if (response.unitPrice) {
+                    if (setPrice && response.unitPrice) {
                             row.find('.price-input').val(response.unitPrice);
                         }
                         // Recalculate row after loading data
@@ -640,7 +709,8 @@ else
             });
         }
 
-        function recalculateRow(row) {
+        function recalculateRow(row, options) {
+            options = options || {};
             var length = parseFloat(row.find('.length-input').val()) || 0;
             var quantity = parseInt(row.find('.quantity-input').val()) || 1;
             var price = parseFloat(row.find('.price-input').val()) || 0;
@@ -672,18 +742,36 @@ else
                 waste = (totalMaterialUsed - totalLengthNeeded) / 1000.0; // Convert to meters
             }
             
-            var totalCost = consumption * price;
-
             row.find('.consumption').text(consumption.toFixed(4));
+            var consumptionInput = row.find('input[name*=".ConsumptionPerProduct"]');
+            if (consumptionInput.length > 0) {
+                consumptionInput.val(consumption.toFixed(4));
+            }
             // Update waste input field (user can also manually edit it)
             var wasteInput = row.find('.waste-input');
+            var preserveWaste = options.preserveWaste || row.data('manual-waste') === true;
+            var wasteMeters = waste;
             if (wasteInput.length > 0) {
-                wasteInput.val(waste.toFixed(4));
+                if (!preserveWaste) {
+                    wasteInput.val(waste.toFixed(4));
+                }
+                wasteMeters = parseFloat(wasteInput.val()) || 0;
             } else {
-                // Fallback for span (should not happen, but just in case)
                 row.find('.waste').text(waste.toFixed(4));
             }
+
+            var cleanCost = consumption * price;
+            var wasteCost = wasteMeters * price;
+            var totalCost = cleanCost + wasteCost;
+
+            row.find('.clean-cost').text(cleanCost.toFixed(2));
+            row.find('.waste-cost').text(wasteCost.toFixed(2));
             row.find('.total-cost').text(totalCost.toFixed(2));
+
+            var totalCostInput = row.find('input[name*=".TotalCostPerProduct"]');
+            if (totalCostInput.length > 0) {
+                totalCostInput.val(totalCost.toFixed(2));
+            }
         }
 
         function recalculateTotals() {
@@ -781,6 +869,11 @@ else
                             note = 'Tepadagi pozitsiyaning chiqindisidan foydalanilgan';
                         }
 
+                        var price = line.unitPrice || 0;
+                        var cleanCost = (line.consumptionPerProduct || 0) * price;
+                        var wasteCost = (line.wastePerProduct || 0) * price;
+                        var totalCost = cleanCost + wasteCost;
+
                         var row = $('<tr>');
                         row.append('<td>' + (line.materialCode || '-') + '</td>');
                         row.append('<td>' + (line.materialName || '-') + '</td>');
@@ -788,8 +881,10 @@ else
                         row.append('<td><input type="number" class="form-control form-control-sm opt-quantity" value="' + (line.quantity || 0) + '" step="1" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
                         row.append('<td><input type="number" class="form-control form-control-sm opt-consumption" value="' + (line.consumptionPerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
                         row.append('<td><input type="number" class="form-control form-control-sm opt-waste" value="' + (line.wastePerProduct || 0).toFixed(4) + '" step="0.0001" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
-                        row.append('<td><input type="number" class="form-control form-control-sm opt-price" value="' + (line.unitPrice || 0).toFixed(2) + '" step="0.01" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
-                        row.append('<td class="opt-total-cost">' + (line.totalCostPerProduct || 0).toFixed(2) + '</td>');
+                        row.append('<td><input type="number" class="form-control form-control-sm opt-price" value="' + price.toFixed(2) + '" step="0.01" data-line-id="' + (line.id || 0) + '" data-material-id="' + (line.materialId || 0) + '"></td>');
+                        row.append('<td class="opt-clean-cost">' + cleanCost.toFixed(2) + '</td>');
+                        row.append('<td class="opt-waste-cost">' + wasteCost.toFixed(2) + '</td>');
+                        row.append('<td class="opt-total-cost">' + totalCost.toFixed(2) + '</td>');
                         row.append('<td><small class="text-info">' + note + '</small></td>');
                         tbody.append(row);
                     });
@@ -824,7 +919,11 @@ else
                 var price = parseFloat(row.find('.opt-price').val()) || 0;
                 
                 // Recalculate total cost
-                var totalCost = consumption * price;
+                var cleanCost = consumption * price;
+                var wasteCost = waste * price;
+                var totalCost = cleanCost + wasteCost;
+                row.find('.opt-clean-cost').text(cleanCost.toFixed(2));
+                row.find('.opt-waste-cost').text(wasteCost.toFixed(2));
                 row.find('.opt-total-cost').text(totalCost.toFixed(2));
             });
         }
@@ -1072,10 +1171,16 @@ else
                         mainRow.find('.waste').text(optimized.waste.toFixed(4));
                     }
                     
-                    mainRow.find('.total-cost').text(optimized.totalCost.toFixed(2));
+                    mainRow.data('manual-waste', true);
+                    var cleanCost = optimized.consumption * optimized.price;
+                    var wasteCost = optimized.waste * optimized.price;
+                    var totalCost = cleanCost + wasteCost;
+                    mainRow.find('.clean-cost').text(cleanCost.toFixed(2));
+                    mainRow.find('.waste-cost').text(wasteCost.toFixed(2));
+                    mainRow.find('.total-cost').text(totalCost.toFixed(2));
                     var totalCostInput = mainRow.find('input[name*=".TotalCostPerProduct"]');
                     if (totalCostInput.length > 0) {
-                        totalCostInput.val(optimized.totalCost.toFixed(2));
+                        totalCostInput.val(totalCost.toFixed(2));
                     }
                     
                     // Ensure the line is selected

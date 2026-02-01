@@ -90,6 +90,19 @@
                                                     <th width="40%">Shartnoma summasi:</th>
                                                     <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
                                                 </tr>
+                                                @{
+                                                    var totalAmount = Model.Amount ?? 0d;
+                                                    var baseAmount = totalAmount / 1.12d;
+                                                    var vatAmount = totalAmount - baseAmount;
+                                                }
+                                                <tr>
+                                                    <th>QQS (12%):</th>
+                                                    <td>@vatAmount.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>QQSsiz summa (88%):</th>
+                                                    <td>@baseAmount.ToString("N2")</td>
+                                                </tr>
                                                 <tr>
                                                     <th>Incoterms:</th>
                                                     <td>@(Model.Incoterms ?? "-")</td>
@@ -130,7 +143,8 @@
                                                                             <th>Miqdor</th>
                                                                             <th>Birlik</th>
                                                                             <th>Narx</th>
-                                                                            <th>Jami</th>
+                                                                            <th>QQS (%)</th>
+                                                                            <th>Jami narx</th>
                                                                             <th>MOQ</th>
                                                                         </tr>
                                                                     </thead>
@@ -140,6 +154,11 @@
                                                                             foreach (var product in Model.P_CONTRACT_PRODUCTS)
                                                                             {
                                                                                 <tr>
+                                                                                    @{
+                                                                                        var baseTotal = product.Quantity * product.Price;
+                                                                                        var vatPercent = 12d;
+                                                                                        var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                                                                    }
                                                                                     <td>
                                                                                         @if (product.PRODUCT != null && product.PRODUCT.ID > 0)
                                                                                         {
@@ -154,7 +173,8 @@
                                                                                     <td>@product.Quantity.ToString("N2")</td>
                                                                                     <td>@(product.UNIT?.ShortName ?? "-")</td>
                                                                                     <td>@product.Price.ToString("N2")</td>
-                                                                                    <td>@product.Amount.ToString("N2")</td>
+                                                                                    <td>@vatPercent.ToString("N2")</td>
+                                                                                    <td>@totalWithVat.ToString("N2")</td>
                                                                                     <td>@(product.MOQ?.ToString("N2") ?? "-")</td>
                                                                                 </tr>
                                                                             }
@@ -162,7 +182,7 @@
                                                                         else
                                                                         {
                                                                             <tr>
-                                                                                <td colspan="7" class="text-center">Mahsulotlar topilmadi</td>
+                                                                                <td colspan="8" class="text-center">Mahsulotlar topilmadi</td>
                                                                             </tr>
                                                                         }
                                                                     </tbody>

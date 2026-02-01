@@ -90,6 +90,8 @@ namespace tahsinERP.Controllers
                 var contract = await db1.F_CONTRACTS
                                   .Include(p => p.FORWARDER)
                                   .Include(p => p.CURRENCy)
+                                  .Include(p => p.F_CONTRACT_TARIFFS.Select(t => t.F_TRANSPORT_TYPES))
+                                  .Include(p => p.F_CONTRACT_TARIFFS.Select(t => t.CURRENCy))
                                   .FirstOrDefaultAsync(p => p.ID == ID);
 
                 if (contract == null)

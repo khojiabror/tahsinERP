@@ -1,4 +1,4 @@
-@model tahsinERP.ViewModels.QualityInspectionViewModel
+@model tahsinERP.ViewModels.QualityInspectionDailyViewModel
 @{
     ViewBag.Title = "Yangi Sifat Nazorati";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -42,59 +42,77 @@
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    
-                                                    <h6 class="invoice-to">Mahsulot *</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, "Mahsulotni tanlang", new { @class = "form-control", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
-                                                    </fieldset>
 
-                                                    <h6 class="invoice-to">Tekshiruv sanasi *</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.InspectionDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.InspectionDate, "", new { @class = "text-danger" })
-                                                    </fieldset>
+                                                    <div class="row mb-1">
+                                                        <div class="col-md-6">
+                                                            <h6 class="invoice-to">Tekshiruv sanasi</h6>
+                                                            @Html.TextBoxFor(model => model.InspectionDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @readonly = "readonly" })
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6 class="invoice-to">Sana bo'yicha yuklash</h6>
+                                                            <div class="d-flex">
+                                                                <input type="date" id="inspection-date-picker" class="form-control" value="@Model.InspectionDate.ToString("yyyy-MM-dd")" />
+                                                                <button type="button" id="inspection-date-load" class="btn btn-outline-primary ml-1">
+                                                                    <i class="bx bx-refresh"></i> Yuklash
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                    <h6 class="invoice-to">Tekshirilgan miqdor *</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.QtyInspected, new { @class = "form-control", @type = "number", @step = "0.001", @min = "0.001", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.QtyInspected, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Qabul qilingan miqdor *</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.QtyAccepted, new { @class = "form-control", @type = "number", @step = "0.001", @min = "0", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.QtyAccepted, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Rad etilgan miqdor *</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.QtyRejected, new { @class = "form-control", @type = "number", @step = "0.001", @min = "0", @required = "required" })
-                                                        @Html.ValidationMessageFor(model => model.QtyRejected, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Nuqson turi</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.DefectTypeID, ViewBag.DefectTypes as SelectList, "Nuqson turini tanlang", new { @class = "form-control" })
-                                                        @Html.ValidationMessageFor(model => model.DefectTypeID, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Holat</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.StatusCode, new SelectList(new[] { "DRAFT", "APPROVED", "REJECTED" }, Model.StatusCode), new { @class = "form-control" })
-                                                        @Html.ValidationMessageFor(model => model.StatusCode, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    <h6 class="invoice-to">Izohlar</h6>
-                                                    <fieldset class="invoice-address form-group">
-                                                        @Html.TextAreaFor(model => model.Notes, new { @class = "form-control", @rows = "3" })
-                                                        @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
-                                                    </fieldset>
-
-                                                    @Html.HiddenFor(model => model.SOrderID)
-                                                    @Html.HiddenFor(model => model.DeliveryScheduleID)
-                                                    @Html.HiddenFor(model => model.ProductPlanDailyID)
-                                                    @Html.HiddenFor(model => model.ProductionID)
+                                                    @if (Model.Items == null || !Model.Items.Any())
+                                                    {
+                                                        <div class="alert alert-warning">
+                                                            Tanlangan sana uchun ishlab chiqarilgan mahsulotlar topilmadi.
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="table-responsive">
+                                                            <table class="table table-striped">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Mahsulot</th>
+                                                                        <th>Ishlab chiqarildi</th>
+                                                                        <th>Tekshirildi</th>
+                                                                        <th>Qoldiq</th>
+                                                                        <th>Qabul</th>
+                                                                        <th>Rad</th>
+                                                                        <th>Nuqson turi</th>
+                                                                        <th>Izoh</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @for (int i = 0; i < Model.Items.Count; i++)
+                                                                    {
+                                                                        <tr>
+                                                                            <td>
+                                                                                <div>@Model.Items[i].ProductNo</div>
+                                                                                <small class="text-muted">@Model.Items[i].ProductName</small>
+                                                                                @Html.HiddenFor(m => m.Items[i].ProductionID)
+                                                                                @Html.HiddenFor(m => m.Items[i].ProductID)
+                                                                                @Html.HiddenFor(m => m.Items[i].RemainingQty)
+                                                                            </td>
+                                                                            <td>@Model.Items[i].ProducedQty</td>
+                                                                            <td>@Model.Items[i].AlreadyInspectedQty</td>
+                                                                            <td>@Model.Items[i].RemainingQty</td>
+                                                                            <td>
+                                                                                @Html.TextBoxFor(m => m.Items[i].QtyAccepted, new { @class = "form-control qty-accepted", @type = "number", @step = "0.001", @min = "0", data_remaining = Model.Items[i].RemainingQty })
+                                                                            </td>
+                                                                            <td>
+                                                                                @Html.TextBoxFor(m => m.Items[i].QtyRejected, new { @class = "form-control qty-rejected", @type = "number", @step = "0.001", @min = "0" })
+                                                                            </td>
+                                                                            <td>
+                                                                                @Html.DropDownListFor(m => m.Items[i].DefectTypeID, ViewBag.DefectTypes as SelectList, "Tanlang", new { @class = "form-control" })
+                                                                            </td>
+                                                                            <td>
+                                                                                @Html.TextBoxFor(m => m.Items[i].Notes, new { @class = "form-control" })
+                                                                            </td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    }
                                                 </div>
                                             </div>
                                         </div>
@@ -121,13 +139,22 @@
     }
 
     <script>
-        $(document).ready(function() {
-            // Auto-calculate rejected qty
-            $('#QtyInspected, #QtyAccepted').on('input', function() {
-                var inspected = parseFloat($('#QtyInspected').val()) || 0;
-                var accepted = parseFloat($('#QtyAccepted').val()) || 0;
-                var rejected = inspected - accepted;
-                $('#QtyRejected').val(rejected >= 0 ? rejected.toFixed(3) : 0);
+        $(document).ready(function () {
+            $('.qty-accepted').on('input', function () {
+                var remaining = parseFloat($(this).data('remaining')) || 0;
+                var accepted = parseFloat($(this).val()) || 0;
+                var rejected = remaining - accepted;
+                var rejectedInput = $(this).closest('tr').find('.qty-rejected');
+                if (rejectedInput.val() === '' || rejectedInput.val() === '0') {
+                    rejectedInput.val(rejected >= 0 ? rejected.toFixed(3) : 0);
+                }
+            });
+
+            $('#inspection-date-load').on('click', function () {
+                var dateValue = $('#inspection-date-picker').val();
+                if (dateValue) {
+                    window.location = '@Url.Action("Create")' + '?date=' + dateValue;
+                }
             });
         });
     </script>

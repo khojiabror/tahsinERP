@@ -97,6 +97,8 @@
                                                         <th>Sarflanish (m)</th>
                                                         <th>Chiqindi (m)</th>
                                                         <th>Narx</th>
+                                                        <th>Toza sarf summa</th>
+                                                        <th>Chiqindi summa</th>
                                                         <th>Jami narx</th>
                                                     </tr>
                                                 </thead>
@@ -105,6 +107,10 @@
                                                     {
                                                         foreach (var line in Model.CuttingLines)
                                                         {
+                                                            var unitPriceValue = line.UnitPrice ?? 0;
+                                                            var cleanCostValue = line.ConsumptionPerProduct * unitPriceValue;
+                                                            var wasteCostValue = line.WastePerProduct * unitPriceValue;
+                                                            var totalCostValue = cleanCostValue + wasteCostValue;
                                                             <tr>
                                                                 <td>@(line.MaterialName ?? line.MaterialCode ?? "-")</td>
                                                                 <td>@(line.MaterialCode ?? "-")</td>
@@ -114,14 +120,16 @@
                                                                 <td>@line.ConsumptionPerProduct.ToString("F4")</td>
                                                                 <td>@line.WastePerProduct.ToString("F4")</td>
                                                                 <td>@(line.UnitPrice?.ToString("F2") ?? "-")</td>
-                                                                <td>@line.TotalCostPerProduct.ToString("F2")</td>
+                                                                <td>@cleanCostValue.ToString("F2")</td>
+                                                                <td>@wasteCostValue.ToString("F2")</td>
+                                                                <td>@totalCostValue.ToString("F2")</td>
                                                             </tr>
                                                         }
                                                     }
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="9" class="text-center text-muted">Kesish variantlari topilmadi.</td>
+                                                            <td colspan="11" class="text-center text-muted">Kesish variantlari topilmadi.</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -158,14 +166,11 @@
 
                                         <h4 class="text-primary mb-3">Summa hisoblar</h4>
                                         @{
-                                            // Calculate sums from model - barcha elementlar uchun (jami narx summa)
-                                            // TotalSarfSumma: barcha materiallar uchun (TotalCostPerProduct = ConsumptionPerProduct * UnitPrice)
+                                            // Calculate sums from model - barcha elementlar uchun
                                             decimal totalSarfSumma = Model.CuttingLines
-                                                .Where(l => l.TotalCostPerProduct > 0)
-                                                .Sum(l => l.TotalCostPerProduct);
+                                                .Where(l => l.UnitPrice.HasValue && l.ConsumptionPerProduct > 0)
+                                                .Sum(l => l.ConsumptionPerProduct * l.UnitPrice.Value);
                                             
-                                            // Chiqindi summa: barcha elementlar uchun
-                                            // Price * wasteAmount (wasteAmount allaqachon metrlarda, umumiy chiqindi miqdori)
                                             decimal totalChiqindiSumma = Model.CuttingLines
                                                 .Where(l => l.UnitPrice.HasValue && l.WastePerProduct > 0)
                                                 .Sum(l => l.UnitPrice.Value * l.WastePerProduct);

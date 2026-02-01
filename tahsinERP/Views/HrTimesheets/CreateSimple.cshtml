@@ -127,3 +127,40 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // Validate WorkDate - cannot be in future months
+            $('#WorkDate').on('change', function() {
+                validateWorkDate();
+            });
+
+            // Validate on form submit
+            $('form').on('submit', function(e) {
+                if (!validateWorkDate()) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            function validateWorkDate() {
+                var workDate = new Date($('#WorkDate').val());
+                if (!workDate || isNaN(workDate.getTime())) {
+                    return true; // Let HTML5 validation handle empty dates
+                }
+
+                var currentDate = new Date();
+                var workDateMonth = new Date(workDate.getFullYear(), workDate.getMonth(), 1);
+                var currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+                if (workDateMonth > currentMonth) {
+                    alert('Kelajakka tabel kirita olmaysiz');
+                    $('#WorkDate').focus();
+                    return false;
+                }
+
+                return true;
+            }
+        });
+    </script>
+}

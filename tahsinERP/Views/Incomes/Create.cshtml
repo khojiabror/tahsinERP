@@ -45,113 +45,122 @@
                 </div>
             </div>
             <div class="content-body">
-                <section id="form-repeater-wrapper">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        @using (Html.BeginForm("Create", "Incomes", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "incomeForm" }))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @if (ViewBag.NoWarehouseError != null)
+                {
+                    <div class="alert alert-danger" style="font-size:1.1rem; font-weight:600;">
+                        @ViewBag.NoWarehouseError
+                    </div>
+                }
+                else
+                {
+                    <section id="form-repeater-wrapper">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            @using (Html.BeginForm("Create", "Incomes", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "incomeForm" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <div class="row">
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="DocNo">Hujjat raqami</label>
-                                                    @Html.TextBoxFor(model => model.DocNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
-                                                    @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
-                                                    <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                <div class="row">
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="DocNo">Hujjat raqami</label>
+                                                        @Html.TextBoxFor(model => model.DocNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                        @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
+                                                        <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="IssueDateTime">Sana va vaqt</label>
+                                                        @Html.TextBoxFor(model => model.IssueDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.IssueDateTime, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="InvoiceID">Invoys</label>
+                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.Invoices as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "invoiceSelect" })
+                                                        @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <button type="button" class="btn btn-outline-primary mt-2" id="loadInvoiceBtn" style="display:none;">
+                                                            <i class="bx bx-refresh"></i> Invoys mahsulotlarini yuklash
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="ReceivingWHID">Qabul qiluvchi ombor</label>
+                                                        @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.ReceivingWHID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="CurrencyID">Valyuta</label>
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <label for="Description">Izoh</label>
+                                                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
+                                                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <label for="incomeFile">Kirim hujjati (PDF)</label>
+                                                        <input type="file" name="incomeFile" id="incomeFile" class="form-control" accept=".pdf" />
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="IssueDateTime">Sana va vaqt</label>
-                                                    @Html.TextBoxFor(model => model.IssueDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.IssueDateTime, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="InvoiceID">Invoys</label>
-                                                    @Html.DropDownListFor(model => model.InvoiceID, ViewBag.Invoices as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "invoiceSelect" })
-                                                    @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <button type="button" class="btn btn-outline-primary mt-2" id="loadInvoiceBtn" style="display:none;">
-                                                        <i class="bx bx-refresh"></i> Invoys mahsulotlarini yuklash
-                                                    </button>
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="ReceivingWHID">Qabul qiluvchi ombor</label>
-                                                    @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.ReceivingWHID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="CurrencyID">Valyuta</label>
-                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-6 col-12 form-group">
-                                                    <label for="Description">Izoh</label>
-                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
-                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-6 col-12 form-group">
-                                                    <label for="incomeFile">Kirim hujjati (PDF)</label>
-                                                    <input type="file" name="incomeFile" id="incomeFile" class="form-control" accept=".pdf" />
-                                                </div>
-                                            </div>
 
-                                            <br />
-                                            <h5>Kirim mahsulotlari</h5>
-                                            
-                                            <div class="table-responsive">
-                                                <table id="incomeProductsTable" class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Mahsulot nomi</th>
-                                                            <th>Miqdor</th>
-                                                            <th>Birlik</th>
-                                                            <th>Dona narxi</th>
-                                                            <th>Jami</th>
-                                                            <th>Izoh</th>
-                                                            <th>Amallar</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody></tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <td colspan="5" class="text-right"><strong>Jami:</strong></td>
-                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
-                                                            <td colspan="2"></td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-
-                                            <div class="row mt-2">
-                                                <div class="col-12">
-                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                        <i class="bx bx-plus"></i> Qo'shish
-                                                    </button>
+                                                <br />
+                                                <h5>Kirim mahsulotlari</h5>
+                                                
+                                                <div class="table-responsive">
+                                                    <table id="incomeProductsTable" class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Mahsulot</th>
+                                                                <th>Mahsulot nomi</th>
+                                                                <th>Miqdor</th>
+                                                                <th>Birlik</th>
+                                                                <th>Dona narxi</th>
+                                                                <th>Jami</th>
+                                                                <th>Izoh</th>
+                                                                <th>Amallar</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                        <tfoot>
+                                                            <tr>
+                                                                <td colspan="5" class="text-right"><strong>Jami:</strong></td>
+                                                                <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
                                                 </div>
-                                            </div>
 
-                                            <div class="row mt-3">
-                                                <div class="col-12">
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-save"></i> Saqlash
-                                                    </button>
-                                                    <a href="@Url.Action("Index", "Incomes")" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Bekor qilish
-                                                    </a>
+                                                <div class="row mt-2">
+                                                    <div class="col-12">
+                                                        <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                            <i class="bx bx-plus"></i> Qo'shish
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        }
+
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <button type="submit" class="btn btn-success">
+                                                            <i class="bx bx-save"></i> Saqlash
+                                                        </button>
+                                                        <a href="@Url.Action("Index", "Incomes")" class="btn btn-secondary">
+                                                            <i class="bx bx-x"></i> Bekor qilish
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                }
             </div>
         </div>
     </div>

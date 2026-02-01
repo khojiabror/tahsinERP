@@ -682,6 +682,18 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
+                // Validate: Cannot create timesheet for future months
+                var currentDate = DateTime.Now;
+                var workDateMonth = new DateTime(WorkDate.Year, WorkDate.Month, 1);
+                var currentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+
+                if (workDateMonth > currentMonth)
+                {
+                    TempData["Error"] = "Kelajakka tabel kirita olmaysiz";
+                    await PopulateCreateSimpleViewBags();
+                    return View();
+                }
+
                 // Check if work entry already exists for this employee, product, operation, and date
                 var existing = await db.HR_PIECE_RATE_WORK_ENTRIES
                     .FirstOrDefaultAsync(e => e.EmployeeID == EmployeeID && 
@@ -1143,11 +1155,13 @@ namespace tahsinERP.Controllers.HR
                     var allEmployees = await db.HR_EMPLOYEES
                         .ToListAsync();
 
-                    // Get all products with IsFinishedGood category
+                    // Get all products with IsFinishedGood = true
+                    // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
                     var validProducts = await db.PRODUCTS
                         .Include(p => p.PRODUCT_CATEGORIES)
                         .Where(p => p.IsDeleted == false && 
-                            (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true))
+                            (p.IsFinishedGood == true || 
+                             (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
                         .ToListAsync();
 
                     // Get all operations
@@ -1157,7 +1171,7 @@ namespace tahsinERP.Controllers.HR
 
                     // Get all tariffs
                     var allTariffs = await db.HR_PIECE_RATE_TARIFFS
-                        .Where(t => t.IsActive && t.IsDeleted != true)
+                        .Where(t => t.IsActive && t.IsDeleted == false)
                         .Include(t => t.PRODUCT)
                         .ToListAsync();
 
@@ -1217,13 +1231,33 @@ namespace tahsinERP.Controllers.HR
                                 }
                             }
 
-                            // Find product by PNo
+                            // Find product by PNo, PNo2, PNo3, or PNo4 (case-insensitive, trimmed)
+                            string normalizedProductCode = productCode.Trim();
                             var product = validProducts.FirstOrDefault(p => 
-                                p.PNo != null && p.PNo.Trim().Equals(productCode, StringComparison.OrdinalIgnoreCase));
+                                (p.PNo != null && p.PNo.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
+                                (p.PNo2 != null && p.PNo2.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
+                                (p.PNo3 != null && p.PNo3.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
+                                (p.PNo4 != null && p.PNo4.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)));
 
                             if (product == null)
                             {
-                                importResults.Add($"Qator {row}: Maxsulot topilmadi yoki IsFinishedGood emas - {productCode}");
+                                // Try to find product without IsFinishedGood filter to provide better error message
+                                var allProducts = await db.PRODUCTS
+                                    .Where(p => p.IsDeleted == false &&
+                                        ((p.PNo != null && p.PNo.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
+                                         (p.PNo2 != null && p.PNo2.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
+                                         (p.PNo3 != null && p.PNo3.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
+                                         (p.PNo4 != null && p.PNo4.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase))))
+                                    .FirstOrDefaultAsync();
+
+                                if (allProducts != null)
+                                {
+                                    importResults.Add($"Qator {row}: Maxsulot topildi lekin IsFinishedGood = false yoki null - {productCode}");
+                                }
+                                else
+                                {
+                                    importResults.Add($"Qator {row}: Maxsulot topilmadi - {productCode}");
+                                }
                                 skipCount++;
                                 continue;
                             }
@@ -1261,7 +1295,7 @@ namespace tahsinERP.Controllers.HR
                                                   e.OperationID == operation.ID &&
                                                   e.WorkDate == workDate.Date &&
                                                   e.Quantity == quantity &&
-                                                  e.IsDeleted != true);
+                                                  e.IsDeleted == false);
 
                                 if (exists)
                                 {

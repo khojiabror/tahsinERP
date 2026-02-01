@@ -28,10 +28,38 @@ namespace tahsinERP.Services
             if (!normLines.Any())
                 return 0;
 
-            // Sum all TotalAmount from NORM_INPUT_LINES
-            return normLines
-                .Where(n => n.TotalAmount.HasValue)
-                .Sum(n => n.TotalAmount.Value);
+            decimal total = 0;
+            foreach (var line in normLines)
+            {
+                if (line.Price <= 0)
+                {
+                    continue;
+                }
+
+                decimal consumptionMeters = 0;
+                if (line.Consumption.HasValue && line.Consumption.Value > 0)
+                {
+                    consumptionMeters = (decimal)(line.Consumption.Value / 1000.0);
+                }
+                else if (line.CutLengthMm > 0)
+                {
+                    consumptionMeters = (decimal)(line.CutLengthMm / 1000.0) * line.PiecesPerProduct;
+                }
+                else
+                {
+                    consumptionMeters = line.PiecesPerProduct;
+                }
+
+                decimal wasteMeters = 0;
+                if (line.WasteAmount.HasValue && line.WasteAmount.Value > 0)
+                {
+                    wasteMeters = (decimal)(line.WasteAmount.Value / 1000.0);
+                }
+
+                total += (consumptionMeters + wasteMeters) * line.Price;
+            }
+
+            return total;
         }
 
         /// <summary>

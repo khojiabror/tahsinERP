@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             IQueryable<HR_POSITIONS> query = db.HR_POSITIONS
-                .Where(p => p.IsDeleted == false || p.IsDeleted == null);
+                .Where(p => p.IsDeleted == false);
 
             if (isActive.HasValue)
             {
@@ -67,7 +67,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var position = await db.HR_POSITIONS
-                .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
+                .Where(p => p.ID == id && p.IsDeleted == false)
                 .FirstOrDefaultAsync();
             if (position == null)
             {

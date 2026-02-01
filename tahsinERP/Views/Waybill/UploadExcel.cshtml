@@ -1,0 +1,124 @@
+@{
+    ViewBag.Title = "Waybill Excel import";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Waybill/Index">Yo'l varaqalari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Excel orqali import</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-xl-8 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <h4 class="card-title">Excel fayl yuklash</h4>
+                                    <p class="text-muted">
+                                        Birinchi satrda ustun nomlari bo'lishi kerak. Majburiy ustunlar: <b>WaybillNo</b>, <b>IssueDate</b>, <b>ContractID/ContractNo</b>, <b>TransportTypeID/TransportType</b>.
+                                    </p>
+
+                                    @if (ViewBag.Error != null)
+                                    {
+                                        <div class="alert alert-danger">@ViewBag.Error</div>
+                                    }
+                                    @if (ViewBag.SuccessCount != null)
+                                    {
+                                        <div class="alert alert-success">
+                                            Yuklandi: @ViewBag.SuccessCount, O'tkazib yuborildi: @ViewBag.SkipCount
+                                        </div>
+                                    }
+                                    @{
+                                        var errorList = ViewBag.Errors as IEnumerable<string>;
+                                    }
+                                    @if (errorList != null && errorList.Any())
+                                    {
+                                        <div class="alert alert-warning">
+                                            <ul class="mb-0">
+                                                @foreach (var err in errorList)
+                                                {
+                                                    <li>@err</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+
+                                    <a class="btn btn-outline-primary mb-1" href="@Url.Action("DownloadTemplate", "Waybill")">
+                                        <i class="bx bx-download"></i> Template yuklab olish
+                                    </a>
+
+                                    @using (Html.BeginForm("UploadExcel", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group">
+                                            <label>Excel fayl (.xlsx)</label>
+                                            <input type="file" name="file" class="form-control" accept=".xlsx" required />
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bx bx-upload"></i> Yuklash
+                                        </button>
+                                        <a href="@Url.Action("Index", "Waybill")" class="btn btn-outline-secondary ml-1">Orqaga</a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <h5>Excel ustunlari</h5>
+                                    <p class="text-muted">Quyidagi ustun nomlarini birinchi qatorga yozing.</p>
+                                    <ul class="mb-0">
+                                        <li>WaybillNo *</li>
+                                        <li>IssueDate *</li>
+                                        <li>Direction (0/1/2 yoki Kirim/Chiqim/Ichki)</li>
+                                        <li>ForwarderID yoki ForwarderName</li>
+                                        <li>ContractID yoki ContractNo</li>
+                                        <li>TransportTypeID yoki TransportType</li>
+                                        <li>FromLocation, ToLocation, DistanceKm</li>
+                                        <li>GrWeight, NetWeight, CBM, PalletsCount</li>
+                                        <li>FreightBasis (0/1/2/3)</li>
+                                        <li>Rate, Amount, CurrencyID yoki Currency</li>
+                                        <li>PayerType, PayerID</li>
+                                        <li>InvoiceID, SalesInvoiceID, SalesOrderID, PurchaseOrderID, TTNKID</li>
+                                        <li>TruckNo, TrailerNo, TruckModel, TrailerModel</li>
+                                        <li>DriverName, DriverPINFL</li>
+                                        <li>PlannedDeliveryDate, ActualDeliveryDate</li>
+                                        <li>Description, ManualCorrectionReason</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
