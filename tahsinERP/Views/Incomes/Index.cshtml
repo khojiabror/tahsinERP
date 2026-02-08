@@ -50,6 +50,27 @@
                         </div>
                     }
 
+                    <div class="users-list-filter px-1">
+                        @using (Html.BeginForm("Index", "Incomes", FormMethod.Get, new { @class = "form" }))
+                        {
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label>Status</label>
+                                    <select name="status" class="form-control">
+                                        <option value="">Barchasi</option>
+                                        <option value="1" @(ViewBag.Status != null && (int)ViewBag.Status == 1 ? "selected" : "")>Qabul qilingan</option>
+                                        <option value="0" @(ViewBag.Status != null && (int)ViewBag.Status == 0 ? "selected" : "")>Kutilmoqda</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bx bx-search"></i> Qidirish
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
                             <div class="card-content">

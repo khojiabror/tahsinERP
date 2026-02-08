@@ -195,6 +195,17 @@
             color: var(--ipack-green) !important;
         }
 
+        .user-alert-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: #dc3545;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
         /* Borders */
         .border-primary {
             border-color: var(--ipack-green) !important;
@@ -903,14 +914,10 @@
                                             }
                                         }
                                     </div>
-                                    @Html.Partial("_UserProfile")
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right pb-0">
-                                    <a class="dropdown-item" href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
-                                        <i class="bx bx-user mr-50"></i> Profil sozlamalari
-                                    </a>
                                     @{
                                         int userTaskCount = 0;
+                                        int pendingIncomeCount = 0;
+                                        bool isMrpUser = false;
                                         try
                                         {
                                             using (var db = new tahsinERP.Models.DBTHSNEntities())
@@ -918,10 +925,35 @@
                                                 var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
                                                 userTaskCount = db.APP_TASKS.Count(t => t.AssigneeUserID == userId && t.IsDeleted == false &&
                                                     (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE"));
+
+                                                var mrpWarehouseIds = db.WAREHOUSES
+                                                    .Where(w => w.IsDeleted != true && w.MRP == userId)
+                                                    .Select(w => w.ID)
+                                                    .ToList();
+                                                isMrpUser = mrpWarehouseIds.Any();
+                                                if (isMrpUser)
+                                                {
+                                                    pendingIncomeCount = db.INCOMES.Count(i =>
+                                                        i.IsDeleted != true &&
+                                                        i.RecieveStatus != true &&
+                                                        mrpWarehouseIds.Contains(i.ReceivingWHID));
+                                                }
                                             }
                                         }
                                         catch { }
                                     }
+                                    <span class="position-relative d-inline-block">
+                                        @Html.Partial("_UserProfile")
+                                        @if (userTaskCount > 0 || pendingIncomeCount > 0)
+                                        {
+                                            <span class="user-alert-dot"></span>
+                                        }
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right pb-0">
+                                    <a class="dropdown-item" href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
+                                        <i class="bx bx-user mr-50"></i> Profil sozlamalari
+                                    </a>
                                     <a class="dropdown-item" href="~/Tasks?assigneeUserID=@tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name)">
                                         <i class="bx bx-task mr-50"></i> Topshiriqlar
                                         @if (userTaskCount > 0)
@@ -929,6 +961,16 @@
                                             <span class="badge badge-danger badge-pill float-right">@userTaskCount</span>
                                         }
                                     </a>
+                                    @if (isMrpUser)
+                                    {
+                                        <a class="dropdown-item" href="~/Incomes?status=0">
+                                            <i class="bx bx-log-in-circle mr-50"></i> Omborga kirim
+                                            @if (pendingIncomeCount > 0)
+                                            {
+                                                <span class="badge badge-danger badge-pill float-right">@pendingIncomeCount</span>
+                                            }
+                                        </a>
+                                    }
                                     <div class="dropdown-divider mb-0"></div>
                                     <a class="dropdown-item" href="~/Account/Logout">
                                         <i class="bx bx-power-off mr-50"></i> Tizimdan chiqish
@@ -994,6 +1036,10 @@
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
                             {
                                 <li><a href="~/TannarxAnalytics/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tannarx Dashboard</span></a></li>
+                            }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "LogisticsDashboard") || RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder"))
+                            {
+                                <li><a href="~/LogisticsDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Logistika Dashboard</span></a></li>
                             }
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
                             {

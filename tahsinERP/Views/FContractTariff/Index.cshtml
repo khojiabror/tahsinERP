@@ -1,4 +1,4 @@
-@model List<tahsinERP.Models.F_CONTRACT_TARIFFS>
+@model List<tahsinERP.ViewModels.ContractTariffIndexItemViewModel>
 @{
     ViewBag.Title = "Tariflar";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -83,19 +83,20 @@
                                             foreach (var item in Model)
                                             {
                                                 <tr>
-                                                    <td>@item.F_CONTRACTS?.ContractNo</td>
-                                                    <td>@item.F_TRANSPORT_TYPES?.TransportType</td>
-                                                    <td>@(string.IsNullOrEmpty(item.FromCity) ? item.FromRegion : item.FromCity)</td>
-                                                    <td>@(string.IsNullOrEmpty(item.ToCity) ? item.ToRegion : item.ToCity)</td>
+                                                    <td>@item.ContractNo</td>
+                                                    <td>@item.TransportType</td>
+                                                    <td>@item.FromLocation</td>
+                                                    <td>@item.ToLocation</td>
                                                     <td>@item.FreightBasis</td>
                                                     <td>@item.Rate.ToString("N2")</td>
-                                                    <td>@item.CURRENCy?.Shortname</td>
+                                                    <td>@item.Currency</td>
                                                     <td>@(item.IsActive ? "Ha" : "Yo'q")</td>
                                                     @if (changePermit)
                                                     {
                                                         <td>
-                                                            <a href="@Url.Action("Edit", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-success"><i class="bx bx-edit-alt"></i></a>
-                                                            <a href="@Url.Action("Delete", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></a>
+                                                            <a href="@Url.Action("Details", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
+                                                            <a href="@Url.Action("Edit", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                            <a href="@Url.Action("Delete", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
                                                         </td>
                                                     }
                                                 </tr>

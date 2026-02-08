@@ -15,7 +15,7 @@ namespace tahsinERP.Controllers.SRM
     public class IncomesController : Controller
     {
         // GET: Incomes
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(int? status)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
             {
@@ -37,10 +37,23 @@ namespace tahsinERP.Controllers.SRM
                     incomesQuery = incomesQuery.Where(i => i.ReceivingWHID == assignedWarehouseId.Value);
                 }
 
+                if (status.HasValue)
+                {
+                    if (status.Value == 1)
+                    {
+                        incomesQuery = incomesQuery.Where(i => i.RecieveStatus == true);
+                    }
+                    else if (status.Value == 0)
+                    {
+                        incomesQuery = incomesQuery.Where(i => i.RecieveStatus != true);
+                    }
+                }
+
                 var incomes = await incomesQuery
                     .OrderByDescending(i => i.IssueDateTime)
                     .ToListAsync();
 
+                ViewBag.Status = status;
                 return View(incomes);
             }
         }
@@ -804,7 +817,7 @@ namespace tahsinERP.Controllers.SRM
                         }
 
                         var isAutoLinkedTransfer = income.Description != null &&
-                            income.Description.Contains("Auto-linked from Expense");
+                            income.Description.Contains("Chiqimdan avtomatik bog'langan:");
 
                         if (isAutoLinkedTransfer && income.INCOME_PRODUCTS != null)
                         {
@@ -892,7 +905,7 @@ namespace tahsinERP.Controllers.SRM
                         var expenseDocNo = ExtractLinkedExpenseDocNo(income.Description);
                         if (string.IsNullOrWhiteSpace(expenseDocNo))
                         {
-                            TempData["Error"] = "Linked expense topilmadi. Rad etish mumkin emas.";
+                            TempData["Error"] = "Bog'langan chiqim topilmadi. Rad etish mumkin emas.";
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -907,7 +920,7 @@ namespace tahsinERP.Controllers.SRM
 
                         if (expense == null)
                         {
-                            TempData["Error"] = "Linked expense topilmadi. Rad etish mumkin emas.";
+                            TempData["Error"] = "Bog'langan chiqim topilmadi. Rad etish mumkin emas.";
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -970,7 +983,7 @@ namespace tahsinERP.Controllers.SRM
                         transaction.Commit();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
-                            $"Reject - {income.DocNo} kirim hujjati rad etildi va linked expense o'chirildi");
+                            $"Reject - {income.DocNo} kirim hujjati rad etildi va bog'langan chiqim o'chirildi");
 
                         return RedirectToAction("Index");
                     }
@@ -1110,7 +1123,7 @@ namespace tahsinERP.Controllers.SRM
                 return null;
             }
 
-            const string marker = "Auto-linked from Expense ";
+            const string marker = "Chiqimdan avtomatik bog'langan: ";
             var index = description.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
             if (index < 0)
             {

@@ -97,6 +97,7 @@
                                                                             <td>@Model.Items[i].RemainingQty</td>
                                                                             <td>
                                                                                 @Html.TextBoxFor(m => m.Items[i].QtyAccepted, new { @class = "form-control qty-accepted", @type = "number", @step = "0.001", @min = "0", data_remaining = Model.Items[i].RemainingQty })
+                                                                                <small class="text-muted">Qoldiq: @Model.Items[i].RemainingQty</small>
                                                                             </td>
                                                                             <td>
                                                                                 @Html.TextBoxFor(m => m.Items[i].QtyRejected, new { @class = "form-control qty-rejected", @type = "number", @step = "0.001", @min = "0" })

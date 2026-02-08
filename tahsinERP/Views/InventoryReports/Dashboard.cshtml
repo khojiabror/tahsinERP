@@ -50,6 +50,25 @@
                                     <label>Gacha</label>
                                     <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
                                 </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Runner oynasi (kun)</label>
+                                    <select name="runnerDays" class="form-control">
+                                        <option value="30" @(ViewBag.RunnerDays == 30 ? "selected" : "")>30</option>
+                                        <option value="60" @(ViewBag.RunnerDays == 60 ? "selected" : "")>60</option>
+                                        <option value="90" @(ViewBag.RunnerDays == 90 ? "selected" : "")>90</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Top-N</label>
+                                    <input type="number" name="runnerTopN" class="form-control" min="1" max="50" value="@(ViewBag.RunnerTopN ?? 10)" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>FIFO scope</label>
+                                    <select name="fifoScope" class="form-control">
+                                        <option value="all" @(ViewBag.FifoScope == "all" ? "selected" : "")>Umumiy</option>
+                                        <option value="selected" @(ViewBag.FifoScope == "selected" ? "selected" : "")>Tanlangan ombor</option>
+                                    </select>
+                                </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="bx bx-search"></i> Qidirish
@@ -58,6 +77,13 @@
                             </div>
                         }
                     </div>
+
+                    @if (ViewBag.FifoScopeWarning != null)
+                    {
+                        <div class="alert alert-warning">
+                            @ViewBag.FifoScopeWarning
+                        </div>
+                    }
 
                     <div class="row">
                         <!-- High DOH Items -->
@@ -75,7 +101,8 @@
                                                         <th>Mahsulot</th>
                                                         <th>Ombor</th>
                                                         <th>Qoldiq</th>
-                                                        <th>DOH (kun)</th>
+                                                        <th>Planned DOH</th>
+                                                        <th>Actual DOH</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -87,14 +114,15 @@
                                                                 <td>@item.ProductPNo - @item.ProductName</td>
                                                                 <td>@item.WarehouseName</td>
                                                                 <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
-                                                                <td><strong>@(item.DOH?.ToString("N1") ?? "-")</strong></td>
+                                                                <td><strong>@(item.PlannedDOH?.ToString("N1") ?? "-")</strong></td>
+                                                                <td>@(item.ActualDOH?.ToString("N1") ?? "-")</td>
                                                             </tr>
                                                         }
                                                     }
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -120,7 +148,8 @@
                                                         <th>Mahsulot</th>
                                                         <th>Ombor</th>
                                                         <th>Qoldiq</th>
-                                                        <th>DOH (kun)</th>
+                                                        <th>Planned DOH</th>
+                                                        <th>Actual DOH</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -132,7 +161,54 @@
                                                                 <td>@item.ProductPNo - @item.ProductName</td>
                                                                 <td>@item.WarehouseName</td>
                                                                 <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
-                                                                <td><strong class="text-danger">@(item.DOH?.ToString("N1") ?? "-")</strong></td>
+                                                                <td><strong class="text-danger">@(item.PlannedDOH?.ToString("N1") ?? "-")</strong></td>
+                                                                <td>@(item.ActualDOH?.ToString("N1") ?? "-")</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title text-success">High runner (30 kun)</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Ombor</th>
+                                                        <th>Qoldiq</th>
+                                                        <th>Avg/day</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.HighRunnerItems != null && Model.HighRunnerItems.Any())
+                                                    {
+                                                        foreach (var item in Model.HighRunnerItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ProductPNo - @item.ProductName</td>
+                                                                <td>@item.WarehouseName</td>
+                                                                <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
+                                                                <td>@item.AverageDailyConsumption.ToString("N2")</td>
                                                             </tr>
                                                         }
                                                     }
@@ -140,6 +216,98 @@
                                                     {
                                                         <tr>
                                                             <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title text-muted">Low runner (30 kun)</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Ombor</th>
+                                                        <th>Qoldiq</th>
+                                                        <th>Avg/day</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.LowRunnerItems != null && Model.LowRunnerItems.Any())
+                                                    {
+                                                        foreach (var item in Model.LowRunnerItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ProductPNo - @item.ProductName</td>
+                                                                <td>@item.WarehouseName</td>
+                                                                <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
+                                                                <td>@item.AverageDailyConsumption.ToString("N2")</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title text-danger">FIFO violation (soddalashtirilgan)</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Ombor</th>
+                                                        <th>Eng eski kirim</th>
+                                                        <th>So'nggi chiqim</th>
+                                                        <th>Eski partiya qoldig'i</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (Model.FifoViolations != null && Model.FifoViolations.Any())
+                                                    {
+                                                        foreach (var item in Model.FifoViolations)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ProductPNo - @item.ProductName</td>
+                                                                <td>@item.WarehouseName</td>
+                                                                <td>@item.OldestIncomeDate.ToString("dd.MM.yyyy")</td>
+                                                                <td>@item.LatestExpenseDate.ToString("dd.MM.yyyy")</td>
+                                                                <td>@item.RemainingFromOldest.ToString("N2")</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -199,8 +367,10 @@
                                                         <th>Kategoriya</th>
                                                         <th>Ombor</th>
                                                         <th>Joriy qoldiq</th>
-                                                        <th>O'rtacha kunlik sarf</th>
-                                                        <th>DOH (kun)</th>
+                                                        <th>Planned avg/day</th>
+                                                        <th>Actual avg/day</th>
+                                                        <th>Planned DOH</th>
+                                                        <th>Actual DOH</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -214,21 +384,22 @@
                                                                 <td>@item.CategoryName</td>
                                                                 <td>@item.WarehouseName</td>
                                                                 <td>@item.CurrentStock.ToString("N2") @item.UnitName</td>
+                                                                <td>@item.PlannedAverageDailyConsumption.ToString("N2") @item.UnitName</td>
                                                                 <td>@item.AverageDailyConsumption.ToString("N2") @item.UnitName</td>
                                                                 <td>
-                                                                    @if (item.DOH.HasValue)
+                                                                    @if (item.PlannedDOH.HasValue)
                                                                     {
-                                                                        if (item.DOH.Value < 30)
+                                                                        if (item.PlannedDOH.Value < 30)
                                                                         {
-                                                                            <span class="badge badge-danger">@item.DOH.Value.ToString("N1")</span>
+                                                                            <span class="badge badge-danger">@item.PlannedDOH.Value.ToString("N1")</span>
                                                                         }
-                                                                        else if (item.DOH.Value > 60)
+                                                                        else if (item.PlannedDOH.Value > 60)
                                                                         {
-                                                                            <span class="badge badge-warning">@item.DOH.Value.ToString("N1")</span>
+                                                                            <span class="badge badge-warning">@item.PlannedDOH.Value.ToString("N1")</span>
                                                                         }
                                                                         else
                                                                         {
-                                                                            <span class="badge badge-success">@item.DOH.Value.ToString("N1")</span>
+                                                                            <span class="badge badge-success">@item.PlannedDOH.Value.ToString("N1")</span>
                                                                         }
                                                                     }
                                                                     else
@@ -236,6 +407,7 @@
                                                                         <span class="text-muted">-</span>
                                                                     }
                                                                 </td>
+                                                                <td>@(item.ActualDOH?.ToString("N1") ?? "-")</td>
                                                             </tr>
                                                         }
                                                     }
@@ -278,7 +450,7 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[6, "desc"]]
+                "order": [[7, "desc"]]
             });
 
             // Category Distribution Chart

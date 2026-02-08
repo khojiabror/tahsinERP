@@ -53,6 +53,7 @@ namespace tahsinERP.Controllers.Logistic
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(F_WAYBILL_PAYMENTS model, int? AccountID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -72,7 +73,20 @@ namespace tahsinERP.Controllers.Logistic
 
                     model.IsDeleted = false;
                     db.F_WAYBILL_PAYMENTS.Add(model);
-                    db.SaveChanges();
+                    try
+                    {
+                        db.SaveChanges();
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Create", $"Xatolik: {ex.Message}");
+                        ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
+                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                        ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                        ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
+                        return View(model);
+                    }
 
                     // Post to finance
                     try
@@ -92,16 +106,13 @@ namespace tahsinERP.Controllers.Logistic
 
                     return RedirectToAction("Index");
                 }
-                else
-                {
-                    ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                    ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
-                    ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
+                ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
 
-                    ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
-                    return View(model);
-                }
+                ModelState.AddModelError("", "Ma'lumotlarni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
+                return View(model);
             }
         }
         public ActionResult Details(int? Id)
@@ -242,6 +253,7 @@ namespace tahsinERP.Controllers.Logistic
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(F_WAYBILL_PAYMENTS waybillPayment, int? AccountID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -263,17 +275,37 @@ namespace tahsinERP.Controllers.Logistic
                         waybillPaymentToUpdate.Comment = waybillPayment.Comment;
                         waybillPaymentToUpdate.CurrencyID = waybillPayment.CurrencyID;
 
-                        db.SaveChanges();
+                        try
+                        {
+                            db.SaveChanges();
+                        }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                            LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Edit", $"Xatolik: {ex.Message}");
+                            ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
+                            ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                            ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                            ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
+                            return View(waybillPayment);
+                        }
 
                         // Update finance transaction if exists
                         var finTransaction = db.FIN_TRANSACTIONS
                             .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == waybillPayment.ID);
                         if (finTransaction != null && AccountID.HasValue)
                         {
-                            finTransaction.AccountID = AccountID.Value;
-                            finTransaction.Amount = (decimal)waybillPayment.Payment_Amount;
-                            finTransaction.TxnDate = waybillPayment.PaymentDate ?? DateTime.Now;
-                            db.SaveChanges();
+                            try
+                            {
+                                finTransaction.AccountID = AccountID.Value;
+                                finTransaction.Amount = (decimal)waybillPayment.Payment_Amount;
+                                finTransaction.TxnDate = waybillPayment.PaymentDate ?? DateTime.Now;
+                                db.SaveChanges();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Edit", $"Finance update error: {ex.Message}");
+                            }
                         }
 
                         var waybill = db.F_WAYBILLS.Find(waybillPayment.WaybillID);
@@ -284,24 +316,18 @@ namespace tahsinERP.Controllers.Logistic
                     }
                     else
                     {
-                        ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
-                        ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
-                        ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                        ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
-
-                        return View(waybillPayment);
+                        ModelState.AddModelError("", "To'lov topilmadi.");
                     }
                 }
                 else
                 {
-                    ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
-                    ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-                    ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
-
-                    ModelState.AddModelError("", "Ma'lumotlatni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
-                    return View(waybillPayment);
+                    ModelState.AddModelError("", "Ma'lumotlarni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
                 }
+                ViewBag.waybills = new SelectList(db.F_WAYBILLS.Where(x => x.IsDeleted == false).ToList(), "ID", "WaybillNo");
+                ViewBag.forwarders = new SelectList(db.FORWARDERS.Where(x => x.IsDeleted == false).ToList(), "ID", "ForwarderName");
+                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
+                ViewBag.accounts = new SelectList(db.FIN_ACCOUNTS.Where(a => (a.IsCash || a.IsBank) && a.IsActive).ToList(), "ID", "Name");
+                return View(waybillPayment);
             }
         }
     }

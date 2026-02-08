@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
     public class InventoryReportsController : Controller
     {
         // GET: InventoryReports/Dashboard
-        public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate)
+        public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate, int? runnerDays, int? runnerTopN, string fifoScope)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
             {
@@ -27,6 +27,10 @@ namespace tahsinERP.Controllers
             {
                 var fromDateValue = fromDate ?? DateTime.Now.AddDays(-30);
                 var toDateValue = toDate ?? DateTime.Now;
+                var runnerDaysValue = runnerDays.HasValue && runnerDays.Value > 0 ? runnerDays.Value : 30;
+                var runnerTopNValue = runnerTopN.HasValue && runnerTopN.Value > 0 ? runnerTopN.Value : 10;
+                if (runnerTopNValue > 50) runnerTopNValue = 50;
+                var fifoScopeValue = string.IsNullOrWhiteSpace(fifoScope) ? "all" : fifoScope.ToLowerInvariant();
 
                 var model = new InventoryDashboardViewModel
                 {
@@ -35,6 +39,9 @@ namespace tahsinERP.Controllers
                     HighDOHItems = new List<InventoryDashboardItem>(),
                     LowDOHItems = new List<InventoryDashboardItem>(),
                     StockItems = new List<InventoryDashboardItem>(),
+                    HighRunnerItems = new List<InventoryDashboardItem>(),
+                    LowRunnerItems = new List<InventoryDashboardItem>(),
+                    FifoViolations = new List<InventoryFifoViolationItem>(),
                     StockByCategory = new List<CategoryStockSummary>(),
                     InboundTrends = new List<TrendData>(),
                     OutboundTrends = new List<TrendData>()
@@ -55,6 +62,9 @@ namespace tahsinERP.Controllers
                         HighDOHItems = new List<InventoryDashboardItem>(),
                         LowDOHItems = new List<InventoryDashboardItem>(),
                         StockItems = new List<InventoryDashboardItem>(),
+                        HighRunnerItems = new List<InventoryDashboardItem>(),
+                        LowRunnerItems = new List<InventoryDashboardItem>(),
+                        FifoViolations = new List<InventoryFifoViolationItem>(),
                         StockByCategory = new List<CategoryStockSummary>(),
                         InboundTrends = new List<TrendData>(),
                         OutboundTrends = new List<TrendData>()
@@ -76,28 +86,53 @@ namespace tahsinERP.Controllers
                     stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.CategoryID == categoryId.Value).ToList();
                 }
 
-                // Calculate consumption from EXPENSES (outbound)
+                var totalDays = (toDateValue - fromDateValue).TotalDays;
+                if (totalDays <= 0) totalDays = 1;
+
+                // Calculate planned consumption from production plan (PRODUCTPLANS_DAILY)
+                var plannedDaily = await db.PRODUCTPLANS_DAILY
+                    .Where(d => d.Day >= fromDateValue && d.Day <= toDateValue && d.PRODUCTPLAN.IsDeleted == false)
+                    .Select(d => new { d.PRODUCTPLAN.ProductID, d.Total })
+                    .ToListAsync();
+
+                var plannedByProduct = plannedDaily
+                    .GroupBy(x => x.ProductID)
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Total));
+
+                // Calculate actual consumption from expenses (warehouse-specific)
                 var expenses = await db.EXPENSES
                     .Include(e => e.EXPENSE_PRODUCTS)
                     .Where(e => e.IssueDateTime >= fromDateValue && e.IssueDateTime <= toDateValue && e.IsDeleted != true)
                     .ToListAsync();
 
-                var totalDays = (toDateValue - fromDateValue).TotalDays;
-                if (totalDays <= 0) totalDays = 1;
+                var expenseByProductWarehouse = expenses
+                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
+                    {
+                        ep.ProductID,
+                        WarehouseId = e.SenderWHID,
+                        Amount = ep.Amount
+                    }))
+                    .Where(x => x.WarehouseId.HasValue && warehouseIds.Contains(x.WarehouseId.Value))
+                    .GroupBy(x => new { x.ProductID, WarehouseId = x.WarehouseId.Value })
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
                 foreach (var stock in stocks)
                 {
                     if (stock.PRODUCT == null) continue;
 
-                    // Calculate average daily consumption from expenses
-                    var productExpenses = expenses
-                        .SelectMany(e => e.EXPENSE_PRODUCTS)
-                        .Where(ep => ep.ProductID == stock.ProductID && ep.EXPENS.SenderWHID == stock.WHID)
-                        .ToList();
+                    // Calculate average daily consumption from production plan
+                    var plannedTotal = plannedByProduct.ContainsKey(stock.ProductID)
+                        ? plannedByProduct[stock.ProductID]
+                        : 0;
+                    var avgDailyPlanned = plannedTotal / totalDays;
+                    var plannedDoh = avgDailyPlanned > 0 ? stock.Amount / avgDailyPlanned : (double?)null;
 
-                    var totalConsumption = productExpenses.Sum(ep => ep.Amount);
-                    var avgDailyConsumption = totalConsumption / totalDays;
-                    var doh = avgDailyConsumption > 0 ? stock.Amount / avgDailyConsumption : (double?)null;
+                    var expenseKey = new { stock.ProductID, WarehouseId = stock.WHID };
+                    var actualTotal = expenseByProductWarehouse.ContainsKey(expenseKey)
+                        ? expenseByProductWarehouse[expenseKey]
+                        : 0;
+                    var avgDailyActual = actualTotal / totalDays;
+                    var actualDoh = avgDailyActual > 0 ? stock.Amount / avgDailyActual : (double?)null;
 
                     var item = new InventoryDashboardItem
                     {
@@ -108,25 +143,152 @@ namespace tahsinERP.Controllers
                         WarehouseName = stock.Warehouse?.WHName ?? "N/A",
                         CurrentStock = stock.Amount,
                         UnitName = stock.UNIT?.ShortName ?? "N/A",
-                        AverageDailyConsumption = avgDailyConsumption,
-                        DOH = doh
+                        AverageDailyConsumption = avgDailyActual,
+                        PlannedAverageDailyConsumption = avgDailyPlanned,
+                        PlannedDOH = plannedDoh,
+                        ActualDOH = actualDoh
                     };
 
                     model.StockItems.Add(item);
 
                     // Categorize by DOH
-                    if (doh.HasValue)
+                    if (plannedDoh.HasValue)
                     {
-                        if (doh.Value > 60)
+                        if (plannedDoh.Value > 60)
                         {
                             model.HighDOHItems.Add(item);
                         }
-                        else if (doh.Value < 30)
+                        else if (plannedDoh.Value < 30)
                         {
                             model.LowDOHItems.Add(item);
                         }
                     }
                 }
+
+                // Low/High runner by average consumption (actual) over selected window
+                var runnerFrom = DateTime.Now.AddDays(-runnerDaysValue);
+                var runnerExpenses = await db.EXPENSES
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .Where(e => e.IssueDateTime >= runnerFrom && e.IssueDateTime <= DateTime.Now && e.IsDeleted != true)
+                    .ToListAsync();
+
+                var runnerTotals = runnerExpenses
+                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
+                    {
+                        ep.ProductID,
+                        WarehouseId = e.SenderWHID,
+                        Amount = ep.Amount
+                    }))
+                    .Where(x => x.WarehouseId.HasValue && warehouseIds.Contains(x.WarehouseId.Value))
+                    .GroupBy(x => new { x.ProductID, WarehouseId = x.WarehouseId.Value })
+                    .Select(g => new { g.Key.ProductID, g.Key.WarehouseId, Total = g.Sum(x => x.Amount) })
+                    .ToList();
+
+                var runnerDaysDouble = (double)runnerDaysValue;
+                var runnerItems = stocks
+                    .Select(s =>
+                    {
+                        var total = runnerTotals.FirstOrDefault(t => t.ProductID == s.ProductID && t.WarehouseId == s.WHID)?.Total ?? 0;
+                        var avg = total / runnerDaysDouble;
+                        return new InventoryDashboardItem
+                        {
+                            ProductID = s.ProductID,
+                            ProductPNo = s.PRODUCT?.PNo ?? "N/A",
+                            ProductName = s.PRODUCT?.Name ?? "N/A",
+                            CategoryName = s.PRODUCT?.PRODUCT_CATEGORIES?.Name ?? "N/A",
+                            WarehouseName = s.Warehouse?.WHName ?? "N/A",
+                            CurrentStock = s.Amount,
+                            UnitName = s.UNIT?.ShortName ?? "N/A",
+                            AverageDailyConsumption = avg
+                        };
+                    })
+                    .Where(i => i.AverageDailyConsumption > 0)
+                    .OrderByDescending(i => i.AverageDailyConsumption)
+                    .ToList();
+
+                model.HighRunnerItems = runnerItems.Take(runnerTopNValue).ToList();
+                model.LowRunnerItems = runnerItems.OrderBy(i => i.AverageDailyConsumption).Take(runnerTopNValue).ToList();
+
+                // Simplified FIFO violation report
+                var fifoWarehouseIds = fifoScopeValue == "selected"
+                    ? (warehouseId.HasValue ? new List<int> { warehouseId.Value } : new List<int>())
+                    : warehouseIds;
+
+                if (fifoScopeValue == "selected" && !warehouseId.HasValue)
+                {
+                    ViewBag.FifoScopeWarning = "FIFO uchun ombor tanlanmagan. 'Tanlangan ombor' rejimida natija chiqmaydi.";
+                }
+
+                var incomeLines = await db.INCOME_PRODUCTS
+                    .Include(ip => ip.INCOME)
+                    .Where(ip => ip.INCOME.IsDeleted != true && ip.INCOME.ReceivingWHID != 0)
+                    .Select(ip => new
+                    {
+                        ip.ProductID,
+                        WarehouseId = ip.INCOME.ReceivingWHID,
+                        ip.Amount,
+                        Date = ip.INCOME.IssueDateTime
+                    })
+                    .Where(x => fifoWarehouseIds.Contains(x.WarehouseId))
+                    .ToListAsync();
+
+                var expenseLines = await db.EXPENSE_PRODUCTS
+                    .Include(ep => ep.EXPENS)
+                    .Where(ep => ep.EXPENS.IsDeleted != true)
+                    .Select(ep => new
+                    {
+                        ep.ProductID,
+                        WarehouseId = ep.EXPENS.SenderWHID,
+                        ep.Amount,
+                        Date = ep.EXPENS.IssueDateTime
+                    })
+                    .Where(x => fifoWarehouseIds.Contains(x.WarehouseId))
+                    .ToListAsync();
+
+                var fifoViolations = new List<InventoryFifoViolationItem>();
+                var fifoGroups = incomeLines
+                    .GroupBy(x => new { x.ProductID, x.WarehouseId })
+                    .ToList();
+
+                foreach (var group in fifoGroups)
+                {
+                    var incomes = group.OrderBy(x => x.Date).ToList();
+                    if (incomes.Count < 2) continue;
+
+                    var expensesForGroup = expenseLines
+                        .Where(e => e.ProductID == group.Key.ProductID && e.WarehouseId == group.Key.WarehouseId)
+                        .OrderBy(e => e.Date)
+                        .ToList();
+
+                    if (!expensesForGroup.Any()) continue;
+
+                    var firstIncome = incomes.First();
+                    var secondIncome = incomes.Skip(1).First();
+
+                    var totalExpensesSinceFirst = expensesForGroup
+                        .Where(e => e.Date >= firstIncome.Date)
+                        .Sum(e => e.Amount);
+
+                    var expensesAfterSecond = expensesForGroup.Any(e => e.Date >= secondIncome.Date);
+
+                    if (totalExpensesSinceFirst < firstIncome.Amount && expensesAfterSecond)
+                    {
+                        var product = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.PRODUCT;
+                        var warehouse = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.Warehouse;
+
+                        fifoViolations.Add(new InventoryFifoViolationItem
+                        {
+                            ProductPNo = product?.PNo ?? "N/A",
+                            ProductName = product?.Name ?? "N/A",
+                            WarehouseName = warehouse?.WHName ?? "N/A",
+                            OldestIncomeDate = firstIncome.Date,
+                            LatestExpenseDate = expensesForGroup.Last().Date,
+                            RemainingFromOldest = firstIncome.Amount - totalExpensesSinceFirst
+                        });
+                    }
+                }
+
+                model.FifoViolations = fifoViolations;
 
                 // Calculate stock by category
                 model.StockByCategory = stocks
@@ -164,6 +326,9 @@ namespace tahsinERP.Controllers
                 ViewBag.Categories = new SelectList(
                     await db.PRODUCT_CATEGORIES.ToListAsync(),
                     "ID", "Name", categoryId);
+                ViewBag.RunnerDays = runnerDaysValue;
+                ViewBag.RunnerTopN = runnerTopNValue;
+                ViewBag.FifoScope = fifoScopeValue;
 
                 return View(model);
             }
@@ -354,6 +519,9 @@ namespace tahsinERP.Controllers
         public List<InventoryDashboardItem> HighDOHItems { get; set; }
         public List<InventoryDashboardItem> LowDOHItems { get; set; }
         public List<InventoryDashboardItem> StockItems { get; set; }
+        public List<InventoryDashboardItem> HighRunnerItems { get; set; }
+        public List<InventoryDashboardItem> LowRunnerItems { get; set; }
+        public List<InventoryFifoViolationItem> FifoViolations { get; set; }
         public List<CategoryStockSummary> StockByCategory { get; set; }
         public List<TrendData> InboundTrends { get; set; }
         public List<TrendData> OutboundTrends { get; set; }
@@ -369,7 +537,19 @@ namespace tahsinERP.Controllers
         public double CurrentStock { get; set; }
         public string UnitName { get; set; }
         public double AverageDailyConsumption { get; set; }
-        public double? DOH { get; set; }
+        public double PlannedAverageDailyConsumption { get; set; }
+        public double? PlannedDOH { get; set; }
+        public double? ActualDOH { get; set; }
+    }
+
+    public class InventoryFifoViolationItem
+    {
+        public string ProductPNo { get; set; }
+        public string ProductName { get; set; }
+        public string WarehouseName { get; set; }
+        public DateTime OldestIncomeDate { get; set; }
+        public DateTime LatestExpenseDate { get; set; }
+        public double RemainingFromOldest { get; set; }
     }
 
     public class CategoryStockSummary

@@ -24,11 +24,23 @@ namespace tahsinERP.Controllers
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var defaultCurrency = db.CURRENCIES
-                    .Where(c => c.IsDeleted != true)
-                    .OrderBy(c => c.ID)
+                var primaryCurrency = db.FIN_TRANSACTIONS
+                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
+                    .Where(t => t.CURRENCy != null)
+                    .GroupBy(t => t.CurrencyID)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.FirstOrDefault().CURRENCy)
                     .FirstOrDefault();
-                ViewBag.CurrencyShortname = defaultCurrency?.Shortname ?? "";
+
+                if (primaryCurrency == null)
+                {
+                    primaryCurrency = db.CURRENCIES
+                        .Where(c => c.IsDeleted != true)
+                        .OrderBy(c => c.ID)
+                        .FirstOrDefault();
+                }
+
+                ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "";
             }
             return View();
         }

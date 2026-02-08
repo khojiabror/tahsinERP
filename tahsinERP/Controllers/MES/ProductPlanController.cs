@@ -171,7 +171,7 @@ namespace tahsinERP.Controllers.MES
         // POST: ProductPlan/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ProductPlanViewModel viewModel)
+        public async Task<ActionResult> Create(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -200,6 +200,16 @@ namespace tahsinERP.Controllers.MES
                         if (overlappingPlan != null)
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud");
+                            ViewBag.Products = new SelectList(
+                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
+                                "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
+                        }
+
+                        var stockError = await ValidateRawMaterialStockAsync(viewModel.ProductID, viewModel.TotalQty, db);
+                        if (!string.IsNullOrEmpty(stockError))
+                        {
+                            ModelState.AddModelError("", stockError);
                             ViewBag.Products = new SelectList(
                                 db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);
@@ -318,7 +328,7 @@ namespace tahsinERP.Controllers.MES
         // POST: ProductPlan/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(ProductPlanViewModel viewModel)
+        public async Task<ActionResult> Edit(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -354,6 +364,16 @@ namespace tahsinERP.Controllers.MES
                         if (overlappingPlan != null)
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud");
+                            ViewBag.Products = new SelectList(
+                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
+                                "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
+                        }
+
+                        var stockError = await ValidateRawMaterialStockAsync(viewModel.ProductID, viewModel.TotalQty, db);
+                        if (!string.IsNullOrEmpty(stockError))
+                        {
+                            ModelState.AddModelError("", stockError);
                             ViewBag.Products = new SelectList(
                                 db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);
@@ -607,6 +627,43 @@ namespace tahsinERP.Controllers.MES
 
                 return View(requirements);
             }
+        }
+
+        private async Task<string> ValidateRawMaterialStockAsync(int productId, double producedQty, DBTHSNEntities db)
+        {
+            var supplyWarehouse = WarehouseFlowService.GetSupplyWarehouse(db);
+            if (supplyWarehouse == null)
+            {
+                return "Xomashyo ombori topilmadi";
+            }
+
+            var consumptionService = new ProductionConsumptionService(db);
+            var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(productId, producedQty);
+            if (requirements == null || requirements.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (var req in requirements)
+            {
+                var stock = await db.PRODUCT_STOCKS
+                    .FirstOrDefaultAsync(s => s.WHID == supplyWarehouse.ID && s.ProductID == req.MaterialID);
+
+                if (stock == null)
+                {
+                    return $"Xomashyo omborida mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}";
+                }
+
+                if (stock.Amount < req.TotalConsumption)
+                {
+                    return
+                        $"Xomashyo omborida yetarli qoldiq yo'q. " +
+                        $"Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
+                        $"Mavjud: {stock.Amount}, Talab: {req.TotalConsumption}";
+                }
+            }
+
+            return null;
         }
     }
 }

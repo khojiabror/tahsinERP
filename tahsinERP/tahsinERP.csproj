@@ -1008,6 +1008,7 @@
     <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
+    <Compile Include="ViewModels\InventoryAdjustmentViewModel.cs" />
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\HR\HrDashboardViewModel.cs" />
@@ -1069,6 +1070,11 @@
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
     <Compile Include="ViewModels\WaybillIndexItemViewModel.cs" />
+    <Compile Include="ViewModels\ContractTariffIndexItemViewModel.cs" />
+    <Compile Include="ViewModels\ForwarderDashboardStatViewModel.cs" />
+    <Compile Include="ViewModels\LaneDashboardStatViewModel.cs" />
+    <Compile Include="ViewModels\LanePerformanceViewModel.cs" />
+    <Compile Include="ViewModels\ForwarderComparisonViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
     <Compile Include="ViewModels\UserViewModel.cs" />
     <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
@@ -2835,6 +2841,8 @@
     <Content Include="Models\DBTHSNModel.edmx.diagram">
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Content>
+    <Content Include="App_Data\Templates\CompanyStandardTemplate.docx" />
+    <Content Include="App_Data\Templates\JobDescriptionTemplate.docx" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\device-identifier.js" />
     <Content Include="Scripts\flatpickr.js" />
@@ -2898,8 +2906,6 @@
     <Content Include="Views\Product\Edit.cshtml" />
     <Content Include="Views\Product\UploadWithExcel.cshtml" />
     <Content Include="Views\ComingSoon\Index.cshtml" />
-    <Content Include="Views\WhIncome\Index.cshtml" />
-    <Content Include="Views\WhIncome\Create.cshtml" />
     <Content Include="Views\Shop\Index.cshtml" />
     <Content Include="Views\Shop\Create.cshtml" />
     <Content Include="Views\Shop\Delete.cshtml" />
@@ -2958,16 +2964,7 @@
     <Content Include="Views\FContractTariff\Create.cshtml" />
     <Content Include="Views\FContractTariff\Edit.cshtml" />
     <Content Include="Views\FContractTariff\Delete.cshtml" />
-    <Content Include="Views\WhIncome\Details.cshtml" />
-    <Content Include="Views\WhIncome\Edit.cshtml" />
-    <Content Include="Views\WhIncome\EditPart.cshtml" />
-    <Content Include="Views\WhIncome\Delete.cshtml" />
-    <Content Include="Views\WhExpense\Create.cshtml" />
-    <Content Include="Views\WhExpense\Index.cshtml" />
-    <Content Include="Views\WhExpense\Details.cshtml" />
-    <Content Include="Views\WhExpense\Edit.cshtml" />
-    <Content Include="Views\WhExpense\EditPart.cshtml" />
-    <Content Include="Views\WhExpense\Delete.cshtml" />
+    <Content Include="Views\FContractTariff\Details.cshtml" />
     <Content Include="Views\HSCode\Index.cshtml" />
     <Content Include="Views\HSCode\Create.cshtml" />
     <Content Include="Views\HSCode\Details.cshtml" />
@@ -2994,8 +2991,6 @@
     <Content Include="Views\Reports\PartRequirement.cshtml" />
     <Content Include="Views\Reports\Coverage.cshtml" />
     <Content Include="Views\Manual\Index.cshtml" />
-    <Content Include="Views\WhIncome\UploadWithExcel.cshtml" />
-    <Content Include="Views\WhExpense\UploadWithExcel.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\WaybillPayment\Index.cshtml" />
     <Content Include="Views\WaybillPayment\Create.cshtml" />
@@ -3152,8 +3147,13 @@
     <Content Include="Views\Incomes\Edit.cshtml" />
     <Content Include="Views\Incomes\Index.cshtml" />
     <Content Include="Views\Inventory\Index.cshtml" />
+    <Content Include="Views\Inventory\Adjust.cshtml" />
+    <Content Include="Views\Inventory\AdjustResult.cshtml" />
     <Content Include="Views\InventoryReports\Dashboard.cshtml" />
     <Content Include="Views\LogisticsDashboard\Index.cshtml" />
+    <Content Include="Views\LogisticsDashboard\LanePerformance.cshtml" />
+    <Content Include="Views\LogisticsDashboard\Reconciliation.cshtml" />
+    <Content Include="Views\LogisticsDashboard\ForwarderComparison.cshtml" />
     <Content Include="Views\MESDashboard\Dashboard.cshtml" />
     <Content Include="Views\OfficialLetters\Create.cshtml" />
     <Content Include="Views\OfficialLetters\Details.cshtml" />
@@ -3269,10 +3269,9 @@
     <Content Include="Views\CustomerBase\Details.cshtml" />
     <Content Include="Views\CustomerBase\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Index.cshtml" />
+    <Content Include="Views\FinDashboard\LiabilitiesDashboard.cshtml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

@@ -1,0 +1,117 @@
+@using tahsinERP.ViewModels
+@{
+    ViewBag.Title = "Forwarder Comparison";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/LogisticsDashboard">Logistika Dashboard</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Forwarder Comparison
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <form method="get" action="@Url.Action("ForwarderComparison", "LogisticsDashboard")" class="row">
+                            <div class="col-md-3">
+                                <label>Boshlanish sanasi</label>
+                                <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
+                            </div>
+                            <div class="col-md-3">
+                                <label>Tugash sanasi</label>
+                                <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
+                            </div>
+                            <div class="col-md-3">
+                                <label>Qayerdan (lane)</label>
+                                <input type="text" name="laneFrom" class="form-control" value="@ViewBag.LaneFrom" placeholder="Masalan: Toshkent" />
+                            </div>
+                            <div class="col-md-3">
+                                <label>Qayerga (lane)</label>
+                                <input type="text" name="laneTo" class="form-control" value="@ViewBag.LaneTo" placeholder="Masalan: Samarqand" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end mt-1">
+                                <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Forwarder</th>
+                                            <th>Reyslar</th>
+                                            <th>Jami xarajat</th>
+                                            <th>Tonnaj</th>
+                                            <th>Masofa</th>
+                                            <th>1 ton uchun</th>
+                                            <th>1 km uchun</th>
+                                            <th>OTIF %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            var forwarderComparison = ViewBag.ForwarderComparison as List<ForwarderComparisonViewModel>;
+                                        }
+                                        @if (forwarderComparison != null && forwarderComparison.Any())
+                                        {
+                                            foreach (var item in forwarderComparison)
+                                            {
+                                                <tr>
+                                                    <td>@item.ForwarderName</td>
+                                                    <td>@item.TripCount</td>
+                                                    <td>@item.TotalCost.ToString("N2")</td>
+                                                    <td>@item.TotalTonnage.ToString("N2")</td>
+                                                    <td>@item.TotalDistance.ToString("N2")</td>
+                                                    <td>@item.AvgCostPerTon.ToString("N2")</td>
+                                                    <td>@item.AvgCostPerKm.ToString("N2")</td>
+                                                    <td>@item.OTIFPercentage.ToString("N2")%</td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="8" class="text-center">Ma'lumot topilmadi</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

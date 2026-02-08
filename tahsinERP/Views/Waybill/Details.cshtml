@@ -44,6 +44,11 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
+                                            @{
+                                                var currencyShortname = Model.CURRENCy?.Shortname ?? "";
+                                                var totalPaid = (ViewBag.TotalPaid as double?) ?? 0;
+                                                var outstanding = (ViewBag.Outstanding as double?) ?? 0;
+                                            }
                                             <table class="table table-sm">
                                                 <tr><td><b>Sana</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
                                                 <tr><td><b>Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
@@ -61,10 +66,10 @@
                                                 <tr><td><b>Net vazn</b></td><td>@(Model.NetWeight?.ToString("N2") ?? "")</td></tr>
                                                 <tr><td><b>CBM</b></td><td>@(Model.CBM?.ToString("N2") ?? "")</td></tr>
                                                 <tr><td><b>Pallet</b></td><td>@(Model.PalletsCount?.ToString() ?? "")</td></tr>
-                                                <tr><td><b>Jami summa</b></td><td>@(Model.Amount?.ToString("N2") ?? "") @Model.CURRENCy?.Shortname</td></tr>
+                                                <tr><td><b>Jami summa</b></td><td>@(Model.Amount?.ToString("N2") ?? "") @currencyShortname</td></tr>
                                                 <tr><td><b>Haydovchi</b></td><td>@(Model.DriverName ?? "")</td></tr>
                                                 <tr><td><b>Mashina</b></td><td>@(Model.TruckNo ?? "")</td></tr>
-                                                <tr><td><b>To'lov</b></td><td>Jami @ViewBag.TotalPaid?.ToString("N2") / Qoldiq @ViewBag.Outstanding?.ToString("N2")</td></tr>
+                                                <tr><td><b>To'lov</b></td><td>Jami @totalPaid.ToString("N2") @currencyShortname / Qoldiq @outstanding.ToString("N2") @currencyShortname</td></tr>
                                             </table>
                                         </div>
                                         <div class="col-12">

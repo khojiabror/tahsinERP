@@ -565,15 +565,6 @@ namespace tahsinERP.Controllers.HR
             viewModel.TotalGrossSalary = viewModel.Lines.Sum(l => l.GrossSalary);
             viewModel.TotalNetSalary = viewModel.Lines.Sum(l => l.NetSalary);
 
-            // For posting modal
-            ViewBag.AccountList = new SelectList(
-                await db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Code).ToListAsync(),
-                "ID", "Name");
-
-            ViewBag.CategoryList = new SelectList(
-                await db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync(),
-                "ID", "Name");
-
             logger.Log("HrPayroll", "Edit", $"ID: {id}");
             return View(viewModel);
         }

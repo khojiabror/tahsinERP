@@ -97,7 +97,12 @@
                                                     <tfoot>
                                                         <tr>
                                                             <th>Jami passivlar va kapital:</th>
-                                                            <th class="text-right">@balanceData.Where(b => b.Category.Type == 2 || b.Category.Type == 3).Sum(b => b.Amount).ToString("N2")</th>
+                                                            <th class="text-right">
+                                                                <a style="text-decoration: underline;"
+                                                                   href="@Url.Action("BalanceSheetLiabilityDetails", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">
+                                                                    @balanceData.Where(b => b.Category.Type == 2 || b.Category.Type == 3).Sum(b => b.Amount).ToString("N2")
+                                                                </a>
+                                                            </th>
                                                         </tr>
                                                     </tfoot>
                                                 </table>

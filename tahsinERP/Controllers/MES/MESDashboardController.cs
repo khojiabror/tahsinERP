@@ -12,48 +12,99 @@ namespace tahsinERP.Controllers.MES
     public class MESDashboardController : Controller
     {
         // GET: MES/Dashboard
-        public async Task<ActionResult> Dashboard()
+        public async Task<ActionResult> Dashboard(int? year, int? month, int? day)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var viewModel = new MESDashboardViewModel();
                 var today = DateTime.Now.Date;
-                var monthStart = new DateTime(today.Year, today.Month, 1);
 
-                // Today's KPIs
-                var todayPlanned = await db.PRODUCTPLANS_DAILY
-                    .Where(d => DbFunctions.TruncateTime(d.Day) == today && d.PRODUCTPLAN.IsDeleted == false)
+                var isInitialLoad = !year.HasValue && !month.HasValue && !day.HasValue;
+                var selectedYear = year ?? today.Year;
+                int? selectedMonth = month;
+                int? selectedDay = day;
+
+                if (isInitialLoad)
+                {
+                    selectedMonth = today.Month;
+                    selectedDay = today.Day;
+                }
+
+                DateTime startDate;
+                DateTime endDate;
+                string primaryLabel;
+                string secondaryLabel;
+
+                if (selectedMonth.HasValue && selectedDay.HasValue)
+                {
+                    startDate = new DateTime(selectedYear, selectedMonth.Value, selectedDay.Value);
+                    endDate = startDate;
+                    primaryLabel = "Tanlangan kun";
+                    secondaryLabel = "Tanlangan oy";
+                }
+                else if (selectedMonth.HasValue)
+                {
+                    startDate = new DateTime(selectedYear, selectedMonth.Value, 1);
+                    endDate = startDate.AddMonths(1).AddDays(-1);
+                    primaryLabel = "Tanlangan oy";
+                    secondaryLabel = "Tanlangan yil";
+                }
+                else
+                {
+                    startDate = new DateTime(selectedYear, 1, 1);
+                    endDate = new DateTime(selectedYear, 12, 31);
+                    primaryLabel = "Tanlangan yil";
+                    secondaryLabel = "Tanlangan yil";
+                }
+
+                // Primary period KPIs
+                var periodPlanned = await db.PRODUCTPLANS_DAILY
+                    .Where(d => d.Day >= startDate && d.Day <= endDate && d.PRODUCTPLAN.IsDeleted == false)
                     .SumAsync(d => (double?)d.Total) ?? 0;
 
-                var todayActual = await db.PRODUCT_PRODUCTION
-                    .Where(p => DbFunctions.TruncateTime(p.Date) == today)
+                var periodActual = await db.PRODUCT_PRODUCTION
+                    .Where(p => p.Date >= startDate && p.Date <= endDate)
                     .SumAsync(p => (double?)p.Total) ?? 0;
 
-                viewModel.TodayPlanned = todayPlanned;
-                viewModel.TodayActual = todayActual;
-                viewModel.TodayPlanVsActualPercent = todayPlanned > 0 ? (todayActual / todayPlanned) * 100 : 0;
+                viewModel.TodayPlanned = periodPlanned;
+                viewModel.TodayActual = periodActual;
+                viewModel.TodayPlanVsActualPercent = periodPlanned > 0 ? (periodActual / periodPlanned) * 100 : 0;
 
-                // Month's KPIs
-                var monthPlanned = await db.PRODUCTPLANS_DAILY
-                    .Where(d => d.Day >= monthStart && d.Day <= today && d.PRODUCTPLAN.IsDeleted == false)
+                // Secondary period KPIs (month or year summary)
+                DateTime secondaryStart;
+                DateTime secondaryEnd;
+                if (selectedMonth.HasValue && selectedDay.HasValue)
+                {
+                    secondaryStart = new DateTime(selectedYear, selectedMonth.Value, 1);
+                    secondaryEnd = secondaryStart.AddMonths(1).AddDays(-1);
+                }
+                else
+                {
+                    secondaryStart = new DateTime(selectedYear, 1, 1);
+                    secondaryEnd = new DateTime(selectedYear, 12, 31);
+                }
+
+                var secondaryPlanned = await db.PRODUCTPLANS_DAILY
+                    .Where(d => d.Day >= secondaryStart && d.Day <= secondaryEnd && d.PRODUCTPLAN.IsDeleted == false)
                     .SumAsync(d => (double?)d.Total) ?? 0;
 
-                var monthActual = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= monthStart && p.Date <= today)
+                var secondaryActual = await db.PRODUCT_PRODUCTION
+                    .Where(p => p.Date >= secondaryStart && p.Date <= secondaryEnd)
                     .SumAsync(p => (double?)p.Total) ?? 0;
 
-                viewModel.MonthPlanned = monthPlanned;
-                viewModel.MonthActual = monthActual;
-                viewModel.MonthPlanVsActualPercent = monthPlanned > 0 ? (monthActual / monthPlanned) * 100 : 0;
+                viewModel.MonthPlanned = secondaryPlanned;
+                viewModel.MonthActual = secondaryActual;
+                viewModel.MonthPlanVsActualPercent = secondaryPlanned > 0 ? (secondaryActual / secondaryPlanned) * 100 : 0;
 
-                // Daily Plan vs Actual Chart (last 30 days)
-                var chartStartDate = today.AddDays(-30);
+                // Daily Plan vs Actual Chart (selected period)
+                var chartStartDate = startDate;
+                var chartEndDate = endDate;
                 var dailyPlans = await db.PRODUCTPLANS_DAILY
-                    .Where(d => d.Day >= chartStartDate && d.Day <= today && d.PRODUCTPLAN.IsDeleted == false)
+                    .Where(d => d.Day >= chartStartDate && d.Day <= chartEndDate && d.PRODUCTPLAN.IsDeleted == false)
                     .ToListAsync();
 
                 var dailyActuals = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= chartStartDate && p.Date <= today)
+                    .Where(p => p.Date >= chartStartDate && p.Date <= chartEndDate)
                     .ToListAsync();
 
                 // Group by date in memory (after ToListAsync)
@@ -82,7 +133,7 @@ namespace tahsinERP.Controllers.MES
 
                 // Production by Shop
                 var productionByShop = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= monthStart && p.Date <= today)
+                    .Where(p => p.Date >= startDate && p.Date <= endDate)
                     .GroupBy(p => new { p.ShopID, p.SHOP.ShopName })
                     .Select(g => new { g.Key.ShopID, g.Key.ShopName, Total = g.Sum(p => p.Total) })
                     .ToListAsync();
@@ -96,7 +147,7 @@ namespace tahsinERP.Controllers.MES
 
                 // Quality Summary
                 var qualityInspections = await db.QUALITY_INSPECTION
-                    .Where(q => q.IsDeleted == false && q.InspectionDate >= monthStart && q.InspectionDate <= today)
+                    .Where(q => q.IsDeleted == false && q.InspectionDate >= startDate && q.InspectionDate <= endDate)
                     .ToListAsync();
 
                 viewModel.TotalInspections = qualityInspections.Count;
@@ -157,6 +208,14 @@ namespace tahsinERP.Controllers.MES
                     .OrderByDescending(b => b.RemainingQty)
                     .Take(10)
                     .ToList();
+
+                ViewBag.SelectedYear = selectedYear;
+                ViewBag.SelectedMonth = selectedMonth;
+                ViewBag.SelectedDay = selectedDay;
+                ViewBag.PrimaryLabel = primaryLabel;
+                ViewBag.SecondaryLabel = secondaryLabel;
+                ViewBag.StartDate = startDate;
+                ViewBag.EndDate = endDate;
 
                 return View(viewModel);
             }

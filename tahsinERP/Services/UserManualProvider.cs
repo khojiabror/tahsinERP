@@ -670,7 +670,7 @@ namespace tahsinERP.Services
             content.AppendLine("</ol>");
 
             content.AppendLine("<h3>3. Valyutalar (Currencies)</h3>");
-            content.AppendLine("<p>Valyutalar - tizimda ishlatiladigan valyutalar (UZS, USD, EUR va hokazo).</p>");
+            content.AppendLine("<p>Valyutalar - tizimda ishlatiladigan valyutalar (UZS, EUR va hokazo).</p>");
             content.AppendLine("<p><strong>Rasm-41: Valyutalar ro'yxati</strong></p>");
 
             content.AppendLine("<h3>4. Maxsulotlar (Products)</h3>");

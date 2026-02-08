@@ -1,3 +1,4 @@
+@using tahsinERP.ViewModels
 @{
     ViewBag.Title = "Logistika Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -131,11 +132,11 @@
                                 <div class="row text-center">
                                     <div class="col-4">
                                         <h4 class="text-info">@ViewBag.InboundCost.ToString("N2")</h4>
-                                        <p class="mb-0">Kirim</p>
+                                        <p class="mb-0">Kiruvchi</p>
                                     </div>
                                     <div class="col-4">
                                         <h4 class="text-success">@ViewBag.OutboundCost.ToString("N2")</h4>
-                                        <p class="mb-0">Chiqim</p>
+                                        <p class="mb-0">Chiquvchi</p>
                                     </div>
                                     <div class="col-4">
                                         <h4 class="text-secondary">@ViewBag.InternalCost.ToString("N2")</h4>
@@ -198,7 +199,10 @@
                 </div>
 
                 <!-- Forwarder Performance -->
-                @if (ViewBag.ForwarderStats != null)
+                @{
+                    var forwarderStats = ViewBag.ForwarderStats as List<ForwarderDashboardStatViewModel>;
+                }
+                @if (forwarderStats != null && forwarderStats.Any())
                 {
                     <div class="row mt-2">
                         <div class="col-xl-12">
@@ -221,7 +225,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (var forwarder in ViewBag.ForwarderStats)
+                                                @foreach (var forwarder in forwarderStats)
                                                 {
                                                     <tr>
                                                         <td>@forwarder.ForwarderName</td>
@@ -243,7 +247,10 @@
                 }
 
                 <!-- Lane Performance -->
-                @if (ViewBag.LaneStats != null)
+                @{
+                    var laneStats = ViewBag.LaneStats as List<LaneDashboardStatViewModel>;
+                }
+                @if (laneStats != null && laneStats.Any())
                 {
                     <div class="row mt-2">
                         <div class="col-xl-12">
@@ -269,7 +276,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (var lane in ViewBag.LaneStats)
+                                                @foreach (var lane in laneStats)
                                                 {
                                                     <tr>
                                                         <td>@lane.FromLocation</td>

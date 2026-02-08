@@ -90,7 +90,7 @@ namespace tahsinERP.Controllers
                 var forwarderStats = waybills
                     .Where(w => w.ForwarderID.HasValue && w.Amount.HasValue)
                     .GroupBy(w => w.ForwarderID)
-                    .Select(g => new
+                    .Select(g => new ForwarderDashboardStatViewModel
                     {
                         ForwarderID = g.Key,
                         ForwarderName = g.First().FORWARDER?.ForwarderName ?? "Unknown",
@@ -107,7 +107,7 @@ namespace tahsinERP.Controllers
                 var laneStats = waybills
                     .Where(w => !string.IsNullOrEmpty(w.FromLocation) && !string.IsNullOrEmpty(w.ToLocation) && w.Amount.HasValue)
                     .GroupBy(w => new { w.FromLocation, w.ToLocation })
-                    .Select(g => new
+                    .Select(g => new LaneDashboardStatViewModel
                     {
                         FromLocation = g.Key.FromLocation,
                         ToLocation = g.Key.ToLocation,
@@ -142,8 +142,8 @@ namespace tahsinERP.Controllers
                 ViewBag.Forwarders = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", forwarderId);
                 ViewBag.Directions = new SelectList(new[]
                 {
-                    new { Value = (byte?)0, Text = "Kirim (Inbound)" },
-                    new { Value = (byte?)1, Text = "Chiqim (Outbound)" },
+                    new { Value = (byte?)0, Text = "Kiruvchi (Inbound)" },
+                    new { Value = (byte?)1, Text = "Chiquvchi (Outbound)" },
                     new { Value = (byte?)2, Text = "Ichki (Internal)" }
                 }, "Value", "Text", direction);
 
@@ -197,7 +197,7 @@ namespace tahsinERP.Controllers
 
                 var lanePerformance = waybills
                     .GroupBy(w => new { w.FromLocation, w.ToLocation })
-                    .Select(g => new
+                    .Select(g => new LanePerformanceViewModel
                     {
                         FromLocation = g.Key.FromLocation,
                         ToLocation = g.Key.ToLocation,
@@ -243,6 +243,7 @@ namespace tahsinERP.Controllers
                 // Waybills without invoices
                 var waybillsWithoutInvoices = await db.F_WAYBILLS
                     .Include(w => w.FORWARDER)
+                    .Include(w => w.F_CONTRACTS.FORWARDER)
                     .Where(w => w.IsDeleted == false &&
                         !w.InvoiceID.HasValue &&
                         !w.SalesInvoiceID.HasValue)
@@ -250,6 +251,8 @@ namespace tahsinERP.Controllers
 
                 // Waybills without payments
                 var allWaybills = await db.F_WAYBILLS
+                    .Include(w => w.FORWARDER)
+                    .Include(w => w.F_CONTRACTS.FORWARDER)
                     .Where(w => w.IsDeleted == false && w.Amount.HasValue)
                     .ToListAsync();
 
@@ -316,7 +319,7 @@ namespace tahsinERP.Controllers
                 var forwarderComparison = waybills
                     .Where(w => w.ForwarderID.HasValue)
                     .GroupBy(w => w.ForwarderID)
-                    .Select(g => new
+                    .Select(g => new ForwarderComparisonViewModel
                     {
                         ForwarderID = g.Key,
                         ForwarderName = g.First().FORWARDER?.ForwarderName ?? "Unknown",

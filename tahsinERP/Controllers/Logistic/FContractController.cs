@@ -20,6 +20,10 @@ namespace tahsinERP.Controllers
         // GET: FContract
         public async Task<ActionResult> Index()
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = await db.F_CONTRACTS
@@ -33,6 +37,10 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Create()
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
@@ -44,6 +52,10 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(F_CONTRACTS contract)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             try
             {
                 using(DBTHSNEntities db = new DBTHSNEntities()) 
@@ -62,7 +74,8 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                         ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
+                        ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+                        ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
                         ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
                     }
                 }
@@ -71,7 +84,8 @@ namespace tahsinERP.Controllers
             {
                 using(DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    ModelState.AddModelError(ex.Message, ex);
+                    ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                    LogHelper.LogToDatabase(User.Identity.Name, "FContractController", "Create", $"Xatolik: {ex.Message}");
                     ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
                     ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
                 }
@@ -80,6 +94,10 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Details(int? ID)
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -104,6 +122,10 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Edit(int? ID)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -130,6 +152,10 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(F_CONTRACTS contract)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -159,15 +185,32 @@ namespace tahsinERP.Controllers
                         {
                             ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
                         }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                            LogHelper.LogToDatabase(User.Identity.Name, "FContractController", "Edit", $"Xatolik: {ex.Message}");
+                        }
                     }
 
-                    return View(contractToUpdate);
+                    ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", contract.ForwarderID);
+                    ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname", contract.CurrencyID);
+                    return View(contractToUpdate ?? contract);
                 }
             }
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", contract.ForwarderID);
+                ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname", contract.CurrencyID);
+            }
+            ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
             return View(contract);
         }
         public async Task<ActionResult> Delete(int? Id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (Id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -189,6 +232,10 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int? ID, FormCollection gfs)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -211,12 +258,21 @@ namespace tahsinERP.Controllers
                         {
                             ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
                         }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
+                            LogHelper.LogToDatabase(User.Identity.Name, "FContractController", "Delete", $"Xatolik: {ex.Message}");
+                        }
                     }
                     else
                     {
                         ModelState.AddModelError("", "Bunday shartnoma topilmadi.");
                     }
                 }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
             }
 
             return View();

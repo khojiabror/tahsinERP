@@ -177,112 +177,114 @@
         </div>
     </div>
 
-    <script>
-        var productIndex = @Model.ProductList.Count;
-        var productsOptions = '';
-        @if (ViewBag.Products != null)
-        {
-            foreach (var item in (ViewBag.Products as SelectList))
+    @section scripts {
+        <script>
+            var productIndex = @Model.ProductList.Count;
+            var productsOptions = '';
+            @if (ViewBag.Products != null)
             {
-                <text>
-                productsOptions += '<option value="@item.Value">@item.Text</option>';
-                </text>
+                foreach (var item in (ViewBag.Products as SelectList))
+                {
+                    <text>
+                    productsOptions += '<option value="@item.Value">@item.Text</option>';
+                    </text>
+                }
             }
-        }
-        var unitsOptions = '';
-        @if (ViewBag.Units != null)
-        {
-            foreach (var item in (ViewBag.Units as SelectList))
+            var unitsOptions = '';
+            @if (ViewBag.Units != null)
             {
-                <text>
-                unitsOptions += '<option value="@item.Value">@item.Text</option>';
-                </text>
+                foreach (var item in (ViewBag.Units as SelectList))
+                {
+                    <text>
+                    unitsOptions += '<option value="@item.Value">@item.Text</option>';
+                    </text>
+                }
             }
-        }
 
-        $(document).ready(function () {
-            window.updateRowTotal = function ($row) {
-                var price = parseFloat($row.find('.product-price-edit').val()) || 0;
-                var amount = parseFloat($row.find('.product-amount-edit').val()) || 0;
-                var vatPercent = parseFloat($row.find('.vat-input').val()) || 0;
-                var baseTotal = price * amount;
-                var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
-                $row.find('.total-with-vat').val(totalWithVat.toFixed(2));
-            };
+            $j(document).ready(function () {
+                window.updateRowTotal = function ($row) {
+                    var price = parseFloat($row.find('.product-price-edit').val()) || 0;
+                    var amount = parseFloat($row.find('.product-amount-edit').val()) || 0;
+                    var vatPercent = parseFloat($row.find('.vat-input').val()) || 0;
+                    var baseTotal = price * amount;
+                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                    $row.find('.total-with-vat').val(totalWithVat.toFixed(2));
+                };
 
-            window.calculateTotalAmount = function () {
-                var total = 0;
-                $('#productTableBody tr').each(function () {
-                    updateRowTotal($(this));
-                    total += parseFloat($(this).find('.total-with-vat').val()) || 0;
+                window.calculateTotalAmount = function () {
+                    var total = 0;
+                    $j('#productTableBody tr').each(function () {
+                        updateRowTotal($j(this));
+                        total += parseFloat($j(this).find('.total-with-vat').val()) || 0;
+                    });
+                    $j('#Amount').val(Math.round(total));
+                };
+
+                $j(document).on('input change', '.product-price-edit, .product-amount-edit, .vat-input', function () {
+                    calculateTotalAmount();
                 });
-                $('#Amount').val(Math.round(total));
-            };
 
-            $(document).on('input change', '.product-price-edit, .product-amount-edit, .vat-input', function () {
+                $j('#addProductBtn').on('click', function () {
+                    addProductRow();
+                });
+
                 calculateTotalAmount();
             });
 
-            $('#addProductBtn').on('click', function () {
-                addProductRow();
-            });
+            function addProductRow() {
+                var productsSelect = '<select name="ProductList[' + productIndex + '].ProductID" class="form-control product-select select2" required>' +
+                    '<option value="">Tanlang...</option>' +
+                    productsOptions +
+                    '</select>';
 
-            calculateTotalAmount();
-        });
+                var unitsSelect = '<select name="ProductList[' + productIndex + '].UnitID" class="form-control select2" required>' +
+                    '<option value="">Tanlang...</option>' +
+                    unitsOptions +
+                    '</select>';
 
-        function addProductRow() {
-            var productsSelect = '<select name="ProductList[' + productIndex + '].ProductID" class="form-control product-select select2" required>' +
-                '<option value="">Tanlang...</option>' +
-                productsOptions +
-                '</select>';
+                var newRow = '<tr data-index="' + productIndex + '">' +
+                    '<td>' +
+                    '<input type="hidden" name="ProductList[' + productIndex + '].ID" value="0" />' +
+                    productsSelect +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" name="ProductList[' + productIndex + '].Amount" class="form-control product-amount-edit" min="1" required />' +
+                    '</td>' +
+                    '<td>' +
+                    unitsSelect +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" name="ProductList[' + productIndex + '].PiecePrice" class="form-control product-price-edit" step="0.01" min="0" required />' +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" name="ProductList[' + productIndex + '].VatPercent" class="form-control vat-input" value="12" step="0.01" min="0" max="100" />' +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" class="form-control total-with-vat" value="0" readonly />' +
+                    '</td>' +
+                    '<td>' +
+                    '<button type="button" class="btn btn-sm btn-danger remove-product-row" onclick="removeProductRow(this)">' +
+                    '<i class="bx bx-trash"></i>' +
+                    '</button>' +
+                    '</td>' +
+                    '</tr>';
 
-            var unitsSelect = '<select name="ProductList[' + productIndex + '].UnitID" class="form-control select2" required>' +
-                '<option value="">Tanlang...</option>' +
-                unitsOptions +
-                '</select>';
+                $j('#productTableBody').append(newRow);
+                productIndex++;
 
-            var newRow = '<tr data-index="' + productIndex + '">' +
-                '<td>' +
-                '<input type="hidden" name="ProductList[' + productIndex + '].ID" value="0" />' +
-                productsSelect +
-                '</td>' +
-                '<td>' +
-                '<input type="number" name="ProductList[' + productIndex + '].Amount" class="form-control product-amount-edit" min="1" required />' +
-                '</td>' +
-                '<td>' +
-                unitsSelect +
-                '</td>' +
-                '<td>' +
-                '<input type="number" name="ProductList[' + productIndex + '].PiecePrice" class="form-control product-price-edit" step="0.01" min="0" required />' +
-                '</td>' +
-                '<td>' +
-                '<input type="number" name="ProductList[' + productIndex + '].VatPercent" class="form-control vat-input" value="12" step="0.01" min="0" max="100" />' +
-                '</td>' +
-                '<td>' +
-                '<input type="number" class="form-control total-with-vat" value="0" readonly />' +
-                '</td>' +
-                '<td>' +
-                '<button type="button" class="btn btn-sm btn-danger remove-product-row" onclick="removeProductRow(this)">' +
-                '<i class="bx bx-trash"></i>' +
-                '</button>' +
-                '</td>' +
-                '</tr>';
+                if (typeof $j.fn.select2 !== 'undefined') {
+                    $j('#productTableBody tr:last .select2').select2();
+                }
 
-            $('#productTableBody').append(newRow);
-            productIndex++;
-
-            if (typeof $.fn.select2 !== 'undefined') {
-                $('#productTableBody tr:last .select2').select2();
+                calculateTotalAmount();
             }
 
-            calculateTotalAmount();
-        }
-
-        function removeProductRow(button) {
-            $(button).closest('tr').remove();
-            calculateTotalAmount();
-        }
-    </script>
+            function removeProductRow(button) {
+                $j(button).closest('tr').remove();
+                calculateTotalAmount();
+            }
+        </script>
+    }
 }
 else
 {

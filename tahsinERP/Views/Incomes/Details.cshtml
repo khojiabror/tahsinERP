@@ -83,7 +83,7 @@
                                                         {
                                                             <a href="@Url.Action("Details", "PInvoices", new { id = Model.InvoiceID })">@Model.P_INVOICES.InvoiceNo</a>
                                                         }
-                                                        else if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Auto-linked from Expense"))
+                                                        else if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
                                                         {
                                                             <span class="badge badge-info">Avtomatik yaratilgan (Expense dan)</span>
                                                             @* Extract Expense DocNo from Description if needed *@
@@ -94,7 +94,7 @@
                                                         }
                                                     </td>
                                                 </tr>
-                                                @if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Auto-linked from Expense"))
+                                                @if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
                                                 {
                                                     <tr>
                                                         <th>Manbasi:</th>

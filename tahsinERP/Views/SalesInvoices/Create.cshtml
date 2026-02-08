@@ -114,7 +114,8 @@
                                                     <tbody>
                                                         <tr>
                                                             <td>
-                                                                @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "Tanlang", new { @class = "form-control", required = "required" })
+                                                                @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "Tanlang", new { @class = "form-control product-select", required = "required" })
+                                                                <small class="text-muted available-stock-hint"></small>
                                                             </td>
                                                             <td>
                                                                 <input type="text" name="lines[0].Description" class="form-control" />
@@ -176,6 +177,30 @@
     <script>
         $(document).ready(function() {
             var lineIndex = 1;
+            var productStockMap = {};
+
+            function parseAvailableFromText(text) {
+                var match = text.match(/Mavjud:\s*([0-9]+(?:\.[0-9]+)?)/i);
+                return match ? match[1] : null;
+            }
+
+            function buildStockMap() {
+                productStockMap = {};
+                $('#invoiceLinesTable tbody tr:first td:first select option').each(function () {
+                    var value = $(this).attr('value');
+                    if (!value) return;
+                    var available = parseAvailableFromText($(this).text());
+                    if (available !== null) {
+                        productStockMap[value] = available;
+                    }
+                });
+            }
+
+            function updateStockHint($row) {
+                var productId = $row.find('.product-select').val();
+                var available = productStockMap[productId];
+                $row.find('.available-stock-hint').text(available ? ('Mavjud: ' + available) : '');
+            }
 
             function calculateTotals() {
                 var totalAmount = 0;
@@ -204,9 +229,10 @@
             $('#addLine').on('click', function() {
                 var productSelect = $('#invoiceLinesTable tbody tr:first td:first select').clone();
                 productSelect.attr('name', 'lines[' + lineIndex + '].ProductID');
+                productSelect.addClass('product-select');
                 
                 var newRow = $('<tr>');
-                newRow.append($('<td>').append(productSelect));
+                newRow.append($('<td>').append(productSelect).append($('<small>').addClass('text-muted available-stock-hint')));
                 newRow.append($('<td>').append($('<input>').attr({type: 'text', name: 'lines[' + lineIndex + '].Description', class: 'form-control'})));
                 newRow.append($('<td>').append($('<input>').attr({type: 'number', name: 'lines[' + lineIndex + '].Qty', class: 'form-control qty-input', step: '0.01', min: '0', required: 'required'})));
                 newRow.append($('<td>').append($('<input>').attr({type: 'number', name: 'lines[' + lineIndex + '].UnitPrice', class: 'form-control price-input', step: '0.01', min: '0', required: 'required'})));
@@ -215,6 +241,7 @@
                 
                 $('#invoiceLinesTable tbody').append(newRow);
                 $('.qty-input, .price-input, .vat-input').off('input').on('input', calculateTotals);
+                updateStockHint(newRow);
                 lineIndex++;
             });
 
@@ -224,6 +251,13 @@
                     calculateTotals();
                 }
             });
+
+            $(document).on('change', '.product-select', function () {
+                updateStockHint($(this).closest('tr'));
+            });
+
+            buildStockMap();
+            updateStockHint($('#invoiceLinesTable tbody tr:first'));
         });
     </script>
 }

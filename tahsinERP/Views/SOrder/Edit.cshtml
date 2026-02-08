@@ -95,6 +95,7 @@
                                                                 <th width="12%">Birlik narxi</th>
                                                                 <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
                                                                 <th width="10%">Jami</th>
+                                                                <th width="8%">O'chirish</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="productsTableBody">
@@ -125,6 +126,11 @@
                                                                                    required />
                                                                         </td>
                                                                         <td class="text-right total-price">@((product.OrderQuantity * product.PiecePrice).ToString("N2"))</td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O'chirish">
+                                                                                <i class="bx bx-trash"></i>
+                                                                            </button>
+                                                                        </td>
                                                                     </tr>
                                                                     index++;
                                                                 }
@@ -216,6 +222,13 @@
                     $row.find('.total-price').text(total.toFixed(2));
                     calculateGrandTotal();
                 });
+                
+                // Remove product row
+                $(document).on('click', '.remove-product', function () {
+                    $(this).closest('tr').remove();
+                    reindexProductRows();
+                    calculateGrandTotal();
+                });
 
                 function loadContractProducts(contractId) {
                     $.ajax({
@@ -252,6 +265,11 @@
                                         '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="' + existingQty + '" step="0.01" min="0.01" data-price="' + product.PiecePrice + '" required />' +
                                         '</td>' +
                                         '<td class="text-right total-price">' + (existingQty * product.PiecePrice).toFixed(2) + '</td>' +
+                                        '<td class="text-center">' +
+                                        '<button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O\'chirish">' +
+                                        '<i class="bx bx-trash"></i>' +
+                                        '</button>' +
+                                        '</td>' +
                                         '</tr>';
                                     tbody.append(row);
                                 });
@@ -268,6 +286,20 @@
                         total += parseFloat($(this).text()) || 0;
                     });
                     $('#grandTotal').text(total.toFixed(2));
+                }
+                
+                function reindexProductRows() {
+                    $('#productsTableBody tr').each(function (rowIndex) {
+                        $(this).find('td:first').text(rowIndex + 1);
+                        $(this).find('input[name^="ProductQuantities["]').each(function () {
+                            var name = $(this).attr('name');
+                            if (!name) {
+                                return;
+                            }
+                            var updated = name.replace(/ProductQuantities\[\d+\]\./, 'ProductQuantities[' + rowIndex + '].');
+                            $(this).attr('name', updated);
+                        });
+                    });
                 }
 
                 // Initial calculation

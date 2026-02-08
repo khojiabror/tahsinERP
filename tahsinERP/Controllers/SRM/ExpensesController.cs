@@ -395,8 +395,8 @@ namespace tahsinERP.Controllers.SRM
                                 expense.TotalPrice = totalPrice;
                                 await db.SaveChangesAsync();
 
-                                // Auto-create linked Income document for internal transfer (Supply → Production/Sales WH)
-                                // Create ONE Income document for the entire Expense (not per product)
+                                // Ichki o‘tkazma uchun avtomatik kirim hujjati yaratish (Xomashyo → Ishlab chiqarish/Sotuv)
+                                // Har bir chiqim uchun BIRTA kirim hujjati (mahsulotlar bo‘yicha emas)
                                 if (expense.ReceiverWhID.HasValue)
                                 {
                                     await CreateLinkedIncomeDocumentForExpenseAsync(expense, model.ExpenseProducts, db);
@@ -987,8 +987,8 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Auto-creates linked Income document for internal transfer (Supply → Production/Sales WH)
-        /// Creates ONE Income document per Expense with all products
+        /// Ichki o‘tkazma uchun avtomatik kirim hujjati yaratadi (Xomashyo → Ishlab chiqarish/Sotuv)
+        /// Har bir chiqim uchun barcha mahsulotlar bilan BIRTA kirim hujjati yaratadi
         /// </summary>
         private async Task CreateLinkedIncomeDocumentForExpenseAsync(EXPENS expense, List<ViewModels.ExpenseProductViewModel> products, DBTHSNEntities db)
         {
@@ -997,9 +997,9 @@ namespace tahsinERP.Controllers.SRM
             if (receiverWarehouse == null)
                 return;
 
-            bool isProductionWarehouse = receiverWarehouse.WHName.Contains("Production") || 
+            bool isProductionWarehouse = receiverWarehouse.WHName.Contains("Production") ||
                                         receiverWarehouse.WHName.Contains("Ishlab chiqarish");
-            bool isSalesWarehouse = receiverWarehouse.WHName.Contains("Sales") || 
+            bool isSalesWarehouse = receiverWarehouse.WHName.Contains("Sales") ||
                                    receiverWarehouse.WHName.Contains("Sotuv");
 
             if (!isProductionWarehouse && !isSalesWarehouse)
@@ -1022,7 +1022,7 @@ namespace tahsinERP.Controllers.SRM
                 CurrencyID = expense.CurrencyID,
                 Amount = totalAmount,
                 TotalPrice = totalPrice,
-                Description = $"Auto-linked from Expense {expense.DocNo} - {expense.Description}",
+                Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - {expense.Description}",
                 RecieveStatus = false, // Pending receive for MRP confirmation
                 IsDeleted = false
             };
@@ -1041,7 +1041,7 @@ namespace tahsinERP.Controllers.SRM
                     PiecePrice = product.PiecePrice,
                     TotalPrice = product.TotalPrice,
                     UnitID = product.UnitID,
-                    Comment = $"Linked from Expense {expense.DocNo}"
+                    Comment = $"Chiqimdan bog'langan: {expense.DocNo}"
                 };
 
                 db.INCOME_PRODUCTS.Add(incomeProduct);
@@ -1049,8 +1049,8 @@ namespace tahsinERP.Controllers.SRM
 
             await db.SaveChangesAsync();
 
-            LogHelper.LogToDatabase(User.Identity.Name, "Expenses", 
-                $"Auto-created linked Income {income.DocNo} for Expense {expense.DocNo} with {products.Count} products");
+            LogHelper.LogToDatabase(User.Identity.Name, "Expenses",
+                $"Chiqimdan avtomatik kirim yaratildi: {income.DocNo}. Chiqim: {expense.DocNo}, Mahsulotlar: {products.Count} ta");
         }
 
         /// <summary>
@@ -1061,22 +1061,21 @@ namespace tahsinERP.Controllers.SRM
             var month = DateTime.Now.Month;
             var prefix = $"INC-{month}_";
 
-            var lastIncome = await db.INCOMES
-                .Where(i => i.DocNo.StartsWith(prefix))
-                .OrderByDescending(i => i.DocNo)
-                .FirstOrDefaultAsync();
+            var numbers = await db.INCOMES
+                .Where(i => i.DocNo != null && i.DocNo.StartsWith(prefix))
+                .Select(i => i.DocNo.Substring(prefix.Length))
+                .ToListAsync();
 
-            int nextNumber = 1;
-            if (lastIncome != null)
+            int maxNumber = 0;
+            foreach (var numberStr in numbers)
             {
-                var lastNumberStr = lastIncome.DocNo.Substring(prefix.Length);
-                if (int.TryParse(lastNumberStr, out int lastNumber))
+                if (int.TryParse(numberStr, out int number) && number > maxNumber)
                 {
-                    nextNumber = lastNumber + 1;
+                    maxNumber = number;
                 }
             }
 
-            return $"{prefix}{nextNumber}";
+            return $"{prefix}{maxNumber + 1}";
         }
     }
 

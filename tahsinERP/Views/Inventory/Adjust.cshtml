@@ -1,0 +1,147 @@
+@model tahsinERP.ViewModels.InventoryAdjustmentViewModel
+@{
+    ViewBag.Title = "Inventarizatsiya - qoldiqlarni to'g'rilash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Inventory/Index">Ombor qoldiqlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Inventarizatsiya
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @if (ViewBag.NoWarehouseError != null)
+                                        {
+                                            <div class="alert alert-danger" style="font-size:1.1rem; font-weight:600;">
+                                                @ViewBag.NoWarehouseError
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            if (!ViewData.ModelState.IsValid)
+                                            {
+                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                            }
+
+                                            if (ViewBag.ErrorDetails != null)
+                                            {
+                                                <div class="alert alert-danger">
+                                                    <ul class="mb-0">
+                                                        @foreach (var item in (IEnumerable<string>)ViewBag.ErrorDetails)
+                                                        {
+                                                            <li>@item</li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+
+                                            <div class="alert alert-warning">
+                                                <strong>Diqqat!</strong> Inventarizatsiya faqat komissiya bilan sanoq o'tkazilgandan so'ng amalga oshiriladi.
+                                                Noto'g'ri ma'lumot kiritsam salbiy oqibatlarga olib kelsa, qonun oldida va korxona tartib qoidalariga muvofiq
+                                                javob berishga tayyorman.
+                                            </div>
+                                            <div class="mb-2">
+                                                <a href="@Url.Action("DownloadTemplate", "Inventory")" class="btn btn-outline-primary">
+                                                    <i class="bx bx-download"></i> Excel shablonini yuklab olish
+                                                </a>
+                                            </div>
+
+                                            using (Html.BeginForm("Adjust", "Inventory", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "adjustForm" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+
+                                                <div class="row">
+                                                    <div class="col-md-4 col-12 form-group">
+                                                        <label for="WarehouseId">Ombor</label>
+                                                        @Html.DropDownListFor(m => m.WarehouseId, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(m => m.WarehouseId, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-4 col-12 form-group">
+                                                        <label for="ExcelFile">Excel fayl (.xlsx)</label>
+                                                        <input type="file" name="ExcelFile" id="ExcelFile" class="form-control" accept=".xlsx" required />
+                                                    </div>
+                                                    <div class="col-md-4 col-12 form-group d-flex align-items-end">
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(m => m.Confirmed, new { @class = "custom-control-input", @id = "confirmCheck" })
+                                                            <label class="custom-control-label" for="confirmCheck">
+                                                                Qoidalarni qabul qilaman
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <h6>Excel formati</h6>
+                                                        <p class="mb-1">Majburiy ustunlar: <strong>ProductPNo</strong>, <strong>Quantity</strong></p>
+                                                        <p class="text-muted">ProductPNo orqali mahsulot aniqlanadi, Quantity esa yangi qoldiq miqdori.</p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-2">
+                                                    <div class="col-12">
+                                                        <button type="submit" class="btn btn-warning" id="submitBtn" disabled>
+                                                            <i class="bx bx-check-shield"></i> Inventarizatsiyani tasdiqlash
+                                                        </button>
+                                                        <a href="@Url.Action("Index", "Inventory")" class="btn btn-secondary ml-1">
+                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var check = document.getElementById('confirmCheck');
+            var submit = document.getElementById('submitBtn');
+            if (check && submit) {
+                var toggle = function () {
+                    submit.disabled = !check.checked;
+                };
+                check.addEventListener('change', toggle);
+                toggle();
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

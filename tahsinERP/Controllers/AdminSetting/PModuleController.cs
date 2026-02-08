@@ -72,6 +72,122 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // GET: PModule/MissingControllers
+        public async Task<ActionResult> MissingControllers()
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var allControllers = Assembly.GetExecutingAssembly().GetTypes()
+                .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
+                .Select(type => type.Name.Replace("Controller", ""))
+                .OrderBy(c => c)
+                .ToList();
+
+            using (var db = new DBTHSNEntities())
+            {
+                var existingControllers = await db.PERMISSIONMODULES
+                    .Select(pm => pm.Controller)
+                    .ToListAsync();
+
+                var existingSet = new HashSet<string>(
+                    existingControllers
+                        .Where(c => !string.IsNullOrWhiteSpace(c))
+                        .Select(c => c.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+
+                var missing = allControllers
+                    .Where(c => !existingSet.Contains(c))
+                    .ToList();
+
+                return View(missing);
+            }
+        }
+
+        // POST: PModule/CreateDefaultModules
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CreateDefaultModules(string controllerName)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (string.IsNullOrWhiteSpace(controllerName))
+            {
+                TempData["Error"] = "Controller nomi topilmadi.";
+                return RedirectToAction("MissingControllers");
+            }
+
+            var trimmedController = controllerName.Trim();
+            var defaultActions = new List<string> { "Create", "Edit", "Details", "Delete" };
+
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var lowerController = trimmedController.ToLower();
+                    var hasAny = await db.PERMISSIONMODULES
+                        .AnyAsync(pm => (pm.Controller ?? "").Trim().ToLower() == lowerController);
+
+                    if (hasAny)
+                    {
+                        TempData["Error"] = "Bu controller uchun permission modullari allaqachon mavjud.";
+                        return RedirectToAction("MissingControllers");
+                    }
+
+                    var newModules = defaultActions.Select(action => new PERMISSIONMODULE
+                    {
+                        Module = trimmedController,
+                        Controller = trimmedController,
+                        Action = action,
+                        Parameter = null
+                    }).ToList();
+
+                    db.PERMISSIONMODULES.AddRange(newModules);
+                    await db.SaveChangesAsync();
+
+                    var roleIds = await db.ROLES
+                        .Where(r => r.IsDeleted != true)
+                        .Select(r => r.ID)
+                        .ToListAsync();
+
+                    var permissionsToAdd = new List<PERMISSION>();
+                    foreach (var module in newModules)
+                    {
+                        permissionsToAdd.AddRange(roleIds.Select(roleId => new PERMISSION
+                        {
+                            PermissionModuleID = module.ID,
+                            RoleID = roleId,
+                            ViewPermit = true,
+                            ChangePermit = false,
+                            DeletePermit = false
+                        }));
+                    }
+
+                    if (permissionsToAdd.Any())
+                    {
+                        db.PERMISSIONS.AddRange(permissionsToAdd);
+                        await db.SaveChangesAsync();
+                    }
+
+                    RoleHelper.ClearAllCache();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{trimmedController} - default permission modullari yaratildi");
+                    TempData["Success"] = $"{trimmedController} uchun 4 ta default permission moduli yaratildi";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+            }
+
+            return RedirectToAction("MissingControllers");
+        }
+
         // GET: PModule/Create
         public async Task<ActionResult> Create()
         {

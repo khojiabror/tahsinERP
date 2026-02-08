@@ -45,6 +45,11 @@ namespace tahsinERP.Controllers
         }
         public ActionResult Create()
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
@@ -55,6 +60,11 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(TransportTypeViewModel viewModel)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             if (ModelState.IsValid)
             {
                 // Map ViewModel to Entity Model
@@ -86,13 +96,22 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Error: " + ex.Message);
+                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        LogHelper.LogToDatabase(User.Identity.Name, "FTransportTypeController", "Create", $"Xatolik: {ex.Message}");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                     }
                 }
             }
+            else
+            {
+                ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+            }
 
             // If ModelState is not valid, return the view with the ViewModel
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+            }
             return View(viewModel);
         }
 
@@ -128,6 +147,11 @@ namespace tahsinERP.Controllers
         }*/
         public ActionResult Details(int? id)
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             if (id == null)
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
 
@@ -173,6 +197,11 @@ namespace tahsinERP.Controllers
         // GET: FTransportType/Edit/
         public ActionResult Edit(int? id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -213,6 +242,11 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(TransportTypeViewModel viewModel)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -247,16 +281,30 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Error: " + ex.Message);
+                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        LogHelper.LogToDatabase(User.Identity.Name, "FTransportTypeController", "Edit", $"Xatolik: {ex.Message}");
                     }
                 }
             }
+            else
+            {
+                ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+            }
 
             // If ModelState is not valid, return the view with the ViewModel
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
+            }
             return View(viewModel);
         }
         public ActionResult Delete(int? Id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
 
@@ -278,6 +326,11 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int? ID, FormCollection gfs)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -301,7 +354,16 @@ namespace tahsinERP.Controllers
                         {
                             ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
                         }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
+                            LogHelper.LogToDatabase(User.Identity.Name, "FTransportTypeController", "Delete", $"Xatolik: {ex.Message}");
+                        }
                     }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
                 }
                 return View();
             }

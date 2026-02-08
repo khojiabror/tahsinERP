@@ -200,7 +200,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
-        $(document).ready(function() {
+        (function() {
+            // Wait for jQuery and DOM to be ready
+            function initDashboard() {
+                if (typeof jQuery === 'undefined' || typeof Chart === 'undefined') {
+                    setTimeout(initDashboard, 100);
+                    return;
+                }
+                
+                var $ = jQuery;
+                
+                $(document).ready(function() {
             // Headcount by OrgUnit Chart
             var headcountCtx = document.getElementById('headcountChart');
             if (headcountCtx) {
@@ -281,7 +291,16 @@
                 },
                 "pageLength": 25
             });
-        });
+                });
+            }
+            
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initDashboard);
+            } else {
+                initDashboard();
+            }
+        })();
     </script>
 }
 else

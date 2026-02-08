@@ -1,6 +1,7 @@
 @{
     ViewBag.Title = "Majburiyatlar dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var passiveStats = ViewBag.PassiveBalanceStats as List<tahsinERP.Controllers.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.Controllers.Finance.BalanceCategoryDetailData>();
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -44,24 +45,21 @@
 
                 <!-- Summary Cards -->
                 <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="stat-card stat-card-payables">
-                            <div class="stat-card-body">
-                                <div class="stat-card-title">Ta'minotchilardan qarzlar</div>
-                                <div class="stat-card-value">@ViewBag.TotalPayables.ToString("N2")</div>
-                                <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                    @if (passiveStats.Count > 0)
+                    {
+                        foreach (var item in passiveStats)
+                        {
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="stat-card stat-card-generic">
+                                    <div class="stat-card-body">
+                                        <div class="stat-card-title">@item.Category.Name</div>
+                                        <div class="stat-card-value">@item.Amount.ToString("N2")</div>
+                                        <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="stat-card stat-card-receivables">
-                            <div class="stat-card-body">
-                                <div class="stat-card-title">Xaridorlardan haqlarimiz</div>
-                                <div class="stat-card-value">@ViewBag.TotalReceivables.ToString("N2")</div>
-                                <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
-                            </div>
-                        </div>
-                    </div>
+                        }
+                    }
                 </div>
 
                 <!-- Payables Section -->
@@ -151,6 +149,22 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payroll Liabilities Trend -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Oyliklardan qarzimiz (Trend)</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <canvas id="monthlyPayrollLiabilityChart"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -269,6 +283,14 @@
             background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
             color: white;
         }
+        .stat-card-payroll {
+            background: linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%);
+            color: white;
+        }
+        .stat-card-generic {
+            background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);
+            color: white;
+        }
         .stat-card-body {
             padding: 1.5rem;
             text-align: center;
@@ -296,7 +318,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // Payables by Supplier Pie Chart
             var payablesBySupplierData = @Html.Raw(Json.Encode(ViewBag.PayablesBySupplier));
             if (payablesBySupplierData && payablesBySupplierData.length > 0) {
@@ -431,24 +453,57 @@
                 });
             }
 
-            // Initialize DataTables
-            $('#payablesAccountsTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                },
-                "order": [[5, "desc"]],
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
-            });
+            // Monthly Payroll Liability Trend
+            var monthlyPayrollLiabilityData = @Html.Raw(Json.Encode(ViewBag.MonthlyPayrollLiability));
+            if (monthlyPayrollLiabilityData && monthlyPayrollLiabilityData.length > 0) {
+                var payrollPeriods = monthlyPayrollLiabilityData.map(function(item) { return item.Period; });
+                var payrollAmounts = monthlyPayrollLiabilityData.map(function(item) { return item.Amount; });
 
-            $('#receivablesAccountsTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                },
-                "order": [[5, "desc"]],
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
-            });
+                var monthlyPayrollLiabilityCtx = document.getElementById('monthlyPayrollLiabilityChart').getContext('2d');
+                new Chart(monthlyPayrollLiabilityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: payrollPeriods,
+                        datasets: [{
+                            label: 'Oyliklardan qarzimiz',
+                            data: payrollAmounts,
+                            borderColor: 'rgb(142, 36, 170)',
+                            backgroundColor: 'rgba(142, 36, 170, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize DataTables (only if jQuery + DataTables are available)
+            if (window.jQuery && $.fn && $.fn.DataTable) {
+                $('#payablesAccountsTable').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                    },
+                    "order": [[5, "desc"]],
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
+                });
+
+                $('#receivablesAccountsTable').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                    },
+                    "order": [[5, "desc"]],
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
+                });
+            }
         });
     </script>
 }

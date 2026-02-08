@@ -141,6 +141,7 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)2, Text = "Ta'minotchi" },
                     new { Value = (byte?)3, Text = "Aksiyador" },
                     new { Value = (byte?)4, Text = "Forwarder" },
+                    new { Value = (byte?)6, Text = "Xodim" },
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", counterpartyType);
 
@@ -252,6 +253,7 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)2, Text = "Ta'minotchi" },
                     new { Value = (byte?)3, Text = "Aksiyador" },
                     new { Value = (byte?)4, Text = "Forwarder" },
+                    new { Value = (byte?)6, Text = "Xodim" },
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text");
 
@@ -334,6 +336,7 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)2, Text = "Ta'minotchi" },
                     new { Value = (byte?)3, Text = "Aksiyador" },
                     new { Value = (byte?)4, Text = "Forwarder" },
+                    new { Value = (byte?)6, Text = "Xodim" },
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", transaction.CounterpartyType);
 
@@ -393,6 +396,7 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)2, Text = "Ta'minotchi" },
                     new { Value = (byte?)3, Text = "Aksiyador" },
                     new { Value = (byte?)4, Text = "Forwarder" },
+                    new { Value = (byte?)6, Text = "Xodim" },
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", transaction.CounterpartyType);
 
@@ -480,6 +484,7 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)2, Text = "Ta'minotchi" },
                     new { Value = (byte?)3, Text = "Aksiyador" },
                     new { Value = (byte?)4, Text = "Forwarder" },
+                    new { Value = (byte?)6, Text = "Xodim" },
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", transaction.CounterpartyType);
 
@@ -632,6 +637,15 @@ namespace tahsinERP.Controllers.Finance
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var defaultCurrency = db.CURRENCIES
+                    .Where(c => c.IsDeleted != true)
+                    .OrderBy(c => c.ID)
+                    .FirstOrDefault();
+                ViewBag.CurrencyShortname = defaultCurrency?.Shortname ?? "UZS";
+            }
+
             return View();
         }
 
@@ -657,7 +671,13 @@ namespace tahsinERP.Controllers.Finance
                     worksheet.Cells[1, 4].Value = "Kategoriya nomi";
                     worksheet.Cells[1, 5].Value = "Yo'nalish (1=Kirim, 2=Chiqim)";
                     worksheet.Cells[1, 6].Value = "Summa";
-                    worksheet.Cells[1, 7].Value = "Valyuta qisqa nomi (masalan: UZS, USD)";
+                    var defaultCurrency = db.CURRENCIES
+                        .Where(c => c.IsDeleted != true)
+                        .OrderBy(c => c.ID)
+                        .FirstOrDefault();
+                    var currencyShortname = defaultCurrency?.Shortname ?? "UZS";
+
+                    worksheet.Cells[1, 7].Value = $"Valyuta qisqa nomi (masalan: {currencyShortname})";
                     worksheet.Cells[1, 8].Value = "Kontragent nomi (ixtiyoriy)";
                     worksheet.Cells[1, 9].Value = "Maqsad (ixtiyoriy)";
                     worksheet.Cells[1, 10].Value = "Shartnoma raqami (ixtiyoriy)";

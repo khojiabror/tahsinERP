@@ -50,7 +50,7 @@
                                         <div class="row">
                                             <div class="col-md-3">
                                                 <label>Waybill raqami</label>
-                                                @Html.TextBoxFor(model => model.WaybillNo, new { @class = "form-control", @placeholder = "WB-0001" })
+                                                @Html.TextBoxFor(model => model.WaybillNo, new { @class = "form-control", @placeholder = "TB_0001" })
                                                 @Html.ValidationMessageFor(model => model.WaybillNo, "", new { @class = "text-danger" })
                                             </div>
                                             <div class="col-md-3">
@@ -62,8 +62,8 @@
                                                 <label>Yo'nalish</label>
                                                 @Html.DropDownListFor(model => model.Direction, new SelectList(new[]
                                                 {
-                                                    new { Value = (byte?)0, Text = "Kirim (Inbound)" },
-                                                    new { Value = (byte?)1, Text = "Chiqim (Outbound)" },
+                                                    new { Value = (byte?)0, Text = "Kiruvchi (Inbound)" },
+                                                    new { Value = (byte?)1, Text = "Chiquvchi (Outbound)" },
                                                     new { Value = (byte?)2, Text = "Ichki (Internal)" }
                                                 }, "Value", "Text"), "Tanlang", new { @class = "form-control" })
                                             </div>
@@ -93,6 +93,14 @@
                                             <div class="col-md-4">
                                                 <label>Valyuta</label>
                                                 @Html.DropDownListFor(model => model.CurrencyID, Model.Currencies, "Tanlang", new { @class = "form-control", @id = "currencySelect" })
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-1">
+                                            <div class="col-md-6">
+                                                <label>Tarif</label>
+                                                @Html.DropDownListFor(model => model.TariffID, Model.Tariffs ?? new List<SelectListItem>(), "Tanlang", new { @class = "form-control select2", @id = "tariffSelect" })
+                                                @Html.ValidationMessageFor(model => model.TariffID, "", new { @class = "text-danger" })
                                             </div>
                                         </div>
 
@@ -294,34 +302,36 @@ else
 }
 
 <script>
-    function requestTariff() {
+    function loadTariffs() {
         var contractId = $("#contractSelect").val();
-        var transportTypeId = $("#transportTypeSelect").val();
-        var fromLocation = $("#FromLocation").val();
-        var toLocation = $("#ToLocation").val();
-
-        if (!contractId || !transportTypeId) {
+        if (!contractId) {
             return;
         }
 
-        $.post("@Url.Action("GetSuggestedRate", "Waybill")", {
-            contractId: contractId,
-            transportTypeId: transportTypeId,
-            fromLocation: fromLocation,
-            toLocation: toLocation
-        }).done(function (result) {
-            if (result && result.success) {
-                if (result.rate !== undefined && $("#rateInput").val() === "") {
-                    $("#rateInput").val(result.rate);
+        $.post("@Url.Action("GetTariffsByContract", "Waybill")", { contractId: contractId })
+            .done(function (result) {
+                if (!result || !result.success) {
+                    return;
                 }
-                if (result.basis !== undefined) {
-                    $("#freightBasisSelect").val(result.basis);
-                }
-                if (result.currencyId) {
-                    $("#currencySelect").val(result.currencyId);
-                }
-            }
-        });
+
+                var tariffSelect = $("#tariffSelect");
+                tariffSelect.empty();
+                tariffSelect.append($("<option>").val("").text("Tanlang"));
+
+                $.each(result.items, function (_, item) {
+                    var option = $("<option>")
+                        .val(item.id)
+                        .text(item.text)
+                        .attr("data-rate", item.rate)
+                        .attr("data-basis", item.basis)
+                        .attr("data-currency", item.currencyId)
+                        .attr("data-transport", item.transportTypeId)
+                        .attr("data-mincharge", item.minimumCharge);
+                    tariffSelect.append(option);
+                });
+
+                tariffSelect.trigger("change");
+            });
     }
 
     function requestInvoiceData(invoiceId, invoiceType) {
@@ -344,8 +354,62 @@ else
     }
 
     $(document).ready(function () {
-        $("#contractSelect, #transportTypeSelect, #FromLocation, #ToLocation").on("change", requestTariff);
+        $("#contractSelect").on("change", loadTariffs);
+        $("#tariffSelect").on("change", function () {
+            var option = $("#tariffSelect option:selected");
+            if (!option.val()) {
+                return;
+            }
+
+            $("#rateInput").val(option.data("rate"));
+            $("#freightBasisSelect").val(option.data("basis"));
+            if (option.data("currency")) {
+                $("#currencySelect").val(option.data("currency"));
+            }
+            if (option.data("transport")) {
+                $("#transportTypeSelect").val(option.data("transport")).trigger("change");
+            }
+
+            updateAmountFromTariff();
+        });
+
+        $("#rateInput, #GrWeight, #DistanceKm").on("change", function () {
+            if ($("#amountInput").data("auto") === true) {
+                updateAmountFromTariff();
+            }
+        });
+
+        $("#amountInput").on("input", function () {
+            $(this).data("auto", false);
+        });
+
         $("#purchaseInvoiceSelect").on("change", function () { requestInvoiceData($(this).val(), "Purchase"); });
         $("#salesInvoiceSelect").on("change", function () { requestInvoiceData($(this).val(), "Sales"); });
     });
+
+    function updateAmountFromTariff() {
+        var basis = parseInt($("#freightBasisSelect").val());
+        var rate = parseFloat($("#rateInput").val());
+        var grWeight = parseFloat($("#GrWeight").val());
+        var distance = parseFloat($("#DistanceKm").val());
+        var minCharge = parseFloat($("#tariffSelect option:selected").data("mincharge"));
+
+        if (isNaN(rate)) {
+            return;
+        }
+
+        var amount = rate;
+        if (basis === 1) {
+            amount = rate * (isNaN(grWeight) ? 0 : grWeight);
+        } else if (basis === 2) {
+            amount = rate * (isNaN(distance) ? 0 : distance);
+        }
+
+        if (!isNaN(minCharge) && amount < minCharge) {
+            amount = minCharge;
+        }
+
+        $("#amountInput").val(amount.toFixed(2));
+        $("#amountInput").data("auto", true);
+    }
 </script>

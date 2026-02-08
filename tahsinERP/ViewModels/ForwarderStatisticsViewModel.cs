@@ -35,6 +35,7 @@ namespace tahsinERP.ViewModels
         
         // OTIF (On Time In Full) performance
         public int OnTimeDeliveries { get; set; }
+        public int TotalDeliveries { get; set; }
         public int LateDeliveries { get; set; }
         public double OTIFPercentage { get; set; }
         

@@ -29,6 +29,19 @@
             </div>
             <div class="content-body">
                 <section class="invoice-list-wrapper">
+                    <div class="row mb-2">
+                        <div class="col-12 d-flex flex-wrap">
+                            <a href="@Url.Action("Create", "Incomes")" class="btn btn-success mr-1 mb-1">
+                                <i class="bx bx-log-in-circle"></i> Kirimga o'tish
+                            </a>
+                            <a href="@Url.Action("Create", "Expenses")" class="btn btn-danger mr-1 mb-1">
+                                <i class="bx bx-log-out-circle"></i> Chiqimga o'tish
+                            </a>
+                            <a href="@Url.Action("Adjust", "Inventory")" class="btn btn-warning mb-1">
+                                <i class="bx bx-edit"></i> Inventarizatsiya
+                            </a>
+                        </div>
+                    </div>
                     <!-- Filters -->
                     <div class="users-list-filter px-1">
                         @using (Html.BeginForm("Index", "Inventory", FormMethod.Get, new { @class = "form" }))
@@ -127,7 +140,34 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[0, "asc"], [1, "asc"]]
+                "order": [[0, "asc"], [1, "asc"]],
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() +
+                                String(now.getMonth() + 1).padStart(2, '0') +
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') +
+                                String(now.getMinutes()).padStart(2, '0') +
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Ombor_qoldiqlari_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: ':visible',
+                            format: {
+                                body: function (data) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    }
+                ]
             });
         });
     </script>

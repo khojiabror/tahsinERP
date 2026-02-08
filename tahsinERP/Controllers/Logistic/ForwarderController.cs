@@ -67,10 +67,12 @@ namespace tahsinERP.Controllers
 
                         return RedirectToAction("Index");
                     }
+                    ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Error: " + ex.Message);
+                    ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                    LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Create", $"Xatolik: {ex.Message}");
                 }
             }
 
@@ -213,14 +215,20 @@ namespace tahsinERP.Controllers
                 if (ModelState.IsValid)
                 {
                     var forwarderToUpdate = await db.FORWARDERS.FindAsync(forwarder.ID);
-                    if (forwarderToUpdate != null)
+                    if (forwarderToUpdate == null)
                     {
-                        forwarderToUpdate.ForwarderName = forwarder.ForwarderName;
-                        forwarderToUpdate.Director = forwarder.Director;
-                        forwarderToUpdate.Description = forwarder.Description;
-                        forwarderToUpdate.ContactPerson = forwarder.ContactPerson;
-                        
-                        db.Entry(forwarderToUpdate).State = System.Data.Entity.EntityState.Modified;
+                        ModelState.AddModelError("", "Forwarder topilmadi.");
+                        return View(forwarder);
+                    }
+
+                    forwarderToUpdate.ForwarderName = forwarder.ForwarderName;
+                    forwarderToUpdate.Director = forwarder.Director;
+                    forwarderToUpdate.Description = forwarder.Description;
+                    forwarderToUpdate.ContactPerson = forwarder.ContactPerson;
+                    
+                    db.Entry(forwarderToUpdate).State = System.Data.Entity.EntityState.Modified;
+                    try
+                    {
                         await db.SaveChangesAsync();
 
                         var userEmail = User.Identity.Name;
@@ -228,8 +236,15 @@ namespace tahsinERP.Controllers
 
                         return RedirectToAction("Index");
                     }
-
-                    return View(forwarderToUpdate);
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Edit", $"Xatolik: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
                 }
                 return View(forwarder);
             }
@@ -288,7 +303,20 @@ namespace tahsinERP.Controllers
                         {
                             ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
                         }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
+                            LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Delete", $"Xatolik: {ex.Message}");
+                        }
                     }
+                    else
+                    {
+                        ModelState.AddModelError("", "Forwarder topilmadi.");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
                 }
 
                 return View();

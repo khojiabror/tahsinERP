@@ -146,8 +146,8 @@ namespace tahsinERP.Controllers
                 ViewBag.TransportTypes = new SelectList(await db.F_TRANSPORT_TYPES.ToListAsync(), "ID", "TransportType", transportTypeId);
                 ViewBag.Directions = new SelectList(new[]
                 {
-                    new { Value = "0", Text = "Kirim (Inbound)" },
-                    new { Value = "1", Text = "Chiqim (Outbound)" },
+                    new { Value = "0", Text = "Kiruvchi (Inbound)" },
+                    new { Value = "1", Text = "Chiquvchi (Outbound)" },
                     new { Value = "2", Text = "Ichki (Internal)" }
                 }, "Value", "Text", direction);
 
@@ -187,8 +187,41 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                if (viewModel.TariffID.HasValue)
+                {
+                    var selectedTariff = db.F_CONTRACT_TARIFFS
+                        .FirstOrDefault(t => t.ID == viewModel.TariffID.Value && t.IsActive);
+                    if (selectedTariff == null)
+                    {
+                        ModelState.AddModelError("TariffID", "Tanlangan tarif topilmadi yoki faol emas.");
+                    }
+                    else if (viewModel.ContractID.HasValue && selectedTariff.ContractID != viewModel.ContractID.Value)
+                    {
+                        ModelState.AddModelError("TariffID", "Tanlangan tarif ushbu shartnomaga tegishli emas.");
+                    }
+                    else
+                    {
+                        viewModel.TransportTypeID = selectedTariff.TransportTypeID;
+                        viewModel.FreightBasis = selectedTariff.FreightBasis;
+                        viewModel.Rate = selectedTariff.Rate;
+                        if (!viewModel.CurrencyID.HasValue)
+                        {
+                            viewModel.CurrencyID = selectedTariff.CurrencyID;
+                        }
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("TariffID", "Tarif tanlash majburiy.");
+                }
+
                 if (ModelState.IsValid)
                 {
+                    if (string.IsNullOrWhiteSpace(viewModel.WaybillNo))
+                    {
+                        viewModel.WaybillNo = GenerateNextWaybillNo(db);
+                    }
+
                     // Calculate amount if not manually set
                     double? calculatedAmount = CalculateAmount(viewModel);
                     if (!viewModel.Amount.HasValue && calculatedAmount.HasValue)
@@ -318,6 +351,12 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                var tariffId = db.F_CONTRACT_TARIFFS
+                    .Where(t => t.ContractID == waybill.ContractID && t.TransportTypeID == waybill.TransportTypeID && t.IsActive)
+                    .OrderByDescending(t => t.CreatedDT)
+                    .Select(t => (int?)t.ID)
+                    .FirstOrDefault();
+
                 var viewModel = new WaybillCreateViewModel
                 {
                     ID = waybill.ID,
@@ -327,6 +366,7 @@ namespace tahsinERP.Controllers
                     ForwarderID = waybill.ForwarderID,
                     ContractID = waybill.ContractID,
                     TransportTypeID = waybill.TransportTypeID,
+                    TariffID = tariffId,
                     FromLocation = waybill.FromLocation,
                     ToLocation = waybill.ToLocation,
                     DistanceKm = waybill.DistanceKm,
@@ -354,20 +394,10 @@ namespace tahsinERP.Controllers
                     PlannedDeliveryDate = waybill.PlannedDeliveryDate,
                     ActualDeliveryDate = waybill.ActualDeliveryDate,
                     Description = waybill.Description,
-                    ManualCorrectionReason = waybill.ManualCorrectionReason,
-                    Forwarders = db.FORWARDERS.Where(f => f.IsDeleted == false)
-                        .Select(f => new SelectListItem { Value = f.ID.ToString(), Text = f.ForwarderName, Selected = f.ID == waybill.ForwarderID })
-                        .ToList(),
-                    Contracts = db.F_CONTRACTS.Where(c => c.IsDeleted == false)
-                        .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == waybill.ContractID })
-                        .ToList(),
-                    TransportTypes = db.F_TRANSPORT_TYPES
-                        .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TransportType, Selected = t.ID == waybill.TransportTypeID })
-                        .ToList(),
-                    Currencies = db.CURRENCIES
-                        .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname, Selected = c.ID == waybill.CurrencyID })
-                        .ToList()
+                    ManualCorrectionReason = waybill.ManualCorrectionReason
                 };
+
+                viewModel = BuildWaybillViewModel(db, viewModel);
 
                 return View(viewModel);
             }
@@ -384,6 +414,34 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                if (viewModel.TariffID.HasValue)
+                {
+                    var selectedTariff = db.F_CONTRACT_TARIFFS
+                        .FirstOrDefault(t => t.ID == viewModel.TariffID.Value && t.IsActive);
+                    if (selectedTariff == null)
+                    {
+                        ModelState.AddModelError("TariffID", "Tanlangan tarif topilmadi yoki faol emas.");
+                    }
+                    else if (viewModel.ContractID.HasValue && selectedTariff.ContractID != viewModel.ContractID.Value)
+                    {
+                        ModelState.AddModelError("TariffID", "Tanlangan tarif ushbu shartnomaga tegishli emas.");
+                    }
+                    else
+                    {
+                        viewModel.TransportTypeID = selectedTariff.TransportTypeID;
+                        viewModel.FreightBasis = selectedTariff.FreightBasis;
+                        viewModel.Rate = selectedTariff.Rate;
+                        if (!viewModel.CurrencyID.HasValue)
+                        {
+                            viewModel.CurrencyID = selectedTariff.CurrencyID;
+                        }
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("TariffID", "Tarif tanlash majburiy.");
+                }
+
                 if (ModelState.IsValid)
                 {
                     var waybillToUpdate = await db.F_WAYBILLS.FindAsync(viewModel.ID);
@@ -528,7 +586,7 @@ namespace tahsinERP.Controllers
 
                 worksheet.Cells[2, 1].Value = "WB-0001";
                 worksheet.Cells[2, 2].Value = DateTime.Today;
-                worksheet.Cells[2, 3].Value = "Kirim";
+                worksheet.Cells[2, 3].Value = "Kiruvchi";
                 worksheet.Cells[2, 10].Value = "Supplier A";
                 worksheet.Cells[2, 11].Value = "Warehouse B";
                 worksheet.Cells[2, 12].Value = 25;
@@ -574,6 +632,10 @@ namespace tahsinERP.Controllers
                 var contracts = await db.F_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync();
                 var transportTypes = await db.F_TRANSPORT_TYPES.Where(t => t.IsDeleted == false || t.IsDeleted == null).ToListAsync();
                 var currencies = await db.CURRENCIES.ToListAsync();
+                var existingWaybillNos = new HashSet<string>(
+                    db.F_WAYBILLS.Where(w => w.IsDeleted == false).Select(w => w.WaybillNo),
+                    StringComparer.OrdinalIgnoreCase);
+                var fileWaybillNos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using (var package = new ExcelPackage(file.InputStream))
@@ -601,10 +663,18 @@ namespace tahsinERP.Controllers
                             skipCount++;
                             continue;
                         }
+                        waybillNo = waybillNo.Trim();
 
-                        if (db.F_WAYBILLS.Any(w => w.WaybillNo == waybillNo && w.IsDeleted == false))
+                        if (fileWaybillNos.Contains(waybillNo))
                         {
-                            skipCount++;
+                            errors.Add($"Row {row}: Bu Waybill raqami Excel faylida takrorlangan ({waybillNo}).");
+                            continue;
+                        }
+                        fileWaybillNos.Add(waybillNo);
+
+                        if (existingWaybillNos.Contains(waybillNo))
+                        {
+                            errors.Add($"Row {row}: Bu Waybill raqami avval kiritilgan ({waybillNo}).");
                             continue;
                         }
 
@@ -824,6 +894,37 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<JsonResult> GetTariffsByContract(int? contractId)
+        {
+            if (!contractId.HasValue)
+            {
+                return Json(new { success = false, message = "Contract ID kerak" });
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var tariffs = await db.F_CONTRACT_TARIFFS
+                    .Include(t => t.F_TRANSPORT_TYPES)
+                    .Where(t => t.ContractID == contractId.Value && t.IsActive)
+                    .OrderByDescending(t => t.CreatedDT)
+                    .ToListAsync();
+
+                var result = tariffs.Select(t => new
+                {
+                    id = t.ID,
+                    text = FormatTariffDisplay(t),
+                    rate = t.Rate,
+                    basis = t.FreightBasis,
+                    currencyId = t.CurrencyID,
+                    transportTypeId = t.TransportTypeID,
+                    minimumCharge = t.MinimumCharge
+                }).ToList();
+
+                return Json(new { success = true, items = result });
+            }
+        }
+
         /// <summary>
         /// AJAX: Auto-fill waybill data from invoice/order
         /// </summary>
@@ -906,6 +1007,22 @@ namespace tahsinERP.Controllers
             viewModel.Currencies = db.CURRENCIES
                 .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname, Selected = c.ID == viewModel.CurrencyID })
                 .ToList();
+
+            viewModel.Tariffs = new List<SelectListItem>();
+            if (viewModel.ContractID.HasValue)
+            {
+                viewModel.Tariffs = db.F_CONTRACT_TARIFFS
+                    .Include(t => t.F_TRANSPORT_TYPES)
+                    .Where(t => t.ContractID == viewModel.ContractID.Value && t.IsActive)
+                    .OrderByDescending(t => t.CreatedDT)
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.ID.ToString(),
+                        Text = FormatTariffDisplay(t),
+                        Selected = viewModel.TariffID.HasValue && t.ID == viewModel.TariffID.Value
+                    })
+                    .ToList();
+            }
 
             return viewModel;
         }
@@ -991,6 +1108,66 @@ namespace tahsinERP.Controllers
             return null;
         }
 
+        private static string FormatTariffDisplay(F_CONTRACT_TARIFFS tariff)
+        {
+            var transport = tariff.F_TRANSPORT_TYPES?.TransportType ?? "";
+            var capacity = tariff.F_TRANSPORT_TYPES?.CapableOfLifting;
+            var capacityText = capacity.HasValue ? $"{capacity.Value:0.##}t" : "";
+            var transportToken = transport.Replace(" ", "_");
+            return $"{tariff.ID}_{transportToken}_{capacityText}";
+        }
+
+        private static string GenerateNextWaybillNo(DBTHSNEntities db)
+        {
+            var existingNos = new HashSet<string>(
+                db.F_WAYBILLS.Where(w => w.IsDeleted == false).Select(w => w.WaybillNo),
+                StringComparer.OrdinalIgnoreCase);
+
+            int? lastNumeric = db.F_WAYBILLS
+                .Where(w => w.IsDeleted == false && w.WaybillNo.StartsWith("TB_"))
+                .OrderByDescending(w => w.ID)
+                .Select(w => w.WaybillNo)
+                .AsEnumerable()
+                .Select(ParseWaybillNumber)
+                .FirstOrDefault(n => n.HasValue);
+
+            var lastId = db.F_WAYBILLS
+                .OrderByDescending(w => w.ID)
+                .Select(w => (int?)w.ID)
+                .FirstOrDefault() ?? 0;
+
+            var next = (lastNumeric ?? lastId) + 1;
+            var candidate = FormatWaybillNo(next);
+            while (existingNos.Contains(candidate))
+            {
+                next++;
+                candidate = FormatWaybillNo(next);
+            }
+
+            return candidate;
+        }
+
+        private static int? ParseWaybillNumber(string waybillNo)
+        {
+            if (string.IsNullOrWhiteSpace(waybillNo) || !waybillNo.StartsWith("TB_"))
+            {
+                return null;
+            }
+
+            var numberPart = waybillNo.Substring(3);
+            if (int.TryParse(numberPart, out var result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        private static string FormatWaybillNo(int number)
+        {
+            return $"TB_{number:D4}";
+        }
+
         private static Dictionary<string, int> BuildHeaderMap(ExcelWorksheet worksheet)
         {
             var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -1063,9 +1240,11 @@ namespace tahsinERP.Controllers
             switch (text?.Trim().ToLowerInvariant())
             {
                 case "kirim":
+                case "kiruvchi":
                 case "inbound":
                     return 0;
                 case "chiqim":
+                case "chiquvchi":
                 case "outbound":
                     return 1;
                 case "ichki":

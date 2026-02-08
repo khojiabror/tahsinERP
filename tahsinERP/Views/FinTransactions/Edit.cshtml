@@ -42,6 +42,13 @@
                                             <p>O'zgarishlar kiritish uchun asosiy hujjatni tahrirlang.</p>
                                         </div>
                                     }
+                                    else
+                                    {
+                                        <div class="alert alert-info">
+                                            <h5>Diqqat (majburiy tavsiya)</h5>
+                                            <p>Material/Oylik/Avans to'lovlarida <strong>Kontragent turi</strong> va <strong>Kontragent ID</strong> ni kiriting. Faqat matn (Kontragent nomi/Maqsad) bo'lsa, qarz avtomatik kamaymasligi mumkin.</p>
+                                        </div>
+                                    }
                                     
                                     @using (Html.BeginForm("Edit", "FinTransactions", FormMethod.Post, new { @class = "form" }))
                                     {
@@ -98,6 +105,34 @@
                                                     @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CounterpartyType, "Kontragent turi", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control select2", disabled = ViewBag.CannotEdit })
+                                                    <small class="text-muted">Material: Ta'minotchi | Oylik/Avans: Xodim</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CounterpartyID, "Kontragent ID", new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.CounterpartyID, new { @class = "form-control", type = "number", min = "1", disabled = ViewBag.CannotEdit })
+                                                    <small class="text-muted">SupplierID/XodimID (mapping uchun asosiy maydon)</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.CounterpartyName, "Kontragent nomi", new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.CounterpartyName, new { @class = "form-control", disabled = ViewBag.CannotEdit })
+                                                    <small class="text-muted">Ixtiyoriy, faqat ko'rish uchun</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6"></div>
                                         </div>
                                         
                                         <div class="form-group">

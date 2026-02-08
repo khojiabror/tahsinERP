@@ -1,0 +1,84 @@
+@{
+    ViewBag.Title = "Passivlar va Kapital Tafsiloti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var details = ViewBag.LiabilityDetails as List<tahsinERP.Controllers.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.Controllers.Finance.BalanceCategoryDetailData>();
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("BalanceSheet", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">Balans</a></li>
+                                    <li class="breadcrumb-item active">Passivlar va Kapital Tafsiloti</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">
+                                    Passivlar va Kapital Tafsiloti - @(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy") : DateTime.Now.ToString("dd.MM.yyyy"))
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <strong>Jami passivlar va kapital:</strong>
+                                        <span class="ml-1">@(((decimal?)ViewBag.TotalAmount ?? 0m).ToString("N2"))</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Kategoriya</th>
+                                                    <th>Hisoblash usuli</th>
+                                                    <th>Izoh</th>
+                                                    <th class="text-right">Transaction soni</th>
+                                                    <th class="text-right">Qo'shilgan</th>
+                                                    <th class="text-right">Ayrilgan</th>
+                                                    <th class="text-right">Summa</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in details)
+                                                {
+                                                    <tr>
+                                                        <td>@item.Category.Name</td>
+                                                        <td>@item.CalculationTypeName</td>
+                                                        <td>@item.Explanation</td>
+                                                        <td class="text-right">@item.TransactionCount</td>
+                                                        <td class="text-right">@item.AddedAmount.ToString("N2")</td>
+                                                        <td class="text-right">@item.SubtractedAmount.ToString("N2")</td>
+                                                        <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

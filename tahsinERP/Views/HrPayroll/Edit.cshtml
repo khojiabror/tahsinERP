@@ -57,12 +57,6 @@
                                     <i class="bx bx-check"></i> Tasdiqlash
                                 </a>
                             }
-                            @if (Model.Status == "Approved")
-                            {
-                                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#postModal">
-                                    <i class="bx bx-check-circle"></i> Moliya moduliga o'tkazish
-                                </button>
-                            }
                         </div>
                         <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Posted" ? "info" : "warning") ml-2">
                             Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "O'tkazilgan")
@@ -169,44 +163,8 @@
         </div>
     </div>
 
-    <!-- Post Modal -->
-    <div class="modal fade" id="postModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Hisobni moliya moduliga o'tkazish</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                @using (Html.BeginForm("Post", "HrPayroll", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.Hidden("id", Model.ID)
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label>Hisob <span class="text-danger">*</span></label>
-                            @Html.DropDownList("accountId", ViewBag.AccountList as SelectList, "Hisobni tanlang", new { @class = "form-control select2", @required = "required" })
-                        </div>
-                        <div class="form-group">
-                            <label>Kategoriya <span class="text-danger">*</span></label>
-                            @Html.DropDownList("categoryId", ViewBag.CategoryList as SelectList, "Kategoriyani tanlang", new { @class = "form-control select2", @required = "required" })
-                        </div>
-                        <p class="text-muted">O'tkazish summasi: <strong>@Model.TotalNetSalary.ToString("N2")</strong></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">O'tkazish</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
     <script>
         $(document).ready(function() {
-            $('.select2').select2({ width: '100%' });
-
             // Update bonuses/penalties
             $('.bonuses-input, .penalties-input').on('change blur', function() {
                 var $input = $(this);

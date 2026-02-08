@@ -295,7 +295,7 @@ namespace tahsinERP.Services
                 if (stock == null || stock.Amount < req.TotalConsumption)
                 {
                     throw new InvalidOperationException(
-                        $"Insufficient stock for material {req.MaterialPNo}. Required: {req.TotalConsumption}, Available: {stock?.Amount ?? 0}");
+                        $"Xomashyo omborida yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo}, Talab: {req.TotalConsumption}, Mavjud: {stock?.Amount ?? 0}");
                 }
             }
 
@@ -308,7 +308,7 @@ namespace tahsinERP.Services
                 CurrencyID = 1,
                 Amount = 0,
                 TotalPrice = 0,
-                Description = $"Ishlab chiqarish uchun xomashyo chiqimi: Product ID {productId}, Qty {producedQty}",
+                Description = $"Ishlab chiqarish uchun xomashyo chiqimi: Mahsulot ID {productId}, Miqdor {producedQty}",
                 SendStatus = true,
                 IsDeleted = false
             };
@@ -328,7 +328,7 @@ namespace tahsinERP.Services
                     PiecePrice = 0,
                     TotalPrice = 0,
                     UnitID = req.UnitID,
-                    Comment = "BOM/NORM consumption"
+                    Comment = "BOM/NORM sarfi"
                 };
 
                 _db.EXPENSE_PRODUCTS.Add(expenseProduct);
@@ -337,6 +337,19 @@ namespace tahsinERP.Services
                 // Get stock in Supply warehouse
                 var stock = await _db.PRODUCT_STOCKS
                     .FirstOrDefaultAsync(s => s.WHID == supplyWarehouseId && s.ProductID == req.MaterialID);
+
+                if (stock == null)
+                {
+                    throw new Exception($"Xomashyo omborida mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}");
+                }
+
+                if (stock.Amount < req.TotalConsumption)
+                {
+                    throw new Exception(
+                        $"Xomashyo omborida yetarli qoldiq yo'q. " +
+                        $"Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
+                        $"Mavjud: {stock.Amount}, Talab: {req.TotalConsumption}");
+                }
 
                 // Subtract total consumption (including waste)
                 stock.Amount -= req.TotalConsumption;
@@ -354,7 +367,7 @@ namespace tahsinERP.Services
                         productionProcessId.Value, 
                         supplyWarehouseId, 
                         req.UnitID,
-                        $"Waste from production of Product ID {productId}, Qty: {producedQty}");
+                        $"Ishlab chiqarish chiqindisi: Mahsulot ID {productId}, Miqdor {producedQty}");
                 }
             }
 
@@ -362,7 +375,7 @@ namespace tahsinERP.Services
             await _db.SaveChangesAsync();
 
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
-                $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Product ID: {productId}, Qty: {producedQty}");
+                $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Mahsulot ID: {productId}, Miqdor: {producedQty}");
         }
     }
 

@@ -221,22 +221,8 @@ namespace tahsinERP.Services
                 return; // No account found
             }
 
-            // Find transport expense category
-            var category = db.FIN_CATEGORIES
-                .FirstOrDefault(c => (c.Name.Contains("Transport") || c.Name.Contains("Logistics")) && c.Type == 2 && c.IsActive);
-
-            if (category == null)
-            {
-                category = new FIN_CATEGORIES
-                {
-                    Name = "Transport xarajatlari",
-                    Type = 2, // Expense
-                    IsActive = true,
-                    SortOrder = 10
-                };
-                db.FIN_CATEGORIES.Add(category);
-                db.SaveChanges();
-            }
+            // Find transport expense category (material vs finished product)
+            var category = ResolveLogisticsCategory(payment.F_WAYBILLS, db);
 
             // Create transaction
             var transaction = new FIN_TRANSACTIONS
@@ -261,6 +247,35 @@ namespace tahsinERP.Services
             db.SaveChanges();
 
             LogHelper.LogToDatabase("System", "FinancePosting", "PostWaybillPayment", $"Yo'l varaqasi to'lovi tranzaksiyaga kiritildi: {paymentID}");
+        }
+
+        private static FIN_CATEGORIES ResolveLogisticsCategory(F_WAYBILLS waybill, DBTHSNEntities db)
+        {
+            var isFinishedGoods = waybill?.SalesInvoiceID.HasValue == true ||
+                                  waybill?.SalesOrderID.HasValue == true ||
+                                  waybill?.TTNKID.HasValue == true;
+
+            var preferredNames = isFinishedGoods
+                ? new[] { "T.Tash" }
+                : new[] { "M.Tash" };
+
+            var category = db.FIN_CATEGORIES
+                .FirstOrDefault(c => preferredNames.Contains(c.Name) && c.Type == 2 && c.IsActive);
+
+            if (category == null)
+            {
+                category = new FIN_CATEGORIES
+                {
+                    Name = preferredNames[0],
+                    Type = 2, // Expense
+                    IsActive = true,
+                    SortOrder = 10
+                };
+                db.FIN_CATEGORIES.Add(category);
+                db.SaveChanges();
+            }
+
+            return category;
         }
     }
 }

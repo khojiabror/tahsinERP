@@ -39,6 +39,11 @@ namespace tahsinERP.ViewModels
         public int? TransportTypeID { get; set; }
         public List<SelectListItem> TransportTypes { get; set; }
 
+        [Required(ErrorMessage = "Tarif tanlash majburiy")]
+        [Display(Name = "Tarif")]
+        public int? TariffID { get; set; }
+        public List<SelectListItem> Tariffs { get; set; }
+
         [Display(Name = "Qayerdan")]
         public string FromLocation { get; set; }
 

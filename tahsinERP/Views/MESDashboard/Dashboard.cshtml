@@ -26,6 +26,53 @@
                 </div>
             </div>
             <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("Dashboard")" class="row">
+                                        <div class="col-md-3 col-12">
+                                            <label>Yil</label>
+                                            <select name="year" class="form-control">
+                                                @foreach (var y in Enumerable.Range(DateTime.Now.Year - 5, 7))
+                                                {
+                                                    <option value="@y" @(ViewBag.SelectedYear == y ? "selected" : "")>@y</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 col-12">
+                                            <label>Oy</label>
+                                            <select name="month" class="form-control">
+                                                <option value="">Tanlang</option>
+                                                @for (int m = 1; m <= 12; m++)
+                                                {
+                                                    <option value="@m" @(ViewBag.SelectedMonth != null && ViewBag.SelectedMonth == m ? "selected" : "")>@m</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 col-12">
+                                            <label>Kun</label>
+                                            <select name="day" class="form-control">
+                                                <option value="">Tanlang</option>
+                                                @for (int d = 1; d <= 31; d++)
+                                                {
+                                                    <option value="@d" @(ViewBag.SelectedDay != null && ViewBag.SelectedDay == d ? "selected" : "")>@d</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 col-12 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="bx bx-filter"></i> Ko'rsatish
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- KPI Cards -->
                 <div class="row">
                     <div class="col-xl-3 col-md-6 col-12">
@@ -35,7 +82,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="primary">@Model.TodayPlanned.ToString("N2")</h3>
-                                            <span>Bugungi reja</span>
+                                            <span>@(ViewBag.PrimaryLabel ?? "Tanlangan davr") reja</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-calendar primary font-large-2 float-right"></i>
@@ -52,7 +99,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="success">@Model.TodayActual.ToString("N2")</h3>
-                                            <span>Bugungi fakt</span>
+                                            <span>@(ViewBag.PrimaryLabel ?? "Tanlangan davr") fakt</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-check-circle success font-large-2 float-right"></i>
@@ -69,7 +116,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="@(Model.TodayPlanVsActualPercent >= 100 ? "success" : "warning")">@Model.TodayPlanVsActualPercent.ToString("N1")%</h3>
-                                            <span>Bugungi reja/fakt</span>
+                                            <span>@(ViewBag.PrimaryLabel ?? "Tanlangan davr") reja/fakt</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-trending-up @(Model.TodayPlanVsActualPercent >= 100 ? "success" : "warning") font-large-2 float-right"></i>
@@ -86,7 +133,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="@(Model.MonthPlanVsActualPercent >= 100 ? "success" : "warning")">@Model.MonthPlanVsActualPercent.ToString("N1")%</h3>
-                                            <span>Oylik reja/fakt</span>
+                                            <span>@(ViewBag.SecondaryLabel ?? "Tanlangan davr") reja/fakt</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-bar-chart-alt-2 @(Model.MonthPlanVsActualPercent >= 100 ? "success" : "warning") font-large-2 float-right"></i>
@@ -103,7 +150,7 @@
                     <div class="col-xl-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Kunlik Reja vs Fakt (So'nggi 30 kun)</h4>
+                                <h4 class="card-title">Kunlik Reja vs Fakt (@(ViewBag.StartDate != null && ViewBag.EndDate != null ? ((DateTime)ViewBag.StartDate).ToString("dd.MM.yyyy") + " - " + ((DateTime)ViewBag.EndDate).ToString("dd.MM.yyyy") : "Tanlangan davr"))</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
