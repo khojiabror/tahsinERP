@@ -322,10 +322,16 @@ namespace tahsinERP.Controllers
                         {
                             try
                             {
+                                var productMap = await db.PRODUCTS
+                                    .Where(p => p.PNo != null)
+                                    .Select(p => new { p.ID, p.PNo, p.Name, p.UnitID })
+                                    .ToListAsync();
+
                                 var logRows = new List<InventoryAdjustmentLogRow>();
                                 foreach (var adj in adjustments)
                                 {
-                                    var product = await db.PRODUCTS.FirstOrDefaultAsync(p => p.PNo == adj.ProductPNo);
+                                    var product = productMap.FirstOrDefault(p =>
+                                        string.Equals(p.PNo, adj.ProductPNo, StringComparison.OrdinalIgnoreCase));
                                     if (product == null)
                                     {
                                         errors.Add($"Qator {adj.RowNumber}: Mahsulot topilmadi ({adj.ProductPNo}).");
