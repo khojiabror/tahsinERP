@@ -195,7 +195,7 @@
         </div>
     </div>
 
-    @if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
+    if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
     {
         <script>
             $(document).ready(function() {
@@ -207,7 +207,7 @@
             });
         </script>
     }
-    @if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
+    if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
     {
         <script>
             $(document).ready(function() {

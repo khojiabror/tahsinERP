@@ -360,7 +360,7 @@ namespace tahsinERP.Controllers.MES
                 var consumptionService = new ProductionConsumptionService(db);
                 var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, production.Total);
                 var unitIds = requirements.Select(r => r.UnitID).Distinct().ToList();
-                var units = await db.UNITS.Where(u => unitIds.Contains(u.ID)).ToDictionaryAsync(u => u.ID, u => u.ShortName ?? u.Name ?? "-");
+                var units = await db.UNITS.Where(u => unitIds.Contains(u.ID)).ToDictionaryAsync(u => u.ID, u => u.ShortName ?? u.UnitName ?? "-");
 
                 foreach (var req in requirements)
                 {
