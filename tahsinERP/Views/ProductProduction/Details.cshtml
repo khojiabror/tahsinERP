@@ -1,12 +1,14 @@
-@model tahsinERP.Models.PRODUCT_PRODUCTION
+@model tahsinERP.ViewModels.ProductProductionDetailsViewModel
+@using tahsinERP.Models
 @{
     ViewBag.Title = "Ishlab Chiqarish Ma'lumotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var ModelProduction = Model.Production;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+@if (RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+    bool changePermit = RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -34,26 +36,28 @@
                 <section class="invoice-edit-wrapper">
                     <div class="row">
                         <div class="col-xl-12 col-md-12 col-12">
+                            <!-- Asosiy ma'lumotlar -->
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
                                                 <h4 class="text-primary">Ishlab Chiqarish Ma'lumotlari</h4>
+                                                <p class="text-muted small mb-0">Hujjat havolasi: #@ModelProduction.ID</p>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <p><strong>Mahsulot:</strong> @(Model.PRODUCT?.PNo ?? Model.ProductID.ToString()) - @(Model.PRODUCT?.Name ?? "")</p>
-                                                        <p><strong>Sana:</strong> @Model.Date.ToString("dd.MM.yyyy")</p>
-                                                        <p><strong>Sex:</strong> @(Model.SHOP?.ShopName ?? Model.ShopID.ToString())</p>
+                                                        <p><strong>Mahsulot:</strong> @(ModelProduction.PRODUCT?.PNo ?? ModelProduction.ProductID.ToString()) - @(ModelProduction.PRODUCT?.Name ?? "")</p>
+                                                        <p><strong>Sana:</strong> @ModelProduction.Date.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>Sex:</strong> @(ModelProduction.SHOP?.ShopName ?? ModelProduction.ShopID.ToString())</p>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <p><strong>Kunduzgi smena:</strong> @Model.DayShift.ToString("N3")</p>
-                                                        <p><strong>Tungi smena:</strong> @Model.NightShift.ToString("N3")</p>
-                                                        <p><strong>Jami:</strong> <span class="text-primary"><strong>@Model.Total.ToString("N3")</strong></span></p>
-                                                        @if (!string.IsNullOrEmpty(Model.Comment))
+                                                        <p><strong>Kunduzgi smena:</strong> @ModelProduction.DayShift.ToString("N3")</p>
+                                                        <p><strong>Tungi smena:</strong> @ModelProduction.NightShift.ToString("N3")</p>
+                                                        <p><strong>Jami:</strong> <span class="text-primary"><strong>@ModelProduction.Total.ToString("N3")</strong></span></p>
+                                                        @if (!string.IsNullOrEmpty(ModelProduction.Comment))
                                                         {
-                                                            <p><strong>Izoh:</strong> @Model.Comment</p>
+                                                            <p><strong>Izoh:</strong> @ModelProduction.Comment</p>
                                                         }
                                                     </div>
                                                 </div>
@@ -65,10 +69,10 @@
                                                         </a>
                                                         @if (changePermit)
                                                         {
-                                                            <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                                            <a href="@Url.Action("Edit", new { id = ModelProduction.ID })" class="btn btn-warning">
                                                                 <i class="bx bx-edit"></i> Tahrirlash
                                                             </a>
-                                                            <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-danger">
+                                                            <a href="@Url.Action("Delete", new { id = ModelProduction.ID })" class="btn btn-danger">
                                                                 <i class="bx bx-trash"></i> O'chirish
                                                             </a>
                                                         }
@@ -79,15 +83,144 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- BOM/Norm bo'yicha sarf -->
+                            <div class="card mt-2">
+                                <div class="card-header">
+                                    <h4 class="card-title mb-0">
+                                        <i class="bx bx-list-check"></i> BOM/Norm bo'yicha sarf (xom ashyo talabi)
+                                    </h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
+                                        {
+                                            <p class="text-muted small mb-2">Jami <strong>@Model.BomConsumptionLines.Count</strong> ta xom ashyo (BOM/Norm).</p>
+                                            <div class="table-responsive">
+                                                <table id="bomSarfTable" class="table table-striped table-bordered table-hover" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Mahsulot kodi</th>
+                                                            <th>Xom ashyo nomi</th>
+                                                            <th>Talab qilingan (dona)</th>
+                                                            <th>Talab (m)</th>
+                                                            <th>Chiqindi</th>
+                                                            <th>Jami sarf</th>
+                                                            <th>O'lchov birligi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @{ int bomIdx = 1; }
+                                                        @foreach (var line in Model.BomConsumptionLines)
+                                                        {
+                                                            <tr>
+                                                                <td>@(bomIdx++)</td>
+                                                                <td>@(line.MaterialPNo ?? "-")</td>
+                                                                <td>@(line.MaterialName ?? "-")</td>
+                                                                <td>@(line.RequiredQtyPieces > 0 ? line.RequiredQtyPieces.ToString("N3") : "-")</td>
+                                                                <td>@(line.RequiredQtyMeters > 0 ? line.RequiredQtyMeters.ToString("N3") : "-")</td>
+                                                                <td>@(line.WasteQty > 0 ? line.WasteQty.ToString("N3") : "-")</td>
+                                                                <td><strong>@line.TotalConsumption.ToString("N3")</strong> @(line.TotalConsumptionIsInKg ? " kg" : "")</td>
+                                                                <td>@(line.UnitName ?? "-")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted mb-0">Ushbu mahsulot uchun BOM/Norm topilmadi yoki sarf qatorlari yo'q.</p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chiqim hujjatlari (BOM chiqimi) -->
+                            <div class="card mt-2">
+                                <div class="card-header">
+                                    <h4 class="card-title mb-0">
+                                        <i class="bx bx-log-out-circle"></i> Chiqim hujjatlari (ishlab chiqarish uchun xomashyo chiqimi)
+                                    </h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
+                                        {
+                                            <p class="text-muted small mb-2">Ushbu ishlab chiqarishga bog‘liq <strong>@Model.ExpenseDocuments.Count</strong> ta chiqim hujjati. Chiqim ustiga bosing — chiqim sahifasiga o‘tadi.</p>
+                                            <div class="table-responsive">
+                                                <table id="expenseTable" class="table table-striped table-bordered table-hover" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Hujjat raqami</th>
+                                                            <th>Sana va vaqt</th>
+                                                            <th>Mahsulotlar soni</th>
+                                                            <th>Jami miqdor</th>
+                                                            <th>Summa</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var exp in Model.ExpenseDocuments)
+                                                        {
+                                                            <tr>
+                                                                <td>@(exp.DocNo ?? "-")</td>
+                                                                <td>@exp.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                                                <td>@exp.ProductCount</td>
+                                                                <td>@exp.Amount.ToString("N3")</td>
+                                                                <td>@exp.TotalPrice.ToString("N2")</td>
+                                                                <td>
+                                                                    <a href="@Url.Action("Details", "Expenses", new { id = exp.ExpenseID })" class="btn btn-sm btn-outline-primary" title="Chiqim hujjatiga o'tish">
+                                                                        <i class="bx bx-link-external"></i> Chiqim
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted mb-0">Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).</p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
             </div>
         </div>
     </div>
+
+    @if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
+    {
+        <script>
+            $(document).ready(function() {
+                $('#bomSarfTable').DataTable({
+                    "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json" },
+                    "order": [[1, "asc"]],
+                    "pageLength": 25
+                });
+            });
+        </script>
+    }
+    @if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
+    {
+        <script>
+            $(document).ready(function() {
+                $('#expenseTable').DataTable({
+                    "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json" },
+                    "order": [[1, "desc"]],
+                    "pageLength": 10
+                });
+            });
+        </script>
+    }
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-

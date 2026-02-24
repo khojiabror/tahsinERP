@@ -331,7 +331,7 @@ namespace tahsinERP.Controllers.MES
         }
 
         // Olish so'rovi: ProductProduction/Details/5
-        public ActionResult Details(int? id)
+        public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -351,7 +351,65 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                return View(production);
+                var viewModel = new ProductProductionDetailsViewModel
+                {
+                    Production = production
+                };
+
+                // BOM/Norm bo'yicha sarf hisoblash
+                var consumptionService = new ProductionConsumptionService(db);
+                var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, production.Total);
+                var unitIds = requirements.Select(r => r.UnitID).Distinct().ToList();
+                var units = await db.UNITS.Where(u => unitIds.Contains(u.ID)).ToDictionaryAsync(u => u.ID, u => u.ShortName ?? u.Name ?? "-");
+
+                foreach (var req in requirements)
+                {
+                    viewModel.BomConsumptionLines.Add(new BomConsumptionLineViewModel
+                    {
+                        MaterialID = req.MaterialID,
+                        MaterialPNo = req.MaterialPNo,
+                        MaterialName = req.MaterialName,
+                        RequiredQtyPieces = req.RequiredQtyPieces,
+                        RequiredQtyMeters = req.RequiredQtyMeters,
+                        WasteQty = req.WasteQty,
+                        TotalConsumption = req.TotalConsumption,
+                        UnitName = units.ContainsKey(req.UnitID) ? units[req.UnitID] : "-",
+                        TotalConsumptionIsInKg = req.TotalConsumptionIsInKg
+                    });
+                }
+
+                // Ushbu ishlab chiqarishga bog'liq chiqim hujjatlari (BOM chiqimi — Description orqali)
+                var prodIdStr = "Mahsulot ID " + production.ProductID;
+                var productionDate = production.Date.Date;
+                var expenses = await db.EXPENSES
+                    .Where(e => e.IsDeleted != true
+                        && e.Description != null
+                        && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi")
+                        && e.Description.Contains(prodIdStr)
+                        && e.IssueDateTime.Year == productionDate.Year
+                        && e.IssueDateTime.Month == productionDate.Month
+                        && e.IssueDateTime.Day == productionDate.Day)
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .OrderByDescending(e => e.IssueDateTime)
+                    .ToListAsync();
+
+                foreach (var exp in expenses)
+                {
+                    var productCount = exp.EXPENSE_PRODUCTS != null ? exp.EXPENSE_PRODUCTS.Count : 0;
+                    var amount = exp.Amount ?? 0;
+                    var totalPrice = exp.TotalPrice ?? 0;
+                    viewModel.ExpenseDocuments.Add(new ProductionExpenseLinkViewModel
+                    {
+                        ExpenseID = exp.ID,
+                        DocNo = exp.DocNo,
+                        IssueDateTime = exp.IssueDateTime,
+                        Amount = amount,
+                        TotalPrice = totalPrice,
+                        ProductCount = productCount
+                    });
+                }
+
+                return View(viewModel);
             }
         }
 
