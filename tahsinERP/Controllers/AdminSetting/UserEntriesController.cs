@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class UserEntriesController : Controller
     {
-        // GET: UserEntries
+        // Olish so'rovi: UserEntries
         [HttpGet]
         public async Task<ActionResult> Index(int? userId, DateTime? startDate = null, DateTime? endDate = null)
         {
@@ -22,7 +22,7 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Default: so'nggi 30 kun
+            // standart: so'nggi 30 kun
             startDate = startDate ?? DateTime.Now.AddDays(-30);
             endDate = endDate ?? DateTime.Now;
             endDate = endDate.Value.AddDays(1).AddSeconds(-1); // Kunning oxirigacha

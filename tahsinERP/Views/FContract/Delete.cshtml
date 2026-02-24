@@ -1,6 +1,6 @@
-﻿@model  tahsinERP.Models.F_CONTRACTS
+@model  tahsinERP.Models.F_CONTRACTS
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "Shartnomani o'chirish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -41,7 +41,7 @@
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                             <span><b>Shartnoma raqami</b>: @Html.DisplayFor(model => model.ContractNo, new { @class = "form-control" })</span>
                                             <hr />
-                                            <span><b>Forwarder</b>: @Html.DisplayFor(model => model.FORWARDER.ForwarderName, new { @class = "form-control" })</span>
+                                            <span><b>@tahsinERP.Services.LogisticsTerms.Forwarder</b>: @Html.DisplayFor(model => model.FORWARDER.ForwarderName, new { @class = "form-control" })</span>
                                             <hr />
                                             <span><b>Belgilangan sanasi</b>:   @Model.IssueDate.ToString("dd.MM.yyyy")</span>
                                             <hr />
@@ -61,7 +61,7 @@
                                             @using (Html.BeginForm("Delete", "FContract", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu Invoice o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu shartnomani o\'chirishga ishonchingiz komilmi?')">
                                                     <i class='bx bx-trash'></i>
                                                     O'chirish
                                                 </button>

@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
+@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
 @{
     ViewBag.Title = "Tabelni tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -34,16 +34,25 @@
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
                 }
+                @if (Model.Status != "Draft")
+                {
+                    <div class="alert alert-warning" role="alert">
+                        Bu tabel holati <strong>@(Model.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")</strong>. Faqat <strong>Qoralama</strong> holatidagi tabelni tahrirlash mumkin.
+                    </div>
+                }
 
                 <div class="row mb-2">
                     <div class="col-12">
                         <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-primary" onclick="setDefaultHours(8)">
-                                <i class="bx bx-time"></i> Tanlanganlarga 8 soat belgilash
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" onclick="markWeekend()">
-                                <i class="bx bx-calendar"></i> Dam olish kunlarini belgilash
-                            </button>
+                            @if (Model.Status == "Draft")
+                            {
+                                <button type="button" class="btn btn-sm btn-primary" onclick="setDefaultHours(8)">
+                                    <i class="bx bx-time"></i> Tanlanganlarga 8 soat belgilash
+                                </button>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="markWeekend()">
+                                    <i class="bx bx-calendar"></i> Dam olish kunlarini belgilash
+                                </button>
+                            }
                             <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-sm btn-success">
                                 <i class="bx bx-export"></i> Excelga eksport
                             </a>

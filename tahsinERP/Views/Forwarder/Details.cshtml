@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.ForwarderStatisticsViewModel
 @{
-    ViewBag.Title = "Forwarder Details";
+    ViewBag.Title = "Yuk tashuvchi tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,10 +21,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Forwarder/Index">Forwarderlar</a>
+                                        <a href="~/Forwarder/Index">Yuk tashuvchilar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Forwarder tafsilotlari
+                                        Yuk tashuvchi tafsilotlari
                                     </li>
                                 </ol>
                             </div>
@@ -40,7 +40,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h4 class="text-primary">Forwarder ma'lumotlari</h4>
+                                        <h4 class="text-primary">Yuk tashuvchi ma'lumotlari</h4>
                                         @if (changePermit)
                                         {
                                             <a href="@Url.Action("Edit", "Forwarder", new { id = Model.Forwarder.ID })" class="btn btn-sm btn-outline-primary">
@@ -51,7 +51,7 @@
                                     <hr>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <p><strong>Forwarder nomi:</strong> @Model.Forwarder.ForwarderName</p>
+                                            <p><strong>Yuk tashuvchi nomi:</strong> @Model.Forwarder.ForwarderName</p>
                                             <p><strong>Direktor:</strong> @(Model.Forwarder.Director ?? "")</p>
                                             <p><strong>Bog'lanish uchun shaxs:</strong> @(Model.Forwarder.ContactPerson ?? "")</p>
                                         </div>
@@ -281,13 +281,13 @@
                         </div>
                     }
 
-                    <!-- Recent Waybills -->
+                    <!-- Recent Yo'l varaqalari -->
                     @if (Model.RecentWaybills != null && Model.RecentWaybills.Any())
                     {
                         <div class="col-xl-6 col-md-12 col-12 mt-2">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5>Oxirgi waybilllar</h5>
+                                    <h5>Oxirgi yo'l varaqalari</h5>
                                 </div>
                                 <div class="card-body">
                                     <ul class="list-group">

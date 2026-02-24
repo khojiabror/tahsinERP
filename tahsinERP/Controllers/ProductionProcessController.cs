@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
@@ -9,7 +9,7 @@ namespace tahsinERP.Controllers
 {
     public class ProductionProcessController : Controller
     {
-        // GET: ProductionProcess
+        // Olish so'rovi: ProductionProcess
         public ActionResult Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

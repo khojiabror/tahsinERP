@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
 {
     public class SOrderController : Controller
     {
-        // GET: SOrder | Index - List all orders
+        // Olish so'rovi: SOrder | Index - List barcha orders
         public async Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToListAsync(), "ID", "Name", customerID);
                 ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.ContractNo).ToListAsync(), "ID", "ContractNo", contractID);
                 ViewBag.CurrentPage = currentPage;
@@ -114,7 +114,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Create
+        // Olish so'rovi: yaratish
         [HttpGet]
         public ActionResult Create(int? customerID, int? contractID)
         {
@@ -159,7 +159,7 @@ namespace tahsinERP.Controllers
                 if (contractID.HasValue && contractID.Value > 0)
                 {
                     model.ContractID = contractID.Value;
-                    // Load contract products
+                    // Yuklash contract products
                     LoadContractProducts(model, contractID.Value);
                 }
 
@@ -167,14 +167,14 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Create
+        // POST so'rovi: yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(SOrderViewModel model, FormCollection form)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Parse product quantities from form
+                // Tahlil qilish product quantities dan form
                 model.ProductQuantities = new List<ContractProductQuantity>();
                 var keys = form.AllKeys.Where(k => k != null && k.StartsWith("ProductQuantities[") && k.Contains("].OrderQuantity"));
                 
@@ -218,6 +218,12 @@ namespace tahsinERP.Controllers
                     return View(model);
                 }
 
+                if (!ValidateOrderQuantities(db, model, null))
+                {
+                    SetupViewBagForError(db, model);
+                    return View(model);
+                }
+
                 if (!ModelState.IsValid)
                 {
                     SetupViewBagForError(db, model);
@@ -226,7 +232,7 @@ namespace tahsinERP.Controllers
 
                 try
                 {
-                    // Get CurrencyID from contract
+                    // Olish CurrencyID dan contract
                     int currencyID = 0;
                     if (model.ContractID > 0)
                     {
@@ -237,7 +243,7 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Create order
+                    // Yaratish order
                     var order = new S_ORDERS
                     {
                         OrderNo = model.OrderNo,
@@ -254,7 +260,7 @@ namespace tahsinERP.Controllers
                     db.S_ORDERS.Add(order);
                     db.SaveChanges();
 
-                    // Add products
+                    // Qo'shish products
                     double totalAmount = 0;
                     foreach (var productQty in model.ProductQuantities)
                     {
@@ -295,7 +301,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: GetContractsByCustomer - AJAX
+        // Olish so'rovi: GetContractsByCustomer - AJAX
         [HttpGet]
         public ActionResult GetContractsByCustomer(int customerId)
         {
@@ -315,7 +321,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: GetContractProducts - AJAX
+        // Olish so'rovi: GetContractProducts - AJAX
         [HttpGet]
         public ActionResult GetContractProducts(int contractId)
         {
@@ -343,7 +349,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: DeliverySchedule
+        // Olish so'rovi: DeliverySchedule
         [HttpGet]
         public ActionResult DeliverySchedule(int? orderID)
         {
@@ -373,7 +379,7 @@ namespace tahsinERP.Controllers
                     IssuedDate = order.IssuedDate
                 };
 
-                // Get order products
+                // Olish order products
                 model.OrderProducts = order.S_ORDER_PRODUCTS.Select(p => new OrderProductForSchedule
                 {
                     SOrderProductID = p.ID,
@@ -385,7 +391,7 @@ namespace tahsinERP.Controllers
                     UnitName = p.UNIT?.ShortName ?? ""
                 }).ToList();
 
-                // Calculate planned and shipped quantities
+                // Calculate planned va shipped quantities
                 var scheduleItems = db.SORDER_DELIVERY_SCHEDULE
                     .Where(s => s.SOrderID == orderID)
                     .ToList();
@@ -397,7 +403,7 @@ namespace tahsinERP.Controllers
                     orderProduct.ShippedQuantity = (double)productSchedules.Sum(s => s.QtyShipped);
                 }
 
-                // Get existing schedule items
+                // Olish existing schedule items
                 model.ScheduleItems = scheduleItems.Select(s => new DeliveryScheduleItem
                 {
                     ID = s.ID,
@@ -415,7 +421,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: SaveDeliverySchedule
+        // POST so'rovi: SaveDeliverySchedule
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SaveDeliverySchedule(int orderID, FormCollection form)
@@ -433,7 +439,7 @@ namespace tahsinERP.Controllers
                         return Json(new { success = false, message = "Buyurtma topilmadi" });
                     }
 
-                    // Parse schedule items from form
+                    // Tahlil qilish schedule items dan form
                     var scheduleItems = new List<DeliveryScheduleItem>();
                     var keys = form.AllKeys.Where(k => k != null && k.StartsWith("ScheduleItems[") && k.Contains("].DeliveryDate"));
 
@@ -462,7 +468,7 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Validate quantities don't exceed order quantities
+                    // Tekshirish quantities don't exceed order quantities
                     foreach (var item in scheduleItems.GroupBy(i => i.SOrderProductID))
                     {
                         var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == item.Key);
@@ -476,14 +482,14 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Delete existing schedule items
+                    // O'chirish existing schedule items
                     var existingSchedules = db.SORDER_DELIVERY_SCHEDULE.Where(s => s.SOrderID == orderID).ToList();
                     foreach (var existing in existingSchedules)
                     {
                         db.SORDER_DELIVERY_SCHEDULE.Remove(existing);
                     }
 
-                    // Add new schedule items
+                    // Qo'shish new schedule items
                     foreach (var item in scheduleItems)
                     {
                         var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == item.SOrderProductID);
@@ -498,7 +504,7 @@ namespace tahsinERP.Controllers
                                 QtyPlanned = item.QtyPlanned,
                                 QtyShipped = 0,
                                 StatusCode = "PLANNED",
-                                CreatedByUserID = null, // Set if you have user ID
+                                CreatedByUserID = null, // Set agar you have user ID
                                 CreatedDT = DateTime.Now
                             };
                             db.SORDER_DELIVERY_SCHEDULE.Add(scheduleItem);
@@ -526,7 +532,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Details
+        // Olish so'rovi: Details
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -557,6 +563,7 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 ViewBag.DeliverySchedule = deliverySchedule;
+                ViewBag.DeliveryScheduleCount = deliverySchedule.Count;
 
                 var scheduleSummary = deliverySchedule
                     .GroupBy(d => d.SOrderProductID)
@@ -575,7 +582,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Edit
+        // Olish so'rovi: Edit
         [HttpGet]
         public ActionResult Edit(int? id)
         {
@@ -610,7 +617,7 @@ namespace tahsinERP.Controllers
                 SetupViewBagForEdit(db, model);
                 LoadContractProducts(model, order.ContractID);
 
-                // Set quantities from existing order products
+                // Belgilash quantities dan existing order products
                 foreach (var orderProduct in order.S_ORDER_PRODUCTS)
                 {
                     var contractProduct = model.ProductQuantities.FirstOrDefault(pq => pq.ProductID == orderProduct.ProductID);
@@ -624,14 +631,14 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Edit
+        // POST so'rovi: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, SOrderViewModel model, FormCollection form)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Parse product quantities
+                // Tahlil qilish product quantities
                 model.ProductQuantities = new List<ContractProductQuantity>();
                 var keys = form.AllKeys.Where(k => k != null && k.StartsWith("ProductQuantities[") && k.Contains("].OrderQuantity"));
 
@@ -674,6 +681,12 @@ namespace tahsinERP.Controllers
                     return View(model);
                 }
 
+                if (!ValidateOrderQuantities(db, model, id))
+                {
+                    SetupViewBagForError(db, model);
+                    return View(model);
+                }
+
                 if (!ModelState.IsValid)
                 {
                     SetupViewBagForError(db, model);
@@ -697,7 +710,7 @@ namespace tahsinERP.Controllers
                     order.ContractID = model.ContractID;
                     order.Description = model.Description;
 
-                    // Get CurrencyID from contract
+                    // Olish CurrencyID dan contract
                     if (model.ContractID > 0)
                     {
                         var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
@@ -707,14 +720,14 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Remove existing products
+                    // O'chirish existing products
                     var existingProducts = db.S_ORDER_PRODUCTS.Where(p => p.OrderID == id).ToList();
                     foreach (var product in existingProducts)
                     {
                         db.S_ORDER_PRODUCTS.Remove(product);
                     }
 
-                    // Add updated products
+                    // Qo'shish updated products
                     double totalAmount = 0;
                     foreach (var productQty in model.ProductQuantities)
                     {
@@ -755,7 +768,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Delete
+        // Olish so'rovi: o'chirish
         [HttpGet]
         public ActionResult Delete(int? id)
         {
@@ -769,7 +782,10 @@ namespace tahsinERP.Controllers
                 var order = db.S_ORDERS
                     .Include(o => o.CUSTOMER)
                     .Include(o => o.S_CONTRACTS)
+                    .Include(o => o.CURRENCy1)
                     .Include(o => o.S_ORDER_PRODUCTS)
+                    .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT))
+                    .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.UNIT))
                     .FirstOrDefault(o => o.ID == id && (o.IsDeleted == false || o.IsDeleted == null));
 
                 if (order == null)
@@ -781,7 +797,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Delete
+        // POST so'rovi: o'chirish
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -799,7 +815,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Helper methods
+        // yordamchi methods
         private void LoadContractProducts(SOrderViewModel model, int contractId)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -824,6 +840,80 @@ namespace tahsinERP.Controllers
                     OrderQuantity = 0
                 }).ToList();
             }
+        }
+
+        private bool ValidateOrderQuantities(DBTHSNEntities db, SOrderViewModel model, int? currentOrderId)
+        {
+            if (model == null || model.ContractID <= 0)
+            {
+                ModelState.AddModelError("", "Shartnoma tanlanmagan yoki noto'g'ri.");
+                return false;
+            }
+
+            var productIds = model.ProductQuantities.Select(pq => pq.ProductID).Distinct().ToList();
+            if (!productIds.Any())
+            {
+                ModelState.AddModelError("", "Maxsulotlar topilmadi.");
+                return false;
+            }
+
+            var contractProducts = db.S_CONTRACT_PRODUCTS
+                .Where(cp => cp.ContractID == model.ContractID)
+                .Select(cp => new { cp.ProductID, cp.Amount })
+                .ToList()
+                .ToDictionary(cp => cp.ProductID, cp => cp.Amount);
+
+            var orderedSumsQuery = db.S_ORDER_PRODUCTS
+                .Where(p => p.S_ORDERS.ContractID == model.ContractID &&
+                            (p.S_ORDERS.IsDeleted == false || p.S_ORDERS.IsDeleted == null));
+
+            if (currentOrderId.HasValue)
+            {
+                orderedSumsQuery = orderedSumsQuery.Where(p => p.OrderID != currentOrderId.Value);
+            }
+
+            var orderedSums = orderedSumsQuery
+                .GroupBy(p => p.ProductID)
+                .Select(g => new { ProductID = g.Key, Total = g.Sum(x => x.Amount) })
+                .ToList()
+                .ToDictionary(x => x.ProductID, x => x.Total);
+
+            var productNames = db.PRODUCTS
+                .Where(p => productIds.Contains(p.ID))
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .ToList()
+                .ToDictionary(p => p.ID, p => $"{p.PNo} {p.Name}".Trim());
+
+            var hasErrors = false;
+            foreach (var item in model.ProductQuantities)
+            {
+                if (!contractProducts.TryGetValue(item.ProductID, out var contractAmount))
+                {
+                    var labelMissing = productNames.ContainsKey(item.ProductID) ? productNames[item.ProductID] : $"ProductID={item.ProductID}";
+                    ModelState.AddModelError("", $"{labelMissing} uchun shartnoma miqdori topilmadi.");
+                    hasErrors = true;
+                    continue;
+                }
+
+                var alreadyOrdered = orderedSums.ContainsKey(item.ProductID) ? orderedSums[item.ProductID] : 0d;
+                var remaining = contractAmount - alreadyOrdered;
+                if (remaining < 0)
+                {
+                    remaining = 0;
+                }
+
+                if (item.OrderQuantity > remaining + 0.0001)
+                {
+                    var label = productNames.ContainsKey(item.ProductID) ? productNames[item.ProductID] : $"ProductID={item.ProductID}";
+                    ModelState.AddModelError("",
+                        $"{label} bo'yicha shartnoma miqdori {contractAmount:N2}, " +
+                        $"oldin buyurtma {alreadyOrdered:N2}, qolgan {remaining:N2}. " +
+                        $"Kiritilgan {item.OrderQuantity:N2}.");
+                    hasErrors = true;
+                }
+            }
+
+            return !hasErrors;
         }
 
         private void SetupViewBagForError(DBTHSNEntities db, SOrderViewModel model)

@@ -1,10 +1,10 @@
-﻿using System.Web.Mvc;
+using System.Web.Mvc;
 
 namespace tahsinERP.Controllers
 {
     public class ViewNotAuthorizedController : Controller
     {
-        // GET: ViewNotAuthorized
+        // Olish so'rovi: ViewNotAuthorized
         public ActionResult Index()
         {
             return View();

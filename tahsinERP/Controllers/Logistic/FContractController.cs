@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.EMMA;
+using DocumentFormat.OpenXml.EMMA;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace tahsinERP.Controllers
 {
     public class FContractController : Controller
     {
-        // GET: FContract
+        // Olish so'rovi: FContract
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -68,7 +68,7 @@ namespace tahsinERP.Controllers
                         await db.SaveChangesAsync();
 
                         var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "FContractController", $"{contract.ContractNo} - FContractni yaratdi");
+                        LogHelper.LogToDatabase(userEmail, "FContractController", "Create", $"{contract.ContractNo} - shartnoma yaratildi.");
 
                         return RedirectToAction("Index"); 
                     }
@@ -177,7 +177,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "DefectTypeController", $"{contract.ContractNo} - FContratni tahrirladi");
+                            LogHelper.LogToDatabase(userEmail, "FContractController", "Edit", $"{contract.ContractNo} - shartnoma tahrirlandi.");
 
                             return RedirectToAction("Index");
                         }
@@ -250,7 +250,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "FContractController", $"{contractToDelete.ContractNo} - FContratni o'chirdi");
+                            LogHelper.LogToDatabase(userEmail, "FContractController", "Delete", $"{contractToDelete.ContractNo} - shartnoma o'chirildi.");
 
                             return RedirectToAction("Index");
                         }

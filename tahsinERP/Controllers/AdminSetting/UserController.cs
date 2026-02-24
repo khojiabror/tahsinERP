@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
         private DBTHSNEntities db = new DBTHSNEntities();
         private int userPhotoMaxLength = Convert.ToInt32(ConfigurationManager.AppSettings["photoMaxSize"]);
 
-        // GET: Users
+        // Olish so'rovi: Users
         public async Task<ActionResult> Index(int? roleID, string status)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -82,7 +82,7 @@ namespace tahsinERP.Controllers
 
             try
             {
-                // Check if username already exists
+                // Tekshirish agar username already mavjud
                 var existingUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == userVM.UName && u.IsDeleted != true);
                 if (existingUser != null)
                 {
@@ -108,13 +108,13 @@ namespace tahsinERP.Controllers
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimga qo'shdi");
 
-                // Assign role using raw SQL (USERROLES is read-only in EF)
+                // Assign role foydalanib raw SQL (USERROLES is read-faqat in EF)
                 if (userVM.RoleID > 0)
                 {
                     var selectedRole = await db.ROLES.FindAsync(userVM.RoleID);
                     if (selectedRole != null && (selectedRole.RName != "Developer" || selectedRole.ID != 1))
                     {
-                        // Insert user role using raw SQL
+                        // Insert user role foydalanib raw SQL
                         await db.Database.ExecuteSqlCommandAsync(
                             "INSERT INTO USERROLES (UserID, RoleID) VALUES (@p0, @p1)",
                             user.ID, userVM.RoleID);
@@ -228,7 +228,7 @@ namespace tahsinERP.Controllers
                 return HttpNotFound();
             }
 
-            // Check if username already exists (excluding current user)
+            // Tekshirish agar username already mavjud (excluding current user)
             var existingUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == uvm.UName && u.ID != ID && u.IsDeleted != true);
             if (existingUser != null)
             {
@@ -244,7 +244,7 @@ namespace tahsinERP.Controllers
 
             try
             {
-                // Update password only if provided
+                // Yangilash password faqat agar provided
                 if (!string.IsNullOrWhiteSpace(uvm.Password))
                 {
                     var keyNew = Helper.GeneratePassword(10);
@@ -258,7 +258,7 @@ namespace tahsinERP.Controllers
                 userToUpdate.Email = uvm.Email;
                 userToUpdate.IsActive = uvm.IsActive;
 
-                // Update role using raw SQL (USERROLES is read-only in EF)
+                // Yangilash role foydalanib raw SQL (USERROLES is read-faqat in EF)
                 var userWithRoles = await db.USERS.Include(u => u.ROLES).FirstOrDefaultAsync(u => u.ID == ID);
                 if (userWithRoles != null)
                 {
@@ -270,7 +270,7 @@ namespace tahsinERP.Controllers
                             var selectedRole = await db.ROLES.FindAsync(uvm.RoleID);
                             if (selectedRole != null && (selectedRole.RName != "Developer" || selectedRole.ID != 1))
                             {
-                                // Delete existing user roles using raw SQL
+                                // O'chirish existing user roles foydalanib raw SQL
                                 if (currentRole != null)
                                 {
                                     await db.Database.ExecuteSqlCommandAsync(
@@ -278,7 +278,7 @@ namespace tahsinERP.Controllers
                                         ID, currentRole.ID);
                                 }
 
-                                // Insert new user role using raw SQL
+                                // Insert new user role foydalanib raw SQL
                                 await db.Database.ExecuteSqlCommandAsync(
                                     "INSERT INTO USERROLES (UserID, RoleID) VALUES (@p0, @p1)",
                                     ID, uvm.RoleID);
@@ -286,7 +286,7 @@ namespace tahsinERP.Controllers
                         }
                         else if (currentRole != null)
                         {
-                            // Remove role if RoleID is 0 or invalid
+                            // O'chirish role agar RoleID is 0 yoki invalid
                             await db.Database.ExecuteSqlCommandAsync(
                                 "DELETE FROM USERROLES WHERE UserID = @p0 AND RoleID = @p1",
                                 ID, currentRole.ID);

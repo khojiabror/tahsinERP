@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
 {
     public class TasksController : Controller
     {
-        // GET: Tasks
+        // Olish so'rovi: Tasks
         public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, string sortOrder, int? page, int? pageSize, bool? showOverdue)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -124,7 +124,7 @@ namespace tahsinERP.Controllers
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // Convert to ViewModels
+                // Aylantirish ga ViewModels
                 var taskViewModels = tasks.Select(t => new TaskViewModel
                 {
                     ID = t.ID,
@@ -146,7 +146,7 @@ namespace tahsinERP.Controllers
                     ProjectName = t.APP_TASK_PROJECTS?.Name
                 }).ToList();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName", assigneeUserID);
                 ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", statusID);
                 ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name", priorityID);
@@ -166,7 +166,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Tasks/Details/5
+        // Olish so'rovi: Tasks/Details/5
         public async Task<ActionResult> Details(long? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -243,7 +243,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Tasks/Create
+        // Olish so'rovi: Tasks/yaratish
         public async Task<ActionResult> Create(int? projectID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -261,7 +261,7 @@ namespace tahsinERP.Controllers
                     ProjectID = projectID
                 };
 
-                // Get default TODO status
+                // Olish standart TODO holat
                 var todoStatus = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "TODO" && s.IsActive);
                 if (todoStatus != null)
                 {
@@ -277,7 +277,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Tasks/Create
+        // POST so'rovi: Tasks/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(TaskViewModel viewModel)
@@ -307,7 +307,7 @@ namespace tahsinERP.Controllers
                             IsDeleted = false
                         };
 
-                        // Generate KeyCode if not provided
+                        // Yaratish KeyCode agar not provided
                         if (string.IsNullOrEmpty(viewModel.KeyCode))
                         {
                             var projectCode = viewModel.ProjectID.HasValue 
@@ -356,7 +356,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
@@ -368,7 +368,7 @@ namespace tahsinERP.Controllers
             return View(viewModel);
         }
 
-        // GET: Tasks/Edit/5
+        // Olish so'rovi: Tasks/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -427,7 +427,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Tasks/Edit/5
+        // POST so'rovi: Tasks/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(TaskViewModel viewModel)
@@ -478,11 +478,11 @@ namespace tahsinERP.Controllers
                         task.ProjectID = viewModel.ProjectID;
                         task.UpdatedDT = DateTime.Now;
 
-                        // If status changed to DONE, set CompletedDT
+                        // agar holat changed ga DONE, set CompletedDT
                         var doneStatus = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "DONE" && s.IsActive);
                         if (doneStatus != null && task.StatusID == doneStatus.ID && !task.UpdatedDT.HasValue)
                         {
-                            // Status is now DONE
+                            // holat is now DONE
                         }
 
                         db.Entry(task).State = EntityState.Modified;
@@ -506,7 +506,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
@@ -518,7 +518,7 @@ namespace tahsinERP.Controllers
             return View(viewModel);
         }
 
-        // POST: Tasks/Delete/5
+        // POST so'rovi: Tasks/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(long id)
@@ -536,7 +536,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Soft delete - set status to CANCELLED if possible, otherwise just mark as deleted
+                // Soft o'chirish - set holat ga CANCELLED agar possible, otherwise just mark as deleted
                 var cancelledStatus = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "CANCELLED" && s.IsActive);
                 if (cancelledStatus != null)
                 {

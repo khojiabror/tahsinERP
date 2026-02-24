@@ -1,6 +1,7 @@
 @{
-    ViewBag.Title = "Waybill Excel import";
+    ViewBag.Title = "Yo'l varaqasi Excel yuklash";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var T = tahsinERP.Services.LogisticsTerms;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -18,9 +19,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Waybill/Index">Yo'l varaqalari</a>
+                                        <a href="~/Waybill/Index">@T.Waybills</a>
                                     </li>
-                                    <li class="breadcrumb-item active">Excel orqali import</li>
+                                    <li class="breadcrumb-item active">Excel orqali yuklash</li>
                                 </ol>
                             </div>
                         </div>
@@ -36,7 +37,7 @@
                                 <div class="card-body">
                                     <h4 class="card-title">Excel fayl yuklash</h4>
                                     <p class="text-muted">
-                                        Birinchi satrda ustun nomlari bo'lishi kerak. Majburiy ustunlar: <b>WaybillNo</b>, <b>IssueDate</b>, <b>ContractID/ContractNo</b>, <b>TransportTypeID/TransportType</b>.
+                                        Birinchi satrda ustun nomlari bo'lishi kerak. Majburiy ustunlar: <b>@T.Waybill raqami (WaybillNo)</b>, <b>Sana (IssueDate)</b>, <b>Shartnoma (ContractID/ContractNo)</b>, <b>Transport turi (TransportTypeID/TransportType)</b>.
                                     </p>
 
                                     @if (ViewBag.Error != null)
@@ -65,7 +66,7 @@
                                     }
 
                                     <a class="btn btn-outline-primary mb-1" href="@Url.Action("DownloadTemplate", "Waybill")">
-                                        <i class="bx bx-download"></i> Template yuklab olish
+                                        <i class="bx bx-download"></i> Namuna faylni yuklab olish
                                     </a>
 
                                     @using (Html.BeginForm("UploadExcel", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
@@ -92,21 +93,21 @@
                                     <h5>Excel ustunlari</h5>
                                     <p class="text-muted">Quyidagi ustun nomlarini birinchi qatorga yozing.</p>
                                     <ul class="mb-0">
-                                        <li>WaybillNo *</li>
-                                        <li>IssueDate *</li>
-                                        <li>Direction (0/1/2 yoki Kirim/Chiqim/Ichki)</li>
-                                        <li>ForwarderID yoki ForwarderName</li>
-                                        <li>ContractID yoki ContractNo</li>
-                                        <li>TransportTypeID yoki TransportType</li>
-                                        <li>FromLocation, ToLocation, DistanceKm</li>
-                                        <li>GrWeight, NetWeight, CBM, PalletsCount</li>
-                                        <li>FreightBasis (0/1/2/3)</li>
-                                        <li>Rate, Amount, CurrencyID yoki Currency</li>
-                                        <li>PayerType, PayerID</li>
-                                        <li>InvoiceID, SalesInvoiceID, SalesOrderID, PurchaseOrderID, TTNKID</li>
-                                        <li>TruckNo, TrailerNo, TruckModel, TrailerModel</li>
-                                        <li>DriverName, DriverPINFL</li>
-                                        <li>PlannedDeliveryDate, ActualDeliveryDate</li>
+                                        <li>@T.Waybill raqami (WaybillNo) *</li>
+                                        <li>Sana (IssueDate) *</li>
+                                        <li>Yo'nalish (Direction: 0/1/2 yoki Kiruvchi/Chiquvchi/Ichki)</li>
+                                        <li>@T.Forwarder (ForwarderID yoki ForwarderName)</li>
+                                        <li>Shartnoma (ContractID yoki ContractNo)</li>
+                                        <li>Transport turi (TransportTypeID yoki TransportType)</li>
+                                        <li>Qayerdan, Qayerga, Masofa (FromLocation, ToLocation, DistanceKm)</li>
+                                        <li>Brut/Net vazn, CBM, Palletlar soni (GrWeight, NetWeight, CBM, PalletsCount)</li>
+                                        <li>Tarif asosi (FreightBasis: 0/1/2/3)</li>
+                                        <li>Tarif stavkasi, summa va valyuta (Rate, Amount, CurrencyID yoki Currency)</li>
+                                        <li>To'lovchi turi va ID (PayerType, PayerID)</li>
+                                        <li>Bog'langan hujjatlar (InvoiceID, SalesInvoiceID, SalesOrderID, PurchaseOrderID, TTNKID)</li>
+                                        <li>Mashina/treyler (TruckNo, TrailerNo, TruckModel, TrailerModel)</li>
+                                        <li>Haydovchi (DriverName, DriverPINFL)</li>
+                                        <li>Yetkazish sanalari (PlannedDeliveryDate, ActualDeliveryDate)</li>
                                         <li>Description, ManualCorrectionReason</li>
                                     </ul>
                                 </div>

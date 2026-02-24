@@ -84,7 +84,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="inventoryTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="inventoryTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Ombor</th>
@@ -148,6 +148,32 @@
                         text: '<i class="bx bxs-file-excel"></i> Excel',
                         titleAttr: 'Excelga yuklash',
                         className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() +
+                                String(now.getMonth() + 1).padStart(2, '0') +
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') +
+                                String(now.getMinutes()).padStart(2, '0') +
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Ombor_qoldiqlari_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: ':visible',
+                            format: {
+                                body: function (data) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
                         filename: function () {
                             var now = new Date();
                             var dateStr = now.getFullYear() +

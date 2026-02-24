@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.SRM
     /// </summary>
     public class ProductionControlController : Controller
     {
-        // GET: ProductionControl/MissingMaterials
+        // Olish so'rovi: ProductionControl/MissingMaterials
         public async Task<ActionResult> MissingMaterials()
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionControl", "MissingMaterials"))
@@ -29,7 +29,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: ProductionControl/CheckAvailability
+        // Olish so'rovi: ProductionControl/CheckAvailability
         [HttpGet]
         public async Task<JsonResult> CheckAvailability(int planId)
         {
@@ -50,13 +50,13 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Checks stock availability for all active production plans
+        /// Checks stock availability uchun barcha faol production plans
         /// </summary>
         private async Task<List<StockAvailabilityAlert>> CheckStockAvailabilityForPlansAsync(DBTHSNEntities db)
         {
             var alerts = new List<StockAvailabilityAlert>();
 
-            // Get all active production plans
+            // Olish barcha faol production plans
             var plans = await db.PRODUCTPLANS
                 .Include(p => p.PRODUCT)
                 .Where(p => p.IsDeleted == false && 
@@ -64,7 +64,7 @@ namespace tahsinERP.Controllers.SRM
                            p.DueDate >= DateTime.Now)
                 .ToListAsync();
 
-            // Get Production warehouse
+            // Olish Production warehouse
             var productionWarehouse = db.WAREHOUSES
                 .FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
 
@@ -90,7 +90,7 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Checks stock availability for a specific plan
+        /// Checks stock availability uchun a specific plan
         /// </summary>
         private async Task<List<StockAvailabilityAlert>> CheckStockAvailabilityForPlanAsync(
             PRODUCTPLAN plan, 
@@ -120,11 +120,11 @@ namespace tahsinERP.Controllers.SRM
                 consumptionService = new ProductionConsumptionService(db);
             }
 
-            // Calculate required materials for the plan
+            // Calculate majburiy materials uchun the plan
             var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
                 plan.ProductID, plan.Amount);
 
-            // Check stock availability
+            // Tekshirish stock availability
             foreach (var req in requirements)
             {
                 var stock = await db.PRODUCT_STOCKS

@@ -1,7 +1,9 @@
 @model List<tahsinERP.Models.F_WAYBILL_PAYMENTS>
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Yo'l varaqasi to'lovlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var T = tahsinERP.Services.LogisticsTerms;
+    var linkedWaybillMap = ViewBag.LinkedWaybillMap as IDictionary<int, string>;
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -22,11 +24,11 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item ">
-                                        Sahifalar
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Waybill/Index">@T.Waybills</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        AKT To'lovlari
+                                        @T.Waybill to'lovlari
                                     </li>
                                 </ol>
                             </div>
@@ -41,7 +43,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/WaybillPayment/Create';">
-                                <span class="align-middle ml-25">Buyurtma to'lovini qo'shish</span>
+                                <i class="bx bx-plus"></i> Yangi to'lov
                             </button>
                         </div>
                     }
@@ -55,17 +57,17 @@
                                             <thead>
                                                 <tr>
                                                     <th>To'liq ma'lumot</th>
-                                                    <th>Waybill raqam</th>
-                                                    <th>Forwarder</th>
+                                                    <th>@T.Waybill lar</th>
+                                                    <th>@T.Forwarder</th>
                                                     <th>To'lov sanasi</th>
                                                     <th>Miqdori</th>
-                                                    <th>Waybill summasi</th>
+                                                    <th>@T.Waybill summasi</th>
                                                     <th>Qoldiq</th>
                                                     <th>Pul birligi</th>
                                                     <th>Izoh</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>amallar</th>
+                                                        <th>Amallar</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -79,14 +81,21 @@
                                                         <td>
                                                             <a href="~/WaybillPayment/Details/@item.ID">@item.ID</a>
                                                         </td>
-                                                        <td><a href="~/Waybill/Details/@item.WaybillID">@item.F_WAYBILLS.WaybillNo</a></td>
-                                                        <td><a href="~/Forwarder/Details/@item.ForwarderID">@item.FORWARDER.ForwarderName</a></td>
+                                                        <td>
+                                                            @{
+                                                                var waybillText = linkedWaybillMap != null && linkedWaybillMap.ContainsKey(item.ID)
+                                                                    ? linkedWaybillMap[item.ID]
+                                                                    : (item.F_WAYBILLS != null ? item.F_WAYBILLS.WaybillNo : "");
+                                                            }
+                                                            @waybillText
+                                                        </td>
+                                                        <td><a href="~/Forwarder/Details/@item.ForwarderID">@(item.FORWARDER != null ? item.FORWARDER.ForwarderName : "")</a></td>
                                                         <td>@(item.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
                                                         <td>@item.Payment_Amount</td>
                                                         <td>@(waybill?.Amount?.ToString("N2") ?? "")</td>
                                                         <td>@outstanding.ToString("N2")</td>
-                                                        <td>@item.CURRENCy.Shortname</td>
-                                                        <td>@item.Comment</td>
+                                                        <td>@(item.CURRENCy != null ? item.CURRENCy.Shortname : "")</td>
+                                                        <td>@(item.Comment ?? "")</td>
                                                         @if (changePermit)
                                                         {
                                                             <td>

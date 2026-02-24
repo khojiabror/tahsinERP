@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.ProductNormViewModel
+@model tahsinERP.ViewModels.ProductNormViewModel
 @{
     ViewBag.Title = "Norma kiritish Tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -467,9 +467,6 @@ else
                     row.data('manual-waste', true);
                     recalculateRow(row, { preserveWaste: true });
                 } else {
-                    if ($(this).hasClass('length-input') || $(this).hasClass('quantity-input')) {
-                        row.data('manual-waste', false);
-                    }
                     recalculateRow(row);
                 }
                 recalculateTotals();

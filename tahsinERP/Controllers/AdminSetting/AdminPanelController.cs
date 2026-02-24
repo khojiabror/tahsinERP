@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +15,7 @@ namespace tahsinERP.Controllers
     {
         private readonly DBTHSNEntities db = new DBTHSNEntities();
 
-        // GET: AdminPanel
+        // Olish so'rovi: AdminPanel
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -72,7 +72,7 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
-        // GET: AdminPanel/Users
+        // Olish so'rovi: AdminPanel/Users
         public async Task<ActionResult> Users()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -89,7 +89,7 @@ namespace tahsinERP.Controllers
             return View(users);
         }
 
-        // GET: AdminPanel/Roles
+        // Olish so'rovi: AdminPanel/Roles
         public async Task<ActionResult> Roles()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -104,7 +104,7 @@ namespace tahsinERP.Controllers
             return View(roles);
         }
 
-        // GET: AdminPanel/Permissions/{roleId}
+        // Olish so'rovi: AdminPanel/Permissions/{roleId}
         public async Task<ActionResult> Permissions(int? roleId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -154,7 +154,7 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
-        // POST: AdminPanel/SavePermissions
+        // POST so'rovi: AdminPanel/SavePermissions
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SavePermissions(PermissionManagementViewModel model)
@@ -181,7 +181,7 @@ namespace tahsinERP.Controllers
                     {
                         existingPermission.ViewPermit = moduleVm.ViewPermit;
                         existingPermission.ChangePermit = moduleVm.ChangePermit;
-                        existingPermission.DeletePermit = false; // Default value
+                        existingPermission.DeletePermit = false; // standart value
                     }
                     else
                     {
@@ -191,7 +191,7 @@ namespace tahsinERP.Controllers
                             PermissionModuleID = moduleVm.ModuleId,
                             ViewPermit = moduleVm.ViewPermit,
                             ChangePermit = moduleVm.ChangePermit,
-                            DeletePermit = false // Default value
+                            DeletePermit = false // standart value
                         });
                     }
                 }
@@ -212,7 +212,7 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Permissions", new { roleId = model.RoleId });
         }
 
-        // GET: AdminPanel/Logs
+        // Olish so'rovi: AdminPanel/Logs
         public async Task<ActionResult> Logs(int page = 1, int pageSize = 50)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -235,7 +235,7 @@ namespace tahsinERP.Controllers
             return View(logs);
         }
 
-        // GET: AdminPanel/UserEntries
+        // Olish so'rovi: AdminPanel/UserEntries
         public async Task<ActionResult> UserEntries(int page = 1, int pageSize = 50)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))

@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.ProductNormViewModel
+@model tahsinERP.ViewModels.ProductNormViewModel
 @{
     ViewBag.Title = "Norma kiritish - Ko'rish";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -290,23 +290,29 @@
                             // Configure PDF options
                             var productCode = '@(Model?.ProductCode ?? "Norm")';
                             var period = '@(Model?.Period ?? DateTime.Now.ToString("yyyy-MM"))';
+                            var orientation = (window.erpExportHelpers && window.erpExportHelpers.getOrientationByElementSize)
+                                ? window.erpExportHelpers.getOrientationByElementSize(element)
+                                : 'portrait';
                             
                             var opt = {
-                                margin: [10, 10, 10, 10],
+                                margin: [8, 8, 8, 8],
                                 filename: 'Norm_' + productCode + '_' + period + '.pdf',
                                 image: { type: 'jpeg', quality: 0.98 },
                                 html2canvas: { 
                                     scale: 2, 
                                     useCORS: true,
                                     logging: false,
-                                    windowWidth: element.scrollWidth,
-                                    windowHeight: element.scrollHeight
+                                    scrollX: 0,
+                                    scrollY: 0,
+                                    windowWidth: Math.max(element.scrollWidth, element.offsetWidth, document.body.scrollWidth),
+                                    windowHeight: Math.max(element.scrollHeight, element.offsetHeight, document.body.scrollHeight)
                                 },
                                 jsPDF: { 
                                     unit: 'mm', 
                                     format: 'a4', 
-                                    orientation: 'portrait' 
-                                }
+                                    orientation: orientation
+                                },
+                                pagebreak: { mode: ['css', 'legacy'] }
                             };
                             
                             // Generate PDF

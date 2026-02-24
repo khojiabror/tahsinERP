@@ -10,7 +10,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinAccountsController : Controller
     {
-        // GET: FinAccounts
+        // Olish so'rovi: FinAccounts
         public ActionResult Index(string searchTerm, int? currencyID, string accountType, string sortOrder, int? page, int? pageSize)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
@@ -24,7 +24,7 @@ namespace tahsinERP.Controllers.Finance
                     .Include(a => a.CURRENCy)
                     .Where(a => a.IsActive);
 
-                // Search filter
+                // Search filtrlash
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     query = query.Where(a =>
@@ -33,13 +33,13 @@ namespace tahsinERP.Controllers.Finance
                         (a.OwnerName != null && a.OwnerName.Contains(searchTerm)));
                 }
 
-                // Currency filter
+                // Currency filtrlash
                 if (currencyID.HasValue)
                 {
                     query = query.Where(a => a.CurrencyID == currencyID.Value);
                 }
 
-                // Account type filter
+                // Account type filtrlash
                 if (!string.IsNullOrEmpty(accountType))
                 {
                     if (accountType == "Cash")
@@ -80,7 +80,7 @@ namespace tahsinERP.Controllers.Finance
                     .Take(pageSize.Value)
                     .ToList();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.CurrencyList = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", currencyID);
                 ViewBag.AccountTypeList = new SelectList(new[] {
                     new { Value = "", Text = "Barcha" },
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinAccounts/Details/5
+        // Olish so'rovi: FinAccounts/Details/5
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
@@ -132,14 +132,14 @@ namespace tahsinERP.Controllers.Finance
                     account.USER = db.USERS.Find(account.CreatedByUserID);
                 }
 
-                // Get transaction count
+                // Olish transaction count
                 ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.AccountID == id);
 
                 return View(account);
             }
         }
 
-        // GET: FinAccounts/Create
+        // Olish so'rovi: FinAccounts/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
@@ -160,7 +160,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinAccounts/Create
+        // POST so'rovi: FinAccounts/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_ACCOUNTS account)
@@ -172,7 +172,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Check code uniqueness
+                // Tekshirish code uniqueness
                 if (db.FIN_ACCOUNTS.Any(a => a.Code == account.Code && a.IsActive))
                 {
                     ModelState.AddModelError("Code", "Bu kod bilan hisob allaqachon mavjud.");
@@ -203,7 +203,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinAccounts/Edit/5
+        // Olish so'rovi: FinAccounts/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
@@ -235,7 +235,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinAccounts/Edit/5
+        // POST so'rovi: FinAccounts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_ACCOUNTS account)
@@ -247,7 +247,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Check code uniqueness (excluding current record)
+                // Tekshirish code uniqueness (excluding current record)
                 if (db.FIN_ACCOUNTS.Any(a => a.Code == account.Code && a.ID != account.ID && a.IsActive))
                 {
                     ModelState.AddModelError("Code", "Bu kod bilan hisob allaqachon mavjud.");
@@ -285,7 +285,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinAccounts/Delete/5
+        // Olish so'rovi: FinAccounts/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
@@ -309,14 +309,14 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Check if account has transactions
+                // Tekshirish agar account has transactions
                 ViewBag.HasTransactions = db.FIN_TRANSACTIONS.Any(t => t.AccountID == id);
 
                 return View(account);
             }
         }
 
-        // POST: FinAccounts/Delete/5
+        // POST so'rovi: FinAccounts/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -331,7 +331,7 @@ namespace tahsinERP.Controllers.Finance
                 var account = db.FIN_ACCOUNTS.Find(id);
                 if (account != null)
                 {
-                    // Soft delete
+                    // Soft o'chirish
                     account.IsActive = false;
                     db.SaveChanges();
 
@@ -342,7 +342,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinAccounts/Transactions/5
+        // Olish so'rovi: FinAccounts/Transactions/5
         public ActionResult Transactions(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))

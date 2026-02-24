@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Balans";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var balanceData = ViewBag.BalanceData as List<tahsinERP.Controllers.Finance.BalanceCategoryData> ?? new List<tahsinERP.Controllers.Finance.BalanceCategoryData>();
@@ -88,9 +88,12 @@
                                                     <tbody>
                                                         @foreach (var item in balanceData.Where(b => b.Category.Type == 2 || b.Category.Type == 3))
                                                         {
+                                                            var displayAmount = item.Category.Type == 2
+                                                                ? -Math.Abs(item.Amount)
+                                                                : item.Amount;
                                                             <tr>
                                                                 <td>@item.Category.Name</td>
-                                                                <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                                <td class="text-right">@displayAmount.ToString("N2")</td>
                                                             </tr>
                                                         }
                                                     </tbody>
@@ -98,9 +101,14 @@
                                                         <tr>
                                                             <th>Jami passivlar va kapital:</th>
                                                             <th class="text-right">
+                                                                @{
+                                                                    var totalDisplay = balanceData
+                                                                        .Where(b => b.Category.Type == 2 || b.Category.Type == 3)
+                                                                        .Sum(b => b.Category.Type == 2 ? -Math.Abs(b.Amount) : b.Amount);
+                                                                }
                                                                 <a style="text-decoration: underline;"
                                                                    href="@Url.Action("BalanceSheetLiabilityDetails", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">
-                                                                    @balanceData.Where(b => b.Category.Type == 2 || b.Category.Type == 3).Sum(b => b.Amount).ToString("N2")
+                                                                    @totalDisplay.ToString("N2")
                                                                 </a>
                                                             </th>
                                                         </tr>

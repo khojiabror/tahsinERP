@@ -1,6 +1,6 @@
-﻿@model tahsinERP.Models.S_CONTRACTS
+@model tahsinERP.Models.S_CONTRACTS
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Batafsil";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var type = ViewBag.Type;
 }
@@ -68,12 +68,17 @@
                                                 <b>Amal qilish sanasi</b>: @Model.DueDate.ToString("dd.MM.yyyy")
                                             </span>
                                             <hr />
+                                            @{
+                                                var totalAmount = ViewBag.ContractedTotal as double? ?? 0d;
+                                            }
                                             <span>
-                                                <b>Umumiy summasi</b>: @Html.DisplayFor(model => model.Amount, new { @class = "form-control" })
+                                                <b>Umumiy summasi</b>:
+                                                <span class="text-success font-weight-bold">
+                                                    @totalAmount.ToString("N2")
+                                                </span>
                                             </span>
                                             <hr />
                                             @{
-                                                var totalAmount = Model.Amount ?? 0d;
                                                 var baseAmount = totalAmount / 1.12d;
                                                 var vatAmount = totalAmount - baseAmount;
                                             }
@@ -251,17 +256,17 @@
                                                                 <td>Buyurtma bo'yicha</td>
                                                                 <td>@orderedTotal.ToString("N2")</td>
                                                                 <td>
-                                                                    @if (orderedTotal > contractedTotal)
+                                                                    @if (orderedTotal <= 0)
                                                                     {
-                                                                        <span class="badge badge-warning">Oshib ketgan</span>
+                                                                        <span class="badge badge-danger">Bajarilmadi</span>
                                                                     }
-                                                                    else if (orderedTotal == contractedTotal)
+                                                                    else if (orderedTotal >= contractedTotal)
                                                                     {
-                                                                        <span class="badge badge-success">To'liq</span>
+                                                                        <span class="badge badge-success">To'liq bajarildi</span>
                                                                     }
                                                                     else
                                                                     {
-                                                                        <span class="badge badge-info">Qisman</span>
+                                                                        <span class="badge badge-warning">Qisman bajarildi</span>
                                                                     }
                                                                 </td>
                                                             </tr>
@@ -269,17 +274,17 @@
                                                                 <td>Invoys bo'yicha</td>
                                                                 <td>@invoicedTotal.ToString("N2")</td>
                                                                 <td>
-                                                                    @if (invoicedTotal > (decimal)orderedTotal)
+                                                                    @if (invoicedTotal <= 0)
                                                                     {
-                                                                        <span class="badge badge-warning">Oshib ketgan</span>
+                                                                        <span class="badge badge-danger">Bajarilmadi</span>
                                                                     }
-                                                                    else if (invoicedTotal == (decimal)orderedTotal)
+                                                                    else if (invoicedTotal >= (decimal)contractedTotal)
                                                                     {
-                                                                        <span class="badge badge-success">To'liq</span>
+                                                                        <span class="badge badge-success">To'liq bajarildi</span>
                                                                     }
                                                                     else
                                                                     {
-                                                                        <span class="badge badge-info">Qisman</span>
+                                                                        <span class="badge badge-warning">Qisman bajarildi</span>
                                                                     }
                                                                 </td>
                                                             </tr>

@@ -1,6 +1,6 @@
-﻿@model  tahsinERP.Models.FORWARDER
+@model  tahsinERP.Models.FORWARDER
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "Yuk tashuvchini o'chirish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item ">
-                                        <a href="~/Forwarder">Forwarder lar</a>
+                                        <a href="~/Forwarder">Yuk tashuvchilar</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Forwarderni o'chirish
+                                        Yuk tashuvchini o'chirish
                                     </li>
                                 </ol>
                             </div>
@@ -39,10 +39,10 @@
                                     <div class="row invoice-info">
                                         <div class="col-lg-12 col-md-6 mt-25">
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                            <h4 class="text-primary">Forwarder ma'lumotlari</h4>
+                                            <h4 class="text-primary">Yuk tashuvchi ma'lumotlari</h4>
                                             <br />
                                             <hr />
-                                            <span><b>Forwarder raqami</b>: @Html.DisplayFor(model => model.ForwarderName)</span>
+                                            <span><b>Yuk tashuvchi nomi</b>: @Html.DisplayFor(model => model.ForwarderName)</span>
                                             <br />
                                             <hr />
                                             <span><b>Direktor</b>: @Html.DisplayFor(model => model.Director)</span>
@@ -62,7 +62,7 @@
                                             @using (Html.BeginForm("Delete", "Forwarder", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu Invoice o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu yuk tashuvchini o\'chirishga ishonchingiz komilmi?')">
                                                     <i class='bx bx-trash'></i>
                                                     O'chirish
                                                 </button>

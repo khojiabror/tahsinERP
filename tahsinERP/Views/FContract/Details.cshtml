@@ -1,7 +1,7 @@
-﻿@model tahsinERP.Models.F_CONTRACTS
+@model tahsinERP.Models.F_CONTRACTS
 
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Shartnoma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -42,14 +42,14 @@
 
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <h4 class="text-primary">FContract malumotlari</h4>
+                                            <h4 class="text-primary">Shartnoma ma'lumotlari</h4>
                                             <hr>
 
                                             <div class="row my-2 py-50">
                                                 <div class="col-sm-12 col-12 order-2 order-sm-1">
                                                     <span><b>Shartnoma raqami</b>: @Html.DisplayFor(model => model.ContractNo, new { @class = "form-control" })</span>
                                                     <hr />
-                                                    <span><b>Forwarder</b>: @Html.DisplayFor(model => model.FORWARDER.ForwarderName, new { @class = "form-control" })</span>
+                                                    <span><b>@tahsinERP.Services.LogisticsTerms.Forwarder</b>: @Html.DisplayFor(model => model.FORWARDER.ForwarderName, new { @class = "form-control" })</span>
                                                     <hr />
                                                     <span><b>Belgilangan sanasi</b>:   @Model.IssueDate.ToString("dd.MM.yyyy")</span>
                                                     <hr />
@@ -75,11 +75,11 @@
                                                         <table class="table table-striped">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>Transport</th>
+                                                                    <th>Transport turi</th>
                                                                     <th>Qayerdan</th>
                                                                     <th>Qayerga</th>
-                                                                    <th>Basis</th>
-                                                                    <th>Rate</th>
+                                                                    <th>@tahsinERP.Services.LogisticsTerms.TariffBasis</th>
+                                                                    <th>@tahsinERP.Services.LogisticsTerms.TariffRate</th>
                                                                     <th>Valyuta</th>
                                                                     <th>Faol</th>
                                                                 </tr>

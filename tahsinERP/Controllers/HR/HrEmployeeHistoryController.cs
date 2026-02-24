@@ -11,7 +11,7 @@ using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
 {
-    // Helper class for raw SQL queries
+    // yordamchi class uchun raw SQL queries
     public class DateInfo
     {
         public DateTime EffectiveDateFrom { get; set; }
@@ -31,7 +31,7 @@ namespace tahsinERP.Controllers.HR
             tenureService = new EmployeeTenureService(db);
         }
 
-        // GET: HR/EmployeeHistory/Index (Xodimlar staji)
+        // Olish so'rovi: HR/EmployeeHistory/Index (Xodimlar staji)
         public async Task<ActionResult> Index(int? orgUnitId, int? positionId, DateTime? fromDate, DateTime? toDate, string status = null)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
@@ -39,12 +39,12 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Get all employees (for filtering by status and including employees without history)
+            // Olish barcha employees (uchun filtering bo'yicha holat va including employees without history)
             IQueryable<HR_EMPLOYEES> employeesQuery = db.HR_EMPLOYEES
                 .Include(e => e.HR_ORG_UNITS)
                 .Include(e => e.HR_POSITIONS);
 
-            // Apply status filter at query level
+            // Apply holat filtrlash at query level
             if (status == "active")
             {
                 employeesQuery = employeesQuery.Where(e => e.IsActive);
@@ -57,7 +57,7 @@ namespace tahsinERP.Controllers.HR
             var allEmployees = await employeesQuery.ToListAsync();
             var employeeIds = allEmployees.Select(e => e.ID).ToList();
 
-            // Get all employee history records - using Include for navigation properties
+            // Olish barcha employee history records - foydalanib Include uchun navigation properties
             var allHistory = await db.HR_EMPLOYEE_HISTORY
                 .Include(h => h.HR_EMPLOYEES)
                 .Include(h => h.HR_ORG_UNITS)
@@ -67,10 +67,10 @@ namespace tahsinERP.Controllers.HR
                 .ThenBy(h => h.EffectiveDateFrom)
                 .ToListAsync();
 
-            // Group by EmployeeID - include employees even if they have no history
+            // Group by EmployeeID - include employees even agar they have no history
             var historyEmployeeIds = allHistory.Select(h => h.EmployeeID).Distinct().ToList();
             
-            // Add employees without history records
+            // Qo'shish employees without history records
             var employeesWithoutHistory = allEmployees
                 .Where(e => !historyEmployeeIds.Contains(e.ID))
                 .Select(e => new
@@ -111,13 +111,13 @@ namespace tahsinERP.Controllers.HR
                 if (!shouldInclude)
                     continue;
 
-                // Calculate total tenure for this employee
+                // Calculate total tenure uchun this employee
                 var totalTenure = await tenureService.CalculateTotalTenureAsync(group.EmployeeID);
 
                 // Build position history list
                 var positions = new List<HrEmployeeHistoryViewModel>();
                 
-                // If employee has no history records but is active, add current position
+                // agar employee has no history records but is faol, add current position
                 if (!group.HistoryRecords.Any() && group.Employee != null && group.Employee.IsActive && group.Employee.EmploymentDate.HasValue)
                 {
                     var currentTenure = tenureService.CalculateTenure(
@@ -133,7 +133,7 @@ namespace tahsinERP.Controllers.HR
                         FromOrgUnitName = group.Employee.HR_ORG_UNITS?.Name,
                         FromPositionName = group.Employee.HR_POSITIONS?.Name,
                         EffectiveDate = group.Employee.EmploymentDate.Value,
-                        EffectiveDateTo = null, // Still active
+                        EffectiveDateTo = null, // Still faol
                         Reason = "Hozirgi lavozim",
                         TenureYears = currentTenure.Years,
                         TenureMonths = currentTenure.Months,
@@ -155,7 +155,7 @@ namespace tahsinERP.Controllers.HR
 
                     DateTime? effectiveDateTo = h.EffectiveDateTo;
                     
-                    // If EffectiveDateTo is null and employee is active, use Today
+                    // agar EffectiveDateTo is null va employee is faol, use Today
                     if (!effectiveDateTo.HasValue)
                     {
                         var emp = await db.HR_EMPLOYEES.FindAsync(h.EmployeeID);
@@ -181,7 +181,7 @@ namespace tahsinERP.Controllers.HR
                         }
                     }
 
-                    // Calculate tenure for this position
+                    // Calculate tenure uchun this position
                     var tenureResult = tenureService.CalculateTenure(
                         h.EffectiveDateFrom,
                         effectiveDateTo);
@@ -230,14 +230,14 @@ namespace tahsinERP.Controllers.HR
 
             ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
             ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
-            ViewBag.Status = status; // Pass status filter to view
-            ViewBag.GroupedViewModels = groupedViewModels; // Pass grouped data to view
+            ViewBag.Status = status; // Pass holat filtrlash ga view
+            ViewBag.GroupedViewModels = groupedViewModels; // Pass grouped ma'lumot ga view
 
             logger.Log("HrEmployeeHistory", "Index");
             return View(viewModels);
         }
 
-        // GET: HR/EmployeeHistory/Create
+        // Olish so'rovi: HR/EmployeeHistory/yaratish
         public async Task<ActionResult> Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
@@ -263,7 +263,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/EmployeeHistory/Create
+        // POST so'rovi: HR/EmployeeHistory/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HR_EMPLOYEE_HISTORY history)
@@ -275,7 +275,7 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Get EffectiveDateTo from form
+                // Olish EffectiveDateTo dan form
                 var effectiveDateToStr = Request.Form["EffectiveDateTo"];
                 DateTime? effectiveDateTo = null;
                 if (!string.IsNullOrEmpty(effectiveDateToStr))
@@ -287,7 +287,7 @@ namespace tahsinERP.Controllers.HR
                     }
                 }
 
-                // Validate dates
+                // Tekshirish dates
                 if (effectiveDateTo.HasValue && effectiveDateTo.Value < history.EffectiveDateFrom)
                 {
                     ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.");
@@ -299,7 +299,7 @@ namespace tahsinERP.Controllers.HR
                 history.CreatedDT = DateTime.Now;
                 history.ActionType = "History"; // Simple history record
 
-                // Use raw SQL to insert with EffectiveDateFrom and EffectiveDateTo
+                // Use raw SQL ga insert bilan EffectiveDateFrom va EffectiveDateTo
                 await db.Database.ExecuteSqlCommandAsync(
                     @"INSERT INTO HR_EMPLOYEE_HISTORY 
                       (EmployeeID, ActionType, FromOrgUnitID, FromPositionID, ToOrgUnitID, ToPositionID, 
@@ -312,19 +312,19 @@ namespace tahsinERP.Controllers.HR
                     history.FromPositionID ?? (object)DBNull.Value,
                     history.ToOrgUnitID ?? (object)DBNull.Value,
                     history.ToPositionID ?? (object)DBNull.Value,
-                    history.EffectiveDateFrom, // EffectiveDateFrom - from form
-                    effectiveDateTo ?? (object)DBNull.Value, // EffectiveDateTo - from form
+                    history.EffectiveDateFrom, // EffectiveDateFrom - dan form
+                    effectiveDateTo ?? (object)DBNull.Value, // EffectiveDateTo - dan form
                     history.Reason ?? (object)DBNull.Value,
                     history.CreatedByUserID,
                     history.CreatedDT);
 
-                // Update HrEmployee based on EffectiveDateFrom and EffectiveDateTo
+                // Yangilash HrEmployee based on EffectiveDateFrom va EffectiveDateTo
                 var employee = await db.HR_EMPLOYEES.FindAsync(history.EmployeeID);
                 if (employee != null)
                 {
                     bool employeeUpdated = false;
                     
-                    // If EffectiveDateFrom > employee.EmploymentDate, update PositionID
+                    // agar EffectiveDateFrom > employee.EmploymentDate, yangilash PositionID
                     if (employee.EmploymentDate.HasValue && history.EffectiveDateFrom > employee.EmploymentDate.Value)
                     {
                         if (history.ToPositionID.HasValue)
@@ -334,7 +334,7 @@ namespace tahsinERP.Controllers.HR
                         }
                     }
                     
-                    // If EffectiveDateTo > employee.DismissalDate, update DismissalDate
+                    // agar EffectiveDateTo > employee.DismissalDate, yangilash DismissalDate
                     if (effectiveDateTo.HasValue)
                     {
                         if (!employee.DismissalDate.HasValue || effectiveDateTo.Value > employee.DismissalDate.Value)
@@ -352,7 +352,15 @@ namespace tahsinERP.Controllers.HR
                     }
                 }
 
-                logger.Log("HrEmployeeHistory", "Create", $"EmployeeID: {history.EmployeeID}");
+                var employeeName = employee?.FullName ?? "-";
+                var employeeTabNo = employee?.TabNo ?? "-";
+                var fromOrgUnit = history.FromOrgUnitID.HasValue
+                    ? (await db.HR_ORG_UNITS.FindAsync(history.FromOrgUnitID.Value))?.Name ?? "-"
+                    : "-";
+                var fromPosition = history.FromPositionID.HasValue
+                    ? (await db.HR_POSITIONS.FindAsync(history.FromPositionID.Value))?.Name ?? "-"
+                    : "-";
+                logger.Log("HrEmployeeHistory", "Create", $"Xodim: {employeeName} ({employeeTabNo}), Bo'lim: {fromOrgUnit}, Lavozim: {fromPosition}, Sabab: {history.Reason ?? "-"}");
                 TempData["Success"] = "Xodim tarixi muvaffaqiyatli qo'shildi.";
                 return RedirectToAction("Index");
             }
@@ -361,7 +369,7 @@ namespace tahsinERP.Controllers.HR
             return View(history);
         }
 
-        // GET: HR/EmployeeHistory/Edit/5
+        // Olish so'rovi: HR/EmployeeHistory/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
@@ -380,10 +388,10 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Get EffectiveDateTo from database (if column exists) or calculate
+            // Olish EffectiveDateTo dan database (agar ustun mavjud) yoki calculate
             DateTime? effectiveDateTo = null;
             
-            // Try to get from EffectiveDateTo column using raw SQL
+            // Urinish ga get dan EffectiveDateTo ustun foydalanib raw SQL
             try
             {
                 var dateInfo = db.Database.SqlQuery<DateInfo>(
@@ -401,7 +409,7 @@ namespace tahsinERP.Controllers.HR
             }
             catch
             {
-                // Fallback: calculate from next record or employee DismissalDate
+                // Fallback: calculate dan next record yoki employee DismissalDate
                 var nextRecord = await db.HR_EMPLOYEE_HISTORY
                     .Where(h => h.EmployeeID == history.EmployeeID && h.EffectiveDateFrom > history.EffectiveDateFrom)
                     .OrderBy(h => h.EffectiveDateFrom)
@@ -425,14 +433,17 @@ namespace tahsinERP.Controllers.HR
             ViewBag.EffectiveDateTo = effectiveDateTo?.ToString("yyyy-MM-dd");
             ViewBag.EffectiveDateFrom = history.EffectiveDateFrom.ToString("yyyy-MM-dd");
 
-            // Populate ViewBags with selected values
+            // Populate ViewBags bilan selected values
             await PopulateViewBags(history);
             
-            logger.Log("HrEmployeeHistory", "Edit", $"ID: {id}");
+            var employee = await db.HR_EMPLOYEES.FindAsync(history.EmployeeID);
+            var employeeName = employee?.FullName ?? "-";
+            var employeeTabNo = employee?.TabNo ?? "-";
+            logger.Log("HrEmployeeHistory", "Edit", $"Xodim: {employeeName} ({employeeTabNo}), Sana: {history.EffectiveDateFrom:dd.MM.yyyy}");
             return View(history);
         }
 
-        // POST: HR/EmployeeHistory/Edit/5
+        // POST so'rovi: HR/EmployeeHistory/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HR_EMPLOYEE_HISTORY history)
@@ -450,7 +461,7 @@ namespace tahsinERP.Controllers.HR
                     return HttpNotFound();
                 }
 
-                // Get EffectiveDateTo from form
+                // Olish EffectiveDateTo dan form
                 var effectiveDateToStr = Request.Form["EffectiveDateTo"];
                 DateTime? effectiveDateTo = null;
                 if (!string.IsNullOrEmpty(effectiveDateToStr))
@@ -462,7 +473,7 @@ namespace tahsinERP.Controllers.HR
                     }
                 }
 
-                // Validate dates
+                // Tekshirish dates
                 if (effectiveDateTo.HasValue && effectiveDateTo.Value < history.EffectiveDateFrom)
                 {
                     ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.");
@@ -472,7 +483,7 @@ namespace tahsinERP.Controllers.HR
                     return View(history);
                 }
 
-                // Update existing history record using raw SQL to update EffectiveDateFrom and EffectiveDateTo
+                // Yangilash existing history record foydalanib raw SQL ga yangilash EffectiveDateFrom va EffectiveDateTo
                 await db.Database.ExecuteSqlCommandAsync(
                     @"UPDATE HR_EMPLOYEE_HISTORY 
                       SET EmployeeID = {0}, FromOrgUnitID = {1}, FromPositionID = {2}, 
@@ -486,7 +497,10 @@ namespace tahsinERP.Controllers.HR
                     history.Reason ?? (object)DBNull.Value,
                     history.ID);
 
-                logger.Log("HrEmployeeHistory", "Edit", $"ID: {history.ID}");
+                var employee = await db.HR_EMPLOYEES.FindAsync(history.EmployeeID);
+                var employeeName = employee?.FullName ?? "-";
+                var employeeTabNo = employee?.TabNo ?? "-";
+                logger.Log("HrEmployeeHistory", "Edit", $"Xodim: {employeeName} ({employeeTabNo}), Sana: {history.EffectiveDateFrom:dd.MM.yyyy}");
                 TempData["Success"] = "Xodim tarixi muvaffaqiyatli yangilandi.";
                 return RedirectToAction("Index");
             }

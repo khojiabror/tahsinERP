@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
@@ -7,7 +7,7 @@ namespace tahsinERP.Controllers
 {
     public static class Helper
     {
-        public static string ToAbsoluteUrl(this string relativeUrl) //Use absolute URL instead of adding phycal path for CSS, JS and Images     
+        public static string ToAbsoluteUrl(this string relativeUrl) //Use absolute URL instead of adding phycal path uchun CSS, JS va Images     
         {
             if (string.IsNullOrEmpty(relativeUrl)) return relativeUrl;
             if (HttpContext.Current == null) return relativeUrl;
@@ -38,19 +38,19 @@ namespace tahsinERP.Controllers
             System.Buffer.BlockCopy(bytes, 0, dst, src.Length, bytes.Length);
             HashAlgorithm algorithm = HashAlgorithm.Create("SHA1");
             byte[] inArray = algorithm.ComputeHash(dst);
-            //return Convert.ToBase64String(inArray);    
+            //Qaytarish Convert.ToBase64String(inArray);    
             return EncodePasswordMd5(Convert.ToBase64String(inArray));
         }
-        public static string EncodePasswordMd5(string pass) //Encrypt using MD5    
+        public static string EncodePasswordMd5(string pass) //Encrypt foydalanib MD5    
         {
             Byte[] originalBytes;
             Byte[] encodedBytes;
             MD5 md5;
-            //Instantiate MD5CryptoServiceProvider, get bytes for original password and compute hash (encoded password)    
+            //Instantiate MD5CryptoServiceProvider, get bytes uchun original password va compute hash (encoded password)    
             md5 = new MD5CryptoServiceProvider();
             originalBytes = ASCIIEncoding.Default.GetBytes(pass);
             encodedBytes = md5.ComputeHash(originalBytes);
-            //Convert encoded bytes back to a 'readable' string    
+            //Aylantirish encoded bytes back ga a 'readable' string    
             return BitConverter.ToString(encodedBytes);
         }
         public static string base64Encode(string sData) // Encode    

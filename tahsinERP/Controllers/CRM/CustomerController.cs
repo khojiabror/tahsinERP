@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -19,14 +19,14 @@ namespace tahsinERP.Controllers
     {
         
         private string supplierName = "";
-        // GET: Customer
+        // Olish so'rovi: Customer
         public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.CUSTOMERS.Where(x => x.IsDeleted == false);
 
-                // Search filter
+                // Search filtrlash
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     query = query.Where(c => 
@@ -125,11 +125,11 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Get counts for navigation
+                // Olish counts uchun navigation
                 ViewBag.OrdersCount = customer.S_ORDERS != null ? customer.S_ORDERS.Where(o => o.IsDeleted == false).Count() : 0;
                 ViewBag.ContractsCount = customer.S_CONTRACTS != null ? customer.S_CONTRACTS.Where(c => c.IsDeleted == false).Count() : 0;
                 
-                // Get invoices count
+                // Olish invoices count
                 var invoicesCount = db.SALES_INVOICES.Where(i => i.CustomerID == Id).Count();
                 ViewBag.InvoicesCount = invoicesCount;
 
@@ -343,13 +343,13 @@ namespace tahsinERP.Controllers
         }
         public ActionResult ClearDataTable()
         {
-            // Clear the DataTable and related ViewBag properties
+            // Clear the DataTable va related ViewBag properties
             ViewBag.DataTable = null;
             ViewBag.DataTableModel = null;
             ViewBag.IsFileUploaded = false;
             ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
 
-            // Return the UploadWithExcel view
+            // Qaytarish the UploadWithExcel view
             return View("UploadWithExcel");
         }
         [HttpPost]
@@ -358,7 +358,7 @@ namespace tahsinERP.Controllers
             if (!string.IsNullOrEmpty(dataTableModel))
             {
                 var tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
-                // Save to the database
+                // Saqlash ga the database
                 try
                 {
                     using(DBTHSNEntities db = new DBTHSNEntities())

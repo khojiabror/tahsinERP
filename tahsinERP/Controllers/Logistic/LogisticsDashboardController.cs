@@ -10,11 +10,11 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// Logistics Dashboard - Analytics, KPIs, and Reports
+    /// Logistics Dashboard - Analytics, KPIs, va Reports
     /// </summary>
     public class LogisticsDashboardController : Controller
     {
-        // GET: LogisticsDashboard
+        // Olish so'rovi: LogisticsDashboard
         public async Task<ActionResult> Index(DateTime? startDate, DateTime? endDate, int? forwarderId, byte? direction)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -22,7 +22,7 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Default to current month if not specified
+            // standart ga current month agar not specified
             if (!startDate.HasValue)
                 startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             if (!endDate.HasValue)
@@ -73,7 +73,7 @@ namespace tahsinERP.Controllers
                 var totalPaid = paymentTotals.Sum(p => p.TotalPaid);
                 var unpaidAmount = totalCost - totalPaid;
 
-                // Calculate logistics cost as % of sales (for outbound waybills)
+                // Calculate logistics cost as % of sales (uchun outbound waybills)
                 var outboundWaybills = waybills.Where(w => w.Direction == 1 && w.SalesInvoiceID.HasValue).ToList();
                 var salesInvoiceIds = outboundWaybills.Select(w => w.SalesInvoiceID.Value).Distinct().ToList();
                 var totalSalesValue = await db.SALES_INVOICES
@@ -229,7 +229,7 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Reconciliation Report - Waybills without invoices or payments
+        /// Reconciliation Report - Waybills without invoices yoki payments
         /// </summary>
         public async Task<ActionResult> Reconciliation()
         {
@@ -267,7 +267,7 @@ namespace tahsinERP.Controllers
                     .Where(w => !paidWaybillIds.Contains(w.ID))
                     .ToList();
 
-                // Invoices with missing freight cost
+                // Invoices bilan missing freight cost
                 var salesInvoices = await db.SALES_INVOICES
                     .Include(i => i.CUSTOMER)
                     .Where(i => !db.F_WAYBILLS.Any(w => w.SalesInvoiceID == i.ID && w.IsDeleted == false))

@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/PieceRateTariffs
+        // Olish so'rovi: HR/PieceRateTariffs
         public async Task<ActionResult> Index(int? productId, int? positionId, bool? isActive)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
@@ -73,7 +73,7 @@ namespace tahsinERP.Controllers.HR
             return View(tariffs);
         }
 
-        // GET: HR/PieceRateTariffs/Details/5
+        // Olish so'rovi: HR/PieceRateTariffs/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
@@ -101,11 +101,14 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            logger.Log("HrPieceRateTariffs", "Details", $"ID: {id}");
+            var productLabel = tariff.PRODUCT?.Name ?? tariff.PRODUCT?.PNo ?? "-";
+            var positionLabel = tariff.HR_POSITIONS?.Name ?? "Barcha lavozimlar";
+            var operationLabel = tariff.HR_PIECE_RATE_OPERATIONS?.Name ?? "-";
+            logger.Log("HrPieceRateTariffs", "Details", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
             return View(tariff);
         }
 
-        // GET: HR/PieceRateTariffs/Create
+        // Olish so'rovi: HR/PieceRateTariffs/yaratish
         public async Task<ActionResult> Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTariffs"))
@@ -133,7 +136,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/PieceRateTariffs/Create
+        // POST so'rovi: HR/PieceRateTariffs/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create([Bind(Include = "ProductID,PositionID,OperationID,CurrencyID,RatePerUnit,EffectiveFrom,EffectiveTo,IsActive")] HR_PIECE_RATE_TARIFFS tariff)
@@ -151,7 +154,13 @@ namespace tahsinERP.Controllers.HR
                 db.HR_PIECE_RATE_TARIFFS.Add(tariff);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPieceRateTariffs", "Create", $"ID: {tariff.ID}, ProductID: {tariff.ProductID}, PositionID: {tariff.PositionID}");
+                var product = await db.PRODUCTS.FindAsync(tariff.ProductID);
+                var position = tariff.PositionID.HasValue ? await db.HR_POSITIONS.FindAsync(tariff.PositionID.Value) : null;
+                var operation = tariff.OperationID.HasValue ? await db.HR_PIECE_RATE_OPERATIONS.FindAsync(tariff.OperationID.Value) : null;
+                var productLabel = product?.Name ?? product?.PNo ?? "-";
+                var positionLabel = position?.Name ?? "Barcha lavozimlar";
+                var operationLabel = operation?.Name ?? "-";
+                logger.Log("HrPieceRateTariffs", "Create", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
                 return RedirectToAction("Index");
             }
 
@@ -167,7 +176,7 @@ namespace tahsinERP.Controllers.HR
             return View(tariff);
         }
 
-        // GET: HR/PieceRateTariffs/Edit/5
+        // Olish so'rovi: HR/PieceRateTariffs/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTariffs"))
@@ -206,7 +215,7 @@ namespace tahsinERP.Controllers.HR
             return View(tariff);
         }
 
-        // POST: HR/PieceRateTariffs/Edit/5
+        // POST so'rovi: HR/PieceRateTariffs/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit([Bind(Include = "ID,ProductID,PositionID,OperationID,CurrencyID,RatePerUnit,EffectiveFrom,EffectiveTo,IsActive")] HR_PIECE_RATE_TARIFFS tariff)
@@ -238,7 +247,13 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(existingTariff).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPieceRateTariffs", "Edit", $"ID: {tariff.ID}");
+                var product = await db.PRODUCTS.FindAsync(existingTariff.ProductID);
+                var position = existingTariff.PositionID.HasValue ? await db.HR_POSITIONS.FindAsync(existingTariff.PositionID.Value) : null;
+                var operation = existingTariff.OperationID.HasValue ? await db.HR_PIECE_RATE_OPERATIONS.FindAsync(existingTariff.OperationID.Value) : null;
+                var productLabel = product?.Name ?? product?.PNo ?? "-";
+                var positionLabel = position?.Name ?? "Barcha lavozimlar";
+                var operationLabel = operation?.Name ?? "-";
+                logger.Log("HrPieceRateTariffs", "Edit", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
                 return RedirectToAction("Index");
             }
 
@@ -262,7 +277,7 @@ namespace tahsinERP.Controllers.HR
             return View(tariff);
         }
 
-        // GET: HR/PieceRateTariffs/Delete/5
+        // Olish so'rovi: HR/PieceRateTariffs/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTariffs"))
@@ -290,7 +305,7 @@ namespace tahsinERP.Controllers.HR
             return View(tariff);
         }
 
-        // POST: HR/PieceRateTariffs/Delete/5
+        // POST so'rovi: HR/PieceRateTariffs/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -310,7 +325,13 @@ namespace tahsinERP.Controllers.HR
             db.Entry(tariff).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
-            logger.Log("HrPieceRateTariffs", "Delete", $"ID: {id}");
+            var product = await db.PRODUCTS.FindAsync(tariff.ProductID);
+            var position = tariff.PositionID.HasValue ? await db.HR_POSITIONS.FindAsync(tariff.PositionID.Value) : null;
+            var operation = tariff.OperationID.HasValue ? await db.HR_PIECE_RATE_OPERATIONS.FindAsync(tariff.OperationID.Value) : null;
+            var productLabel = product?.Name ?? product?.PNo ?? "-";
+            var positionLabel = position?.Name ?? "Barcha lavozimlar";
+            var operationLabel = operation?.Name ?? "-";
+            logger.Log("HrPieceRateTariffs", "Delete", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
             return RedirectToAction("Index");
         }
 

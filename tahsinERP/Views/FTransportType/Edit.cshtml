@@ -1,6 +1,6 @@
-﻿@model tahsinERP.ViewModels.TransportTypeViewModel
+@model tahsinERP.ViewModels.TransportTypeViewModel
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Transport turini tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,7 +21,7 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Forwarder/Index">Transport turlari</a>
+                                            <a href="~/FTransportType/Index">Transport turlari</a>
                                         </li>
                                         <li class="breadcrumb-item active">
                                             Transport turi sahifasi
@@ -50,12 +50,12 @@
 
                                                 <h6 class="invoice-to">Transport turi</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.TransportType, new { @class = "form-control round", @placeholder = "FTransportType" })
+                                                    @Html.TextBoxFor(model => model.TransportType, new { @class = "form-control round", @placeholder = "Transport turi" })
                                                     @Html.ValidationMessageFor(model => model.TransportType, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Unit</h6>
+                                                <h6 class="invoice-to">O'lchov birligi</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.DropDownListFor(model => model.UnitID, ViewBag.units as SelectList,"", new { @class = "form-control select2", @placeholder = "Unit" })
+                                                    @Html.DropDownListFor(model => model.UnitID, ViewBag.units as SelectList,"", new { @class = "form-control select2", @placeholder = "O'lchov birligi" })
                                                     @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <h6 class="invoice-to">Ko`tarish imkoniyati</h6>
@@ -72,38 +72,38 @@
                                                     <div class="col-12 col-sm-6">
                                                         <h6 class="invoice-to">Tashqi uzunligi</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.ExtLgth, new { @class = "form-control round", @placeholder = "Extlength" })
+                                                            @Html.TextBoxFor(model => model.ExtLgth, new { @class = "form-control round", @placeholder = "Tashqi uzunlik" })
                                                             @Html.ValidationMessageFor(model => model.ExtLgth, "", new { @class = "text-danger" })
                                                         </fieldset>
 
                                                         <h6 class="invoice-to">Tashqi kengligi</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.ExtWdth, new { @class = "form-control round", @placeholder = "ExtWidth" })
+                                                            @Html.TextBoxFor(model => model.ExtWdth, new { @class = "form-control round", @placeholder = "Tashqi kenglik" })
                                                             @Html.ValidationMessageFor(model => model.ExtWdth, "", new { @class = "text-danger" })
                                                         </fieldset>
 
                                                         <h6 class="invoice-to">Tashqi balandligi</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.ExtHght, new { @class = "form-control round", @placeholder = "ExtHeight" })
+                                                            @Html.TextBoxFor(model => model.ExtHght, new { @class = "form-control round", @placeholder = "Tashqi balandlik" })
                                                             @Html.ValidationMessageFor(model => model.ExtHght, "", new { @class = "text-danger" })
                                                         </fieldset>
                                                     </div>
                                                     <div class="col-12 col-sm-6">
                                                         <h6 class="invoice-to">Ichki uzunligi</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.IntLgth, new { @class = "form-control round", @placeholder = "IntLength" })
+                                                            @Html.TextBoxFor(model => model.IntLgth, new { @class = "form-control round", @placeholder = "Ichki uzunlik" })
                                                             @Html.ValidationMessageFor(model => model.IntLgth, "", new { @class = "text-danger" })
                                                         </fieldset>
 
                                                         <h6 class="invoice-to">Ichki kengligi</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.IntWdth, new { @class = "form-control round", @placeholder = "IntWidth" })
+                                                            @Html.TextBoxFor(model => model.IntWdth, new { @class = "form-control round", @placeholder = "Ichki kenglik" })
                                                             @Html.ValidationMessageFor(model => model.IntWdth, "", new { @class = "text-danger" })
                                                         </fieldset>
 
                                                         <h6 class="invoice-to">Ichki balandligi</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.IntHght, new { @class = "form-control round", @placeholder = "IntHeight" })
+                                                            @Html.TextBoxFor(model => model.IntHght, new { @class = "form-control round", @placeholder = "Ichki balandlik" })
                                                             @Html.ValidationMessageFor(model => model.IntHght, "", new { @class = "text-danger" })
                                                         </fieldset>
                                                     </div>

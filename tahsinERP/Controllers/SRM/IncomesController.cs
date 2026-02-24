@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.SRM
 {
     public class IncomesController : Controller
     {
-        // GET: Incomes
+        // Olish so'rovi: Incomes
         public async Task<ActionResult> Index(int? status)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
@@ -58,7 +58,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Incomes/Details/5
+        // Olish so'rovi: Incomes/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Details"))
@@ -103,10 +103,10 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Incomes/Create
+        // Olish so'rovi: Incomes/yaratish
         public async Task<ActionResult> Create()
         {
-            // MES va Sales xodimlari faqat ko'radi, Create qila olmaydi
+            // MES va Sales xodimlari faqat ko'radi, yaratish qila olmaydi
             var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
             bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
             bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
@@ -131,7 +131,7 @@ namespace tahsinERP.Controllers.SRM
                     return View();
                 }
 
-                // Get invoices that are not fully received
+                // Olish invoices that are not fully received
                 var invoices = await db.P_INVOICES
                     .Include(i => i.SUPPLIER)
                     .Where(i => i.IsDeleted != true)
@@ -192,7 +192,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Incomes/LoadInvoiceProducts
+        // POST so'rovi: Incomes/LoadInvoiceProducts
         [HttpPost]
         public async Task<JsonResult> LoadInvoiceProducts(int invoiceId)
         {
@@ -218,7 +218,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Incomes/Create
+        // POST so'rovi: Incomes/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ViewModels.IncomeCreateViewModel model, HttpPostedFileBase incomeFile)
@@ -249,13 +249,13 @@ namespace tahsinERP.Controllers.SRM
                                 return RedirectToAction("Index");
                             }
 
-                            // Generate DocNo if not provided
+                            // Yaratish DocNo agar not provided
                             if (string.IsNullOrEmpty(model.DocNo))
                             {
                                 model.DocNo = await GenerateDocNo(db);
                             }
 
-                            // Create income header
+                            // Yaratish income header
                             var income = new INCOME
                             {
                                 DocNo = model.DocNo,
@@ -274,7 +274,7 @@ namespace tahsinERP.Controllers.SRM
                             db.INCOMES.Add(income);
                             await db.SaveChangesAsync();
 
-                            // Add income products and update stock
+                            // Qo'shish income products va yangilash stock
                             var conversionService = new UnitConversionService(db);
                             double totalAmount = 0;
                             double totalPrice = 0;
@@ -287,11 +287,11 @@ namespace tahsinERP.Controllers.SRM
                                         .Include(p => p.PRODUCT_CATEGORIES)
                                         .FirstOrDefaultAsync(p => p.ID == product.ProductID);
                                     
-                                    // Check if product requires cutting
+                                    // Tekshirish agar product requires cutting
                                     bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
                                     
-                                    // For requires_cutting products, use PIECES (UnitID = 1)
-                                    // For other products, use user-selected unit or product's default unit
+                                    // uchun requires_cutting products, use PIECES (UnitID = 1)
+                                    // uchun other products, use user-selected unit yoki product's standart unit
                                     int unitId;
                                     if (requiresCutting)
                                     {
@@ -306,7 +306,7 @@ namespace tahsinERP.Controllers.SRM
                                     {
                                         IncomeID = income.ID,
                                         ProductID = product.ProductID,
-                                        Amount = product.Amount, // In PIECES for cutting products, or user-selected unit for others
+                                        Amount = product.Amount, // In PIECES uchun cutting products, yoki user-selected unit uchun others
                                         PiecePrice = product.PiecePrice,
                                         TotalPrice = product.Amount * product.PiecePrice,
                                         UnitID = unitId,
@@ -317,23 +317,23 @@ namespace tahsinERP.Controllers.SRM
                                     totalAmount += product.Amount;
                                     totalPrice += incomeProduct.TotalPrice.Value;
 
-                                    // Update PRODUCT_STOCKS in the same unit
+                                    // Yangilash PRODUCT_STOCKS in the same unit
                                     var stock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == income.ReceivingWHID && s.ProductID == product.ProductID);
 
                                     if (stock != null)
                                     {
-                                        // If stock exists in different unit, we might need conversion
-                                        // For now, assume same unit and add
+                                        // agar stock mavjud in different unit, we might need conversion
+                                        // uchun now, assume same unit va add
                                         if (stock.UnitID == unitId)
                                         {
                                             stock.Amount += product.Amount;
                                         }
                                         else
                                         {
-                                            // Units don't match - this is a data integrity issue
-                                            // For now, we'll still add but log a warning
-                                            // In production, you might want to handle this differently
+                                            // Units don't match - this is a ma'lumot integrity issue
+                                            // uchun now, we'll still add but log a warning
+                                            // In production, you might want ga handle this differently
                                             stock.Amount += product.Amount;
                                         }
                                     }
@@ -345,7 +345,7 @@ namespace tahsinERP.Controllers.SRM
                                             {
                                                 WHID = income.ReceivingWHID,
                                                 ProductID = product.ProductID,
-                                                Amount = product.Amount, // In PIECES for cutting products
+                                                Amount = product.Amount, // In PIECES uchun cutting products
                                                 UnitID = unitId
                                             };
                                             db.PRODUCT_STOCKS.Add(newStock);
@@ -358,7 +358,7 @@ namespace tahsinERP.Controllers.SRM
                                 await db.SaveChangesAsync();
                             }
 
-                            // Upload income document if provided
+                            // Upload income hujjat agar provided
                             if (incomeFile != null && incomeFile.ContentLength > 0)
                             {
                                 byte[] fileData = null;
@@ -400,7 +400,7 @@ namespace tahsinERP.Controllers.SRM
                 }
             }
 
-            // Repopulate ViewBag on error
+            // Qayta ga'ldirish ViewBag on xatolik
             using (var db = new DBTHSNEntities())
             {
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
@@ -443,7 +443,7 @@ namespace tahsinERP.Controllers.SRM
             return View(model);
         }
 
-        // Generate DocNo
+        // Yaratish DocNo
         private async Task<string> GenerateDocNo(DBTHSNEntities db)
         {
             var month = DateTime.Now.Month;
@@ -467,7 +467,7 @@ namespace tahsinERP.Controllers.SRM
             return $"{prefix}{nextNumber}";
         }
 
-        // GET: Incomes/Edit/5
+        // Olish so'rovi: Incomes/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             // MES va Sales xodimlari faqat ko'radi, Edit qila olmaydi
@@ -513,7 +513,7 @@ namespace tahsinERP.Controllers.SRM
                     return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
-                // Check if already received (RecieveStatus == true)
+                // Tekshirish agar already received (RecieveStatus == true)
                 if (income.RecieveStatus == true)
                 {
                     TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan va tahrirlash mumkin emas.";
@@ -584,7 +584,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Incomes/Edit/5
+        // POST so'rovi: Incomes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ViewModels.IncomeEditViewModel model, HttpPostedFileBase incomeFile)
@@ -643,7 +643,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
                             }
 
-                            // Update income header
+                            // Yangilash income header
                             income.DocNo = model.DocNo;
                             income.IssueDateTime = model.IssueDateTime;
                             income.ReceivingWHID = model.ReceivingWHID;
@@ -651,13 +651,13 @@ namespace tahsinERP.Controllers.SRM
                             income.CurrencyID = model.CurrencyID;
                             income.Description = model.Description;
 
-                            // Remove existing income products
+                            // O'chirish existing income products
                             foreach (var existing in oldProducts)
                             {
                                 db.INCOME_PRODUCTS.Remove(existing);
                             }
 
-                            // Add updated income products and update stock
+                            // Qo'shish updated income products va yangilash stock
                             double totalAmount = 0;
                             double totalPrice = 0;
 
@@ -682,7 +682,7 @@ namespace tahsinERP.Controllers.SRM
                                     totalAmount += product.Amount;
                                     totalPrice += incomeProduct.TotalPrice.Value;
 
-                                    // Update PRODUCT_STOCKS
+                                    // Yangilash PRODUCT_STOCKS
                                     var stock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == income.ReceivingWHID && s.ProductID == product.ProductID);
 
@@ -710,17 +710,17 @@ namespace tahsinERP.Controllers.SRM
                             income.Amount = totalAmount;
                             income.TotalPrice = totalPrice;
 
-                            // Handle file upload
+                            // Handle fayl upload
                             if (incomeFile != null && incomeFile.ContentLength > 0)
                             {
-                                // Remove existing docs
+                                // O'chirish existing docs
                                 var existingDocs = db.WRHS_INCOME_DOCS.Where(id => id.IncomeID == income.ID).ToList();
                                 foreach (var doc in existingDocs)
                                 {
                                     db.WRHS_INCOME_DOCS.Remove(doc);
                                 }
 
-                                // Add new doc
+                                // Qo'shish new doc
                                 byte[] fileData = null;
                                 using (var binaryReader = new BinaryReader(incomeFile.InputStream))
                                 {
@@ -760,7 +760,7 @@ namespace tahsinERP.Controllers.SRM
                 }
             }
 
-            // Repopulate ViewBag on error
+            // Qayta ga'ldirish ViewBag on xatolik
             using (var db = new DBTHSNEntities())
             {
                 ViewBag.Warehouses = new SelectList(
@@ -777,7 +777,7 @@ namespace tahsinERP.Controllers.SRM
             return View(model);
         }
 
-        // POST: Incomes/Receive/5
+        // POST so'rovi: Incomes/Receive/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Receive(int id)
@@ -862,7 +862,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Incomes/Reject/5
+        // POST so'rovi: Incomes/Reject/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Reject(int id)
@@ -997,7 +997,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Incomes/Delete/5
+        // Olish so'rovi: Incomes/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
@@ -1034,7 +1034,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Incomes/Delete/5
+        // POST so'rovi: Incomes/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -1096,7 +1096,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Incomes/DownloadDoc/5
+        // Olish so'rovi: Incomes/DownloadDoc/5
         public async Task<ActionResult> DownloadDoc(int? id)
         {
             if (id == null)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -12,7 +12,7 @@ namespace tahsinERP.Controllers.Settings
 {
     public class CurrencyController : Controller
     {
-        // GET: Currency
+        // Olish so'rovi: Currency
         public async Task<ActionResult> Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

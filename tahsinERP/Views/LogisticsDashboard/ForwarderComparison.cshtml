@@ -1,6 +1,6 @@
 @using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "Forwarder Comparison";
+    ViewBag.Title = "Yuk tashuvchilarni taqqoslash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/LogisticsDashboard">Logistika Dashboard</a>
+                                        <a href="~/LogisticsDashboard">Logistika boshqaruv paneli</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Forwarder Comparison
+                                        Yuk tashuvchilarni taqqoslash
                                     </li>
                                 </ol>
                             </div>
@@ -44,11 +44,11 @@
                                 <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                             </div>
                             <div class="col-md-3">
-                                <label>Qayerdan (lane)</label>
+                                <label>Qayerdan (marshrut)</label>
                                 <input type="text" name="laneFrom" class="form-control" value="@ViewBag.LaneFrom" placeholder="Masalan: Toshkent" />
                             </div>
                             <div class="col-md-3">
-                                <label>Qayerga (lane)</label>
+                                <label>Qayerga (marshrut)</label>
                                 <input type="text" name="laneTo" class="form-control" value="@ViewBag.LaneTo" placeholder="Masalan: Samarqand" />
                             </div>
                             <div class="col-md-2 d-flex align-items-end mt-1">
@@ -65,7 +65,7 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Forwarder</th>
+                                            <th>Yuk tashuvchi</th>
                                             <th>Reyslar</th>
                                             <th>Jami xarajat</th>
                                             <th>Tonnaj</th>

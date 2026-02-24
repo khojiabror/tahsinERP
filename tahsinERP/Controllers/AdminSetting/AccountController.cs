@@ -33,7 +33,7 @@ namespace tahsinERP.Controllers
 
         public ActionResult Login()
         {
-            // If already authenticated, redirect to home
+            // agar already authenticated, redirect ga home
             if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Home");
@@ -76,7 +76,7 @@ namespace tahsinERP.Controllers
                     return View();
                 }
 
-                // Validate password
+                // Tekshirish password
                 var hashCode = getUser.HashCode;
                 var encodingPasswordString = Helper.EncodePassword(user.Password, hashCode);
 
@@ -86,18 +86,18 @@ namespace tahsinERP.Controllers
                     return View();
                 }
 
-                // Determine session timeout based on "Keep me logged in"
+                // Aniqlash session timeout based on "Keep me logged in"
                 int sessionTimeout = user.KeepMeSigned ? KEEP_LOGGED_IN_TIMEOUT : DEFAULT_SESSION_TIMEOUT;
                 var expirationTime = DateTime.Now.AddMinutes(sessionTimeout);
 
-                // Create authentication ticket with username as identity
+                // Yaratish authentication ticket bilan username as identity
                 var authTicket = new FormsAuthenticationTicket(
                     1,                          // version
                     getUser.Uname,              // username (identity name)
                     DateTime.Now,               // issue date
                     expirationTime,             // expiration
                     user.KeepMeSigned,          // persistent
-                    getUser.FullName ?? getUser.Uname  // user data (FullName)
+                    getUser.FullName ?? getUser.Uname  // user ma'lumot (FullName)
                 );
 
                 string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
@@ -112,7 +112,7 @@ namespace tahsinERP.Controllers
                 };
                 Response.Cookies.Set(cookie);
 
-                // Set user image cookie
+                // Belgilash user image cookie
                 var image = db.USERIMAGES.FirstOrDefault(ui => ui.UserID == getUser.ID);
                 if (image != null)
                 {
@@ -126,7 +126,7 @@ namespace tahsinERP.Controllers
                     Response.Cookies.Set(userImageCookie);
                 }
 
-                // Log user entry immediately (IP will be logged, MAC might be 00:00:00:00:00:00 if not in session yet)
+                // Log user entry immediately (IP will be logged, MAC might be 00:00:00:00:00:00 agar not in session yet)
                 SetUserEntry(getUser.ID);
 
                 return RedirectToAction("Index", "Home");
@@ -137,7 +137,7 @@ namespace tahsinERP.Controllers
         {
             try
             {
-                // Get client IP address from HTTP request
+                // Olish client IP address dan HTTP request
                 string clientIp = "127.0.0.1";
                 try
                 {
@@ -153,7 +153,7 @@ namespace tahsinERP.Controllers
                     clientIp = "127.0.0.1";
                 }
                 
-                // MAC address - use default value (device ID functionality disabled)
+                // MAC address - use standart value (device ID functionality disabled)
                 string macAddress = "00:00:00:00:00:00";
 
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -173,15 +173,15 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception dbEx)
                     {
-                        // Log database error but don't fail login
-                        System.Diagnostics.Debug.WriteLine($"SetUserEntry database error: {dbEx.Message}");
+                        // Ma'lumotlar bazasi xatoligini qayd etamiz, lekin login jarayonini to'xtatmaymiz
+                        System.Diagnostics.Debug.WriteLine($"SetUserEntry bazaga yozishda xatolik: {dbEx.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Log error but don't fail login
-                System.Diagnostics.Debug.WriteLine($"SetUserEntry error: {ex.Message}");
+                // Xatolikni qayd etamiz, lekin login jarayonini to'xtatmaymiz
+                System.Diagnostics.Debug.WriteLine($"SetUserEntry xatoligi: {ex.Message}");
             }
         }
 
@@ -189,7 +189,7 @@ namespace tahsinERP.Controllers
         {
             FormsAuthentication.SignOut();
 
-            // Clear all cookies
+            // Clear barcha cookies
             if (Request.Cookies[FormsAuthentication.FormsCookieName] != null)
             {
                 var cookie = new HttpCookie(FormsAuthentication.FormsCookieName)
@@ -226,7 +226,7 @@ namespace tahsinERP.Controllers
 
         public ActionResult Settings(string userName = null)
         {
-            // Use current user if no username provided
+            // Use current user agar no username provided
             string currentUserName = userName ?? User.Identity.Name;
 
             if (string.IsNullOrEmpty(currentUserName))
@@ -280,7 +280,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Update password if provided
+                // Yangilash password agar provided
                 if (!string.IsNullOrEmpty(uvm.Password))
                 {
                     var keyNew = Helper.GeneratePassword(10);
@@ -289,7 +289,7 @@ namespace tahsinERP.Controllers
                     userToUpdate.Password = password;
                 }
 
-                // Update other fields
+                // Yangilash other fields
                 if (!string.IsNullOrEmpty(uvm.FullName))
                     userToUpdate.FullName = uvm.FullName;
                 if (!string.IsNullOrEmpty(uvm.Email))
@@ -348,13 +348,13 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Receives device identifier from client-side JavaScript and stores it in session and cookie
+        /// Receives device identifier dan client-side JavaScript va stores it in session va cookie
         /// </summary>
         [HttpPost]
         [AllowAnonymous]
         public JsonResult SetDeviceId(string deviceId)
         {
-            // Device ID functionality disabled - just return success to avoid 404 errors
+            // Device ID functionality disabled - just return muvaffaqiyat ga avoid 404 errors
             return Json(new { success = true });
         }
     }

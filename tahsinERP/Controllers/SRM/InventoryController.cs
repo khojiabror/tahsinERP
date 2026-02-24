@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
 {
     public class InventoryController : Controller
     {
-        // GET: Inventory
+        // Olish so'rovi: Inventory
         public async Task<ActionResult> Index(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
@@ -40,19 +40,19 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Filter by warehouse
+                // Filtrlash bo'yicha warehouse
                 if (warehouseId.HasValue)
                 {
                     query = query.Where(s => s.WHID == warehouseId.Value);
                 }
 
-                // Filter by category
+                // Filtrlash bo'yicha category
                 if (categoryId.HasValue)
                 {
                     query = query.Where(s => s.PRODUCT.CategoryID == categoryId.Value);
                 }
 
-                // Filter by IsFinishedGood
+                // Filtrlash bo'yicha IsFinishedGood
                 if (isFinishedGood.HasValue)
                 {
                     if (isFinishedGood.Value)
@@ -67,7 +67,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Filter by IsRawMaterial
+                // Filtrlash bo'yicha IsRawMaterial
                 if (isRawMaterial.HasValue)
                 {
                     if (isRawMaterial.Value)
@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers
                     .ThenBy(s => s.PRODUCT.PNo)
                     .ToListAsync();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.Warehouses = new SelectList(
                     await db.WAREHOUSES
                         .Where(w => w.IsDeleted != true &&
@@ -108,7 +108,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Inventory/Adjust
+        // Olish so'rovi: Inventory/Adjust
         public async Task<ActionResult> Adjust()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
@@ -137,7 +137,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Inventory/AdjustResult
+        // Olish so'rovi: Inventory/AdjustResult
         public ActionResult AdjustResult(string key)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
@@ -154,7 +154,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // GET: Inventory/DownloadAdjustmentLog
+        // Olish so'rovi: Inventory/DownloadAdjustmentLog
         public ActionResult DownloadAdjustmentLog(string key, string type)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
@@ -181,7 +181,7 @@ namespace tahsinERP.Controllers
             return File(path, contentType, downloadName);
         }
 
-        // GET: Inventory/DownloadTemplate
+        // Olish so'rovi: Inventory/DownloadTemplate
         public ActionResult DownloadTemplate()
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
@@ -206,7 +206,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Inventory/Adjust
+        // POST so'rovi: Inventory/Adjust
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Adjust(ViewModels.InventoryAdjustmentViewModel model)

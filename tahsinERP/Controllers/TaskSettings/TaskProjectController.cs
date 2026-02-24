@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.TaskSettings
 {
     public class TaskProjectController : Controller
     {
-        // GET: TaskProject
+        // Olish so'rovi: TaskProject
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // GET: TaskProject/Details/5
+        // Olish so'rovi: TaskProject/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -58,7 +58,7 @@ namespace tahsinERP.Controllers.TaskSettings
                     return HttpNotFound();
                 }
 
-                // Get tasks for this project
+                // Olish tasks uchun this project
                 var tasksQuery = db.APP_TASKS
                     .Include(t => t.APP_TASK_STATUS_REF)
                     .Include(t => t.APP_TASK_PRIORITY_REF)
@@ -74,7 +74,7 @@ namespace tahsinERP.Controllers.TaskSettings
                     .OrderByDescending(t => t.CreatedDT)
                     .ToListAsync();
 
-                // Convert to ViewModels
+                // Aylantirish ga ViewModels
                 var taskViewModels = tasks.Select(t => new ViewModels.TaskViewModel
                 {
                     ID = t.ID,
@@ -103,7 +103,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // GET: TaskProject/Create
+        // Olish so'rovi: TaskProject/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -114,7 +114,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View();
         }
 
-        // POST: TaskProject/Create
+        // POST so'rovi: TaskProject/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(APP_TASK_PROJECTS project)
@@ -128,7 +128,7 @@ namespace tahsinERP.Controllers.TaskSettings
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Check if code already exists
+                    // Tekshirish agar code already mavjud
                     var existing = await db.APP_TASK_PROJECTS.FirstOrDefaultAsync(p => p.Code == project.Code);
                     if (existing != null)
                     {
@@ -150,7 +150,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View(project);
         }
 
-        // GET: TaskProject/Edit/5
+        // Olish so'rovi: TaskProject/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -174,7 +174,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // POST: TaskProject/Edit/5
+        // POST so'rovi: TaskProject/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(APP_TASK_PROJECTS project)
@@ -188,7 +188,7 @@ namespace tahsinERP.Controllers.TaskSettings
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Check if code already exists (excluding current record)
+                    // Tekshirish agar code already mavjud (excluding current record)
                     var existing = await db.APP_TASK_PROJECTS.FirstOrDefaultAsync(p => p.Code == project.Code && p.ID != project.ID);
                     if (existing != null)
                     {
@@ -207,7 +207,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View(project);
         }
 
-        // POST: TaskProject/Delete/5
+        // POST so'rovi: TaskProject/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int id)
@@ -225,7 +225,7 @@ namespace tahsinERP.Controllers.TaskSettings
                     return HttpNotFound();
                 }
 
-                // Check if project is used in tasks
+                // Tekshirish agar project is used in tasks
                 var usedInTasks = await db.APP_TASKS.AnyAsync(t => t.ProjectID == id && t.IsDeleted == false);
                 if (usedInTasks)
                 {

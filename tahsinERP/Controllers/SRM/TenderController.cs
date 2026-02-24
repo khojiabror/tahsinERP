@@ -10,7 +10,7 @@ namespace tahsinERP.Controllers
 {
     public class TenderController : Controller
     {
-        // GET: Tender
+        // Olish so'rovi: Tender
         public async Task<ActionResult> Index()
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tender", "Index"))
@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Get purchasable materials - only where IsFinishedGood == false
+                // Olish purchasable materials - faqat where IsFinishedGood == false
                 var materials = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true && 

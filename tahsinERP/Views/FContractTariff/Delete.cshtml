@@ -35,9 +35,9 @@
                             <h4 class="text-primary">Tarif ma'lumotlari</h4>
                             <hr />
                             <p><b>Shartnoma:</b> @Model.F_CONTRACTS?.ContractNo</p>
-                            <p><b>Transport:</b> @Model.F_TRANSPORT_TYPES?.TransportType</p>
+                            <p><b>Transport turi:</b> @Model.F_TRANSPORT_TYPES?.TransportType</p>
                             <p><b>Yo'nalish:</b> @(string.IsNullOrEmpty(Model.FromCity) ? Model.FromRegion : Model.FromCity) → @(string.IsNullOrEmpty(Model.ToCity) ? Model.ToRegion : Model.ToCity)</p>
-                            <p><b>Rate:</b> @Model.Rate.ToString("N2") @Model.CURRENCy?.Shortname</p>
+                            <p><b>@tahsinERP.Services.LogisticsTerms.TariffRate:</b> @Model.Rate.ToString("N2") @Model.CURRENCy?.Shortname</p>
 
                             @using (Html.BeginForm("Delete", "FContractTariff", FormMethod.Post))
                             {

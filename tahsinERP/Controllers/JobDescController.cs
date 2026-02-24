@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class JobDescController : Controller
     {
-        // GET: JobDesc
+        // Olish so'rovi: JobDesc
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -48,7 +48,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: JobDesc/Create
+        // Olish so'rovi: JobDesc/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -67,7 +67,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // GET: JobDesc/GetTemplate
+        // Olish so'rovi: JobDesc/GetTemplate
         public ActionResult GetTemplate()
         {
             var templatePath = Server.MapPath("~/App_Data/Templates/JobDescriptionTemplate.docx");
@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: JobDesc/Create
+        // POST so'rovi: JobDesc/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(JobDescCreateViewModel model)
@@ -156,7 +156,7 @@ namespace tahsinERP.Controllers
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"HTML to DOCX conversion error: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"HTML dan DOCX ga o'tkazishda xatolik: {ex.Message}");
                             // Agar konvertatsiya xatolik bersa, bo'sh .docx yaratish
                             docxBytes = WordDocumentConverterService.CreateEmptyDocx();
                         }
@@ -198,7 +198,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: JobDesc/Edit/5
+        // Olish so'rovi: JobDesc/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -238,7 +238,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Docx to HTML conversion error: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"DOCX dan HTML ga o'tkazishda xatolik: {ex.Message}");
                     }
                 }
 
@@ -266,7 +266,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: JobDesc/Edit/5
+        // POST so'rovi: JobDesc/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(JobDescEditViewModel model)
@@ -308,7 +308,7 @@ namespace tahsinERP.Controllers
                     jobDescription.Notes = model.Notes?.Trim();
                     jobDescription.HRJobDescriptionID = model.HRJobDescriptionID;
 
-                    // Document title ni yangilash
+                    // hujjat title ni yangilash
                     if (jobDescription.DOC_DOCUMENTS != null)
                     {
                         jobDescription.DOC_DOCUMENTS.Title = model.JobDescriptionCode;
@@ -327,7 +327,7 @@ namespace tahsinERP.Controllers
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"HTML to DOCX conversion error: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"HTML dan DOCX ga o'tkazishda xatolik: {ex.Message}");
                             docxBytes = WordDocumentConverterService.CreateEmptyDocx();
                         }
 
@@ -382,7 +382,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: JobDesc/Details/5
+        // Olish so'rovi: JobDesc/Details/5
         public async Task<ActionResult> Details(long? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -449,7 +449,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: JobDesc/Delete/5
+        // Olish so'rovi: JobDesc/o'chirish/5
         public async Task<ActionResult> Delete(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -477,7 +477,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: JobDesc/Delete/5
+        // POST so'rovi: JobDesc/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
@@ -502,7 +502,7 @@ namespace tahsinERP.Controllers
 
                     var jobDescriptionCode = jobDescription.JobDescriptionCode;
 
-                    // DOC_DOCUMENTS ni soft delete qilish
+                    // DOC_DOCUMENTS ni soft o'chirish qilish
                     if (jobDescription.DOC_DOCUMENTS != null)
                     {
                         jobDescription.DOC_DOCUMENTS.IsDeleted = true;
@@ -529,7 +529,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Helper methods
+        // yordamchi methods
         private void LoadHRJobDescriptions()
         {
             using (var db = new DBTHSNEntities())
@@ -602,7 +602,7 @@ namespace tahsinERP.Controllers
             return $"JD-{year}-{count:D6}";
         }
 
-        // GET: JobDesc/DownloadFile/5
+        // Olish so'rovi: JobDesc/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long? fileId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -623,11 +623,11 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Rasmlar uchun to'g'ri MIME type
+                // Rasmlar uchun ga'g'ri MIME type
                 var mimeType = file.MimeType;
                 if (string.IsNullOrEmpty(mimeType))
                 {
-                    // File extension dan MIME type ni aniqlash
+                    // fayl extension dan MIME type ni aniqlash
                     mimeType = GetMimeTypeFromExtension(file.FileExtension);
                 }
 

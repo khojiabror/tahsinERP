@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
 {
     public class TaskKanbanController : Controller
     {
-        // GET: TaskKanban
+        // Olish so'rovi: TaskKanban
         public async Task<ActionResult> Index(string viewType = "project")
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -111,9 +111,9 @@ namespace tahsinERP.Controllers
                         });
                     }
                 }
-                else // viewType == "status"
+                else // viewType == "holat"
                 {
-                    // Group by Status
+                    // Group by holat
                     var statuses = await db.APP_TASK_STATUS_REF
                         .Where(s => s.IsActive)
                         .OrderBy(s => s.SortOrder)
@@ -154,7 +154,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: TaskKanban/UpdateStatus
+        // POST so'rovi: TaskKanban/UpdateStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> UpdateStatus(long taskId, int newStatusId)

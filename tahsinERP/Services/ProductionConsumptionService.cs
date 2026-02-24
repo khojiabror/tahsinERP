@@ -181,7 +181,8 @@ namespace tahsinERP.Services
                         WasteQty = wasteQty,
                         TotalConsumption = totalConsumption,
                         UnitID = material.UnitID,
-                        RequiresCutting = requiresCutting
+                        RequiresCutting = requiresCutting,
+                        TotalConsumptionIsInKg = calculateByWeight
                     });
                 }
             }
@@ -262,7 +263,8 @@ namespace tahsinERP.Services
                                 WasteQty = wasteQty,
                                 TotalConsumption = totalConsumption,
                                 UnitID = bomLine.UnitID ?? material.UnitID,
-                                RequiresCutting = requiresCutting
+                                RequiresCutting = requiresCutting,
+                                TotalConsumptionIsInKg = calculateByWeight
                             });
                         }
                     }
@@ -273,10 +275,11 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Consumes materials from Supply (raw material) warehouse when production is confirmed
-        /// Creates Expense document without linked Income
+        /// Consumes materials from the given warehouse when production is confirmed.
+        /// For weight-based materials (e.g. shurup) BOM dona is converted to kg; expense and stock deduction use kg.
+        /// Creates Expense document without linked Income.
         /// </summary>
-        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int supplyWarehouseId, int? productionProcessId = null)
+        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int warehouseId, int? productionProcessId = null)
         {
             var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
             var wasteService = new WasteHandlingService(_db);
@@ -290,22 +293,27 @@ namespace tahsinERP.Services
             foreach (var req in requirements)
             {
                 var stock = await _db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == supplyWarehouseId && s.ProductID == req.MaterialID);
+                    .FirstOrDefaultAsync(s => s.WHID == warehouseId && s.ProductID == req.MaterialID);
 
                 if (stock == null || stock.Amount < req.TotalConsumption)
                 {
                     throw new InvalidOperationException(
-                        $"Xomashyo omborida yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo}, Talab: {req.TotalConsumption}, Mavjud: {stock?.Amount ?? 0}");
+                        $"Omborda yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo}, Talab: {req.TotalConsumption}, Mavjud: {stock?.Amount ?? 0}");
                 }
             }
+
+            var currency = await _db.CURRENCIES
+                .FirstOrDefaultAsync(c => c.Shortname != null && c.Shortname.Trim().ToUpper() == "UZS")
+                ?? await _db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
+            int currencyId = currency != null ? currency.ID : 1;
 
             var expense = new EXPENS
             {
                 DocNo = $"BOM-{DateTime.Now:yyyyMMddHHmmss}-{productId}",
                 IssueDateTime = DateTime.Now,
-                SenderWHID = supplyWarehouseId,
+                SenderWHID = warehouseId,
                 ReceiverWhID = null,
-                CurrencyID = 1,
+                CurrencyID = currencyId,
                 Amount = 0,
                 TotalPrice = 0,
                 Description = $"Ishlab chiqarish uchun xomashyo chiqimi: Mahsulot ID {productId}, Miqdor {producedQty}",
@@ -334,19 +342,19 @@ namespace tahsinERP.Services
                 _db.EXPENSE_PRODUCTS.Add(expenseProduct);
                 totalAmount += req.TotalConsumption;
 
-                // Get stock in Supply warehouse
+                // Get stock in warehouse
                 var stock = await _db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == supplyWarehouseId && s.ProductID == req.MaterialID);
+                    .FirstOrDefaultAsync(s => s.WHID == warehouseId && s.ProductID == req.MaterialID);
 
                 if (stock == null)
                 {
-                    throw new Exception($"Xomashyo omborida mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}");
+                    throw new Exception($"Omborda mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}");
                 }
 
                 if (stock.Amount < req.TotalConsumption)
                 {
                     throw new Exception(
-                        $"Xomashyo omborida yetarli qoldiq yo'q. " +
+                        $"Omborda yetarli qoldiq yo'q. " +
                         $"Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
                         $"Mavjud: {stock.Amount}, Talab: {req.TotalConsumption}");
                 }
@@ -365,7 +373,7 @@ namespace tahsinERP.Services
                         req.MaterialID, 
                         req.WasteQty, 
                         productionProcessId.Value, 
-                        supplyWarehouseId, 
+                        warehouseId, 
                         req.UnitID,
                         $"Ishlab chiqarish chiqindisi: Mahsulot ID {productId}, Miqdor {producedQty}");
                 }
@@ -393,5 +401,7 @@ namespace tahsinERP.Services
         public double TotalConsumption { get; set; }
         public int UnitID { get; set; }
         public bool RequiresCutting { get; set; }
+        /// <summary>True when TotalConsumption is in kg (e.g. after piece→kg conversion for weight-based materials).</summary>
+        public bool TotalConsumptionIsInKg { get; set; }
     }
 }

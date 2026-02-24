@@ -1,6 +1,6 @@
 @model tahsinERP.Models.PRODUCT
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -79,6 +79,11 @@
                                                     <h6 class="invoice-to">Turi</h6>
                                                     <fieldset class="form-group">
                                                         @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Kategoriya</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, "Tanlang", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Sex (ishlab chiqarish bo'limi)</h6>
                                                     <fieldset class="form-group">

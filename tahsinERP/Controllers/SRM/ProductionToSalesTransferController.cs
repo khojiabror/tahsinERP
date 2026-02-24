@@ -12,11 +12,11 @@ using tahsinERP.Controllers;
 namespace tahsinERP.Controllers.SRM
 {
     /// <summary>
-    /// Controller for transferring finished goods from Production Warehouse to Sales Warehouse
+    /// Controller uchun transferring finished goods dan Production Warehouse ga Sales Warehouse
     /// </summary>
     public class ProductionToSalesTransferController : Controller
     {
-        // GET: ProductionToSalesTransfer
+        // Olish so'rovi: ProductionToSalesTransfer
         public async Task<ActionResult> Index(DateTime? fromDate, DateTime? toDate, int? productID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -62,7 +62,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: ProductionToSalesTransfer/Create
+        // Olish so'rovi: ProductionToSalesTransfer/yaratish
         public async Task<ActionResult> Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -96,7 +96,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: ProductionToSalesTransfer/Create
+        // POST so'rovi: ProductionToSalesTransfer/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(ProductionToSalesTransferViewModel viewModel, 
@@ -108,7 +108,7 @@ namespace tahsinERP.Controllers.SRM
                 {
                     try
                     {
-                        // Validate stock availability for all products
+                        // Tekshirish stock availability uchun barcha products
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
                             var availableStock = WarehouseFlowService.GetProductionStock(line.ProductID, db);
@@ -134,7 +134,7 @@ namespace tahsinERP.Controllers.SRM
                             }
                         }
 
-                        // Read document if provided
+                        // O'qish hujjat agar provided
                         byte[] documentBytes = null;
                         if (transferDocument != null && transferDocument.ContentLength > 0)
                         {
@@ -142,7 +142,7 @@ namespace tahsinERP.Controllers.SRM
                             transferDocument.InputStream.Read(documentBytes, 0, transferDocument.ContentLength);
                         }
 
-                        // Process each transfer line
+                        // Process har bir transfer line
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
                             WarehouseFlowService.TransferProductionToSales(
@@ -176,7 +176,7 @@ namespace tahsinERP.Controllers.SRM
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
@@ -194,7 +194,7 @@ namespace tahsinERP.Controllers.SRM
             return View(viewModel);
         }
 
-        // GET: ProductionToSalesTransfer/Details/5
+        // Olish so'rovi: ProductionToSalesTransfer/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
@@ -217,7 +217,7 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                // Get corresponding INCOME document
+                // Olish corresponding INCOME hujjat
                 var income = await db.INCOMES
                     .Include(i => i.INCOME_PRODUCTS)
                     .Include(i => i.WRHS_INCOME_DOCS)
@@ -229,7 +229,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // AJAX: Get available stock in Production Warehouse
+        // AJAX so'rovi: Get available stock in Production Warehouse
         [HttpGet]
         public JsonResult GetProductionStock(int productID)
         {

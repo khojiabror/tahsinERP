@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers
 {
     public class SalesInvoicesController : Controller
     {
-        // GET: SalesInvoices
+        // Olish so'rovi: SalesInvoices
         public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string invoiceNo, int? customerID, int? orderID, int? contractID, DateTime? fromDate, DateTime? toDate, string statusCode, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -93,7 +93,7 @@ namespace tahsinERP.Controllers
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
                 ViewBag.Orders = new SelectList(await db.S_ORDERS.Where(o => o.IsDeleted == false).ToListAsync(), "ID", "OrderNo", orderID);
                 ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "ContractNo", contractID);
@@ -115,7 +115,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Details
+        // Olish so'rovi: Details
         public ActionResult Details(long? id)
         {
             if (id == null)
@@ -134,10 +134,10 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Load customer
+                // Yuklash customer
                 ViewBag.Customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == invoice.CustomerID);
 
-                // Get related order and contract
+                // Olish related order va contract
                 if (invoice.OrderID.HasValue)
                 {
                     ViewBag.Order = db.S_ORDERS
@@ -152,15 +152,18 @@ namespace tahsinERP.Controllers
                         .FirstOrDefault(c => c.ID == invoice.ContractID.Value);
                 }
 
-                // Load products for invoice lines
+                // Yuklash products uchun invoice lines
                 var productIDs = invoice.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList();
-                ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+                ViewBag.Products = db.PRODUCTS
+                    .Include(p => p.UNIT)
+                    .Where(p => productIDs.Contains(p.ID))
+                    .ToDictionary(p => p.ID, p => p);
 
-                // Get SF count
+                // Olish SF count
                 var sfCount = db.SALES_SF_HEADERS.Where(sf => sf.InvoiceID == id).Count();
                 ViewBag.SFCount = sfCount;
 
-                // Get TTNK count
+                // Olish TTNK count
                 var ttnkCount = db.SALES_TTNK_INVOICES.Where(t => t.InvoiceID == id).Count();
                 ViewBag.TTNKCount = ttnkCount;
 
@@ -168,7 +171,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Create from Order
+        // Olish so'rovi: yaratish dan Order
         public ActionResult CreateFromOrder(int? orderID)
         {
             if (orderID == null)
@@ -190,10 +193,10 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Check if order products have been quality inspected (business rule)
-                // Quality inspection is required before invoicing
+                // Tekshirish agar order products have been quality inspected (business rule)
+                // Quality inspection is majburiy before invoicing
 
-                // Pre-fill invoice from order
+                // Pre-fill invoice dan order
                 var invoice = new SALES_INVOICES
                 {
                     InvoiceDate = DateTime.Now,
@@ -213,7 +216,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Create from Order
+        // POST so'rovi: yaratish dan Order
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateFromOrder(SALES_INVOICES invoice, List<SalesInvoiceLineViewModel> lines)
@@ -224,7 +227,7 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Validate quantities against order
+                        // Tekshirish quantities against order
                         var order = db.S_ORDERS
                             .Include(o => o.S_ORDER_PRODUCTS)
                             .FirstOrDefault(o => o.ID == invoice.OrderID && o.IsDeleted == false);
@@ -235,7 +238,7 @@ namespace tahsinERP.Controllers
                             return View(invoice);
                         }
 
-                        // Validate each line
+                        // Tekshirish har bir line
                         foreach (var line in lines)
                         {
                             var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ProductID == line.ProductID);
@@ -245,7 +248,7 @@ namespace tahsinERP.Controllers
                                 return View(invoice);
                             }
 
-                            // Check if invoiced quantity exceeds ordered quantity
+                            // Tekshirish agar invoiced quantity exceeds ordered quantity
                             var alreadyInvoiced = db.SALES_INVOICE_LINES
                                 .Where(l => l.SALES_INVOICES.OrderID == order.ID && l.ProductID == line.ProductID)
                                 .Sum(l => (decimal?)l.Qty) ?? 0;
@@ -256,7 +259,7 @@ namespace tahsinERP.Controllers
                                 return View(invoice);
                             }
 
-                            // QUALITY INSPECTION GATING: Check if quality inspection is approved and has enough accepted qty
+                            // QUALITY INSPECTION GATING: tekshirish agar quality inspection is approved va has enough accepted qty
                             var totalAccepted = db.QUALITY_INSPECTION
                                 .Where(q => q.ProductID == line.ProductID 
                                     && q.StatusCode == "APPROVED" 
@@ -279,7 +282,7 @@ namespace tahsinERP.Controllers
                                 return View(invoice);
                             }
 
-                            // Check if product has been produced
+                            // Tekshirish agar product has been produced
                             var totalProduced = db.PRODUCT_PRODUCTION
                                 .Where(p => p.ProductID == line.ProductID)
                                 .Sum(p => (double?)p.Total) ?? 0;
@@ -315,7 +318,7 @@ namespace tahsinERP.Controllers
                         db.SALES_INVOICES.Add(invoice);
                         db.SaveChanges();
 
-                        // Add lines
+                        // Qo'shish lines
                         int lineNo = 1;
                         foreach (var line in lines)
                         {
@@ -337,7 +340,7 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        // Post to finance and decrease stock if invoice is created with FINALIZED or APPROVED status
+                        // Post ga finance va decrease stock agar invoice is created bilan FINALIZED yoki APPROVED holat
                         if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
                         {
                             try
@@ -345,7 +348,7 @@ namespace tahsinERP.Controllers
                                 var userId = UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
 
-                                // Decrease stock in Sales Warehouse for each invoice line
+                                // Decrease stock in Sales Warehouse uchun har bir invoice line
                                 foreach (var line in lines)
                                 {
                                     try
@@ -361,10 +364,10 @@ namespace tahsinERP.Controllers
                                     }
                                     catch (Exception stockEx)
                                     {
-                                        // Log stock error but don't fail the invoice creation
+                                        // Log stock xatolik but don't fail the invoice creation
                                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder",
                                             $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
-                                        // Re-throw if it's a critical stock shortage
+                                        // Re-throw agar it's a critical stock shortage
                                         if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
                                         {
                                             throw;
@@ -376,7 +379,7 @@ namespace tahsinERP.Controllers
                             {
                                 LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder", 
                                     $"Finance posting or stock decrease error for invoice {invoice.ID}: {ex.Message}");
-                                // Re-throw if it's a stock shortage
+                                // Re-throw agar it's a stock shortage
                                 if (ex.Message.Contains("yetarli mahsulot yo'q"))
                                 {
                                     throw;
@@ -402,7 +405,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (invoice.OrderID.HasValue)
@@ -420,7 +423,7 @@ namespace tahsinERP.Controllers
             return View(invoice);
         }
 
-        // GET: Create (standalone)
+        // Olish so'rovi: yaratish (standalone)
         public ActionResult Create(int? customerID, int? orderID, int? contractID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -457,7 +460,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Create
+        // POST so'rovi: yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(SALES_INVOICES invoice, List<SalesInvoiceLineViewModel> lines)
@@ -468,7 +471,7 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Validate sales warehouse stock for each line
+                        // Tekshirish sales warehouse stock uchun har bir line
                         var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
                         if (salesWH == null)
                         {
@@ -523,7 +526,7 @@ namespace tahsinERP.Controllers
                         db.SALES_INVOICES.Add(invoice);
                         db.SaveChanges();
 
-                        // Add lines
+                        // Qo'shish lines
                         int lineNo = 1;
                         foreach (var line in lines)
                         {
@@ -545,7 +548,7 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        // Post to finance and decrease stock if invoice is created with FINALIZED or APPROVED status
+                        // Post ga finance va decrease stock agar invoice is created bilan FINALIZED yoki APPROVED holat
                         if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
                         {
                             try
@@ -553,7 +556,7 @@ namespace tahsinERP.Controllers
                                 var userId = UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
 
-                                // Decrease stock in Sales Warehouse for each invoice line
+                                // Decrease stock in Sales Warehouse uchun har bir invoice line
                                 foreach (var line in lines)
                                 {
                                     try
@@ -569,10 +572,10 @@ namespace tahsinERP.Controllers
                                     }
                                     catch (Exception stockEx)
                                     {
-                                        // Log stock error but don't fail the invoice creation
+                                        // Log stock xatolik but don't fail the invoice creation
                                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create",
                                             $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
-                                        // Re-throw if it's a critical stock shortage
+                                        // Re-throw agar it's a critical stock shortage
                                         if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
                                         {
                                             throw;
@@ -584,7 +587,7 @@ namespace tahsinERP.Controllers
                             {
                                 LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create", 
                                     $"Finance posting or stock decrease error for invoice {invoice.ID}: {ex.Message}");
-                                // Re-throw if it's a stock shortage
+                                // Re-throw agar it's a stock shortage
                                 if (ex.Message.Contains("yetarli mahsulot yo'q"))
                                 {
                                     throw;
@@ -610,7 +613,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
@@ -648,7 +651,7 @@ namespace tahsinERP.Controllers
             return new SelectList(selectItems, "Value", "Text", selectedProductId);
         }
 
-        // GET: Edit
+        // Olish so'rovi: Edit
         public ActionResult Edit(long? id)
         {
             if (id == null)
@@ -667,7 +670,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Check if invoice can be edited (business rule)
+                // Tekshirish agar invoice can be edited (business rule)
                 if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "PAID")
                 {
                     TempData["ErrorMessage"] = "Yakunlangan yoki to'langan invoysni tahrirlash mumkin emas";
@@ -684,7 +687,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Edit
+        // POST so'rovi: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(SALES_INVOICES invoice, List<SalesInvoiceLineViewModel> lines)
@@ -699,7 +702,7 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Check if invoice can be edited
+                    // Tekshirish agar invoice can be edited
                     if (existingInvoice.StatusCode == "FINALIZED" || existingInvoice.StatusCode == "PAID")
                     {
                         ModelState.AddModelError("", "Yakunlangan yoki to'langan invoysni tahrirlash mumkin emas");
@@ -718,14 +721,14 @@ namespace tahsinERP.Controllers
                         existingInvoice.StatusCode = invoice.StatusCode;
                         existingInvoice.UpdatedDT = DateTime.Now;
 
-                        // Remove existing lines
+                        // O'chirish existing lines
                         var existingLines = db.SALES_INVOICE_LINES.Where(l => l.InvoiceID == invoice.ID).ToList();
                         foreach (var line in existingLines)
                         {
                             db.SALES_INVOICE_LINES.Remove(line);
                         }
 
-                        // Add updated lines
+                        // Qo'shish updated lines
                         if (lines != null && lines.Any())
                         {
                             decimal totalAmount = 0;
@@ -761,13 +764,13 @@ namespace tahsinERP.Controllers
                         existingInvoice.TotalWithVAT = totalAmount + totalVAT;
                         }
 
-                        // Check if status changed to FINALIZED or APPROVED - post to finance and decrease stock
+                        // Tekshirish agar holat changed ga FINALIZED yoki APPROVED - post ga finance va decrease stock
                         bool statusChangedToFinalized = (existingInvoice.StatusCode != "FINALIZED" && existingInvoice.StatusCode != "APPROVED") 
                             && (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED");
 
                         db.SaveChanges();
 
-                        // Post to finance and decrease stock if status changed to finalized/approved
+                        // Post ga finance va decrease stock agar holat changed ga finalized/approved
                         if (statusChangedToFinalized)
                         {
                             try
@@ -775,7 +778,7 @@ namespace tahsinERP.Controllers
                                 var userId = UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostSalesInvoice((int)existingInvoice.ID, db, userId);
 
-                                // Decrease stock in Sales Warehouse for each invoice line
+                                // Decrease stock in Sales Warehouse uchun har bir invoice line
                                 if (lines != null && lines.Any())
                                 {
                                     foreach (var line in lines)
@@ -793,10 +796,10 @@ namespace tahsinERP.Controllers
                                         }
                                         catch (Exception stockEx)
                                         {
-                                            // Log stock error but don't fail the invoice save
+                                            // Log stock xatolik but don't fail the invoice saqlash
                                             LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit",
                                                 $"Stock decrease error for product {line.ProductID} in invoice {existingInvoice.ID}: {stockEx.Message}");
-                                            // Re-throw if it's a critical stock shortage
+                                            // Re-throw agar it's a critical stock shortage
                                             if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
                                             {
                                                 throw;
@@ -807,10 +810,10 @@ namespace tahsinERP.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Log error but don't fail the invoice save (unless it's stock shortage)
+                                // Log xatolik but don't fail the invoice saqlash (unless it's stock shortage)
                                 LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit", 
                                     $"Finance posting or stock decrease error for invoice {existingInvoice.ID}: {ex.Message}");
-                                // Re-throw if it's a stock shortage
+                                // Re-throw agar it's a stock shortage
                                 if (ex.Message.Contains("yetarli mahsulot yo'q"))
                                 {
                                     throw;
@@ -836,7 +839,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
@@ -849,7 +852,7 @@ namespace tahsinERP.Controllers
             return View(invoice);
         }
 
-        // Helper method to get current user ID
+        // yordamchi method ga get current user ID
         private int? GetCurrentUserID()
         {
             try
@@ -862,7 +865,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: SalesInvoices/Print/5
+        // Olish so'rovi: SalesInvoices/Print/5
         public ActionResult Print(long? id)
         {
             if (id == null)
@@ -881,10 +884,10 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Load customer
+                // Yuklash customer
                 ViewBag.Customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == invoice.CustomerID);
 
-                // Get related order and contract
+                // Olish related order va contract
                 if (invoice.OrderID.HasValue)
                 {
                     ViewBag.Order = db.S_ORDERS
@@ -899,11 +902,14 @@ namespace tahsinERP.Controllers
                         .FirstOrDefault(c => c.ID == invoice.ContractID.Value);
                 }
 
-                // Load products for invoice lines
+                // Yuklash products uchun invoice lines
                 var productIDs = invoice.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList();
-                ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+                ViewBag.Products = db.PRODUCTS
+                    .Include(p => p.UNIT)
+                    .Where(p => productIDs.Contains(p.ID))
+                    .ToDictionary(p => p.ID, p => p);
 
-                // Load company info
+                // Yuklash company info
                 ViewBag.Company = db.COMPANIES.FirstOrDefault();
 
                 return View(invoice);
@@ -911,7 +917,7 @@ namespace tahsinERP.Controllers
         }
     }
 
-    // ViewModel for invoice lines
+    // ViewModel uchun invoice lines
     public class SalesInvoiceLineViewModel
     {
         public int ProductID { get; set; }

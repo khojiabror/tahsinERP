@@ -7,11 +7,11 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// Controller for Transport Load Simulation module
+    /// Controller uchun Transport yuklash Simulation module
     /// </summary>
     public class TransportLoadSimulationController : Controller
     {
-        // GET: TransportLoadSimulation
+        // Olish so'rovi: TransportLoadSimulation
         public ActionResult Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get products for dropdown (non-deleted only)
+                // Olish products uchun dropdown (non-deleted faqat)
                 var products = db.PRODUCTS
                     .Where(p => p.IsDeleted == false)
                     .OrderBy(p => p.PNo)
@@ -38,7 +38,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Products = products;
 
-                // Get transport types for dropdown
+                // Olish transport types uchun dropdown
                 var transportTypes = db.F_TRANSPORT_TYPES
                     .OrderBy(t => t.TransportType)
                     .Select(t => new TransportSelectItem

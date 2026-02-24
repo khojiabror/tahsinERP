@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.SRM
 {
     public class PRequisitionsController : Controller
     {
-        // GET: PRequisitions
+        // Olish so'rovi: PRequisitions
         public async Task<ActionResult> Index(string statusFilter = "")
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PRequisitions", "Index"))
@@ -50,7 +50,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: PRequisitions/Details/5
+        // Olish so'rovi: PRequisitions/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PRequisitions", "Details"))
@@ -76,7 +76,7 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                // Load departments and employees for display
+                // Yuklash departments va employees uchun display
                 var departments = await db.HR_ORG_UNITS
                     .Where(d => d.IsActive == true)
                     .ToListAsync();
@@ -91,7 +91,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: PRequisitions/Create
+        // Olish so'rovi: PRequisitions/yaratish
         public async Task<ActionResult> Create()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PRequisitions"))
@@ -101,21 +101,21 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                // Get employees for requester dropdown
+                // Olish employees uchun requester dropdown
                 var employees = await db.HR_EMPLOYEES
                     .Where(e => e.IsActive == true)
                     .OrderBy(e => e.FullName)
                     .ToListAsync();
                 ViewBag.RequesterList = new SelectList(employees, "ID", "FullName");
 
-                // Get departments
+                // Olish departments
                 var departments = await db.HR_ORG_UNITS
                     .Where(d => d.IsActive == true)
                     .OrderBy(d => d.Name)
                     .ToListAsync();
                 ViewBag.DepartmentList = new SelectList(departments, "ID", "Name");
 
-                // Get products for indirect purchase (equipment, tools, consumables, auxiliary)
+                // Olish products uchun indirect purchase (equipment, tools, consumables, auxiliary)
                 var indirectProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true &&
@@ -134,13 +134,13 @@ namespace tahsinERP.Controllers.SRM
 
                 ViewBag.ProductList = new SelectList(productSelectList, "Value", "Text");
 
-                // Get units
+                // Olish units
                 ViewBag.UnitList = new SelectList(
                     await db.UNITS.ToListAsync(),
                     "ID", "ShortName"
                 );
 
-                // Get priority options
+                // Olish priority options
                 ViewBag.PriorityList = new SelectList(new[]
                 {
                     new { Value = "High", Text = "High" },
@@ -152,7 +152,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: PRequisitions/Create
+        // POST so'rovi: PRequisitions/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(PRequisitionViewModel model)
@@ -168,7 +168,7 @@ namespace tahsinERP.Controllers.SRM
                 {
                     try
                     {
-                        // Generate RequisitionNo if not provided
+                        // RequisitionNo berilmagan bo'lsa, avtomatik yaratish
                         if (string.IsNullOrEmpty(model.RequisitionNo))
                         {
                             model.RequisitionNo = await GenerateRequisitionNo(db);
@@ -176,7 +176,7 @@ namespace tahsinERP.Controllers.SRM
 
                         var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
 
-                        // Create requisition header
+                        // Talabnoma sarlavhasini yaratish
                         var requisition = new P_REQUISITIONS
                         {
                             RequisitionNo = model.RequisitionNo,
@@ -194,7 +194,7 @@ namespace tahsinERP.Controllers.SRM
                         db.P_REQUISITIONS.Add(requisition);
                         await db.SaveChangesAsync();
 
-                        // Add requisition products
+                        // Qo'shish requisition products
                         if (model.RequisitionProducts != null && model.RequisitionProducts.Any())
                         {
                             foreach (var product in model.RequisitionProducts)
@@ -218,11 +218,11 @@ namespace tahsinERP.Controllers.SRM
                             await db.SaveChangesAsync();
                         }
 
-                        // Create default approval workflow
+                        // Standart tasdiqlash jarayonini yaratish
                         await CreateDefaultApprovalWorkflow(db, requisition.ID);
 
-                        // Log the action
-                        LogHelper.LogToDatabase(User.Identity.Name, "PRequisitions", $"Create - {requisition.RequisitionNo} requisition yaratildi");
+                        // Amalni logga yozish
+                        LogHelper.LogToDatabase(User.Identity.Name, "PRequisitions", $"Create - {requisition.RequisitionNo} talabnoma yaratildi");
 
                         return RedirectToAction("Index");
                     }
@@ -240,7 +240,7 @@ namespace tahsinERP.Controllers.SRM
                 }
             }
 
-            // Repopulate ViewBag on error
+            // Xatolikda ViewBag qiymatlarini qayta ga'ldirish
             using (var db = new DBTHSNEntities())
             {
                 var employees = await db.HR_EMPLOYEES
@@ -280,16 +280,16 @@ namespace tahsinERP.Controllers.SRM
 
                 ViewBag.PriorityList = new SelectList(new[]
                 {
-                    new { Value = "High", Text = "High" },
-                    new { Value = "Medium", Text = "Medium" },
-                    new { Value = "Low", Text = "Low" }
+                    new { Value = "High", Text = "Yuqori" },
+                    new { Value = "Medium", Text = "O'rta" },
+                    new { Value = "Low", Text = "Past" }
                 }, "Value", "Text", "Medium");
             }
 
             return View(model);
         }
 
-        // GET: PRequisitions/ConvertToOrder/5
+        // Olish so'rovi: PRequisitions/ConvertToOrder/5
         public async Task<ActionResult> ConvertToOrder(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PRequisitions", "ConvertToOrder"))
@@ -316,16 +316,16 @@ namespace tahsinERP.Controllers.SRM
 
                 if (requisition.Status != "Approved")
                 {
-                    TempData["ErrorMessage"] = "Only approved requisitions can be converted to purchase orders.";
+                    TempData["ErrorMessage"] = "Faqat tasdiqlangan talabnomani xarid buyurtmasiga aylantirish mumkin.";
                     return RedirectToAction("Details", new { id = id });
                 }
 
-                // Redirect to POrders Create with requisition data
+                // Talabnoma ma'lumotlari bilan POrders/yaratish sahifasiga yo'naltirish
                 return RedirectToAction("Create", "POrders", new { requisitionId = id });
             }
         }
 
-        // Helper: Generate RequisitionNo
+        // Yordamchi metod: RequisitionNo yaratish
         private async Task<string> GenerateRequisitionNo(DBTHSNEntities db)
         {
             var year = DateTime.Now.Year;
@@ -349,7 +349,7 @@ namespace tahsinERP.Controllers.SRM
             return $"{prefix}{nextNumber:D4}";
         }
 
-        // Helper: Create default approval workflow
+        // Yordamchi metod: standart tasdiqlash jarayonini yaratish
         private async Task CreateDefaultApprovalWorkflow(DBTHSNEntities db, int requisitionId)
         {
             var approvals = new List<P_REQUISITION_APPROVALS>

@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers.Engineering
             _analyticsService = new TannarxAnalyticsService(db);
         }
 
-        // GET: TannarxAnalytics/Dashboard
+        // Olish so'rovi: TannarxAnalytics/Dashboard
         public async Task<ActionResult> Dashboard(int? year, int? month, int? productID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Default to current year and month if not provided
+            // standart ga current year va month agar not provided
             var currentYear = year ?? DateTime.Now.Year;
             var currentMonth = month ?? DateTime.Now.Month;
 
@@ -36,11 +36,11 @@ namespace tahsinERP.Controllers.Engineering
             ViewBag.Month = currentMonth;
             ViewBag.ProductID = productID;
 
-            // Get years for dropdown
+            // Olish years uchun dropdown
             var years = Enumerable.Range(DateTime.Now.Year - 2, 5).ToList();
             ViewBag.Years = new SelectList(years, currentYear);
 
-            // Get months for dropdown
+            // Olish months uchun dropdown
             var months = new System.Collections.Generic.List<SelectListItem>
             {
                 new SelectListItem { Value = "1", Text = "Yanvar" },
@@ -58,8 +58,8 @@ namespace tahsinERP.Controllers.Engineering
             };
             ViewBag.Months = new SelectList(months, "Value", "Text", currentMonth);
 
-            // Get products for dropdown (finished goods only)
-            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
+            // Olish products uchun dropdown (finished goods faqat)
+            // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
             var products = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => p.IsDeleted == false 
@@ -68,17 +68,17 @@ namespace tahsinERP.Controllers.Engineering
                 .OrderBy(p => p.PNo)
                 .ToListAsync();
 
-            // Add "Barchasi" option to the product list
+            // Qo'shish "Barchasi" option ga the product list
             var productList = products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }).ToList();
             ViewBag.Products = new SelectList(productList, "ID", "Name", productID);
 
-            // Get dashboard data
+            // Olish dashboard ma'lumot
             var dashboard = await _analyticsService.GetDashboardDataAsync(currentYear, currentMonth, productID);
 
             return View(dashboard);
         }
 
-        // GET: TannarxAnalytics/Report
+        // Olish so'rovi: TannarxAnalytics/Report
         public async Task<ActionResult> Report(int? year, int? month, int? productID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
@@ -90,11 +90,11 @@ namespace tahsinERP.Controllers.Engineering
             ViewBag.Month = month;
             ViewBag.ProductID = productID;
 
-            // Get years for dropdown
+            // Olish years uchun dropdown
             var years = Enumerable.Range(DateTime.Now.Year - 2, 5).ToList();
             ViewBag.Years = new SelectList(years, year);
 
-            // Get months for dropdown
+            // Olish months uchun dropdown
             var months = new System.Collections.Generic.List<SelectListItem>
             {
                 new SelectListItem { Value = "1", Text = "Yanvar" },
@@ -112,8 +112,8 @@ namespace tahsinERP.Controllers.Engineering
             };
             ViewBag.Months = new SelectList(months, "Value", "Text", month);
 
-            // Get products for dropdown (finished goods only)
-            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
+            // Olish products uchun dropdown (finished goods faqat)
+            // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
             var products = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => p.IsDeleted == false 
@@ -122,17 +122,17 @@ namespace tahsinERP.Controllers.Engineering
                 .OrderBy(p => p.PNo)
                 .ToListAsync();
 
-            // Add "Barchasi" option to the product list
+            // Qo'shish "Barchasi" option ga the product list
             var productList = products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }).ToList();
             ViewBag.Products = new SelectList(productList, "ID", "Name", productID);
 
-            // Get report data
+            // Olish report ma'lumot
             var report = await _analyticsService.GetAnalyticsReportAsync(year, month, productID);
 
             return View(report);
         }
 
-        // POST: TannarxAnalytics/UpdateActualCosts
+        // POST so'rovi: TannarxAnalytics/UpdateActualCosts
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateActualCosts(int? year, int? month)
@@ -161,7 +161,7 @@ namespace tahsinERP.Controllers.Engineering
             return RedirectToAction("Dashboard", new { year = year, month = month });
         }
 
-        // GET: TannarxAnalytics/ProductDetails
+        // Olish so'rovi: TannarxAnalytics/ProductDetails
         public async Task<ActionResult> ProductDetails(int productID, int year, int month)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))

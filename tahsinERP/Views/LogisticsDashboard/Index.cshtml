@@ -1,6 +1,6 @@
 @using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "Logistika Dashboard";
+    ViewBag.Title = "Logistika boshqaruv paneli";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Logistika Dashboard
+                                        Logistika boshqaruv paneli
                                     </li>
                                 </ol>
                             </div>
@@ -42,7 +42,7 @@
                                     <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                                 </div>
                                 <div class="col-md-3">
-                                    <label>Forwarder</label>
+                                    <label>Yuk tashuvchi</label>
                                     @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-2">
@@ -208,14 +208,14 @@
                         <div class="col-xl-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5>Forwarderlar bo'yicha reyting</h5>
+                                    <h5>Yuk tashuvchilar bo'yicha reyting</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th>Forwarder</th>
+                                                    <th>Yuk tashuvchi</th>
                                                     <th>Reyslar soni</th>
                                                     <th>Jami tonnaj</th>
                                                     <th>Jami xarajat</th>
@@ -308,17 +308,17 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <a href="@Url.Action("LanePerformance", "LogisticsDashboard")" class="btn btn-outline-primary btn-block">
-                                            <i class="bx bx-map"></i> Lane Performance
+                                            <i class="bx bx-map"></i> Marshrutlar samaradorligi
                                         </a>
                                     </div>
                                     <div class="col-md-4">
                                         <a href="@Url.Action("Reconciliation", "LogisticsDashboard")" class="btn btn-outline-warning btn-block">
-                                            <i class="bx bx-check-circle"></i> Reconciliation
+                                            <i class="bx bx-check-circle"></i> Solishtirish hisoboti
                                         </a>
                                     </div>
                                     <div class="col-md-4">
                                         <a href="@Url.Action("ForwarderComparison", "LogisticsDashboard")" class="btn btn-outline-info btn-block">
-                                            <i class="bx bx-bar-chart"></i> Forwarder Comparison
+                                            <i class="bx bx-bar-chart"></i> Yuk tashuvchilarni taqqoslash
                                         </a>
                                     </div>
                                 </div>

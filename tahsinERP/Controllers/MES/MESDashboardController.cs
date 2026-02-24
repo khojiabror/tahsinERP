@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.MES
 {
     public class MESDashboardController : Controller
     {
-        // GET: MES/Dashboard
+        // Olish so'rovi: MES/Dashboard
         public async Task<ActionResult> Dashboard(int? year, int? month, int? day)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -70,7 +70,7 @@ namespace tahsinERP.Controllers.MES
                 viewModel.TodayActual = periodActual;
                 viewModel.TodayPlanVsActualPercent = periodPlanned > 0 ? (periodActual / periodPlanned) * 100 : 0;
 
-                // Secondary period KPIs (month or year summary)
+                // Secondary period KPIs (month yoki year summary)
                 DateTime secondaryStart;
                 DateTime secondaryEnd;
                 if (selectedMonth.HasValue && selectedDay.HasValue)
@@ -156,7 +156,7 @@ namespace tahsinERP.Controllers.MES
                 viewModel.TotalAcceptedQty = (double)(qualityInspections.Sum(q => (decimal?)q.QtyAccepted) ?? 0);
                 viewModel.TotalRejectedQty = (double)(qualityInspections.Sum(q => (decimal?)q.QtyRejected) ?? 0);
 
-                // Order Bottlenecks (remaining qty to fulfill)
+                // Order Bottlenecks (remaining qty ga fulfill)
                 var orders = await db.S_ORDERS
                     .Include(o => o.S_ORDER_PRODUCTS)
                     .Where(o => o.IsDeleted == false)

@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
 {
     public class FTransportTypeController : Controller
     {
-        // GET: FTransportType
+        // Olish so'rovi: FTransportType
         public ActionResult Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers
                     .Include(t => t.UNIT)
                     .ToList();
                 
-                // Calculate CBM for each transport type
+                // Calculate CBM uchun har bir transport type
                 foreach (var item in list)
                 {
                     if (item.IntLgth > 0 && item.IntWdth > 0 && item.IntHght > 0)
@@ -67,7 +67,7 @@ namespace tahsinERP.Controllers
 
             if (ModelState.IsValid)
             {
-                // Map ViewModel to Entity Model
+                // Map ViewModel ga Entity Model
                 var transportType = new F_TRANSPORT_TYPES
                 {
                     TransportType = viewModel.TransportType,
@@ -90,7 +90,7 @@ namespace tahsinERP.Controllers
                         db.SaveChanges();
 
                         var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "FTransportTypeController", $"{viewModel.TransportType} - TransPortTypeni yaratdi");
+                        LogHelper.LogToDatabase(userEmail, "FTransportTypeController", "Create", $"{viewModel.TransportType} - transport turi yaratildi.");
 
                         return RedirectToAction("Index");
                     }
@@ -107,7 +107,7 @@ namespace tahsinERP.Controllers
                 ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
             }
 
-            // If ModelState is not valid, return the view with the ViewModel
+            // agar ModelState is not valid, return the view bilan the ViewModel
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
@@ -122,7 +122,7 @@ namespace tahsinERP.Controllers
         {
             if (transportType == null)
             {
-                ModelState.AddModelError("", "Invalid form data. Please check the inputs.");
+                ModelState.AddModelError("", "Forma ma'lumotlari noto'g'ri. Iltimos, kiritilgan qiymatlarni tekshiring.");
                 return View(transportType);
             }
 
@@ -139,7 +139,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Error: " + ex.Message);
+                    ModelState.AddModelError("", "Xatolik: " + ex.Message);
                 }
             }
 
@@ -169,7 +169,7 @@ namespace tahsinERP.Controllers
                 double? cbmCapacity = null;
                 if (transportType.IntLgth > 0 && transportType.IntWdth > 0 && transportType.IntHght > 0)
                 {
-                    // Convert to meters if needed (assuming dimensions are in cm, adjust as needed)
+                    // Aylantirish ga meters agar needed (assuming dimensions are in cm, adjust as needed)
                     double lengthM = transportType.IntLgth / 100.0;
                     double widthM = transportType.IntWdth / 100.0;
                     double heightM = transportType.IntHght / 100.0;
@@ -194,7 +194,7 @@ namespace tahsinERP.Controllers
                 return View(transportType);
             }
         }
-        // GET: FTransportType/Edit/
+        // Olish so'rovi: FTransportType/Edit/
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -217,7 +217,7 @@ namespace tahsinERP.Controllers
                 }
                 db.Entry(transportType).Reference(x => x.UNIT).Load();
 
-                // Map entity to view model
+                // Map entity ga view model
                 var viewModel = new TransportTypeViewModel
                 {
                     ID = transportType.ID,
@@ -237,7 +237,7 @@ namespace tahsinERP.Controllers
                 return View(viewModel);
             }
         }
-        // POST: FTransportType/Edit/
+        // POST so'rovi: FTransportType/Edit/
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(TransportTypeViewModel viewModel)
@@ -258,7 +258,7 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Update entity with data from view model
+                    // Yangilash entity bilan ma'lumot dan view model
                     transportTypeToUpdate.TransportType = viewModel.TransportType;
                     transportTypeToUpdate.ExtLgth = viewModel.ExtLgth;
                     transportTypeToUpdate.ExtWdth = viewModel.ExtWdth;
@@ -275,7 +275,7 @@ namespace tahsinERP.Controllers
                         db.SaveChanges();
 
                         var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "FTransportTypeController", $"{viewModel.TransportType} - TransportTypeni tahrirladi");
+                        LogHelper.LogToDatabase(userEmail, "FTransportTypeController", "Edit", $"{viewModel.TransportType} - transport turi tahrirlandi.");
 
                         return RedirectToAction("Index");
                     }
@@ -291,7 +291,7 @@ namespace tahsinERP.Controllers
                 ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
             }
 
-            // If ModelState is not valid, return the view with the ViewModel
+            // agar ModelState is not valid, return the view bilan the ViewModel
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
@@ -346,7 +346,7 @@ namespace tahsinERP.Controllers
                             db.SaveChanges();
 
                             var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "FTransportTypeController", $"{transportTypeToDelete.TransportType} - TransportTypeni o'chirdi");
+                            LogHelper.LogToDatabase(userEmail, "FTransportTypeController", "Delete", $"{transportTypeToDelete.TransportType} - transport turi o'chirildi.");
 
                             return RedirectToAction("Index");
                         }

@@ -17,7 +17,9 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Calculate material price from NORM_INPUT_LINES for a product and month
+        /// Calculate material price from NORM_INPUT_LINES for a product and month.
+        /// If no lines for the exact month, finds NORMVERSION where the requested month
+        /// falls within EffectiveFrom–EffectiveTo and uses that version's period (EffectiveFrom yyyy-MM).
         /// </summary>
         public async Task<decimal> CalculateMaterialPriceAsync(int productID, string month)
         {
@@ -25,16 +27,72 @@ namespace tahsinERP.Services
                 .Where(n => n.ProductID == productID && n.Month == month)
                 .ToListAsync();
 
+            // If no lines for exact month, try NORMVERSION: norm applies to a date range (EffectiveFrom–EffectiveTo)
+            // NORM_INPUT_LINES are stored with Month = EffectiveFrom.ToString("yyyy-MM")
+            if (!normLines.Any())
+            {
+                DateTime requestedDate;
+                if (TryParseMonthString(month, out requestedDate))
+                {
+                    var version = await _db.NORMVERSIONS
+                        .Where(nv => nv.ProductID == productID
+                            && nv.EffectiveFrom.HasValue
+                            && nv.EffectiveFrom.Value <= requestedDate
+                            && (nv.EffectiveTo == null || nv.EffectiveTo.Value >= requestedDate))
+                        .OrderByDescending(nv => nv.EffectiveFrom)
+                        .FirstOrDefaultAsync();
+
+                    if (version != null && version.EffectiveFrom.HasValue)
+                    {
+                        var period = version.EffectiveFrom.Value.ToString("yyyy-MM");
+                        normLines = await _db.NORM_INPUT_LINES
+                            .Where(n => n.ProductID == productID && n.Month == period)
+                            .ToListAsync();
+                    }
+                }
+            }
+
             if (!normLines.Any())
                 return 0;
 
+            return SumMaterialPriceFromNormLines(normLines);
+        }
+
+        /// <summary>
+        /// Parse month string (e.g. "2025-10" or "2025-09") to first day of month.
+        /// </summary>
+        private bool TryParseMonthString(string month, out DateTime date)
+        {
+            date = default(DateTime);
+            if (string.IsNullOrWhiteSpace(month))
+                return false;
+            var parts = month.Trim().Split('-');
+            if (parts.Length < 2)
+                return false;
+            int y, m;
+            if (!int.TryParse(parts[0], out y) || !int.TryParse(parts[1], out m) || m < 1 || m > 12)
+                return false;
+            try
+            {
+                date = new DateTime(y, m, 1);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Sum material price from a list of NORM_INPUT_LINES.
+        /// </summary>
+        private decimal SumMaterialPriceFromNormLines(List<NORM_INPUT_LINES> normLines)
+        {
             decimal total = 0;
             foreach (var line in normLines)
             {
                 if (line.Price <= 0)
-                {
                     continue;
-                }
 
                 decimal consumptionMeters = 0;
                 if (line.Consumption.HasValue && line.Consumption.Value > 0)
@@ -58,7 +116,6 @@ namespace tahsinERP.Services
 
                 total += (consumptionMeters + wasteMeters) * line.Price;
             }
-
             return total;
         }
 

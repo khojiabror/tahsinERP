@@ -23,7 +23,7 @@ namespace tahsinERP.Controllers
             _textSuggestionService = new TextSuggestionService();
         }
 
-        // GET: OfficialLetters
+        // Olish so'rovi: OfficialLetters
         public async Task<ActionResult> Index(int? year, string directionCode, string topicSearch)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
@@ -87,7 +87,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: OfficialLetters/Create
+        // Olish so'rovi: OfficialLetters/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Create"))
@@ -108,7 +108,7 @@ namespace tahsinERP.Controllers
             return View(vm);
         }
 
-        // POST: OfficialLetters/Create
+        // POST so'rovi: OfficialLetters/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(OfficialLetterCreateVm vm)
@@ -127,7 +127,7 @@ namespace tahsinERP.Controllers
 
                     if (docType == null || statusDraft == null)
                     {
-                        TempData["ErrorMessage"] = "Document type or status not found. Please run seed scripts.";
+                        TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
                         return RedirectToAction("Index");
                     }
 
@@ -163,7 +163,7 @@ namespace tahsinERP.Controllers
                     db.COM_OFFICIAL_LETTERS.Add(letter);
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Create", $"Letter {vm.LetterNo} created");
+                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Create", $"Xat yaratildi: {vm.LetterNo}");
 
                     TempData["Success"] = "Maktub muvaffaqiyatli yaratildi";
                     return RedirectToAction("Index");
@@ -176,7 +176,7 @@ namespace tahsinERP.Controllers
             return View(vm);
         }
 
-        // GET: OfficialLetters/Edit/5
+        // Olish so'rovi: OfficialLetters/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Edit"))
@@ -216,7 +216,7 @@ namespace tahsinERP.Controllers
                     ChannelCode = letter.ChannelCode,
                     Topic = letter.Topic,
                     GreetingLine = $"Hurmatli {letter.ExternalContactName ?? "hamkor"}!",
-                    BodyText = doc.Title // Store body in Title or add new field
+                    BodyText = doc.Title // Store body in Title yoki add new field
                 };
 
                 vm.Directions = new SelectList(new[] { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } }, "Code", "Name", letter.DirectionCode);
@@ -226,7 +226,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: OfficialLetters/Edit/5
+        // POST so'rovi: OfficialLetters/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(OfficialLetterEditVm vm)
@@ -266,7 +266,7 @@ namespace tahsinERP.Controllers
 
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Edit", $"Letter {vm.LetterNo} updated");
+                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Edit", $"Xat yangilandi: {vm.LetterNo}");
 
                     TempData["Success"] = "Maktub muvaffaqiyatli yangilandi";
                     return RedirectToAction("Index");
@@ -279,7 +279,7 @@ namespace tahsinERP.Controllers
             return View(vm);
         }
 
-        // GET: OfficialLetters/Details/5
+        // Olish so'rovi: OfficialLetters/Details/5
         public async Task<ActionResult> Details(long? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Details"))
@@ -309,7 +309,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: OfficialLetters/Delete/5
+        // POST so'rovi: OfficialLetters/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
@@ -328,7 +328,7 @@ namespace tahsinERP.Controllers
 
                 if (doc != null)
                 {
-                    // First, soft delete all related DOC_FILES
+                    // Avval, soft o'chirish barcha related DOC_FILES
                     if (doc.DOC_FILES != null && doc.DOC_FILES.Any())
                     {
                         var files = doc.DOC_FILES.ToList();
@@ -339,19 +339,19 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Then soft delete the official letter record
+                    // So'ng soft o'chirish the official letter record
                     if (doc.COM_OFFICIAL_LETTERS != null)
                     {
                         doc.COM_OFFICIAL_LETTERS.IsDeleted = true;
                         db.Entry(doc.COM_OFFICIAL_LETTERS).State = System.Data.Entity.EntityState.Modified;
                     }
 
-                    // Finally, soft delete the document record
+                    // Oxirida, soft o'chirish the hujjat record
                     doc.IsDeleted = true;
                     db.Entry(doc).State = System.Data.Entity.EntityState.Modified;
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Delete", $"Letter {doc.Code} deleted");
+                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Delete", $"Xat o'chirildi: {doc.Code}");
 
                     TempData["Success"] = "Maktub muvaffaqiyatli o'chirildi";
                 }
@@ -360,7 +360,7 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Index");
         }
 
-        // POST: OfficialLetters/GenerateDoc/5
+        // POST so'rovi: OfficialLetters/GenerateDoc/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> GenerateDoc(long id)
@@ -387,11 +387,11 @@ namespace tahsinERP.Controllers
 
                 if (template == null)
                 {
-                    TempData["ErrorMessage"] = "Template topilmadi";
+                    TempData["ErrorMessage"] = "Shablon topilmadi";
                     return RedirectToAction("Details", new { id });
                 }
 
-                // Prepare placeholders
+                // Tayyorlash placeholders
                 var recipientBlock = letter.ExternalCompanyName ?? "";
                 if (!string.IsNullOrEmpty(letter.ExternalContactPosition))
                 {
@@ -413,17 +413,17 @@ namespace tahsinERP.Controllers
                     { "ITEM_DIM_1", "" },
                     { "ITEM_PRICE_1", "" },
                     { "ITEM_PRICE_VAT_1", "" },
-                    { "DIRECTOR_NAME", "X.M. Maxmudov" }, // TODO: Get from settings
+                    { "DIRECTOR_NAME", "X.M. Maxmudov" }, // TODO: Get dan settings
                     { "OUR_REF_NO", letter.OurRefNo ?? "" },
                     { "THEIR_REF_NO", letter.TheirRefNo ?? "" }
                 };
 
-                // Generate document
+                // Yaratish hujjat
                 string fileName, fileExtension, mimeType;
                 byte[] fileContent = _templateService.GenerateDocFromTemplate(
                     template.ID, placeholders, out fileName, out fileExtension, out mimeType);
 
-                // Get next version number
+                // Olish next version number
                 int nextVersion = 1;
                 var existingFiles = await db.DOC_FILES
                     .Where(f => f.DocumentID == doc.ID)
@@ -432,7 +432,7 @@ namespace tahsinERP.Controllers
                 if (existingFiles != null)
                 {
                     nextVersion = existingFiles.VersionNo + 1;
-                    // Mark previous main file as not main
+                    // Belgilash previous main fayl as not main
                     var prevMain = await db.DOC_FILES
                         .Where(f => f.DocumentID == doc.ID && f.IsMain)
                         .ToListAsync();
@@ -442,7 +442,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Save file - use letter date instead of current date
+                // Saqlash fayl - use letter date instead of current date
                 var docFile = new DOC_FILES
                 {
                     DocumentID = doc.ID,
@@ -460,14 +460,14 @@ namespace tahsinERP.Controllers
                 db.DOC_FILES.Add(docFile);
                 await db.SaveChangesAsync();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "GenerateDoc", $"Document generated for letter {letter.LetterNo}");
+                LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "GenerateDoc", $"Xat uchun hujjat yaratildi: {letter.LetterNo}");
 
                 TempData["Success"] = "Hujjat muvaffaqiyatli yaratildi";
                 return RedirectToAction("Details", new { id });
             }
         }
 
-        // POST: OfficialLetters/ChangeStatus/5
+        // POST so'rovi: OfficialLetters/ChangeStatus/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeStatus(long id, string statusCode)
@@ -500,7 +500,7 @@ namespace tahsinERP.Controllers
                 doc.StatusID = status.ID;
                 doc.UpdatedDT = DateTime.Now;
 
-                // If approving, set ApprovedByUserID
+                // agar approving, set ApprovedByUserID
                 if (statusCode == "APPROVED")
                 {
                     var currentUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
@@ -513,14 +513,14 @@ namespace tahsinERP.Controllers
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "ChangeStatus", 
-                    $"Status changed to {status.Name} for letter {doc.COM_OFFICIAL_LETTERS?.LetterNo}");
+                    $"Xat holati '{status.Name}' ga o'zgartirildi: {doc.COM_OFFICIAL_LETTERS?.LetterNo}");
 
                 TempData["Success"] = $"Holat '{status.Name}' ga o'zgartirildi";
                 return RedirectToAction("Details", new { id });
             }
         }
 
-        // GET: OfficialLetters/DownloadFile/5
+        // Olish so'rovi: OfficialLetters/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long fileId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "DownloadFile"))
@@ -540,7 +540,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // AJAX: Suggest text
+        // AJAX so'rovi: Suggest text
         [HttpPost]
         public JsonResult SuggestText(string directionCode, string externalCompanyName, string externalContactName, string topic, string letterDate, string ourRefNo, string theirRefNo)
         {
@@ -579,7 +579,7 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                // Get all letter numbers and find the maximum numeric value
+                // Olish barcha letter numbers va find the maksimal numeric value
                 var allLetters = db.COM_OFFICIAL_LETTERS
                     .Select(l => l.LetterNo)
                     .ToList();
@@ -588,13 +588,13 @@ namespace tahsinERP.Controllers
                 
                 foreach (var letterNo in allLetters)
                 {
-                    // Try to parse as pure number (e.g., "0005", "0122")
+                    // Urinish ga tahlil as pure number (e.g., "0005", "0122")
                     if (int.TryParse(letterNo, out int num))
                     {
                         if (num > maxLetterNo)
                             maxLetterNo = num;
                     }
-                    // Try to parse as year + number (e.g., "20250005")
+                    // Urinish ga tahlil as year + number (e.g., "20250005")
                     else if (letterNo.Length >= 4 && int.TryParse(letterNo.Substring(4), out int yearNum))
                     {
                         if (yearNum > maxLetterNo)
@@ -602,12 +602,12 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Return next number in format "0123", "0124", etc.
+                // Qaytarish next number in format "0123", "0124", etc.
                 return (maxLetterNo + 1).ToString("D4");
             }
         }
 
-        // GET: OfficialLetters/RegisterIncoming
+        // Olish so'rovi: OfficialLetters/RegisterIncoming
         public ActionResult RegisterIncoming()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "RegisterIncoming"))
@@ -623,7 +623,7 @@ namespace tahsinERP.Controllers
             return View(vm);
         }
 
-        // POST: OfficialLetters/RegisterIncoming
+        // POST so'rovi: OfficialLetters/RegisterIncoming
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RegisterIncoming(IncomingLetterRegisterVm vm)
@@ -637,7 +637,7 @@ namespace tahsinERP.Controllers
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    // Get document type for OFFICIAL_LETTER
+                    // Olish hujjat type uchun OFFICIAL_LETTER
                     var docType = await db.DOC_DOCUMENT_TYPES
                         .FirstOrDefaultAsync(dt => dt.Code == "OFFICIAL_LETTER");
 
@@ -647,7 +647,7 @@ namespace tahsinERP.Controllers
                         return View(vm);
                     }
 
-                    // Get DRAFT status
+                    // Olish qoralama holat
                     var statusDraft = await db.DOC_DOCUMENT_STATUS_REF
                         .FirstOrDefaultAsync(s => s.Code == "DRAFT" && s.IsActive);
 
@@ -657,11 +657,11 @@ namespace tahsinERP.Controllers
                         return View(vm);
                     }
 
-                    // Get current user
+                    // Olish current user
                     var currentUser = await db.USERS
                         .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
 
-                    // Create document
+                    // Yaratish hujjat
                     var doc = new DOC_DOCUMENTS
                     {
                         DocTypeID = docType.ID,
@@ -676,7 +676,7 @@ namespace tahsinERP.Controllers
                     db.DOC_DOCUMENTS.Add(doc);
                     await db.SaveChangesAsync();
 
-                    // Create official letter record
+                    // Yaratish official letter record
                     var letter = new COM_OFFICIAL_LETTERS
                     {
                         DocumentID = doc.ID,
@@ -690,10 +690,10 @@ namespace tahsinERP.Controllers
 
                     db.COM_OFFICIAL_LETTERS.Add(letter);
 
-                    // Handle file upload
+                    // Handle fayl upload
                     if (vm.AttachmentFile != null && vm.AttachmentFile.ContentLength > 0)
                     {
-                        // Validate file type (PDF only)
+                        // Tekshirish fayl type (PDF faqat)
                         string fileExtension = System.IO.Path.GetExtension(vm.AttachmentFile.FileName).ToLower();
                         if (fileExtension != ".pdf")
                         {
@@ -701,21 +701,21 @@ namespace tahsinERP.Controllers
                             return View(vm);
                         }
 
-                        // Validate file size (max 10MB)
+                        // Tekshirish fayl size (max 10MB)
                         if (vm.AttachmentFile.ContentLength > 10 * 1024 * 1024)
                         {
                             ModelState.AddModelError("AttachmentFile", "Fayl hajmi 10 MB dan oshmasligi kerak");
                             return View(vm);
                         }
 
-                        // Read file content
+                        // O'qish fayl content
                         byte[] fileContent;
                         using (var binaryReader = new System.IO.BinaryReader(vm.AttachmentFile.InputStream))
                         {
                             fileContent = binaryReader.ReadBytes(vm.AttachmentFile.ContentLength);
                         }
 
-                        // Save file to DOC_FILES
+                        // Saqlash fayl ga DOC_FILES
                         var docFile = new DOC_FILES
                         {
                             DocumentID = doc.ID,

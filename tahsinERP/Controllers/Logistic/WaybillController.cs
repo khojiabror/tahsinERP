@@ -9,6 +9,7 @@ using System.Web;
 using System.Web.Mvc;
 using OfficeOpenXml;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 
@@ -16,7 +17,8 @@ namespace tahsinERP.Controllers
 {
     public class WaybillController : Controller
     {
-        // GET: Waybill
+        private const byte WaybillPaymentSplitPayerType = 99;
+        // Olish so'rovi: Waybill
         public async Task<ActionResult> Index(string searchTerm, int? direction, int? forwarderId, int? contractId,
             int? transportTypeId, DateTime? startDate, DateTime? endDate, string sortOrder, int? page, int? pageSize)
         {
@@ -99,13 +101,7 @@ namespace tahsinERP.Controllers
                 var waybillList = await query.ToListAsync();
 
                 var waybillIds = waybillList.Select(w => w.ID).ToList();
-                var paymentTotals = await db.F_WAYBILL_PAYMENTS
-                    .Where(p => waybillIds.Contains(p.WaybillID) && p.IsDeleted == false)
-                    .GroupBy(p => p.WaybillID)
-                    .Select(g => new { WaybillID = g.Key, TotalPaid = g.Sum(p => p.Payment_Amount) })
-                    .ToListAsync();
-
-                var paymentLookup = paymentTotals.ToDictionary(x => x.WaybillID, x => x.TotalPaid);
+                var paymentLookup = BuildWaybillPaidLookup(db, waybillIds);
 
                 var waybills = waybillList.Select(w =>
                 {
@@ -140,15 +136,15 @@ namespace tahsinERP.Controllers
                     };
                 }).ToList();
 
-                // Prepare ViewBag for filters
+                // Tayyorlash ViewBag uchun filters
                 ViewBag.Forwarders = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", forwarderId);
                 ViewBag.Contracts = new SelectList(await db.F_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "ContractNo", contractId);
                 ViewBag.TransportTypes = new SelectList(await db.F_TRANSPORT_TYPES.ToListAsync(), "ID", "TransportType", transportTypeId);
                 ViewBag.Directions = new SelectList(new[]
                 {
-                    new { Value = "0", Text = "Kiruvchi (Inbound)" },
-                    new { Value = "1", Text = "Chiquvchi (Outbound)" },
-                    new { Value = "2", Text = "Ichki (Internal)" }
+                    new { Value = "0", Text = "Kiruvchi" },
+                    new { Value = "1", Text = "Chiquvchi" },
+                    new { Value = "2", Text = "Ichki" }
                 }, "Value", "Text", direction);
 
                 ViewBag.SearchTerm = searchTerm;
@@ -222,7 +218,7 @@ namespace tahsinERP.Controllers
                         viewModel.WaybillNo = GenerateNextWaybillNo(db);
                     }
 
-                    // Calculate amount if not manually set
+                    // Calculate amount agar not manually set
                     double? calculatedAmount = CalculateAmount(viewModel);
                     if (!viewModel.Amount.HasValue && calculatedAmount.HasValue)
                     {
@@ -275,13 +271,13 @@ namespace tahsinERP.Controllers
                     db.F_WAYBILLS.Add(waybill);
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Create", 
-                        $"{waybill.WaybillNo} - Waybillni yaratdi");
+                    LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Create",
+                        $"{waybill.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} yaratildi.");
 
                     return RedirectToAction("Index");
                 }
 
-                // Repopulate dropdowns on validation error
+                // Qayta ga'ldirish dropdowns on validation xatolik
                 viewModel = BuildWaybillViewModel(db, viewModel);
 
                 return View(viewModel);
@@ -318,14 +314,28 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Calculate payment summary
-                var payments = await db.F_WAYBILL_PAYMENTS
-                    .Where(p => p.WaybillID == ID && p.IsDeleted == false)
-                    .ToListAsync();
+                var totalPaid = GetWaybillPaidTotal(db, waybill.ID);
+                var outstanding = (waybill.Amount ?? 0) - totalPaid;
+                var paymentStatus = outstanding <= 0
+                    ? "To'langan"
+                    : (totalPaid > 0 ? "Qisman" : "To'lanmagan");
 
-                ViewBag.TotalPaid = payments.Sum(p => p.Payment_Amount);
-                ViewBag.Outstanding = (waybill.Amount ?? 0) - payments.Sum(p => p.Payment_Amount);
-                ViewBag.Payments = payments;
+                var linkedPayments = db.F_WAYBILL_PAYMENTS
+                    .Where(p => p.IsDeleted == false &&
+                                (p.WaybillID == waybill.ID ||
+                                 db.F_WAYBILL_PAYMENT_SPLITS.Any(s =>
+                                     s.PayerType == WaybillPaymentSplitPayerType &&
+                                     s.WaybillID == waybill.ID &&
+                                     s.PayerID == p.ID)))
+                    .Include(p => p.CURRENCy)
+                    .Include(p => p.FORWARDER)
+                    .OrderByDescending(p => p.PaymentDate)
+                    .ToList();
+
+                ViewBag.TotalPaid = totalPaid;
+                ViewBag.Outstanding = outstanding;
+                ViewBag.PaymentStatus = paymentStatus;
+                ViewBag.Payments = linkedPayments;
 
                 return View(waybill);
             }
@@ -447,7 +457,7 @@ namespace tahsinERP.Controllers
                     var waybillToUpdate = await db.F_WAYBILLS.FindAsync(viewModel.ID);
                     if (waybillToUpdate != null)
                     {
-                        // Calculate amount if not manually set
+                        // Calculate amount agar not manually set
                         double? calculatedAmount = CalculateAmount(viewModel);
                         if (!viewModel.Amount.HasValue && calculatedAmount.HasValue)
                         {
@@ -499,7 +509,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Edit",
-                                $"{waybillToUpdate.WaybillNo} - Waybillni tahrirladi");
+                                $"{waybillToUpdate.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} tahrirlandi.");
 
                             return RedirectToAction("Index");
                         }
@@ -510,7 +520,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Repopulate dropdowns
+                // Qayta ga'ldirish dropdowns
                 viewModel = BuildWaybillViewModel(db, viewModel);
 
                 return View(viewModel);
@@ -667,21 +677,21 @@ namespace tahsinERP.Controllers
 
                         if (fileWaybillNos.Contains(waybillNo))
                         {
-                            errors.Add($"Row {row}: Bu Waybill raqami Excel faylida takrorlangan ({waybillNo}).");
+                            errors.Add($"Qator {row}: Bu waybill raqami Excel faylida takrorlangan ({waybillNo}).");
                             continue;
                         }
                         fileWaybillNos.Add(waybillNo);
 
                         if (existingWaybillNos.Contains(waybillNo))
                         {
-                            errors.Add($"Row {row}: Bu Waybill raqami avval kiritilgan ({waybillNo}).");
+                            errors.Add($"Qator {row}: Bu waybill raqami avval kiritilgan ({waybillNo}).");
                             continue;
                         }
 
                         var issueDate = GetCellDate(worksheet, row, headerMap, "IssueDate");
                         if (!issueDate.HasValue)
                         {
-                            errors.Add($"Row {row}: IssueDate noto'g'ri formatda.");
+                            errors.Add($"Qator {row}: sana noto'g'ri formatda.");
                             continue;
                         }
 
@@ -766,6 +776,9 @@ namespace tahsinERP.Controllers
                 }
 
                 await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "UploadExcel",
+                    $"{successCount} ta {LogisticsTerms.Waybill.ToLower()} Excel orqali yuklandi, {skipCount} ta qator o'tkazib yuborildi.");
             }
 
             ViewBag.SuccessCount = successCount;
@@ -797,7 +810,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Delete",
-                                $"{waybillToDelete.WaybillNo} - Waybillni o'chirdi");
+                                $"{waybillToDelete.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} o'chirildi.");
 
                             return RedirectToAction("Index");
                         }
@@ -808,7 +821,7 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Bunday waybill topilmadi.");
+                        ModelState.AddModelError("", $"Bunday {LogisticsTerms.Waybill.ToLower()} topilmadi.");
                     }
                 }
             }
@@ -816,7 +829,7 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Calculate freight amount based on basis and rate
+        /// Calculate freight amount based on basis va rate
         /// </summary>
         private double? CalculateAmount(WaybillCreateViewModel viewModel)
         {
@@ -842,14 +855,14 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// AJAX: Get suggested rate from contract tariffs
+        /// AJAX so'rovi: Get suggested rate dan contract tariffs
         /// </summary>
         [HttpPost]
         public async Task<JsonResult> GetSuggestedRate(int? contractId, int? transportTypeId, string fromLocation, string toLocation)
         {
             if (!contractId.HasValue || !transportTypeId.HasValue)
             {
-                return Json(new { success = false, message = "Contract and Transport Type are required" });
+                return Json(new { success = false, message = "Shartnoma va transport turi majburiy." });
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -883,7 +896,7 @@ namespace tahsinERP.Controllers
                     });
                 }
 
-                // Fallback to contract base amount
+                // Fallback ga contract base amount
                 var contract = await db.F_CONTRACTS.FindAsync(contractId.Value);
                 if (contract != null)
                 {
@@ -899,7 +912,7 @@ namespace tahsinERP.Controllers
         {
             if (!contractId.HasValue)
             {
-                return Json(new { success = false, message = "Contract ID kerak" });
+                return Json(new { success = false, message = "Shartnoma IDsi kerak." });
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -926,7 +939,7 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// AJAX: Auto-fill waybill data from invoice/order
+        /// AJAX so'rovi: Auto-fill waybill ma'lumot dan invoice/order
         /// </summary>
         [HttpPost]
         public async Task<JsonResult> GetDataFromInvoice(int? invoiceId, string invoiceType)
@@ -945,7 +958,7 @@ namespace tahsinERP.Controllers
                         {
                             success = true,
                             fromLocation = invoice.SUPPLIER?.Address,
-                            toLocation = "Our Warehouse",
+                            toLocation = "Bizning ombor",
                             direction = 0, // Inbound
                             currencyId = invoice.CurrencyID,
                             payerType = 0 // OurCompany
@@ -963,7 +976,7 @@ namespace tahsinERP.Controllers
                         return Json(new
                         {
                             success = true,
-                            fromLocation = "Our Warehouse",
+                            fromLocation = "Bizning ombor",
                             toLocation = invoice.CUSTOMER?.Address,
                             direction = 1, // Outbound
                             currencyId = invoice.CurrencyID,
@@ -972,7 +985,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                return Json(new { success = false, message = "Invoice not found" });
+                return Json(new { success = false, message = "Hisob-faktura topilmadi." });
             }
         }
 
@@ -1011,17 +1024,18 @@ namespace tahsinERP.Controllers
             viewModel.Tariffs = new List<SelectListItem>();
             if (viewModel.ContractID.HasValue)
             {
-                viewModel.Tariffs = db.F_CONTRACT_TARIFFS
+                var tariffs = db.F_CONTRACT_TARIFFS
                     .Include(t => t.F_TRANSPORT_TYPES)
                     .Where(t => t.ContractID == viewModel.ContractID.Value && t.IsActive)
                     .OrderByDescending(t => t.CreatedDT)
-                    .Select(t => new SelectListItem
-                    {
-                        Value = t.ID.ToString(),
-                        Text = FormatTariffDisplay(t),
-                        Selected = viewModel.TariffID.HasValue && t.ID == viewModel.TariffID.Value
-                    })
                     .ToList();
+                
+                viewModel.Tariffs = tariffs.Select(t => new SelectListItem
+                {
+                    Value = t.ID.ToString(),
+                    Text = FormatTariffDisplay(t),
+                    Selected = viewModel.TariffID.HasValue && t.ID == viewModel.TariffID.Value
+                }).ToList();
             }
 
             return viewModel;
@@ -1087,11 +1101,11 @@ namespace tahsinERP.Controllers
         {
             if (waybill.SalesInvoiceID.HasValue)
             {
-                return $"Sales Invoice #{waybill.SalesInvoiceID}";
+                return $"Sotuv hisob-fakturasi #{waybill.SalesInvoiceID}";
             }
             if (waybill.InvoiceID.HasValue)
             {
-                return $"Purchase Invoice #{waybill.InvoiceID}";
+                return $"Xarid hisob-fakturasi #{waybill.InvoiceID}";
             }
             if (waybill.TTNKID.HasValue)
             {
@@ -1099,11 +1113,11 @@ namespace tahsinERP.Controllers
             }
             if (waybill.SalesOrderID.HasValue)
             {
-                return $"Sales Order #{waybill.SalesOrderID}";
+                return $"Sotuv buyurtmasi #{waybill.SalesOrderID}";
             }
             if (waybill.PurchaseOrderID.HasValue)
             {
-                return $"Purchase Order #{waybill.PurchaseOrderID}";
+                return $"Xarid buyurtmasi #{waybill.PurchaseOrderID}";
             }
             return null;
         }
@@ -1187,6 +1201,53 @@ namespace tahsinERP.Controllers
         {
             if (!map.ContainsKey(key)) return null;
             return worksheet.Cells[row, map[key]].Text?.Trim();
+        }
+
+        private Dictionary<int, double> BuildWaybillPaidLookup(DBTHSNEntities db, List<int> waybillIds)
+        {
+            var result = waybillIds.Distinct().ToDictionary(id => id, id => 0d);
+            if (!waybillIds.Any()) return result;
+
+            var direct = db.F_WAYBILL_PAYMENTS
+                .Where(p =>
+                    p.IsDeleted == false &&
+                    waybillIds.Contains(p.WaybillID) &&
+                    !db.F_WAYBILL_PAYMENT_SPLITS.Any(s => s.PayerType == WaybillPaymentSplitPayerType && s.PayerID == p.ID))
+                .GroupBy(p => p.WaybillID)
+                .Select(g => new { WaybillID = g.Key, Amount = g.Sum(x => x.Payment_Amount) })
+                .ToList();
+
+            foreach (var item in direct)
+            {
+                if (result.ContainsKey(item.WaybillID))
+                {
+                    result[item.WaybillID] += item.Amount;
+                }
+            }
+
+            var split = (from s in db.F_WAYBILL_PAYMENT_SPLITS
+                         join p in db.F_WAYBILL_PAYMENTS on s.PayerID equals p.ID
+                         where s.PayerType == WaybillPaymentSplitPayerType
+                               && waybillIds.Contains(s.WaybillID)
+                               && p.IsDeleted == false
+                         group s by s.WaybillID into g
+                         select new { WaybillID = g.Key, Amount = g.Sum(x => x.Amount) })
+                .ToList();
+
+            foreach (var item in split)
+            {
+                if (result.ContainsKey(item.WaybillID))
+                {
+                    result[item.WaybillID] += item.Amount;
+                }
+            }
+
+            return result;
+        }
+
+        private double GetWaybillPaidTotal(DBTHSNEntities db, int waybillId)
+        {
+            return BuildWaybillPaidLookup(db, new List<int> { waybillId })[waybillId];
         }
 
         private static double? GetCellDouble(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)

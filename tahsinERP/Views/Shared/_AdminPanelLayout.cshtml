@@ -1,4 +1,4 @@
-﻿@using tahsinERP.Models;
+@using tahsinERP.Models;
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -126,6 +126,9 @@
                     <li class="nav-item">
                         <a href="~/UserEntries"><i class="bx bxs-file-doc"></i><span class="menu-title">Tizimga kirishlar</span></a>
                     </li>
+                    <li class="nav-item">
+                        <a href="~/DeletedRecords"><i class="bx bx-undo"></i><span class="menu-title">O'chirilganlar</span></a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -176,6 +179,51 @@
         <script src="~/app-assets/js/scripts/components.js"></script>
         <script src="~/app-assets/js/scripts/datatables/datatable.js"></script>
         <script src="~/app-assets/js/scripts/forms/select/form-select2.js"></script>
+        <script>
+            (function () {
+                if (!(window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.ext && jQuery.fn.dataTable.ext.buttons)) {
+                    return;
+                }
+
+                var pdfButton = jQuery.fn.dataTable.ext.buttons.pdfHtml5;
+                if (!pdfButton) {
+                    return;
+                }
+
+                pdfButton.pageSize = 'A4';
+                pdfButton.orientation = 'portrait';
+                pdfButton.customize = function (doc, config, dtApi) {
+                    try {
+                        var visibleColumns = dtApi && dtApi.columns ? dtApi.columns(':visible').count() : 0;
+                        doc.pageOrientation = visibleColumns > 8 ? 'landscape' : 'portrait';
+                        doc.pageSize = 'A4';
+                        doc.pageMargins = [12, 12, 12, 12];
+
+                        var fontSize = visibleColumns > 10 ? 7 : 8;
+                        doc.defaultStyle = doc.defaultStyle || {};
+                        doc.styles = doc.styles || {};
+                        doc.styles.tableHeader = doc.styles.tableHeader || {};
+                        doc.defaultStyle.fontSize = fontSize;
+                        doc.styles.tableHeader.fontSize = fontSize + 1;
+
+                        var tableContent = null;
+                        for (var i = 0; i < (doc.content || []).length; i++) {
+                            if (doc.content[i] && doc.content[i].table) {
+                                tableContent = doc.content[i];
+                                break;
+                            }
+                        }
+
+                        if (tableContent && tableContent.table && tableContent.table.body && tableContent.table.body[0]) {
+                            var colCount = tableContent.table.body[0].length;
+                            tableContent.table.widths = Array(colCount).fill('*');
+                        }
+                    } catch (e) {
+                        // Keep default export behavior if custom formatting fails.
+                    }
+                };
+            })();
+        </script>
     }
     else
     {

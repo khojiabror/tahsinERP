@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers
 {
     public class PInvoicesController : Controller
     {
-        // GET: PInvoices
+        // Olish so'rovi: PInvoices
         public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Index"))
@@ -32,19 +32,19 @@ namespace tahsinERP.Controllers
                     .Where(i => i.IsDeleted != true)
                     .AsQueryable();
 
-                // Filter by supplier
+                // Filtrlash bo'yicha supplier
                 if (supplierID.HasValue && supplierID.Value > 0)
                 {
                     query = query.Where(i => i.SupplierID == supplierID.Value);
                 }
 
-                // Filter by contract
+                // Filtrlash bo'yicha contract
                 if (contractID.HasValue && contractID.Value > 0)
                 {
                     query = query.Where(i => i.ContractID == contractID.Value);
                 }
 
-                // Filter by purchase type
+                // Filtrlash bo'yicha purchase type
                 if (!string.IsNullOrEmpty(purchaseTypeFilter))
                 {
                     byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
@@ -63,7 +63,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: PInvoices/Details/5
+        // Olish so'rovi: PInvoices/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Details"))
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Calculate contract balances for each product if contract exists
+                // Calculate contract balances uchun har bir product agar contract mavjud
                 var contractBalanceService = new ContractBalanceService(db);
                 var conversionService = new UnitConversionService(db);
                 var contractBalances = new Dictionary<int, ContractBalanceInfo>();
@@ -111,7 +111,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Calculate CBM for each invoice product that requires cutting
+                // Calculate CBM uchun har bir invoice product that requires cutting
                 var productCBMInfo = new Dictionary<int, decimal>();
                 foreach (var invoiceProduct in invoice.P_INVOICE_PRODUCTS)
                 {
@@ -139,7 +139,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: PInvoices/Create
+        // Olish so'rovi: PInvoices/yaratish
         public async Task<ActionResult> Create()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
@@ -159,7 +159,7 @@ namespace tahsinERP.Controllers
                     "ID", "OrderNo"
                 );
 
-                // Get default company (first active company)
+                // Olish standart company (birinchi faol company)
                 var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                 ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
@@ -168,7 +168,7 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname"
                 );
 
-                // Determine purchase type from order if available (from query string)
+                // Aniqlash purchase type dan order agar available (dan query string)
                 byte purchaseType = 0;
                 if (Request.QueryString["orderId"] != null && int.TryParse(Request.QueryString["orderId"], out int orderId))
                 {
@@ -181,7 +181,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchaseType = purchaseType;
 
-                // Get purchasable products based on purchase type
+                // Olish purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true)
@@ -194,7 +194,7 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                // Create SelectList with "PNo - Name" format
+                // Yaratish SelectList bilan "PNo - Name" format
                 var productSelectList = purchasableProducts.Select(p => new SelectListItem
                 {
                     Value = p.ID.ToString(),
@@ -212,7 +212,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PInvoices/LoadOrderProducts - Load products from P_ORDER
+        // POST so'rovi: PInvoices/LoadOrderProducts - yuklash products dan P_ORDER
         [HttpPost]
         public async Task<JsonResult> LoadOrderProducts(int orderId)
         {
@@ -238,7 +238,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PInvoices/Create
+        // POST so'rovi: PInvoices/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(PInvoiceCreateViewModel model, HttpPostedFileBase invoiceFile)
@@ -254,17 +254,17 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Get default company (first active company)
+                        // Olish standart company (birinchi faol company)
                         var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
 
-                        // Generate InvoiceNo if not provided
+                        // Yaratish InvoiceNo agar not provided
                         if (string.IsNullOrEmpty(model.InvoiceNo))
                         {
                             model.InvoiceNo = await GenerateInvoiceNo(db);
                         }
 
-                        // Determine purchase type from order if available
-                        byte purchaseType = 0; // Default: Direct
+                        // Aniqlash purchase type dan order agar available
+                        byte purchaseType = 0; // standart: Direct
                         if (model.OrderID.HasValue)
                         {
                             var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
@@ -278,7 +278,7 @@ namespace tahsinERP.Controllers
                             purchaseType = 1;
                         }
 
-                        // Create invoice header
+                        // Yaratish invoice header
                         var invoice = new P_INVOICES
                         {
                             InvoiceNo = model.InvoiceNo,
@@ -296,7 +296,7 @@ namespace tahsinERP.Controllers
                         db.P_INVOICES.Add(invoice);
                         await db.SaveChangesAsync();
 
-                        // Add invoice products with conversion logic
+                        // Qo'shish invoice products bilan conversion logic
                         var conversionService = new UnitConversionService(db);
                         var contractBalanceService = new ContractBalanceService(db);
                         double totalAmount = 0;
@@ -305,11 +305,11 @@ namespace tahsinERP.Controllers
                         {
                             foreach (var product in model.InvoiceProducts)
                             {
-                                // Check if product requires cutting
+                                // Tekshirish agar product requires cutting
                                 bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
                                 
-                                // For requires_cutting products, quantity is in PIECES, UnitID = 1
-                                // For other products, use user-selected unit
+                                // uchun requires_cutting products, quantity is in PIECES, UnitID = 1
+                                // uchun other products, use user-selected unit
                                 int unitId;
                                 if (requiresCutting)
                                 {
@@ -317,7 +317,7 @@ namespace tahsinERP.Controllers
                                 }
                                 else
                                 {
-                                    // Use user-selected unit or product's default unit
+                                    // Use user-selected unit yoki product's standart unit
                                     var prod = await db.PRODUCTS.FindAsync(product.ProductID);
                                     unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
                                 }
@@ -326,7 +326,7 @@ namespace tahsinERP.Controllers
                                 {
                                     InvoiceID = invoice.ID,
                                     ProductID = product.ProductID,
-                                    Quantity = product.Quantity, // In PIECES for cutting products, or user-selected unit for others
+                                    Quantity = product.Quantity, // In PIECES uchun cutting products, yoki user-selected unit uchun others
                                     Price = product.Price,
                                     TotalPrice = product.Price * product.Quantity,
                                     UnitID = unitId
@@ -336,11 +336,11 @@ namespace tahsinERP.Controllers
                                 totalAmount += invoiceProduct.TotalPrice;
                             }
 
-                            // Update invoice total amount
+                            // Yangilash invoice total amount
                             invoice.Amount = totalAmount;
                             await db.SaveChangesAsync();
 
-                            // Post to finance when purchase invoice is created
+                            // Post ga finance when purchase invoice is created
                             try
                             {
                                 var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
@@ -348,11 +348,11 @@ namespace tahsinERP.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Finance posting error - don't log as it's not a database change
+                                // Finance posting xatolik - don't log as it's not a database change
                             }
                         }
 
-                        // Upload invoice document if provided
+                        // Upload invoice hujjat agar provided
                         if (invoiceFile != null && invoiceFile.ContentLength > 0)
                         {
                             byte[] fileData = null;
@@ -390,7 +390,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Repopulate ViewBag on error
+            // Qayta ga'ldirish ViewBag on xatolik
             using (var db = new DBTHSNEntities())
             {
                 ViewBag.Suppliers = new SelectList(
@@ -413,18 +413,18 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Get default company
+                // Olish standart company
                 var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                 ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
-                // Load contracts for current supplier
+                // Yuklash contracts uchun current supplier
                 var contracts = await db.P_CONTRACTS
                     .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
                     .OrderByDescending(c => c.IssuedDate)
                     .ToListAsync();
                 ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
 
-                // Determine purchase type from contract if available, otherwise from order
+                // Aniqlash purchase type dan contract agar available, otherwise dan order
                 byte purchaseType = 0;
                 if (model.ContractID.HasValue && model.ContractID.Value > 0)
                 {
@@ -445,7 +445,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchaseType = purchaseType;
 
-                // Get purchasable products based on purchase type
+                // Olish purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true)
@@ -458,7 +458,7 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                // Create SelectList with "PNo - Name" format
+                // Yaratish SelectList bilan "PNo - Name" format
                 var productSelectList = purchasableProducts.Select(p => new SelectListItem
                 {
                     Value = p.ID.ToString(),
@@ -476,7 +476,7 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
-        // Generate InvoiceNo
+        // Yaratish InvoiceNo
         private async Task<string> GenerateInvoiceNo(DBTHSNEntities db)
         {
             var year = DateTime.Now.Year;
@@ -500,7 +500,7 @@ namespace tahsinERP.Controllers
             return $"{prefix}{nextNumber:D4}";
         }
 
-        // GET: PInvoices/Edit/5
+        // Olish so'rovi: PInvoices/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
@@ -568,18 +568,18 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Get default company (first active company)
+                // Olish standart company (birinchi faol company)
                 var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                 ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
-                // Load contracts for current supplier
+                // Yuklash contracts uchun current supplier
                 var contracts = await db.P_CONTRACTS
                     .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
                     .OrderByDescending(c => c.IssuedDate)
                     .ToListAsync();
                 ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
 
-                // Determine purchase type from contract if available, otherwise from order
+                // Aniqlash purchase type dan contract agar available, otherwise dan order
                 byte purchaseType = 0;
                 if (model.ContractID.HasValue && model.ContractID.Value > 0)
                 {
@@ -600,7 +600,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchaseType = purchaseType;
 
-                // Get purchasable products based on purchase type
+                // Olish purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true)
@@ -613,7 +613,7 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                // Create SelectList with "PNo - Name" format
+                // Yaratish SelectList bilan "PNo - Name" format
                 var productSelectList = purchasableProducts.Select(p => new SelectListItem
                 {
                     Value = p.ID.ToString(),
@@ -631,7 +631,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PInvoices/Edit/5
+        // POST so'rovi: PInvoices/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(PInvoiceEditViewModel model, HttpPostedFileBase invoiceFile)
@@ -653,7 +653,7 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        // Determine purchase type from contract if available, otherwise from order
+                        // Aniqlash purchase type dan contract agar available, otherwise dan order
                         byte purchaseType = 0;
                         if (model.ContractID.HasValue && model.ContractID.Value > 0)
                         {
@@ -672,35 +672,35 @@ namespace tahsinERP.Controllers
                             }
                         }
 
-                        // Update invoice header
+                        // Yangilash invoice header
                         invoice.InvoiceNo = model.InvoiceNo;
                         invoice.InvoiceDate = model.InvoiceDate;
                         invoice.OrderID = model.OrderID; // Optional
                         invoice.SupplierID = model.SupplierID;
-                        invoice.ContractID = model.ContractID ?? 0; // Required for contract-based calculations
+                        invoice.ContractID = model.ContractID ?? 0; // majburiy uchun contract-based calculations
                         invoice.CompanyID = model.CompanyID ?? (await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync())?.ID ?? 0;
                         invoice.CurrencyID = model.CurrencyID;
                         invoice.PurchaseType = purchaseType;
 
-                        // Remove existing invoice products
+                        // O'chirish existing invoice products
                         var existingProducts = db.P_INVOICE_PRODUCTS.Where(ip => ip.InvoiceID == invoice.ID).ToList();
                         foreach (var existing in existingProducts)
                         {
                             db.P_INVOICE_PRODUCTS.Remove(existing);
                         }
 
-                        // Add updated invoice products with conversion logic
+                        // Qo'shish updated invoice products bilan conversion logic
                         var conversionService = new UnitConversionService(db);
                         
                         if (model.InvoiceProducts != null && model.InvoiceProducts.Any())
                         {
                             foreach (var product in model.InvoiceProducts)
                             {
-                                // Check if product requires cutting
+                                // Tekshirish agar product requires cutting
                                 bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
                                 
-                                // For requires_cutting products, quantity is in PIECES, UnitID = 1
-                                // For other products, use user-selected unit
+                                // uchun requires_cutting products, quantity is in PIECES, UnitID = 1
+                                // uchun other products, use user-selected unit
                                 int unitId;
                                 if (requiresCutting)
                                 {
@@ -708,7 +708,7 @@ namespace tahsinERP.Controllers
                                 }
                                 else
                                 {
-                                    // Use user-selected unit or product's default unit
+                                    // Use user-selected unit yoki product's standart unit
                                     var prod = await db.PRODUCTS.FindAsync(product.ProductID);
                                     unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
                                 }
@@ -717,7 +717,7 @@ namespace tahsinERP.Controllers
                                 {
                                     InvoiceID = invoice.ID,
                                     ProductID = product.ProductID,
-                                    Quantity = product.Quantity, // In PIECES for cutting products, or user-selected unit for others
+                                    Quantity = product.Quantity, // In PIECES uchun cutting products, yoki user-selected unit uchun others
                                     Price = product.Price,
                                     TotalPrice = product.Price * product.Quantity,
                                     UnitID = unitId
@@ -727,17 +727,17 @@ namespace tahsinERP.Controllers
                             }
                         }
 
-                        // Handle file upload
+                        // Handle fayl upload
                         if (invoiceFile != null && invoiceFile.ContentLength > 0)
                         {
-                            // Remove existing docs
+                            // O'chirish existing docs
                             var existingDocs = db.P_INVOICE_DOCS.Where(id => id.InvoiceID == invoice.ID).ToList();
                             foreach (var doc in existingDocs)
                             {
                                 db.P_INVOICE_DOCS.Remove(doc);
                             }
 
-                            // Add new doc
+                            // Qo'shish new doc
                             byte[] fileData = null;
                             using (var binaryReader = new BinaryReader(invoiceFile.InputStream))
                             {
@@ -774,7 +774,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Repopulate ViewBag on error
+            // Qayta ga'ldirish ViewBag on xatolik
             using (var db = new DBTHSNEntities())
             {
                 ViewBag.Suppliers = new SelectList(
@@ -797,18 +797,18 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Get default company
+                // Olish standart company
                 var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                 ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
 
-                // Load contracts for current supplier
+                // Yuklash contracts uchun current supplier
                 var contracts = await db.P_CONTRACTS
                     .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
                     .OrderByDescending(c => c.IssuedDate)
                     .ToListAsync();
                 ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
 
-                // Determine purchase type from contract if available, otherwise from order
+                // Aniqlash purchase type dan contract agar available, otherwise dan order
                 byte purchaseType = 0;
                 if (model.ContractID.HasValue && model.ContractID.Value > 0)
                 {
@@ -829,7 +829,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchaseType = purchaseType;
 
-                // Get purchasable products based on purchase type
+                // Olish purchasable products based on purchase type
                 var purchasableProducts = await db.PRODUCTS
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .Where(p => p.IsDeleted != true)
@@ -842,7 +842,7 @@ namespace tahsinERP.Controllers
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
-                // Create SelectList with "PNo - Name" format
+                // Yaratish SelectList bilan "PNo - Name" format
                 var productSelectList = purchasableProducts.Select(p => new SelectListItem
                 {
                     Value = p.ID.ToString(),
@@ -860,7 +860,7 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
-        // GET: PInvoices/Delete/5
+        // Olish so'rovi: PInvoices/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
@@ -892,7 +892,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PInvoices/Delete/5
+        // POST so'rovi: PInvoices/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -918,7 +918,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: PInvoices/DownloadDoc/5
+        // Olish so'rovi: PInvoices/DownloadDoc/5
         public async Task<ActionResult> DownloadDoc(int? id)
         {
             if (id == null)
@@ -938,7 +938,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // AJAX: Get contracts by supplier
+        // AJAX so'rovi: Get contracts by supplier
         [HttpPost]
         public async Task<JsonResult> GetContractsBySupplier(int supplierId)
         {

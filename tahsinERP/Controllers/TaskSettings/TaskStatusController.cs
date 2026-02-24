@@ -10,7 +10,7 @@ namespace tahsinERP.Controllers.TaskSettings
 {
     public class TaskStatusController : Controller
     {
-        // GET: TaskStatus
+        // Olish so'rovi: TaskStatus
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // GET: TaskStatus/Details/5
+        // Olish so'rovi: TaskStatus/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -54,7 +54,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // GET: TaskStatus/Create
+        // Olish so'rovi: TaskStatus/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -65,7 +65,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View();
         }
 
-        // POST: TaskStatus/Create
+        // POST so'rovi: TaskStatus/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(APP_TASK_STATUS_REF status)
@@ -79,7 +79,7 @@ namespace tahsinERP.Controllers.TaskSettings
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Check if code already exists
+                    // Tekshirish agar code already mavjud
                     var existing = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == status.Code);
                     if (existing != null)
                     {
@@ -87,7 +87,7 @@ namespace tahsinERP.Controllers.TaskSettings
                         return View(status);
                     }
 
-                    // Get max SortOrder if not provided
+                    // Olish max SortOrder agar not provided
                     if (status.SortOrder == 0)
                     {
                         var maxSort = await db.APP_TASK_STATUS_REF
@@ -108,7 +108,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View(status);
         }
 
-        // GET: TaskStatus/Edit/5
+        // Olish so'rovi: TaskStatus/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -132,7 +132,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // POST: TaskStatus/Edit/5
+        // POST so'rovi: TaskStatus/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(APP_TASK_STATUS_REF status)
@@ -146,7 +146,7 @@ namespace tahsinERP.Controllers.TaskSettings
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Check if code already exists (excluding current record)
+                    // Tekshirish agar code already mavjud (excluding current record)
                     var existing = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == status.Code && s.ID != status.ID);
                     if (existing != null)
                     {
@@ -165,7 +165,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View(status);
         }
 
-        // POST: TaskStatus/Delete/5
+        // POST so'rovi: TaskStatus/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int id)
@@ -183,7 +183,7 @@ namespace tahsinERP.Controllers.TaskSettings
                     return HttpNotFound();
                 }
 
-                // Check if status is used in tasks
+                // Tekshirish agar holat is used in tasks
                 var usedInTasks = await db.APP_TASKS.AnyAsync(t => t.StatusID == id && t.IsDeleted == false);
                 if (usedInTasks)
                 {

@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.MES
 {
     public class ProductPlanController : Controller
     {
-        // GET: ProductPlan
+        // Olish so'rovi: ProductPlan
         public async Task<ActionResult> Index(int? productID, DateTime? fromDate, DateTime? toDate)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -69,7 +69,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: ProductPlan/Details/5
+        // Olish so'rovi: ProductPlan/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -89,15 +89,15 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Get daily plans
+                // Olish daily plans
                 var dailyPlans = db.PRODUCTPLANS_DAILY
                     .Where(d => d.PlanID == plan.ID)
                     .OrderBy(d => d.Day)
                     .ToList();
 
-                // Get actual production data for comparison
+                // Olish actual production ma'lumot uchun comparison
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
-                // Load production data first, then filter in memory
+                // Yuklash production ma'lumot birinchi, so'ng filtrlash in memory
                 var allProductions = db.PRODUCT_PRODUCTION
                     .Where(p => p.ProductID == plan.ProductID)
                     .ToList();
@@ -114,7 +114,7 @@ namespace tahsinERP.Controllers.MES
                     })
                     .ToDictionary(x => x.Date, x => x);
 
-                // Create daily plan view models with actual data
+                // Yaratish daily plan view models bilan actual ma'lumot
                 var dailyPlanViewModels = dailyPlans.Select(d => new ProductPlanDailyViewModel
                 {
                     ID = d.ID,
@@ -128,7 +128,7 @@ namespace tahsinERP.Controllers.MES
                     ActualTotal = actualProductions.ContainsKey(d.Day.Date) ? actualProductions[d.Day.Date].Total : (double?)null
                 }).ToList();
 
-                // Link to delivery schedules if product matches
+                // Link ga delivery schedules agar product matches
                 var linkedSchedules = db.SORDER_DELIVERY_SCHEDULE
                     .Include(s => s.PRODUCT)
                     .Include(s => s.S_ORDERS)
@@ -155,7 +155,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: ProductPlan/Create
+        // Olish so'rovi: ProductPlan/yaratish
         public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -168,7 +168,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductPlan/Create
+        // POST so'rovi: ProductPlan/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ProductPlanViewModel viewModel)
@@ -179,7 +179,7 @@ namespace tahsinERP.Controllers.MES
                 {
                     try
                     {
-                        // Validate date range
+                        // Tekshirish date range
                         if (viewModel.EndDate < viewModel.StartDate)
                         {
                             ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
@@ -189,7 +189,7 @@ namespace tahsinERP.Controllers.MES
                             return View(viewModel);
                         }
 
-                        // Check for overlapping plans
+                        // Tekshirish uchun overlapping plans
                         var overlappingPlan = db.PRODUCTPLANS
                             .FirstOrDefault(p => p.ProductID == viewModel.ProductID
                                 && p.IsDeleted == false
@@ -216,7 +216,7 @@ namespace tahsinERP.Controllers.MES
                             return View(viewModel);
                         }
 
-                        // Create plan
+                        // Yaratish plan
                         var plan = new PRODUCTPLAN
                         {
                             ProductID = viewModel.ProductID,
@@ -231,7 +231,7 @@ namespace tahsinERP.Controllers.MES
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan yaratildi: ID {plan.ID}, ProductID {plan.ProductID}");
 
-                        // Auto-generate PRODUCTPLANS_DAILY rows for each day
+                        // Auto-yaratish PRODUCTPLANS_DAILY qatorlar uchun har bir day
                         var dayCount = (viewModel.EndDate - viewModel.StartDate).Days + 1;
                         var dailyQty = Math.Ceiling(viewModel.TotalQty / dayCount);
                         var currentDate = viewModel.StartDate;
@@ -255,7 +255,7 @@ namespace tahsinERP.Controllers.MES
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlanDaily yaratildi: Plan ID {plan.ID}, {dayCount} kunlik reja");
 
-                        // Link to SORDER_DELIVERY_SCHEDULE automatically if product matches
+                        // Link ga SORDER_DELIVERY_SCHEDULE automatically agar product matches
                         var matchingSchedules = db.SORDER_DELIVERY_SCHEDULE
                             .Where(s => s.ProductID == viewModel.ProductID
                                 && s.DeliveryDate >= viewModel.StartDate
@@ -291,7 +291,7 @@ namespace tahsinERP.Controllers.MES
             return View(viewModel);
         }
 
-        // GET: ProductPlan/Edit/5
+        // Olish so'rovi: ProductPlan/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -325,7 +325,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductPlan/Edit/5
+        // POST so'rovi: ProductPlan/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProductPlanViewModel viewModel)
@@ -342,7 +342,7 @@ namespace tahsinERP.Controllers.MES
 
                     try
                     {
-                        // Validate date range
+                        // Tekshirish date range
                         if (viewModel.EndDate < viewModel.StartDate)
                         {
                             ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
@@ -352,7 +352,7 @@ namespace tahsinERP.Controllers.MES
                             return View(viewModel);
                         }
 
-                        // Check for overlapping plans (excluding current plan)
+                        // Tekshirish uchun overlapping plans (excluding current plan)
                         var overlappingPlan = db.PRODUCTPLANS
                             .FirstOrDefault(p => p.ID != viewModel.ID
                                 && p.ProductID == viewModel.ProductID
@@ -380,7 +380,7 @@ namespace tahsinERP.Controllers.MES
                             return View(viewModel);
                         }
 
-                        // Update plan
+                        // Yangilash plan
                         plan.ProductID = viewModel.ProductID;
                         plan.Amount = viewModel.TotalQty;
                         plan.StartDate = viewModel.StartDate;
@@ -418,7 +418,7 @@ namespace tahsinERP.Controllers.MES
             return View(viewModel);
         }
 
-        // GET: ProductPlan/Delete/5
+        // Olish so'rovi: ProductPlan/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -441,7 +441,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductPlan/Delete/5
+        // POST so'rovi: ProductPlan/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -465,7 +465,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductPlan/UpdateDailyPlan - Inline editable daily grid
+        // POST so'rovi: ProductPlan/UpdateDailyPlan - Inline editable daily grid
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UpdateDailyPlan(int planID, List<ProductPlanDailyViewModel> dailyPlans)
@@ -504,7 +504,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: ProductPlan/GetDailyGridPartial/5 - Partial view for daily grid
+        // Olish so'rovi: ProductPlan/GetDailyGridPartial/5 - Partial view uchun daily grid
         public ActionResult GetDailyGridPartial(int planID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -520,9 +520,9 @@ namespace tahsinERP.Controllers.MES
                     .OrderBy(d => d.Day)
                     .ToList();
 
-                // Get actual production data
+                // Olish actual production ma'lumot
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
-                // Load production data first, then filter in memory
+                // Yuklash production ma'lumot birinchi, so'ng filtrlash in memory
                 var allProductions = db.PRODUCT_PRODUCTION
                     .Where(p => p.ProductID == plan.ProductID)
                     .ToList();
@@ -556,7 +556,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductPlan/CalculateRequiredRawMaterials
+        // POST so'rovi: ProductPlan/CalculateRequiredRawMaterials
         [HttpPost]
         public async Task<ActionResult> CalculateRequiredRawMaterials(int planId)
         {
@@ -599,7 +599,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: ProductPlan/RawMaterialsPreview/5
+        // Olish so'rovi: ProductPlan/RawMaterialsPreview/5
         public async Task<ActionResult> RawMaterialsPreview(int? id)
         {
             if (id == null)
@@ -631,10 +631,10 @@ namespace tahsinERP.Controllers.MES
 
         private async Task<string> ValidateRawMaterialStockAsync(int productId, double producedQty, DBTHSNEntities db)
         {
-            var supplyWarehouse = WarehouseFlowService.GetSupplyWarehouse(db);
-            if (supplyWarehouse == null)
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
+            if (productionWarehouse == null)
             {
-                return "Xomashyo ombori topilmadi";
+                return "Ishlab chiqarish ombori topilmadi";
             }
 
             var consumptionService = new ProductionConsumptionService(db);
@@ -647,19 +647,55 @@ namespace tahsinERP.Controllers.MES
             foreach (var req in requirements)
             {
                 var stock = await db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == supplyWarehouse.ID && s.ProductID == req.MaterialID);
+                    .Include(s => s.UNIT)
+                    .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
 
                 if (stock == null)
                 {
-                    return $"Xomashyo omborida mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}";
+                    return $"Ishlab chiqarish omborida mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}";
                 }
 
-                if (stock.Amount < req.TotalConsumption)
+                double requiredQtyToCompare = req.TotalConsumption;
+                string requiredUnitName = "";
+                bool stockInKg = false;
+                if (stock.UNIT != null)
                 {
+                    var unitName = (stock.UNIT.UnitName ?? "") + " " + (stock.UNIT.ShortName ?? "");
+                    stockInKg = unitName.IndexOf("kg", StringComparison.OrdinalIgnoreCase) >= 0;
+                }
+                var availableUnitName = (stock.UNIT != null) ? (stock.UNIT.ShortName ?? stock.UNIT.UnitName ?? "").Trim() : "";
+
+                // Ombor birligi kg va mahsulotda Weight bo'lsa, talab donada bo'lishi mumkin — kg ga o'tkazamiz
+                if (!req.TotalConsumptionIsInKg && stockInKg)
+                {
+                    var material = await db.PRODUCTS
+                        .FirstOrDefaultAsync(p => p.ID == req.MaterialID);
+                    if (material != null && material.Weight.HasValue && material.Weight.Value > 0)
+                    {
+                        requiredQtyToCompare = req.TotalConsumption * material.Weight.Value;
+                        requiredUnitName = "kg";
+                    }
+                }
+                if (string.IsNullOrEmpty(requiredUnitName))
+                {
+                    var reqUnit = await db.UNITS.FindAsync(req.UnitID);
+                    requiredUnitName = (reqUnit != null) ? (reqUnit.ShortName ?? reqUnit.UnitName ?? "").Trim() : "";
+                }
+                if (req.TotalConsumptionIsInKg && stockInKg)
+                {
+                    requiredUnitName = "kg";
+                }
+
+                if (stock.Amount < requiredQtyToCompare)
+                {
+                    var availableWithUnit = string.IsNullOrEmpty(availableUnitName)
+                        ? stock.Amount.ToString("N2")
+                        : $"{stock.Amount:N2} {availableUnitName}";
+                    var requiredWithUnit = string.IsNullOrEmpty(requiredUnitName)
+                        ? requiredQtyToCompare.ToString("N2")
+                        : $"{requiredQtyToCompare:N2} {requiredUnitName}";
                     return
-                        $"Xomashyo omborida yetarli qoldiq yo'q. " +
-                        $"Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
-                        $"Mavjud: {stock.Amount}, Talab: {req.TotalConsumption}";
+                        $"Ishlab chiqarish omborida yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, {availableWithUnit} omborda mavjud, {requiredWithUnit} kerak.";
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using tahsinERP.Models;
 
@@ -23,7 +23,7 @@ namespace tahsinERP.Controllers
                 if (user != null)
                     return user.ID;
 
-                throw new Exception($"User '{username}' not found");
+                throw new Exception($"Foydalanuvchi topilmadi: '{username}'");
             }
         }
 
@@ -45,7 +45,7 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Gets full name by username or userID
+        /// Gets full name by username yoki userID
         /// </summary>
         public static string GetFullName(string username = null, int? userID = null)
         {
@@ -68,7 +68,7 @@ namespace tahsinERP.Controllers
                 if (user != null)
                     return user.FullName ?? user.Uname;
 
-                throw new Exception("User not found");
+                throw new Exception("Foydalanuvchi topilmadi");
             }
         }
     }

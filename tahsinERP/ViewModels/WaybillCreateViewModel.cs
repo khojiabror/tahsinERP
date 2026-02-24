@@ -13,7 +13,6 @@ namespace tahsinERP.ViewModels
     {
         public int? ID { get; set; }
 
-        [Required(ErrorMessage = "Waybill raqami majburiy")]
         [Display(Name = "Waybill raqami")]
         public string WaybillNo { get; set; }
 
@@ -29,17 +28,14 @@ namespace tahsinERP.ViewModels
         public int? ForwarderID { get; set; }
         public List<SelectListItem> Forwarders { get; set; }
 
-        [Required(ErrorMessage = "Shartnoma majburiy")]
         [Display(Name = "Shartnoma")]
         public int? ContractID { get; set; }
         public List<SelectListItem> Contracts { get; set; }
 
-        [Required(ErrorMessage = "Transport turi majburiy")]
         [Display(Name = "Transport turi")]
         public int? TransportTypeID { get; set; }
         public List<SelectListItem> TransportTypes { get; set; }
 
-        [Required(ErrorMessage = "Tarif tanlash majburiy")]
         [Display(Name = "Tarif")]
         public int? TariffID { get; set; }
         public List<SelectListItem> Tariffs { get; set; }

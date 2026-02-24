@@ -1,7 +1,7 @@
-﻿@model List<tahsinERP.Models.FORWARDER>
+@model List<tahsinERP.Models.FORWARDER>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Yuk tashuvchilar";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
 }
@@ -28,7 +28,7 @@
                                         Sahifalar
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Forwarder lar
+                                        Yuk tashuvchilar
                                     </li>
                                 </ol>
                             </div>
@@ -43,7 +43,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/Forwarder/Create';">
-                                <span class="align-middle ml-25">Forwarder qo'shish</span>
+                                <span class="align-middle ml-25">Yuk tashuvchi qo'shish</span>
                             </button>
                         </div>
                     }
@@ -56,7 +56,7 @@
                                         <table id="myDataTable" class="table table-striped table-bordered complex-headers" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>forwarder nomi</th>
+                                                    <th>Yuk tashuvchi nomi</th>
                                                     <th>Direktor </th>
                                                     <th>Bog`lanish uchun</th>
                                                     @if (changePermit)

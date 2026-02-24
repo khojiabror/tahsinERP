@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
 {
     public class SupplierController : Controller
     {
-        // GET: Supplier
+        // Olish so'rovi: Supplier
         public async Task<ActionResult> Index(string type)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Index"))
@@ -50,7 +50,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Supplier/GetSupplier/5 (for modal)
+        // Olish so'rovi: Supplier/GetSupplier/5 (uchun modal)
         [HttpGet]
         public async Task<JsonResult> GetSupplier(int id)
         {
@@ -84,7 +84,7 @@ namespace tahsinERP.Controllers
         }
 
 
-        // POST: Supplier/Delete (AJAX)
+        // POST so'rovi: Supplier/o'chirish (AJAX)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Delete(int id)
@@ -118,7 +118,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Supplier/Details/5
+        // Olish so'rovi: Supplier/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Details"))
@@ -139,7 +139,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Get counts for related documents
+                // Olish counts uchun related hujjatlar
                 var contractsCount = await db.P_CONTRACTS
                     .Where(c => c.SupplierID == id && c.IsDeleted != true)
                     .CountAsync();
@@ -159,7 +159,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Supplier/Create
+        // Olish so'rovi: Supplier/yaratish
         public ActionResult Create()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
@@ -169,7 +169,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // POST: Supplier/Create
+        // POST so'rovi: Supplier/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(SUPPLIER supplier, FormCollection collection)
@@ -185,7 +185,7 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Check if supplier with same name exists
+                        // Tekshirish agar supplier bilan same name mavjud
                         var existSupplier = await db.SUPPLIERS
                             .FirstOrDefaultAsync(x => x.IsDeleted != true && x.Name.ToLower() == supplier.Name.ToLower());
 
@@ -237,7 +237,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Supplier/Edit
+        // POST so'rovi: Supplier/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(SUPPLIER supplier, FormCollection collection)
@@ -259,7 +259,7 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        // Check if another supplier with same name exists
+                        // Tekshirish agar another supplier bilan same name mavjud
                         var existSupplier = await db.SUPPLIERS
                             .FirstOrDefaultAsync(x => x.IsDeleted != true && 
                                                       x.Name.ToLower() == supplier.Name.ToLower() && 
@@ -271,7 +271,7 @@ namespace tahsinERP.Controllers
                             return View(supplier);
                         }
 
-                        // Update fields
+                        // Yangilash fields
                         supplierToUpdate.Name = supplier.Name;
                         supplierToUpdate.Address = supplier.Address;
                         supplierToUpdate.Country = supplier.Country;
@@ -343,7 +343,7 @@ namespace tahsinERP.Controllers
         public ActionResult UploadWithExcel(HttpPostedFileBase file)
         {
             // Keep existing Excel upload logic
-            // This can be enhanced later with modal support
+            // This can be enhanced later bilan modal support
             return View();
         }
     }

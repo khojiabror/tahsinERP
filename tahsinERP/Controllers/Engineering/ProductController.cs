@@ -58,7 +58,7 @@ namespace tahsinERP.Controllers
             return new SelectList(items, "Value", "Text", selected);
         }
 
-        // Create/Edit form uchun Type list
+        // Yaratish/Edit form uchun Type list
         private SelectList GetProductTypeFormSelectList(string selected = null)
         {
             var items = new List<SelectListItem>
@@ -71,7 +71,7 @@ namespace tahsinERP.Controllers
             return new SelectList(items, "Value", "Text", selected ?? PRODUCT_TYPE_FINISHED_GOOD);
         }
 
-        // Get product type string from boolean flags
+        // Olish product type string dan boolean flags
         private string GetProductTypeFromFlags(PRODUCT product)
         {
             if (product.IsFinishedGood == true)
@@ -81,18 +81,18 @@ namespace tahsinERP.Controllers
             if (product.IsRawMaterial == true)
                 return PRODUCT_TYPE_RAW_MATERIAL;
 
-            return PRODUCT_TYPE_FINISHED_GOOD; // Default
+            return PRODUCT_TYPE_FINISHED_GOOD; // standart
         }
 
-        // Set boolean flags based on product type string
+        // Belgilash boolean flags based on product type string
         private void SetProductTypeFlags(PRODUCT product, string productType)
         {
-            // Reset all flags
+            // Reset barcha flags
             product.IsFinishedGood = false;
             product.IsComponent = false;
             product.IsRawMaterial = false;
 
-            // Set appropriate flag
+            // Belgilash appropriate flag
             switch (productType)
             {
                 case PRODUCT_TYPE_FINISHED_GOOD:
@@ -116,7 +116,7 @@ namespace tahsinERP.Controllers
 
         #endregion
 
-        // GET: Product
+        // Olish so'rovi: Product
         public async Task<ActionResult> Index()
         {
             var list = await db.PRODUCTS
@@ -132,7 +132,7 @@ namespace tahsinERP.Controllers
             return View(list);
         }
 
-        // GET: Product/Details/5
+        // Olish so'rovi: Product/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
@@ -147,7 +147,7 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
-            // Load ProductImage if exists
+            // Yuklash ProductImage agar mavjud
             var productImage = await db.PRODUCTIMAGES
                 .Where(pi => pi.ProdID == id && pi.IsDeleted == false)
                 .FirstOrDefaultAsync();
@@ -160,23 +160,24 @@ namespace tahsinERP.Controllers
             return View(product);
         }
 
-        // GET: Product/Create
+        // Olish so'rovi: Product/yaratish
         public async Task<ActionResult> Create()
         {
             ViewBag.UNIT = await GetUnitSelectListAsync();
             ViewBag.TypeList = GetProductTypeFormSelectList(PRODUCT_TYPE_FINISHED_GOOD);
             ViewBag.ShopList = await GetShopSelectListAsync();
             
-            // Load categories for dropdown (only if IsRawMaterial is selected)
+            // Kategoriya dropdown: birinchi element "Tanlang" (null), qolganlari ro'yxatdan
             var categories = await db.PRODUCT_CATEGORIES
+                .Where(c => c.IsDeleted != true)
                 .OrderBy(c => c.Name)
                 .ToListAsync();
             ViewBag.CategoryList = new SelectList(categories, "ID", "Name", null);
-            
+
             return View();
         }
 
-        // POST: Product/Create
+        // POST so'rovi: Product/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(PRODUCT product, string ProductType)
@@ -185,7 +186,7 @@ namespace tahsinERP.Controllers
             {
                 product.IsDeleted = false;
 
-                // Set product type flags based on selection
+                // Belgilash product type flags based on selection
                 SetProductTypeFlags(product, ProductType);
 
                 db.PRODUCTS.Add(product);
@@ -203,10 +204,12 @@ namespace tahsinERP.Controllers
             ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
             ViewBag.TypeList = GetProductTypeFormSelectList(ProductType);
             ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
+            var categoriesCreate = await db.PRODUCT_CATEGORIES.OrderBy(c => c.Name).ToListAsync();
+            ViewBag.CategoryList = new SelectList(categoriesCreate, "ID", "Name", product.CategoryID);
             return View(product);
         }
 
-        // Helper method to handle image upload
+        // yordamchi method ga handle image upload
         private async Task<bool> HandleImageUploadAsync(int productId, string productPNo, bool isUpdate = false)
         {
             var imageFile = Request.Files["productPhotoUpload"];
@@ -219,7 +222,7 @@ namespace tahsinERP.Controllers
                 return false;
             }
 
-            // If updating, mark existing image as deleted
+            // agar updating, mark existing image as deleted
             if (isUpdate)
             {
                 var existingImage = await db.PRODUCTIMAGES
@@ -232,7 +235,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Read image data
+            // O'qish image ma'lumot
             byte[] imageData;
             using (var binaryReader = new BinaryReader(imageFile.InputStream))
             {
@@ -255,7 +258,7 @@ namespace tahsinERP.Controllers
             return true;
         }
 
-        // GET: Product/Edit/5
+        // Olish so'rovi: Product/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
@@ -265,15 +268,17 @@ namespace tahsinERP.Controllers
             if (product == null || product.IsDeleted)
                 return HttpNotFound();
 
-            // Get current product type from flags
+            // Olish current product type dan flags
             var currentProductType = GetProductTypeFromFlags(product);
 
             ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
             ViewBag.TypeList = GetProductTypeFormSelectList(currentProductType);
             ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
             ViewBag.CurrentProductType = currentProductType;
+            var categories = await db.PRODUCT_CATEGORIES.Where(c => c.IsDeleted != true).OrderBy(c => c.Name).ToListAsync();
+            ViewBag.CategoryList = new SelectList(categories, "ID", "Name", product.CategoryID);
 
-            // Load existing image for display
+            // Yuklash existing image uchun display
             var existingImage = await db.PRODUCTIMAGES
                 .Where(pi => pi.ProdID == id && pi.IsDeleted != true)
                 .FirstOrDefaultAsync();
@@ -286,7 +291,7 @@ namespace tahsinERP.Controllers
             return View(product);
         }
 
-        // POST: Product/Edit/5
+        // POST so'rovi: Product/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(PRODUCT product, string ProductType)
@@ -296,6 +301,8 @@ namespace tahsinERP.Controllers
                 ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
                 ViewBag.TypeList = GetProductTypeFormSelectList(ProductType);
                 ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
+                var categoriesErr = await db.PRODUCT_CATEGORIES.Where(c => c.IsDeleted != true).OrderBy(c => c.Name).ToListAsync();
+                ViewBag.CategoryList = new SelectList(categoriesErr, "ID", "Name", product.CategoryID);
                 return View(product);
             }
 
@@ -303,7 +310,7 @@ namespace tahsinERP.Controllers
             if (entity == null || entity.IsDeleted)
                 return HttpNotFound();
 
-            // Update fields
+            // Yangilash fields
             entity.PNo = product.PNo;
             entity.Name = product.Name;
             entity.Description = product.Description;
@@ -316,8 +323,9 @@ namespace tahsinERP.Controllers
             entity.PNo3 = product.PNo3;
             entity.PNo4 = product.PNo4;
             entity.ShopID = product.ShopID;
+            entity.CategoryID = product.CategoryID;
 
-            // Set product type flags
+            // Belgilash product type flags
             SetProductTypeFlags(entity, ProductType);
 
             db.Entry(entity).State = EntityState.Modified;
@@ -332,13 +340,15 @@ namespace tahsinERP.Controllers
                 ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
                 ViewBag.TypeList = GetProductTypeFormSelectList(ProductType);
                 ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
+                var categoriesImg = await db.PRODUCT_CATEGORIES.Where(c => c.IsDeleted != true).OrderBy(c => c.Name).ToListAsync();
+                ViewBag.CategoryList = new SelectList(categoriesImg, "ID", "Name", product.CategoryID);
                 return View(product);
             }
 
             return RedirectToAction("Index");
         }
 
-        // GET: Product/Delete/5
+        // Olish so'rovi: Product/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
@@ -352,7 +362,7 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
-            // Load ProductImage if exists
+            // Yuklash ProductImage agar mavjud
             var productImage = await db.PRODUCTIMAGES
                 .FirstOrDefaultAsync(pi => pi.ProdID == id && pi.IsDeleted != true);
 
@@ -364,7 +374,7 @@ namespace tahsinERP.Controllers
             return View(product);
         }
 
-        // POST: Product/Delete/5
+        // POST so'rovi: Product/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -438,13 +448,13 @@ namespace tahsinERP.Controllers
                     int rowCount = worksheet.Dimension.Rows;
                     int colCount = worksheet.Dimension.Columns;
 
-                    // Add columns from header row
+                    // Qo'shish ustunlar dan header qator
                     for (int col = 1; col <= colCount; col++)
                     {
                         dataTable.Columns.Add(worksheet.Cells[1, col].Text);
                     }
 
-                    // Add data rows
+                    // Qo'shish ma'lumot qatorlar
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var dataRow = dataTable.NewRow();
@@ -456,7 +466,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Check for existing records
+                // Tekshirish uchun existing records
                 int existingCount = 0;
                 if (dataTable.Columns.Contains("Partnumber"))
                 {
@@ -503,7 +513,7 @@ namespace tahsinERP.Controllers
 
             try
             {
-                // Get default ShopID (first active shop)
+                // Olish standart ShopID (birinchi faol shop)
                 var defaultShop = await db.SHOPS
                     .FirstOrDefaultAsync(s => s.IsDeleted != true);
 
@@ -534,7 +544,7 @@ namespace tahsinERP.Controllers
                         IsDeleted = false
                     };
 
-                    // Handle product type from Excel
+                    // Handle product type dan Excel
                     var typeFromExcel = row.Table.Columns.Contains("Type") ? row["Type"].ToString().Trim().ToUpper() : "";
                     SetProductTypeFlagsFromExcel(newProduct, typeFromExcel);
 
@@ -555,7 +565,7 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Index");
         }
 
-        // Helper method to parse double from DataRow
+        // yordamchi method ga tahlil double dan DataRow
         private double? ParseDoubleOrNull(DataRow row, string columnName)
         {
             if (!row.Table.Columns.Contains(columnName))
@@ -571,15 +581,15 @@ namespace tahsinERP.Controllers
             return null;
         }
 
-        // Set product type flags from Excel Type column
+        // Belgilash product type flags dan Excel Type ustun
         private void SetProductTypeFlagsFromExcel(PRODUCT product, string typeValue)
         {
-            // Reset all flags
+            // Reset barcha flags
             product.IsFinishedGood = false;
             product.IsComponent = false;
             product.IsRawMaterial = false;
 
-            // Check for different possible values
+            // Tekshirish uchun different possible values
             if (typeValue.Contains("XOMASHYO") || typeValue.Contains("RAW") || typeValue.Contains("MATERIAL"))
             {
                 product.IsRawMaterial = true;
@@ -592,7 +602,7 @@ namespace tahsinERP.Controllers
             }
             else
             {
-                // Default to finished good (MAXSULOT)
+                // standart ga finished good (MAXSULOT)
                 product.IsFinishedGood = true;
                 product.Type = "MAXSULOT";
             }

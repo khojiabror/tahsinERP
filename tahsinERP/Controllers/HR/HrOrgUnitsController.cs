@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/OrgUnits
+        // Olish so'rovi: HR/OrgUnits
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits"))
@@ -41,7 +41,7 @@ namespace tahsinERP.Controllers.HR
             return View(tree);
         }
 
-        // GET: HR/OrgUnits/Details/5
+        // Olish so'rovi: HR/OrgUnits/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits"))
@@ -65,19 +65,19 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Get staffing plans for this org unit
+            // Olish staffing plans uchun this org unit
             var staffingPlans = await db.HR_STAFFING_PLAN
                 .Include(sp => sp.HR_POSITIONS)
                 .Where(sp => sp.OrgUnitID == id && sp.IsActive)
                 .ToListAsync();
 
-            // Get employees for this org unit
+            // Olish employees uchun this org unit
             var employees = await db.HR_EMPLOYEES
                 .Include(e => e.HR_POSITIONS)
                 .Where(e => e.OrgUnitID == id && e.IsActive && e.DismissalDate == null)
                 .ToListAsync();
 
-            // Create staffing plan view models with employee assignments
+            // Yaratish staffing plan view models bilan employee assignments
             var staffingPlanViewModels = staffingPlans.Select(sp => {
                 var assignedEmployees = employees.Where(e => e.PositionID == sp.PositionID).ToList();
                 return new HrOrgUnitStaffingPlanViewModel
@@ -111,9 +111,9 @@ namespace tahsinERP.Controllers.HR
                 viewModel.ParentName = parent?.Name;
             }
 
-            logger.Log("HrOrgUnits", "Details", $"ID: {id}");
+            logger.Log("HrOrgUnits", "Details", $"Bo'lim: {viewModel.Name}");
             
-            // Return partial view for AJAX calls, full view for direct access
+            // Qaytarish partial view uchun AJAX calls, full view uchun direct access
             if (Request.IsAjaxRequest())
             {
                 return PartialView("_OrgUnitDetails", viewModel);
@@ -121,7 +121,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // GET: HR/OrgUnits/Create
+        // Olish so'rovi: HR/OrgUnits/yaratish
         public async Task<ActionResult> Create(int? parentId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
@@ -136,7 +136,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/OrgUnits/Create
+        // POST so'rovi: HR/OrgUnits/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create([Bind(Include = "ID,ParentID,Code,Name,LevelNo,SortOrder,IsActive")] HR_ORG_UNITS orgUnit)
@@ -148,7 +148,7 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Validate no circular reference
+                // Tekshirish no circular reference
                 if (orgUnit.ParentID.HasValue && await HasCircularReference(orgUnit.ParentID.Value, null))
                 {
                     ModelState.AddModelError("ParentID", "Циклическая ссылка не допускается");
@@ -183,7 +183,12 @@ namespace tahsinERP.Controllers.HR
                 db.HR_ORG_UNITS.Add(orgUnit);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrOrgUnits", "Create", $"ID: {orgUnit.ID}, Name: {orgUnit.Name}");
+                var parentName = "-";
+                if (orgUnit.ParentID.HasValue)
+                {
+                    parentName = (await db.HR_ORG_UNITS.FindAsync(orgUnit.ParentID.Value))?.Name ?? "-";
+                }
+                logger.Log("HrOrgUnits", "Create", $"Bo'lim: {orgUnit.Name}, OtaBo'lim: {parentName}");
                 return RedirectToAction("Index");
             }
 
@@ -193,7 +198,7 @@ namespace tahsinERP.Controllers.HR
             return View(orgUnit);
         }
 
-        // GET: HR/OrgUnits/Edit/5
+        // Olish so'rovi: HR/OrgUnits/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
@@ -219,7 +224,7 @@ namespace tahsinERP.Controllers.HR
             return View(orgUnit);
         }
 
-        // POST: HR/OrgUnits/Edit/5
+        // POST so'rovi: HR/OrgUnits/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit([Bind(Include = "ID,ParentID,Code,Name,LevelNo,SortOrder,IsActive,CreatedDT")] HR_ORG_UNITS orgUnit)
@@ -231,7 +236,7 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Validate no circular reference
+                // Tekshirish no circular reference
                 if (orgUnit.ParentID.HasValue && await HasCircularReference(orgUnit.ParentID.Value, orgUnit.ID))
                 {
                     ModelState.AddModelError("ParentID", "Циклическая ссылка не допускается");
@@ -241,7 +246,7 @@ namespace tahsinERP.Controllers.HR
                     return View(orgUnit);
                 }
 
-                // Recalculate LevelNo if parent changed
+                // Recalculate LevelNo agar parent changed
                 var existing = await db.HR_ORG_UNITS.FindAsync(orgUnit.ID);
                 if (existing == null)
                 {
@@ -260,11 +265,11 @@ namespace tahsinERP.Controllers.HR
                         orgUnit.LevelNo = 1;
                     }
 
-                    // Update children levels
+                    // Yangilash children levels
                     await UpdateChildrenLevels(orgUnit.ID, orgUnit.LevelNo);
                 }
 
-                // Update existing entity with values from orgUnit
+                // Yangilash existing entity bilan values dan orgUnit
                 existing.Name = orgUnit.Name;
                 existing.ParentID = orgUnit.ParentID;
                 existing.LevelNo = orgUnit.LevelNo;
@@ -272,7 +277,12 @@ namespace tahsinERP.Controllers.HR
 
                 await db.SaveChangesAsync();
 
-                logger.Log("HrOrgUnits", "Edit", $"ID: {orgUnit.ID}");
+                var parentName = "-";
+                if (orgUnit.ParentID.HasValue)
+                {
+                    parentName = (await db.HR_ORG_UNITS.FindAsync(orgUnit.ParentID.Value))?.Name ?? "-";
+                }
+                logger.Log("HrOrgUnits", "Edit", $"Bo'lim: {orgUnit.Name}, OtaBo'lim: {parentName}");
                 return RedirectToAction("Index");
             }
 
@@ -282,7 +292,7 @@ namespace tahsinERP.Controllers.HR
             return View(orgUnit);
         }
 
-        // GET: HR/OrgUnits/Delete/5
+        // Olish so'rovi: HR/OrgUnits/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
@@ -301,7 +311,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Check if has children
+            // Tekshirish agar has children
             var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id);
             if (hasChildren)
             {
@@ -309,7 +319,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Check if has employees
+            // Tekshirish agar has employees
             var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive);
             if (hasEmployees)
             {
@@ -320,7 +330,7 @@ namespace tahsinERP.Controllers.HR
             return View(orgUnit);
         }
 
-        // POST: HR/OrgUnits/Delete/5
+        // POST so'rovi: HR/OrgUnits/o'chirish/5
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -337,7 +347,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Check if has children
+            // Tekshirish agar has children
             var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id);
             if (hasChildren)
             {
@@ -345,7 +355,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Check if has employees
+            // Tekshirish agar has employees
             var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive);
             if (hasEmployees)
             {
@@ -357,11 +367,11 @@ namespace tahsinERP.Controllers.HR
             db.Entry(orgUnit).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
-            logger.Log("HrOrgUnits", "Delete", $"ID: {id}");
+            logger.Log("HrOrgUnits", "Delete", $"Bo'lim: {orgUnit.Name}");
             return RedirectToAction("Index");
         }
 
-        // AJAX: Update parent (drag & drop)
+        // AJAX so'rovi: yangilash parent (drag & drop)
         [HttpPost]
         public async Task<JsonResult> UpdateParent(int id, int? newParentId)
         {
@@ -378,7 +388,7 @@ namespace tahsinERP.Controllers.HR
                     return Json(new { success = false, message = "Подразделение не найдено" });
                 }
 
-                // Validate no circular reference
+                // Tekshirish no circular reference
                 if (newParentId.HasValue && await HasCircularReference(newParentId.Value, id))
                 {
                     return Json(new { success = false, message = "Циклическая ссылка не допускается" });
@@ -395,12 +405,18 @@ namespace tahsinERP.Controllers.HR
                     orgUnit.LevelNo = 1;
                 }
 
-                // Update children levels
+                // Yangilash children levels
                 await UpdateChildrenLevels(id, orgUnit.LevelNo);
 
                 await db.SaveChangesAsync();
 
-                logger.Log("HrOrgUnits", "UpdateParent", $"ID: {id}, NewParentID: {newParentId}");
+                var unitName = orgUnit.Name ?? "-";
+                var parentName = "-";
+                if (newParentId.HasValue)
+                {
+                    parentName = (await db.HR_ORG_UNITS.FindAsync(newParentId.Value))?.Name ?? "-";
+                }
+                logger.Log("HrOrgUnits", "UpdateParent", $"Bo'lim: {unitName}, YangiOtaBo'lim: {parentName}");
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -409,7 +425,7 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        // AJAX: Get tree data
+        // AJAX so'rovi: Get tree ma'lumot
         [HttpGet]
         public async Task<JsonResult> GetTreeData()
         {
@@ -423,7 +439,7 @@ namespace tahsinERP.Controllers.HR
             return Json(tree, JsonRequestBehavior.AllowGet);
         }
 
-        // GET: HR/OrgUnits/OrgChart - Visual org chart
+        // Olish so'rovi: HR/OrgUnits/OrgChart - Visual org chart
         public async Task<ActionResult> OrgChart()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits"))
@@ -439,7 +455,7 @@ namespace tahsinERP.Controllers.HR
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();
 
-            // Build org chart data with positions and employees
+            // Build org chart ma'lumot bilan positions va employees
             var rootUnits = orgUnits.Where(o => !o.ParentID.HasValue).ToList();
             var orgChartData = new List<OrgChartNodeViewModel>();
 
@@ -475,7 +491,7 @@ namespace tahsinERP.Controllers.HR
                 }).ToList()
             };
 
-            // Add children
+            // Qo'shish children
             var children = allUnits.Where(o => o.ParentID == unit.ID).ToList();
             foreach (var child in children)
             {
@@ -504,7 +520,7 @@ namespace tahsinERP.Controllers.HR
                     CreatedDT = unit.CreatedDT
                 };
 
-                // Get headcount
+                // Olish headcount
                 viewModel.PlannedHeadcount = (int)(db.HR_STAFFING_PLAN
                     .Where(sp => sp.OrgUnitID == unit.ID && sp.IsActive)
                     .Sum(sp => (decimal?)sp.PlannedHeadcount) ?? 0);

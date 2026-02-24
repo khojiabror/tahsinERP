@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.EMMA;
+using DocumentFormat.OpenXml.EMMA;
 using System;
 using System.Data.Entity;
 using System.Linq;

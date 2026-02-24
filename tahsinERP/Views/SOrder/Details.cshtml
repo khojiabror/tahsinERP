@@ -1,6 +1,6 @@
 @model tahsinERP.Models.S_ORDERS
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Batafsil";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -79,7 +79,7 @@
                                                         <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
                                                         <div class="btn-group" role="group">
                                                             <a href="@Url.Action("DeliverySchedule", "SOrder", new { orderID = Model.ID })" class="btn btn-outline-primary">
-                                                                <i class="bx bx-calendar"></i> Yetkazib berish rejasi
+                                                                <i class="bx bx-calendar"></i> Yetkazib berish rejasi (@(ViewBag.DeliveryScheduleCount ?? 0))
                                                             </a>
                                                             <a href="@Url.Action("Index", "SalesInvoices", new { orderID = Model.ID })" class="btn btn-outline-primary">
                                                                 <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
@@ -148,7 +148,14 @@
                                                                                         }
                                                                                         else
                                                                                         {
-                                                                                            <span class="text-muted">Reja yo'q</span>
+                                                                                            if ((ViewBag.DeliveryScheduleCount ?? 0) > 0)
+                                                                                            {
+                                                                                                <a href="@Url.Action("DeliverySchedule", "SOrder", new { orderID = Model.ID })">Reja</a>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                <span class="text-muted">Reja yo'q</span>
+                                                                                            }
                                                                                         }
                                                                                     </td>
                                                                                 </tr>

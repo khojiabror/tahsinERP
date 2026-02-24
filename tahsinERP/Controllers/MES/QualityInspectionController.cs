@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers.MES
 {
     public class QualityInspectionController : Controller
     {
-        // GET: QualityInspection
+        // Olish so'rovi: QualityInspection
         public async Task<ActionResult> Index(string searchTerm, int? productID, string statusCode, DateTime? fromDate, DateTime? toDate)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -73,7 +73,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: QualityInspection/Details/5
+        // Olish so'rovi: QualityInspection/Details/5
         public ActionResult Details(long? id)
         {
             if (id == null)
@@ -102,7 +102,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: QualityInspection/Create
+        // Olish so'rovi: QualityInspection/yaratish
         public ActionResult Create(DateTime? date)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -115,7 +115,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: QualityInspection/Create
+        // POST so'rovi: QualityInspection/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(QualityInspectionDailyViewModel viewModel)
@@ -298,7 +298,7 @@ namespace tahsinERP.Controllers.MES
             };
         }
 
-        // GET: QualityInspection/Edit/5
+        // Olish so'rovi: QualityInspection/Edit/5
         public ActionResult Edit(long? id)
         {
             if (id == null)
@@ -314,7 +314,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Prevent editing if approved
+                // Prevent editing agar approved
                 if (inspection.StatusCode == "APPROVED")
                 {
                     TempData["ErrorMessage"] = "Tasdiqlangan sifat nazoratini tahrirlash mumkin emas";
@@ -344,7 +344,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: QualityInspection/Edit/5
+        // POST so'rovi: QualityInspection/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(QualityInspectionViewModel viewModel)
@@ -359,7 +359,7 @@ namespace tahsinERP.Controllers.MES
                         return HttpNotFound();
                     }
 
-                    // Prevent editing if approved
+                    // Prevent editing agar approved
                     if (inspection.StatusCode == "APPROVED")
                     {
                         ModelState.AddModelError("", "Tasdiqlangan sifat nazoratini tahrirlash mumkin emas");
@@ -367,7 +367,7 @@ namespace tahsinERP.Controllers.MES
                         return View(viewModel);
                     }
 
-                    // Validate quantities
+                    // Tekshirish quantities
                     if (viewModel.QtyAccepted + viewModel.QtyRejected != viewModel.QtyInspected)
                     {
                         ModelState.AddModelError("", "Qabul qilingan va rad etilgan miqdorlar tekshirilgan miqdorga teng bo'lishi kerak");
@@ -402,7 +402,7 @@ namespace tahsinERP.Controllers.MES
             return View(viewModel);
         }
 
-        // GET: QualityInspection/Approve/5
+        // Olish so'rovi: QualityInspection/Approve/5
         public ActionResult Approve(long? id)
         {
             if (id == null)
@@ -432,7 +432,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: QualityInspection/Approve/5
+        // POST so'rovi: QualityInspection/Approve/5
         [HttpPost, ActionName("Approve")]
         [ValidateAntiForgeryToken]
         public ActionResult ApproveConfirmed(long id)
@@ -459,7 +459,7 @@ namespace tahsinERP.Controllers.MES
                 db.Entry(inspection).State = EntityState.Modified;
                 db.SaveChanges();
 
-                // Move rejected qty to DAMAGED_PRODUCTS if not already done
+                // Move rejected qty ga DAMAGED_PRODUCTS agar not already done
                 if (inspection.QtyRejected > 0 && inspection.DefectTypeID.HasValue)
                 {
                     var existingDamaged = db.DAMAGED_PRODUCTS
@@ -490,7 +490,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: QualityInspection/Delete/5
+        // Olish so'rovi: QualityInspection/o'chirish/5
         public ActionResult Delete(long? id)
         {
             if (id == null)
@@ -510,7 +510,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Prevent deleting if approved
+                // Prevent deleting agar approved
                 if (inspection.StatusCode == "APPROVED")
                 {
                     TempData["ErrorMessage"] = "Tasdiqlangan sifat nazoratini o'chirish mumkin emas";
@@ -521,7 +521,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: QualityInspection/Delete/5
+        // POST so'rovi: QualityInspection/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(long id)
@@ -534,7 +534,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Prevent deleting if approved
+                // Prevent deleting agar approved
                 if (inspection.StatusCode == "APPROVED")
                 {
                     TempData["ErrorMessage"] = "Tasdiqlangan sifat nazoratini o'chirish mumkin emas";
@@ -553,7 +553,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // Helper method to populate ViewBag
+        // yordamchi method ga populate ViewBag
         private void PopulateViewBags(QualityInspectionViewModel viewModel, DBTHSNEntities db)
         {
             ViewBag.Products = new SelectList(
@@ -566,20 +566,20 @@ namespace tahsinERP.Controllers.MES
             ViewBag.DeliverySchedules = new SelectList(db.SORDER_DELIVERY_SCHEDULE.ToList(), "ID", "ID", viewModel.DeliveryScheduleID);
         }
 
-        // AJAX: Get available quantity for invoicing
+        // AJAX so'rovi: Get available quantity uchun invoicing
         [HttpGet]
         public JsonResult GetAvailableQtyForInvoicing(int productID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get total accepted qty from approved inspections
+                // Olish total accepted qty dan approved inspections
                 var totalAccepted = db.QUALITY_INSPECTION
                     .Where(q => q.ProductID == productID 
                         && q.StatusCode == "APPROVED" 
                         && q.IsDeleted == false)
                     .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
 
-                // Get total already invoiced
+                // Olish total already invoiced
                 var totalInvoiced = db.SALES_INVOICE_LINES
                     .Where(l => l.ProductID == productID)
                     .Sum(l => (decimal?)l.Qty) ?? 0;

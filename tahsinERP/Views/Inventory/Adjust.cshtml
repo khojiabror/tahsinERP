@@ -45,12 +45,12 @@
                                         }
                                         else
                                         {
-                                            if (!ViewData.ModelState.IsValid)
+                                            @if (!ViewData.ModelState.IsValid)
                                             {
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                             }
 
-                                            if (ViewBag.ErrorDetails != null)
+                                            @if (ViewBag.ErrorDetails != null)
                                             {
                                                 <div class="alert alert-danger">
                                                     <ul class="mb-0">
@@ -73,7 +73,7 @@
                                                 </a>
                                             </div>
 
-                                            using (Html.BeginForm("Adjust", "Inventory", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "adjustForm" }))
+                                            @using (Html.BeginForm("Adjust", "Inventory", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "adjustForm" }))
                                             {
                                                 @Html.AntiForgeryToken()
 

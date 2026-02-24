@@ -210,14 +210,14 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Checks if a product should use weight-based calculations based on its category
+        /// Checks if a product should use weight-based calculations (BOM/norm in dona, stock in kg).
+        /// True when: product or category has CalculateByWeight, or product's unit is kg; and Weight (per piece) is set.
         /// </summary>
-        /// <param name="productId">Product ID</param>
-        /// <returns>True if product should use weight-based calculations, false otherwise</returns>
         public async Task<bool> ShouldCalculateByWeightAsync(int productId)
         {
             var product = await _db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
+                .Include(p => p.UNIT)
                 .FirstOrDefaultAsync(p => p.ID == productId);
 
             if (product == null)
@@ -225,17 +225,60 @@ namespace tahsinERP.Services
                 return false;
             }
 
-            // Check category-level CalculateByWeight setting
-            bool categoryCalculateByWeight = false;
-            if (product.CategoryID.HasValue && product.PRODUCT_CATEGORIES != null)
+            bool hasValidWeight = product.Weight.HasValue && product.Weight.Value > 0;
+            if (!hasValidWeight)
             {
-                categoryCalculateByWeight = product.PRODUCT_CATEGORIES.CalculateByWeight ?? false;
+                return false;
             }
 
-            // Product must have valid Weight value
-            bool hasValidWeight = product.Weight.HasValue && product.Weight.Value > 0;
+            // Product-level flag (e.g. shurup)
+            if (product.CalculateByWeight == true)
+            {
+                return true;
+            }
 
-            return categoryCalculateByWeight && hasValidWeight;
+            // Category-level flag
+            if (product.CategoryID.HasValue && product.PRODUCT_CATEGORIES != null &&
+                (product.PRODUCT_CATEGORIES.CalculateByWeight ?? false))
+            {
+                return true;
+            }
+
+            // Product stored in kg (unit name contains kg) -> norm in dona, stock in kg
+            if (product.UNIT != null)
+            {
+                var name = (product.UNIT.UnitName ?? "") + " " + (product.UNIT.ShortName ?? "");
+                if (name.IndexOf("kg", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Converts kg quantity to piece quantity using product's Weight (kg per piece).
+        /// Formula: pieces = kg / Weight
+        /// </summary>
+        public async Task<decimal> ConvertKgToPieceAsync(int productId, decimal kgQuantity)
+        {
+            var product = await _db.PRODUCTS
+                .FirstOrDefaultAsync(p => p.ID == productId);
+
+            if (product == null)
+            {
+                throw new ArgumentException($"Product with ID {productId} not found.");
+            }
+
+            if (!product.Weight.HasValue || product.Weight.Value <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"Product {product.PNo} does not have a valid Weight value. Cannot convert kg to piece.");
+            }
+
+            decimal pieceQuantity = kgQuantity / (decimal)product.Weight.Value;
+            return pieceQuantity;
         }
     }
 }

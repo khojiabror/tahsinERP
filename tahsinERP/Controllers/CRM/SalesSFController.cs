@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
 {
     public class SalesSFController : Controller
     {
-        // GET: SalesSF
+        // Olish so'rovi: SalesSF
         public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string sfNumber, long? invoiceID, int? customerID, string statusCode, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -77,7 +77,7 @@ namespace tahsinERP.Controllers
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
                 ViewBag.Invoices = new SelectList(await db.SALES_INVOICES.ToListAsync(), "ID", "InvoiceNo", invoiceID);
                 ViewBag.CurrentPage = currentPage;
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Details
+        // Olish so'rovi: Details
         public ActionResult Details(long? id)
         {
             if (id == null)
@@ -115,10 +115,10 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Load customer
+                // Yuklash customer
                 ViewBag.Customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == sfHeader.CustomerID);
 
-                // Load related order if invoice has one
+                // Yuklash related order agar invoice has one
                 if (sfHeader.SALES_INVOICES != null && sfHeader.SALES_INVOICES.OrderID.HasValue)
                 {
                     ViewBag.Order = db.S_ORDERS
@@ -126,7 +126,7 @@ namespace tahsinERP.Controllers
                         .FirstOrDefault(o => o.ID == sfHeader.SALES_INVOICES.OrderID.Value);
                 }
 
-                // Load products for lines
+                // Yuklash products uchun lines
                 var productIDs = sfHeader.SALES_SF_LINES.Select(l => l.ProductID).Distinct().ToList();
                 ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
 
@@ -134,7 +134,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Generate from Invoice
+        // Olish so'rovi: yaratish dan Invoice
         public ActionResult GenerateFromInvoice(long? invoiceID)
         {
             if (invoiceID == null)
@@ -153,7 +153,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Check if SF already exists for this invoice
+                // Tekshirish agar SF already mavjud uchun this invoice
                 var existingSF = db.SALES_SF_HEADERS.FirstOrDefault(sf => sf.InvoiceID == invoiceID);
                 if (existingSF != null)
                 {
@@ -161,7 +161,7 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Details", new { id = existingSF.ID });
                 }
 
-                // Create SF header from invoice
+                // Yaratish SF header dan invoice
                 var sfHeader = new SALES_SF_HEADERS
                 {
                     SFDate = DateTime.Now,
@@ -173,21 +173,21 @@ namespace tahsinERP.Controllers
                     SourceSystem = "TAHSIN_ERP"
                 };
 
-                // Load customer for INN
+                // Yuklash customer uchun INN
                 var customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == invoice.CustomerID);
                 if (customer != null)
                 {
-                    // TODO: Get customer INN from customer record or settings
-                    sfHeader.CustomerINN = customer.DUNS; // Using DUNS as placeholder
+                    // TODO: Get customer INN dan customer record yoki settings
+                    sfHeader.CustomerINN = customer.DUNS; // foydalanib DUNS as placeholder
                 }
 
-                // TODO: Get supplier INN from company settings
-                sfHeader.SupplierINN = ""; // To be filled from company settings
+                // TODO: Get supplier INN dan company settings
+                sfHeader.SupplierINN = ""; // ga be filled dan company settings
 
                 ViewBag.Invoice = invoice;
                 ViewBag.InvoiceLines = invoice.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
                 
-                // Load products
+                // Yuklash products
                 var productIDs = invoice.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList();
                 ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
 
@@ -195,7 +195,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Generate from Invoice
+        // POST so'rovi: yaratish dan Invoice
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult GenerateFromInvoice(SALES_SF_HEADERS sfHeader, List<SalesSFLineViewModel> lines)
@@ -206,7 +206,7 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Check if SF already exists
+                        // Tekshirish agar SF already mavjud
                         var existingSF = db.SALES_SF_HEADERS.FirstOrDefault(sf => sf.InvoiceID == sfHeader.InvoiceID);
                         if (existingSF != null)
                         {
@@ -214,7 +214,7 @@ namespace tahsinERP.Controllers
                             return View(sfHeader);
                         }
 
-                        // Validate invoice exists
+                        // Tekshirish invoice mavjud
                         var invoice = db.SALES_INVOICES.Find(sfHeader.InvoiceID);
                         if (invoice == null)
                         {
@@ -232,7 +232,7 @@ namespace tahsinERP.Controllers
                         db.SALES_SF_HEADERS.Add(sfHeader);
                         db.SaveChanges();
 
-                        // Add lines from invoice lines
+                        // Qo'shish lines dan invoice lines
                         int lineNo = 1;
                         foreach (var line in lines)
                         {
@@ -273,7 +273,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (sfHeader.InvoiceID.HasValue)
@@ -295,7 +295,7 @@ namespace tahsinERP.Controllers
             return View(sfHeader);
         }
 
-        // GET: Edit
+        // Olish so'rovi: Edit
         public ActionResult Edit(long? id)
         {
             if (id == null)
@@ -314,7 +314,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Check if SF can be edited
+                // Tekshirish agar SF can be edited
                 if (sfHeader.StatusCode == "SENT" || sfHeader.StatusCode == "ACCEPTED")
                 {
                     TempData["ErrorMessage"] = "Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas";
@@ -325,7 +325,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Edit
+        // POST so'rovi: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(SALES_SF_HEADERS sfHeader, List<SalesSFLineViewModel> lines)
@@ -340,7 +340,7 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Check if SF can be edited
+                    // Tekshirish agar SF can be edited
                     if (existingSF.StatusCode == "SENT" || existingSF.StatusCode == "ACCEPTED")
                     {
                         ModelState.AddModelError("", "Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas");
@@ -355,17 +355,17 @@ namespace tahsinERP.Controllers
                         existingSF.CustomerINN = sfHeader.CustomerINN;
                         existingSF.StatusCode = sfHeader.StatusCode;
 
-                        // Update lines if provided
+                        // Yangilash lines agar provided
                         if (lines != null && lines.Any())
                         {
-                            // Remove existing lines
+                            // O'chirish existing lines
                             var existingLines = db.SALES_SF_LINES.Where(l => l.SFHeaderID == sfHeader.ID).ToList();
                             foreach (var line in existingLines)
                             {
                                 db.SALES_SF_LINES.Remove(line);
                             }
 
-                            // Add updated lines
+                            // Qo'shish updated lines
                             int lineNo = 1;
                             foreach (var line in lines)
                             {
@@ -411,7 +411,7 @@ namespace tahsinERP.Controllers
         }
     }
 
-    // ViewModel for SF lines
+    // ViewModel uchun SF lines
     public class SalesSFLineViewModel
     {
         public long? InvoiceLineID { get; set; }

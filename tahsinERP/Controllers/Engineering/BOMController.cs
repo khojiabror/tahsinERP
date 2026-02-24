@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.Engineering
     {
         private DBTHSNEntities db = new DBTHSNEntities();
 
-        // GET: Bom
+        // Olish so'rovi: Bom
         public async Task<ActionResult> Index()
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
@@ -42,30 +42,30 @@ namespace tahsinERP.Controllers.Engineering
                           .ThenByDescending(n => n.ID)
                           .FirstOrDefault());
 
-            // Get the latest BOM version for each product
+            // Olish the latest BOM version uchun har bir product
             var bomIndexList = new List<BomIndexViewModel>();
 
             foreach (var product in finishedGoods)
             {
-                // Get the latest active BOM header for this product
-                // Sort by VersionNo as date (YYYY-MM format) descending, then by CreatedAt
+                // Olish the latest faol BOM header uchun this product
+                // Sort by VersionNo as date (YYYY-MM format) descending, so'ng by CreatedAt
                 var latestBomHeader = await db.BOM_HEADERS
                     .Where(bh => bh.ProductID == product.ID && bh.IsActive == true)
                     .ToListAsync();
 
-                // Parse VersionNo as date for proper sorting (YYYY-MM format)
+                // Tahlil qilish VersionNo as date uchun proper sorting (YYYY-MM format)
                 // VersionNo format: '2024-12' (year-month)
                 var sortedBomHeaders = latestBomHeader
                     .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
                     .OrderByDescending(bh =>
                     {
-                        // Try to parse VersionNo as YYYY-MM date
+                        // Urinish ga tahlil VersionNo as YYYY-MM date
                         string versionNo = bh.VersionNo.Trim();
                         if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
                         {
                             return parsedDate;
                         }
-                        // If parsing fails, try to extract year and month manually
+                        // agar parsing fails, try ga extract year va month manually
                         var parts = versionNo.Split('-');
                         if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
                         {
@@ -74,13 +74,13 @@ namespace tahsinERP.Controllers.Engineering
                                 return new DateTime(year, month, 1);
                             }
                         }
-                        // Fallback to minimum date
+                        // Fallback ga minimal date
                         return DateTime.MinValue;
                     })
                     .ThenByDescending(bh => bh.CreatedAt)
                     .FirstOrDefault();
 
-                // If no BOM with VersionNo found, fallback to latest by CreatedAt
+                // agar no BOM bilan VersionNo found, fallback ga latest by CreatedAt
                 if (sortedBomHeaders == null)
                 {
                     sortedBomHeaders = latestBomHeader
@@ -120,7 +120,7 @@ namespace tahsinERP.Controllers.Engineering
             return View(bomIndexList);
         }
 
-        // GET: Bom/Details/5
+        // Olish so'rovi: Bom/Details/5
         public async Task<ActionResult> Details(int productId, int? bomHeaderId = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
@@ -143,14 +143,14 @@ namespace tahsinERP.Controllers.Engineering
 
             if (bomHeaderId.HasValue)
             {
-                // Load specific BOM header
+                // Yuklash specific BOM header
                 bomHeader = await db.BOM_HEADERS
                     .Include(bh => bh.PRODUCT)
                     .FirstOrDefaultAsync(bh => bh.ID == bomHeaderId.Value);
             }
             else
             {
-                // Load latest active BOM header for this product
+                // Yuklash latest faol BOM header uchun this product
                 // Sort by VersionNo as date (YYYY-MM format) descending
                 var bomHeaders = await db.BOM_HEADERS
                     .Include(bh => bh.PRODUCT)
@@ -161,13 +161,13 @@ namespace tahsinERP.Controllers.Engineering
                     .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
                     .OrderByDescending(bh =>
                     {
-                        // Try to parse VersionNo as YYYY-MM date
+                        // Urinish ga tahlil VersionNo as YYYY-MM date
                         string versionNo = bh.VersionNo.Trim();
                         if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
                         {
                             return parsedDate;
                         }
-                        // If parsing fails, try to extract year and month manually
+                        // agar parsing fails, try ga extract year va month manually
                         var parts = versionNo.Split('-');
                         if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
                         {
@@ -176,13 +176,13 @@ namespace tahsinERP.Controllers.Engineering
                                 return new DateTime(year, month, 1);
                             }
                         }
-                        // Fallback to minimum date
+                        // Fallback ga minimal date
                         return DateTime.MinValue;
                     })
                     .ThenByDescending(bh => bh.CreatedAt)
                     .FirstOrDefault();
 
-                // If no BOM with VersionNo found, fallback to latest by CreatedAt
+                // agar no BOM bilan VersionNo found, fallback ga latest by CreatedAt
                 if (bomHeaderWithVersion == null)
                 {
                     bomHeader = bomHeaders
@@ -201,7 +201,7 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index");
             }
 
-            // Load all BOM lines with related products and units
+            // Yuklash barcha BOM lines bilan related products va units
             var bomLines = await db.BOM_LINES
                 .Include(bl => bl.PRODUCT)
                 .Include(bl => bl.UNIT)
@@ -211,7 +211,7 @@ namespace tahsinERP.Controllers.Engineering
             // Build hierarchical tree
             var rootNode = BuildBomTree(productId, bomLines, product);
 
-            // Load product image
+            // Yuklash product image
             string imageUrl = null;
             var productImage = await db.PRODUCTIMAGES
                 .Where(pi => pi.ProdID == productId && (pi.IsDeleted == null || pi.IsDeleted == false))
@@ -236,11 +236,11 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         /// <summary>
-        /// Builds a hierarchical BOM tree starting from the root product
+        /// Builds a hierarchical BOM tree starting dan the root product
         /// </summary>
         private BomTreeNodeViewModel BuildBomTree(int parentProductId, List<BOM_LINES> bomLines, PRODUCT parentProduct)
         {
-            // Load product image for root
+            // Yuklash product image uchun root
             string rootImageUrl = null;
             var rootProductImage = db.PRODUCTIMAGES
                 .Where(pi => pi.ProdID == parentProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
@@ -261,7 +261,7 @@ namespace tahsinERP.Controllers.Engineering
                 Children = new List<BomTreeNodeViewModel>()
             };
 
-            // All bomLines passed here are direct children of the root
+            // barcha bomLines passed here are direct children of the root
             // BOM_LINES.ComponentID is the child component
             foreach (var bomLine in bomLines)
             {
@@ -270,7 +270,7 @@ namespace tahsinERP.Controllers.Engineering
                 var childProduct = bomLine.PRODUCT;
                 if (childProduct == null || childProduct.IsDeleted) continue;
 
-                // Load child product image
+                // Yuklash child product image
                 string childImageUrl = null;
                 var childProductImage = db.PRODUCTIMAGES
                     .Where(pi => pi.ProdID == childProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
@@ -292,7 +292,7 @@ namespace tahsinERP.Controllers.Engineering
                     Children = new List<BomTreeNodeViewModel>()
                 };
 
-                // Check if this child component has its own BOM (i.e., it's an assembly)
+                // Tekshirish agar this child component has its own BOM (i.e., it's an assembly)
                 var childBomHeaders = db.BOM_HEADERS
                     .Where(bh => bh.ProductID == childProduct.ID && bh.IsActive == true)
                     .ToList();
@@ -321,7 +321,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (childBomHeader != null)
                 {
-                    // Load child BOM lines
+                    // Yuklash child BOM lines
                     var childBomLines = db.BOM_LINES
                         .Include(bl => bl.PRODUCT)
                         .Include(bl => bl.UNIT)
@@ -339,7 +339,7 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         /// <summary>
-        /// Recursively builds children for a node
+        /// Recursively builds children uchun a node
         /// </summary>
         private List<BomTreeNodeViewModel> BuildBomTreeChildren(int parentProductId, List<BOM_LINES> bomLines)
         {
@@ -352,7 +352,7 @@ namespace tahsinERP.Controllers.Engineering
                 var childProduct = bomLine.PRODUCT;
                 if (childProduct == null || childProduct.IsDeleted) continue;
 
-                // Load child product image
+                // Yuklash child product image
                 string childImageUrl = null;
                 var childProductImage = db.PRODUCTIMAGES
                     .Where(pi => pi.ProdID == childProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
@@ -374,7 +374,7 @@ namespace tahsinERP.Controllers.Engineering
                     Children = new List<BomTreeNodeViewModel>()
                 };
 
-                // Check if this child has its own BOM
+                // Tekshirish agar this child has its own BOM
                 var childBomHeaders = db.BOM_HEADERS
                     .Where(bh => bh.ProductID == childProduct.ID && bh.IsActive == true)
                     .ToList();

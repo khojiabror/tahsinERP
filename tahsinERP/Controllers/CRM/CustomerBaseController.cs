@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
 {
     public class CustomerBaseController : Controller
     {
-        // GET: CustomerBase
+        // Olish so'rovi: CustomerBase
         public async Task<ActionResult> Index(string productType)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "CustomerBase", "Index"))
@@ -46,7 +46,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: CustomerBase/Details/5
+        // Olish so'rovi: CustomerBase/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "CustomerBase", "Details"))
@@ -71,7 +71,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: CustomerBase/Create
+        // Olish so'rovi: CustomerBase/yaratish
         public ActionResult Create()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase"))
@@ -81,7 +81,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // POST: CustomerBase/Create
+        // POST so'rovi: CustomerBase/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CUSTOMER_BASE customerBase, FormCollection collection)
@@ -115,7 +115,7 @@ namespace tahsinERP.Controllers
             return View(customerBase);
         }
 
-        // GET: CustomerBase/Edit/5
+        // Olish so'rovi: CustomerBase/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase"))
@@ -140,7 +140,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: CustomerBase/Edit
+        // POST so'rovi: CustomerBase/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(CUSTOMER_BASE customerBase, FormCollection collection)
@@ -162,7 +162,7 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        // Update fields
+                        // Yangilash fields
                         customerBaseToUpdate.CompanyName = customerBase.CompanyName;
                         customerBaseToUpdate.ProductType = customerBase.ProductType;
                         customerBaseToUpdate.Country = customerBase.Country;
@@ -190,7 +190,7 @@ namespace tahsinERP.Controllers
             return View(customerBase);
         }
 
-        // GET: CustomerBase/Delete/5
+        // Olish so'rovi: CustomerBase/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase"))
@@ -215,7 +215,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: CustomerBase/Delete
+        // POST so'rovi: CustomerBase/o'chirish
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id, FormCollection collection)
@@ -249,7 +249,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: CustomerBase/Delete (AJAX)
+        // POST so'rovi: CustomerBase/o'chirish (AJAX)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> DeleteAjax(int id)

@@ -366,7 +366,14 @@
                 
                 printWindow.document.write(content);
                 printWindow.document.close();
-                printWindow.print();
+                printWindow.focus();
+
+                // Wait until popup content is fully rendered before printing.
+                printWindow.onload = function () {
+                    setTimeout(function () {
+                        printWindow.print();
+                    }, 250);
+                };
             });
                 });
             }

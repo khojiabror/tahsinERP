@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinBalanceCategoriesController : Controller
     {
-        // GET: FinBalanceCategories
+        // Olish so'rovi: FinBalanceCategories
         public ActionResult Index(string searchTerm, int? type, int? parentID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinBalanceCategories"))
@@ -77,7 +77,7 @@ namespace tahsinERP.Controllers.Finance
             return result;
         }
 
-        // GET: FinBalanceCategories/Details/5
+        // Olish so'rovi: FinBalanceCategories/Details/5
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinBalanceCategories"))
@@ -109,7 +109,7 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.SnapshotCount = db.FIN_BALANCE_SNAPSHOTS.Count(s => s.CategoryID == id);
 
-                // Get mapped categories - handle case where relationship might not be configured
+                // Olish mapped categories - handle case where relationship might not be configured
                 List<FIN_CATEGORIES> mappedCategories = new List<FIN_CATEGORIES>();
                 try
                 {
@@ -126,7 +126,7 @@ namespace tahsinERP.Controllers.Finance
                 }
                 catch
                 {
-                    // If relationship is not configured, return empty list
+                    // agar relationship is not configured, return empty list
                     mappedCategories = new List<FIN_CATEGORIES>();
                 }
                 
@@ -136,7 +136,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinBalanceCategories/Create
+        // Olish so'rovi: FinBalanceCategories/yaratish
         public ActionResult Create(int? parentID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
@@ -160,13 +160,13 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
                     new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
                     new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
-                }, "Value", "Text", 1); // Default: Account-Based
+                }, "Value", "Text", 1); // standart: Account-Based
 
                 var model = new FIN_BALANCE_CATEGORIES
                 {
                     ParentID = parentID,
                     IsActive = true,
-                    CalculationType = 1, // Default: Account-Based
+                    CalculationType = 1, // standart: Account-Based
                     SortOrder = db.FIN_BALANCE_CATEGORIES.Where(c => c.ParentID == parentID).Count() + 1
                 };
 
@@ -174,7 +174,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinBalanceCategories/Create
+        // POST so'rovi: FinBalanceCategories/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_BALANCE_CATEGORIES category)
@@ -224,7 +224,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinBalanceCategories/Edit/5
+        // Olish so'rovi: FinBalanceCategories/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
@@ -268,7 +268,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinBalanceCategories/Edit/5
+        // POST so'rovi: FinBalanceCategories/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_BALANCE_CATEGORIES category)
@@ -341,7 +341,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinBalanceCategories/Delete/5
+        // Olish so'rovi: FinBalanceCategories/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
@@ -369,7 +369,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinBalanceCategories/Delete/5
+        // POST so'rovi: FinBalanceCategories/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -394,7 +394,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinBalanceCategories/MapCategories/5
+        // Olish so'rovi: FinBalanceCategories/MapCategories/5
         public ActionResult MapCategories(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
@@ -418,7 +418,7 @@ namespace tahsinERP.Controllers.Finance
 
                 var allCategories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
                 
-                // Get mapped category IDs from relationship - handle case where relationship might not be configured
+                // Olish mapped category IDs dan relationship - handle case where relationship might not be configured
                 List<int> mappedCategoryIds = new List<int>();
                 try
                 {
@@ -435,7 +435,7 @@ namespace tahsinERP.Controllers.Finance
                 }
                 catch
                 {
-                    // If relationship is not configured, return empty list
+                    // agar relationship is not configured, return empty list
                     mappedCategoryIds = new List<int>();
                 }
 
@@ -446,7 +446,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinBalanceCategories/MapCategories/5
+        // POST so'rovi: FinBalanceCategories/MapCategories/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MapCategories(int id, int[] categoryIds)
@@ -467,7 +467,7 @@ namespace tahsinERP.Controllers.Finance
 
                 try
                 {
-                    // Try to use relationship if it exists
+                    // Urinish ga use relationship agar it mavjud
                     var categoryWithMappings = db.FIN_BALANCE_CATEGORIES
                         .Include(c => c.FIN_CATEGORIES)
                         .FirstOrDefault(c => c.ID == id);
@@ -477,7 +477,7 @@ namespace tahsinERP.Controllers.Finance
                         // Clear existing mappings
                         categoryWithMappings.FIN_CATEGORIES.Clear();
 
-                        // Add new mappings
+                        // Qo'shish new mappings
                         if (categoryIds != null && categoryIds.Length > 0)
                         {
                             var categories = db.FIN_CATEGORIES.Where(c => categoryIds.Contains(c.ID)).ToList();
@@ -495,16 +495,16 @@ namespace tahsinERP.Controllers.Finance
                 }
                 catch (Exception ex)
                 {
-                    // If relationship doesn't work, try direct SQL approach
+                    // agar relationship doesn't work, try direct SQL approach
                     try
                     {
-                        // First, delete existing mappings
+                        // Avval, o'chirish existing mappings
                         var deleteSql = @"
                             DELETE FROM FIN_BALANCE_CATEGORY_CATEGORIES 
                             WHERE BalanceCategoryID = @p0";
                         db.Database.ExecuteSqlCommand(deleteSql, id);
 
-                        // Then insert new mappings
+                        // So'ng insert new mappings
                         if (categoryIds != null && categoryIds.Length > 0)
                         {
                             foreach (var catId in categoryIds)
@@ -521,7 +521,7 @@ namespace tahsinERP.Controllers.Finance
                     }
                     catch (Exception sqlEx)
                     {
-                        // Log error if both approaches fail
+                        // Log xatolik agar both approaches fail
                         LogHelper.LogToDatabase(User.Identity.Name, "FinBalanceCategories", "MapCategories", 
                             $"Xatolik: {sqlEx.Message}");
                     }

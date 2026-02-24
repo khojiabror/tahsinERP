@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.ProductPlanViewModel
+@model tahsinERP.ViewModels.ProductPlanViewModel
 @{
     ViewBag.Title = "Yangi Ishlab Chiqarish Rejasi";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -45,7 +45,7 @@
                                                     
                                                     <h6 class="invoice-to">Mahsulot *</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, "Mahsulotni tanlang", new { @class = "form-control", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, "Mahsulotni tanlang", new { @class = "form-control select2", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
                                                     </fieldset>
 

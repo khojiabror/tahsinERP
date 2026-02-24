@@ -10,7 +10,7 @@ namespace tahsinERP.Controllers.TaskSettings
 {
     public class TaskPriorityController : Controller
     {
-        // GET: TaskPriority
+        // Olish so'rovi: TaskPriority
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // GET: TaskPriority/Details/5
+        // Olish so'rovi: TaskPriority/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -54,7 +54,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // GET: TaskPriority/Create
+        // Olish so'rovi: TaskPriority/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -65,7 +65,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View();
         }
 
-        // POST: TaskPriority/Create
+        // POST so'rovi: TaskPriority/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(APP_TASK_PRIORITY_REF priority)
@@ -79,7 +79,7 @@ namespace tahsinERP.Controllers.TaskSettings
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Check if code already exists
+                    // Tekshirish agar code already mavjud
                     var existing = await db.APP_TASK_PRIORITY_REF.FirstOrDefaultAsync(p => p.Code == priority.Code);
                     if (existing != null)
                     {
@@ -87,7 +87,7 @@ namespace tahsinERP.Controllers.TaskSettings
                         return View(priority);
                     }
 
-                    // Get max SortOrder if not provided
+                    // Olish max SortOrder agar not provided
                     if (priority.SortOrder == 0 && await db.APP_TASK_PRIORITY_REF.AnyAsync())
                     {
                         var maxSort = await db.APP_TASK_PRIORITY_REF
@@ -108,7 +108,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View(priority);
         }
 
-        // GET: TaskPriority/Edit/5
+        // Olish so'rovi: TaskPriority/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -132,7 +132,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
         }
 
-        // POST: TaskPriority/Edit/5
+        // POST so'rovi: TaskPriority/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(APP_TASK_PRIORITY_REF priority)
@@ -146,7 +146,7 @@ namespace tahsinERP.Controllers.TaskSettings
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Check if code already exists (excluding current record)
+                    // Tekshirish agar code already mavjud (excluding current record)
                     var existing = await db.APP_TASK_PRIORITY_REF.FirstOrDefaultAsync(p => p.Code == priority.Code && p.ID != priority.ID);
                     if (existing != null)
                     {
@@ -165,7 +165,7 @@ namespace tahsinERP.Controllers.TaskSettings
             return View(priority);
         }
 
-        // POST: TaskPriority/Delete/5
+        // POST so'rovi: TaskPriority/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int id)
@@ -183,7 +183,7 @@ namespace tahsinERP.Controllers.TaskSettings
                     return HttpNotFound();
                 }
 
-                // Check if priority is used in tasks
+                // Tekshirish agar priority is used in tasks
                 var usedInTasks = await db.APP_TASKS.AnyAsync(t => t.PriorityID == id && t.IsDeleted == false);
                 if (usedInTasks)
                 {

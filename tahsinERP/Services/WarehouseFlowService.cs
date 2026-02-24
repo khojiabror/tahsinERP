@@ -27,6 +27,16 @@ namespace tahsinERP.Services
                 .ToArray();
         }
 
+        /// <summary>
+        /// CURRENCIES dan Shortname = "UZS" bo'lganini oladi, yo'q bo'lsa birinchi valyuta ID si.
+        /// </summary>
+        private static int GetDefaultCurrencyId(DBTHSNEntities db)
+        {
+            var c = db.CURRENCIES.FirstOrDefault(x => x.Shortname != null && x.Shortname.Trim().ToUpper() == "UZS")
+                ?? db.CURRENCIES.OrderBy(x => x.ID).FirstOrDefault();
+            return c != null ? c.ID : 1;
+        }
+
         private static bool NameMatchesKeywords(string name, string[] keywords)
         {
             if (string.IsNullOrWhiteSpace(name) || keywords == null || keywords.Length == 0)
@@ -142,13 +152,14 @@ namespace tahsinERP.Services
                     if (productionWH == null)
                         throw new Exception("Ishlab chiqarish ombori topilmadi");
 
+                    int currencyId = GetDefaultCurrencyId(db);
                     // Create INCOME document
                     var income = new INCOME
                     {
                         DocNo = $"PROD-{DateTime.Now:yyyyMMddHHmmss}-{productID}",
                         ReceivingWHID = productionWH.ID,
                         IssueDateTime = DateTime.Now,
-                        CurrencyID = 1, // Default currency
+                        CurrencyID = currencyId,
                         IsDeleted = false,
                         RecieveStatus = true,
                         Description = $"Ishlab chiqarishdan tayyor mahsulot: {product.PNo} - {product.Name}"
@@ -299,6 +310,7 @@ namespace tahsinERP.Services
                         transferDocNo = $"TRANSFER-{DateTime.Now:yyyyMMddHHmmss}-{productID}";
                     }
 
+                    int currencyId = GetDefaultCurrencyId(db);
                     // Create EXPENS from Production WH
                     var expense = new EXPENS
                     {
@@ -306,7 +318,7 @@ namespace tahsinERP.Services
                         SenderWHID = productionWH.ID,
                         ReceiverWhID = salesWH.ID,
                         IssueDateTime = DateTime.Now,
-                        CurrencyID = 1, // Default currency
+                        CurrencyID = currencyId,
                         IsDeleted = false,
                         SendStatus = true,
                         Description = description ?? $"Ishlab chiqarishdan sotuv omboriga o'tkazma: {product.PNo}"
@@ -350,7 +362,7 @@ namespace tahsinERP.Services
                         ReceivingWHID = salesWH.ID,
                         SenderWHID = productionWH.ID,
                         IssueDateTime = DateTime.Now,
-                        CurrencyID = 1,
+                        CurrencyID = currencyId,
                         IsDeleted = false,
                         RecieveStatus = true,
                         Description = $"Ishlab chiqarishdan sotuv omboriga o'tkazma: {product.PNo}. EXPENS ID: {expense.ID}"
@@ -453,13 +465,14 @@ namespace tahsinERP.Services
                             $"Invoys: {invoiceNo}");
                     }
 
+                    int currencyId = GetDefaultCurrencyId(db);
                     // Create EXPENS document
                     var expense = new EXPENS
                     {
                         DocNo = $"SALES-{invoiceNo}-{DateTime.Now:yyyyMMddHHmmss}",
                         SenderWHID = salesWH.ID,
                         IssueDateTime = DateTime.Now,
-                        CurrencyID = 1,
+                        CurrencyID = currencyId,
                         IsDeleted = false,
                         SendStatus = true,
                         Description = $"Sotuv invoysi: {invoiceNo}, Mahsulot: {product.PNo}"

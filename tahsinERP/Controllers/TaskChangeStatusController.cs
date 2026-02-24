@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
 {
     public class TaskChangeStatusController : Controller
     {
-        // GET: TaskChangeStatus/ChangeStatus/5
+        // Olish so'rovi: TaskChangeStatus/ChangeStatus/5
         public async Task<ActionResult> ChangeStatus(long? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -69,7 +69,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: TaskChangeStatus/ChangeStatus
+        // POST so'rovi: TaskChangeStatus/ChangeStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeStatus(TaskChangeStatusViewModel viewModel)
@@ -105,7 +105,7 @@ namespace tahsinERP.Controllers
 
                     try
                     {
-                        // Status o'zgarganini tekshirish
+                        // holat o'zgarganini tekshirish
                         bool statusChanged = task.StatusID != viewModel.StatusID;
                         
                         task.StatusID = viewModel.StatusID;
@@ -114,7 +114,7 @@ namespace tahsinERP.Controllers
                         // UserComment qo'shish (agar mavjud bo'lsa) - SQL orqali
                         if (!string.IsNullOrWhiteSpace(viewModel.UserComment))
                         {
-                            // Get current UserComment value using SQL
+                            // Olish current UserComment value foydalanib SQL
                             var currentCommentParam = new SqlParameter("@taskId", task.ID);
                             var currentComment = await db.Database.SqlQuery<string>(
                                 "SELECT UserComment FROM APP_TASKS WHERE ID = @taskId", 
@@ -130,7 +130,7 @@ namespace tahsinERP.Controllers
                                 newComment = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " - " + UserHelper.GetFullName(User.Identity.Name) + "]:\n" + viewModel.UserComment;
                             }
 
-                            // Update UserComment using SQL
+                            // Yangilash UserComment foydalanib SQL
                             var commentParam = new SqlParameter("@comment", newComment ?? (object)DBNull.Value);
                             var idParam = new SqlParameter("@id", task.ID);
                             await db.Database.ExecuteSqlCommandAsync(
@@ -154,7 +154,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.StatusID = new SelectList(

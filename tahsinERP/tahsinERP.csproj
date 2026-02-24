@@ -985,6 +985,7 @@
     <Compile Include="Services\IDocumentTemplateService.cs" />
     <Compile Include="Services\ITextSuggestionService.cs" />
     <Compile Include="Services\IUserActionLogger.cs" />
+    <Compile Include="Services\LogisticsTerms.cs" />
     <Compile Include="Services\MaterialConsumptionService.cs" />
     <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />
     <Compile Include="Services\POrderGenerationService.cs" />

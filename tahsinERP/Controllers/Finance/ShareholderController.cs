@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class ShareholderController : Controller
     {
-        // GET: Shareholder
+        // Olish so'rovi: Shareholder
         public ActionResult Index(string searchTerm)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
@@ -36,7 +36,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: Shareholder/Details/5
+        // Olish so'rovi: Shareholder/Details/5
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
@@ -62,7 +62,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Get current share percentage
+                // Olish current share percentage
                 var currentShare = shareholder.SHAREHOLDER_SHARE_PERIODS
                     .Where(sp => sp.FromDate <= DateTime.Now && 
                         (sp.ToDate == null || sp.ToDate >= DateTime.Now))
@@ -71,14 +71,14 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.CurrentSharePercent = currentShare?.SharePercent ?? 0;
                 
-                // Load contributions with CURRENCy navigation property included
+                // Yuklash contributions bilan CURRENCy navigation property included
                 var contributions = db.SHAREHOLDER_CONTRIBUTIONS
                     .Include(c => c.CURRENCy)
                     .Where(c => c.ShareholderID == id.Value)
                     .OrderByDescending(c => c.ContributionDate)
                     .ToList();
                 
-                // Ensure all CURRENCy navigation properties are loaded
+                // Ensure barcha CURRENCy navigation properties are loaded
                 var currencyIds = contributions.Where(c => c.CurrencyID > 0).Select(c => c.CurrencyID).Distinct().ToList();
                 var currencies = db.CURRENCIES.Where(c => currencyIds.Contains(c.ID)).ToDictionary(c => c.ID, c => c);
                 
@@ -96,7 +96,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: Shareholder/Create
+        // Olish so'rovi: Shareholder/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
@@ -107,7 +107,7 @@ namespace tahsinERP.Controllers.Finance
             return View();
         }
 
-        // POST: Shareholder/Create
+        // POST so'rovi: Shareholder/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(SHAREHOLDER shareholder)
@@ -134,7 +134,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: Shareholder/Edit/5
+        // Olish so'rovi: Shareholder/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
@@ -159,7 +159,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: Shareholder/Edit/5
+        // POST so'rovi: Shareholder/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(SHAREHOLDER shareholder)
@@ -193,7 +193,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: Shareholder/Delete/5
+        // Olish so'rovi: Shareholder/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
@@ -221,7 +221,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: Shareholder/Delete/5
+        // POST so'rovi: Shareholder/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -249,7 +249,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: Shareholder/ManageSharePeriods/5
+        // Olish so'rovi: Shareholder/ManageSharePeriods/5
         public ActionResult ManageSharePeriods(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
@@ -282,7 +282,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: Shareholder/AddSharePeriod
+        // POST so'rovi: Shareholder/AddSharePeriod
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AddSharePeriod(int shareholderID, DateTime fromDate, DateTime? toDate, decimal sharePercent)
@@ -294,7 +294,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Validate total shares don't exceed 100%
+                // Tekshirish total shares don't exceed 100%
                 var totalShares = db.SHAREHOLDER_SHARE_PERIODS
                     .Where(sp => sp.FromDate <= (toDate ?? DateTime.MaxValue) &&
                         (sp.ToDate == null || sp.ToDate >= fromDate) &&
@@ -325,7 +325,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: Shareholder/AddContribution/5
+        // Olish so'rovi: Shareholder/AddContribution/5
         public ActionResult AddContribution(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
@@ -366,7 +366,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: Shareholder/AddContribution
+        // POST so'rovi: Shareholder/AddContribution
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AddContribution(SHAREHOLDER_CONTRIBUTIONS contribution)
@@ -380,7 +380,7 @@ namespace tahsinERP.Controllers.Finance
             {
                 if (ModelState.IsValid)
                 {
-                    // If cash contribution, create financial transaction
+                    // agar cash contribution, yaratish financial transaction
                     if (contribution.ContributionType == 1) // Cash
                     {
                         // Find a cash account
@@ -393,7 +393,7 @@ namespace tahsinERP.Controllers.Finance
                             {
                                 TxnDate = contribution.ContributionDate,
                                 AccountID = cashAccount.ID,
-                                CategoryID = GetContributionCategoryID(db), // You need to implement this
+                                CategoryID = GetContributionCategoryID(db), // You need ga implement this
                                 Direction = 1, // In
                                 Amount = contribution.Amount,
                                 CurrencyID = contribution.CurrencyID,
@@ -441,13 +441,13 @@ namespace tahsinERP.Controllers.Finance
 
         private int GetContributionCategoryID(DBTHSNEntities db)
         {
-            // Find or create a category for shareholder contributions
+            // Find yoki yaratish a category uchun shareholder contributions
             var category = db.FIN_CATEGORIES
                 .FirstOrDefault(c => c.Name.Contains("Aksiyador") && c.Type == 1 && c.IsActive);
 
             if (category == null)
             {
-                // Create default category if not exists
+                // Yaratish standart category agar not mavjud
                 category = new FIN_CATEGORIES
                 {
                     Name = "Aksiyador hissalari",

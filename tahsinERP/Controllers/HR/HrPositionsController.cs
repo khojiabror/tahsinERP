@@ -19,7 +19,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/Positions
+        // Olish so'rovi: HR/Positions
         public async Task<ActionResult> Index(bool? isActive, bool? isManager)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPositions"))
@@ -53,7 +53,7 @@ namespace tahsinERP.Controllers.HR
             return View(positions);
         }
 
-        // GET: HR/Positions/Details/5
+        // Olish so'rovi: HR/Positions/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPositions"))
@@ -74,15 +74,15 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Get related data
+            // Olish related ma'lumot
             ViewBag.EmployeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id && e.IsActive);
             ViewBag.StaffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id && sp.IsActive);
 
-            logger.Log("HrPositions", "Details", $"ID: {id}");
+            logger.Log("HrPositions", "Details", $"Lavozim: {position.Name}");
             return View(position);
         }
 
-        // GET: HR/Positions/Create
+        // Olish so'rovi: HR/Positions/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPositions"))
@@ -93,7 +93,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/Positions/Create
+        // POST so'rovi: HR/Positions/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create([Bind(Include = "Code,Name,IsManager,IsActive")] HR_POSITIONS position)
@@ -109,14 +109,14 @@ namespace tahsinERP.Controllers.HR
                 db.HR_POSITIONS.Add(position);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPositions", "Create", $"ID: {position.ID}, Name: {position.Name}");
+                logger.Log("HrPositions", "Create", $"Lavozim: {position.Name}");
                 return RedirectToAction("Index");
             }
 
             return View(position);
         }
 
-        // GET: HR/Positions/Edit/5
+        // Olish so'rovi: HR/Positions/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPositions"))
@@ -138,7 +138,7 @@ namespace tahsinERP.Controllers.HR
             return View(position);
         }
 
-        // POST: HR/Positions/Edit/5
+        // POST so'rovi: HR/Positions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit([Bind(Include = "ID,Code,Name,IsManager,IsActive,CreatedDT")] HR_POSITIONS position)
@@ -153,14 +153,14 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(position).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPositions", "Edit", $"ID: {position.ID}, Name: {position.Name}");
+                logger.Log("HrPositions", "Edit", $"Lavozim: {position.Name}");
                 return RedirectToAction("Index");
             }
 
             return View(position);
         }
 
-        // GET: HR/Positions/Delete/5
+        // Olish so'rovi: HR/Positions/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPositions"))
@@ -179,7 +179,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Check if position is used
+            // Tekshirish agar position is used
             var employeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id);
             var staffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id);
 
@@ -192,7 +192,7 @@ namespace tahsinERP.Controllers.HR
             return View(position);
         }
 
-        // POST: HR/Positions/Delete/5
+        // POST so'rovi: HR/Positions/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -205,7 +205,7 @@ namespace tahsinERP.Controllers.HR
             var position = await db.HR_POSITIONS.FindAsync(id);
             if (position != null)
             {
-                // Check if position is used
+                // Tekshirish agar position is used
                 var employeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id);
                 var staffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id);
 
@@ -219,7 +219,7 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(position).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPositions", "Delete", $"ID: {id}, Name: {position.Name}");
+                logger.Log("HrPositions", "Delete", $"Lavozim: {position.Name}");
             }
 
             return RedirectToAction("Index");

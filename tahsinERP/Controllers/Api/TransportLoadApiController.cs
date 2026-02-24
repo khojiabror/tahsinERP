@@ -7,12 +7,12 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// API controller for transport load simulation calculations
+    /// API controller uchun transport yuklash simulation calculations
     /// </summary>
     public class TransportLoadApiController : Controller
     {
         /// <summary>
-        /// Calculate maximum load for a product in a transport type
+        /// Calculate maksimal yuklash uchun a product in a transport type
         /// GET /api/transportload/calculate?productId=...&transportId=...
         /// </summary>
         [HttpGet]

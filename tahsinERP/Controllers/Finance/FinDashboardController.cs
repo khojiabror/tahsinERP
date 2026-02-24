@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinDashboardController : Controller
     {
-        // GET: FinDashboard/Cashflow
+        // Olish so'rovi: FinDashboard/Cashflow
         public ActionResult Cashflow(DateTime? fromDate, DateTime? toDate, int? accountID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -29,7 +29,7 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
-                    // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real cash flow
+                    // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real cash flow
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "");
 
                 if (accountID.HasValue)
@@ -44,8 +44,8 @@ namespace tahsinERP.Controllers.Finance
                 var outflow = transactions.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m;
                 var netCashflow = inflow - outflow;
 
-                // Get current cash balance - only from Cash and Bank accounts
-                // Separate calculation for Cash (naqd pul) and Bank accounts
+                // Olish current cash balance - faqat dan Cash va Bank accounts
+                // Separate calculation uchun Cash (naqd pul) va Bank accounts
                 var cashAccounts = db.FIN_ACCOUNTS
                     .Where(a => a.IsCash && a.IsActive)
                     .ToList();
@@ -77,7 +77,7 @@ namespace tahsinERP.Controllers.Finance
                 // Total current balance = Cash + Bank
                 var currentBalance = cashBalance + bankBalance;
 
-                // Get primary currency (most used currency in transactions, or from cash/bank accounts)
+                // Olish primary currency (most used currency in transactions, yoki dan cash/bank accounts)
                 var primaryCurrency = transactions
                     .Where(t => t.CURRENCy != null)
                     .GroupBy(t => t.CurrencyID)
@@ -85,7 +85,7 @@ namespace tahsinERP.Controllers.Finance
                     .Select(g => g.First().CURRENCy)
                     .FirstOrDefault();
 
-                // Fallback: get currency from cash/bank accounts if no transactions
+                // Fallback: get currency dan cash/bank accounts agar no transactions
                 if (primaryCurrency == null)
                 {
                     var firstCashAccount = cashAccounts.FirstOrDefault() ?? bankAccounts.FirstOrDefault();
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                // Final fallback: get first currency from database
+                // Final fallback: get birinchi currency dan database
                 if (primaryCurrency == null)
                 {
                     primaryCurrency = db.CURRENCIES.FirstOrDefault();
@@ -108,13 +108,13 @@ namespace tahsinERP.Controllers.Finance
                     .GroupBy(t => t.TxnDate.Date)
                     .Select(g => new
                     {
-                        DateValue = g.Key, // Keep original date for sorting
-                        Date = g.Key.ToString("dd.MM.yyyy"), // Format date as string for display
+                        DateValue = g.Key, // Keep original date uchun sorting
+                        Date = g.Key.ToString("dd.MM.yyyy"), // Format date as string uchun display
                         Inflow = g.Where(t => t.Direction == 1).Sum(t => (decimal?)t.Amount) ?? 0m,
                         Outflow = g.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m
                     })
                     .OrderBy(x => x.DateValue) // Sort by date value
-                    .Select(x => new { x.Date, x.Inflow, x.Outflow }) // Remove DateValue from final result
+                    .Select(x => new { x.Date, x.Inflow, x.Outflow }) // Remove DateValue dan final result
                     .ToList();
 
                 ViewBag.FromDate = fromDate;
@@ -134,7 +134,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/PL
+        // Olish so'rovi: FinDashboard/PL
         public ActionResult PL(int? year, int? month)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -150,30 +150,30 @@ namespace tahsinERP.Controllers.Finance
                 var startDate = new DateTime(year.Value, month.Value, 1);
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
-                // Get transactions for the period - exclude liability transactions (only real P&L)
+                // Olish transactions uchun the period - exclude liability transactions (faqat real P&L)
                 var transactions = db.FIN_TRANSACTIONS
                     .Include(t => t.FIN_CATEGORIES)
                     .Where(t => t.TxnDate >= startDate && t.TxnDate <= endDate)
-                    // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real transactions
+                    // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real transactions
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
-                // Get all PL items with their mapped categories
+                // Olish barcha PL items bilan their mapped categories
                 var allPlItems = db.FIN_PL_ITEMS
                     .Include(i => i.FIN_PL_ITEMS1)
                     .Where(i => i.IsActive)
                     .OrderBy(i => i.SortOrder)
                     .ToList();
 
-                // Get all plans for the period
+                // Olish barcha plans uchun the period
                 var plans = db.FIN_PL_PLANS
                     .Where(p => p.Year == year.Value && p.Month == month.Value)
                     .ToDictionary(p => p.ItemID, p => p.AmountPlan);
 
-                // Helper method to calculate PL item data
+                // yordamchi method ga calculate PL item ma'lumot
                 PLItemData CalculateItemData(FIN_PL_ITEMS item)
                 {
-                    // Get categories mapped to this PL item
+                    // Olish categories mapped ga this PL item
                     var categoryIds = db.FIN_CATEGORIES
                         .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == item.ID))
                         .Select(c => c.ID)
@@ -184,7 +184,7 @@ namespace tahsinERP.Controllers.Finance
                         .Where(t => categoryIds.Contains(t.CategoryID))
                         .Sum(t => (decimal?)(item.Sign == 1 ? (t.Direction == 1 ? t.Amount : -t.Amount) : (t.Direction == 2 ? t.Amount : -t.Amount))) ?? 0m;
 
-                    // Get plan
+                    // Olish plan
                     var planAmount = plans.ContainsKey(item.ID) ? plans[item.ID] : 0m;
 
                     return new PLItemData
@@ -198,7 +198,7 @@ namespace tahsinERP.Controllers.Finance
                     };
                 }
 
-                // Build hierarchical structure - only get parent items (ParentID == null)
+                // Build hierarchical structure - faqat get parent items (ParentID == null)
                 var plData = new List<PLItemData>();
                 var parentItems = allPlItems.Where(i => i.ParentID == null).OrderBy(i => i.SortOrder).ToList();
 
@@ -206,14 +206,14 @@ namespace tahsinERP.Controllers.Finance
                 {
                     var parentData = CalculateItemData(parentItem);
 
-                    // Get and calculate children
+                    // Olish va calculate children
                     var childItems = allPlItems.Where(i => i.ParentID == parentItem.ID).OrderBy(i => i.SortOrder).ToList();
                     foreach (var childItem in childItems)
                     {
                         var childData = CalculateItemData(childItem);
                         parentData.Children.Add(childData);
 
-                        // Add child's actual to parent's actual (for summary)
+                        // Qo'shish child's actual ga parent's actual (uchun summary)
                         parentData.Actual += childData.Actual;
                         parentData.Plan += childData.Plan;
                     }
@@ -237,7 +237,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/BalanceSheet
+        // Olish so'rovi: FinDashboard/BalanceSheet
         public ActionResult BalanceSheet(DateTime? asOfDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -249,13 +249,13 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get balance categories
+                // Olish balance categories
                 var categories = db.FIN_BALANCE_CATEGORIES
                     .Where(c => c.IsActive)
                     .OrderBy(c => c.SortOrder)
                     .ToList();
 
-                // Get snapshots for the date
+                // Olish snapshots uchun the date
                 var snapshots = db.FIN_BALANCE_SNAPSHOTS
                     .Where(s => s.SnapshotDate <= asOfDate.Value)
                     .GroupBy(s => s.CategoryID)
@@ -266,8 +266,8 @@ namespace tahsinERP.Controllers.Finance
                     })
                     .ToDictionary(x => x.CategoryID, x => x.Amount);
 
-                // Calculate from transactions and accounts
-                // Map accounts to balance categories by name matching
+                // Calculate dan transactions va accounts
+                // Map accounts ga balance categories by name matching
                 var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).ToList();
                 var accountBalances = new Dictionary<int, decimal>();
 
@@ -279,8 +279,8 @@ namespace tahsinERP.Controllers.Finance
                     accountBalances[account.ID] = balance;
                 }
 
-                // Create mapping: Account -> Balance Category (by name matching)
-                // For proper implementation, you should create a mapping table like FIN_ACCOUNT_BALANCE_CATEGORIES
+                // Yaratish mapping: Account -> Balance Category (bo'yicha name matching)
+                // uchun proper implementation, you should yaratish a mapping jadval like FIN_ACCOUNT_BALANCE_CATEGORIES
                 var accountToBalanceCategory = new Dictionary<int, int>();
                 foreach (var account in accounts)
                 {
@@ -295,16 +295,16 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                // Calculate balance data based on CalculationType
-                // 1 = Account-Based: Calculate from account balances
-                // 2 = Transaction-Based: Calculate from transaction categories
-                // 3 = Document-Based: Calculate from documents (invoices, etc.)
+                // Calculate balance ma'lumot based on CalculationType
+                // 1 = Account-Based: Calculate dan account balances
+                // 2 = Transaction-Based: Calculate dan transaction categories
+                // 3 = hujjat-Based: Calculate dan hujjatlar (invoices, etc.)
                 var balanceData = new List<BalanceCategoryData>();
                 foreach (var category in categories)
                 {
                     decimal amount = 0;
 
-                    // First check snapshots (highest priority)
+                    // Avval tekshirish snapshots (highest priority)
                     if (snapshots.ContainsKey(category.ID))
                     {
                         amount = snapshots[category.ID];
@@ -315,13 +315,13 @@ namespace tahsinERP.Controllers.Finance
                         switch (category.CalculationType)
                         {
                             case 1: // Account-Based
-                                // Get accounts mapped to this balance category
+                                // Olish accounts mapped ga this balance category
                                 var mappedAccountIds = db.FIN_ACCOUNTS
                                     .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
                                     .Select(a => a.ID)
                                     .ToList();
 
-                                // Fallback to old name matching if BalanceCategoryID is not set
+                                // Fallback ga old name matching agar BalanceCategoryID is not set
                                 if (mappedAccountIds.Count == 0)
                                 {
                                     mappedAccountIds = accountToBalanceCategory
@@ -340,7 +340,7 @@ namespace tahsinERP.Controllers.Finance
                                 break;
 
                             case 2: // Transaction-Based
-                                // Get categories mapped to this balance category
+                                // Olish categories mapped ga this balance category
                                 var categoryIds = new List<int>();
                                 try
                                 {
@@ -358,7 +358,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 catch
                                 {
-                                    // If relationship doesn't work, use raw SQL to query junction table
+                                    // agar relationship doesn't work, use raw SQL ga query junction jadval
                                     try
                                     {
                                         var sql = @"
@@ -367,7 +367,7 @@ namespace tahsinERP.Controllers.Finance
                                             WHERE BalanceCategoryID = {0}";
                                         var categoryIdList = db.Database.SqlQuery<int>(sql, category.ID).ToList();
 
-                                        // Get active categories from the junction table results
+                                        // Olish faol categories dan the junction jadval results
                                         categoryIds = db.FIN_CATEGORIES
                                             .Where(c => categoryIdList.Contains(c.ID) && c.IsActive)
                                             .Select(c => c.ID)
@@ -375,14 +375,14 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                     catch
                                     {
-                                        // If junction table doesn't exist or query fails, return empty list
+                                        // agar junction jadval doesn't exist yoki query fails, return empty list
                                         categoryIds = new List<int>();
                                     }
                                 }
 
                                 if (categoryIds.Count > 0)
                                 {
-                                    // Calculate from transactions in mapped categories
+                                    // Calculate dan transactions in mapped categories
                                     amount = db.FIN_TRANSACTIONS
                                         .Where(t => categoryIds.Contains(t.CategoryID) &&
                                                    t.TxnDate <= asOfDate.Value)
@@ -390,14 +390,14 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 break;
 
-                            case 3: // Document-Based
-                                // Calculate from documents based on category name
+                            case 3: // hujjat-Based
+                                // Calculate dan hujjatlar based on category name
                                 // NOTE: "Ta'minotchilardan qarzlar" uchun Account-Based (CalculationType = 1) ishlatish tavsiya etiladi
                                 // Bu ERP standartlariga mos (SAP, Oracle, Microsoft Dynamics)
-                                // Account-Based: Payables_5 account qoldig'i to'g'ridan-to'g'ri ishlatiladi
+                                // Account-Based: Payables_5 account qoldig'i ga'g'ridan-ga'g'ri ishlatiladi
                                 if (category.Name == "Ta'minotchilardan qarzlar")
                                 {
-                                    // Yechim 2: Account-Based ishlatish (Document-Based o'rniga)
+                                    // Yechim 2: Account-Based ishlatish (hujjat-Based o'rniga)
                                     // Avval Account-Based orqali hisoblashga harakat qilamiz
                                     var payablesAccountIds = db.FIN_ACCOUNTS
                                         .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
@@ -417,8 +417,8 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                     else
                                     {
-                                        // Fallback: Document-Based (eski usul, Account-Based sozlanmagan bo'lsa)
-                                        // To'lanmagan xarid invoyslari
+                                        // Fallback: hujjat-Based (eski usul, Account-Based sozlanmagan bo'lsa)
+                                        // ga'lanmagan xarid invoyslari
                                         var unpaidInvoices = db.P_INVOICES
                                             .Where(i => i.InvoiceDate <= asOfDate.Value &&
                                                        (i.IsDeleted == null || i.IsDeleted == false))
@@ -426,17 +426,17 @@ namespace tahsinERP.Controllers.Finance
 
                                         foreach (var invoice in unpaidInvoices)
                                         {
-                                            // Calculate total payments for this invoice
+                                            // Calculate total payments uchun this invoice
                                             var totalPaid = db.FIN_TRANSACTIONS
                                                 .Where(t => t.SourceDocType == "PurchaseInvoice" &&
                                                            t.SourceDocID == invoice.ID &&
                                                            t.TxnDate <= asOfDate.Value &&
-                                                           t.Direction == 1) // Payments (incoming to supplier)
+                                                           t.Direction == 1) // Payments (incoming ga supplier)
                                                 .Sum(t => (decimal?)t.Amount) ?? 0m;
 
                                             var invoiceAmount = (decimal)invoice.Amount;
 
-                                            // If not fully paid, add unpaid amount
+                                            // agar not fully paid, add unpaid amount
                                             if (totalPaid < invoiceAmount)
                                             {
                                                 amount += (invoiceAmount - totalPaid);
@@ -479,7 +479,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 else if (category.Name == "Xaridorlardan haqlarimiz")
                                 {
-                                    // Yechim 2: Account-Based ishlatish (Document-Based o'rniga)
+                                    // Yechim 2: Account-Based ishlatish (hujjat-Based o'rniga)
                                     // Avval Account-Based orqali hisoblashga harakat qilamiz
                                     var receivablesAccountIds = db.FIN_ACCOUNTS
                                         .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
@@ -499,8 +499,8 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                     else
                                     {
-                                        // Fallback: Document-Based (eski usul, Account-Based sozlanmagan bo'lsa)
-                                        // To'lanmagan sotuv invoyslari
+                                        // Fallback: hujjat-Based (eski usul, Account-Based sozlanmagan bo'lsa)
+                                        // ga'lanmagan sotuv invoyslari
                                         var unpaidInvoices = db.SALES_INVOICES
                                             .Where(i => i.InvoiceDate <= asOfDate.Value &&
                                                        (i.StatusCode == null || i.StatusCode != "Paid"))
@@ -508,17 +508,17 @@ namespace tahsinERP.Controllers.Finance
 
                                         foreach (var invoice in unpaidInvoices)
                                         {
-                                            // Calculate total payments for this invoice
+                                            // Calculate total payments uchun this invoice
                                             var totalPaid = db.FIN_TRANSACTIONS
                                                 .Where(t => t.SourceDocType == "SalesInvoice" &&
                                                            t.SourceDocID == invoice.ID &&
                                                            t.TxnDate <= asOfDate.Value &&
-                                                           t.Direction == 1) // Payments (incoming from customer)
+                                                           t.Direction == 1) // Payments (incoming dan customer)
                                                 .Sum(t => (decimal?)t.Amount) ?? 0m;
 
                                             var invoiceAmount = invoice.TotalAmount;
 
-                                            // If not fully paid, add unpaid amount
+                                            // agar not fully paid, add unpaid amount
                                             if (totalPaid < invoiceAmount)
                                             {
                                                 amount += (invoiceAmount - totalPaid);
@@ -572,7 +572,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/BalanceSheetLiabilityDetails
+        // Olish so'rovi: FinDashboard/BalanceSheetLiabilityDetails
         public ActionResult BalanceSheetLiabilityDetails(DateTime? asOfDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -594,7 +594,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/ShareholderValue
+        // Olish so'rovi: FinDashboard/ShareholderValue
         public ActionResult ShareholderValue(DateTime? asOfDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
@@ -609,7 +609,7 @@ namespace tahsinERP.Controllers.Finance
                 // Calculate company value
                 var companyValue = CalculateCompanyValue(db, asOfDate.Value);
 
-                // Get shareholders with their current shares
+                // Olish shareholders bilan their current shares
                 var shareholders = db.SHAREHOLDERS
                     .Where(s => s.IsActive)
                     .ToList();
@@ -647,7 +647,7 @@ namespace tahsinERP.Controllers.Finance
         {
             decimal value = 0;
 
-            // Cash and Bank
+            // Cash va Bank
             var cashAccounts = db.FIN_ACCOUNTS
                 .Where(a => (a.IsCash || a.IsBank) && a.IsActive)
                 .ToList();
@@ -660,10 +660,10 @@ namespace tahsinERP.Controllers.Finance
                 value += balance;
             }
 
-            // Inventory (simplified - you may need to calculate from PRODUCT_STOCKS)
+            // Inventory (simplified - you may need ga calculate dan PRODUCT_STOCKS)
             // This is a placeholder
 
-            // Receivables from Sales Invoices (simplified - check if invoice is paid)
+            // Receivables dan Sales Invoices (simplified - tekshirish agar invoice is paid)
             var receivables = db.SALES_INVOICES
                 .Where(i => i.InvoiceDate <= asOfDate && (i.StatusCode == null || i.StatusCode != "Paid"))
                 .ToList()
@@ -671,7 +671,7 @@ namespace tahsinERP.Controllers.Finance
             value += receivables;
 
             // Subtract Payables (simplified calculation)
-            // Note: P_INVOICES.Amount is double, so we need to convert to decimal
+            // Note: P_INVOICES.Amount is double, so we need ga convert ga decimal
             var payables = db.P_INVOICES
                 .Where(i => i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
                 .ToList()
@@ -1152,7 +1152,7 @@ namespace tahsinERP.Controllers.Finance
             return summary;
         }
 
-        // GET: FinDashboard/FinancialOverview
+        // Olish so'rovi: FinDashboard/FinancialOverview
         public ActionResult FinancialOverview(DateTime? fromDate, DateTime? toDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1165,10 +1165,10 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get summary statistics - exclude liability transactions (only real cash flow)
+                // Olish summary statistics - exclude liability transactions (faqat real cash flow)
                 var transactions = db.FIN_TRANSACTIONS
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
-                    // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real transactions
+                    // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real transactions
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
@@ -1176,7 +1176,7 @@ namespace tahsinERP.Controllers.Finance
                 var totalExpense = transactions.Where(t => t.Direction == 2).Sum(t => (decimal?)t.Amount) ?? 0m;
                 var netCashflow = totalIncome - totalExpense;
 
-                // Get account balances
+                // Olish account balances
                 var cashAccounts = db.FIN_ACCOUNTS.Where(a => a.IsCash && a.IsActive).ToList();
                 var bankAccounts = db.FIN_ACCOUNTS.Where(a => a.IsBank && a.IsActive).ToList();
 
@@ -1226,7 +1226,7 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(x => x.Period)
                     .ToList();
 
-                // Get primary currency
+                // Olish primary currency
                 var primaryCurrency = transactions
                     .Where(t => t.CURRENCy != null)
                     .GroupBy(t => t.CurrencyID)
@@ -1250,7 +1250,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/CategoryAnalytics
+        // Olish so'rovi: FinDashboard/CategoryAnalytics
         public ActionResult CategoryAnalytics(DateTime? fromDate, DateTime? toDate, int? categoryID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1266,7 +1266,7 @@ namespace tahsinERP.Controllers.Finance
                 var query = db.FIN_TRANSACTIONS
                     .Include(t => t.FIN_CATEGORIES)
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
-                    // Exclude liability transactions - only show real transactions
+                    // Exclude liability transactions - faqat show real transactions
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "");
 
                 if (categoryID.HasValue)
@@ -1320,7 +1320,7 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(x => x.Date)
                     .ToList();
 
-                // Get primary currency
+                // Olish primary currency
                 var primaryCurrency = transactions
                     .Where(t => t.CURRENCy != null)
                     .GroupBy(t => t.CurrencyID)
@@ -1343,7 +1343,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/AccountAnalytics
+        // Olish so'rovi: FinDashboard/AccountAnalytics
         public ActionResult AccountAnalytics(DateTime? fromDate, DateTime? toDate, int? accountID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1360,7 +1360,7 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.CURRENCy)
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
-                    // Exclude liability transactions - only show real transactions
+                    // Exclude liability transactions - faqat show real transactions
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "");
 
                 if (accountID.HasValue)
@@ -1409,7 +1409,7 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(x => x.Date)
                     .ToList();
 
-                // Get primary currency
+                // Olish primary currency
                 var primaryCurrency = transactions
                     .Where(t => t.CURRENCy != null)
                     .GroupBy(t => t.CurrencyID)
@@ -1431,7 +1431,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/ExpenseAnalysis
+        // Olish so'rovi: FinDashboard/ExpenseAnalysis
         public ActionResult ExpenseAnalysis(DateTime? fromDate, DateTime? toDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1448,11 +1448,11 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Where(t => t.Direction == 2 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
-                    // Exclude liability transactions (PurchaseInvoice) - only show real expenses
+                    // Exclude liability transactions (PurchaseInvoice) - faqat show real expenses
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
-                // Expense by category (pie chart data)
+                // Expense by category (pie chart ma'lumot)
                 var expenseByCategory = expenses
                     .Where(t => t.FIN_CATEGORIES != null)
                     .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
@@ -1497,7 +1497,7 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(x => x.Period)
                     .ToList();
 
-                // Get primary currency
+                // Olish primary currency
                 var primaryCurrency = expenses
                     .Where(t => t.CURRENCy != null)
                     .GroupBy(t => t.CurrencyID)
@@ -1517,7 +1517,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/IncomeAnalysis
+        // Olish so'rovi: FinDashboard/IncomeAnalysis
         public ActionResult IncomeAnalysis(DateTime? fromDate, DateTime? toDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1534,11 +1534,11 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Where(t => t.Direction == 1 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
-                    // Exclude liability transactions (SalesInvoice) - only show real income
+                    // Exclude liability transactions (SalesInvoice) - faqat show real income
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
                     .ToList();
 
-                // Income by category (pie chart data)
+                // Income by category (pie chart ma'lumot)
                 var incomeByCategory = incomes
                     .Where(t => t.FIN_CATEGORIES != null)
                     .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
@@ -1583,7 +1583,7 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(x => x.Period)
                     .ToList();
 
-                // Get primary currency
+                // Olish primary currency
                 var primaryCurrency = incomes
                     .Where(t => t.CURRENCy != null)
                     .GroupBy(t => t.CurrencyID)
@@ -1603,7 +1603,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/AccountBalances
+        // Olish so'rovi: FinDashboard/AccountBalances
         public ActionResult AccountBalances(DateTime? fromDate, DateTime? toDate, int? accountType)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1616,13 +1616,13 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get all active accounts with currency and balance category
+                // Olish barcha faol accounts bilan currency va balance category
                 var accountsQuery = db.FIN_ACCOUNTS
                     .Include(a => a.CURRENCy)
                     .Include(a => a.FIN_BALANCE_CATEGORIES)
                     .Where(a => a.IsActive);
 
-                // Filter by Asset (Type = 1) or Liability (Type = 2)
+                // Filtrlash bo'yicha Asset (Type = 1) yoki Liability (Type = 2)
                 if (accountType.HasValue)
                 {
                     if (accountType.Value == 1) // Asset (Aktiv)
@@ -1672,7 +1672,7 @@ namespace tahsinERP.Controllers.Finance
                         .Where(t => t.Direction == 2)
                         .Sum(t => (decimal?)t.Amount) ?? 0m;
 
-                    // Get currency for this account
+                    // Olish currency uchun this account
                     var currency = account.CURRENCy;
                     if (currency == null && account.CurrencyID > 0)
                     {
@@ -1702,7 +1702,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinDashboard/LiabilitiesDashboard
+        // Olish so'rovi: FinDashboard/LiabilitiesDashboard
         public ActionResult LiabilitiesDashboard(DateTime? fromDate, DateTime? toDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -1715,7 +1715,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Get only liability transactions (PurchaseInvoice and SalesInvoice)
+                // Olish faqat liability transactions (PurchaseInvoice va SalesInvoice)
                 var payablesTransactions = db.FIN_TRANSACTIONS
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
@@ -1872,7 +1872,7 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(x => x.Period)
                     .ToList();
 
-                // Get account balances for Payables and Receivables
+                // Olish account balances uchun Payables va Receivables
                 var payablesAccounts = db.FIN_ACCOUNTS
                     .Where(a => (a.Code.StartsWith("PAYABLES_") || a.Name.Contains("Kreditorlar")) && a.IsActive)
                     .ToList();
@@ -1965,7 +1965,7 @@ namespace tahsinERP.Controllers.Finance
                     });
                 }
 
-                // Get primary currency
+                // Olish primary currency
                 var primaryCurrency = payablesTransactions
                     .Concat(receivablesTransactions)
                     .Where(t => t.CURRENCy != null)

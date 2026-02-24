@@ -26,7 +26,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/PieceRateTimesheets
+        // Olish so'rovi: HR/PieceRateTimesheets
         public async Task<ActionResult> Index(int? year, int? month, int? orgUnitId, string status)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -34,17 +34,17 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Don't set default values if not provided - allow showing all months
+            // Don't set standart values agar not provided - allow showing barcha months
             // year = year ?? DateTime.Now.Year;
             // month = month ?? DateTime.Now.Month;
 
-            // Get work entries from HR_PIECE_RATE_WORK_ENTRIES
+            // Olish work entries dan HR_PIECE_RATE_WORK_ENTRIES
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Include(e => e.HR_EMPLOYEES)
                 .Include(e => e.PRODUCT)
                 .Include(e => e.HR_PIECE_RATE_OPERATIONS);
 
-            // Apply filters only if provided
+            // Apply filters faqat agar provided
             if (year.HasValue)
             {
                 query = query.Where(e => e.WorkDate.Year == year.Value);
@@ -62,10 +62,10 @@ namespace tahsinERP.Controllers.HR
 
             var workEntries = await query.OrderByDescending(e => e.WorkDate).ToListAsync();
 
-            // Get approval statuses
+            // Olish tasdiqlash statuses
             var approvals = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS.ToListAsync();
 
-            // Group by year, month, and org unit
+            // Group by year, month, va org unit
             var groupedData = workEntries
                 .GroupBy(e => new { 
                     Year = e.WorkDate.Year, 
@@ -98,7 +98,7 @@ namespace tahsinERP.Controllers.HR
                 .ToList();
 
             ViewBag.Year = year ?? DateTime.Now.Year;
-            ViewBag.Month = month; // Keep null if not provided to show all months
+            ViewBag.Month = month; // Keep null agar not provided ga show barcha months
             ViewBag.OrgUnitID = new SelectList(
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name", orgUnitId);
@@ -112,7 +112,7 @@ namespace tahsinERP.Controllers.HR
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            // Get all work entries for this month
+            // Olish barcha work entries uchun this month
             var workEntries = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate)
                 .ToList();
@@ -126,7 +126,7 @@ namespace tahsinERP.Controllers.HR
 
             foreach (var entry in workEntries)
             {
-                // Get tariff for this product and operation
+                // Olish tariff uchun this product va operation
                 int? positionId = entry.HR_EMPLOYEES?.PositionID;
                 
                 var tariff = db.HR_PIECE_RATE_TARIFFS
@@ -139,7 +139,7 @@ namespace tahsinERP.Controllers.HR
                     .OrderByDescending(t => t.PositionID) // Prefer position-specific
                     .FirstOrDefault();
 
-                // If not found, try general tariff (PositionID == null)
+                // agar not found, try general tariff (PositionID == null)
                 if (tariff == null)
                 {
                     tariff = db.HR_PIECE_RATE_TARIFFS
@@ -161,14 +161,14 @@ namespace tahsinERP.Controllers.HR
             return totalAmount;
         }
 
-        // GET: HR/PieceRateTimesheets/Create
+        // Olish so'rovi: HR/PieceRateTimesheets/yaratish
         public ActionResult Create()
         {
-            // Redirect to CreateSimple for simple entry
+            // Redirect ga CreateSimple uchun simple entry
             return RedirectToAction("CreateSimple");
         }
 
-        // GET: HR/PieceRateTimesheets/Details
+        // Olish so'rovi: HR/PieceRateTimesheets/Details
         public async Task<ActionResult> Details(int year, int month, int? orgUnitId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -194,7 +194,7 @@ namespace tahsinERP.Controllers.HR
 
             var workEntries = await query.OrderBy(e => e.WorkDate).ThenBy(e => e.HR_EMPLOYEES.FullName).ToListAsync();
 
-            // Calculate tariffs for each entry
+            // Calculate tariffs uchun har bir entry
             var viewModel = new List<HrPieceRateTimesheetDetailsViewModel>();
             foreach (var entry in workEntries)
             {
@@ -211,7 +211,7 @@ namespace tahsinERP.Controllers.HR
                     .OrderByDescending(t => t.PositionID)
                     .FirstOrDefault();
 
-                // If not found, try general tariff (PositionID == null)
+                // agar not found, try general tariff (PositionID == null)
                 if (tariff == null)
                 {
                     tariff = db.HR_PIECE_RATE_TARIFFS
@@ -248,7 +248,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // GET: HR/PieceRateTimesheets/Edit/5
+        // Olish so'rovi: HR/PieceRateTimesheets/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -271,7 +271,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Get only piece-rate employees
+            // Olish faqat piece-rate employees
             var pieceRatePositionIds = await db.HR_STAFFING_PLAN
                 .Where(sp => sp.IsActive && sp.IsPieceRate == true && sp.OrgUnitID == header.OrgUnitID)
                 .Select(sp => sp.PositionID)
@@ -382,17 +382,17 @@ namespace tahsinERP.Controllers.HR
                     };
                 }).OrderBy(l => l.EmployeeTabNo).ToList();
 
-            // Get finished goods for piece-rate selection
+            // Olish finished goods uchun piece-rate selection
             ViewBag.FinishedGoods = new SelectList(
                 await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
                     .OrderBy(p => p.PNo).ToListAsync(),
                 "ID", "PNo");
 
-            logger.Log("HrPieceRateTimesheets", "Edit", $"ID: {id}");
+            logger.Log("HrPieceRateTimesheets", "Edit", $"Tabel: {header.Year}-{header.Month:D2}, Bo'lim: {header.HR_ORG_UNITS?.Name ?? "Butun kompaniya"}");
             return View(viewModel);
         }
 
-        // POST: HR/PieceRateTimesheets/UpdateQuantity
+        // POST so'rovi: HR/PieceRateTimesheets/UpdateQuantity
         [HttpPost]
         public async Task<JsonResult> UpdateQuantity(int lineId, int day, decimal? quantity, int? productId)
         {
@@ -424,7 +424,13 @@ namespace tahsinERP.Controllers.HR
                 await RecalculateLineTotals(line);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPieceRateTimesheets", "UpdateQuantity", $"LineID: {lineId}, Day: {day}, Quantity: {quantity}");
+                var employee = await db.HR_EMPLOYEES.FindAsync(line.EmployeeID);
+                var employeeLabel = employee == null
+                    ? "-"
+                    : $"{employee.FullName} ({employee.TabNo ?? "-"})";
+                var product = line.ProductID.HasValue ? await db.PRODUCTS.FindAsync(line.ProductID.Value) : null;
+                var productLabel = product?.Name ?? product?.PNo ?? "-";
+                logger.Log("HrPieceRateTimesheets", "UpdateQuantity", $"Xodim: {employeeLabel}, Kun: {day}, Miqdor: {quantity}, Mahsulot: {productLabel}");
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -433,7 +439,7 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        // POST: HR/PieceRateTimesheets/ImportFromProduction
+        // POST so'rovi: HR/PieceRateTimesheets/ImportFromProduction
         [HttpPost]
         public async Task<JsonResult> ImportFromProduction(int timesheetId, int employeeId, int year, int month)
         {
@@ -481,7 +487,15 @@ namespace tahsinERP.Controllers.HR
                 await RecalculateLineTotals(line);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPieceRateTimesheets", "ImportFromProduction", $"TimesheetID: {timesheetId}, EmployeeID: {employeeId}");
+                var header = await db.HR_TIMESHEET_HEADERS
+                    .Include(t => t.HR_ORG_UNITS)
+                    .FirstOrDefaultAsync(t => t.ID == timesheetId);
+                var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
+                var orgUnitName = header?.HR_ORG_UNITS?.Name ?? "Butun kompaniya";
+                var employeeLabel = employee == null
+                    ? "-"
+                    : $"{employee.FullName} ({employee.TabNo ?? "-"})";
+                logger.Log("HrPieceRateTimesheets", "ImportFromProduction", $"Tabel: {header?.Year}-{header?.Month:D2}, Bo'lim: {orgUnitName}, Xodim: {employeeLabel}");
                 return Json(new { success = true, message = "Ishbay ma'lumotlari import qilindi" });
             }
             catch (Exception ex)
@@ -490,26 +504,26 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        // POST: HR/PieceRateTimesheets/Approve
+        // POST so'rovi: HR/PieceRateTimesheets/Approve
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Approve(int year, int? month, int? orgUnitId)
         {
-            // Check permission for Approve action specifically
+            // Tekshirish permission uchun Approve action specifically
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
             {
                 TempData["Error"] = "Sizda tasdiqlash huquqi yo'q";
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            // Validate month parameter
+            // Tekshirish month parameter
             if (!month.HasValue || month.Value < 1 || month.Value > 12)
             {
                 TempData["Error"] = "Noto'g'ri oy parametri";
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            // Check if there are any work entries for this period
+            // Tekshirish agar there are any work entries uchun this period
             var startDate = new DateTime(year, month.Value, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
@@ -528,7 +542,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            // Get or create approval record
+            // Olish yoki yaratish tasdiqlash record
             var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
                 .FirstOrDefaultAsync(a => a.Year == year && a.Month == month.Value && a.OrgUnitID == orgUnitId);
 
@@ -562,14 +576,17 @@ namespace tahsinERP.Controllers.HR
 
             await db.SaveChangesAsync();
 
-            logger.Log("HrPieceRateTimesheets", "Approve", $"Year: {year}, Month: {month.Value}, OrgUnitID: {orgUnitId}");
+            var orgUnitName = orgUnitId.HasValue
+                ? (await db.HR_ORG_UNITS.FindAsync(orgUnitId.Value))?.Name ?? "Butun kompaniya"
+                : "Butun kompaniya";
+            logger.Log("HrPieceRateTimesheets", "Approve", $"Tabel: {year}-{month.Value:D2}, Bo'lim: {orgUnitName}");
             TempData["Success"] = "Tabel muvaffaqiyatli tasdiqlandi";
             return RedirectToAction("Index", new { year, month = month.Value, orgUnitId });
         }
 
         private async Task CreatePieceRateTimesheetLines(int timesheetId, int? orgUnitId)
         {
-            // Get piece-rate positions
+            // Olish piece-rate positions
             var pieceRatePositionIds = await db.HR_STAFFING_PLAN
                 .Where(sp => sp.IsActive && sp.IsPieceRate == true && 
                     (orgUnitId == null || sp.OrgUnitID == orgUnitId.Value))
@@ -577,7 +594,7 @@ namespace tahsinERP.Controllers.HR
                 .Distinct()
                 .ToListAsync();
 
-            // Get employees with piece-rate positions
+            // Olish employees bilan piece-rate positions
             IQueryable<HR_EMPLOYEES> employeesQuery = db.HR_EMPLOYEES
                 .Where(e => e.IsActive && pieceRatePositionIds.Contains(e.PositionID ?? 0));
 
@@ -658,7 +675,7 @@ namespace tahsinERP.Controllers.HR
                 "ID", "Name", viewModel.OrgUnitID);
         }
 
-        // GET: HR/PieceRateTimesheets/CreateSimple
+        // Olish so'rovi: HR/PieceRateTimesheets/CreateSimple
         public async Task<ActionResult> CreateSimple()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -670,7 +687,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/PieceRateTimesheets/CreateSimple
+        // POST so'rovi: HR/PieceRateTimesheets/CreateSimple
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateSimple(int EmployeeID, int ProductID, int OperationID, DateTime WorkDate, decimal Quantity)
@@ -682,7 +699,7 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
-                // Validate: Cannot create timesheet for future months
+                // Tekshirish: Cannot yaratish timesheet uchun future months
                 var currentDate = DateTime.Now;
                 var workDateMonth = new DateTime(WorkDate.Year, WorkDate.Month, 1);
                 var currentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
@@ -694,7 +711,7 @@ namespace tahsinERP.Controllers.HR
                     return View();
                 }
 
-                // Check if work entry already exists for this employee, product, operation, and date
+                // Tekshirish agar work entry already mavjud uchun this employee, product, operation, va date
                 var existing = await db.HR_PIECE_RATE_WORK_ENTRIES
                     .FirstOrDefaultAsync(e => e.EmployeeID == EmployeeID && 
                                              e.ProductID == ProductID && 
@@ -703,14 +720,14 @@ namespace tahsinERP.Controllers.HR
 
                 if (existing != null)
                 {
-                    // Update existing entry
+                    // Yangilash existing entry
                     existing.Quantity = Quantity;
                     existing.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
                     existing.CreatedDT = DateTime.Now;
                 }
                 else
                 {
-                    // Create new entry
+                    // Yaratish new entry
                     var workEntry = new HR_PIECE_RATE_WORK_ENTRIES
                     {
                         EmployeeID = EmployeeID,
@@ -727,7 +744,15 @@ namespace tahsinERP.Controllers.HR
 
                 await db.SaveChangesAsync();
 
-                logger.Log("HrPieceRateTimesheets", "CreateSimple", $"EmployeeID: {EmployeeID}, ProductID: {ProductID}, OperationID: {OperationID}, Date: {WorkDate}, Quantity: {Quantity}");
+                var employee = await db.HR_EMPLOYEES.FindAsync(EmployeeID);
+                var product = await db.PRODUCTS.FindAsync(ProductID);
+                var operation = await db.HR_PIECE_RATE_OPERATIONS.FindAsync(OperationID);
+                var employeeLabel = employee == null
+                    ? "-"
+                    : $"{employee.FullName} ({employee.TabNo ?? "-"})";
+                var productLabel = product?.Name ?? product?.PNo ?? "-";
+                var operationLabel = operation?.Name ?? "-";
+            logger.Log("HrPieceRateTimesheets", "CreateSimple", $"Xodim: {employeeLabel}, Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Sana: {WorkDate:dd.MM.yyyy}, Miqdor: {Quantity}");
                 TempData["Success"] = "Ishbay ma'lumot muvaffaqiyatli saqlandi";
                 return RedirectToAction("CreateSimple");
             }
@@ -739,7 +764,7 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        // GET: HR/PieceRateTimesheets/GetTariff
+        // Olish so'rovi: HR/PieceRateTimesheets/GetTariff
         public async Task<JsonResult> GetTariff(int productId, int operationId, int? employeeId = null)
         {
             try
@@ -754,7 +779,7 @@ namespace tahsinERP.Controllers.HR
                     }
                 }
 
-                // First try to find position-specific tariff
+                // Avval try ga find position-specific tariff
                 var tariff = await db.HR_PIECE_RATE_TARIFFS
                     .Include(t => t.CURRENCy)
                     .Where(t => t.ProductID == productId && 
@@ -766,7 +791,7 @@ namespace tahsinERP.Controllers.HR
                     .OrderByDescending(t => t.PositionID) // Prefer position-specific
                     .FirstOrDefaultAsync();
 
-                // If not found, try general tariff (PositionID == null)
+                // agar not found, try general tariff (PositionID == null)
                 if (tariff == null)
                 {
                     tariff = await db.HR_PIECE_RATE_TARIFFS
@@ -801,19 +826,19 @@ namespace tahsinERP.Controllers.HR
 
         private async Task PopulateCreateSimpleViewBags()
         {
-            // Get piece-rate employees
+            // Olish piece-rate employees
             var pieceRatePositionIds = await db.HR_STAFFING_PLAN
                 .Where(sp => sp.IsActive && sp.IsPieceRate == true)
                 .Select(sp => sp.PositionID)
                 .Distinct()
                 .ToListAsync();
 
-            // If no piece-rate positions found, get all active employees
-            // Otherwise, get employees with piece-rate positions
+            // agar no piece-rate positions found, get barcha faol employees
+            // Otherwise, get employees bilan piece-rate positions
             List<HR_EMPLOYEES> employees;
             if (pieceRatePositionIds == null || !pieceRatePositionIds.Any())
             {
-                // Fallback: get all active employees if no piece-rate positions configured
+                // Fallback: get barcha faol employees agar no piece-rate positions configured
                 employees = await db.HR_EMPLOYEES
                     .Where(e => e.IsActive)
                     .OrderBy(e => e.FullName)
@@ -821,7 +846,7 @@ namespace tahsinERP.Controllers.HR
             }
             else
             {
-                // Get employees where PositionID matches piece-rate positions
+                // Olish employees where PositionID matches piece-rate positions
                 employees = await db.HR_EMPLOYEES
                     .Where(e => e.IsActive && e.PositionID.HasValue && pieceRatePositionIds.Contains(e.PositionID.Value))
                     .OrderBy(e => e.FullName)
@@ -842,7 +867,7 @@ namespace tahsinERP.Controllers.HR
                 "ID", "Name");
         }
 
-        // GET: HR/PieceRateTimesheets/Delete/5
+        // Olish so'rovi: HR/PieceRateTimesheets/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -867,7 +892,7 @@ namespace tahsinERP.Controllers.HR
             return View(timesheet);
         }
 
-        // POST: HR/PieceRateTimesheets/Delete/5
+        // POST so'rovi: HR/PieceRateTimesheets/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -883,14 +908,14 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Check if timesheet is approved or closed - cannot delete
+            // Tekshirish agar timesheet is approved yoki closed - cannot o'chirish
             if (timesheet.Status == "Approved" || timesheet.Status == "Closed")
             {
                 TempData["Error"] = "Tasdiqlangan yoki yopilgan tabelni o'chirib bo'lmaydi";
                 return RedirectToAction("Index");
             }
 
-            // Check if there are related payroll records
+            // Tekshirish agar there are related payroll records
             var hasPayrolls = await db.HR_PAYROLL_HEADERS.AnyAsync(p => p.TimesheetID == id);
             if (hasPayrolls)
             {
@@ -898,7 +923,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Delete timesheet lines first
+            // O'chirish timesheet lines birinchi
             var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
             foreach (var line in lines)
             {
@@ -910,7 +935,7 @@ namespace tahsinERP.Controllers.HR
             db.Entry(timesheet).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
-            logger.Log("HrPieceRateTimesheets", "Delete", $"ID: {id}");
+            logger.Log("HrPieceRateTimesheets", "Delete", $"Tabel: {timesheet.Year}-{timesheet.Month:D2}");
             return RedirectToAction("Index");
         }
 
@@ -923,7 +948,7 @@ namespace tahsinERP.Controllers.HR
             base.Dispose(disposing);
         }
 
-        // GET: HR/PieceRateTimesheets/DeleteEntries
+        // Olish so'rovi: HR/PieceRateTimesheets/DeleteEntries
         public async Task<ActionResult> DeleteEntries(int year, int month, int? orgUnitId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -957,7 +982,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/PieceRateTimesheets/DeleteEntries
+        // POST so'rovi: HR/PieceRateTimesheets/DeleteEntries
         [HttpPost, ActionName("DeleteEntries")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteEntriesConfirmed(int year, int month, int? orgUnitId)
@@ -967,11 +992,11 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Check if there are related payroll records
+            // Tekshirish agar there are related payroll records
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            // Get work entries for this period
+            // Olish work entries uchun this period
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
 
@@ -982,7 +1007,7 @@ namespace tahsinERP.Controllers.HR
 
             var workEntries = await query.ToListAsync();
 
-            // Check if any payroll exists for this period
+            // Tekshirish agar any payroll mavjud uchun this period
             var hasPayrolls = await db.HR_PAYROLL_HEADERS
                 .AnyAsync(p => p.Year == year && p.Month == month && 
                     p.PayrollType == "PieceRate" &&
@@ -994,7 +1019,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            // Check if timesheet is approved
+            // Tekshirish agar timesheet is approved
             var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
                 .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == orgUnitId);
 
@@ -1004,14 +1029,14 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
-            // Soft delete work entries
+            // Soft o'chirish work entries
             foreach (var entry in workEntries)
             {
                 entry.IsDeleted = true;
                 db.Entry(entry).State = System.Data.Entity.EntityState.Modified;
             }
 
-            // Soft delete approval record if exists
+            // Soft o'chirish tasdiqlash record agar mavjud
             if (approval != null)
             {
                 approval.IsDeleted = true;
@@ -1020,12 +1045,15 @@ namespace tahsinERP.Controllers.HR
 
             await db.SaveChangesAsync();
 
-            logger.Log("HrPieceRateTimesheets", "DeleteEntries", $"Year: {year}, Month: {month}, OrgUnitID: {orgUnitId}");
+            var orgUnitName = orgUnitId.HasValue
+                ? (await db.HR_ORG_UNITS.FindAsync(orgUnitId.Value))?.Name ?? "Butun kompaniya"
+                : "Butun kompaniya";
+            logger.Log("HrPieceRateTimesheets", "DeleteEntries", $"Tabel: {year}-{month:D2}, Bo'lim: {orgUnitName}, YozuvlarSoni: {workEntries.Count}");
             TempData["Success"] = $"{workEntries.Count} ta yozuv muvaffaqiyatli o'chirildi";
             return RedirectToAction("Index", new { year, month, orgUnitId });
         }
 
-        // GET: HR/PieceRateTimesheets/ImportFromExcel
+        // Olish so'rovi: HR/PieceRateTimesheets/ImportFromExcel
         public ActionResult ImportFromExcel()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -1036,7 +1064,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/PieceRateTimesheets/ImportFromExcel
+        // POST so'rovi: HR/PieceRateTimesheets/ImportFromExcel
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ImportFromExcel(HttpPostedFileBase file)
@@ -1078,9 +1106,9 @@ namespace tahsinERP.Controllers.HR
                     int rowCount = worksheet.Dimension.Rows;
                     int colCount = worksheet.Dimension.Columns;
 
-                    // Find column indices
+                    // Find ustun indices
                     // Excel shablon struktura:
-                    // Row 1: Header (A1:J1)
+                    // qator 1: Header (A1:J1)
                     //   A: # (raqam - e'tiborsiz)
                     //   B: Tabel. Code
                     //   C: Ф.И.О
@@ -1091,12 +1119,12 @@ namespace tahsinERP.Controllers.HR
                     //   H: ramka
                     //   I: selofan /DVP /Karton
                     //   J: ichki sxema
-                    // Row 2+: Data rows
+                    // qator 2+: ma'lumot qatorlar
                     
                     int colIndex = -1, fullNameColIndex = -1, dateColIndex = -1, productCodeColIndex = -1;
                     Dictionary<string, int> operationColumns = new Dictionary<string, int>();
 
-                    // Read header row (row 1) to find column indices
+                    // O'qish header qator (qator 1) ga find ustun indices
                     for (int col = 1; col <= colCount; col++)
                     {
                         string header = worksheet.Cells[1, col].Text.Trim();
@@ -1151,12 +1179,12 @@ namespace tahsinERP.Controllers.HR
                         return View();
                     }
 
-                    // Get all employees (including inactive) for lookup
+                    // Olish barcha employees (including nofaol) uchun lookup
                     var allEmployees = await db.HR_EMPLOYEES
                         .ToListAsync();
 
-                    // Get all products with IsFinishedGood = true
-                    // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
+                    // Olish barcha products bilan IsFinishedGood = true
+                    // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
                     var validProducts = await db.PRODUCTS
                         .Include(p => p.PRODUCT_CATEGORIES)
                         .Where(p => p.IsDeleted == false && 
@@ -1164,12 +1192,12 @@ namespace tahsinERP.Controllers.HR
                              (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
                         .ToListAsync();
 
-                    // Get all operations
+                    // Olish barcha operations
                     var allOperations = await db.HR_PIECE_RATE_OPERATIONS
                         .Where(o => o.IsActive)
                         .ToListAsync();
 
-                    // Get all tariffs
+                    // Olish barcha tariffs
                     var allTariffs = await db.HR_PIECE_RATE_TARIFFS
                         .Where(t => t.IsActive && t.IsDeleted == false)
                         .Include(t => t.PRODUCT)
@@ -1178,18 +1206,18 @@ namespace tahsinERP.Controllers.HR
                     var userId = UserHelper.GetUserId(User.Identity.Name);
                     var currentDate = DateTime.Now;
 
-                    // Process data rows (starting from row 2, as row 1 is header)
+                    // Process ma'lumot qatorlar (starting dan qator 2, as qator 1 is header)
                     for (int row = 2; row <= rowCount; row++)
                     {
                         try
                         {
-                            // Read row data
+                            // O'qish qator ma'lumot
                             string tabelCode = colIndex > 0 ? worksheet.Cells[row, colIndex].Text.Trim() : "";
                             string fullName = fullNameColIndex > 0 ? worksheet.Cells[row, fullNameColIndex].Text.Trim() : "";
                             string dateStr = worksheet.Cells[row, dateColIndex].Text.Trim();
                             string productCode = worksheet.Cells[row, productCodeColIndex].Text.Trim();
 
-                            // Skip empty rows
+                            // Skip empty qatorlar
                             if (string.IsNullOrWhiteSpace(tabelCode) && string.IsNullOrWhiteSpace(productCode))
                                 continue;
 
@@ -1201,7 +1229,7 @@ namespace tahsinERP.Controllers.HR
                                 continue;
                             }
 
-                            // Parse date
+                            // Tahlil qilish date
                             DateTime workDate;
                             if (!DateTime.TryParse(dateStr, out workDate))
                             {
@@ -1221,7 +1249,7 @@ namespace tahsinERP.Controllers.HR
                                 continue;
                             }
 
-                            // Optional: Verify FullName matches if provided (for validation)
+                            // Optional: Verify FullName matches agar provided (uchun validation)
                             if (!string.IsNullOrWhiteSpace(fullName))
                             {
                                 if (!employee.FullName.Trim().Equals(fullName.Trim(), StringComparison.OrdinalIgnoreCase))
@@ -1231,7 +1259,7 @@ namespace tahsinERP.Controllers.HR
                                 }
                             }
 
-                            // Find product by PNo, PNo2, PNo3, or PNo4 (case-insensitive, trimmed)
+                            // Find product by PNo, PNo2, PNo3, yoki PNo4 (case-insensitive, trimmed)
                             string normalizedProductCode = productCode.Trim();
                             var product = validProducts.FirstOrDefault(p => 
                                 (p.PNo != null && p.PNo.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
@@ -1241,7 +1269,7 @@ namespace tahsinERP.Controllers.HR
 
                             if (product == null)
                             {
-                                // Try to find product without IsFinishedGood filter to provide better error message
+                                // Urinish ga find product without IsFinishedGood filtrlash ga provide better xatolik message
                                 var allProducts = await db.PRODUCTS
                                     .Where(p => p.IsDeleted == false &&
                                         ((p.PNo != null && p.PNo.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
@@ -1262,7 +1290,7 @@ namespace tahsinERP.Controllers.HR
                                 continue;
                             }
 
-                            // Process each operation column
+                            // Process har bir operation ustun
                             foreach (var operationCol in operationColumns)
                             {
                                 string operationName = operationCol.Key;
@@ -1272,7 +1300,7 @@ namespace tahsinERP.Controllers.HR
                                 if (string.IsNullOrWhiteSpace(quantityStr))
                                     continue;
 
-                                // Parse quantity
+                                // Tahlil qilish quantity
                                 decimal quantity;
                                 if (!decimal.TryParse(quantityStr, out quantity) || quantity <= 0)
                                     continue;
@@ -1288,7 +1316,7 @@ namespace tahsinERP.Controllers.HR
                                     continue;
                                 }
 
-                                // Check for duplicate entry
+                                // Tekshirish uchun duplicate entry
                                 bool exists = await db.HR_PIECE_RATE_WORK_ENTRIES
                                     .AnyAsync(e => e.EmployeeID == employee.ID &&
                                                   e.ProductID == product.ID &&
@@ -1304,7 +1332,7 @@ namespace tahsinERP.Controllers.HR
                                     continue;
                                 }
 
-                                // Find tariff for this product and operation
+                                // Find tariff uchun this product va operation
                                 var tariff = allTariffs
                                     .Where(t => t.ProductID == product.ID &&
                                                t.OperationID == operation.ID &&
@@ -1313,7 +1341,7 @@ namespace tahsinERP.Controllers.HR
                                     .OrderByDescending(t => t.PositionID) // Prefer position-specific
                                     .FirstOrDefault();
 
-                                // If not found, try general tariff (PositionID == null)
+                                // agar not found, try general tariff (PositionID == null)
                                 if (tariff == null)
                                 {
                                     tariff = allTariffs
@@ -1325,7 +1353,7 @@ namespace tahsinERP.Controllers.HR
                                         .FirstOrDefault();
                                 }
 
-                                // Create work entry
+                                // Yaratish work entry
                                 var workEntry = new HR_PIECE_RATE_WORK_ENTRIES
                                 {
                                     EmployeeID = employee.ID,
@@ -1349,10 +1377,10 @@ namespace tahsinERP.Controllers.HR
                         }
                     }
 
-                    // Save all changes
+                    // Saqlash barcha changes
                     await db.SaveChangesAsync();
 
-                    // Prepare result message
+                    // Tayyorlash result message
                     string resultMessage = $"Muvaffaqiyatli: {successCount} ta yozuv qo'shildi. ";
                     if (skipCount > 0)
                         resultMessage += $"O'tkazib yuborildi: {skipCount} ta. ";
@@ -1365,13 +1393,13 @@ namespace tahsinERP.Controllers.HR
                     }
 
                     TempData["Success"] = resultMessage;
-                    logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"Success: {successCount}, Skipped: {skipCount}, Errors: {errorCount}");
+                    logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"MuvaffaqiyatliSoni: {successCount}, OtkazibYuborilganSoni: {skipCount}, XatolarSoni: {errorCount}");
                 }
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Xatolik: {ex.Message}";
-                logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"Error: {ex.Message}");
+                logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"Xato: {ex.Message}");
             }
 
             return View();

@@ -15,7 +15,7 @@ namespace tahsinERP.Controllers
 {
     public class SContractController : Controller
     {
-        // GET: SContract | Index
+        // Olish so'rovi: SContract | Index
         public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -85,7 +85,7 @@ namespace tahsinERP.Controllers
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
                 ViewBag.CurrentPage = currentPage;
                 ViewBag.TotalPages = totalPages;
@@ -102,7 +102,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Create
+        // Olish so'rovi: yaratish
         [HttpGet]
         public ActionResult Create()
         {
@@ -123,14 +123,14 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Create
+        // POST so'rovi: yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(SContractViewModel model, FormCollection form)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Parse products from form repeater
+                // Tahlil qilish products dan form repeater
                 if (model.ProductList == null || !model.ProductList.Any())
                 {
                     model.ProductList = new List<SContractProductViewModel>();
@@ -182,7 +182,7 @@ namespace tahsinERP.Controllers
 
                 try
                 {
-                    // Calculate total amount from products (including VAT if provided)
+                    // Calculate total amount dan products (including VAT agar provided)
                     decimal totalAmount = 0;
                     int totalIndex = 0;
                     while (form[$"ProductList[{totalIndex}].ProductID"] != null)
@@ -203,7 +203,7 @@ namespace tahsinERP.Controllers
                         totalIndex++;
                     }
 
-                    // Create contract
+                    // Yaratish contract
                     var newContract = new S_CONTRACTS
                     {
                         ContractNo = model.ContractNo,
@@ -221,7 +221,7 @@ namespace tahsinERP.Controllers
                     db.S_CONTRACTS.Add(newContract);
                     db.SaveChanges();
 
-                    // Add products
+                    // Qo'shish products
                     foreach (var product in model.ProductList)
                     {
                         var contractProduct = new S_CONTRACT_PRODUCTS
@@ -260,7 +260,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Details
+        // Olish so'rovi: Details
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -296,7 +296,7 @@ namespace tahsinERP.Controllers
                 var invoicesCount = db.SALES_INVOICES.Where(i => i.ContractID == id).Count();
                 ViewBag.InvoicesCount = invoicesCount;
 
-                // Use contract.Amount instead of sum from products
+                // Use contract.Amount instead of sum dan products
                 var contractedTotal = contract.Amount ?? 0;
                 var orderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
                 var invoicedTotal = db.SALES_INVOICES
@@ -311,7 +311,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Edit
+        // Olish so'rovi: Edit
         [HttpGet]
         public ActionResult Edit(int id)
         {
@@ -364,14 +364,14 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Edit
+        // POST so'rovi: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(SContractViewModel model, FormCollection form)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Parse products from form
+                // Tahlil qilish products dan form
                 if (model.ProductList == null || !model.ProductList.Any())
                 {
                     model.ProductList = new List<SContractProductViewModel>();
@@ -436,7 +436,7 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Update contract basic info
+                    // Yangilash contract basic info
                     contractToUpdate.ContractNo = model.ContractNo;
                     contractToUpdate.CustomerID = model.CustomerID;
                     contractToUpdate.IssuedDate = model.IssuedDate;
@@ -445,7 +445,7 @@ namespace tahsinERP.Controllers
                     contractToUpdate.PaymentTerms = model.PaymentTerms;
                     contractToUpdate.CurrencyID = model.CurrencyID;
 
-                    // Remove products not in model
+                    // O'chirish products not in model
                     var modelProductIDs = model.ProductList.Where(p => p.ID > 0).Select(p => p.ID).ToList();
                     var productsToRemove = contractToUpdate.S_CONTRACT_PRODUCTS
                         .Where(p => !modelProductIDs.Contains(p.ID))
@@ -456,12 +456,12 @@ namespace tahsinERP.Controllers
                         db.S_CONTRACT_PRODUCTS.Remove(productToRemove);
                     }
 
-                    // Update/add products
+                    // Yangilash/add products
                     foreach (var product in model.ProductList)
                     {
                         if (product.ID > 0)
                         {
-                            // Update existing
+                            // Yangilash existing
                             var existing = db.S_CONTRACT_PRODUCTS.Find(product.ID);
                             if (existing != null)
                             {
@@ -474,7 +474,7 @@ namespace tahsinERP.Controllers
                         }
                         else
                         {
-                            // Add new
+                            // Qo'shish new
                             var newProduct = new S_CONTRACT_PRODUCTS
                             {
                                 ContractID = contractToUpdate.ID,
@@ -487,7 +487,7 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Calculate total amount (including VAT if provided)
+                    // Calculate total amount (including VAT agar provided)
                     decimal totalAmount = 0;
                     int totalIndex = 0;
                     while (form[$"ProductList[{totalIndex}].ProductID"] != null)
@@ -508,7 +508,7 @@ namespace tahsinERP.Controllers
                         totalIndex++;
                     }
 
-                    // Update contract amount
+                    // Yangilash contract amount
                     contractToUpdate.Amount = (int)totalAmount;
                     db.Entry(contractToUpdate).State = EntityState.Modified;
                     db.SaveChanges();
@@ -536,7 +536,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Delete
+        // Olish so'rovi: o'chirish
         [HttpGet]
         public ActionResult Delete(int? id)
         {
@@ -567,7 +567,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Delete
+        // POST so'rovi: o'chirish
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -588,7 +588,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: DeleteProduct
+        // Olish so'rovi: DeleteProduct
         public ActionResult DeleteProduct(int id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -665,7 +665,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Link Order to Contract
+        // POST so'rovi: Link Order ga Contract
         [HttpPost]
         public ActionResult LinkOrder(int contractID, int orderID)
         {
@@ -682,7 +682,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Unlink Order from Contract
+        // POST so'rovi: Unlink Order dan Contract
         [HttpPost]
         public ActionResult UnlinkOrder(int contractID, int orderID)
         {

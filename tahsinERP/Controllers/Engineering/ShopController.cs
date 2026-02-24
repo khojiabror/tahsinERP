@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace tahsinERP.Controllers
 {
     public class ShopController : Controller
     {
-        // GET: Shop
+        // Olish so'rovi: Shop
         public ActionResult Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

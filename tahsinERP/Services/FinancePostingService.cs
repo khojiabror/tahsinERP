@@ -11,6 +11,7 @@ namespace tahsinERP.Services
     /// </summary>
     public static class FinancePostingService
     {
+        private const byte WaybillPaymentSplitPayerType = 99;
         /// <summary>
         /// Post transaction from Sales Invoice
         /// </summary>
@@ -199,30 +200,41 @@ namespace tahsinERP.Services
 
             if (existing != null) return;
 
-            // Find cash/bank account - use provided accountID or find default
+            // Find bank account - use provided accountID or find default bank account
             FIN_ACCOUNTS account = null;
             if (accountID.HasValue)
             {
-                account = db.FIN_ACCOUNTS.FirstOrDefault(a => a.ID == accountID.Value && a.IsActive);
+                account = db.FIN_ACCOUNTS.FirstOrDefault(a => a.ID == accountID.Value && a.IsActive && a.IsBank);
             }
             
             if (account == null)
             {
-                // Find default cash/bank account matching currency
+                // Default only bank account (hisob-raqam), not cash
                 account = db.FIN_ACCOUNTS
-                    .FirstOrDefault(a => (a.IsCash || a.IsBank) && a.IsActive && 
+                    .FirstOrDefault(a => a.IsBank && a.IsActive &&
                         (payment.CurrencyID.HasValue ? a.CurrencyID == payment.CurrencyID.Value : true));
             }
 
             if (account == null) 
             {
-                LogHelper.LogToDatabase("System", "FinancePosting", "PostWaybillPayment", 
-                    $"No suitable account found for waybill payment {paymentID}");
+                LogHelper.LogToDatabase("System", "FinancePosting", "PostWaybillPayment",
+                    $"Yo'l varaqasi to'lovi (ID: {paymentID}) uchun mos hisob topilmadi.");
                 return; // No account found
             }
 
             // Find transport expense category (material vs finished product)
             var category = ResolveLogisticsCategory(payment.F_WAYBILLS, db);
+
+            var linkedWaybillNos = (from s in db.F_WAYBILL_PAYMENT_SPLITS
+                                    join w in db.F_WAYBILLS on s.WaybillID equals w.ID
+                                    where s.PayerType == WaybillPaymentSplitPayerType
+                                          && s.PayerID == paymentID
+                                    select w.WaybillNo).Distinct().ToList();
+            if (!linkedWaybillNos.Any() && payment.F_WAYBILLS != null)
+            {
+                linkedWaybillNos.Add(payment.F_WAYBILLS.WaybillNo);
+            }
+            var waybillNoText = string.Join(", ", linkedWaybillNos.Where(x => !string.IsNullOrWhiteSpace(x)));
 
             // Create transaction
             var transaction = new FIN_TRANSACTIONS
@@ -233,10 +245,10 @@ namespace tahsinERP.Services
                 Direction = 2, // Out
                 Amount = (decimal)payment.Payment_Amount,
                 CurrencyID = payment.CurrencyID ?? 1,
-                CounterpartyType = 4, // Forwarder (assuming 4 is forwarder type)
+                CounterpartyType = 4, // Yuk tashuvchi
                 CounterpartyID = payment.ForwarderID,
                 CounterpartyName = payment.FORWARDER?.ForwarderName,
-                Purpose = $"Logistics / freight payment for WaybillNo {payment.F_WAYBILLS?.WaybillNo}",
+                Purpose = $"Yo'l varaqasi bo'yicha yuk tashish to'lovi: {waybillNoText}",
                 SourceDocType = "WaybillPayment",
                 SourceDocID = paymentID,
                 CreatedByUserID = userId,

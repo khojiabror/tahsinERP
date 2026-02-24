@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers
         {
             var UserID = UserHelper.GetUserId(userEmail);
             
-            // Get client IP address
+            // Mijoz IP manzilini olish
             string clientIp = "127.0.0.1";
             HttpContextBase contextToUse = httpContext;
             
@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers
                 clientIp = NetworkHelper.GetClientIpAddress(contextToUse);
             }
             
-            // MAC address - use default value (device ID functionality disabled)
+            // MAC manzil - standart qiymat (qurilma ID funksiyasi o'chirilgan)
             string macAddress = "00:00:00:00:00:00";
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -50,7 +50,7 @@ namespace tahsinERP.Controllers
             {
                 var UserID = UserHelper.GetUserId(userEmail);
 
-                // Get client IP address
+                // Mijoz IP manzilini olish
                 string clientIp = "127.0.0.1";
                 HttpContextBase contextToUse = httpContext;
                 
@@ -64,7 +64,7 @@ namespace tahsinERP.Controllers
                     clientIp = NetworkHelper.GetClientIpAddress(contextToUse);
                 }
                 
-                // MAC address - use default value (device ID functionality disabled)
+                // MAC manzil - standart qiymat (qurilma ID funksiyasi o'chirilgan)
                 string macAddress = "00:00:00:00:00:00";
 
                 var cookieConfirm = new COOKIES_CONFIRMATION
@@ -78,6 +78,9 @@ namespace tahsinERP.Controllers
 
                 dB.COOKIES_CONFIRMATION.Add(cookieConfirm);
                 dB.SaveChanges();
+
+                LogHelper.LogToDatabase(userEmail, "CookieHelper", "Confirm",
+                    "Qurilma tasdiqlash yozuvi qo'shildi.");
             }
         }
     }

@@ -24,7 +24,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/StaffingPlan
+        // Olish so'rovi: HR/StaffingPlan
         public async Task<ActionResult> Index(int? orgUnitId, int? positionId, bool? isActive)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrStaffingPlan"))
@@ -59,7 +59,7 @@ namespace tahsinERP.Controllers.HR
 
             var staffingPlans = await query.OrderBy(sp => sp.HR_ORG_UNITS.Name).ThenBy(sp => sp.HR_POSITIONS.Name).ToListAsync();
 
-            // Get all employee counts in one query to avoid N+1 problem
+            // Olish barcha employee counts in one query ga avoid N+1 problem
             var employeeCounts = await db.HR_EMPLOYEES
                 .Where(e => e.IsActive && e.OrgUnitID.HasValue && e.PositionID.HasValue)
                 .GroupBy(e => new { e.OrgUnitID, e.PositionID })
@@ -86,7 +86,7 @@ namespace tahsinERP.Controllers.HR
                     IsActive = sp.IsActive
                 };
 
-                // Get actual headcount from pre-loaded employee counts
+                // Olish actual headcount dan pre-loaded employee counts
                 var countData = employeeCounts.FirstOrDefault(c => 
                     c.OrgUnitID == sp.OrgUnitID && c.PositionID == sp.PositionID);
                 vm.ActualHeadcount = countData?.Count ?? 0;
@@ -106,7 +106,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModels);
         }
 
-        // GET: HR/StaffingPlan/Details/5
+        // Olish so'rovi: HR/StaffingPlan/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrStaffingPlan"))
@@ -153,11 +153,11 @@ namespace tahsinERP.Controllers.HR
                     e.IsActive)
             };
 
-            logger.Log("HrStaffingPlan", "Details", $"ID: {id}");
+            logger.Log("HrStaffingPlan", "Details", $"Bo'lim: {viewModel.OrgUnitName}, Lavozim: {viewModel.PositionName}");
             return View(viewModel);
         }
 
-        // GET: HR/StaffingPlan/Create
+        // Olish so'rovi: HR/StaffingPlan/yaratish
         public async Task<ActionResult> Create(int? orgUnitId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan"))
@@ -169,7 +169,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/StaffingPlan/Create
+        // POST so'rovi: HR/StaffingPlan/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HrStaffingPlanViewModel viewModel)
@@ -198,7 +198,9 @@ namespace tahsinERP.Controllers.HR
                 db.HR_STAFFING_PLAN.Add(staffingPlan);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrStaffingPlan", "Create", $"ID: {staffingPlan.ID}");
+                var orgUnitName = (await db.HR_ORG_UNITS.FindAsync(staffingPlan.OrgUnitID))?.Name ?? "-";
+                var positionName = (await db.HR_POSITIONS.FindAsync(staffingPlan.PositionID))?.Name ?? "-";
+                logger.Log("HrStaffingPlan", "Create", $"Bo'lim: {orgUnitName}, Lavozim: {positionName}, RejaSoni: {staffingPlan.PlannedHeadcount}");
                 return RedirectToAction("Index");
             }
 
@@ -206,7 +208,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // GET: HR/StaffingPlan/Edit/5
+        // Olish so'rovi: HR/StaffingPlan/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan"))
@@ -244,7 +246,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // POST: HR/StaffingPlan/Edit/5
+        // POST so'rovi: HR/StaffingPlan/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HrStaffingPlanViewModel viewModel)
@@ -276,7 +278,9 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(staffingPlan).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                logger.Log("HrStaffingPlan", "Edit", $"ID: {viewModel.ID}");
+                var orgUnitName = (await db.HR_ORG_UNITS.FindAsync(staffingPlan.OrgUnitID))?.Name ?? "-";
+                var positionName = (await db.HR_POSITIONS.FindAsync(staffingPlan.PositionID))?.Name ?? "-";
+                logger.Log("HrStaffingPlan", "Edit", $"Bo'lim: {orgUnitName}, Lavozim: {positionName}, RejaSoni: {staffingPlan.PlannedHeadcount}");
                 return RedirectToAction("Index");
             }
 
@@ -284,7 +288,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // POST: HR/StaffingPlan/Delete/5
+        // POST so'rovi: HR/StaffingPlan/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int id)
@@ -304,11 +308,13 @@ namespace tahsinERP.Controllers.HR
             db.Entry(staffingPlan).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
-            logger.Log("HrStaffingPlan", "Delete", $"ID: {id}");
+            var orgUnitName = staffingPlan.HR_ORG_UNITS?.Name ?? "-";
+            var positionName = staffingPlan.HR_POSITIONS?.Name ?? "-";
+            logger.Log("HrStaffingPlan", "Delete", $"Bo'lim: {orgUnitName}, Lavozim: {positionName}");
             return RedirectToAction("Index");
         }
 
-        // GET: HR/StaffingPlan/GenerateFromEmployees
+        // Olish so'rovi: HR/StaffingPlan/GenerateFromEmployees
         public async Task<ActionResult> GenerateFromEmployees()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan"))
@@ -316,7 +322,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Get all active employees
+            // Olish barcha faol employees
             var employees = await db.HR_EMPLOYEES
                 .Where(e => e.IsActive && e.OrgUnitID.HasValue && e.PositionID.HasValue)
                 .ToListAsync();
@@ -325,7 +331,7 @@ namespace tahsinERP.Controllers.HR
 
             foreach (var emp in employees)
             {
-                // Check if staffing plan already exists
+                // Tekshirish agar staffing plan already mavjud
                 var existing = await db.HR_STAFFING_PLAN
                     .FirstOrDefaultAsync(sp => sp.OrgUnitID == emp.OrgUnitID.Value &&
                                               sp.PositionID == emp.PositionID.Value &&
@@ -353,7 +359,7 @@ namespace tahsinERP.Controllers.HR
             return View(proposals);
         }
 
-        // POST: HR/StaffingPlan/CreateFromProposals
+        // POST so'rovi: HR/StaffingPlan/CreateFromProposals
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateFromProposals(List<HrStaffingPlanViewModel> proposals)
@@ -385,13 +391,13 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 await db.SaveChangesAsync();
-                logger.Log("HrStaffingPlan", "CreateFromProposals", $"Created {proposals.Count(p => p.IsActive)} plans");
+                logger.Log("HrStaffingPlan", "CreateFromProposals", $"YaratilganRejaSoni: {proposals.Count(p => p.IsActive)}");
             }
 
             return RedirectToAction("Index");
         }
 
-        // GET: HR/StaffingPlan/Import
+        // Olish so'rovi: HR/StaffingPlan/Import
         public ActionResult Import()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan"))
@@ -402,7 +408,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/StaffingPlan/Import
+        // POST so'rovi: HR/StaffingPlan/Import
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Import(HttpPostedFileBase file)
@@ -428,15 +434,15 @@ namespace tahsinERP.Controllers.HR
 
                     var importedData = new List<Dictionary<string, object>>();
 
-                    // Skip header row, start from row 2
+                    // Skip header qator, start dan qator 2
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var rowData = new Dictionary<string, object>();
                         rowData["RowNumber"] = row;
-                        rowData["TabNo"] = worksheet.Cells[row, 3]?.Value?.ToString(); // Column C - Таб.№
-                        rowData["FullName"] = worksheet.Cells[row, 2]?.Value?.ToString(); // Column B - F.I.Sh
-                        rowData["Position"] = worksheet.Cells[row, 4]?.Value?.ToString(); // Column D - Lavozim
-                        rowData["BaseSalary"] = worksheet.Cells[row, 5]?.Value?.ToString(); // Column E - Начисление
+                        rowData["TabNo"] = worksheet.Cells[row, 3]?.Value?.ToString(); // ustun C - Таб.№
+                        rowData["FullName"] = worksheet.Cells[row, 2]?.Value?.ToString(); // ustun B - F.I.Sh
+                        rowData["Position"] = worksheet.Cells[row, 4]?.Value?.ToString(); // ustun D - Lavozim
+                        rowData["BaseSalary"] = worksheet.Cells[row, 5]?.Value?.ToString(); // ustun E - Начисление
 
                         if (!string.IsNullOrWhiteSpace(rowData["TabNo"]?.ToString()))
                         {
@@ -445,7 +451,7 @@ namespace tahsinERP.Controllers.HR
                     }
 
                     TempData["ImportedData"] = importedData;
-                    logger.Log("HrStaffingPlan", "Import", $"Imported {importedData.Count} rows");
+                    logger.Log("HrStaffingPlan", "Import", $"ImportQatorSoni: {importedData.Count}");
                     return View("ImportPreview", importedData);
                 }
             }
@@ -456,7 +462,7 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        // POST: HR/StaffingPlan/ImportConfirm
+        // POST so'rovi: HR/StaffingPlan/ImportConfirm
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ImportConfirm()
@@ -514,7 +520,7 @@ namespace tahsinERP.Controllers.HR
                             continue;
                         }
 
-                        // Check if staffing plan already exists
+                        // Tekshirish agar staffing plan already mavjud
                         var existingPlan = await db.HR_STAFFING_PLAN
                             .FirstOrDefaultAsync(sp => sp.OrgUnitID == employee.OrgUnitID && 
                                                        sp.PositionID == position.ID && 
@@ -545,7 +551,7 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 await db.SaveChangesAsync();
-                logger.Log("HrStaffingPlan", "ImportConfirm", $"Success: {successCount}, Errors: {errorCount}");
+                logger.Log("HrStaffingPlan", "ImportConfirm", $"MuvaffaqiyatliSoni: {successCount}, XatolarSoni: {errorCount}");
 
                 if (successCount > 0)
                 {

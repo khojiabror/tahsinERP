@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -12,7 +12,7 @@ namespace tahsinERP.Controllers.Settings
 {
     public class CompanyController : Controller
     {
-        // GET: Company
+        // Olish so'rovi: Company
         public ActionResult Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -43,7 +43,7 @@ namespace tahsinERP.Controllers.Settings
                             }
                             catch (Exception ex)
                             {
-                                //Log the error (uncomment dex variable name and add a line here to write a log.
+                                //Log the xatolik (uncomment dex variable name va add a line here ga write a log.
                                 ModelState.AddModelError("", ex.Message);
                                 return View(company);
                             }

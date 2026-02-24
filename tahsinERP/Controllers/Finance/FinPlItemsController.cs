@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinPlItemsController : Controller
     {
-        // GET: FinPlItems
+        // Olish so'rovi: FinPlItems
         public ActionResult Index(string searchTerm, int? parentID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
@@ -66,7 +66,7 @@ namespace tahsinERP.Controllers.Finance
             return result;
         }
 
-        // GET: FinPlItems/Details/5
+        // Olish so'rovi: FinPlItems/Details/5
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
@@ -96,19 +96,19 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(i => i.SortOrder)
                     .ToList();
 
-                // Get mapped categories
+                // Olish mapped categories
                 ViewBag.MappedCategories = db.FIN_CATEGORIES
                     .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == id) && c.IsActive)
                     .ToList();
 
-                // Get plans count
+                // Olish plans count
                 ViewBag.PlanCount = db.FIN_PL_PLANS.Count(p => p.ItemID == id);
 
                 return View(item);
             }
         }
 
-        // GET: FinPlItems/Create
+        // Olish so'rovi: FinPlItems/yaratish
         public ActionResult Create(int? parentID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
@@ -131,7 +131,7 @@ namespace tahsinERP.Controllers.Finance
                 {
                     ParentID = parentID,
                     IsActive = true,
-                    Sign = 1, // Default positive
+                    Sign = 1, // standart positive
                     SortOrder = db.FIN_PL_ITEMS.Where(i => i.ParentID == parentID).Count() + 1
                 };
 
@@ -139,7 +139,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlItems/Create
+        // POST so'rovi: FinPlItems/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_PL_ITEMS item)
@@ -182,7 +182,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlItems/Edit/5
+        // Olish so'rovi: FinPlItems/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
@@ -219,7 +219,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlItems/Edit/5
+        // POST so'rovi: FinPlItems/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_PL_ITEMS item)
@@ -279,7 +279,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlItems/Delete/5
+        // Olish so'rovi: FinPlItems/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
@@ -308,7 +308,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlItems/Delete/5
+        // POST so'rovi: FinPlItems/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -333,7 +333,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlItems/MapCategories/5
+        // Olish so'rovi: FinPlItems/MapCategories/5
         public ActionResult MapCategories(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
@@ -367,7 +367,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlItems/MapCategories/5
+        // POST so'rovi: FinPlItems/MapCategories/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MapCategories(int id, int[] categoryIds)
@@ -388,7 +388,7 @@ namespace tahsinERP.Controllers.Finance
                     // Clear existing mappings
                     item.FIN_CATEGORIES.Clear();
 
-                    // Add new mappings
+                    // Qo'shish new mappings
                     if (categoryIds != null && categoryIds.Length > 0)
                     {
                         var categories = db.FIN_CATEGORIES.Where(c => categoryIds.Contains(c.ID)).ToList();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
@@ -17,7 +17,7 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class PModuleController : Controller
     {
-        // GET: PModule
+        // Olish so'rovi: PModule
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -72,7 +72,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: PModule/MissingControllers
+        // Olish so'rovi: PModule/MissingControllers
         public async Task<ActionResult> MissingControllers()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -106,7 +106,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PModule/CreateDefaultModules
+        // POST so'rovi: PModule/CreateDefaultModules
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateDefaultModules(string controllerName)
@@ -188,7 +188,7 @@ namespace tahsinERP.Controllers
             return RedirectToAction("MissingControllers");
         }
 
-        // GET: PModule/Create
+        // Olish so'rovi: PModule/yaratish
         public async Task<ActionResult> Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -202,7 +202,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // POST: PModule/Create
+        // POST so'rovi: PModule/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(PERMISSIONMODULE permissions)
@@ -297,14 +297,14 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Error bo'lsa, ViewBag ni qayta yuklash
+            // xatolik bo'lsa, ViewBag ni qayta yuklash
             ViewBag.ControllerNames = GetAllControllerNames();
             ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
 
             return View(permissions);
         }
 
-        // POST: PModule/GetActions
+        // POST so'rovi: PModule/GetActions
         [HttpPost]
         public JsonResult GetActions(string controller)
         {
@@ -340,7 +340,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: PModule/Edit/5
+        // Olish so'rovi: PModule/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -379,7 +379,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PModule/Edit
+        // POST so'rovi: PModule/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(PERMISSIONMODULE permissions, int[] RoleID)
@@ -497,7 +497,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Error bo'lsa, ViewBag ni qayta yuklash
+            // xatolik bo'lsa, ViewBag ni qayta yuklash
             using (var db = new DBTHSNEntities())
             {
                 var roles = await db.ROLES
@@ -513,7 +513,7 @@ namespace tahsinERP.Controllers
             return View(permissions);
         }
 
-        // GET: PModule/Delete/5
+        // Olish so'rovi: PModule/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -561,7 +561,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: PModule/Delete/5
+        // POST so'rovi: PModule/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -612,7 +612,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: PModule/Details/5
+        // Olish so'rovi: PModule/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))

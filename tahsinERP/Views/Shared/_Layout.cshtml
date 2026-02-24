@@ -1115,7 +1115,8 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Logistika -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
-                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder"))
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "WaybillPayment"))
                     {
                         <li class="navigation-header"><span>Logistika</span></li>
 
@@ -1126,6 +1127,7 @@
                                 <li><a href="~/FContract/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Shartnomalar</span></a></li>
                                 <li><a href="~/FContractTariff/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tariflar</span></a></li>
                                 <li><a href="~/Waybill/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Yo'l varaqalari</span></a></li>
+                                <li><a href="~/WaybillPayment/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Yo'l varaqasi to'lovlari</span></a></li>
                                 <li><a href="~/FTransportType/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Transport turlari</span></a></li>
                                 <li><a href="~/TransportLoadSimulation"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Transport yuklash simulyatsiyasi</span></a></li>
                             </ul>
@@ -1672,7 +1674,10 @@
         <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
         <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
         <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
         <!-- Select2 -->
         <script src="~/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
@@ -1692,6 +1697,110 @@
 
         <!-- Repeater -->
         <script src="~/assets/js/jquery.repeater.min.js"></script>
+        <script>
+            (function () {
+                function getOrientationByElementSize(element) {
+                    if (!element) return 'portrait';
+                    var width = Math.max(element.scrollWidth || 0, element.offsetWidth || 0, element.clientWidth || 0);
+                    var height = Math.max(element.scrollHeight || 0, element.offsetHeight || 0, element.clientHeight || 0);
+                    return width > (height * 1.05) ? 'landscape' : 'portrait';
+                }
+
+                function resolvePrintTarget() {
+                    return document.querySelector('[data-print-target="true"]')
+                        || document.getElementById('printArea')
+                        || document.querySelector('.invoice-edit-wrapper')
+                        || document.querySelector('.content-body')
+                        || document.body;
+                }
+
+                function applyDynamicPrintPageStyle() {
+                    var target = resolvePrintTarget();
+                    var orientation = getOrientationByElementSize(target);
+                    var styleId = 'erp-print-page-style';
+                    var styleNode = document.getElementById(styleId);
+
+                    if (!styleNode) {
+                        styleNode = document.createElement('style');
+                        styleNode.id = styleId;
+                        document.head.appendChild(styleNode);
+                    }
+
+                    styleNode.textContent =
+                        '@media print { @page { size: A4 ' + orientation + '; margin: 10mm; } ' +
+                        'body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }';
+
+                    return orientation;
+                }
+
+                window.erpExportHelpers = window.erpExportHelpers || {};
+                window.erpExportHelpers.getOrientationByElementSize = getOrientationByElementSize;
+                window.erpExportHelpers.applyDynamicPrintPageStyle = applyDynamicPrintPageStyle;
+
+                if (window.matchMedia) {
+                    var printMedia = window.matchMedia('print');
+                    if (printMedia && printMedia.addEventListener) {
+                        printMedia.addEventListener('change', function (event) {
+                            if (event.matches) {
+                                applyDynamicPrintPageStyle();
+                            }
+                        });
+                    }
+                }
+
+                window.addEventListener('beforeprint', function () {
+                    applyDynamicPrintPageStyle();
+                });
+
+                if (typeof window.print === 'function') {
+                    var nativePrint = window.print;
+                    window.print = function () {
+                        applyDynamicPrintPageStyle();
+                        return nativePrint.apply(window, arguments);
+                    };
+                }
+
+                // Apply safe defaults for all DataTables PDF exports.
+                if (window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.ext && jQuery.fn.dataTable.ext.buttons) {
+                    var pdfButton = jQuery.fn.dataTable.ext.buttons.pdfHtml5;
+                    if (pdfButton) {
+                        pdfButton.pageSize = 'A4';
+                        pdfButton.orientation = 'portrait';
+                        pdfButton.customize = function (doc, config, dtApi) {
+                            try {
+                                var visibleColumns = dtApi && dtApi.columns ? dtApi.columns(':visible').count() : 0;
+                                var orientation = visibleColumns > 8 ? 'landscape' : 'portrait';
+                                doc.pageOrientation = orientation;
+                                doc.pageSize = 'A4';
+                                doc.pageMargins = [12, 12, 12, 12];
+
+                                var fontSize = visibleColumns > 10 ? 7 : 8;
+                                doc.defaultStyle = doc.defaultStyle || {};
+                                doc.styles = doc.styles || {};
+                                doc.styles.tableHeader = doc.styles.tableHeader || {};
+                                doc.defaultStyle.fontSize = fontSize;
+                                doc.styles.tableHeader.fontSize = fontSize + 1;
+
+                                var tableContent = null;
+                                for (var i = 0; i < (doc.content || []).length; i++) {
+                                    if (doc.content[i] && doc.content[i].table) {
+                                        tableContent = doc.content[i];
+                                        break;
+                                    }
+                                }
+
+                                if (tableContent && tableContent.table && tableContent.table.body && tableContent.table.body[0]) {
+                                    var colCount = tableContent.table.body[0].length;
+                                    tableContent.table.widths = Array(colCount).fill('*');
+                                }
+                            } catch (e) {
+                                // Keep default export behavior if custom formatting fails.
+                            }
+                        };
+                    }
+                }
+            })();
+        </script>
         <script>
             var $j = jQuery.noConflict(true);
             $j(document).ready(function () {

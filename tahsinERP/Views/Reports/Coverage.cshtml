@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.Reports.ReportViewModel
+@model tahsinERP.ViewModels.Reports.ReportViewModel
 @{
     ViewBag.Title = "Coverage";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -147,9 +147,7 @@ else
             "buttons": [
                 'excel',
                 {
-                    extend: 'pdfHtml5',
-                    orientation: 'landscape', // PDFni landscape rejimida qilish
-                    pageSize: 'A0', // A4 o'lchamida qilish
+                    extend: 'pdfHtml5'
                 },
                 'print'
             ],

@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class STDCompanyStandardsController : Controller
     {
-        // GET: STDCompanyStandards
+        // Olish so'rovi: STDCompanyStandards
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -49,7 +49,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: STDCompanyStandards/Create
+        // Olish so'rovi: STDCompanyStandards/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -65,7 +65,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // GET: STDCompanyStandards/GetTemplate
+        // Olish so'rovi: STDCompanyStandards/GetTemplate
         public ActionResult GetTemplate()
         {
             var templatePath = Server.MapPath("~/App_Data/Templates/CompanyStandardTemplate.docx");
@@ -81,12 +81,12 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: STDCompanyStandards/SaveDocument (OnlyOffice callback)
+        // POST so'rovi: STDCompanyStandards/SaveDocument (OnlyOffice callback)
         [HttpPost]
         public async Task<ActionResult> SaveDocument(string key, string url, int status)
         {
-            // OnlyOffice Document Server callback
-            // Document saqlangan bo'lsa, uni yuklab olish
+            // OnlyOffice hujjat Server callback
+            // hujjat saqlangan bo'lsa, uni yuklab olish
             if (status == 2 && !string.IsNullOrEmpty(url))
             {
                 try
@@ -94,7 +94,7 @@ namespace tahsinERP.Controllers
                     using (var client = new System.Net.WebClient())
                     {
                         var documentBytes = client.DownloadData(url);
-                        // Bu yerda document ni saqlash logikasi bo'lishi mumkin
+                        // Bu yerda hujjat ni saqlash logikasi bo'lishi mumkin
                     }
                 }
                 catch (Exception ex)
@@ -105,7 +105,7 @@ namespace tahsinERP.Controllers
             return Json(new { error = 0 });
         }
 
-        // POST: STDCompanyStandards/UploadImage (OnlyOffice image upload)
+        // POST so'rovi: STDCompanyStandards/UploadImage (OnlyOffice image upload)
         [HttpPost]
         public async Task<ActionResult> UploadImage()
         {
@@ -165,7 +165,7 @@ namespace tahsinERP.Controllers
 
         private byte[] CreateEmptyDocx()
         {
-            // Bo'sh Word document yaratish
+            // Bo'sh Word hujjat yaratish
             using (var memoryStream = new MemoryStream())
             {
                 using (var wordDocument = WordprocessingDocument.Create(memoryStream, WordprocessingDocumentType.Document))
@@ -188,7 +188,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: STDCompanyStandards/Create
+        // POST so'rovi: STDCompanyStandards/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(STDCompanyStandardsCreateViewModel model)
@@ -353,7 +353,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: STDCompanyStandards/Edit/5
+        // Olish so'rovi: STDCompanyStandards/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -398,7 +398,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: STDCompanyStandards/Edit/5
+        // POST so'rovi: STDCompanyStandards/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(STDCompanyStandardsEditViewModel model)
@@ -437,7 +437,7 @@ namespace tahsinERP.Controllers
                     standard.VersionNo = model.NewVersionNo;
                     standard.Notes = model.Notes?.Trim();
 
-                    // Document title ni yangilash
+                    // hujjat title ni yangilash
                     if (standard.DOC_DOCUMENTS != null)
                     {
                         standard.DOC_DOCUMENTS.Title = model.StandardCode;
@@ -558,7 +558,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: STDCompanyStandards/Details/5
+        // Olish so'rovi: STDCompanyStandards/Details/5
         public async Task<ActionResult> Details(long? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -638,7 +638,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: STDCompanyStandards/Delete/5
+        // Olish so'rovi: STDCompanyStandards/o'chirish/5
         public async Task<ActionResult> Delete(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -669,7 +669,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: STDCompanyStandards/Delete/5
+        // POST so'rovi: STDCompanyStandards/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
@@ -694,7 +694,7 @@ namespace tahsinERP.Controllers
 
                     var standardCode = standard.StandardCode;
 
-                    // DOC_DOCUMENTS ni soft delete qilish
+                    // DOC_DOCUMENTS ni soft o'chirish qilish
                     if (standard.DOC_DOCUMENTS != null)
                     {
                         standard.DOC_DOCUMENTS.IsDeleted = true;
@@ -721,7 +721,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: STDCompanyStandards/DownloadFile/5
+        // Olish so'rovi: STDCompanyStandards/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long? fileId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -742,11 +742,11 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Rasmlar uchun to'g'ri MIME type
+                // Rasmlar uchun ga'g'ri MIME type
                 var mimeType = file.MimeType;
                 if (string.IsNullOrEmpty(mimeType))
                 {
-                    // File extension dan MIME type ni aniqlash
+                    // fayl extension dan MIME type ni aniqlash
                     mimeType = GetMimeTypeFromExtension(file.FileExtension);
                 }
 
@@ -766,7 +766,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: STDCompanyStandards/GetImage/5 - Rasmlarni ko'rsatish uchun
+        // Olish so'rovi: STDCompanyStandards/GetImage/5 - Rasmlarni ko'rsatish uchun
         public async Task<ActionResult> GetImage(long? fileId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -828,7 +828,7 @@ namespace tahsinERP.Controllers
             return mimeTypes.ContainsKey(ext) ? mimeTypes[ext] : "application/octet-stream";
         }
 
-        // Helper methods
+        // yordamchi methods
         private int GetOrCreateDocumentTypeID(DBTHSNEntities db, string typeName)
         {
             var docType = db.DOC_DOCUMENT_TYPES.FirstOrDefault(dt => dt.Name == typeName);

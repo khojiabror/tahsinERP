@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class RoleController : Controller
     {
-        // GET: Role
+        // Olish so'rovi: Role
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -49,7 +49,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Role/Create
+        // Olish so'rovi: Role/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -60,7 +60,7 @@ namespace tahsinERP.Controllers
             return View();
         }
 
-        // POST: Role/Create
+        // POST so'rovi: Role/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ROLE role)
@@ -101,7 +101,7 @@ namespace tahsinERP.Controllers
                     db.ROLES.Add(newRole);
                     await db.SaveChangesAsync();
 
-                    // Barcha modullar uchun default permission yaratish (ViewPermit = true, ChangePermit = false, DeletePermit = false)
+                    // Barcha modullar uchun standart permission yaratish (ViewPermit = true, ChangePermit = false, DeletePermit = false)
                     var modules = await db.PERMISSIONMODULES.ToListAsync();
                     foreach (var module in modules)
                     {
@@ -134,7 +134,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Role/Edit/5
+        // Olish so'rovi: Role/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -166,7 +166,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Role/Edit/5
+        // POST so'rovi: Role/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(int id, ROLE role)
@@ -231,7 +231,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Role/Delete/5
+        // Olish so'rovi: Role/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -273,7 +273,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Role/Delete/5
+        // POST so'rovi: Role/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -300,7 +300,7 @@ namespace tahsinERP.Controllers
                         return RedirectToAction("Index");
                     }
 
-                    // Soft delete
+                    // Soft o'chirish
                     role.IsDeleted = true;
                     await db.SaveChangesAsync();
 
@@ -320,7 +320,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Role/Details/5
+        // Olish so'rovi: Role/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -348,7 +348,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: Role/Permissions/5
+        // Olish so'rovi: Role/Permissions/5
         public async Task<ActionResult> Permissions(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -408,7 +408,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: Role/Permissions
+        // POST so'rovi: Role/Permissions
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Permissions(RolePermissionsViewModel model)

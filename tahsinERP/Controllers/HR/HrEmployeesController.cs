@@ -10,7 +10,7 @@ using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
 {
-    // Helper class for SQL query result
+    // yordamchi class uchun SQL query result
     public class HistoryWithDates
     {
         public int ID { get; set; }
@@ -32,7 +32,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/Employees
+        // Olish so'rovi: HR/Employees
         public async Task<ActionResult> Index(int? orgUnitId, int? positionId, string status)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
@@ -55,20 +55,20 @@ namespace tahsinERP.Controllers.HR
                 query = query.Where(e => e.PositionID == positionId.Value);
             }
 
-            // Default: show only active employees (not dismissed)
+            // standart: show faqat faol employees (not dismissed)
             if (status == "InActive")
             {
                 query = query.Where(e => !e.IsActive || e.DismissalDate != null);
             }
             else
             {
-                // Show only active employees (IsActive = true and DismissalDate is null)
+                // Show faqat faol employees (IsActive = true va DismissalDate is null)
                 query = query.Where(e => e.IsActive && e.DismissalDate == null);
             }
 
             var employees = await query.OrderBy(e => e.FullName).ToListAsync();
 
-            // Get latest position for each employee from history
+            // Olish latest position uchun har bir employee dan history
             var employeeIds = employees.Select(e => e.ID).ToList();
             var latestHistory = await db.HR_EMPLOYEE_HISTORY
                 .Include(h => h.HR_ORG_UNITS1) // ToOrgUnitID navigation
@@ -84,11 +84,11 @@ namespace tahsinERP.Controllers.HR
             var viewModels = employees.Select(e => {
                 var latestTransfer = latestHistory.FirstOrDefault(h => h.EmployeeID == e.ID)?.LatestHistory;
                 
-                // Use current position if no transfer history, otherwise use latest transfer position
+                // Use current position agar no transfer history, otherwise use latest transfer position
                 var currentOrgUnitID = latestTransfer?.ToOrgUnitID ?? e.OrgUnitID;
                 var currentPositionID = latestTransfer?.ToPositionID ?? e.PositionID;
                 
-                // Get names
+                // Olish names
                 var currentOrgUnit = latestTransfer?.HR_ORG_UNITS1 ?? e.HR_ORG_UNITS;
                 var currentPosition = latestTransfer?.HR_POSITIONS1 ?? e.HR_POSITIONS;
 
@@ -122,7 +122,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModels);
         }
 
-        // GET: HR/Employees/Details/5
+        // Olish so'rovi: HR/Employees/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
@@ -146,7 +146,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Get employee history - simple query
+            // Olish employee history - simple query
             var allHistory = db.HR_EMPLOYEE_HISTORY
                 .Include(h => h.HR_ORG_UNITS)
                 .Include(h => h.HR_POSITIONS)
@@ -171,10 +171,10 @@ namespace tahsinERP.Controllers.HR
                 IsActive = employee.IsActive
             };
 
-            // Pass history to view with EffectiveDateFrom and EffectiveDateTo from database
+            // Pass history ga view bilan EffectiveDateFrom va EffectiveDateTo dan database
             var historyList = new List<HrEmployeeHistoryViewModel>();
             
-            // Use Entity Framework with Include to ensure navigation properties are loaded
+            // Use Entity Framework bilan Include ga ensure navigation properties are loaded
             var historyRecords = await db.HR_EMPLOYEE_HISTORY
                 .Include(h => h.HR_ORG_UNITS)
                 .Include(h => h.HR_POSITIONS)
@@ -187,7 +187,7 @@ namespace tahsinERP.Controllers.HR
                 DateTime effectiveDateFrom = h.EffectiveDateFrom;
                 DateTime? effectiveDateTo = h.EffectiveDateTo;
                 
-                // If EffectiveDateTo is null, try to get from next record or employee DismissalDate
+                // agar EffectiveDateTo is null, try ga get dan next record yoki employee DismissalDate
                 if (!effectiveDateTo.HasValue)
                 {
                     var nextRecord = historyRecords
@@ -217,11 +217,11 @@ namespace tahsinERP.Controllers.HR
             
             ViewBag.History = historyList;
 
-            logger.Log("HrEmployees", "Details", $"ID: {id}");
+            logger.Log("HrEmployees", "Details", $"Xodim: {viewModel.FullName} ({viewModel.TabNo ?? "-"})");
             return View(viewModel);
         }
 
-        // GET: HR/Employees/Create
+        // Olish so'rovi: HR/Employees/yaratish
         public async Task<ActionResult> Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
@@ -229,7 +229,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Generate next TabNo automatically
+            // Yaratish next TabNo automatically
             string nextTabNo = await GenerateNextTabNo();
 
             ViewBag.OrgUnitID = new SelectList(
@@ -249,7 +249,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/Employees/Create
+        // POST so'rovi: HR/Employees/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HrEmployeeViewModel viewModel)
@@ -261,14 +261,14 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Generate TabNo automatically if not provided or empty
+                // Yaratish TabNo automatically agar not provided yoki empty
                 string tabNo = viewModel.TabNo;
                 if (string.IsNullOrWhiteSpace(tabNo))
                 {
                     tabNo = await GenerateNextTabNo();
                 }
 
-                // Check if TabNo already exists
+                // Tekshirish agar TabNo already mavjud
                 var existing = await db.HR_EMPLOYEES
                     .FirstOrDefaultAsync(e => e.TabNo == tabNo);
                 if (existing != null)
@@ -296,7 +296,7 @@ namespace tahsinERP.Controllers.HR
                 db.HR_EMPLOYEES.Add(employee);
                 await db.SaveChangesAsync();
 
-                // Create HrEmployeeHistory record for the new employee
+                // Yaratish HrEmployeeHistory record uchun the new employee
                 if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
                 {
                     var history = new HR_EMPLOYEE_HISTORY
@@ -308,17 +308,28 @@ namespace tahsinERP.Controllers.HR
                         ToOrgUnitID = null,
                         ToPositionID = null,
                         EffectiveDateFrom = employee.EmploymentDate.Value, // Employment start date
-                        EffectiveDateTo = employee.DismissalDate, // Dismissal date (if any)
+                        EffectiveDateTo = employee.DismissalDate, // Dismissal date (agar any)
                         Reason = "Ishga qabul qilingan",
                         CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
                         CreatedDT = DateTime.Now
                     };
 
                     db.HR_EMPLOYEE_HISTORY.Add(history);
-                    await db.SaveChangesAsync(); // Save history record
+                    await db.SaveChangesAsync(); // saqlash history record
+                    var orgUnit = await db.HR_ORG_UNITS.FindAsync(employee.OrgUnitID.Value);
+                    var position = await db.HR_POSITIONS.FindAsync(employee.PositionID.Value);
+                    var orgUnitName = orgUnit?.Name ?? "-";
+                    var positionName = position?.Name ?? "-";
+                    logger.Log("HrEmployees", "CreateHistory", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {orgUnitName}, Lavozim: {positionName}, Sabab: {history.Reason}");
                 }
 
-                logger.Log("HrEmployees", "Create", $"ID: {employee.ID}, TabNo: {employee.TabNo}");
+                var orgUnitNameCreate = employee.OrgUnitID.HasValue
+                    ? (await db.HR_ORG_UNITS.FindAsync(employee.OrgUnitID.Value))?.Name ?? "-"
+                    : "Butun kompaniya";
+                var positionNameCreate = employee.PositionID.HasValue
+                    ? (await db.HR_POSITIONS.FindAsync(employee.PositionID.Value))?.Name ?? "-"
+                    : "-";
+                logger.Log("HrEmployees", "Create", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {orgUnitNameCreate}, Lavozim: {positionNameCreate}");
                 return RedirectToAction("Index");
             }
 
@@ -326,7 +337,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // GET: HR/Employees/Edit/5
+        // Olish so'rovi: HR/Employees/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
@@ -363,7 +374,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // POST: HR/Employees/Edit/5
+        // POST so'rovi: HR/Employees/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HrEmployeeViewModel viewModel)
@@ -375,7 +386,7 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Check if TabNo already exists for another employee
+                // Tekshirish agar TabNo already mavjud uchun another employee
                 var existing = await db.HR_EMPLOYEES
                     .FirstOrDefaultAsync(e => e.TabNo == viewModel.TabNo && e.ID != viewModel.ID && e.IsActive);
                 if (existing != null)
@@ -405,7 +416,13 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(employee).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                logger.Log("HrEmployees", "Edit", $"ID: {viewModel.ID}");
+                var orgUnitName = employee.OrgUnitID.HasValue
+                    ? (await db.HR_ORG_UNITS.FindAsync(employee.OrgUnitID.Value))?.Name ?? "-"
+                    : "Butun kompaniya";
+                var positionName = employee.PositionID.HasValue
+                    ? (await db.HR_POSITIONS.FindAsync(employee.PositionID.Value))?.Name ?? "-"
+                    : "-";
+                logger.Log("HrEmployees", "Edit", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {orgUnitName}, Lavozim: {positionName}");
                 return RedirectToAction("Index");
             }
 
@@ -413,7 +430,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // POST: HR/Employees/Delete/5
+        // POST so'rovi: HR/Employees/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int id)
@@ -429,7 +446,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Soft delete - set IsActive to false
+            // Soft o'chirish - set IsActive ga false
             employee.IsActive = false;
             employee.DismissalDate = DateTime.Now;
             employee.UpdatedDT = DateTime.Now;
@@ -437,17 +454,23 @@ namespace tahsinERP.Controllers.HR
             db.Entry(employee).State = EntityState.Modified;
             await db.SaveChangesAsync();
 
-            logger.Log("HrEmployees", "Delete", $"ID: {id}");
+            var orgUnitNameDelete = employee.OrgUnitID.HasValue
+                ? (await db.HR_ORG_UNITS.FindAsync(employee.OrgUnitID.Value))?.Name ?? "-"
+                : "Butun kompaniya";
+            var positionNameDelete = employee.PositionID.HasValue
+                ? (await db.HR_POSITIONS.FindAsync(employee.PositionID.Value))?.Name ?? "-"
+                : "-";
+            logger.Log("HrEmployees", "Delete", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {orgUnitNameDelete}, Lavozim: {positionNameDelete}");
             return RedirectToAction("Index");
         }
 
         /// <summary>
-        /// Generates the next TabNo by finding the highest TabNo that starts with '0' and adding 1
-        /// Format: 4 digits with leading zeros (e.g., 0001, 0009, 0010, 0099, 0100)
+        /// Generates the next TabNo by finding the highest TabNo that starts bilan '0' va adding 1
+        /// Format: 4 digits bilan leading zeros (e.g., 0001, 0009, 0010, 0099, 0100)
         /// </summary>
         private async Task<string> GenerateNextTabNo()
         {
-            // Get all TabNo values that start with '0' (4-digit format)
+            // Olish barcha TabNo values that start bilan '0' (4-digit format)
             var tabNos = await db.HR_EMPLOYEES
                 .Where(e => e.TabNo != null && e.TabNo.StartsWith("0") && e.TabNo.Length == 4)
                 .Select(e => e.TabNo)
@@ -455,11 +478,11 @@ namespace tahsinERP.Controllers.HR
 
             if (tabNos == null || !tabNos.Any())
             {
-                // No TabNo starting with 0 exists, start from 0001
+            // 0 bilan boshlanuvchi TabNo mavjud emas, 0001 dan boshlaymiz
                 return "0001";
             }
 
-            // Parse all TabNo values to integers and find the maximum
+            // Barcha TabNo qiymatlarini butun songa o'tkazib, maksimalini topamiz
             int maxTabNo = 0;
             foreach (var tabNo in tabNos)
             {
@@ -472,16 +495,16 @@ namespace tahsinERP.Controllers.HR
                 }
             }
 
-            // Increment by 1 and format as 4-digit string with leading zeros
+            // 1 ga oshirib, oldi nol bilan 4 xonali formatga keltiramiz
             int nextTabNo = maxTabNo + 1;
             
-            // Ensure it doesn't exceed 9999 (4 digits max)
+            // Qiymat 9999 dan oshmasligini tekshiramiz (maksimal 4 xonali)
             if (nextTabNo > 9999)
             {
-                throw new InvalidOperationException("TabNo has reached the maximum value (9999). Please contact administrator.");
+                throw new InvalidOperationException("Tabel raqami maksimal qiymatga (9999) yetdi. Iltimos, administratorga murojaat qiling.");
             }
 
-            return nextTabNo.ToString("D4"); // Format as 4-digit string with leading zeros
+            return nextTabNo.ToString("D4"); // 4 xonali, oldidan nol bilan format
         }
 
         private async Task PopulateViewBags(HrEmployeeViewModel viewModel)
@@ -499,7 +522,7 @@ namespace tahsinERP.Controllers.HR
                 "ID", "Name", viewModel.SalaryGradeID);
         }
 
-        // GET: HR/Employees/Dismiss/5
+        // Olish so'rovi: HR/Employees/Dismiss/5
         public async Task<ActionResult> Dismiss(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
@@ -532,7 +555,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/Employees/Dismiss/5
+        // POST so'rovi: HR/Employees/Dismiss/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Dismiss(int id, DateTime dismissalDate, string reason)
@@ -558,12 +581,12 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            // Create history record for the last position (from EmploymentDate to dismissalDate)
+            // EmploymentDate dan dismissalDate gacha bo'lgan oxirgi lavozim bo'yicha tarix yozuvi yaratish
             if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
             {
                 try
                 {
-                    // Create HR_EMPLOYEE_HISTORY object using Entity Framework
+                    // Entity Framework orqali HR_EMPLOYEE_HISTORY obyektini yaratish
                     var history = new HR_EMPLOYEE_HISTORY
                     {
                         EmployeeID = id,
@@ -572,8 +595,8 @@ namespace tahsinERP.Controllers.HR
                         FromPositionID = employee.PositionID,
                         ToOrgUnitID = null,
                         ToPositionID = null,
-                        EffectiveDateFrom = employee.EmploymentDate.Value, // Employment start date
-                        EffectiveDateTo = dismissalDate, // Dismissal date
+                        EffectiveDateFrom = employee.EmploymentDate.Value, // Ish boshlagan sana
+                        EffectiveDateTo = dismissalDate, // Ishdan bo'shatilgan sana
                         Reason = reason,
                         CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
                         CreatedDT = DateTime.Now
@@ -583,12 +606,12 @@ namespace tahsinERP.Controllers.HR
                 }
                 catch (Exception ex)
                 {
-                    // Log error but continue with employee update
-                    System.Diagnostics.Debug.WriteLine($"Error creating history record: {ex.Message}");
+                    // Tarix yozuvi xatoligini qayd etib, xodim yangilanishini davom ettiramiz
+                    System.Diagnostics.Debug.WriteLine($"Tarix yozuvini yaratishda xatolik: {ex.Message}");
                 }
             }
 
-            // Update employee
+            // Yangilash employee
             employee.DismissalDate = dismissalDate;
             employee.IsActive = false;
             employee.UpdatedDT = DateTime.Now;
@@ -603,12 +626,18 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Dismiss", new { id });
             }
 
-            logger.Log("HrEmployees", "Dismiss", $"ID: {id}, Date: {dismissalDate}");
+            var orgUnitNameDismiss = employee.OrgUnitID.HasValue
+                ? (await db.HR_ORG_UNITS.FindAsync(employee.OrgUnitID.Value))?.Name ?? "-"
+                : "Butun kompaniya";
+            var positionNameDismiss = employee.PositionID.HasValue
+                ? (await db.HR_POSITIONS.FindAsync(employee.PositionID.Value))?.Name ?? "-"
+                : "-";
+            logger.Log("HrEmployees", "Dismiss", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {orgUnitNameDismiss}, Lavozim: {positionNameDismiss}, Sana: {dismissalDate:dd.MM.yyyy}");
             TempData["Success"] = "Xodim muvaffaqiyatli ishdan bo'shatildi";
             return RedirectToAction("Index");
         }
 
-        // GET: HR/Employees/Transfer/5
+        // Olish so'rovi: HR/Employees/Transfer/5
         public async Task<ActionResult> Transfer(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
@@ -650,7 +679,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/Employees/Transfer/5
+        // POST so'rovi: HR/Employees/Transfer/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Transfer(int id, int toOrgUnitId, int toPositionId, DateTime effectiveDate, string reason)
@@ -682,12 +711,12 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Transfer", new { id });
             }
 
-            // Create history record for the OLD position (from EmploymentDate to effectiveDate - new position start date)
+            // Yaratish history record uchun the OLD position (dan EmploymentDate ga effectiveDate - new position start date)
             if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
             {
                 try
                 {
-                    // Create HR_EMPLOYEE_HISTORY object using Entity Framework
+                    // Yaratish HR_EMPLOYEE_HISTORY object foydalanib Entity Framework
                     var history = new HR_EMPLOYEE_HISTORY
                     {
                         EmployeeID = id,
@@ -707,12 +736,12 @@ namespace tahsinERP.Controllers.HR
                 }
                 catch (Exception ex)
                 {
-                    // Log error but continue with employee update
+                    // Log xatolik but continue bilan employee yangilash
                     System.Diagnostics.Debug.WriteLine($"Error creating history record: {ex.Message}");
                 }
             }
 
-            // Update employee to new position
+            // Yangilash employee ga new position
             employee.OrgUnitID = toOrgUnitId;
             employee.PositionID = toPositionId;
             employee.EmploymentDate = effectiveDate; // New position start date
@@ -728,7 +757,11 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Transfer", new { id });
             }
 
-            logger.Log("HrEmployees", "Transfer", $"ID: {id}, ToOrgUnit: {toOrgUnitId}, ToPosition: {toPositionId}");
+            var newOrgUnit = await db.HR_ORG_UNITS.FindAsync(toOrgUnitId);
+            var newPosition = await db.HR_POSITIONS.FindAsync(toPositionId);
+            var newOrgUnitName = newOrgUnit?.Name ?? "-";
+            var newPositionName = newPosition?.Name ?? "-";
+            logger.Log("HrEmployees", "Transfer", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), YangiBo'lim: {newOrgUnitName}, YangiLavozim: {newPositionName}, Sana: {effectiveDate:dd.MM.yyyy}");
             TempData["Success"] = "Xodim muvaffaqiyatli transfer qilindi";
             return RedirectToAction("Index");
         }

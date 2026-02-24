@@ -73,21 +73,21 @@
 
                                 <div class="row mt-1">
                                     <div class="col-md-3">
-                                        <label>Tarif asosi</label>
+                                        <label>@tahsinERP.Services.LogisticsTerms.TariffBasis</label>
                                         @Html.DropDownListFor(model => model.FreightBasis, new SelectList(new[]
                                         {
                                             new { Value = (byte)0, Text = "Mashina uchun" },
                                             new { Value = (byte)1, Text = "Ton uchun" },
                                             new { Value = (byte)2, Text = "KM uchun" },
-                                            new { Value = (byte)3, Text = "Flat" }
+                                            new { Value = (byte)3, Text = "Belgilangan narx" }
                                         }, "Value", "Text"), "Tanlang", new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-3">
-                                        <label>Rate</label>
+                                        <label>@tahsinERP.Services.LogisticsTerms.TariffRate</label>
                                         @Html.TextBoxFor(model => model.Rate, new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-3">
-                                        <label>Minimum Charge</label>
+                                        <label>Eng kam to'lov summasi</label>
                                         @Html.TextBoxFor(model => model.MinimumCharge, new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-3">

@@ -11,16 +11,16 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class UserManualController : Controller
     {
-        // GET: UserManual
+        // Olish so'rovi: UserManual
         public ActionResult Index()
         {
-            // Check if user is authenticated
+            // Tekshirish agar user is authenticated
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            // Check basic view permission (everyone with system access can view manual)
+            // Tekshirish basic view permission (everyone bilan system access can view manual)
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Layout"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
@@ -30,7 +30,7 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
-        // GET: UserManual/GetChapter
+        // Olish so'rovi: UserManual/GetChapter
         [HttpGet]
         public ActionResult GetChapter(string slug)
         {
@@ -44,7 +44,7 @@ namespace tahsinERP.Controllers
 
             if (chapter == null)
             {
-                return Json(new { error = "Chapter not found" }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = "Bo'lim topilmadi" }, JsonRequestBehavior.AllowGet);
             }
 
             return Json(new { 

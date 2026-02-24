@@ -1,7 +1,7 @@
-﻿@model tahsinERP.ViewModels.TransportTypeViewModel
+@model tahsinERP.ViewModels.TransportTypeViewModel
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Transport turini qo'shish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -47,10 +47,10 @@
                                                     <hr>
                                                     <h4 class="text-primary">Transport turi</h4>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.TransportType, new { @class = "form-control round", @placeholder = "TransportType" })
+                                                        @Html.TextBoxFor(model => model.TransportType, new { @class = "form-control round", @placeholder = "Transport turi" })
                                                         @Html.ValidationMessageFor(model => model.TransportType, "", new { @class = "text-danger" })
                                                     </fieldset>                               
-                                                    <h6 class="invoice-to">Unit</h6>
+                                                    <h6 class="invoice-to">O'lchov birligi</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.DropDownListFor(model => model.UnitID, ViewBag.units as SelectList, "", new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
@@ -106,7 +106,7 @@
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
                                                                 <i class='bx bx-save'></i>
-                                                                Save
+                                                                Saqlash
                                                             </button>
                                                         </li>
                                                     </ul>

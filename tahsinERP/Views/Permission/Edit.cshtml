@@ -1,4 +1,4 @@
-﻿@model tahsinERP.Models.ROLE
+@model tahsinERP.Models.ROLE
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -15,7 +15,7 @@
                             <table class="table mt-1">
                                 <thead>
                                     <tr>
-                                        <th>Module</th>
+                                        <th>Modul</th>
                                         <th>O'zgartirish</th>
                                         <th>Ko'rish</th>
                                     </tr>
@@ -42,9 +42,9 @@
                                 }
                             </table>
 
-                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="save" type="submit" value="Save">
+                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="save" type="submit" value="Saqlash">
                                 <i class='bx bx-save'></i>
-                                Save
+                                Saqlash
                             </button>
 
                             <div class="row">

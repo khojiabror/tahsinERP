@@ -1,4 +1,4 @@
-﻿using System.Data.Entity;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -9,7 +9,7 @@ namespace tahsinERP.Controllers
 {
     public class PermissionController : Controller
     {
-        // GET: Permission
+        // Olish so'rovi: Permission
         public ActionResult Index()
         {
             return View();
@@ -38,7 +38,7 @@ namespace tahsinERP.Controllers
                     bool changePermit = permission.ChangePermit;
                     bool viewPermit = permission.ViewPermit;
 
-                    // Update the database with the new permission values
+                    // Yangilash the database bilan the new permission values
                     var perm = db.PERMISSIONS.Find(permission.ID);
                     if (perm != null)
                     {
@@ -52,7 +52,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Redirect to a relevant page after saving the changes
+            // Redirect ga a relevant page after saving the changes
             return RedirectToAction("Index", "Role");
         }
 

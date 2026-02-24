@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/Dashboard
+        // Olish so'rovi: HR/Dashboard
         public async Task<ActionResult> Index(int? year, int? month, int? orgUnitId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
@@ -110,7 +110,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Headcount trend (last 6 months)
-            // For simplicity, using current headcount for all months
+            // uchun simplicity, foydalanib current headcount uchun barcha months
             // In a real scenario, you'd track historical headcount
             for (int i = 5; i >= 0; i--)
             {

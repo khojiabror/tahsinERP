@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers.HR
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
         }
 
-        // GET: HR/SalaryGrades
+        // Olish so'rovi: HR/SalaryGrades
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrSalaryGrades"))
@@ -49,7 +49,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModels);
         }
 
-        // GET: HR/SalaryGrades/Details/5
+        // Olish so'rovi: HR/SalaryGrades/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrSalaryGrades"))
@@ -82,11 +82,11 @@ namespace tahsinERP.Controllers.HR
                 EffectiveTo = grade.EffectiveTo
             };
 
-            logger.Log("HrSalaryGrades", "Details", $"ID: {id}");
+            logger.Log("HrSalaryGrades", "Details", $"Daraja: {viewModel.Name}, Kod: {viewModel.GradeCode}");
             return View(viewModel);
         }
 
-        // GET: HR/SalaryGrades/Create
+        // Olish so'rovi: HR/SalaryGrades/yaratish
         public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrSalaryGrades"))
@@ -101,7 +101,7 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
-        // POST: HR/SalaryGrades/Create
+        // POST so'rovi: HR/SalaryGrades/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HrSalaryGradeViewModel viewModel)
@@ -113,7 +113,7 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Validate Min <= Max
+                // Tekshirish Min <= Max
                 if (viewModel.MinSalary > viewModel.MaxSalary)
                 {
                     ModelState.AddModelError("MaxSalary", "Максимальная зарплата должна быть больше или равна минимальной");
@@ -123,7 +123,7 @@ namespace tahsinERP.Controllers.HR
                     return View(viewModel);
                 }
 
-                // Check for overlapping date ranges
+                // Tekshirish uchun overlapping date ranges
                 var overlapping = await db.HR_SALARY_GRADES
                     .Where(sg => sg.GradeCode == viewModel.GradeCode &&
                         ((sg.EffectiveFrom <= viewModel.EffectiveFrom && (!sg.EffectiveTo.HasValue || sg.EffectiveTo >= viewModel.EffectiveFrom)) ||
@@ -153,7 +153,7 @@ namespace tahsinERP.Controllers.HR
                 db.HR_SALARY_GRADES.Add(grade);
                 await db.SaveChangesAsync();
 
-                logger.Log("HrSalaryGrades", "Create", $"ID: {grade.ID}, Code: {grade.GradeCode}");
+                logger.Log("HrSalaryGrades", "Create", $"Daraja: {grade.Name}, Kod: {grade.GradeCode}");
                 return RedirectToAction("Index");
             }
 
@@ -163,7 +163,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // GET: HR/SalaryGrades/Edit/5
+        // Olish so'rovi: HR/SalaryGrades/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrSalaryGrades"))
@@ -200,7 +200,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // POST: HR/SalaryGrades/Edit/5
+        // POST so'rovi: HR/SalaryGrades/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HrSalaryGradeViewModel viewModel)
@@ -212,7 +212,7 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // Validate Min <= Max
+                // Tekshirish Min <= Max
                 if (viewModel.MinSalary > viewModel.MaxSalary)
                 {
                     ModelState.AddModelError("MaxSalary", "Максимальная зарплата должна быть больше или равна минимальной");
@@ -222,7 +222,7 @@ namespace tahsinERP.Controllers.HR
                     return View(viewModel);
                 }
 
-                // Check for overlapping date ranges (excluding current record)
+                // Tekshirish uchun overlapping date ranges (excluding current record)
                 var overlapping = await db.HR_SALARY_GRADES
                     .Where(sg => sg.ID != viewModel.ID &&
                         sg.GradeCode == viewModel.GradeCode &&
@@ -256,7 +256,7 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(grade).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                logger.Log("HrSalaryGrades", "Edit", $"ID: {viewModel.ID}");
+                logger.Log("HrSalaryGrades", "Edit", $"Daraja: {viewModel.Name}, Kod: {viewModel.GradeCode}");
                 return RedirectToAction("Index");
             }
 
@@ -266,7 +266,7 @@ namespace tahsinERP.Controllers.HR
             return View(viewModel);
         }
 
-        // POST: HR/SalaryGrades/Delete/5
+        // POST so'rovi: HR/SalaryGrades/o'chirish/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int id)
@@ -282,7 +282,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Check if used in staffing plan
+            // Tekshirish agar used in staffing plan
             var usedInStaffing = await db.HR_STAFFING_PLAN.AnyAsync(sp => sp.SalaryGradeID == id);
             if (usedInStaffing)
             {
@@ -294,7 +294,7 @@ namespace tahsinERP.Controllers.HR
             db.Entry(grade).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
-            logger.Log("HrSalaryGrades", "Delete", $"ID: {id}");
+            logger.Log("HrSalaryGrades", "Delete", $"Daraja: {grade.Name}, Kod: {grade.GradeCode}");
             return RedirectToAction("Index");
         }
 

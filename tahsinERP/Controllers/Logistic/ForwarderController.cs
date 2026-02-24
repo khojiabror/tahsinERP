@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
 {
     public class ForwarderController : Controller
     {
-        // GET: Forwarder
+        // Olish so'rovi: Forwarder
         public async Task<ActionResult> Index()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -57,13 +57,13 @@ namespace tahsinERP.Controllers
                 {
                     if (ModelState.IsValid)
                     {
-                        // Set IsDeleted to false and save the forwarder to get the ID
+                        // Belgilash IsDeleted ga false va saqlash the forwarder ga get the ID
                         forwarder.IsDeleted = false;
                         db.FORWARDERS.Add(forwarder);
                         await db.SaveChangesAsync();
 
                         var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "ForwarderController", "Create", $"{forwarder.ForwarderName} - Forwarderni yaratdi");
+                        LogHelper.LogToDatabase(userEmail, "ForwarderController", "Create", $"{forwarder.ForwarderName} - yuk tashuvchi yaratildi.");
 
                         return RedirectToAction("Index");
                     }
@@ -217,7 +217,7 @@ namespace tahsinERP.Controllers
                     var forwarderToUpdate = await db.FORWARDERS.FindAsync(forwarder.ID);
                     if (forwarderToUpdate == null)
                     {
-                        ModelState.AddModelError("", "Forwarder topilmadi.");
+                        ModelState.AddModelError("", "Yuk tashuvchi topilmadi.");
                         return View(forwarder);
                     }
 
@@ -232,7 +232,7 @@ namespace tahsinERP.Controllers
                         await db.SaveChangesAsync();
 
                         var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "ForwarderController", "Edit", $"{forwarder.ForwarderName} - Forwarderni tahrirladi");
+                        LogHelper.LogToDatabase(userEmail, "ForwarderController", "Edit", $"{forwarder.ForwarderName} - yuk tashuvchi tahrirlandi.");
 
                         return RedirectToAction("Index");
                     }
@@ -295,7 +295,7 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "ForwarderController", "Delete", $"{forwarderToDelete.ForwarderName} - Forwarderni o'chirdi");
+                            LogHelper.LogToDatabase(userEmail, "ForwarderController", "Delete", $"{forwarderToDelete.ForwarderName} - yuk tashuvchi o'chirildi.");
 
                             return RedirectToAction("Index");
                         }
@@ -311,7 +311,7 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Forwarder topilmadi.");
+                        ModelState.AddModelError("", "Yuk tashuvchi topilmadi.");
                     }
                 }
                 else
@@ -324,7 +324,7 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Get waybills for a specific forwarder (for AJAX calls)
+        /// Get waybills uchun a specific forwarder (uchun AJAX calls)
         /// </summary>
         public async Task<ActionResult> GetWaybills(int? forwarderId)
         {

@@ -22,7 +22,7 @@ namespace tahsinERP.Controllers.Engineering
             _tannarxService = new TannarxService(db);
         }
 
-        // GET: Tannarx
+        // Olish so'rovi: Tannarx
         public async Task<ActionResult> Index(int? year, int? month, int? productID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
@@ -30,19 +30,20 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Default to current year and month if not provided
+            // standart ga current year; month supports "barcha months" filtrlash
             var currentYear = year ?? DateTime.Now.Year;
-            var currentMonth = month ?? DateTime.Now.Month;
+            bool hasMonthFilter = !string.IsNullOrWhiteSpace(Request.QueryString["month"]);
+            int? currentMonth = hasMonthFilter ? month : DateTime.Now.Month;
 
             ViewBag.Year = currentYear;
             ViewBag.Month = currentMonth;
             ViewBag.ProductID = productID;
 
-            // Get years for dropdown (last 5 years to next 5 years)
+            // Olish years uchun dropdown (last 5 years ga next 5 years)
             var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
             ViewBag.Years = new SelectList(years, currentYear);
 
-            // Get months for dropdown
+            // Olish months uchun dropdown
             var months = new List<SelectListItem>
             {
                 new SelectListItem { Value = "1", Text = "Yanvar" },
@@ -60,8 +61,8 @@ namespace tahsinERP.Controllers.Engineering
             };
             ViewBag.Months = new SelectList(months, "Value", "Text", currentMonth);
 
-            // Get products for dropdown (finished goods only)
-            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
+            // Olish products uchun dropdown (finished goods faqat)
+            // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
             var products = await db.PRODUCTS
                 .Include(p => p.PRODUCT_CATEGORIES)
                 .Where(p => p.IsDeleted == false 
@@ -74,13 +75,17 @@ namespace tahsinERP.Controllers.Engineering
                 products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }),
                 "ID", "Name", productID);
 
-            // Get tannarx records for selected year, month, and product
+            // Olish tannarx records uchun selected year, month, va product
             var query = db.TANNARXes
                 .Include(t => t.PRODUCT)
                 .Include(t => t.PRODUCT.PRODUCT_CATEGORIES)
                 .Where(t => t.Year == currentYear 
-                    && t.Month == currentMonth 
                     && t.IsDeleted == false);
+
+            if (currentMonth.HasValue)
+            {
+                query = query.Where(t => t.Month == currentMonth.Value);
+            }
 
             if (productID.HasValue)
             {
@@ -91,15 +96,19 @@ namespace tahsinERP.Controllers.Engineering
                 .OrderBy(t => t.PRODUCT.PNo)
                 .ToListAsync();
 
-            // Get count of finished goods products that have norms for this month
-            // Use TannarxService method for consistent logic
-            var finishedGoodsWithNorms = await _tannarxService.GetFinishedGoodsWithNormsCountAsync(currentYear, currentMonth);
+            // Olish count of finished goods products that have norms uchun this month
+            // Use TannarxService method uchun consistent logic
+            int finishedGoodsWithNorms = 0;
+            if (currentMonth.HasValue)
+            {
+                finishedGoodsWithNorms = await _tannarxService.GetFinishedGoodsWithNormsCountAsync(currentYear, currentMonth.Value);
+            }
 
             ViewBag.FinishedGoodsWithNormsCount = finishedGoodsWithNorms;
             ViewBag.TannarxCount = tannarxList.Count;
-            ViewBag.ShowGenerateButton = tannarxList.Count == 0 || tannarxList.Count < finishedGoodsWithNorms;
+            ViewBag.ShowGenerateButton = currentMonth.HasValue && (tannarxList.Count == 0 || tannarxList.Count < finishedGoodsWithNorms);
 
-            // Map to ViewModel
+            // Map ga ViewModel
             var viewModelList = tannarxList.Select(t => new TannarxIndexViewModel
             {
                 ID = t.ID,
@@ -130,7 +139,7 @@ namespace tahsinERP.Controllers.Engineering
             return View(viewModelList);
         }
 
-        // POST: Tannarx/Generate
+        // POST so'rovi: Tannarx/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Generate(int year, int month)
@@ -169,7 +178,7 @@ namespace tahsinERP.Controllers.Engineering
             return RedirectToAction("Index", new { year = year, month = month });
         }
 
-        // GET: Tannarx/Edit/5
+        // Olish so'rovi: Tannarx/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit"))
@@ -226,7 +235,7 @@ namespace tahsinERP.Controllers.Engineering
             return View(viewModel);
         }
 
-        // POST: Tannarx/Edit/5
+        // POST so'rovi: Tannarx/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(TannarxEditViewModel viewModel)
@@ -265,7 +274,7 @@ namespace tahsinERP.Controllers.Engineering
                 var currentUser = await db.USERS
                     .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
 
-                // Update fields
+                // Yangilash fields
                 tannarx.LaborCost = viewModel.LaborCost;
                 tannarx.TaxAndBankPercent = viewModel.TaxAndBankPercent;
                 tannarx.AdministrativeExpensesPercent = viewModel.AdministrativeExpensesPercent;
@@ -283,7 +292,7 @@ namespace tahsinERP.Controllers.Engineering
                     _tannarxService.RecalculatePricesFromSetPriceEXW(tannarx);
                 }
 
-                // Recalculate CIP prices if FinishedProductTransportCost changed
+                // Recalculate CIP prices agar FinishedProductTransportCost changed
                 if (viewModel.FinishedProductTransportCost.HasValue)
                 {
                     _tannarxService.RecalculateCIPPrices(tannarx);
@@ -306,7 +315,7 @@ namespace tahsinERP.Controllers.Engineering
             }
         }
 
-        // GET: Tannarx/Details/5
+        // Olish so'rovi: Tannarx/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
@@ -369,7 +378,7 @@ namespace tahsinERP.Controllers.Engineering
             return View(viewModel);
         }
 
-        // GET: Tannarx/Delete/5
+        // Olish so'rovi: Tannarx/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Delete"))
@@ -405,7 +414,7 @@ namespace tahsinERP.Controllers.Engineering
             return View(viewModel);
         }
 
-        // POST: Tannarx/Delete/5
+        // POST so'rovi: Tannarx/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -426,7 +435,7 @@ namespace tahsinERP.Controllers.Engineering
                     return RedirectToAction("Index");
                 }
 
-                // Soft delete
+                // Soft o'chirish
                 tannarx.IsDeleted = true;
                 tannarx.ModifiedDT = DateTime.Now;
                 var currentUser = await db.USERS

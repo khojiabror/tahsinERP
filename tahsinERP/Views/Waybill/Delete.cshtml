@@ -1,7 +1,8 @@
-﻿@model tahsinERP.Models.F_WAYBILLS
+@model tahsinERP.Models.F_WAYBILLS
 @{
-    ViewBag.Title = "Waybill o'chirish";
+    ViewBag.Title = "Yo'l varaqasi o'chirish";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var T = tahsinERP.Services.LogisticsTerms;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -19,10 +20,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item ">
-                                        <a href="~/Waybill">AKT lar</a>
+                                        <a href="~/Waybill/Index">@T.Waybills</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @Model.WaybillNo raqamli AKT o'chirish
+                                        @Model.WaybillNo raqamli @T.Waybill.ToLower()ni o'chirish
                                     </li>
                                 </ol>
                             </div>
@@ -39,13 +40,13 @@
                                     <div class="row invoice-info">
                                         <div class="col-lg-12 col-md-6 mt-25">
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                            <h4 class="text-primary">Waybill ma'lumotlari</h4>
+                                            <h4 class="text-primary">@T.Waybill ma'lumotlari</h4>
                                             <hr />
-                                            <span><b>Waybill raqami</b>: @Html.DisplayFor(model => model.WaybillNo)</span>
+                                            <span><b>@T.Waybill raqami</b>: @Html.DisplayFor(model => model.WaybillNo)</span>
                                             <hr />
                                             <span><b>Sana</b>: @(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</span>
                                             <hr />
-                                            <span><b>Forwarder</b>: @(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</span>
+                                            <span><b>@T.Forwarder</b>: @(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</span>
                                             <hr />
                                             <span><b>Shartnoma</b>: @(Model.F_CONTRACTS?.ContractNo ?? "")</span>
                                             <hr />
@@ -62,7 +63,7 @@
                                             @using (Html.BeginForm("Delete", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu shartnomani ochirib yuborishga ishonchingiz komilmi?')">
+                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu yo''l varaqasini o''chirishga ishonchingiz komilmi?')">
                                                     <i class='bx bx-trash'></i>
                                                     O'chirish
                                                 </button>

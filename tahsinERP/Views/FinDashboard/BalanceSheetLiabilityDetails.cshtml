@@ -38,7 +38,11 @@
                                 <div class="card-body">
                                     <div class="mb-2">
                                         <strong>Jami passivlar va kapital:</strong>
-                                        <span class="ml-1">@(((decimal?)ViewBag.TotalAmount ?? 0m).ToString("N2"))</span>
+                                        @{
+                                            var totalDisplay = details.Sum(d =>
+                                                d.Category.Type == 2 ? -Math.Abs(d.Amount) : d.Amount);
+                                        }
+                                        <span class="ml-1">@totalDisplay.ToString("N2")</span>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
@@ -56,6 +60,9 @@
                                             <tbody>
                                                 @foreach (var item in details)
                                                 {
+                                                    var displayAmount = item.Category.Type == 2
+                                                        ? -Math.Abs(item.Amount)
+                                                        : item.Amount;
                                                     <tr>
                                                         <td>@item.Category.Name</td>
                                                         <td>@item.CalculationTypeName</td>
@@ -63,7 +70,7 @@
                                                         <td class="text-right">@item.TransactionCount</td>
                                                         <td class="text-right">@item.AddedAmount.ToString("N2")</td>
                                                         <td class="text-right">@item.SubtractedAmount.ToString("N2")</td>
-                                                        <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                        <td class="text-right">@displayAmount.ToString("N2")</td>
                                                     </tr>
                                                 }
                                             </tbody>

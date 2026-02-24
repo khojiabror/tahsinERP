@@ -23,7 +23,7 @@ namespace tahsinERP.Controllers
             _textSuggestionService = new TextSuggestionService();
         }
 
-        // GET: CompanyOrders
+        // Olish so'rovi: CompanyOrders
         public async Task<ActionResult> Index(int? year, string orderTypeCode, string searchTerm)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index"))
@@ -87,7 +87,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: CompanyOrders/Create
+        // Olish so'rovi: CompanyOrders/yaratish
         public async Task<ActionResult> Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Create"))
@@ -117,7 +117,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: CompanyOrders/Create
+        // POST so'rovi: CompanyOrders/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CompanyOrderCreateVm vm)
@@ -136,7 +136,7 @@ namespace tahsinERP.Controllers
 
                     if (docType == null || statusDraft == null)
                     {
-                        TempData["ErrorMessage"] = "Document type or status not found. Please run seed scripts.";
+                        TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
                         return RedirectToAction("Index");
                     }
 
@@ -168,7 +168,7 @@ namespace tahsinERP.Controllers
                     db.ADM_COMPANY_ORDERS.Add(order);
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Create", $"Order {vm.OrderNo} created");
+                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Create", $"Buyruq yaratildi: {vm.OrderNo}");
 
                     TempData["Success"] = "Buyruq muvaffaqiyatli yaratildi";
                     return RedirectToAction("Index");
@@ -191,7 +191,7 @@ namespace tahsinERP.Controllers
             return View(vm);
         }
 
-        // GET: CompanyOrders/Edit/5
+        // Olish so'rovi: CompanyOrders/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Edit"))
@@ -242,7 +242,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: CompanyOrders/Edit/5
+        // POST so'rovi: CompanyOrders/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(CompanyOrderEditVm vm)
@@ -278,7 +278,7 @@ namespace tahsinERP.Controllers
 
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Edit", $"Order {vm.OrderNo} updated");
+                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Edit", $"Buyruq yangilandi: {vm.OrderNo}");
 
                     TempData["Success"] = "Buyruq muvaffaqiyatli yangilandi";
                     return RedirectToAction("Index");
@@ -301,7 +301,7 @@ namespace tahsinERP.Controllers
             return View(vm);
         }
 
-        // GET: CompanyOrders/Details/5
+        // Olish so'rovi: CompanyOrders/Details/5
         public async Task<ActionResult> Details(long? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Details"))
@@ -332,7 +332,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: CompanyOrders/Delete/5
+        // POST so'rovi: CompanyOrders/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
@@ -351,7 +351,7 @@ namespace tahsinERP.Controllers
 
                 if (doc != null)
                 {
-                    // First, soft delete all related DOC_FILES
+                    // Avval, soft o'chirish barcha related DOC_FILES
                     if (doc.DOC_FILES != null && doc.DOC_FILES.Any())
                     {
                         var files = doc.DOC_FILES.ToList();
@@ -362,19 +362,19 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Then soft delete the company order record
+                    // So'ng soft o'chirish the company order record
                     if (doc.ADM_COMPANY_ORDERS != null)
                     {
                         doc.ADM_COMPANY_ORDERS.IsDeleted = true;
                         db.Entry(doc.ADM_COMPANY_ORDERS).State = System.Data.Entity.EntityState.Modified;
                     }
 
-                    // Finally, soft delete the document record
+                    // Oxirida, soft o'chirish the hujjat record
                     doc.IsDeleted = true;
                     db.Entry(doc).State = System.Data.Entity.EntityState.Modified;
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Delete", $"Order {doc.Code} deleted");
+                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Delete", $"Buyruq o'chirildi: {doc.Code}");
 
                     TempData["Success"] = "Buyruq muvaffaqiyatli o'chirildi";
                 }
@@ -383,7 +383,7 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Index");
         }
 
-        // POST: CompanyOrders/GenerateDoc/5
+        // POST so'rovi: CompanyOrders/GenerateDoc/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> GenerateDoc(long id)
@@ -412,11 +412,11 @@ namespace tahsinERP.Controllers
 
                 if (template == null)
                 {
-                    TempData["ErrorMessage"] = "Template topilmadi";
+                    TempData["ErrorMessage"] = "Shablon topilmadi";
                     return RedirectToAction("Details", new { id });
                 }
 
-                // Prepare placeholders - matching template structure
+                // Tayyorlash placeholders - matching template structure
                 var placeholders = new Dictionary<string, string>
                 {
                     { "ORDER_NO", order.OrderNo }, // Template uses ORDER_NO
@@ -426,11 +426,11 @@ namespace tahsinERP.Controllers
                     { "ORDER_TOPIC", doc.Title ?? "" }, // Template uses ORDER_TOPIC, not ORDER_TITLE
                     { "ORDER_BODY", order.Notes ?? "" }, // Full body text without splitting
                     { "ORG_UNIT_NAME", doc.HR_ORG_UNITS?.Name ?? "" },
-                    { "DIRECTOR_NAME", "X.M. Maxmudov" } // TODO: Get from settings or user table
+                    { "DIRECTOR_NAME", "X.M. Maxmudov" } // TODO: Get dan settings yoki user jadval
                 };
 
-                // Parse Notes into individual content items (ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.)
-                // Split by newlines and filter out empty lines
+                // Tahlil qilish Notes into individual content items (ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.)
+                // Split by newlines va filtrlash out empty lines
                 if (!string.IsNullOrEmpty(order.Notes))
                 {
                     var lines = order.Notes.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
@@ -438,16 +438,16 @@ namespace tahsinERP.Controllers
                         .Select(line => line.Trim())
                         .ToList();
 
-                    // Remove existing numbering patterns (1., 2., 3., etc.) from the beginning of each line
+                    // O'chirish existing numbering patterns (1., 2., 3., etc.) dan the beginning of har bir line
                     for (int i = 0; i < lines.Count; i++)
                     {
                         var line = lines[i];
-                        // Remove patterns like "1.", "1)", "1-", etc. at the start
+                        // O'chirish patterns like "1.", "1)", "1-", etc. at the start
                         line = System.Text.RegularExpressions.Regex.Replace(line, @"^\s*\d+[\.\)\-\s]+\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                         lines[i] = line.Trim();
                     }
 
-                    // Add each line as ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.
+                    // Qo'shish har bir line as ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.
                     // Template uses ORDER_DECREE_1_CONTENT_N format
                     for (int i = 0; i < lines.Count; i++)
                     {
@@ -456,12 +456,12 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Generate document
+                // Yaratish hujjat
                 string fileName, fileExtension, mimeType;
                 byte[] fileContent = _templateService.GenerateDocFromTemplate(
                     template.ID, placeholders, out fileName, out fileExtension, out mimeType);
 
-                // Get next version number
+                // Olish next version number
                 int nextVersion = 1;
                 var existingFiles = await db.DOC_FILES
                     .Where(f => f.DocumentID == doc.ID)
@@ -470,7 +470,7 @@ namespace tahsinERP.Controllers
                 if (existingFiles != null)
                 {
                     nextVersion = existingFiles.VersionNo + 1;
-                    // Mark previous main file as not main
+                    // Belgilash previous main fayl as not main
                     var prevMain = await db.DOC_FILES
                         .Where(f => f.DocumentID == doc.ID && f.IsMain)
                         .ToListAsync();
@@ -480,7 +480,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                // Save file - use order date instead of current date
+                // Saqlash fayl - use order date instead of current date
                 var docFile = new DOC_FILES
                 {
                     DocumentID = doc.ID,
@@ -498,14 +498,14 @@ namespace tahsinERP.Controllers
                 db.DOC_FILES.Add(docFile);
                 await db.SaveChangesAsync();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "GenerateDoc", $"Document generated for order {order.OrderNo}");
+                LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "GenerateDoc", $"Buyruq uchun hujjat yaratildi: {order.OrderNo}");
 
                 TempData["Success"] = "Hujjat muvaffaqiyatli yaratildi";
                 return RedirectToAction("Details", new { id });
             }
         }
 
-        // POST: CompanyOrders/ChangeStatus/5
+        // POST so'rovi: CompanyOrders/ChangeStatus/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeStatus(long id, string statusCode)
@@ -538,7 +538,7 @@ namespace tahsinERP.Controllers
                 doc.StatusID = status.ID;
                 doc.UpdatedDT = DateTime.Now;
 
-                // If approving, set ApprovedByUserID
+                // agar approving, set ApprovedByUserID
                 if (statusCode == "APPROVED")
                 {
                     var currentUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
@@ -551,14 +551,14 @@ namespace tahsinERP.Controllers
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "ChangeStatus", 
-                    $"Status changed to {status.Name} for order {doc.ADM_COMPANY_ORDERS?.OrderNo}");
+                    $"Buyruq holati '{status.Name}' ga o'zgartirildi: {doc.ADM_COMPANY_ORDERS?.OrderNo}");
 
                 TempData["Success"] = $"Holat '{status.Name}' ga o'zgartirildi";
                 return RedirectToAction("Details", new { id });
             }
         }
 
-        // GET: CompanyOrders/DownloadFile/5
+        // Olish so'rovi: CompanyOrders/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long fileId)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "DownloadFile"))
@@ -578,7 +578,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // AJAX: Suggest text
+        // AJAX so'rovi: Suggest text
         [HttpPost]
         public JsonResult SuggestText(string orderTypeCode, string orderDate, int? orgUnitId, string topic, string[] employeeNames)
         {
@@ -623,7 +623,7 @@ namespace tahsinERP.Controllers
 
         private string GenerateNextOrderNo(DBTHSNEntities db)
         {
-            // Get all order numbers and find the maximum numeric value
+            // Olish barcha order numbers va find the maksimal numeric value
             var allOrders = db.ADM_COMPANY_ORDERS
                 .Select(o => o.OrderNo)
                 .ToList();
@@ -632,13 +632,13 @@ namespace tahsinERP.Controllers
             
             foreach (var orderNo in allOrders)
             {
-                // Try to parse as pure number (e.g., "0001", "0043")
+                // Urinish ga tahlil as pure number (e.g., "0001", "0043")
                 if (int.TryParse(orderNo, out int num))
                 {
                     if (num > maxOrderNo)
                         maxOrderNo = num;
                 }
-                // Try to parse as year + number (e.g., "20250001")
+                // Urinish ga tahlil as year + number (e.g., "20250001")
                 else if (orderNo.Length >= 4 && int.TryParse(orderNo.Substring(4), out int yearNum))
                 {
                     if (yearNum > maxOrderNo)
@@ -646,7 +646,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Return next number in format "0044", "0045", etc.
+            // Qaytarish next number in format "0044", "0045", etc.
             return (maxOrderNo + 1).ToString("D4");
         }
     }

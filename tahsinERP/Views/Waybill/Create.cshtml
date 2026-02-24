@@ -1,8 +1,9 @@
-﻿@model tahsinERP.ViewModels.WaybillCreateViewModel
+@model tahsinERP.ViewModels.WaybillCreateViewModel
 
 @{
-    ViewBag.Title = "Waybill yaratish";
+    ViewBag.Title = "Yo'l varaqasi yaratish";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var T = tahsinERP.Services.LogisticsTerms;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -23,10 +24,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Waybill/Index">Yo'l varaqalari</a>
+                                            <a href="~/Waybill/Index">@T.Waybills</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi reys (waybill)
+                                            Yangi @T.Waybill.ToLower()
                                         </li>
                                     </ol>
                                 </div>
@@ -49,7 +50,7 @@
 
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <label>Waybill raqami</label>
+                                                <label>@T.Waybill raqami</label>
                                                 @Html.TextBoxFor(model => model.WaybillNo, new { @class = "form-control", @placeholder = "TB_0001" })
                                                 @Html.ValidationMessageFor(model => model.WaybillNo, "", new { @class = "text-danger" })
                                             </div>
@@ -62,13 +63,13 @@
                                                 <label>Yo'nalish</label>
                                                 @Html.DropDownListFor(model => model.Direction, new SelectList(new[]
                                                 {
-                                                    new { Value = (byte?)0, Text = "Kiruvchi (Inbound)" },
-                                                    new { Value = (byte?)1, Text = "Chiquvchi (Outbound)" },
-                                                    new { Value = (byte?)2, Text = "Ichki (Internal)" }
+                                                    new { Value = (byte?)0, Text = "Kiruvchi" },
+                                                    new { Value = (byte?)1, Text = "Chiquvchi" },
+                                                    new { Value = (byte?)2, Text = "Ichki" }
                                                 }, "Value", "Text"), "Tanlang", new { @class = "form-control" })
                                             </div>
                                             <div class="col-md-3">
-                                                <label>Forwarder</label>
+                                                <label>@T.Forwarder</label>
                                                 @Html.DropDownListFor(model => model.ForwarderID, Model.Forwarders, "Tanlang", new { @class = "form-control select2" })
                                             </div>
                                         </div>
@@ -149,22 +150,22 @@
                                         <hr />
                                         <div class="mb-1">
                                             <h5 class="text-primary mb-0">Tarif va summa</h5>
-                                            <small class="text-muted">Tarif asosi va yakuniy summa.</small>
+                                            <small class="text-muted">@T.TariffBasis va yakuniy summa.</small>
                                         </div>
 
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <label>Tarif asosi</label>
+                                                <label>@T.TariffBasis</label>
                                                 @Html.DropDownListFor(model => model.FreightBasis, new SelectList(new[]
                                                 {
                                                     new { Value = (byte?)0, Text = "Mashina uchun" },
                                                     new { Value = (byte?)1, Text = "Ton uchun" },
                                                     new { Value = (byte?)2, Text = "KM uchun" },
-                                                    new { Value = (byte?)3, Text = "Flat" }
+                                                    new { Value = (byte?)3, Text = "Belgilangan narx" }
                                                 }, "Value", "Text"), "Tanlang", new { @class = "form-control", @id = "freightBasisSelect" })
                                             </div>
                                             <div class="col-md-4">
-                                                <label>Tarif (Rate)</label>
+                                                <label>@T.TariffRate</label>
                                                 @Html.TextBoxFor(model => model.Rate, new { @class = "form-control", @placeholder = "0.00", @id = "rateInput" })
                                             </div>
                                             <div class="col-md-4">
@@ -202,19 +203,19 @@
 
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <label>Purchase Invoice</label>
+                                                <label>Xarid invoysi</label>
                                                 @Html.DropDownListFor(model => model.InvoiceID, Model.PurchaseInvoices, "Tanlang", new { @class = "form-control select2", @id = "purchaseInvoiceSelect" })
                                             </div>
                                             <div class="col-md-3">
-                                                <label>Sales Invoice</label>
+                                                <label>Sotuv invoysi</label>
                                                 @Html.DropDownListFor(model => model.SalesInvoiceID, Model.SalesInvoices, "Tanlang", new { @class = "form-control select2", @id = "salesInvoiceSelect" })
                                             </div>
                                             <div class="col-md-3">
-                                                <label>Sales Order</label>
+                                                <label>Sotuv buyurtmasi</label>
                                                 @Html.DropDownListFor(model => model.SalesOrderID, Model.SalesOrders, "Tanlang", new { @class = "form-control select2" })
                                             </div>
                                             <div class="col-md-3">
-                                                <label>Purchase Order</label>
+                                                <label>Xarid buyurtmasi</label>
                                                 @Html.DropDownListFor(model => model.PurchaseOrderID, Model.PurchaseOrders, "Tanlang", new { @class = "form-control select2" })
                                             </div>
                                         </div>

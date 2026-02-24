@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.MES
 {
     public class ProductProductionController : Controller
     {
-        // GET: ProductProduction
+        // Olish so'rovi: ProductProduction
         public async Task<ActionResult> Index(DateTime? fromDate, DateTime? toDate, int? shopID, int? productID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -59,7 +59,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: ProductProduction/Create (Daily Entry)
+        // Olish so'rovi: ProductProduction/yaratish (Daily Entry)
         public ActionResult Create(DateTime? date, int? shopID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -82,7 +82,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductProduction/Create
+        // POST so'rovi: ProductProduction/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ProductProductionDailyEntryViewModel viewModel)
@@ -100,14 +100,14 @@ namespace tahsinERP.Controllers.MES
 
                         foreach (var item in viewModel.ProductionItems.Where(i => i.Total > 0))
                         {
-                            // Check if production already exists for this date/product/shop
+                            // Tekshirish agar production already mavjud uchun this date/product/shop
                             var existing = allProductionsForDate
                                 .FirstOrDefault(p => p.Date.Date == dateOnly 
                                     && p.ProductID == item.ProductID);
 
                             if (existing != null)
                             {
-                                // Update existing
+                                // Yangilash existing
                                 existing.DayShift = item.DayShift;
                                 existing.NightShift = item.NightShift;
                                 existing.Total = item.Total;
@@ -116,7 +116,7 @@ namespace tahsinERP.Controllers.MES
                             }
                             else
                             {
-                                // Create new
+                                // Yaratish new
                                 var production = new PRODUCT_PRODUCTION
                                 {
                                     ProductID = item.ProductID,
@@ -130,7 +130,7 @@ namespace tahsinERP.Controllers.MES
                                 db.PRODUCT_PRODUCTION.Add(production);
                             }
 
-                            // Update warehouse for finished goods (Production WH) without Income doc
+                            // Yangilash warehouse uchun finished goods (Production WH) without Income doc
                             var product = db.PRODUCTS.Find(item.ProductID);
                             if (product != null && product.IsFinishedGood == true)
                             {
@@ -143,7 +143,7 @@ namespace tahsinERP.Controllers.MES
                                     existing?.ID
                                 );
 
-                                // Consume raw materials from Supply warehouse with BOM/NORM calculation
+                                // Consume raw materials dan Supply warehouse bilan BOM/NORM calculation
                                 await ConsumeMaterialsForProduction(item.ProductID, item.Total, db);
                             }
                         }
@@ -169,7 +169,7 @@ namespace tahsinERP.Controllers.MES
                 }
             }
 
-            // Reload ViewBag on error
+            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (viewModel.ShopID > 0)
@@ -183,7 +183,7 @@ namespace tahsinERP.Controllers.MES
             return View(viewModel);
         }
 
-        // GET: ProductProduction/Edit/5
+        // Olish so'rovi: ProductProduction/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -203,7 +203,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Check if production is tied to Quality Inspection or Sales Invoice
+                // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
                 var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == id && q.IsDeleted == false);
                 var hasSalesInvoice = db.SALES_INVOICE_LINES
                     .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == id && p.ProductID == l.ProductID));
@@ -235,7 +235,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductProduction/Edit/5
+        // POST so'rovi: ProductProduction/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProductProductionViewModel viewModel)
@@ -250,7 +250,7 @@ namespace tahsinERP.Controllers.MES
                         return HttpNotFound();
                     }
 
-                    // Check if production is tied to Quality Inspection or Sales Invoice
+                    // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
                     var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == viewModel.ID && q.IsDeleted == false);
                     var hasSalesInvoice = db.SALES_INVOICE_LINES
                         .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == viewModel.ID && p.ProductID == l.ProductID));
@@ -263,7 +263,7 @@ namespace tahsinERP.Controllers.MES
                         return View(viewModel);
                     }
 
-                    // Revert old warehouse entry (for finished goods only)
+                    // Revert old warehouse entry (uchun finished goods faqat)
                     var oldProduct = db.PRODUCTS.Find(production.ProductID);
                     if (oldProduct != null && oldProduct.IsFinishedGood == true)
                     {
@@ -285,7 +285,7 @@ namespace tahsinERP.Controllers.MES
                         await RevertMaterialConsumption(production.ProductID, production.Total, db);
                     }
 
-                    // Update production
+                    // Yangilash production
                     production.ProductID = viewModel.ProductID;
                     production.ShopID = viewModel.ShopID;
                     production.Date = viewModel.Date;
@@ -294,7 +294,7 @@ namespace tahsinERP.Controllers.MES
                     production.Total = viewModel.Total;
                     production.Comment = viewModel.Comment;
 
-                    // Update warehouse with new values (for finished goods only)
+                    // Yangilash warehouse bilan new values (uchun finished goods faqat)
                     var newProduct = db.PRODUCTS.Find(viewModel.ProductID);
                     if (newProduct != null && newProduct.IsFinishedGood == true)
                     {
@@ -307,7 +307,7 @@ namespace tahsinERP.Controllers.MES
                             viewModel.ID
                         );
 
-                        // Consume materials for new production
+                        // Consume materials uchun new production
                         await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, db);
                     }
 
@@ -330,7 +330,7 @@ namespace tahsinERP.Controllers.MES
             return View(viewModel);
         }
 
-        // GET: ProductProduction/Details/5
+        // Olish so'rovi: ProductProduction/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -355,7 +355,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // GET: ProductProduction/Delete/5
+        // Olish so'rovi: ProductProduction/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -375,7 +375,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Check if production is tied to Quality Inspection or Sales Invoice
+                // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
                 var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == id && q.IsDeleted == false);
                 var hasSalesInvoice = db.SALES_INVOICE_LINES
                     .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == id && p.ProductID == l.ProductID));
@@ -390,7 +390,7 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // POST: ProductProduction/Delete/5
+        // POST so'rovi: ProductProduction/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -403,7 +403,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
-                // Check if production is tied to Quality Inspection or Sales Invoice
+                // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
                 var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == id && q.IsDeleted == false);
                 var hasSalesInvoice = db.SALES_INVOICE_LINES
                     .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == id && p.ProductID == l.ProductID));
@@ -414,7 +414,7 @@ namespace tahsinERP.Controllers.MES
                     return RedirectToAction("Index");
                 }
 
-                // Revert warehouse entry (for finished goods only)
+                // Revert warehouse entry (uchun finished goods faqat)
                 var product = db.PRODUCTS.Find(production.ProductID);
                 if (product != null && product.IsFinishedGood == true)
                 {
@@ -447,43 +447,38 @@ namespace tahsinERP.Controllers.MES
         }
 
         /// <summary>
-        /// Consumes materials from Supply warehouse when production is confirmed
+        /// Consumes materials dan Production warehouse when production is confirmed.
+        /// uchun weight-based materials (e.g. shurup) BOM dona is converted ga kg va deducted dan stock.
         /// </summary>
         private async Task ConsumeMaterialsForProduction(int productId, double producedQty, DBTHSNEntities db)
         {
-            var supplyWarehouse = WarehouseFlowService.GetSupplyWarehouse(db);
-            if (supplyWarehouse == null)
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
+            if (productionWarehouse == null)
             {
-                throw new Exception("Xomashyo ombor topilmadi");
+                throw new Exception("Ishlab chiqarish ombori topilmadi");
             }
 
             var consumptionService = new ProductionConsumptionService(db);
             await consumptionService.ConsumeMaterialsForProductionAsync(
-                productId, producedQty, supplyWarehouse.ID);
+                productId, producedQty, productionWarehouse.ID);
         }
 
         /// <summary>
-        /// Reverts material consumption (for edit/delete operations)
+        /// Reverts material consumption (uchun edit/o'chirish operations). Adds back ga production warehouse in same unit (kg uchun weight-based).
         /// </summary>
         private async Task RevertMaterialConsumption(int productId, double producedQty, DBTHSNEntities db)
         {
-            var productionWarehouse = db.WAREHOUSES
-                .FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
-            
-            if (productionWarehouse == null)
-            {
-                productionWarehouse = db.WAREHOUSES.FirstOrDefault();
-            }
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
 
             if (productionWarehouse == null)
             {
-                return; // Can't revert if warehouse not found
+                return; // Can't revert agar warehouse not found
             }
 
             var consumptionService = new ProductionConsumptionService(db);
             var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(productId, producedQty);
 
-            // Revert consumption (add back to stock)
+            // Revert consumption (add back ga stock)
             foreach (var req in requirements)
             {
                 var stock = await db.PRODUCT_STOCKS
@@ -499,7 +494,7 @@ namespace tahsinERP.Controllers.MES
             await db.SaveChangesAsync();
         }
 
-        // AJAX: Get planned products for date and shop
+        // AJAX so'rovi: Get planned products uchun date va shop
         [HttpGet]
         public JsonResult GetPlannedProducts(DateTime? date, int? shopID)
         {
@@ -514,8 +509,8 @@ namespace tahsinERP.Controllers.MES
                 {
                     var dateOnly = date.Value.Date;
                     
-                    // Get products for this shop from production plans
-                    // Load data first, then filter in memory to avoid LINQ to Entities Date issues
+                    // Olish products uchun this shop dan production plans
+                    // Yuklash ma'lumot birinchi, so'ng filtrlash in memory ga avoid LINQ ga Entities Date issues
                     var allDailyPlans = db.PRODUCTPLANS_DAILY
                         .Include(d => d.PRODUCTPLAN)
                         .Include(d => d.PRODUCTPLAN.PRODUCT)
@@ -585,13 +580,13 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // Helper method to load planned products
+        // yordamchi method ga yuklash planned products
         private void LoadPlannedProducts(ProductProductionDailyEntryViewModel viewModel, DBTHSNEntities db)
         {
             var dateOnly = viewModel.Date.Date;
             
-            // Get products for this shop from production plans
-            // Load data first, then filter in memory to avoid LINQ to Entities Date issues
+            // Olish products uchun this shop dan production plans
+            // Yuklash ma'lumot birinchi, so'ng filtrlash in memory ga avoid LINQ ga Entities Date issues
             var allDailyPlans = db.PRODUCTPLANS_DAILY
                 .Include(d => d.PRODUCTPLAN)
                 .Include(d => d.PRODUCTPLAN.PRODUCT)

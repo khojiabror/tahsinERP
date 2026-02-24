@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
     public class ProductCategoryController : Controller
     {
 
-        // GET: ProductCategory
+        // Olish so'rovi: ProductCategory
         public ActionResult Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -27,7 +27,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: ProductCategory/Details/5
+        // Olish so'rovi: ProductCategory/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -48,18 +48,18 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: ProductCategory/Create
+        // Olish so'rovi: ProductCategory/yaratish
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: ProductCategory/Create
+        // POST so'rovi: ProductCategory/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Code,Name,IsRawMaterial,IsFinishedGood,IsComponent,IsConsumable,RequiresNORM,RequiresCutting,IncludeInMRP,AllowPurchase,AllowSales,RawMaterialGroup,RawMaterialSubGrp,IsActive,CalculateByWeight")] PRODUCT_CATEGORIES category)
         {
-            // Remove Code and SortOrder from validation since they will be auto-generated
+            // O'chirish Code va SortOrder dan validation since they will be auto-generated
             //ModelState.Remove("Code");
             //ModelState.Remove("SortOrder");
 
@@ -69,7 +69,7 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Create a new entity instead of using the model directly to avoid concurrency issues
+                        // Yaratish a new entity instead of foydalanib the model directly ga avoid concurrency issues
                         var newCategory = new PRODUCT_CATEGORIES
                         {
                             Name = category.Name,
@@ -92,8 +92,8 @@ namespace tahsinERP.Controllers
                         db.PRODUCT_CATEGORIES.Add(newCategory);
                         db.SaveChanges();
 
-                        // Auto-generate Code: 5-digit incrementing (00000, 00001, ...)
-                        // Find all numeric codes (5-digit) and get the maximum
+                        // Auto-yaratish Code: 5-digit incrementing (00000, 00001, ...)
+                        // Find barcha numeric codes (5-digit) va get the maksimal
                         var allCodes = db.PRODUCT_CATEGORIES
                             .Where(c => c.Code != null && c.Code.Length == 5)
                             .Select(c => c.Code)
@@ -111,15 +111,15 @@ namespace tahsinERP.Controllers
                             }
                         }
 
-                        // If no valid codes found, start from 00000
+                        // agar no valid codes found, start dan 00000
                         if (nextCodeNumber == 0 && !allCodes.Any())
                         {
-                            nextCodeNumber = 0; // First code will be 00000
+                            nextCodeNumber = 0; // birinchi code will be 00000
                         }
 
-                        newCategory.Code = nextCodeNumber.ToString("D5"); // Format as 5-digit with leading zeros
+                        newCategory.Code = nextCodeNumber.ToString("D5"); // Format as 5-digit bilan leading zeros
 
-                        //// Auto-generate SortOrder: Last object + 1
+                        //// Auto-yaratish SortOrder: Last object + 1
                         var maxSortOrder = db.PRODUCT_CATEGORIES.Any()
                             ? db.PRODUCT_CATEGORIES.Max(x => x.SortOrder)
                             : 0;
@@ -144,7 +144,7 @@ namespace tahsinERP.Controllers
             return View(category);
         }
 
-        // GET: ProductCategory/Edit/5
+        // Olish so'rovi: ProductCategory/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -163,7 +163,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: ProductCategory/Edit/5
+        // POST so'rovi: ProductCategory/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "ID,Code,Name,IsRawMaterial,IsFinishedGood,IsComponent,IsConsumable,RequiresNORM,RequiresCutting,IncludeInMRP,AllowPurchase,AllowSales,RawMaterialGroup,RawMaterialSubGrp,SortOrder,IsActive,CreatedDT,CalculateByWeight")] PRODUCT_CATEGORIES category)
@@ -216,7 +216,7 @@ namespace tahsinERP.Controllers
             return View(category);
         }
 
-        // GET: ProductCategory/Delete/5
+        // Olish so'rovi: ProductCategory/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -235,7 +235,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST: ProductCategory/Delete/5
+        // POST so'rovi: ProductCategory/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -252,7 +252,7 @@ namespace tahsinERP.Controllers
 
                 try
                 {
-                    // Soft delete - set IsActive to false
+                    // Soft o'chirish - set IsActive ga false
                     category.IsActive = false;
                     category.UpdatedDT = DateTime.Now;
 

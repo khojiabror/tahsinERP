@@ -1,4 +1,4 @@
-﻿@model IEnumerable<tahsinERP.ViewModels.Tannarx.TannarxIndexViewModel>
+@model IEnumerable<tahsinERP.ViewModels.Tannarx.TannarxIndexViewModel>
 
 @{
     ViewBag.Title = "Tannarx";
@@ -70,6 +70,7 @@
                                     @Html.DropDownList(
                                         "month",
                                         (SelectList)ViewBag.Months,
+                                        "Barcha oylar",
                                         new { @id = "monthFilter", @class = "form-control" }
                                     )
                                 </div>

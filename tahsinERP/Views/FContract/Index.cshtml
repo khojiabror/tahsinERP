@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.F_CONTRACTS>
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Shartnomalar";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var type = ViewBag.Type;
 }
@@ -58,10 +58,10 @@
                                             <thead>
                                                 <tr>
                                                     <th>Raqami</th>
-                                                    <th>Forwarder nomi</th>
+                                                    <th>@tahsinERP.Services.LogisticsTerms.Forwarder nomi</th>
                                                     <th>Tuzilgan sanasi</th>
                                                     <th>Tugashi sanasi</th>
-                                                    <th>Amount</th>
+                                                    <th>Summa</th>
                                                     <th>Valyuta</th>
                                                     @if (changePermit)
                                                     {

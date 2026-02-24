@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.SRM
 {
     public class ExpensesController : Controller
     {
-        // GET: Expenses
+        // Olish so'rovi: Expenses
         public async Task<ActionResult> Index()
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses", "Index"))
@@ -44,7 +44,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Expenses/Details/5
+        // Olish so'rovi: Expenses/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses", "Details"))
@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Expenses/Create
+        // Olish so'rovi: Expenses/yaratish
         public async Task<ActionResult> Create()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
@@ -124,7 +124,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Expenses/GetAvailableProducts
+        // POST so'rovi: Expenses/GetAvailableProducts
         [HttpPost]
         public async Task<JsonResult> GetAvailableProducts(int warehouseId, int? receiverWarehouseId)
         {
@@ -209,7 +209,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Expenses/Create
+        // POST so'rovi: Expenses/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ViewModels.ExpenseCreateViewModel model, HttpPostedFileBase expenseFile)
@@ -245,7 +245,7 @@ namespace tahsinERP.Controllers.SRM
                                 model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
                             }
 
-                            // Validate stock availability
+                            // Tekshirish stock availability
                             foreach (var product in model.ExpenseProducts)
                             {
                                 var stock = await db.PRODUCT_STOCKS
@@ -304,13 +304,13 @@ namespace tahsinERP.Controllers.SRM
                                 }
                             }
 
-                            // Generate DocNo if not provided
+                            // Yaratish DocNo agar not provided
                             if (string.IsNullOrEmpty(model.DocNo))
                             {
                                 model.DocNo = await GenerateDocNo(db);
                             }
 
-                            // Create expense header
+                            // Yaratish expense header
                             var expense = new EXPENS
                             {
                                 DocNo = model.DocNo,
@@ -328,7 +328,7 @@ namespace tahsinERP.Controllers.SRM
                             db.EXPENSES.Add(expense);
                             await db.SaveChangesAsync();
 
-                            // Add expense products and decrease stock
+                            // Qo'shish expense products va decrease stock
                             double totalAmount = 0;
                             double totalPrice = 0;
 
@@ -361,7 +361,7 @@ namespace tahsinERP.Controllers.SRM
                                         if (stock.Amount < 0) stock.Amount = 0;
                                     }
 
-                                    // If receiver warehouse specified and immediate receive is allowed, increase stock there
+                                    // agar receiver warehouse specified va immediate receive is allowed, increase stock there
                                     if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                     {
                                         var receiverStock = await db.PRODUCT_STOCKS
@@ -387,7 +387,7 @@ namespace tahsinERP.Controllers.SRM
                                             }
                                         }
 
-                                        // Income will be created after all products are processed (see below)
+                                        // Income will be created after barcha products are processed (see below)
                                     }
                                 }
 
@@ -403,7 +403,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
                             }
 
-                            // Upload expense document if provided
+                            // Upload expense hujjat agar provided
                             if (expenseFile != null && expenseFile.ContentLength > 0)
                             {
                                 byte[] fileData = null;
@@ -446,7 +446,7 @@ namespace tahsinERP.Controllers.SRM
             }
 
             RepopulateViewBag:
-            // Repopulate ViewBag on error
+            // Qayta ga'ldirish ViewBag on xatolik
             using (var db = new DBTHSNEntities())
             {
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
@@ -472,7 +472,7 @@ namespace tahsinERP.Controllers.SRM
             return View(model);
         }
 
-        // Generate DocNo
+        // Yaratish DocNo
         private async Task<string> GenerateDocNo(DBTHSNEntities db)
         {
             var month = DateTime.Now.Month;
@@ -523,7 +523,7 @@ namespace tahsinERP.Controllers.SRM
             return warehouse?.ID;
         }
 
-        // GET: Expenses/Edit/5
+        // Olish so'rovi: Expenses/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
@@ -554,7 +554,7 @@ namespace tahsinERP.Controllers.SRM
                     return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
-                // Check if already sent (SendStatus == true)
+                // Tekshirish agar already sent (SendStatus == true)
                 if (expense.SendStatus == true)
                 {
                     TempData["Error"] = "Bu chiqim hujjati allaqachon yuborilgan va tahrirlash mumkin emas.";
@@ -617,7 +617,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Expenses/Edit/5
+        // POST so'rovi: Expenses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ViewModels.ExpenseEditViewModel model, HttpPostedFileBase expenseFile)
@@ -669,7 +669,7 @@ namespace tahsinERP.Controllers.SRM
                                     senderStock.Amount += oldProduct.Amount;
                                 }
 
-                                // Revert receiver warehouse stock if exists
+                                // Revert receiver warehouse stock agar mavjud
                                 if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                 {
                                     var receiverStock = await db.PRODUCT_STOCKS
@@ -683,7 +683,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
                             }
 
-                            // Validate new stock availability
+                            // Tekshirish new stock availability
                             if (model.ExpenseProducts == null)
                             {
                                 model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
@@ -702,7 +702,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
                             }
 
-                            // Update expense header
+                            // Yangilash expense header
                             expense.DocNo = model.DocNo;
                             expense.IssueDateTime = model.IssueDateTime;
                             expense.SenderWHID = model.SenderWHID;
@@ -710,13 +710,13 @@ namespace tahsinERP.Controllers.SRM
                             expense.CurrencyID = model.CurrencyID;
                             expense.Description = model.Description;
 
-                            // Remove existing expense products
+                            // O'chirish existing expense products
                             foreach (var existing in oldProducts)
                             {
                                 db.EXPENSE_PRODUCTS.Remove(existing);
                             }
 
-                            // Add updated expense products and update stock
+                            // Qo'shish updated expense products va yangilash stock
                             double totalAmount = 0;
                             double totalPrice = 0;
 
@@ -749,7 +749,7 @@ namespace tahsinERP.Controllers.SRM
                                         if (senderStock.Amount < 0) senderStock.Amount = 0;
                                     }
 
-                                    // Increase receiver warehouse stock if specified
+                                    // Increase receiver warehouse stock agar specified
                                     if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                     {
                                         var receiverStock = await db.PRODUCT_STOCKS
@@ -781,17 +781,17 @@ namespace tahsinERP.Controllers.SRM
                             expense.Amount = totalAmount;
                             expense.TotalPrice = totalPrice;
 
-                            // Handle file upload
+                            // Handle fayl upload
                             if (expenseFile != null && expenseFile.ContentLength > 0)
                             {
-                                // Remove existing docs
+                                // O'chirish existing docs
                                 var existingDocs = db.WRHS_EXPENSE_DOCS.Where(ed => ed.ExpenseID == expense.ID).ToList();
                                 foreach (var doc in existingDocs)
                                 {
                                     db.WRHS_EXPENSE_DOCS.Remove(doc);
                                 }
 
-                                // Add new doc
+                                // Qo'shish new doc
                                 byte[] fileData = null;
                                 using (var binaryReader = new BinaryReader(expenseFile.InputStream))
                                 {
@@ -832,7 +832,7 @@ namespace tahsinERP.Controllers.SRM
             }
 
             RepopulateViewBag:
-            // Repopulate ViewBag on error
+            // Qayta ga'ldirish ViewBag on xatolik
             using (var db = new DBTHSNEntities())
             {
                 ViewBag.SenderWarehouses = new SelectList(
@@ -854,7 +854,7 @@ namespace tahsinERP.Controllers.SRM
             return View(model);
         }
 
-        // GET: Expenses/Delete/5
+        // Olish so'rovi: Expenses/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
@@ -891,7 +891,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // POST: Expenses/Delete/5
+        // POST so'rovi: Expenses/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -932,7 +932,7 @@ namespace tahsinERP.Controllers.SRM
                                     senderStock.Amount += product.Amount;
                                 }
 
-                                // Revert receiver warehouse stock if exists
+                                // Revert receiver warehouse stock agar mavjud
                                 if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                 {
                                     var receiverStock = await db.PRODUCT_STOCKS
@@ -966,7 +966,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: Expenses/DownloadDoc/5
+        // Olish so'rovi: Expenses/DownloadDoc/5
         public async Task<ActionResult> DownloadDoc(int? id)
         {
             if (id == null)
@@ -992,7 +992,7 @@ namespace tahsinERP.Controllers.SRM
         /// </summary>
         private async Task CreateLinkedIncomeDocumentForExpenseAsync(EXPENS expense, List<ViewModels.ExpenseProductViewModel> products, DBTHSNEntities db)
         {
-            // Check if receiver is Production warehouse or Sales warehouse
+            // Tekshirish agar receiver is Production warehouse yoki Sales warehouse
             var receiverWarehouse = await db.WAREHOUSES.FindAsync(expense.ReceiverWhID.Value);
             if (receiverWarehouse == null)
                 return;
@@ -1003,16 +1003,16 @@ namespace tahsinERP.Controllers.SRM
                                    receiverWarehouse.WHName.Contains("Sotuv");
 
             if (!isProductionWarehouse && !isSalesWarehouse)
-                return; // Only auto-link for Production or Sales warehouse transfers
+                return; // faqat auto-link uchun Production yoki Sales warehouse transfers
 
-            // Generate Income DocNo
+            // Yaratish Income DocNo
             var incomeDocNo = await GenerateIncomeDocNo(db);
 
             // Calculate totals
             double totalAmount = products.Sum(p => p.Amount);
             double totalPrice = products.Sum(p => p.TotalPrice);
 
-            // Create Income document
+            // Yaratish Income hujjat
             var income = new INCOME
             {
                 DocNo = incomeDocNo,
@@ -1023,14 +1023,14 @@ namespace tahsinERP.Controllers.SRM
                 Amount = totalAmount,
                 TotalPrice = totalPrice,
                 Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - {expense.Description}",
-                RecieveStatus = false, // Pending receive for MRP confirmation
+                RecieveStatus = false, // Pending receive uchun MRP confirmation
                 IsDeleted = false
             };
 
             db.INCOMES.Add(income);
             await db.SaveChangesAsync();
 
-            // Create Income Products for all products in the Expense
+            // Yaratish Income Products uchun barcha products in the Expense
             foreach (var product in products)
             {
                 var incomeProduct = new INCOME_PRODUCTS

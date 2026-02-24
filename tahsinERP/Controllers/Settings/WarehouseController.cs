@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Settings
 {
     public class WarehouseController : Controller
     {
-        // GET: Warehouse
+        // Olish so'rovi: Warehouse
         public async Task<ActionResult> Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers.Settings
         .OrderBy(w => w.WHName)
         .ToListAsync();
 
-                // Load related entities
+                // Yuklash related entities
                 foreach (var w in list)
                 {
                     db.Entry(w).Reference(x => x.USER).Load();
@@ -32,7 +32,7 @@ namespace tahsinERP.Controllers.Settings
             }
         }
 
-        // GET: Warehouse/Create
+        // Olish so'rovi: Warehouse/yaratish
         public async Task<ActionResult> Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -51,7 +51,7 @@ namespace tahsinERP.Controllers.Settings
             }
         }
 
-        // POST: Warehouse/Create
+        // POST so'rovi: Warehouse/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(Warehouse warehouse)
@@ -78,7 +78,7 @@ namespace tahsinERP.Controllers.Settings
                     ModelState.AddModelError("", $"Xatolik: {ex.Message}");
                 }
 
-                // Reload ViewBag on error
+                // Reload ViewBag on xatolik
                 ViewBag.ShopList = new SelectList(
                     await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
                     "ID", "ShopName", warehouse.ShopID);
@@ -93,7 +93,7 @@ namespace tahsinERP.Controllers.Settings
             }
         }
 
-        // GET: Warehouse/Details/5
+        // Olish so'rovi: Warehouse/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
@@ -112,7 +112,7 @@ namespace tahsinERP.Controllers.Settings
                     return HttpNotFound();
                 }
 
-                // 2️⃣ Lazy load related entities (null-safe)
+                // 2️⃣ Lazy yuklash related entities (null-safe)
                 await db.Entry(warehouse).Reference(w => w.USER).LoadAsync();   // USER nullable bo‘lsa ham ok
                 await db.Entry(warehouse).Reference(w => w.SHOP).LoadAsync();   // SHOP nullable bo‘lsa ham ok
 
@@ -121,7 +121,7 @@ namespace tahsinERP.Controllers.Settings
         }
 
 
-        // GET: Warehouse/Edit/5
+        // Olish so'rovi: Warehouse/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
@@ -151,7 +151,7 @@ namespace tahsinERP.Controllers.Settings
             }
         }
 
-        // POST: Warehouse/Edit/5
+        // POST so'rovi: Warehouse/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit([Bind(Include = "ID,WHName,Description,IsDeleted,MRP,ShopID,Account")] Warehouse warehouse)
@@ -178,7 +178,7 @@ namespace tahsinERP.Controllers.Settings
                     }
                 }
 
-                // Reload ViewBag on error
+                // Reload ViewBag on xatolik
                 ViewBag.ShopList = new SelectList(
                     await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
                     "ID", "ShopName", warehouse.ShopID);
@@ -193,7 +193,7 @@ namespace tahsinERP.Controllers.Settings
             }
         }
 
-        // GET: Warehouse/Delete/5
+        // Olish so'rovi: Warehouse/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
@@ -217,7 +217,7 @@ namespace tahsinERP.Controllers.Settings
             }
         }
 
-        // POST: Warehouse/Delete/5
+        // POST so'rovi: Warehouse/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
@@ -229,7 +229,7 @@ namespace tahsinERP.Controllers.Settings
                     var warehouse = await db.WAREHOUSES.FindAsync(id);
                     if (warehouse != null)
                     {
-                        // Soft delete
+                        // Soft o'chirish
                         warehouse.IsDeleted = true;
                         db.Entry(warehouse).State = EntityState.Modified;
                         await db.SaveChangesAsync();

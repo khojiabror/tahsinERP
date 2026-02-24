@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers
 {
     public class TaskDashboardController : Controller
     {
-        // GET: TaskDashboard
+        // Olish so'rovi: TaskDashboard
         public async Task<ActionResult> Index(int? userId, int? productID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -38,13 +38,13 @@ namespace tahsinERP.Controllers
             {
                 var viewModel = new TaskDashboardViewModel();
 
-                // Base query for tasks
+                // Base query uchun tasks
                 var allTasksQuery = db.APP_TASKS
                     .Include(t => t.APP_TASK_STATUS_REF)
                     .Include(t => t.APP_TASK_PRIORITY_REF)
                     .Where(t => t.IsDeleted == false);
 
-                // Filter by user
+                // Filtrlash bo'yicha user
                 if (userId.HasValue)
                 {
                     allTasksQuery = allTasksQuery.Where(t => t.AssigneeUserID == userId.Value);
@@ -52,7 +52,7 @@ namespace tahsinERP.Controllers
 
                 var allTasks = await allTasksQuery.ToListAsync();
 
-                // Status Statistics (Pie Chart Data)
+                // holat Statistics (Pie Chart ma'lumot)
                 var statusStats = allTasks
                     .GroupBy(t => t.APP_TASK_STATUS_REF?.Code ?? "UNKNOWN")
                     .Select(g => new TaskStatusStatViewModel
@@ -84,7 +84,7 @@ namespace tahsinERP.Controllers
 
                 viewModel.PriorityStatistics = priorityStats;
 
-                // User-specific statistics (if user selected)
+                // User-specific statistics (agar user selected)
                 if (userId.HasValue)
                 {
                     var userTasks = allTasks.Where(t => t.AssigneeUserID == userId.Value).ToList();
@@ -151,7 +151,7 @@ namespace tahsinERP.Controllers
                 {
                     var userTasks = allTasks.Where(t => t.AssigneeUserID == assigneeId).ToList();
                     
-                    // Muddatida bajarilgan tasklar (UpdatedDT <= DueDate va status = 'bajarildi')
+                    // Muddatida bajarilgan tasklar (UpdatedDT <= DueDate va holat = 'bajarildi')
                     var onTimeCompleted = userTasks.Count(t =>
                         t.DueDate.HasValue &&
                         t.UpdatedDT.HasValue &&
@@ -217,7 +217,7 @@ namespace tahsinERP.Controllers
 
                 viewModel.EmployeeRatings = employeeRatings;
 
-                // ViewBag for user dropdown
+                // ViewBag uchun user dropdown
                 if (isAdminOrDeveloper)
                 {
                     // Admin/Developer uchun barcha foydalanuvchilar + "Barcha foydalanuvchilar" option

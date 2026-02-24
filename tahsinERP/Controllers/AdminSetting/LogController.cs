@@ -13,10 +13,10 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class LogController : Controller
     {
-        // GET: Log
+        // Olish so'rovi: Log
         public async Task<ActionResult> Index(string module, int? userId, DateTime? startDate = null, DateTime? endDate = null)
         {
-            // Default: so'nggi 30 kun
+            // standart: so'nggi 30 kun
             startDate = startDate ?? DateTime.Now.AddDays(-30);
             endDate = endDate ?? DateTime.Now;
             endDate = endDate.Value.AddDays(1).AddSeconds(-1); // Kunning oxirigacha

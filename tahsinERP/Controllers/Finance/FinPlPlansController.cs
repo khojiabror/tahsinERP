@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinPlPlansController : Controller
     {
-        // GET: FinPlPlans
+        // Olish so'rovi: FinPlPlans
         public ActionResult Index(int? year, int? month, int? itemID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))
@@ -53,7 +53,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlPlans/Create
+        // Olish so'rovi: FinPlPlans/yaratish
         public ActionResult Create(int? year, int? month, int? itemID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
@@ -90,7 +90,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlPlans/Create
+        // POST so'rovi: FinPlPlans/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_PL_PLANS plan)
@@ -102,7 +102,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Check if plan already exists
+                // Tekshirish agar plan already mavjud
                 var existing = db.FIN_PL_PLANS
                     .FirstOrDefault(p => p.Year == plan.Year && p.Month == plan.Month && p.ItemID == plan.ItemID);
 
@@ -138,7 +138,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlPlans/Edit/5
+        // Olish so'rovi: FinPlPlans/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
@@ -171,7 +171,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlPlans/Edit/5
+        // POST so'rovi: FinPlPlans/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_PL_PLANS plan)
@@ -183,7 +183,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Declare years once at the beginning to avoid scope conflicts
+                // Declare years once at the beginning ga avoid scope conflicts
                 var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
                 var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
                 
@@ -192,7 +192,7 @@ namespace tahsinERP.Controllers.Finance
                     var planToUpdate = db.FIN_PL_PLANS.Find(plan.ID);
                     if (planToUpdate != null)
                     {
-                        // Check if another plan exists with same Year/Month/ItemID
+                        // Tekshirish agar another plan mavjud bilan same Year/Month/ItemID
                         var existing = db.FIN_PL_PLANS
                             .FirstOrDefault(p => p.Year == plan.Year && p.Month == plan.Month && p.ItemID == plan.ItemID && p.ID != plan.ID);
 
@@ -230,7 +230,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlPlans/Delete/5
+        // Olish so'rovi: FinPlPlans/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
@@ -258,7 +258,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlPlans/Delete/5
+        // POST so'rovi: FinPlPlans/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -289,7 +289,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlPlans/BulkEdit
+        // Olish so'rovi: FinPlPlans/BulkEdit
         public ActionResult BulkEdit(int? year, int? month)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
@@ -326,7 +326,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinPlPlans/BulkEdit
+        // POST so'rovi: FinPlPlans/BulkEdit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult BulkEdit(int year, int month, BulkPlanItem[] plans)
@@ -343,7 +343,7 @@ namespace tahsinERP.Controllers.Finance
 
                 foreach (var planData in plans)
                 {
-                    if (planData.AmountPlan != 0) // Only save non-zero plans
+                    if (planData.AmountPlan != 0) // faqat saqlash non-zero plans
                     {
                         var existing = db.FIN_PL_PLANS
                             .FirstOrDefault(p => p.Year == year && p.Month == month && p.ItemID == planData.ItemID);
@@ -375,7 +375,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinPlPlans/ExportExcel
+        // Olish so'rovi: FinPlPlans/ExportExcel
         public ActionResult ExportExcel(int? year, int? month)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))

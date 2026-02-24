@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.BOM.BomDetailsViewModel
+@model tahsinERP.ViewModels.BOM.BomDetailsViewModel
 @{
     ViewBag.Title = "BOM Tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -250,22 +250,29 @@
                             var productPno = '@(Model?.ProductPno ?? "BOM")';
                             var timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
                             
+                            var orientation = (window.erpExportHelpers && window.erpExportHelpers.getOrientationByElementSize)
+                                ? window.erpExportHelpers.getOrientationByElementSize(element)
+                                : 'portrait';
+
                             var opt = {
-                                margin: [0.5, 0.5, 0.5, 0.5],
+                                margin: [0.3, 0.3, 0.3, 0.3],
                                 filename: productPno + '_BOM_' + timestamp + '.pdf',
                                 image: { type: 'jpeg', quality: 0.98 },
                                 html2canvas: { 
                                     scale: 2,
                                     useCORS: true,
                                     logging: false,
-                                    windowWidth: element.scrollWidth,
-                                    windowHeight: element.scrollHeight
+                                    scrollX: 0,
+                                    scrollY: 0,
+                                    windowWidth: Math.max(element.scrollWidth, element.offsetWidth, document.body.scrollWidth),
+                                    windowHeight: Math.max(element.scrollHeight, element.offsetHeight, document.body.scrollHeight)
                                 },
                                 jsPDF: { 
                                     unit: 'in', 
                                     format: 'a4', 
-                                    orientation: 'portrait' 
-                                }
+                                    orientation: orientation
+                                },
+                                pagebreak: { mode: ['css', 'legacy'] }
                             };
 
                             html2pdf().set(opt).from(element).save().then(function() {

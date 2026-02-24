@@ -10,7 +10,7 @@ namespace tahsinERP.Controllers.SRM
 {
     public class PurchaseOrderTrackingController : Controller
     {
-        // GET: PurchaseOrderTracking
+        // Olish so'rovi: PurchaseOrderTracking
         public async Task<ActionResult> Index(string purchaseTypeFilter = "", string statusFilter = "")
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking", "Index"))
@@ -29,14 +29,14 @@ namespace tahsinERP.Controllers.SRM
                     .Where(o => o.IsDeleted != true)
                     .AsQueryable();
 
-                // Filter by purchase type
+                // Filtrlash bo'yicha purchase type
                 if (!string.IsNullOrEmpty(purchaseTypeFilter))
                 {
                     byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
                     query = query.Where(o => o.PurchaseType == purchaseType);
                 }
 
-                // Filter by status
+                // Filtrlash bo'yicha holat
                 if (!string.IsNullOrEmpty(statusFilter))
                 {
                     query = query.Where(o => o.Status == statusFilter);
@@ -46,7 +46,7 @@ namespace tahsinERP.Controllers.SRM
                     .OrderByDescending(o => o.IssuedDate)
                     .ToListAsync();
 
-                // Calculate tracking status for each order
+                // Calculate tracking holat uchun har bir order
                 var trackingData = orders.Select(o => new
                 {
                     Order = o,
@@ -75,7 +75,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // GET: PurchaseOrderTracking/Details/5
+        // Olish so'rovi: PurchaseOrderTracking/Details/5
         public async Task<ActionResult> Details(int? id)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking", "Details"))
@@ -106,27 +106,27 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                // Get related contracts
+                // Olish related contracts
                 var contracts = await db.P_CONTRACTS
                     .Where(c => c.IsDeleted != true && 
                                 (order.ContractID.HasValue ? c.ID == order.ContractID.Value : true))
                     .ToListAsync();
 
-                // Get related invoices
+                // Olish related invoices
                 var invoices = await db.P_INVOICES
                     .Where(i => i.IsDeleted != true && i.OrderID == order.ID)
                     .ToListAsync();
 
-                // Get related income documents (warehouse receipts)
+                // Olish related income hujjatlar (warehouse receipts)
                 var invoiceIds = invoices.Select(inv => inv.ID).ToList();
                 var incomes = await db.INCOMES
                     .Where(inc => inc.InvoiceID.HasValue && invoiceIds.Contains(inc.InvoiceID.Value) && inc.IsDeleted != true)
                     .ToListAsync();
 
-                // Calculate tracking status
+                // Calculate tracking holat
                 var trackingStatus = CalculateTrackingStatus(order);
 
-                // Update tracking status with warehouse information
+                // Yangilash tracking holat bilan warehouse information
                 if (incomes.Any())
                 {
                     trackingStatus.WarehouseReceived = true;
@@ -147,7 +147,7 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // Helper: Calculate tracking status for an order
+        // yordamchi: Calculate tracking holat uchun an order
         private OrderTrackingStatus CalculateTrackingStatus(P_ORDERS order)
         {
             var status = new OrderTrackingStatus
@@ -159,7 +159,7 @@ namespace tahsinERP.Controllers.SRM
                 OrderStatus = "green"
             };
 
-            // Check contract status
+            // Tekshirish contract holat
             if (order.ContractID.HasValue)
             {
                 status.ContractCreated = true;
@@ -176,7 +176,7 @@ namespace tahsinERP.Controllers.SRM
                 status.ContractStatus = "red";
             }
 
-            // Check invoice status
+            // Tekshirish invoice holat
             if (order.P_INVOICES != null && order.P_INVOICES.Any(i => i.IsDeleted != true))
             {
                 status.InvoiceCreated = true;
@@ -191,14 +191,14 @@ namespace tahsinERP.Controllers.SRM
                 status.InvoiceStatus = "red";
             }
 
-            // Check warehouse receipt status (Income)
-            // Note: This should be called within a using block in the calling method
-            // For now, we'll check if invoices exist and have related incomes
+            // Tekshirish warehouse receipt holat (Income)
+            // Note: This should be called within a foydalanib block in the calling method
+            // uchun now, we'll tekshirish agar invoices exist va have related incomes
             if (order.P_INVOICES != null && order.P_INVOICES.Any(i => i.IsDeleted != true))
             {
                 var invoiceIds = order.P_INVOICES.Where(i => i.IsDeleted != true).Select(i => i.ID).ToList();
-                // Note: INCOMES relationship needs to be loaded or checked separately
-                // This is a simplified check - full implementation should query INCOMES table
+                // Note: INCOMES relationship needs ga be loaded yoki checked separately
+                // This is a simplified tekshirish - full implementation should query INCOMES jadval
                 status.WarehouseReceived = false; // Will be updated when INCOMES are loaded
                 status.WarehouseStatus = "red";
             }
@@ -208,12 +208,12 @@ namespace tahsinERP.Controllers.SRM
                 status.WarehouseStatus = "red";
             }
 
-            // Update order status fields
+            // Yangilash order holat fields
             order.ContractStatus = status.ContractCreated ? "Created" : "NotCreated";
             order.InvoiceStatus = status.InvoiceCreated ? "Created" : "NotCreated";
             order.WarehouseStatus = status.WarehouseReceived ? "Received" : "NotReceived";
 
-            // Determine overall status
+            // Aniqlash overall holat
             if (status.WarehouseReceived)
             {
                 order.Status = "Received";
@@ -235,7 +235,7 @@ namespace tahsinERP.Controllers.SRM
         }
     }
 
-    // ViewModel for order tracking status
+    // ViewModel uchun order tracking holat
     public class OrderTrackingStatus
     {
         public int OrderID { get; set; }

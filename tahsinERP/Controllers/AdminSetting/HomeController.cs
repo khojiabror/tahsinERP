@@ -53,7 +53,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    // Get plans
+                    // Olish plans
                     var plans = db.FIN_PL_PLANS
                         .Where(p => (!fromDate.HasValue || p.Year * 100 + p.Month >= fromDate.Value.Year * 100 + fromDate.Value.Month) &&
                                    (!toDate.HasValue || p.Year * 100 + p.Month <= toDate.Value.Year * 100 + toDate.Value.Month))
@@ -66,16 +66,16 @@ namespace tahsinERP.Controllers
                         })
                         .ToList();
 
-                    // Get actuals from transactions - exclude liability transactions (only real transactions)
+                    // Olish actuals dan transactions - exclude liability transactions (faqat real transactions)
                     var transactions = db.FIN_TRANSACTIONS
                         .Include(t => t.FIN_CATEGORIES)
                         .Where(t => (!fromDate.HasValue || t.TxnDate >= fromDate.Value) &&
                                    (!toDate.HasValue || t.TxnDate <= toDate.Value) &&
-                                   // Exclude liability transactions (PurchaseInvoice and SalesInvoice) - only show real transactions
+                                   // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real transactions
                                    ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
                         .ToList();
 
-                    // Get PL items with mapped categories
+                    // Olish PL items bilan mapped categories
                     var plItems = db.FIN_PL_ITEMS
                         .Where(i => i.IsActive)
                         .ToList();
@@ -84,7 +84,7 @@ namespace tahsinERP.Controllers
 
                     foreach (var plItem in plItems)
                     {
-                        // Get categories mapped to this PL item
+                        // Olish categories mapped ga this PL item
                         var categoryIds = db.FIN_CATEGORIES
                             .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == plItem.ID))
                             .Select(c => c.ID)
@@ -120,7 +120,7 @@ namespace tahsinERP.Controllers
                         }
                     }
 
-                    // Combine plans and facts
+                    // Combine plans va facts
                     var allPeriods = plans.Select(p => $"{p.Year}-{p.Month:D2}")
                         .Union(factByPeriod.Keys)
                         .Distinct()
@@ -201,7 +201,7 @@ namespace tahsinERP.Controllers
                     var from = fromDate ?? DateTime.Now.AddMonths(-6);
                     var to = toDate ?? DateTime.Now;
                     
-                    // Get cash and bank accounts only
+                    // Olish cash va bank accounts faqat
                     var accounts = db.FIN_ACCOUNTS
                         .Where(a => (a.IsCash || a.IsBank) && a.IsActive)
                         .ToList();
@@ -210,7 +210,7 @@ namespace tahsinERP.Controllers
 
                     foreach (var account in accounts)
                     {
-                        // Opening balance (before from date) - exclude liability transactions
+                        // Opening balance (before dan date) - exclude liability transactions
                         var openingTransactions = db.FIN_TRANSACTIONS
                             .Where(t => t.AccountID == account.ID && 
                                        t.TxnDate < from &&
@@ -354,7 +354,7 @@ namespace tahsinERP.Controllers
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     var totalCustomers = db.CUSTOMERS.Count();
-                    var activeCustomers = db.CUSTOMERS.Count(); // Add IsActive filter if exists
+                    var activeCustomers = db.CUSTOMERS.Count(); // Add IsActive filtrlash agar mavjud
                     var totalOrders = db.S_ORDERS.Count(x => x.IsDeleted == false);
                     var totalContracts = db.S_CONTRACTS.Count();
 
@@ -471,7 +471,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Documents Module - Statistics
+        // hujjatlar Module - Statistics
         [HttpGet]
         public JsonResult GetDocumentsStats()
         {

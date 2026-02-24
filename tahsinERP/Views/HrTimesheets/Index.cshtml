@@ -1,4 +1,4 @@
-﻿@model List<tahsinERP.Models.HR_TIMESHEET_HEADERS>
+@model List<tahsinERP.Models.HR_TIMESHEET_HEADERS>
 @{
     ViewBag.Title = "Tabel";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -101,9 +101,18 @@
                                                 <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
                                                 <td>@(item.ApprovedDT?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                 <td>
-                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info">
-                                                        <i class="bx bx-edit"></i>
-                                                    </a>
+                                                    @if (item.Status == "Draft")
+                                                    {
+                                                        <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info" title="Tahrirlash">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="@Url.Action("Report", new { id = item.ID })" class="btn btn-sm btn-outline-info" target="_blank" title="Ko'rish">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                    }
                                                     <a href="@Url.Action("Export", new { id = item.ID })" class="btn btn-sm btn-success">
                                                         <i class="bx bx-export"></i>
                                                     </a>

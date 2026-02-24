@@ -10,12 +10,12 @@ using tahsinERP.Services;
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// Inventory Reports for Production Warehouse
+    /// Inventory Reports uchun Production Warehouse
     /// Reports: DOH (Days on Hand), Coverage, Plan fulfillment
     /// </summary>
     public class InventoryReportsController : Controller
     {
-        // GET: InventoryReports/Dashboard
+        // Olish so'rovi: InventoryReports/Dashboard
         public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate, int? runnerDays, int? runnerTopN, string fifoScope)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
@@ -47,7 +47,7 @@ namespace tahsinERP.Controllers
                     OutboundTrends = new List<TrendData>()
                 };
 
-                // Get warehouse IDs first (as simple list of integers)
+                // Olish warehouse IDs birinchi (as simple list of integers)
                 var warehouseIds = warehouseId.HasValue
                     ? new List<int> { warehouseId.Value }
                     : await db.WAREHOUSES.Where(w => w.IsDeleted != true).Select(w => w.ID).ToListAsync();
@@ -71,7 +71,7 @@ namespace tahsinERP.Controllers
                     });
                 }
 
-                // Get all stocks
+                // Olish barcha stocks
                 var stocks = await db.PRODUCT_STOCKS
                     .Include(s => s.PRODUCT)
                     .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
@@ -80,7 +80,7 @@ namespace tahsinERP.Controllers
                     .Where(s => warehouseIds.Contains(s.WHID) && s.Amount > 0)
                     .ToListAsync();
 
-                // Filter by category if specified
+                // Filtrlash bo'yicha category agar specified
                 if (categoryId.HasValue)
                 {
                     stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.CategoryID == categoryId.Value).ToList();
@@ -89,7 +89,7 @@ namespace tahsinERP.Controllers
                 var totalDays = (toDateValue - fromDateValue).TotalDays;
                 if (totalDays <= 0) totalDays = 1;
 
-                // Calculate planned consumption from production plan (PRODUCTPLANS_DAILY)
+                // Calculate planned consumption dan production plan (PRODUCTPLANS_DAILY)
                 var plannedDaily = await db.PRODUCTPLANS_DAILY
                     .Where(d => d.Day >= fromDateValue && d.Day <= toDateValue && d.PRODUCTPLAN.IsDeleted == false)
                     .Select(d => new { d.PRODUCTPLAN.ProductID, d.Total })
@@ -99,7 +99,7 @@ namespace tahsinERP.Controllers
                     .GroupBy(x => x.ProductID)
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.Total));
 
-                // Calculate actual consumption from expenses (warehouse-specific)
+                // Calculate actual consumption dan expenses (warehouse-specific)
                 var expenses = await db.EXPENSES
                     .Include(e => e.EXPENSE_PRODUCTS)
                     .Where(e => e.IssueDateTime >= fromDateValue && e.IssueDateTime <= toDateValue && e.IsDeleted != true)
@@ -112,15 +112,15 @@ namespace tahsinERP.Controllers
                         WarehouseId = e.SenderWHID,
                         Amount = ep.Amount
                     }))
-                    .Where(x => x.WarehouseId.HasValue && warehouseIds.Contains(x.WarehouseId.Value))
-                    .GroupBy(x => new { x.ProductID, WarehouseId = x.WarehouseId.Value })
+                    .Where(x => warehouseIds.Contains(x.WarehouseId))
+                    .GroupBy(x => new { x.ProductID, x.WarehouseId })
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
                 foreach (var stock in stocks)
                 {
                     if (stock.PRODUCT == null) continue;
 
-                    // Calculate average daily consumption from production plan
+                    // Calculate average daily consumption dan production plan
                     var plannedTotal = plannedByProduct.ContainsKey(stock.ProductID)
                         ? plannedByProduct[stock.ProductID]
                         : 0;
@@ -179,8 +179,8 @@ namespace tahsinERP.Controllers
                         WarehouseId = e.SenderWHID,
                         Amount = ep.Amount
                     }))
-                    .Where(x => x.WarehouseId.HasValue && warehouseIds.Contains(x.WarehouseId.Value))
-                    .GroupBy(x => new { x.ProductID, WarehouseId = x.WarehouseId.Value })
+                    .Where(x => warehouseIds.Contains(x.WarehouseId))
+                    .GroupBy(x => new { x.ProductID, x.WarehouseId })
                     .Select(g => new { g.Key.ProductID, g.Key.WarehouseId, Total = g.Sum(x => x.Amount) })
                     .ToList();
 
@@ -319,7 +319,7 @@ namespace tahsinERP.Controllers
                 model.InboundTrends = inboundData.Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
                 model.OutboundTrends = outboundData.Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
 
-                // Prepare ViewBag
+                // Tayyorlash ViewBag
                 ViewBag.Warehouses = new SelectList(
                     await db.WAREHOUSES.Where(w => w.IsDeleted != true).ToListAsync(),
                     "ID", "WHName", warehouseId);
@@ -334,7 +334,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // GET: InventoryReports/ProductionWH
+        // Olish so'rovi: InventoryReports/ProductionWH
         public async Task<ActionResult> ProductionWH(int? warehouseId, DateTime? reportDate)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "ProductionWH"))
@@ -346,7 +346,7 @@ namespace tahsinERP.Controllers
             {
                 var reportDateValue = reportDate ?? DateTime.Now;
 
-                // Get Production warehouse
+                // Olish Production warehouse
                 var productionWarehouse = warehouseId.HasValue
                     ? await db.WAREHOUSES.FindAsync(warehouseId.Value)
                     : db.WAREHOUSES.FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
@@ -374,7 +374,7 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Generates inventory report for Production warehouse
+        /// Generates inventory report uchun Production warehouse
         /// </summary>
         private async Task<InventoryReportViewModel> GenerateInventoryReportAsync(
             int warehouseId, 
@@ -388,7 +388,7 @@ namespace tahsinERP.Controllers
                 Items = new List<InventoryReportItem>()
                 };
 
-            // Get all stocks in Production warehouse
+            // Olish barcha stocks in Production warehouse
             var stocks = await db.PRODUCT_STOCKS
                 .Include(s => s.PRODUCT)
                 .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
@@ -396,7 +396,7 @@ namespace tahsinERP.Controllers
                 .Where(s => s.WHID == warehouseId && s.Amount > 0)
                     .ToListAsync();
 
-            // Get active production plans
+            // Olish faol production plans
             var activePlans = await db.PRODUCTPLANS
                 .Include(p => p.PRODUCT)
                 .Where(p => p.IsDeleted == false &&
@@ -408,13 +408,13 @@ namespace tahsinERP.Controllers
 
             foreach (var stock in stocks)
             {
-                // Calculate average daily consumption from active plans
+                // Calculate average daily consumption dan faol plans
                 var materialPlans = activePlans
                     .Where(p => 
                     {
-                        // Check if this material is used in the plan's BOM
-                        // This is a simplified check - in production, you'd query BOM/NORMLINES
-                        return true; // Placeholder - should check BOM relationship
+                        // Tekshirish agar this material is used in the plan's BOM
+                        // This is a simplified tekshirish - in production, you'd query BOM/NORMLINES
+                        return true; // Placeholder - should tekshirish BOM relationship
                     })
                     .ToList();
 
@@ -425,7 +425,7 @@ namespace tahsinERP.Controllers
                 {
                     var days = (plan.DueDate - plan.StartDate).Days + 1;
                     totalDays += days;
-                    // Get material requirement for this plan
+                    // Olish material requirement uchun this plan
                     var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
                         plan.ProductID, plan.Amount);
                     var materialReq = requirements.FirstOrDefault(r => r.MaterialID == stock.ProductID);
@@ -469,7 +469,7 @@ namespace tahsinERP.Controllers
             return report;
         }
 
-        // GET: InventoryReports/Export
+        // Olish so'rovi: InventoryReports/Export
         public async Task<ActionResult> Export(int warehouseId, DateTime reportDate)
         {
             using (var db = new DBTHSNEntities())
@@ -477,7 +477,7 @@ namespace tahsinERP.Controllers
                 var report = await GenerateInventoryReportAsync(warehouseId, reportDate, db);
                 
                 // TODO: Implement Excel export
-                // For now, return JSON
+                // uchun now, return JSON
                 return Json(report, JsonRequestBehavior.AllowGet);
             }
         }

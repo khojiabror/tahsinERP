@@ -1,6 +1,6 @@
-﻿@model tahsinERP.Models.FORWARDER
+@model tahsinERP.Models.FORWARDER
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Yuk tashuvchini tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,10 +21,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Forwarder/Index">Forwarder lar</a>
+                                            <a href="~/Forwarder/Index">Yuk tashuvchilar</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Forwarder sahifasi
+                                            Yuk tashuvchi sahifasi
                                         </li>
                                     </ol>
                                 </div>
@@ -42,14 +42,14 @@
                                     <div class="card-body pb-0 mx-25">
                                         @Html.AntiForgeryToken()
                                         <div class="row">
-                                            <h4 class="text-primary">Forwarder malumotlarini tahrirlash</h4>
+                                            <h4 class="text-primary">Yuk tashuvchi ma'lumotlarini tahrirlash</h4>
 
                                             <div class="col-lg-12 col-md-6 mt-25">
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                 <hr>
-                                                <h4 class="text-primary">Forwarder nomi</h4>
+                                                <h4 class="text-primary">Yuk tashuvchi nomi</h4>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.ForwarderName, new { @class = "form-control round", @placeholder = "Forwarder ismi" })
+                                                    @Html.TextBoxFor(model => model.ForwarderName, new { @class = "form-control round", @placeholder = "Yuk tashuvchi nomi" })
                                                     @Html.ValidationMessageFor(model => model.ForwarderName, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <h6 class="invoice-to">Direktor</h6>

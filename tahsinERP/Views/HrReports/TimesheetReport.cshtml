@@ -1,4 +1,4 @@
-﻿@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
+@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
 @{
     ViewBag.Title = "Tabel - Chop etish";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -38,7 +38,7 @@
                     </div>
                 </div>
 
-                <div class="card" id="printArea">
+                <div class="card" id="printArea" data-print-target="true">
                     <div class="card-body">
                         <div class="text-center mb-3">
                             <h4>ISH VAQTI HISOBOTI</h4>
@@ -121,6 +121,13 @@
         }
         body {
             background: white;
+        }
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
         }
     </style>
 }

@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinCategoriesController : Controller
     {
-        // GET: FinCategories
+        // Olish so'rovi: FinCategories
         public ActionResult Index(string searchTerm, int? type, int? parentID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
@@ -24,19 +24,19 @@ namespace tahsinERP.Controllers.Finance
                 var query = db.FIN_CATEGORIES
                     .Where(c => c.IsActive && (c.IsDeleted == false || c.IsDeleted == null));
 
-                // Search filter
+                // Search filtrlash
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     query = query.Where(c => c.Name.Contains(searchTerm));
                 }
 
-                // Type filter (1=Income, 2=Expense, 3=Other)
+                // Type filtrlash (1=Income, 2=Expense, 3=Other)
                 if (type.HasValue)
                 {
                     query = query.Where(c => c.Type == type.Value);
                 }
 
-                // Parent filter
+                // Parent filtrlash
                 if (parentID.HasValue)
                 {
                     query = query.Where(c => c.ParentID == parentID.Value);
@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers.Finance
             return result;
         }
 
-        // GET: FinCategories/Details/5
+        // Olish so'rovi: FinCategories/Details/5
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
@@ -108,20 +108,20 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Get child categories
+                // Olish child categories
                 ViewBag.ChildCategories = db.FIN_CATEGORIES
                     .Where(c => c.ParentID == id && c.IsActive)
                     .OrderBy(c => c.SortOrder)
                     .ToList();
 
-                // Get transaction count
+                // Olish transaction count
                 ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.CategoryID == id);
 
                 return View(category);
             }
         }
 
-        // GET: FinCategories/Create
+        // Olish so'rovi: FinCategories/yaratish
         public ActionResult Create(int? parentID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
@@ -152,7 +152,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinCategories/Create
+        // POST so'rovi: FinCategories/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_CATEGORIES category)
@@ -196,7 +196,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinCategories/Edit/5
+        // Olish so'rovi: FinCategories/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
@@ -217,7 +217,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Exclude self and descendants from parent list
+                // Exclude self va descendants dan parent list
                 var excludeIds = GetDescendantIds(db, id.Value);
                 excludeIds.Add(id.Value);
 
@@ -235,7 +235,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinCategories/Edit/5
+        // POST so'rovi: FinCategories/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_CATEGORIES category)
@@ -297,7 +297,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinCategories/Delete/5
+        // Olish so'rovi: FinCategories/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
@@ -318,16 +318,16 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Check if category has children
+                // Tekshirish agar category has children
                 ViewBag.HasChildren = db.FIN_CATEGORIES.Any(c => c.ParentID == id && c.IsActive);
-                // Check if category has transactions
+                // Tekshirish agar category has transactions
                 ViewBag.HasTransactions = db.FIN_TRANSACTIONS.Any(t => t.CategoryID == id);
 
                 return View(category);
             }
         }
 
-        // POST: FinCategories/Delete/5
+        // POST so'rovi: FinCategories/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -342,7 +342,7 @@ namespace tahsinERP.Controllers.Finance
                 var category = db.FIN_CATEGORIES.Find(id);
                 if (category != null)
                 {
-                    // Soft delete
+                    // Soft o'chirish
                     category.IsActive = false;
                     db.SaveChanges();
 

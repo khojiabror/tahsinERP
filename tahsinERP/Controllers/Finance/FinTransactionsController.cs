@@ -14,7 +14,7 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinTransactionsController : Controller
     {
-        // GET: FinTransactions
+        // Olish so'rovi: FinTransactions
         public ActionResult Index(DateTime? fromDate, DateTime? toDate, int? accountID, int? categoryID, 
             byte? direction, byte? counterpartyType, int? counterpartyID, string sourceDocType, 
             string searchTerm, string sortOrder, int? page, int? pageSize)
@@ -33,7 +33,7 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.CURRENCy)
                     .Include(t => t.USER);
 
-                // Date range filter
+                // Date range filtrlash
                 if (fromDate.HasValue)
                 {
                     query = query.Where(t => t.TxnDate >= fromDate.Value);
@@ -44,19 +44,19 @@ namespace tahsinERP.Controllers.Finance
                     query = query.Where(t => t.TxnDate <= toDate.Value);
                 }
 
-                // Account filter
+                // Account filtrlash
                 if (accountID.HasValue)
                 {
                     query = query.Where(t => t.AccountID == accountID.Value);
                 }
 
-                // Category filter
+                // Category filtrlash
                 if (categoryID.HasValue)
                 {
                     query = query.Where(t => t.CategoryID == categoryID.Value);
                 }
 
-                // Direction filter (1=In, 2=Out)
+                // Direction filtrlash (1=In, 2=Out)
                 if (direction.HasValue)
                 {
                     query = query.Where(t => t.Direction == direction.Value);
@@ -73,7 +73,7 @@ namespace tahsinERP.Controllers.Finance
                     query = query.Where(t => t.CounterpartyID == counterpartyID.Value);
                 }
 
-                // Source document type filter
+                // Source hujjat type filtrlash
                 if (!string.IsNullOrEmpty(sourceDocType))
                 {
                     query = query.Where(t => t.SourceDocType == sourceDocType);
@@ -89,13 +89,13 @@ namespace tahsinERP.Controllers.Finance
                         (t.ContractNo != null && t.ContractNo.Contains(searchTerm)));
                 }
 
-                // Default sorting - DataTable will handle client-side sorting
+                // standart sorting - DataTable will handle client-side sorting
                 query = query.OrderByDescending(t => t.TxnDate);
 
-                // Load all transactions for client-side DataTable (no server-side pagination)
+                // Yuklash barcha transactions uchun client-side DataTable (no server-side pagination)
                 var transactions = query.ToList();
 
-                // Ensure navigation properties are loaded for all transactions
+                // Ensure navigation properties are loaded uchun barcha transactions
                 var accountIds = transactions.Where(t => t.AccountID > 0).Select(t => t.AccountID).Distinct().ToList();
                 var categoryIds = transactions.Where(t => t.CategoryID > 0).Select(t => t.CategoryID).Distinct().ToList();
                 var currencyIds = transactions.Where(t => t.CurrencyID > 0).Select(t => t.CurrencyID).Distinct().ToList();
@@ -120,12 +120,12 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                // ViewBag for filters
+                // ViewBag uchun filters
                 ViewBag.AccountList = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", accountID);
 
-                // Build category tree for dropdown
+                // Build category tree uchun dropdown
                 var categories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
                 ViewBag.CategoryList = new SelectList(categories, "ID", "Name", categoryID);
 
@@ -165,7 +165,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinTransactions/Details/5
+        // Olish so'rovi: FinTransactions/Details/5
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
@@ -210,7 +210,7 @@ namespace tahsinERP.Controllers.Finance
                     transaction.USER = db.USERS.Find(transaction.CreatedByUserID);
                 }
 
-                // Get source document link if available
+                // Olish source hujjat link agar available
                 if (!string.IsNullOrEmpty(transaction.SourceDocType) && transaction.SourceDocID.HasValue)
                 {
                     ViewBag.SourceDocLink = GetSourceDocLink(transaction.SourceDocType, transaction.SourceDocID.Value);
@@ -220,7 +220,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinTransactions/Create
+        // Olish so'rovi: FinTransactions/yaratish
         public ActionResult Create(int? accountID, int? categoryID)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
@@ -260,7 +260,7 @@ namespace tahsinERP.Controllers.Finance
                 var model = new FIN_TRANSACTIONS
                 {
                     TxnDate = DateTime.Now,
-                    Direction = 1, // Default In
+                    Direction = 1, // standart In
                     CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
                     CreatedDT = DateTime.Now
                 };
@@ -279,7 +279,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinTransactions/Create
+        // POST so'rovi: FinTransactions/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_TRANSACTIONS transaction)
@@ -291,7 +291,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Validate account currency matches transaction currency
+                // Tekshirish account currency matches transaction currency
                 var account = db.FIN_ACCOUNTS.Find(transaction.AccountID);
                 if (account != null && account.CurrencyID != transaction.CurrencyID)
                 {
@@ -344,7 +344,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinTransactions/Edit/5
+        // Olish so'rovi: FinTransactions/Edit/5
         public ActionResult Edit(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
@@ -365,7 +365,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Don't allow editing if linked to source document
+                // Don't allow editing agar linked ga source hujjat
                 if (!string.IsNullOrEmpty(transaction.SourceDocType) && transaction.SourceDocType != "Manual")
                 {
                     ViewBag.CannotEdit = true;
@@ -404,7 +404,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinTransactions/Edit/5
+        // POST so'rovi: FinTransactions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_TRANSACTIONS transaction)
@@ -422,7 +422,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Don't allow editing if linked to source document
+                // Don't allow editing agar linked ga source hujjat
                 if (!string.IsNullOrEmpty(existing.SourceDocType) && existing.SourceDocType != "Manual")
                 {
                     ViewBag.CannotEdit = true;
@@ -492,7 +492,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinTransactions/Delete/5
+        // Olish so'rovi: FinTransactions/o'chirish/5
         public ActionResult Delete(int? id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
@@ -519,7 +519,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Check if linked to source document
+                // Tekshirish agar linked ga source hujjat
                 if (!string.IsNullOrEmpty(transaction.SourceDocType) && transaction.SourceDocType != "Manual")
                 {
                     ViewBag.CannotDelete = true;
@@ -530,7 +530,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinTransactions/Delete/5
+        // POST so'rovi: FinTransactions/o'chirish/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -545,7 +545,7 @@ namespace tahsinERP.Controllers.Finance
                 var transaction = db.FIN_TRANSACTIONS.Find(id);
                 if (transaction != null)
                 {
-                    // Only allow deletion of manual transactions
+                    // faqat allow deletion of manual transactions
                     if (string.IsNullOrEmpty(transaction.SourceDocType) || transaction.SourceDocType == "Manual")
                     {
                         transaction.IsDeleted = true;
@@ -561,7 +561,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinTransactions/ExportExcel
+        // Olish so'rovi: FinTransactions/ExportExcel
         public ActionResult ExportExcel(DateTime? fromDate, DateTime? toDate, int? accountID, int? categoryID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
@@ -629,7 +629,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // GET: FinTransactions/Import
+        // Olish so'rovi: FinTransactions/Import
         public ActionResult Import()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
@@ -649,7 +649,7 @@ namespace tahsinERP.Controllers.Finance
             return View();
         }
 
-        // GET: FinTransactions/DownloadTemplate
+        // Olish so'rovi: FinTransactions/DownloadTemplate
         public ActionResult DownloadTemplate()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
@@ -664,7 +664,7 @@ namespace tahsinERP.Controllers.Finance
                 {
                     var worksheet = package.Workbook.Worksheets.Add("Tranzaksiyalar");
 
-                    // Header row
+                    // Header qator
                     worksheet.Cells[1, 1].Value = "Sana (DD.MM.YYYY)";
                     worksheet.Cells[1, 2].Value = "Vaqt (HH:mm)";
                     worksheet.Cells[1, 3].Value = "Hisob kodi";
@@ -693,7 +693,7 @@ namespace tahsinERP.Controllers.Finance
                         range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                     }
 
-                    // Add example row
+                    // Qo'shish example qator
                     worksheet.Cells[2, 1].Value = "01.11.2025";
                     worksheet.Cells[2, 2].Value = "10:30";
                     worksheet.Cells[2, 3].Value = "9000";
@@ -706,12 +706,12 @@ namespace tahsinERP.Controllers.Finance
                     worksheet.Cells[2, 10].Value = "K-001";
                     worksheet.Cells[2, 11].Value = "Qo'shimcha izoh";
 
-                    // Get available accounts and categories for reference
+                    // Olish available accounts va categories uchun reference
                     var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Code).ToList();
                     var categories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
                     var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
 
-                    // Add reference sheets
+                    // Qo'shish reference varaqlar
                     var accountsSheet = package.Workbook.Worksheets.Add("Hisoblar");
                     accountsSheet.Cells[1, 1].Value = "Kod";
                     accountsSheet.Cells[1, 2].Value = "Nomi";
@@ -758,7 +758,7 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        // POST: FinTransactions/Import
+        // POST so'rovi: FinTransactions/Import
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Import(HttpPostedFileBase file)
@@ -797,10 +797,10 @@ namespace tahsinERP.Controllers.Finance
                         return View();
                     }
 
-                    // Get lookup dictionaries and current user
+                    // Olish lookup dictionaries va current user
                     using (DBTHSNEntities db = new DBTHSNEntities())
                     {
-                        // Use UserHelper to get current user ID (standard approach in this codebase)
+                        // Use UserHelper ga get current user ID (standard approach in this codebase)
                         int currentUserId;
                         try
                         {
@@ -820,11 +820,11 @@ namespace tahsinERP.Controllers.Finance
                         {
                             try
                             {
-                                // Read date - try to get as DateTime value first (Excel stores dates as numbers)
+                                // O'qish date - try ga get as DateTime value birinchi (Excel stores dates as numbers)
                                 DateTime txnDate;
                                 var dateCell = worksheet.Cells[row, 1];
                                 
-                                // First try to get as DateTime value (if Excel stored it as date)
+                                // Avval try ga get as DateTime value (agar Excel stored it as date)
                                 if (dateCell.Value != null)
                                 {
                                     if (dateCell.Value is DateTime dateTimeValue)
@@ -838,14 +838,14 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                     else
                                     {
-                                        // Try to parse as string
+                                        // Urinish ga tahlil as string
                                         var dateStr = dateCell.Value.ToString()?.Trim();
                                         if (string.IsNullOrEmpty(dateStr))
                                         {
-                                            continue; // Skip empty rows
+                                            continue; // Skip empty qatorlar
                                         }
                                         
-                                        // Try multiple date formats
+                                        // Urinish multiple date formats
                                         var dateFormats = new[] { 
                                             "dd.MM.yyyy", "dd/MM/yyyy", "d.M.yyyy", "d/M/yyyy",
                                             "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy",
@@ -870,14 +870,14 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 else
                                 {
-                                    // Cell is empty or null
+                                    // Cell is empty yoki null
                                     var dateStr = dateCell.Text?.Trim();
                                     if (string.IsNullOrEmpty(dateStr))
                                     {
-                                        continue; // Skip empty rows
+                                        continue; // Skip empty qatorlar
                                     }
                                     
-                                    // Try multiple date formats
+                                    // Urinish multiple date formats
                                     var dateFormats = new[] { 
                                         "dd.MM.yyyy", "dd/MM/yyyy", "d.M.yyyy", "d/M/yyyy",
                                         "MM/dd/yyyy", "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy",
@@ -900,7 +900,7 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                 }
 
-                                // Read time - try to get as DateTime value first
+                                // O'qish time - try ga get as DateTime value birinchi
                                 var timeCell = worksheet.Cells[row, 2];
                                 if (timeCell.Value != null)
                                 {
@@ -910,7 +910,7 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                     else if (timeCell.Value is double timeDouble && timeDouble < 1.0)
                                     {
-                                        // Excel stores time as fraction of day (0.0 to 0.999...)
+                                        // Excel stores time as fraction of day (0.0 ga 0.999...)
                                         var timeSpan = TimeSpan.FromDays(timeDouble);
                                         txnDate = txnDate.Date.Add(timeSpan);
                                     }
@@ -940,7 +940,7 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                 }
 
-                                // Read account code
+                                // O'qish account code
                                 var accountCode = worksheet.Cells[row, 3].Text?.Trim();
                                 if (string.IsNullOrEmpty(accountCode) || !accounts.ContainsKey(accountCode))
                                 {
@@ -949,7 +949,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 int accountId = accounts[accountCode];
 
-                                // Read category name
+                                // O'qish category name
                                 var categoryName = worksheet.Cells[row, 4].Text?.Trim();
                                 if (string.IsNullOrEmpty(categoryName) || !categories.ContainsKey(categoryName))
                                 {
@@ -958,7 +958,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 int categoryId = categories[categoryName];
 
-                                // Read direction
+                                // O'qish direction
                                 var directionStr = worksheet.Cells[row, 5].Text?.Trim();
                                 byte direction;
                                 if (!byte.TryParse(directionStr, out direction) || (direction != 1 && direction != 2))
@@ -967,7 +967,7 @@ namespace tahsinERP.Controllers.Finance
                                     continue;
                                 }
 
-                                // Read amount
+                                // O'qish amount
                                 var amountStr = worksheet.Cells[row, 6].Text?.Trim();
                                 if (string.IsNullOrEmpty(amountStr) || !decimal.TryParse(amountStr.Replace(" ", "").Replace(",", "."), 
                                     System.Globalization.NumberStyles.Any, 
@@ -977,7 +977,7 @@ namespace tahsinERP.Controllers.Finance
                                     continue;
                                 }
 
-                                // Read currency
+                                // O'qish currency
                                 var currencyShortname = worksheet.Cells[row, 7].Text?.Trim();
                                 if (string.IsNullOrEmpty(currencyShortname) || !currencies.ContainsKey(currencyShortname))
                                 {
@@ -986,7 +986,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 int currencyId = currencies[currencyShortname];
 
-                                // Read optional fields
+                                // O'qish optional fields
                                 var counterpartyName = worksheet.Cells[row, 8].Text?.Trim();
                                 var purpose = worksheet.Cells[row, 9].Text?.Trim();
                                 var contractNo = worksheet.Cells[row, 10].Text?.Trim();
@@ -1052,7 +1052,7 @@ namespace tahsinERP.Controllers.Finance
                             return View();
                         }
 
-                        // Bulk insert with detailed error handling
+                        // Bulk insert bilan detailed xatolik handling
                         try
                         {
                             db.FIN_TRANSACTIONS.AddRange(transactions);
@@ -1065,13 +1065,13 @@ namespace tahsinERP.Controllers.Finance
                             {
                                 foreach (var error in validationError.ValidationErrors)
                                 {
-                                    validationErrors.Add($"Property: {error.PropertyName}, Error: {error.ErrorMessage}");
+                                    validationErrors.Add($"Maydon: {error.PropertyName}, Xatolik: {error.ErrorMessage}");
                                 }
                             }
                             ViewBag.Error = $"Ma'lumotlar validatsiyadan o'tmadi: {string.Join("; ", validationErrors)}";
                             if (dbEx.InnerException != null)
                             {
-                                ViewBag.Error += $" | Inner Exception: {dbEx.InnerException.Message}";
+                                ViewBag.Error += $" | Ichki xatolik: {dbEx.InnerException.Message}";
                             }
                             if (errors.Count > 0)
                             {
@@ -1082,12 +1082,12 @@ namespace tahsinERP.Controllers.Finance
                         catch (System.Data.Entity.Infrastructure.DbUpdateException dbUpdateEx)
                         {
                             var updateErrors = new List<string>();
-                            updateErrors.Add($"Database update xatolik: {dbUpdateEx.Message}");
+                            updateErrors.Add($"Ma'lumotlar bazasini yangilashda xatolik: {dbUpdateEx.Message}");
                             
                             Exception innerEx = dbUpdateEx.InnerException;
                             while (innerEx != null)
                             {
-                                updateErrors.Add($"Inner: {innerEx.Message}");
+                                updateErrors.Add($"Ichki xatolik: {innerEx.Message}");
                                 innerEx = innerEx.InnerException;
                             }
                             
@@ -1115,7 +1115,7 @@ namespace tahsinERP.Controllers.Finance
             }
             catch (Exception ex)
             {
-                // Get all inner exception messages recursively
+                // Barcha ichki xatolik xabarlarini rekursiv tarzda yig'ish
                 var errorMessages = new List<string>();
                 Exception currentEx = ex;
                 while (currentEx != null)
@@ -1129,7 +1129,7 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Error = $"Import jarayonida xatolik: {string.Join(" -> ", errorMessages)}";
                 
-                // Also log full exception details for debugging
+                // Also log full exception details uchun debugging
                 try
                 {
                     LogHelper.LogToDatabase(User.Identity.Name, "FinTransactionsController",

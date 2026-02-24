@@ -1,7 +1,7 @@
 @model tahsinERP.Models.PRODUCT
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Yaratish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -76,8 +76,8 @@
                                                         @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control", @id = "ProductType" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Kategoriya</h6>
-                                                    <fieldset class="form-group" id="categoryField" style="display: none;">
-                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, "-- tanlang --", new { @class = "form-control" })
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, "Tanlang", new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Sex (ishlab chiqarish bo'limi)</h6>
@@ -140,13 +140,13 @@
 
                                                     @*<div class="form-group">
                                                             <div class="col-md-offset-2 col-md-10">
-                                                                <input type="submit" value="Save" class="btn btn-primary btn-block subtotal-preview-btn" />
-                                                                @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-outline-primary" })
+                                                                <input type="submit" value="Saqlash" class="btn btn-primary btn-block subtotal-preview-btn" />
+                                                                @Html.ActionLink("Ro'yxatga qaytish", "Index", null, new { @class = "btn btn-outline-primary" })
                                                             </div>
                                                         </div>*@
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
-                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Save">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Saqlash">
                                                                 <i class='bx bx-save'></i>
                                                                 Saqlash
                                                             </button>
@@ -171,25 +171,3 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
-@section scripts {
-    <script>
-        $(document).ready(function () {
-            // Show/hide Category dropdown based on ProductType selection
-            $('#ProductType').on('change', function () {
-                var productType = $(this).val();
-                // Show category field only if Xomashyo (RAW_MATERIAL) is selected
-                if (productType === 'XOMASHYO') {
-                    $('#categoryField').show();
-                } else {
-                    $('#categoryField').hide();
-                    $('#CategoryID').val('');
-                }
-            });
-            
-            // Trigger on page load if value is already set
-            if ($('#ProductType').val() === 'XOMASHYO') {
-                $('#categoryField').show();
-            }
-        });
-    </script>
-}

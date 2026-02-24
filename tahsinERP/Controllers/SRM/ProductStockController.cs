@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Irony.Parsing;
 using Newtonsoft.Json;
@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers
     {
         private Warehouse warehouse = null;
         private List<string> missingParts = new List<string>();
-        // GET: PartStock
+        // Olish so'rovi: PartStock
         public async Task<ActionResult> Index(int? whid)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -204,7 +204,7 @@ namespace tahsinERP.Controllers
         }
         public ActionResult ClearDataTable()
         {
-            // Clear the DataTable and related ViewBag properties
+            // Clear the DataTable va related ViewBag properties
             ViewBag.DataTable = null;
             ViewBag.DataTableModel = null;
             ViewBag.IsFileUploaded = false;
