@@ -15,6 +15,15 @@
     var outstanding = (ViewBag.Outstanding as double?) ?? 0;
     var paymentStatus = (ViewBag.PaymentStatus as string) ?? "To'lanmagan";
     var payments = ViewBag.Payments as IEnumerable<tahsinERP.Models.F_WAYBILL_PAYMENTS>;
+    var hasPayments = false;
+    if (payments != null)
+    {
+        foreach (var _p in payments)
+        {
+            hasPayments = true;
+            break;
+        }
+    }
     var statusClass = paymentStatus == "To'langan" ? "success" : paymentStatus == "Qisman" ? "warning" : "danger";
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -132,7 +141,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if (payments != null && payments.Any())
+                                            @if (hasPayments)
                                             {
                                                 foreach (var p in payments)
                                                 {

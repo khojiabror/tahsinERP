@@ -108,6 +108,80 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // Olish so'rovi: Inventory/ExportExcel
+        public async Task<ActionResult> ExportExcel(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage())
+                {
+                    var ws = package.Workbook.Worksheets.Add("Inventory");
+                    ws.Cells[1, 1].Value = "Ombor";
+                    ws.Cells[1, 2].Value = "Mahsulot kodi";
+                    ws.Cells[1, 3].Value = "Mahsulot nomi";
+                    ws.Cells[1, 4].Value = "Kategoriya";
+                    ws.Cells[1, 5].Value = "Miqdor";
+                    ws.Cells[1, 6].Value = "Birlik";
+                    ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
+
+                    int row = 2;
+                    foreach (var item in rows)
+                    {
+                        ws.Cells[row, 1].Value = item.WarehouseName;
+                        ws.Cells[row, 2].Value = item.ProductPNo;
+                        ws.Cells[row, 3].Value = item.ProductName;
+                        ws.Cells[row, 4].Value = item.CategoryName;
+                        ws.Cells[row, 5].Value = item.Amount;
+                        ws.Cells[row, 6].Value = item.UnitName;
+                        row++;
+                    }
+
+                    ws.Cells.AutoFitColumns();
+                    var bytes = package.GetAsByteArray();
+                    var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+        }
+
+        // Olish so'rovi: Inventory/ExportPdf
+        public async Task<ActionResult> ExportPdf(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
+                var lines = new List<string>
+                {
+                    "Ombor qoldiqlari",
+                    $"Sana: {DateTime.Now:dd.MM.yyyy HH:mm}",
+                    ""
+                };
+
+                lines.Add("Ombor | Mahsulot kodi | Mahsulot nomi | Kategoriya | Miqdor | Birlik");
+                foreach (var item in rows)
+                {
+                    lines.Add($"{item.WarehouseName} | {item.ProductPNo} | {item.ProductName} | {item.CategoryName} | {item.Amount:N2} | {item.UnitName}");
+                }
+
+                var bytes = BuildSimplePdf(lines);
+                var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                return File(bytes, "application/pdf", fileName);
+            }
+        }
+
         // Olish so'rovi: Inventory/Adjust
         public async Task<ActionResult> Adjust()
         {
@@ -247,12 +321,6 @@ namespace tahsinERP.Controllers
                     }
 
                     var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                    if (await HasAdjustmentThisMonthAsync(currentUserId, model.WarehouseId, db))
-                    {
-                        ModelState.AddModelError("", "Bu ombor uchun bu oyda inventarizatsiya allaqachon o'tkazilgan.");
-                        await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
-                        return View(model);
-                    }
 
                     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                     using (var package = new ExcelPackage(model.ExcelFile.InputStream))
@@ -265,87 +333,43 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
-                        var headerMap = BuildHeaderMap(worksheet);
-                        if (!headerMap.ContainsKey("productpno") || !headerMap.ContainsKey("quantity"))
-                        {
-                            ModelState.AddModelError("", "Excel faylda majburiy ustunlar yo'q (ProductPNo, Quantity).");
-                            await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
-                            return View(model);
-                        }
-
-                        var errors = new List<string>();
-                        var rows = new List<(string PNo, double Qty, int Row)>();
-
-                        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
-                        {
-                            var pno = GetCellString(worksheet, row, headerMap["productpno"]);
-                            var qtyValue = GetCellString(worksheet, row, headerMap["quantity"]);
-
-                            if (string.IsNullOrWhiteSpace(pno) && string.IsNullOrWhiteSpace(qtyValue))
-                            {
-                                continue;
-                            }
-
-                            if (string.IsNullOrWhiteSpace(pno))
-                            {
-                                errors.Add($"Qator {row}: Mahsulot kodi (ProductPNo) bo'sh.");
-                                continue;
-                            }
-
-                            var qty = ParseLooseQuantity(qtyValue);
-                            if (qty < 0)
-                            {
-                                errors.Add($"Qator {row}: Miqdor manfiy bo'lishi mumkin emas ({qtyValue}).");
-                                continue;
-                            }
-                            rows.Add((pno.Trim(), qty, row));
-                        }
-
-                        if (!rows.Any())
-                        {
-                            errors.Add("Excel faylda qayta ishlanadigan qatorlar topilmadi.");
-                        }
-
-                        if (errors.Any())
-                        {
-                            ViewBag.ErrorDetails = errors;
-                            await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
-                            return View(model);
-                        }
+                        var productMap = db.PRODUCTS
+                            .AsNoTracking()
+                            .AsEnumerable()
+                            .Where(p => !string.IsNullOrWhiteSpace(p.PNo))
+                            .ToDictionary(
+                                p => p.PNo.Trim().ToUpperInvariant(),
+                                p => new { p.ID, p.PNo, p.Name, p.UnitID });
 
                         using (var transaction = db.Database.BeginTransaction())
                         {
                             try
                             {
-                                var productMap = db.PRODUCTS
-                                    .AsNoTracking()
-                                    .AsEnumerable()
-                                    .Where(p => !string.IsNullOrWhiteSpace(p.PNo))
-                                    .ToDictionary(
-                                        p => p.PNo.Trim().ToUpperInvariant(),
-                                        p => new { p.ID, p.PNo, p.Name, p.UnitID });
-
-                                var logRows = new List<InventoryAdjustmentLogRow>();
-                                foreach (var adj in rows)
+                                for (int row = 1; row <= worksheet.Dimension.End.Row; row++)
                                 {
-                                    var key = adj.PNo.Trim().ToUpperInvariant();
+                                    var pno = GetCellString(worksheet, row, 1);
+                                    var qtyValue = GetCellString(worksheet, row, 2);
+
+                                    if (string.IsNullOrWhiteSpace(pno))
+                                    {
+                                        continue;
+                                    }
+
+                                    if (string.Equals(pno.Trim(), "ProductPNo", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        continue;
+                                    }
+
+                                    var key = pno.Trim().ToUpperInvariant();
                                     if (!productMap.TryGetValue(key, out var product))
                                     {
-                                        errors.Add($"Qator {adj.Row}: Mahsulot topilmadi ({adj.PNo}).");
                                         continue;
                                     }
 
-                                    if (!await HasWarehouseMovementAsync(model.WarehouseId, product.ID, db))
-                                    {
-                                        errors.Add($"Qator {adj.Row}: {adj.PNo} mahsuloti bo'yicha bu omborda kirim/chiqim bo'lmagan, qoldiqni to'g'rilab bo'lmaydi.");
-                                        continue;
-                                    }
+                                    var qty = ParseLooseQuantity(qtyValue);
 
                                     var stock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == model.WarehouseId && s.ProductID == product.ID);
-
-                                    var oldQty = stock?.Amount ?? 0;
-                                    var unit = await db.UNITS.FindAsync(product.UnitID);
 
                                     if (stock == null)
                                     {
@@ -353,51 +377,22 @@ namespace tahsinERP.Controllers
                                         {
                                             WHID = model.WarehouseId,
                                             ProductID = product.ID,
-                                            Amount = adj.Qty,
+                                            Amount = qty,
                                             UnitID = product.UnitID
                                         };
                                         db.PRODUCT_STOCKS.Add(stock);
                                     }
                                     else
                                     {
-                                        stock.Amount = adj.Qty;
+                                        stock.Amount = qty;
                                     }
-
-                                    logRows.Add(new InventoryAdjustmentLogRow
-                                    {
-                                        ProductPNo = product.PNo,
-                                        ProductName = product.Name,
-                                        OldQuantity = oldQty,
-                                        NewQuantity = adj.Qty,
-                                        UnitName = unit?.ShortName ?? ""
-                                    });
-                                }
-
-                                if (errors.Any())
-                                {
-                                    transaction.Rollback();
-                                    ViewBag.ErrorDetails = errors;
-                                    await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
-                                    return View(model);
                                 }
 
                                 await db.SaveChangesAsync();
                                 transaction.Commit();
 
-                                tahsinERP.Controllers.LogHelper.LogToDatabase(
-                                    User.Identity.Name,
-                                    "InventoryAdjustment",
-                                    $"Apply-WH-{model.WarehouseId}"
-                                );
-
-                                var logKey = await SaveAdjustmentLogsAsync(
-                                    model.WarehouseId,
-                                    currentUserId,
-                                    logRows
-                                );
-
                                 TempData["Success"] = "Inventarizatsiya muvaffaqiyatli yakunlandi.";
-                                return RedirectToAction("AdjustResult", new { key = logKey });
+                                return RedirectToAction("Index");
                             }
                             catch (Exception ex)
                             {
@@ -520,6 +515,77 @@ namespace tahsinERP.Controllers
         private static string GetCellString(ExcelWorksheet worksheet, int row, int col)
         {
             return (worksheet.Cells[row, col].Text ?? string.Empty).Trim();
+        }
+
+        private async Task<List<InventoryExportRow>> GetInventoryExportRowsAsync(
+            DBTHSNEntities db,
+            int? warehouseId,
+            int? categoryId,
+            bool? isFinishedGood,
+            bool? isRawMaterial)
+        {
+            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+            var query = db.PRODUCT_STOCKS
+                .Include(s => s.Warehouse)
+                .Include(s => s.PRODUCT)
+                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
+                .Include(s => s.UNIT)
+                .Where(s => s.Amount > 0);
+
+            if (assignedWarehouseIds.Any())
+            {
+                query = query.Where(s => assignedWarehouseIds.Contains(s.WHID));
+                if (warehouseId.HasValue && !assignedWarehouseIds.Contains(warehouseId.Value))
+                {
+                    warehouseId = null;
+                }
+            }
+
+            if (warehouseId.HasValue)
+            {
+                query = query.Where(s => s.WHID == warehouseId.Value);
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(s => s.PRODUCT.CategoryID == categoryId.Value);
+            }
+
+            if (isFinishedGood.HasValue)
+            {
+                if (isFinishedGood.Value)
+                {
+                    query = query.Where(s => s.PRODUCT.PRODUCT_CATEGORIES != null &&
+                                              s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true);
+                }
+                else
+                {
+                    query = query.Where(s => s.PRODUCT.PRODUCT_CATEGORIES == null ||
+                                              s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood != true);
+                }
+            }
+
+            if (isRawMaterial.HasValue && isRawMaterial.Value)
+            {
+                query = query.Where(s => s.PRODUCT.IsRawMaterial == true ||
+                                          (s.PRODUCT.PRODUCT_CATEGORIES != null &&
+                                           s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial == true));
+            }
+
+            var stocks = await query
+                .OrderBy(s => s.Warehouse.WHName)
+                .ThenBy(s => s.PRODUCT.PNo)
+                .ToListAsync();
+
+            return stocks.Select(s => new InventoryExportRow
+            {
+                WarehouseName = s.Warehouse?.WHName ?? "-",
+                ProductPNo = s.PRODUCT?.PNo ?? "-",
+                ProductName = s.PRODUCT?.Name ?? "-",
+                CategoryName = s.PRODUCT?.PRODUCT_CATEGORIES?.Name ?? "-",
+                Amount = s.Amount,
+                UnitName = s.UNIT?.ShortName ?? "-"
+            }).ToList();
         }
 
         private async Task<string> SaveAdjustmentLogsAsync(int warehouseId, int userId, List<InventoryAdjustmentLogRow> logRows)
@@ -706,6 +772,16 @@ namespace tahsinERP.Controllers
             }
 
             return 0;
+        }
+
+        private class InventoryExportRow
+        {
+            public string WarehouseName { get; set; }
+            public string ProductPNo { get; set; }
+            public string ProductName { get; set; }
+            public string CategoryName { get; set; }
+            public double Amount { get; set; }
+            public string UnitName { get; set; }
         }
     }
 }

@@ -84,12 +84,12 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="mb-1">
-                                        <button type="button" id="exportExcelBtn" class="btn btn-success mr-1">
+                                        <a id="exportExcelBtn" class="btn btn-success mr-1">
                                             <i class="bx bxs-file-excel"></i> Excelga yuklash
-                                        </button>
-                                        <button type="button" id="exportPdfBtn" class="btn btn-danger">
+                                        </a>
+                                        <a id="exportPdfBtn" class="btn btn-danger">
                                             <i class="bx bxs-file-pdf"></i> PDFga yuklash
-                                        </button>
+                                        </a>
                                     </div>
                                     <div id="inventoryExportButtons" class="mb-1"></div>
                                     <div class="table-responsive">
@@ -206,12 +206,14 @@
             });
             // Keep default buttons container hidden, use custom buttons instead
             table.buttons().container().appendTo('#inventoryExportButtons').hide();
-            $('#exportExcelBtn').on('click', function () {
-                table.button('.buttons-excel').trigger();
-            });
-            $('#exportPdfBtn').on('click', function () {
-                table.button('.buttons-pdf').trigger();
-            });
+
+            function buildExportUrl(action) {
+                var params = new URLSearchParams(window.location.search);
+                return '@Url.Action("ExportExcel", "Inventory")'.replace('ExportExcel', action) + '?' + params.toString();
+            }
+
+            $('#exportExcelBtn').attr('href', buildExportUrl('ExportExcel'));
+            $('#exportPdfBtn').attr('href', buildExportUrl('ExportPdf'));
         });
     </script>
 }
