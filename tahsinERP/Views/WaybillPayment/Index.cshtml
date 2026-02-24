@@ -11,6 +11,8 @@
         TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
     };
     var linkedWaybillMap = ViewBag.LinkedWaybillMap as IDictionary<int, string>;
+    var paymentWaybillAmountMap = ViewBag.PaymentWaybillAmountMap as IDictionary<int, double>;
+    var paymentOutstandingMap = ViewBag.PaymentOutstandingMap as IDictionary<int, double>;
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -81,9 +83,12 @@
                                             <tbody>
                                                 @foreach (var item in Model)
                                                 {
-                                                    var waybill = item.F_WAYBILLS;
-                                                    var totalPaid = waybill?.F_WAYBILL_PAYMENTS?.Where(p => !p.IsDeleted).Sum(p => p.Payment_Amount) ?? 0;
-                                                    var outstanding = (waybill?.Amount ?? 0) - totalPaid;
+                                                    var waybillAmount = paymentWaybillAmountMap != null && paymentWaybillAmountMap.ContainsKey(item.ID)
+                                                        ? paymentWaybillAmountMap[item.ID]
+                                                        : (item.F_WAYBILLS?.Amount ?? 0);
+                                                    var outstanding = paymentOutstandingMap != null && paymentOutstandingMap.ContainsKey(item.ID)
+                                                        ? paymentOutstandingMap[item.ID]
+                                                        : 0;
                                                     <tr>
                                                         <td>
                                                             <a href="~/WaybillPayment/Details/@item.ID">@item.ID</a>
@@ -99,7 +104,7 @@
                                                         <td><a href="~/Forwarder/Details/@item.ForwarderID">@(item.FORWARDER != null ? item.FORWARDER.ForwarderName : "")</a></td>
                                                         <td>@(item.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
                                                         <td>@item.Payment_Amount</td>
-                                                        <td>@(waybill?.Amount?.ToString("N2") ?? "")</td>
+                                                        <td>@waybillAmount.ToString("N2")</td>
                                                         <td>@outstanding.ToString("N2")</td>
                                                         <td>@(item.CURRENCy != null ? item.CURRENCy.Shortname : "")</td>
                                                         <td>@(item.Comment ?? "")</td>

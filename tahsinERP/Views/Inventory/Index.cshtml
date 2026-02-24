@@ -83,6 +83,14 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
+                                    <div class="mb-1">
+                                        <button type="button" id="exportExcelBtn" class="btn btn-success mr-1">
+                                            <i class="bx bxs-file-excel"></i> Excelga yuklash
+                                        </button>
+                                        <button type="button" id="exportPdfBtn" class="btn btn-danger">
+                                            <i class="bx bxs-file-pdf"></i> PDFga yuklash
+                                        </button>
+                                    </div>
                                     <div id="inventoryExportButtons" class="mb-1"></div>
                                     <div class="table-responsive">
                                         <table id="inventoryTable" class="table dt-responsive nowrap" style="width:100%">
@@ -196,7 +204,14 @@
                     }
                 ]
             });
-            table.buttons().container().appendTo('#inventoryExportButtons');
+            // Keep default buttons container hidden, use custom buttons instead
+            table.buttons().container().appendTo('#inventoryExportButtons').hide();
+            $('#exportExcelBtn').on('click', function () {
+                table.button('.buttons-excel').trigger();
+            });
+            $('#exportPdfBtn').on('click', function () {
+                table.button('.buttons-pdf').trigger();
+            });
         });
     </script>
 }

@@ -44,6 +44,7 @@ namespace tahsinERP.Controllers.Logistic
                     .ToDictionary(w => w.ID, w => w.WaybillNo);
 
                 var linkedWaybillMap = new Dictionary<int, string>();
+                var paymentWaybillIdsMap = new Dictionary<int, List<int>>();
                 foreach (var item in list)
                 {
                     var ids = splitRows
@@ -66,9 +67,70 @@ namespace tahsinERP.Controllers.Logistic
                         .ToList();
 
                     linkedWaybillMap[item.ID] = string.Join(", ", waybillNos);
+                    paymentWaybillIdsMap[item.ID] = ids;
+                }
+
+                var allWaybillIds = paymentWaybillIdsMap.SelectMany(x => x.Value).Distinct().ToList();
+                var waybillAmountLookup = db.F_WAYBILLS
+                    .Where(w => allWaybillIds.Contains(w.ID))
+                    .Select(w => new { w.ID, Amount = (double?)(w.Amount ?? 0) })
+                    .ToList()
+                    .ToDictionary(x => x.ID, x => x.Amount ?? 0);
+
+                var paidLookup = allWaybillIds.ToDictionary(id => id, id => 0d);
+
+                var directPaid = db.F_WAYBILL_PAYMENTS
+                    .Where(p =>
+                        p.IsDeleted == false &&
+                        allWaybillIds.Contains(p.WaybillID) &&
+                        !db.F_WAYBILL_PAYMENT_SPLITS.Any(s => s.PayerType == WaybillPaymentSplitPayerType && s.PayerID == p.ID))
+                    .GroupBy(p => p.WaybillID)
+                    .Select(g => new { WaybillID = g.Key, Amount = g.Sum(x => x.Payment_Amount) })
+                    .ToList();
+
+                foreach (var item in directPaid)
+                {
+                    if (paidLookup.ContainsKey(item.WaybillID))
+                    {
+                        paidLookup[item.WaybillID] += item.Amount;
+                    }
+                }
+
+                var splitPaid = (from s in db.F_WAYBILL_PAYMENT_SPLITS
+                                 join p in db.F_WAYBILL_PAYMENTS on s.PayerID equals p.ID
+                                 where s.PayerType == WaybillPaymentSplitPayerType
+                                       && allWaybillIds.Contains(s.WaybillID)
+                                       && p.IsDeleted == false
+                                 group s by s.WaybillID into g
+                                 select new { WaybillID = g.Key, Amount = g.Sum(x => x.Amount) })
+                    .ToList();
+
+                foreach (var item in splitPaid)
+                {
+                    if (paidLookup.ContainsKey(item.WaybillID))
+                    {
+                        paidLookup[item.WaybillID] += item.Amount;
+                    }
+                }
+
+                var paymentWaybillAmountMap = new Dictionary<int, double>();
+                var paymentOutstandingMap = new Dictionary<int, double>();
+                foreach (var kv in paymentWaybillIdsMap)
+                {
+                    var totalAmount = kv.Value.Sum(id => waybillAmountLookup.ContainsKey(id) ? waybillAmountLookup[id] : 0);
+                    var outstanding = kv.Value.Sum(id =>
+                    {
+                        var amount = waybillAmountLookup.ContainsKey(id) ? waybillAmountLookup[id] : 0;
+                        var paid = paidLookup.ContainsKey(id) ? paidLookup[id] : 0;
+                        return amount - paid;
+                    });
+                    paymentWaybillAmountMap[kv.Key] = totalAmount;
+                    paymentOutstandingMap[kv.Key] = outstanding;
                 }
 
                 ViewBag.LinkedWaybillMap = linkedWaybillMap;
+                ViewBag.PaymentWaybillAmountMap = paymentWaybillAmountMap;
+                ViewBag.PaymentOutstandingMap = paymentOutstandingMap;
                 return View(list);
             }
         }
