@@ -3,7 +3,14 @@
 @{
     ViewBag.Title = "Yo'l varaqasi tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var T = tahsinERP.Services.LogisticsTerms;
+    var T = new
+    {
+        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
+        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
+        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
+        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
+        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
+    };
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
