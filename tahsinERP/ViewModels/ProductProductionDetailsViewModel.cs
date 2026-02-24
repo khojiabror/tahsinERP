@@ -33,6 +33,10 @@ namespace tahsinERP.ViewModels
         public double TotalConsumption { get; set; }
         public string UnitName { get; set; }
         public bool TotalConsumptionIsInKg { get; set; }
+        /// <summary>Dona narxi (chiqim hujjatidan).</summary>
+        public double PiecePrice { get; set; }
+        /// <summary>Jami summa (chiqim hujjatidan).</summary>
+        public double TotalPrice { get; set; }
     }
 
     public class ProductionExpenseLinkViewModel
@@ -43,5 +47,7 @@ namespace tahsinERP.ViewModels
         public double Amount { get; set; }
         public double TotalPrice { get; set; }
         public int ProductCount { get; set; }
+        /// <summary>Chiqim sahifasiga to'g'ridan-to'g'ri havola (URL).</summary>
+        public string DetailsUrl { get; set; }
     }
 }

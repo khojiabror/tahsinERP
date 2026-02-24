@@ -1043,6 +1043,7 @@
     <Compile Include="ViewModels\ProductPlanViewModel.cs" />
     <Compile Include="ViewModels\ProductProductionDetailsViewModel.cs" />
     <Compile Include="ViewModels\ProductProductionViewModel.cs" />
+    <Compile Include="ViewModels\ProductProductionDetailsViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\QualityInspectionViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
