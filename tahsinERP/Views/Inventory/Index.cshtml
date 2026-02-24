@@ -83,6 +83,7 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
+                                    <div id="inventoryExportButtons" class="mb-1"></div>
                                     <div class="table-responsive">
                                         <table id="inventoryTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
@@ -124,7 +125,7 @@
 
     <script>
         $(document).ready(function () {
-            $('#inventoryTable').DataTable({
+            var table = $('#inventoryTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -195,6 +196,7 @@
                     }
                 ]
             });
+            table.buttons().container().appendTo('#inventoryExportButtons');
         });
     </script>
 }
