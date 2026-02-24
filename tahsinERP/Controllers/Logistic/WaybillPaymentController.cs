@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.Logistic
 {
@@ -259,7 +260,7 @@ namespace tahsinERP.Controllers.Logistic
                     var totalPaid = GetWaybillPaidTotal(db, w.ID);
                     var outstanding = (w.Amount ?? 0) - totalPaid;
 
-                    return new
+                    return new WaybillPaymentLinkedWaybillViewModel
                     {
                         WaybillID = w.ID,
                         WaybillNo = w.WaybillNo,

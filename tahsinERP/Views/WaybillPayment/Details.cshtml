@@ -16,7 +16,9 @@
     var waybillAmount = ViewBag.WaybillAmount as double?;
     var currencyShort = Model.CURRENCy != null ? Model.CURRENCy.Shortname : "";
     var finTransactionID = ViewBag.FinTransactionID as int?;
-    var linkedWaybills = ViewBag.LinkedWaybills as IEnumerable<dynamic>;
+    var linkedWaybills = (ViewBag.LinkedWaybills as IEnumerable<tahsinERP.ViewModels.WaybillPaymentLinkedWaybillViewModel>)
+        ?? Enumerable.Empty<tahsinERP.ViewModels.WaybillPaymentLinkedWaybillViewModel>();
+    var linkedWaybillText = string.Join(", ", linkedWaybills.Select(x => x.WaybillNo));
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -65,14 +67,7 @@
                                         <table class="table table-bordered table-sm">
                                             <tr>
                                                 <th style="width:220px">@T.Waybill</th>
-                                                <td>
-                                                    @if (Model.F_WAYBILLS != null)
-                                                    {
-                                                        <a href="@Url.Action("Details", "Waybill", new { ID = Model.WaybillID })">@Model.F_WAYBILLS.WaybillNo</a>
-                                                    }
-                                                    else
-                                                    { @Model.WaybillID }
-                                                </td>
+                                                <td>@(string.IsNullOrWhiteSpace(linkedWaybillText) ? "-" : linkedWaybillText)</td>
                                             </tr>
                                             <tr>
                                                 <th>@T.Forwarder</th>
@@ -103,7 +98,7 @@
                                                 <td>@(Model.Comment ?? "")</td>
                                             </tr>
                                         </table>
-                                        @if (linkedWaybills != null)
+                                        @if (linkedWaybills.Any())
                                         {
                                             <h5 class="mt-2 mb-1">Bog'langan yo'l varaqalari</h5>
                                             <div class="table-responsive">
@@ -124,10 +119,10 @@
                                                                 <td>
                                                                     <a href="@Url.Action("Details", "Waybill", new { ID = row.WaybillID })">@row.WaybillNo</a>
                                                                 </td>
-                                                                <td>@(((double)row.Allocated).ToString("N2")) @row.Currency</td>
-                                                                <td>@(((double)row.Amount).ToString("N2")) @row.Currency</td>
-                                                                <td>@(((double)row.Paid).ToString("N2")) @row.Currency</td>
-                                                                <td>@(((double)row.Outstanding).ToString("N2")) @row.Currency</td>
+                                                                <td>@row.Allocated.ToString("N2") @row.Currency</td>
+                                                                <td>@row.Amount.ToString("N2") @row.Currency</td>
+                                                                <td>@row.Paid.ToString("N2") @row.Currency</td>
+                                                                <td>@row.Outstanding.ToString("N2") @row.Currency</td>
                                                             </tr>
                                                         }
                                                     </tbody>

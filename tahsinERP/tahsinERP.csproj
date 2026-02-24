@@ -1070,6 +1070,7 @@
     <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
+    <Compile Include="ViewModels\WaybillPaymentLinkedWaybillViewModel.cs" />
     <Compile Include="ViewModels\WaybillIndexItemViewModel.cs" />
     <Compile Include="ViewModels\ContractTariffIndexItemViewModel.cs" />
     <Compile Include="ViewModels\ForwarderDashboardStatViewModel.cs" />

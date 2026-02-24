@@ -34,7 +34,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Waybill/Index">@T.Waybills</a>
+                                        @T.Waybills
                                     </li>
                                     <li class="breadcrumb-item active">
                                         @T.Waybill to'lovlari
@@ -97,7 +97,7 @@
                                                             @{
                                                                 var waybillText = linkedWaybillMap != null && linkedWaybillMap.ContainsKey(item.ID)
                                                                     ? linkedWaybillMap[item.ID]
-                                                                    : (item.F_WAYBILLS != null ? item.F_WAYBILLS.WaybillNo : "");
+                                                                    : "";
                                                             }
                                                             @waybillText
                                                         </td>

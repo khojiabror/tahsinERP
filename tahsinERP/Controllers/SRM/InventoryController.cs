@@ -274,7 +274,7 @@ namespace tahsinERP.Controllers
                         }
 
                         var errors = new List<string>();
-                        var adjustments = new List<InventoryAdjustmentRow>();
+                        var rows = new List<(string PNo, double Qty, int Row)>();
 
                         for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
                         {
@@ -292,21 +292,16 @@ namespace tahsinERP.Controllers
                                 continue;
                             }
 
-                            if (!double.TryParse(qtyValue, out double qty) || qty < 0)
+                            var qty = ParseLooseQuantity(qtyValue);
+                            if (qty < 0)
                             {
-                                errors.Add($"Qator {row}: Miqdor noto'g'ri yoki manfiy ({qtyValue}).");
+                                errors.Add($"Qator {row}: Miqdor manfiy bo'lishi mumkin emas ({qtyValue}).");
                                 continue;
                             }
-
-                            adjustments.Add(new InventoryAdjustmentRow
-                            {
-                                ProductPNo = pno.Trim(),
-                                Quantity = qty,
-                                RowNumber = row
-                            });
+                            rows.Add((pno.Trim(), qty, row));
                         }
 
-                        if (!adjustments.Any())
+                        if (!rows.Any())
                         {
                             errors.Add("Excel faylda qayta ishlanadigan qatorlar topilmadi.");
                         }
@@ -331,18 +326,18 @@ namespace tahsinERP.Controllers
                                         p => new { p.ID, p.PNo, p.Name, p.UnitID });
 
                                 var logRows = new List<InventoryAdjustmentLogRow>();
-                                foreach (var adj in adjustments)
+                                foreach (var adj in rows)
                                 {
-                                    var key = adj.ProductPNo.Trim().ToUpperInvariant();
+                                    var key = adj.PNo.Trim().ToUpperInvariant();
                                     if (!productMap.TryGetValue(key, out var product))
                                     {
-                                        errors.Add($"Qator {adj.RowNumber}: Mahsulot topilmadi ({adj.ProductPNo}).");
+                                        errors.Add($"Qator {adj.Row}: Mahsulot topilmadi ({adj.PNo}).");
                                         continue;
                                     }
 
                                     if (!await HasWarehouseMovementAsync(model.WarehouseId, product.ID, db))
                                     {
-                                        errors.Add($"Qator {adj.RowNumber}: {adj.ProductPNo} mahsuloti bo'yicha bu omborda kirim/chiqim bo'lmagan, qoldiqni to'g'rilab bo'lmaydi.");
+                                        errors.Add($"Qator {adj.Row}: {adj.PNo} mahsuloti bo'yicha bu omborda kirim/chiqim bo'lmagan, qoldiqni to'g'rilab bo'lmaydi.");
                                         continue;
                                     }
 
@@ -358,14 +353,14 @@ namespace tahsinERP.Controllers
                                         {
                                             WHID = model.WarehouseId,
                                             ProductID = product.ID,
-                                            Amount = adj.Quantity,
+                                            Amount = adj.Qty,
                                             UnitID = product.UnitID
                                         };
                                         db.PRODUCT_STOCKS.Add(stock);
                                     }
                                     else
                                     {
-                                        stock.Amount = adj.Quantity;
+                                        stock.Amount = adj.Qty;
                                     }
 
                                     logRows.Add(new InventoryAdjustmentLogRow
@@ -373,7 +368,7 @@ namespace tahsinERP.Controllers
                                         ProductPNo = product.PNo,
                                         ProductName = product.Name,
                                         OldQuantity = oldQty,
-                                        NewQuantity = adj.Quantity,
+                                        NewQuantity = adj.Qty,
                                         UnitName = unit?.ShortName ?? ""
                                     });
                                 }
@@ -694,6 +689,23 @@ namespace tahsinERP.Controllers
             public double OldQuantity { get; set; }
             public double NewQuantity { get; set; }
             public string UnitName { get; set; }
+        }
+
+        private double ParseLooseQuantity(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return 0;
+            }
+
+            var cleaned = input.Trim().Replace(" ", "").Replace(",", ".");
+            var filtered = new string(cleaned.Where(c => char.IsDigit(c) || c == '.').ToArray());
+            if (double.TryParse(filtered, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var value))
+            {
+                return value;
+            }
+
+            return 0;
         }
     }
 }
