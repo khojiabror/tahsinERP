@@ -1727,7 +1727,7 @@
                     }
 
                     styleNode.textContent =
-                        '@media print { @page { size: A4 ' + orientation + '; margin: 10mm; } ' +
+                        '@@media print { @@page { size: A4 ' + orientation + '; margin: 10mm; } ' +
                         'body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }';
 
                     return orientation;
