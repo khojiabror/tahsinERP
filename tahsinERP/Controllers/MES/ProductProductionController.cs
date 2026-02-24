@@ -356,7 +356,38 @@ namespace tahsinERP.Controllers.MES
                     Production = production
                 };
 
-                // BOM/Norm bo'yicha sarf hisoblash
+                // Avval chiqimlarni yuklash (narxlar uchun). DocNo format: BOM-{yyyyMMddHHmmss}-{productId}
+                var dayStart = production.Date.Date;
+                var dayEnd = dayStart.AddDays(1);
+                var productIdSuffix = "-" + production.ProductID;
+                var prodIdStr = "Mahsulot ID " + production.ProductID;
+
+                // 1) Sana bo'yicha kun ichidagi barcha chiqimlarni yuklash (SQL oddiy bo'ladi)
+                var expensesOfDay = await db.EXPENSES
+                    .Where(e => e.IsDeleted == false
+                        && e.IssueDateTime >= dayStart
+                        && e.IssueDateTime < dayEnd)
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .OrderByDescending(e => e.IssueDateTime)
+                    .ToListAsync();
+
+                // 2) Xotirada: faqat ushbu mahsulotga tegishli BOM chiqimlari (DocNo yoki Description orqali)
+                var expenses = expensesOfDay.Where(e =>
+                    (e.DocNo != null && e.DocNo.StartsWith("BOM-") && e.DocNo.EndsWith(productIdSuffix))
+                    || (e.Description != null && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi") && e.Description.Contains(prodIdStr))
+                ).ToList();
+
+                // Chiqim hujjatlaridan material bo'yicha narx/summa (birinchi chiqimdan)
+                var materialPrices = new Dictionary<int, Tuple<double, double>>();
+                if (expenses.Any() && expenses.First().EXPENSE_PRODUCTS != null)
+                {
+                    foreach (var ep in expenses.First().EXPENSE_PRODUCTS)
+                    {
+                        materialPrices[ep.ProductID] = Tuple.Create(ep.PiecePrice, ep.TotalPrice);
+                    }
+                }
+
+                // BOM/Norm bo'yicha sarf hisoblash va narx qo'shish
                 var consumptionService = new ProductionConsumptionService(db);
                 var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, production.Total);
                 var unitIds = requirements.Select(r => r.UnitID).Distinct().ToList();
@@ -364,6 +395,12 @@ namespace tahsinERP.Controllers.MES
 
                 foreach (var req in requirements)
                 {
+                    double piecePrice = 0, totalPrice = 0;
+                    if (materialPrices.ContainsKey(req.MaterialID))
+                    {
+                        piecePrice = materialPrices[req.MaterialID].Item1;
+                        totalPrice = materialPrices[req.MaterialID].Item2;
+                    }
                     viewModel.BomConsumptionLines.Add(new BomConsumptionLineViewModel
                     {
                         MaterialID = req.MaterialID,
@@ -374,25 +411,13 @@ namespace tahsinERP.Controllers.MES
                         WasteQty = req.WasteQty,
                         TotalConsumption = req.TotalConsumption,
                         UnitName = units.ContainsKey(req.UnitID) ? units[req.UnitID] : "-",
-                        TotalConsumptionIsInKg = req.TotalConsumptionIsInKg
+                        TotalConsumptionIsInKg = req.TotalConsumptionIsInKg,
+                        PiecePrice = piecePrice,
+                        TotalPrice = totalPrice
                     });
                 }
 
-                // Ushbu ishlab chiqarishga bog'liq chiqim hujjatlari (BOM chiqimi — Description orqali)
-                var prodIdStr = "Mahsulot ID " + production.ProductID;
-                var productionDate = production.Date.Date;
-                var expenses = await db.EXPENSES
-                    .Where(e => e.IsDeleted != true
-                        && e.Description != null
-                        && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi")
-                        && e.Description.Contains(prodIdStr)
-                        && e.IssueDateTime.Year == productionDate.Year
-                        && e.IssueDateTime.Month == productionDate.Month
-                        && e.IssueDateTime.Day == productionDate.Day)
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .OrderByDescending(e => e.IssueDateTime)
-                    .ToListAsync();
-
+                // Chiqim hujjatlari (2-datatable) — URL bilan
                 foreach (var exp in expenses)
                 {
                     var productCount = exp.EXPENSE_PRODUCTS != null ? exp.EXPENSE_PRODUCTS.Count : 0;
@@ -405,7 +430,8 @@ namespace tahsinERP.Controllers.MES
                         IssueDateTime = exp.IssueDateTime,
                         Amount = amount,
                         TotalPrice = totalPrice,
-                        ProductCount = productCount
+                        ProductCount = productCount,
+                        DetailsUrl = Url.Action("Details", "Expenses", new { id = exp.ID })
                     });
                 }
 

@@ -108,6 +108,8 @@
                                                             <th>Chiqindi</th>
                                                             <th>Jami sarf</th>
                                                             <th>O'lchov birligi</th>
+                                                            <th>Dona narxi</th>
+                                                            <th>Summa (pul)</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -123,6 +125,8 @@
                                                                 <td>@(line.WasteQty > 0 ? line.WasteQty.ToString("N3") : "-")</td>
                                                                 <td><strong>@line.TotalConsumption.ToString("N3")</strong> @(line.TotalConsumptionIsInKg ? " kg" : "")</td>
                                                                 <td>@(line.UnitName ?? "-")</td>
+                                                                <td>@(line.PiecePrice > 0 ? line.PiecePrice.ToString("N2") : "-")</td>
+                                                                <td>@(line.TotalPrice > 0 ? line.TotalPrice.ToString("N2") : "-")</td>
                                                             </tr>
                                                         }
                                                     </tbody>
@@ -137,7 +141,7 @@
                                 </div>
                             </div>
 
-                            <!-- Chiqim hujjatlari (BOM chiqimi) -->
+                            <!-- 2-datatable: Chiqim hujjatlari (BOM chiqimi) — har bir qator chiqim sahifasiga link -->
                             <div class="card mt-2">
                                 <div class="card-header">
                                     <h4 class="card-title mb-0">
@@ -146,9 +150,10 @@
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
+                                        <p class="text-muted small mb-2">Chiqim sahifasi URL: <code>~/Expenses/Details/{id}</code>. Quyidagi jadvalda har bir qator uchun <strong>Chiqim</strong> tugmasi yoki havola orqali chiqim hujjatiga o‘ting.</p>
                                         @if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
                                         {
-                                            <p class="text-muted small mb-2">Ushbu ishlab chiqarishga bog‘liq <strong>@Model.ExpenseDocuments.Count</strong> ta chiqim hujjati. Chiqim ustiga bosing — chiqim sahifasiga o‘tadi.</p>
+                                            <p class="text-muted small mb-2">Ushbu ishlab chiqarishga bog‘liq <strong>@Model.ExpenseDocuments.Count</strong> ta chiqim hujjati.</p>
                                             <div class="table-responsive">
                                                 <table id="expenseTable" class="table table-striped table-bordered table-hover" style="width:100%">
                                                     <thead>
@@ -158,6 +163,7 @@
                                                             <th>Mahsulotlar soni</th>
                                                             <th>Jami miqdor</th>
                                                             <th>Summa</th>
+                                                            <th>Chiqim URL</th>
                                                             <th>Amallar</th>
                                                         </tr>
                                                     </thead>
@@ -170,8 +176,9 @@
                                                                 <td>@exp.ProductCount</td>
                                                                 <td>@exp.Amount.ToString("N3")</td>
                                                                 <td>@exp.TotalPrice.ToString("N2")</td>
+                                                                <td><a href="@(exp.DetailsUrl ?? Url.Action("Details", "Expenses", new { id = exp.ExpenseID }))" target="_blank">@(exp.DetailsUrl ?? ("/Expenses/Details/" + exp.ExpenseID))</a></td>
                                                                 <td>
-                                                                    <a href="@Url.Action("Details", "Expenses", new { id = exp.ExpenseID })" class="btn btn-sm btn-outline-primary" title="Chiqim hujjatiga o'tish">
+                                                                    <a href="@(exp.DetailsUrl ?? Url.Action("Details", "Expenses", new { id = exp.ExpenseID }))" class="btn btn-sm btn-outline-primary" title="Chiqim hujjatiga o'tish">
                                                                         <i class="bx bx-link-external"></i> Chiqim
                                                                     </a>
                                                                 </td>
@@ -183,7 +190,26 @@
                                         }
                                         else
                                         {
-                                            <p class="text-muted mb-0">Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).</p>
+                                            <div class="table-responsive">
+                                                <table id="expenseTable" class="table table-striped table-bordered table-hover" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Hujjat raqami</th>
+                                                            <th>Sana va vaqt</th>
+                                                            <th>Mahsulotlar soni</th>
+                                                            <th>Jami miqdor</th>
+                                                            <th>Summa</th>
+                                                            <th>Chiqim URL</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td colspan="7" class="text-muted text-center">Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         }
                                     </div>
                                 </div>
