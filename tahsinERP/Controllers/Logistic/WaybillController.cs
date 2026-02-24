@@ -314,7 +314,35 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                var totalPaid = GetWaybillPaidTotal(db, waybill.ID);
+                // Separate split-linked payments first to avoid complex nested EF expressions
+                var splitPaymentIdsForWaybill = db.F_WAYBILL_PAYMENT_SPLITS
+                    .Where(s => s.PayerType == WaybillPaymentSplitPayerType &&
+                                s.WaybillID == waybill.ID &&
+                                s.PayerID.HasValue)
+                    .Select(s => s.PayerID.Value)
+                    .Distinct()
+                    .ToList();
+
+                var allSplitPaymentIds = db.F_WAYBILL_PAYMENT_SPLITS
+                    .Where(s => s.PayerType == WaybillPaymentSplitPayerType && s.PayerID.HasValue)
+                    .Select(s => s.PayerID.Value)
+                    .Distinct()
+                    .ToList();
+
+                var directPaid = db.F_WAYBILL_PAYMENTS
+                    .Where(p => p.IsDeleted == false &&
+                                p.WaybillID == waybill.ID &&
+                                !allSplitPaymentIds.Contains(p.ID))
+                    .Sum(p => (double?)p.Payment_Amount) ?? 0;
+
+                var splitPaid = (from s in db.F_WAYBILL_PAYMENT_SPLITS
+                                 join p in db.F_WAYBILL_PAYMENTS on s.PayerID equals p.ID
+                                 where s.PayerType == WaybillPaymentSplitPayerType &&
+                                       s.WaybillID == waybill.ID &&
+                                       p.IsDeleted == false
+                                 select (double?)s.Amount).Sum() ?? 0;
+
+                var totalPaid = directPaid + splitPaid;
                 var outstanding = (waybill.Amount ?? 0) - totalPaid;
                 var paymentStatus = outstanding <= 0
                     ? "To'langan"
@@ -322,11 +350,7 @@ namespace tahsinERP.Controllers
 
                 var linkedPayments = db.F_WAYBILL_PAYMENTS
                     .Where(p => p.IsDeleted == false &&
-                                (p.WaybillID == waybill.ID ||
-                                 db.F_WAYBILL_PAYMENT_SPLITS.Any(s =>
-                                     s.PayerType == WaybillPaymentSplitPayerType &&
-                                     s.WaybillID == waybill.ID &&
-                                     s.PayerID == p.ID)))
+                                (p.WaybillID == waybill.ID || splitPaymentIdsForWaybill.Contains(p.ID)))
                     .Include(p => p.CURRENCy)
                     .Include(p => p.FORWARDER)
                     .OrderByDescending(p => p.PaymentDate)
