@@ -252,12 +252,14 @@ namespace tahsinERP.Controllers.MES
         private QualityInspectionDailyViewModel BuildDailyInspectionViewModel(DateTime inspectionDate, DBTHSNEntities db)
         {
             var dateOnly = inspectionDate.Date;
+            var nextDay = dateOnly.AddDays(1);
 
             var productions = db.PRODUCT_PRODUCTION
                 .Include(p => p.PRODUCT)
                 .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                    && DbFunctions.TruncateTime(p.Date) == dateOnly
-                    && p.PRODUCT.IsFinishedGood == true
+                    && p.Date >= dateOnly
+                    && p.Date < nextDay
+                    && (p.PRODUCT.IsFinishedGood == true || p.PRODUCT.IsFinishedGood == null)
                     && (p.PRODUCT.IsDeleted == false || p.PRODUCT.IsDeleted == null))
                 .ToList();
 

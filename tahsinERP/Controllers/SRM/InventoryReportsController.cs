@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
     public class InventoryReportsController : Controller
     {
         // Olish so'rovi: InventoryReports/Dashboard
-        public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate, int? runnerDays, int? runnerTopN, string fifoScope)
+        public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate, int? runnerDays, int? runnerTopN, string fifoScope, string productType)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
             {
@@ -84,6 +84,22 @@ namespace tahsinERP.Controllers
                 if (categoryId.HasValue)
                 {
                     stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.CategoryID == categoryId.Value).ToList();
+                }
+
+                // Filtrlash bo'yicha mahsulot turi: tayyor mahsulot / xomashyo
+                if (!string.IsNullOrWhiteSpace(productType))
+                {
+                    var pt = productType.ToLowerInvariant();
+                    if (pt == "finished")
+                    {
+                        stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.PRODUCT_CATEGORIES != null && s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true).ToList();
+                    }
+                    else if (pt == "raw")
+                    {
+                        stocks = stocks.Where(s => s.PRODUCT != null && (
+                            s.PRODUCT.IsRawMaterial == true ||
+                            (s.PRODUCT.PRODUCT_CATEGORIES != null && s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial == true))).ToList();
+                    }
                 }
 
                 var totalDays = (toDateValue - fromDateValue).TotalDays;
@@ -329,6 +345,7 @@ namespace tahsinERP.Controllers
                 ViewBag.RunnerDays = runnerDaysValue;
                 ViewBag.RunnerTopN = runnerTopNValue;
                 ViewBag.FifoScope = fifoScopeValue;
+                ViewBag.ProductType = productType;
 
                 return View(model);
             }

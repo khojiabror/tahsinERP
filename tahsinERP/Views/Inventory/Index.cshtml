@@ -83,17 +83,8 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <div class="mb-1">
-                                        <a id="exportExcelBtn" class="btn btn-success mr-1">
-                                            <i class="bx bxs-file-excel"></i> Excelga yuklash
-                                        </a>
-                                        <a id="exportPdfBtn" class="btn btn-danger">
-                                            <i class="bx bxs-file-pdf"></i> PDFga yuklash
-                                        </a>
-                                    </div>
-                                    <div id="inventoryExportButtons" class="mb-1"></div>
                                     <div class="table-responsive">
-                                        <table id="inventoryTable" class="table dt-responsive nowrap" style="width:100%">
+                                        <table id="inventoryTable" class="table table-striped table-bordered nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Ombor</th>
@@ -131,92 +122,94 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
-            var table = $('#inventoryTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[0, "asc"], [1, "asc"]],
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() +
-                                String(now.getMonth() + 1).padStart(2, '0') +
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') +
-                                String(now.getMinutes()).padStart(2, '0') +
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Ombor_qoldiqlari_' + dateStr;
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                $('#inventoryTable').DataTable({
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": {
+                            "first": "Birinchi",
+                            "last": "Oxirgi",
+                            "next": "Keyingi",
+                            "previous": "Oldingi"
                         },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "order": [[3, "desc"]],
+                    "columnDefs": [
+                        { "type": "date", "targets": 3 }
+                    ],
+                    "scrollX": true,
+                    dom: 'lBfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: '<i class="bx bxs-file-excel"></i> Excel',
+                            titleAttr: 'Excelga yuklash',
+                            className: 'btn btn-success mr-1',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() +
+                                    String(now.getMonth() + 1).padStart(2, '0') +
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') +
+                                    String(now.getMinutes()).padStart(2, '0') +
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'Ombor_qoldiqlari' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: ':visible',
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        return data.replace(/<[^>]*>/g, '').trim();
+                                    }
                                 }
                             }
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() +
-                                String(now.getMonth() + 1).padStart(2, '0') +
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') +
-                                String(now.getMinutes()).padStart(2, '0') +
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Ombor_qoldiqlari_' + dateStr;
                         },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="bx bxs-file-pdf"></i> PDF',
+                            titleAttr: 'PDFga yuklash',
+                            className: 'btn btn-danger',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() +
+                                    String(now.getMonth() + 1).padStart(2, '0') +
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') +
+                                    String(now.getMinutes()).padStart(2, '0') +
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'Ombor_qoldiqlari_' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: ':visible',
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        return data.replace(/<[^>]*>/g, '').trim();
+                                    }
                                 }
+                            },
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            title: 'Ombor qoldiqlari',
+                            customize: function (doc) {
+                                doc.defaultStyle.fontSize = 9;
+                                doc.styles.tableHeader.fontSize = 10;
                             }
                         }
-                    }
-                ]
+                    ]
+                });
             });
-            // Keep default buttons container hidden, use custom buttons instead
-            table.buttons().container().appendTo('#inventoryExportButtons').hide();
-
-            function buildExportUrl(action) {
-                var params = new URLSearchParams(window.location.search);
-                return '@Url.Action("ExportExcel", "Inventory")'.replace('ExportExcel', action) + '?' + params.toString();
-            }
-
-            $('#exportExcelBtn').attr('href', buildExportUrl('ExportExcel'));
-            $('#exportPdfBtn').attr('href', buildExportUrl('ExportPdf'));
-        });
-    </script>
-}
+        </script>
+        }
+    }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));

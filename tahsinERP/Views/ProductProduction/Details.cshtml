@@ -69,10 +69,10 @@
                                                         </a>
                                                         @if (changePermit)
                                                         {
-                                                            <a href="@Url.Action("Edit", new { id = ModelProduction.ID })" class="btn btn-warning">
+                                                            <a href="@Url.Action("Edit", new { id = ModelProduction.ID })" class="btn btn-outline-success">
                                                                 <i class="bx bx-edit"></i> Tahrirlash
                                                             </a>
-                                                            <a href="@Url.Action("Delete", new { id = ModelProduction.ID })" class="btn btn-danger">
+                                                            <a href="@Url.Action("Delete", new { id = ModelProduction.ID })" class="btn btn-outline-danger">
                                                                 <i class="bx bx-trash"></i> O'chirish
                                                             </a>
                                                         }
@@ -221,28 +221,48 @@
         </div>
     </div>
 
-    @if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
+    if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
     {
         <script>
             $(document).ready(function() {
                 $('#bomSarfTable').DataTable({
-                    "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json" },
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "paging": true,
+                    "lengthChange": true,
                     "order": [[1, "asc"]],
                     "pageLength": 25
                 });
-            });
+            <text>}</text>);
         </script>
     }
-    @if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
+    if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
     {
         <script>
             $(document).ready(function() {
                 $('#expenseTable').DataTable({
-                    "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json" },
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "paging": true,
+                    "lengthChange": true,
                     "order": [[1, "desc"]],
                     "pageLength": 10
                 });
-            });
+            <text>}</text>);
         </script>
     }
 }

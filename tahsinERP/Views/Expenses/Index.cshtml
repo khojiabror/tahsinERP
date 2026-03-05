@@ -6,11 +6,9 @@
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses", "Index"))
 {
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
-    {
-        changePermit = true;
-    }
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses");
+    var assignedWarehouseIds = ViewBag.AssignedWarehouseIds as List<int> ?? new List<int>();
+    bool canCreate = changePermit && assignedWarehouseIds.Any();
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -35,7 +33,7 @@
             </div>
             <div class="content-body">
                 <section class="invoice-list-wrapper">
-                    @if (changePermit)
+                    @if (canCreate)
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "Expenses")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
@@ -43,6 +41,39 @@
                             </a>
                         </div>
                     }
+
+                    <div class="users-list-filter px-1">
+                        @using (Html.BeginForm("Index", "Expenses", FormMethod.Get, new { @class = "form" }))
+                        {
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label>Ombor</label>
+                                    @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label>Status</label>
+                                    <select name="status" class="form-control">
+                                        <option value="">Barchasi</option>
+                                        <option value="pending" @(ViewBag.Status == "pending" ? "selected" : "")>Kutilmoqda</option>
+                                        <option value="sent" @(ViewBag.Status == "sent" ? "selected" : "")>Yuborilgan</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bx bx-search"></i> Qidirish
+                                    </button>
+                                </div>
+                                @if (changePermit)
+                                {
+                                    <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                        <a href="@Url.Action("RepairMissingLinkedIncomes", "Expenses")" class="btn btn-outline-secondary w-100" onclick="return confirm('Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratishni xohlaysizmi?');" title="Kutilmoqdagi chiqimlar uchun Ishlab chiqarish/Sotuv omborida kirim hujjatlarini yaratish">
+                                            <i class="bx bx-wrench"></i> Tuzatish
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
 
                     <div class="col-md-12 col-sm-12">
                         <div class="card">
@@ -89,20 +120,24 @@
                                                             <td>@item.IssueDateTime.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)
                                                             {
+                                                                bool canModify = assignedWarehouseIds.Contains(item.SenderWHID);
                                                                 <td>
                                                                     <div class="d-flex">
                                                                         <a href="@Url.Action("Details", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
                                                                             <i class="bx bx-show"></i>
                                                                         </a>
-                                                                        @if (item.SendStatus != true)
+                                                                        @if (canModify && item.SendStatus != true)
                                                                         {
                                                                             <a href="@Url.Action("Edit", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
                                                                                 <i class="bx bx-edit-alt"></i>
                                                                             </a>
                                                                         }
-                                                                        <a href="@Url.Action("Delete", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu chiqim hujjatini o\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </a>
+                                                                        @if (canModify)
+                                                                        {
+                                                                            <a href="@Url.Action("Delete", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu chiqim hujjatini o\'chirishni tasdiqlaysizmi?');">
+                                                                                <i class="bx bx-trash"></i>
+                                                                            </a>
+                                                                        }
                                                                     </div>
                                                                 </td>
                                                             }
@@ -139,7 +174,12 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[5, "desc"]]
+                "order": [[5, "desc"]],
+                dom: 'lBfrtip',
+                buttons: [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                ]
             });
         });
     </script>

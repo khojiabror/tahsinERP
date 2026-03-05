@@ -80,7 +80,7 @@
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>&nbsp;</label>
-                                                    <button type="submit" class="btn btn-primary btn-block">Qidirish</button>
+                                                    <button type="submit" class="btn btn-success btn-block">Qidirish</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -115,17 +115,11 @@
                                                             <td><strong>@item.Total.ToString("N3")</strong></td>
                                                             <td>@(item.Comment ?? "-")</td>
                                                             <td>
-                                                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-info">
-                                                                    <i class="bx bx-show"></i>
-                                                                </a>
+                                                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Ko'rish"><i class="bx bx-show"></i></a>
                                                                 @if (changePermit)
                                                                 {
-                                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-warning">
-                                                                        <i class="bx bx-edit"></i>
-                                                                    </a>
-                                                                    <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger">
-                                                                        <i class="bx bx-trash"></i>
-                                                                    </a>
+                                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit"></i></a>
+                                                                    <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
                                                                 }
                                                             </td>
                                                         </tr>
@@ -146,11 +140,30 @@
     <script>
         $(document).ready(function() {
             $('#productionTable').DataTable({
+                "dom": "lBfrtip",
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha ko'rsatilmoqda",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
                 },
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "pageLength": 25,
+                "paging": true,
+                "info": true,
                 "order": [[0, "desc"]],
-                "pageLength": 25
+                buttons: [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                ]
             });
         });
     </script>

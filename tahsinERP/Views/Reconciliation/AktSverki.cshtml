@@ -1,0 +1,176 @@
+@model tahsinERP.ViewModels.ReconciliationViewModel
+@{
+    ViewBag.Title = "Akt-sverki";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var controllerName = Model.ReconciliationType == "Supplier" ? "Supplier" : Model.ReconciliationType == "Customer" ? "Customer" : "Forwarder";
+    var listUrl = Model.ReconciliationType == "Supplier" ? Url.Action("Index", "Supplier") : Model.ReconciliationType == "Customer" ? Url.Action("Index", "Customer") : Url.Action("Index", "Forwarder");
+    var detailUrl = Model.ReconciliationType == "Supplier" ? Url.Action("Details", "Supplier", new { id = Model.CounterpartyId }) : Model.ReconciliationType == "Customer" ? Url.Action("Details", "Customer", new { Id = Model.CounterpartyId }) : Url.Action("Details", "Forwarder", new { id = Model.CounterpartyId });
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item"><a href="@listUrl">@(Model.ReconciliationType == "Supplier" ? "Ta'minotchilar" : Model.ReconciliationType == "Customer" ? "Xaridorlar" : "Yuk tashuvchilar")</a></li>
+                                <li class="breadcrumb-item"><a href="@detailUrl">@Model.Party2Name</a></li>
+                                <li class="breadcrumb-item active">Akt-sverki</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Akt-sverki (O'zaro hisob-kitoblar akti)</h4>
+                    <div class="heading-elements">
+                        <div id="aktSverkiExportButtons" class="d-inline-block mr-1"></div>
+                        <a href="@detailUrl" class="btn btn-sm btn-secondary"><i class="bx bx-arrow-back"></i> Orqaga</a>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="card-body">
+                        <form method="get" action="@Url.Action(Model.ReconciliationType, "Reconciliation")" class="mb-4">
+                            <input type="hidden" name="id" value="@Model.CounterpartyId" />
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label>Qoldiq sanasi:</label>
+                                    <input type="date" name="asOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">Yangilash</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="text-center mb-4">
+                            <h5 class="text-primary">AKT-SVERKI</h5>
+                            <p class="mb-1">O'zaro hisob-kitoblar sanasi: <strong>@Model.AsOfDate.ToString("dd.MM.yyyy")</strong></p>
+                            <p class="mb-1">Hujjat sanasi: <strong>@Model.ReportDate</strong></p>
+                            <p class="mb-1 text-muted">@Model.AgreementInfo</p>
+                        </div>
+
+                        <p class="mb-2">
+                            <strong>@Model.Party1Name</strong> va <strong>@Model.Party2Name</strong> o'rtasida
+                            @Model.AsOfDate.ToString("dd.MM.yyyy") sanasiga qadar o'zaro hisob-kitoblar quyidagicha tekshirildi va tasdiqlandi.
+                        </p>
+
+                        <div class="table-responsive">
+                            <table id="aktSverkiTable" class="table table-bordered table-sm" style="width:100%">
+                                <thead>
+                                    <tr class="table-primary">
+                                        <th rowspan="2" style="vertical-align:middle">Mazmuni</th>
+                                        <th colspan="2" class="text-center">@Model.Party1Name</th>
+                                        <th colspan="2" class="text-center">@Model.Party2Name</th>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <th class="text-center">Debet</th>
+                                        <th class="text-center">Kredit</th>
+                                        <th class="text-center">Debet</th>
+                                        <th class="text-center">Kredit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.Rows != null)
+                                    {
+                                        foreach (var row in Model.Rows)
+                                        {
+                                        <tr class="@(row.IsBalanceRow ? "table-warning font-weight-bold" : "")">
+                                            <td>@row.Content</td>
+                                            <td class="text-right">@(row.Party1Debit > 0 ? row.Party1Debit.ToString("N2") : "")</td>
+                                            <td class="text-right">@(row.Party1Credit > 0 ? row.Party1Credit.ToString("N2") : "")</td>
+                                            <td class="text-right">@(row.Party2Debit > 0 ? row.Party2Debit.ToString("N2") : "")</td>
+                                            <td class="text-right">@(row.Party2Credit > 0 ? row.Party2Credit.ToString("N2") : "")</td>
+                                        </tr>
+                                        }
+                                    }
+                                    @if (Model.Rows == null || Model.Rows.Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            @if (Model.FinalBalance > 0)
+                            {
+                                <p><strong>Yakuniy qoldiq:</strong> @Model.Party2Name @Model.FinalBalance.ToString("N2") summa miqdorida qarzdor.</p>
+                            }
+                            else if (Model.FinalBalance < 0)
+                            {
+                                <p><strong>Yakuniy qoldiq:</strong> @Model.Party1Name @Math.Abs(Model.FinalBalance).ToString("N2") summa miqdorida qarzdor.</p>
+                            }
+                            else
+                            {
+                                <p><strong>Yakuniy qoldiq:</strong> O'zaro hisob-kitoblar tenglashtirilgan (0).</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    $(document).ready(function () {
+        var partyName = '@Html.Raw(Model.Party2Name?.Replace("'", "\\'") ?? "Akt_sverki")';
+        var baseName = 'Akt_sverki_' + partyName.replace(/[^a-zA-Z0-9-_]/g, '_');
+        $('#aktSverkiTable').DataTable({
+            "language": {
+                "search": "Qidirish:",
+                "lengthMenu": "_MENU_ ta ko'rsatish",
+                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                "infoEmpty": "Yozuvlar yo'q",
+                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
+                "zeroRecords": "Ma'lumot topilmadi"
+            },
+            "pageLength": 50,
+            "order": [],
+            dom: 'lBfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bx bxs-file-excel"></i> Excel',
+                    titleAttr: 'Excelga yuklash',
+                    className: 'btn btn-success btn-sm mr-1',
+                    filename: function () {
+                        var d = new Date();
+                        return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
+                    },
+                    exportOptions: { columns: ':visible' }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bx bxs-file-pdf"></i> PDF',
+                    titleAttr: 'PDFga yuklash',
+                    className: 'btn btn-danger btn-sm',
+                    pageSize: 'A4',
+                    orientation: 'landscape',
+                    filename: function () {
+                        var d = new Date();
+                        return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
+                    },
+                    exportOptions: { columns: ':visible' },
+                    title: 'Akt-sverki'
+                }
+            ]
+        });
+        $('#aktSverkiTable').DataTable().buttons().container().appendTo('#aktSverkiExportButtons');
+    });
+</script>
+}

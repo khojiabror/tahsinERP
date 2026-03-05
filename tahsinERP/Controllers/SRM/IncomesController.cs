@@ -15,7 +15,7 @@ namespace tahsinERP.Controllers.SRM
     public class IncomesController : Controller
     {
         // Olish so'rovi: Incomes
-        public async Task<ActionResult> Index(int? status)
+        public async Task<ActionResult> Index(int? status, int? warehouseId)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
             {
@@ -24,7 +24,7 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                 var incomesQuery = db.INCOMES
                     .Include(i => i.Warehouse)
                     .Include(i => i.Warehouse1)
@@ -32,9 +32,10 @@ namespace tahsinERP.Controllers.SRM
                     .Include(i => i.P_INVOICES)
                     .Where(i => i.IsDeleted != true);
 
-                if (assignedWarehouseId.HasValue)
+                // View barcha uchun ochiq - faqat filtr bo'yicha (ombor, status tanlansa)
+                if (warehouseId.HasValue)
                 {
-                    incomesQuery = incomesQuery.Where(i => i.ReceivingWHID == assignedWarehouseId.Value);
+                    incomesQuery = incomesQuery.Where(i => i.ReceivingWHID == warehouseId.Value);
                 }
 
                 if (status.HasValue)
@@ -53,7 +54,13 @@ namespace tahsinERP.Controllers.SRM
                     .OrderByDescending(i => i.IssueDateTime)
                     .ToListAsync();
 
+                ViewBag.Warehouses = new SelectList(
+                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    "ID", "WHName", warehouseId
+                );
                 ViewBag.Status = status;
+                ViewBag.WarehouseId = warehouseId;
+                ViewBag.AssignedWarehouseIds = assignedWarehouseIds;
                 return View(incomes);
             }
         }
@@ -88,16 +95,33 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
+                // View barcha uchun ochiq; Edit/Delete/Receive faqat MRP uchun
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
-                {
-                    return RedirectToAction("Index", "ViewNotAuthorized");
-                }
+                var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+                bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
+                bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+                bool isMrpForWarehouse = assignedWarehouseId.HasValue && income.ReceivingWHID == assignedWarehouseId.Value;
 
-                var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                bool isMrpForWarehouse = await db.WAREHOUSES
-                    .AnyAsync(w => w.ID == income.ReceivingWHID && w.MRP == currentUserId);
                 ViewBag.CanMrpReceive = isMrpForWarehouse && income.RecieveStatus != true;
+                ViewBag.CanEdit = !isMES && !isSales
+                    && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes")
+                    && isMrpForWarehouse
+                    && income.RecieveStatus != true;
+
+                // Chiqim hujjatiga link (avtomatik yaratilgan kirimlar uchun)
+                if (!string.IsNullOrEmpty(income.Description) && income.Description.Contains("Chiqimdan avtomatik bog'langan:"))
+                {
+                    const string marker = "Chiqimdan avtomatik bog'langan: ";
+                    var afterMarker = income.Description.Substring(income.Description.IndexOf(marker) + marker.Length);
+                    var docNoEnd = afterMarker.IndexOf(" - ");
+                    var expenseDocNo = docNoEnd >= 0 ? afterMarker.Substring(0, docNoEnd).Trim() : afterMarker.Trim();
+                    var linkedExpense = await db.EXPENSES.FirstOrDefaultAsync(e => e.DocNo == expenseDocNo && e.IsDeleted != true);
+                    if (linkedExpense != null)
+                    {
+                        ViewBag.LinkedExpenseId = linkedExpense.ID;
+                        ViewBag.LinkedExpenseDocNo = linkedExpense.DocNo;
+                    }
+                }
 
                 return View(income);
             }
@@ -1144,10 +1168,17 @@ namespace tahsinERP.Controllers.SRM
 
         private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
         {
+            var ids = await GetAssignedWarehouseIdsAsync(db);
+            return ids.FirstOrDefault();
+        }
+
+        private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
+        {
             var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-            var warehouse = await db.WAREHOUSES
-                .FirstOrDefaultAsync(w => w.IsDeleted != true && w.MRP == currentUserId);
-            return warehouse?.ID;
+            return await db.WAREHOUSES
+                .Where(w => w.IsDeleted != true && w.MRP == currentUserId)
+                .Select(w => w.ID)
+                .ToListAsync();
         }
     }
 

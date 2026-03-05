@@ -102,15 +102,21 @@
                                             <h5 class="mb-2">Mahsulotlar</h5>
                                             <div id="productLines">
                                                 <div class="product-line row mb-2">
-                                                    <div class="col-md-5">
+                                                    <div class="col-md-4">
                                                         <label>Mahsulot <span class="text-danger">*</span></label>
                                                         @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "---Tanlang---", new { @class = "form-control select2 product-select", @required = "required" })
                                                     </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-2">
+                                                        <label>Lot (FIFO)</label>
+                                                        <select name="lines[0].IncomeID" class="form-control lot-select select2" title="FIFO: eng eski kirim avval">
+                                                            <option value="">---Tanlang---</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
                                                         <label>Mavjud qoldiq</label>
                                                         <input type="text" class="form-control available-stock" readonly />
                                                     </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-2">
                                                         <label>Miqdor <span class="text-danger">*</span></label>
                                                         <input type="number" name="lines[0].Quantity" class="form-control quantity-input" step="0.01" min="0" required />
                                                     </div>
@@ -157,7 +163,31 @@
                 allowClear: true
             });
             
-            // Load stock when product is selected
+            function loadLotOptions($line) {
+                var productID = $line.find('.product-select').val();
+                var $lotSelect = $line.find('.lot-select');
+                $lotSelect.html('<option value="">---Yuklanmoqda---</option>');
+                if (!productID) {
+                    $lotSelect.html('<option value="">---Tanlang---</option>');
+                    return;
+                }
+                $.get('@Url.Action("GetAvailableIncomeLots", "ProductionToSalesTransfer")', { productID: productID })
+                    .done(function(res) {
+                        var opts = '<option value="">---Tanlanmagan---</option>';
+                        if (res.success && res.data && res.data.length) {
+                            res.data.forEach(function(lot) {
+                                opts += '<option value="' + lot.IncomeID + '">' + (lot.DisplayText || lot.DocNo) + '</option>';
+                            });
+                            $lotSelect.html(opts);
+                            if (res.data.length) $lotSelect.val(res.data[0].IncomeID);
+                        } else {
+                            $lotSelect.html(opts);
+                        }
+                    })
+                    .fail(function() { $lotSelect.html('<option value="">---Xatolik---</option>'); });
+            }
+
+            // Load stock and lots when product is selected
             $(document).on('change', '.product-select', function() {
                 var $line = $(this).closest('.product-line');
                 var productID = $(this).val();
@@ -175,19 +205,22 @@
                         .fail(function() {
                             $stockInput.val('0');
                         });
+                    loadLotOptions($line);
                 } else {
                     $stockInput.val('');
+                    $line.find('.lot-select').html('<option value="">---Tanlang---</option>');
                 }
             });
             
             // Add new product line
             $('#addProductLine').click(function() {
                 var newLine = $('.product-line').first().clone();
-                newLine.find('select').attr('name', 'lines[' + productIndex + '].ProductID');
+                newLine.find('select.product-select').attr('name', 'lines[' + productIndex + '].ProductID');
+                newLine.find('select.lot-select').attr('name', 'lines[' + productIndex + '].IncomeID').html('<option value="">---Tanlang---</option>');
                 newLine.find('input.quantity-input').attr('name', 'lines[' + productIndex + '].Quantity').val('');
                 newLine.find('.available-stock').val('');
                 newLine.find('.remove-line').show();
-                newLine.find('select').val(null).trigger('change');
+                newLine.find('select.product-select').val(null).trigger('change');
                 $('#productLines').append(newLine);
                 $('.select2').select2();
                 productIndex++;

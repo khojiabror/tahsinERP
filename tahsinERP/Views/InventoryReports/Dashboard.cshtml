@@ -69,6 +69,14 @@
                                         <option value="selected" @(ViewBag.FifoScope == "selected" ? "selected" : "")>Tanlangan ombor</option>
                                     </select>
                                 </div>
+                                <div class="col-12 col-sm-6 col-lg-2">
+                                    <label>Mahsulot turi</label>
+                                    <select name="productType" class="form-control">
+                                        <option value="">Barchasi</option>
+                                        <option value="finished" @(ViewBag.ProductType == "finished" ? "selected" : "")>Tayyor mahsulot</option>
+                                        <option value="raw" @(ViewBag.ProductType == "raw" ? "selected" : "")>Xomashyo</option>
+                                    </select>
+                                </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="bx bx-search"></i> Qidirish

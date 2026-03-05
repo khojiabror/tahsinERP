@@ -275,6 +275,71 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
+        /// Faqat income'dan birlik: birinchi kirimda qanday unit ishlatilgan bo'lsa shuni qaytaradi.
+        /// BOM/material UnitID ga tushmaydi. Expense va ProductProduction/Details da bir xil ko'rsatish uchun.
+        /// </summary>
+        public int? GetDisplayUnitFromIncome(int materialId)
+        {
+            var firstIp = _db.INCOME_PRODUCTS
+                .Include(ip => ip.INCOME)
+                .Where(ip => ip.ProductID == materialId
+                    && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false))
+                .OrderBy(ip => ip.INCOME.IssueDateTime)
+                .FirstOrDefault();
+
+            return firstIp != null ? (int?)firstIp.UnitID : null;
+        }
+
+        /// <summary>
+        /// FIFO: Gets piece price and total price for consuming given qty from oldest income batches first.
+        /// </summary>
+        private async Task<(double piecePrice, double totalPrice)> GetFifoPricesAsync(int materialId, int warehouseId, double requiredQty)
+        {
+            var incomeProducts = await _db.INCOME_PRODUCTS
+                .Include(ip => ip.INCOME)
+                .Where(ip => ip.ProductID == materialId
+                    && ip.INCOME.ReceivingWHID == warehouseId
+                    && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
+                    && ip.Amount > 0)
+                .OrderBy(ip => ip.INCOME.IssueDateTime)
+                .ToListAsync();
+
+            if (incomeProducts == null || !incomeProducts.Any())
+            {
+                return (0, 0);
+            }
+
+            double remainingToConsume = requiredQty;
+            double totalPriceSum = 0;
+            double totalQtyTaken = 0;
+
+            foreach (var ip in incomeProducts)
+            {
+                if (remainingToConsume <= 0) break;
+
+                var piecePrice = (ip.PiecePrice ?? 0);
+                if (piecePrice <= 0 && ip.TotalPrice.HasValue && ip.Amount > 0)
+                {
+                    piecePrice = (double)(ip.TotalPrice.Value / ip.Amount);
+                }
+
+                var takeQty = Math.Min(ip.Amount, remainingToConsume);
+                totalPriceSum += takeQty * piecePrice;
+                totalQtyTaken += takeQty;
+                remainingToConsume -= takeQty;
+            }
+
+            if (totalQtyTaken <= 0)
+            {
+                return (0, 0);
+            }
+
+            var avgPiecePrice = totalPriceSum / totalQtyTaken;
+            var totalPrice = avgPiecePrice * requiredQty;
+            return (avgPiecePrice, totalPrice);
+        }
+
+        /// <summary>
         /// Consumes materials from the given warehouse when production is confirmed.
         /// For weight-based materials (e.g. shurup) BOM dona is converted to kg; expense and stock deduction use kg.
         /// Creates Expense document without linked Income.
@@ -307,16 +372,22 @@ namespace tahsinERP.Services
                 ?? await _db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
             int currencyId = currency != null ? currency.ID : 1;
 
+            var product = await _db.PRODUCTS.FindAsync(productId);
+            var productPNo = product?.PNo ?? productId.ToString();
+            var dateStr = DateTime.Now.ToString("yyyyMMdd");
+            var docNo = $"{dateStr}_{productPNo}_{producedQty}";
+            var description = $"Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {producedQty}";
+
             var expense = new EXPENS
             {
-                DocNo = $"BOM-{DateTime.Now:yyyyMMddHHmmss}-{productId}",
+                DocNo = docNo,
                 IssueDateTime = DateTime.Now,
                 SenderWHID = warehouseId,
                 ReceiverWhID = null,
                 CurrencyID = currencyId,
                 Amount = 0,
                 TotalPrice = 0,
-                Description = $"Ishlab chiqarish uchun xomashyo chiqimi: Mahsulot ID {productId}, Miqdor {producedQty}",
+                Description = description,
                 SendStatus = true,
                 IsDeleted = false
             };
@@ -325,22 +396,32 @@ namespace tahsinERP.Services
             await _db.SaveChangesAsync();
 
             double totalAmount = 0;
+            double totalExpensePrice = 0;
 
             foreach (var req in requirements)
             {
+                var (piecePrice, totalPrice) = await GetFifoPricesAsync(req.MaterialID, warehouseId, req.TotalConsumption);
+                var displayUnitId = GetDisplayUnitFromIncome(req.MaterialID);
+                if (!displayUnitId.HasValue)
+                {
+                    throw new InvalidOperationException(
+                        $"Mahsulot {req.MaterialPNo ?? req.MaterialID.ToString()} uchun kirim topilmadi. Birlik aniqlanishi uchun avval xomashyoni kirim qilishingiz kerak.");
+                }
+
                 var expenseProduct = new EXPENSE_PRODUCTS
                 {
                     ExpenseID = expense.ID,
                     ProductID = req.MaterialID,
                     Amount = req.TotalConsumption,
-                    PiecePrice = 0,
-                    TotalPrice = 0,
-                    UnitID = req.UnitID,
+                    PiecePrice = piecePrice,
+                    TotalPrice = totalPrice,
+                    UnitID = displayUnitId.Value,
                     Comment = "BOM/NORM sarfi"
                 };
 
                 _db.EXPENSE_PRODUCTS.Add(expenseProduct);
                 totalAmount += req.TotalConsumption;
+                totalExpensePrice += totalPrice;
 
                 // Get stock in warehouse
                 var stock = await _db.PRODUCT_STOCKS
@@ -380,6 +461,7 @@ namespace tahsinERP.Services
             }
 
             expense.Amount = totalAmount;
+            expense.TotalPrice = totalExpensePrice;
             await _db.SaveChangesAsync();
 
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",

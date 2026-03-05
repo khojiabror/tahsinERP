@@ -133,6 +133,9 @@
                                                 <a href="@Url.Action("Index", "PInvoices", new { supplierID = Model.ID })" class="btn btn-outline-primary">
                                                     <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
                                                 </a>
+                                                <a href="@Url.Action("Supplier", "Reconciliation", new { id = Model.ID })" class="btn btn-outline-primary">
+                                                    <i class="bx bx-transfer-alt"></i> Akt-sverki
+                                                </a>
                                             </div>
                                         </div>
                                     </div>

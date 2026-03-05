@@ -4,10 +4,8 @@
     ViewBag.Title = "Chiqim hujjati tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses", "Details"))
-{
-    <div class="app-content content">
+@* IsViewPermitted tekshiruvi Controller da amalga oshiriladi - duplicate olib tashlandi *@
+<div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
@@ -38,7 +36,7 @@
                             <div class="card-header">
                                 <h4 class="card-title">Chiqim hujjati ma'lumotlari</h4>
                                 <div class="heading-elements">
-                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses") && Model.SendStatus != true)
+                                    @if (ViewBag.CanEdit == true)
                                     {
                                         <a href="@Url.Action("Edit", "Expenses", new { id = Model.ID })" class="btn btn-sm btn-warning">
                                             <i class="bx bx-edit-alt"></i> Tahrirlash
@@ -172,8 +170,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

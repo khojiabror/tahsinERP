@@ -15,7 +15,8 @@ namespace tahsinERP.Controllers.SRM
     public class ExpensesController : Controller
     {
         // Olish so'rovi: Expenses
-        public async Task<ActionResult> Index()
+        // status: null/"" = barchasi, "pending" = Kutilmoqda, "sent" = Yuborilgan
+        public async Task<ActionResult> Index(int? warehouseId, string status)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Expenses", "Index"))
             {
@@ -24,22 +25,40 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                 var expensesQuery = db.EXPENSES
                     .Include(e => e.Warehouse)
                     .Include(e => e.Warehouse1)
                     .Include(e => e.CURRENCy)
                     .Where(e => e.IsDeleted != true);
 
-                if (assignedWarehouseId.HasValue)
+                // Ombona bo'yicha filtr
+                if (warehouseId.HasValue)
                 {
-                    expensesQuery = expensesQuery.Where(e => e.SenderWHID == assignedWarehouseId.Value);
+                    expensesQuery = expensesQuery.Where(e => e.SenderWHID == warehouseId.Value);
+                }
+
+                // Status bo'yicha filtr (default: barchasi)
+                if (status == "pending")
+                {
+                    expensesQuery = expensesQuery.Where(e => e.SendStatus != true);
+                }
+                else if (status == "sent")
+                {
+                    expensesQuery = expensesQuery.Where(e => e.SendStatus == true);
                 }
 
                 var expenses = await expensesQuery
                     .OrderByDescending(e => e.IssueDateTime)
                     .ToListAsync();
 
+                ViewBag.Warehouses = new SelectList(
+                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
+                    "ID", "WHName", warehouseId
+                );
+                ViewBag.WarehouseId = warehouseId;
+                ViewBag.Status = status ?? "";
+                ViewBag.AssignedWarehouseIds = assignedWarehouseIds;
                 return View(expenses);
             }
         }
@@ -73,11 +92,12 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
+                // View barcha uchun ochiq; Edit/Delete faqat MRP uchun
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
-                {
-                    return RedirectToAction("Index", "ViewNotAuthorized");
-                }
+                ViewBag.CanEdit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses")
+                    && assignedWarehouseId.HasValue
+                    && expense.SenderWHID == assignedWarehouseId.Value
+                    && expense.SendStatus != true;
 
                 return View(expense);
             }
@@ -121,6 +141,36 @@ namespace tahsinERP.Controllers.SRM
                 );
 
                 return View();
+            }
+        }
+
+        // FIFO: Berilgan ombor+mahsulot uchun mavjud Income lotlar (FIFO tartibida)
+        [HttpPost]
+        public async Task<JsonResult> GetAvailableIncomeLots(int warehouseId, int productId)
+        {
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                    if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(warehouseId))
+                        return Json(new { success = false, message = "Ushbu omborga kirish huquqi yo'q" });
+
+                    var lots = await LotTrackingService.GetAvailableIncomeLotsAsync(warehouseId, productId, db);
+                    var data = lots.Select(l => new
+                    {
+                        l.IncomeID,
+                        l.DocNo,
+                        l.IssueDateTime,
+                        l.RemainingAmount,
+                        l.DisplayText
+                    }).ToList();
+                    return Json(new { success = true, data });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -336,6 +386,9 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var product in model.ExpenseProducts)
                                 {
+                                    var comment = product.IncomeID.HasValue
+                                        ? LotTrackingService.FormatIncomeIdComment(product.IncomeID.Value)
+                                        : (product.Comment ?? "");
                                     var expenseProduct = new EXPENSE_PRODUCTS
                                     {
                                         ExpenseID = expense.ID,
@@ -344,7 +397,7 @@ namespace tahsinERP.Controllers.SRM
                                         PiecePrice = product.PiecePrice,
                                         TotalPrice = product.Amount * product.PiecePrice,
                                         UnitID = product.UnitID,
-                                        Comment = product.Comment
+                                        Comment = comment
                                     };
 
                                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
@@ -517,10 +570,17 @@ namespace tahsinERP.Controllers.SRM
 
         private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
         {
+            var ids = await GetAssignedWarehouseIdsAsync(db);
+            return ids.FirstOrDefault();
+        }
+
+        private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
+        {
             var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-            var warehouse = await db.WAREHOUSES
-                .FirstOrDefaultAsync(w => w.IsDeleted != true && w.MRP == currentUserId);
-            return warehouse?.ID;
+            return await db.WAREHOUSES
+                .Where(w => w.IsDeleted != true && w.MRP == currentUserId)
+                .Select(w => w.ID)
+                .ToListAsync();
         }
 
         // Olish so'rovi: Expenses/Edit/5
@@ -588,7 +648,8 @@ namespace tahsinERP.Controllers.SRM
                         UnitName = ep.UNIT != null ? ep.UNIT.ShortName : null,
                         PiecePrice = ep.PiecePrice,
                         TotalPrice = ep.TotalPrice,
-                        Comment = ep.Comment,
+                        Comment = LotTrackingService.ParseIncomeIdFromComment(ep.Comment).HasValue ? "" : (ep.Comment ?? ""),
+                        IncomeID = LotTrackingService.ParseIncomeIdFromComment(ep.Comment),
                         AvailableStock = stockMap.FirstOrDefault(s => s.ProductID == ep.ProductID)?.Amount ?? 0
                     }).ToList()
                 };
@@ -724,6 +785,9 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var product in model.ExpenseProducts)
                                 {
+                                    var comment = product.IncomeID.HasValue
+                                        ? LotTrackingService.FormatIncomeIdComment(product.IncomeID.Value)
+                                        : (product.Comment ?? "");
                                     var expenseProduct = new EXPENSE_PRODUCTS
                                     {
                                         ExpenseID = expense.ID,
@@ -732,7 +796,7 @@ namespace tahsinERP.Controllers.SRM
                                         PiecePrice = product.PiecePrice,
                                         TotalPrice = product.Amount * product.PiecePrice,
                                         UnitID = product.UnitID,
-                                        Comment = product.Comment
+                                        Comment = comment
                                     };
 
                                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
@@ -987,23 +1051,74 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Ichki o‘tkazma uchun avtomatik kirim hujjati yaratadi (Xomashyo → Ishlab chiqarish/Sotuv)
+        /// Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratadi (mavjud ma'lumotlarni tuzatish)
+        /// </summary>
+        public async Task<ActionResult> RepairMissingLinkedIncomes()
+        {
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            int created = 0;
+            using (var db = new DBTHSNEntities())
+            {
+                var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+                var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+                var targetWhIds = new List<int>();
+                if (productionWH != null) targetWhIds.Add(productionWH.ID);
+                if (salesWH != null && !targetWhIds.Contains(salesWH.ID)) targetWhIds.Add(salesWH.ID);
+                if (!targetWhIds.Any()) return RedirectToAction("Index");
+
+                var pendingExpenses = await db.EXPENSES
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .Where(e => e.IsDeleted != true && e.ReceiverWhID.HasValue && e.SendStatus != true
+                        && targetWhIds.Contains(e.ReceiverWhID.Value))
+                    .ToListAsync();
+
+                foreach (var exp in pendingExpenses)
+                {
+                    var hasLinked = await db.INCOMES
+                        .AnyAsync(i => i.IsDeleted != true && i.Description != null
+                            && i.Description.Contains("Chiqimdan avtomatik bog'langan:")
+                            && i.Description.Contains(exp.DocNo ?? ""));
+                    if (hasLinked) continue;
+                    var products = exp.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
+                    {
+                        ProductID = ep.ProductID,
+                        Amount = ep.Amount,
+                        PiecePrice = ep.PiecePrice,
+                        TotalPrice = ep.TotalPrice,
+                        UnitID = ep.UnitID
+                    }).ToList();
+                    if (products.Any())
+                    {
+                        await CreateLinkedIncomeDocumentForExpenseAsync(exp, products, db);
+                        created++;
+                    }
+                }
+            }
+            TempData["Success"] = $"{created} ta yetishmayotgan kirim hujjati yaratildi.";
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Ichki o'tkazma uchun avtomatik kirim hujjati yaratadi (Xomashyo → Ishlab chiqarish/Sotuv)
         /// Har bir chiqim uchun barcha mahsulotlar bilan BIRTA kirim hujjati yaratadi
         /// </summary>
         private async Task CreateLinkedIncomeDocumentForExpenseAsync(EXPENS expense, List<ViewModels.ExpenseProductViewModel> products, DBTHSNEntities db)
         {
-            // Tekshirish agar receiver is Production warehouse yoki Sales warehouse
-            var receiverWarehouse = await db.WAREHOUSES.FindAsync(expense.ReceiverWhID.Value);
-            if (receiverWarehouse == null)
+            if (!expense.ReceiverWhID.HasValue || products == null || !products.Any())
                 return;
 
-            bool isProductionWarehouse = receiverWarehouse.WHName.Contains("Production") ||
-                                        receiverWarehouse.WHName.Contains("Ishlab chiqarish");
-            bool isSalesWarehouse = receiverWarehouse.WHName.Contains("Sales") ||
-                                   receiverWarehouse.WHName.Contains("Sotuv");
+            // Ishlab chiqarish yoki Sotuv omboriga bo'lgan o'tkazmalar uchun kirim yaratish
+            // WarehouseFlowService orqali omborlarni aniq aniqlash (nomda reglament bo'lmasin)
+            var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+
+            bool isProductionWarehouse = productionWH != null && productionWH.ID == expense.ReceiverWhID.Value;
+            bool isSalesWarehouse = salesWH != null && salesWH.ID == expense.ReceiverWhID.Value;
 
             if (!isProductionWarehouse && !isSalesWarehouse)
-                return; // faqat auto-link uchun Production yoki Sales warehouse transfers
+                return; // faqat Production yoki Sales omborga o'tkazmalar uchun avtomatik kirim
 
             // Yaratish Income DocNo
             var incomeDocNo = await GenerateIncomeDocNo(db);

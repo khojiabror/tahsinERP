@@ -66,7 +66,7 @@
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = Model.SOrderID })">@Model.S_ORDERS.OrderNo</a>
                                                             </p>
                                                         }
-                                                        @if (Model.PRODUCT_PRODUCTION != null)
+                                                        @if (Model.PRODUCT_PRODUCTION != null && Model.ProductionID > 0)
                                                         {
                                                             <p><strong>Ishlab chiqarish:</strong> 
                                                                 <a href="@Url.Action("Details", "ProductProduction", new { id = Model.ProductionID })">ID: @Model.ProductionID</a>

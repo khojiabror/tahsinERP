@@ -333,11 +333,13 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: ProductProduction/Details/5
         public async Task<ActionResult> Details(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            try
+            {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var production = db.PRODUCT_PRODUCTION
@@ -356,25 +358,31 @@ namespace tahsinERP.Controllers.MES
                     Production = production
                 };
 
-                // Avval chiqimlarni yuklash (narxlar uchun). DocNo format: BOM-{yyyyMMddHHmmss}-{productId}
-                var dayStart = production.Date.Date;
-                var dayEnd = dayStart.AddDays(1);
+                // Avval chiqimlarni yuklash (narxlar uchun).
+                // Yangi format: DocNo = {yyyyMMdd}_{productPNo}_{miqdor}, Description = "... {productPNo}, Miqdor {miqdor}"
+                // Eski format: DocNo = BOM-{timestamp}-{productId}, Description = "... Mahsulot ID {productId} ..."
+                var productPNo = production.PRODUCT?.PNo ?? production.ProductID.ToString();
                 var productIdSuffix = "-" + production.ProductID;
                 var prodIdStr = "Mahsulot ID " + production.ProductID;
+                var newFormatSuffix = "_" + productPNo + "_" + production.Total;
+                var searchStart = production.Date.Date.AddDays(-30);
+                var searchEnd = production.Date.Date.AddDays(31);
 
-                // 1) Sana bo'yicha kun ichidagi barcha chiqimlarni yuklash (SQL oddiy bo'ladi)
-                var expensesOfDay = await db.EXPENSES
+                // 1) Sana oralig'ida barcha chiqimlarni yuklash (chiqim saqlangan sana production.Date dan farq qilishi mumkin)
+                var expensesInRange = await db.EXPENSES
                     .Where(e => e.IsDeleted == false
-                        && e.IssueDateTime >= dayStart
-                        && e.IssueDateTime < dayEnd)
+                        && e.IssueDateTime >= searchStart
+                        && e.IssueDateTime < searchEnd)
                     .Include(e => e.EXPENSE_PRODUCTS)
                     .OrderByDescending(e => e.IssueDateTime)
                     .ToListAsync();
 
-                // 2) Xotirada: faqat ushbu mahsulotga tegishli BOM chiqimlari (DocNo yoki Description orqali)
-                var expenses = expensesOfDay.Where(e =>
+                // 2) Faqat ushbu mahsulotga tegishli BOM chiqimlari (DocNo yoki Description orqali)
+                var expenses = expensesInRange.Where(e =>
                     (e.DocNo != null && e.DocNo.StartsWith("BOM-") && e.DocNo.EndsWith(productIdSuffix))
+                    || (e.DocNo != null && e.DocNo.EndsWith(newFormatSuffix))
                     || (e.Description != null && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi") && e.Description.Contains(prodIdStr))
+                    || (e.Description != null && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi") && e.Description.Contains(productPNo) && e.Description.Contains("Miqdor " + production.Total))
                 ).ToList();
 
                 // Chiqim hujjatlaridan material bo'yicha narx/summa (birinchi chiqimdan)
@@ -390,8 +398,10 @@ namespace tahsinERP.Controllers.MES
                 // BOM/Norm bo'yicha sarf hisoblash va narx qo'shish
                 var consumptionService = new ProductionConsumptionService(db);
                 var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, production.Total);
-                var unitIds = requirements.Select(r => r.UnitID).Distinct().ToList();
-                var units = await db.UNITS.Where(u => unitIds.Contains(u.ID)).ToDictionaryAsync(u => u.ID, u => u.ShortName ?? u.Name ?? "-");
+                var displayUnitIds = requirements.Select(r => consumptionService.GetDisplayUnitFromIncome(r.MaterialID)).Where(u => u.HasValue).Select(u => u.Value).Distinct().ToList();
+                var units = displayUnitIds.Any() 
+                    ? await db.UNITS.Where(u => displayUnitIds.Contains(u.ID)).ToDictionaryAsync(u => u.ID, u => u.ShortName ?? u.UnitName ?? "-")
+                    : new Dictionary<int, string>();
 
                 foreach (var req in requirements)
                 {
@@ -401,6 +411,8 @@ namespace tahsinERP.Controllers.MES
                         piecePrice = materialPrices[req.MaterialID].Item1;
                         totalPrice = materialPrices[req.MaterialID].Item2;
                     }
+                    var displayUnitId = consumptionService.GetDisplayUnitFromIncome(req.MaterialID);
+                    var unitName = displayUnitId.HasValue && units.ContainsKey(displayUnitId.Value) ? units[displayUnitId.Value] : "-";
                     viewModel.BomConsumptionLines.Add(new BomConsumptionLineViewModel
                     {
                         MaterialID = req.MaterialID,
@@ -410,7 +422,7 @@ namespace tahsinERP.Controllers.MES
                         RequiredQtyMeters = req.RequiredQtyMeters,
                         WasteQty = req.WasteQty,
                         TotalConsumption = req.TotalConsumption,
-                        UnitName = units.ContainsKey(req.UnitID) ? units[req.UnitID] : "-",
+                        UnitName = unitName,
                         TotalConsumptionIsInKg = req.TotalConsumptionIsInKg,
                         PiecePrice = piecePrice,
                         TotalPrice = totalPrice
@@ -436,6 +448,13 @@ namespace tahsinERP.Controllers.MES
                 }
 
                 return View(viewModel);
+            }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController.Details", $"Xatolik: {ex.Message}");
+                TempData["ErrorMessage"] = "Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.";
+                return RedirectToAction("Index");
             }
         }
 

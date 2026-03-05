@@ -152,7 +152,8 @@ namespace tahsinERP.Controllers.SRM
                                 User.Identity.Name,
                                 viewModel.TransferDocNo,
                                 documentBytes,
-                                viewModel.Description
+                                viewModel.Description,
+                                line.IncomeID
                             );
                         }
 
@@ -229,6 +230,36 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
+        // FIFO: Ishlab chiqarish omboridagi mahsulot uchun mavjud Income lotlar (FIFO)
+        [HttpGet]
+        public async Task<JsonResult> GetAvailableIncomeLots(int productID)
+        {
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+                    if (productionWH == null)
+                        return Json(new { success = false, message = "Ishlab chiqarish ombori topilmadi" }, JsonRequestBehavior.AllowGet);
+
+                    var lots = await LotTrackingService.GetAvailableIncomeLotsAsync(productionWH.ID, productID, db);
+                    var data = lots.Select(l => new
+                    {
+                        l.IncomeID,
+                        l.DocNo,
+                        l.IssueDateTime,
+                        l.RemainingAmount,
+                        l.DisplayText
+                    }).ToList();
+                    return Json(new { success = true, data }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // AJAX so'rovi: Get available stock in Production Warehouse
         [HttpGet]
         public JsonResult GetProductionStock(int productID)
@@ -270,5 +301,6 @@ namespace tahsinERP.Controllers.SRM
     {
         public int ProductID { get; set; }
         public double Quantity { get; set; }
+        public int? IncomeID { get; set; }
     }
 }

@@ -7,16 +7,12 @@
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
 {
-    // MES va Sales xodimlari faqat ko'radi, Create/Edit qila olmaydi
     var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
     bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
     bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
-    
-    bool changePermit = false;
-    if (!isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
-    {
-        changePermit = true;
-    }
+    bool changePermit = !isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes");
+    var assignedWarehouseIds = ViewBag.AssignedWarehouseIds as List<int> ?? new List<int>();
+    bool canCreate = changePermit && assignedWarehouseIds.Any();
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -41,7 +37,7 @@
             </div>
             <div class="content-body">
                 <section class="invoice-list-wrapper">
-                    @if (changePermit)
+                    @if (canCreate)
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "Incomes")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
@@ -54,6 +50,10 @@
                         @using (Html.BeginForm("Index", "Incomes", FormMethod.Get, new { @class = "form" }))
                         {
                             <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label>Ombor</label>
+                                    @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
                                 <div class="col-12 col-sm-6 col-lg-3">
                                     <label>Status</label>
                                     <select name="status" class="form-control">
@@ -125,20 +125,24 @@
                                                             <td>@item.IssueDateTime.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)
                                                             {
+                                                                bool canModify = assignedWarehouseIds.Contains(item.ReceivingWHID);
                                                                 <td>
                                                                     <div class="d-flex">
                                                                         <a href="@Url.Action("Details", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
                                                                             <i class="bx bx-show"></i>
                                                                         </a>
-                                                                        @if (item.RecieveStatus != true)
+                                                                        @if (canModify && item.RecieveStatus != true)
                                                                         {
                                                                             <a href="@Url.Action("Edit", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
                                                                                 <i class="bx bx-edit-alt"></i>
                                                                             </a>
                                                                         }
-                                                                        <a href="@Url.Action("Delete", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu kirim hujjatini o\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </a>
+                                                                        @if (canModify)
+                                                                        {
+                                                                            <a href="@Url.Action("Delete", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu kirim hujjatini o\'chirishni tasdiqlaysizmi?');">
+                                                                                <i class="bx bx-trash"></i>
+                                                                            </a>
+                                                                        }
                                                                     </div>
                                                                 </td>
                                                             }
@@ -175,7 +179,70 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[5, "desc"]]
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "order": [[3, "desc"]],
+                "columnDefs": [
+                    { "type": "date", "targets": 3 }
+                ],
+                "scrollX": true,
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() +
+                                String(now.getMonth() + 1).padStart(2, '0') +
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') +
+                                String(now.getMinutes()).padStart(2, '0') +
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Ombor_kirimlari' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() +
+                                String(now.getMonth() + 1).padStart(2, '0') +
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') +
+                                String(now.getMinutes()).padStart(2, '0') +
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Ombor_kirimlari_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        title: 'Ombor kirimlari',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
+                    }
+                ]
             });
         });
     </script>

@@ -272,10 +272,11 @@ namespace tahsinERP.Services
         /// <summary>
         /// Transfer finished goods from Production WH to Sales WH
         /// Creates linked EXPENS and INCOME documents
+        /// sourceIncomeID: FIFO - qaysi Income (lot) dan o'tkazilayotgani
         /// </summary>
         public static void TransferProductionToSales(int productID, double quantity, 
             DBTHSNEntities db, string userEmail, string transferDocNo = null, 
-            byte[] transferDocument = null, string description = null)
+            byte[] transferDocument = null, string description = null, int? sourceIncomeID = null)
         {
             using (var transaction = new TransactionScope(TransactionScopeOption.Required))
             {
@@ -327,13 +328,15 @@ namespace tahsinERP.Services
                     db.EXPENSES.Add(expense);
                     db.SaveChanges(); // Save to get ID
 
-                    // Create EXPENSE_PRODUCTS
+                    // Create EXPENSE_PRODUCTS (FIFO: sourceIncomeID Comment da saqlanadi)
                     var expenseProduct = new EXPENSE_PRODUCTS
                     {
                         ExpenseID = expense.ID,
                         ProductID = productID,
                         Amount = quantity,
-                        PiecePrice = 0
+                        PiecePrice = 0,
+                        UnitID = product.UnitID,
+                        Comment = sourceIncomeID.HasValue ? LotTrackingService.FormatIncomeIdComment(sourceIncomeID.Value) : null
                     };
 
                     db.EXPENSE_PRODUCTS.Add(expenseProduct);

@@ -38,13 +38,7 @@
                             <div class="card-header">
                                 <h4 class="card-title">Kirim hujjati ma'lumotlari</h4>
                                 <div class="heading-elements">
-                                    @{
-                                        var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-                                        bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
-                                        bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
-                                        bool canEdit = !isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes") && Model.RecieveStatus != true;
-                                    }
-                                    @if (canEdit)
+                                    @if (ViewBag.CanEdit == true)
                                     {
                                         <a href="@Url.Action("Edit", "Incomes", new { id = Model.ID })" class="btn btn-sm btn-warning">
                                             <i class="bx bx-edit-alt"></i> Tahrirlash
@@ -85,8 +79,15 @@
                                                         }
                                                         else if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
                                                         {
-                                                            <span class="badge badge-info">Avtomatik yaratilgan (Expense dan)</span>
-                                                            @* Extract Expense DocNo from Description if needed *@
+                                                            <span class="badge badge-info">Avtomatik yaratilgan</span>
+                                                            if (ViewBag.LinkedExpenseId != null)
+                                                            {
+                                                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">@(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted ml-1">(Expense dan)</span>
+                                                            }
                                                         }
                                                         else
                                                         {
@@ -100,7 +101,14 @@
                                                         <th>Manbasi:</th>
                                                         <td>
                                                             <span class="badge badge-info">Avtomatik yaratilgan</span>
-                                                            <small class="text-muted">SRM modulidan Expense yaratilganda avtomatik yaratilgan</small>
+                                                            @if (ViewBag.LinkedExpenseId != null)
+                                                            {
+                                                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">Chiqim hujjati: @(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <small class="text-muted ml-1">SRM modulidan Expense yaratilganda avtomatik yaratilgan</small>
+                                                            }
                                                         </td>
                                                     </tr>
                                                 }
@@ -135,7 +143,23 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Izoh:</th>
-                                                    <td>@(Model.Description ?? "-")</td>
+                                                    <td>
+                                                        @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
+                                                        {
+                                                            var marker = "Chiqimdan avtomatik bog'langan: ";
+                                                            var idx = Model.Description.IndexOf(marker);
+                                                            var rest = idx >= 0 ? Model.Description.Substring(idx + marker.Length) : Model.Description;
+                                                            var dashIdx = rest.IndexOf(" - ");
+                                                            var suffix = (dashIdx >= 0 && rest.Length > dashIdx + 3) ? rest.Substring(dashIdx + 3) : "";
+                                                            <span>Chiqimdan avtomatik bog'langan: </span>
+                                                            <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                            @(string.IsNullOrEmpty(suffix) ? "" : " - " + suffix)
+                                                        }
+                                                        else
+                                                        {
+                                                            @(Model.Description ?? "-")
+                                                        }
+                                                    </td>
                                                 </tr>
                                             </table>
                                             @if (ViewBag.CanMrpReceive == true)
@@ -190,7 +214,17 @@
                                                             <td>@(product.UNIT?.ShortName ?? "-")</td>
                                                             <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
                                                             <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
-                                                            <td>@(product.Comment ?? "-")</td>
+                                                            <td>
+                                                                @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
+                                                                {
+                                                                    <span>Chiqimdan bog'langan: </span>
+                                                                    <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                                }
+                                                                else
+                                                                {
+                                                                    @(product.Comment ?? "-")
+                                                                }
+                                                            </td>
                                                         </tr>
                                                     }
                                                 }

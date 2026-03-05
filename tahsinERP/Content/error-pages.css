@@ -109,6 +109,38 @@ body.blank-page.error-page {
     margin: 0 0.35rem;
 }
 
+.error-page .error-detail-box {
+    text-align: left;
+    max-width: 480px;
+    margin: 0 auto 1.5rem;
+    padding: 1rem 1.25rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.error-page .error-detail-box strong {
+    display: block;
+    color: #334155;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.error-page .error-detail-text {
+    color: #dc3545;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.error-page .error-detail-text.error-inner {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #e2e8f0;
+    color: #b91c1c;
+}
+
 @media (max-width: 576px) {
     .error-page .error-code {
         font-size: 3.5rem;

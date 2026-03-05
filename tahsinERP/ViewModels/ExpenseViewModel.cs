@@ -127,6 +127,9 @@ namespace tahsinERP.ViewModels
         [Display(Name = "Izoh")]
         public string Comment { get; set; }
         
+        // FIFO/Lot tracking: qaysi Income (kirim) dan chiqim - dropdown orqali tanlanadi
+        public int? IncomeID { get; set; }
+        
         // For stock availability check
         public double AvailableStock { get; set; }
     }

@@ -296,10 +296,10 @@ namespace tahsinERP.Controllers
         {
             var query = db.CUSTOMER_BASE.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(c => (c.Name != null && c.Name.Contains(search)));
+                query = query.Where(c => (c.CompanyName != null && c.CompanyName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.CompanyName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Kompaniya"] = x.CompanyName } }).ToList();
+            return (items, new[] { "Kompaniya" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedSuppliers(DBTHSNEntities db, string search)
         {
@@ -314,10 +314,10 @@ namespace tahsinERP.Controllers
         {
             var query = db.SUPPLIER_BASE.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(s => (s.Name != null && s.Name.Contains(search)));
+                query = query.Where(s => (s.CompanyName != null && s.CompanyName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.CompanyName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Kompaniya"] = x.CompanyName } }).ToList();
+            return (items, new[] { "Kompaniya" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedSOrders(DBTHSNEntities db, string search)
         {
@@ -325,7 +325,7 @@ namespace tahsinERP.Controllers
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(o => (o.OrderNo != null && o.OrderNo.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.OrderNo ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Buyurtma No"] = x.OrderNo, ["Sana"] = x.OrderDate } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.OrderNo ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Buyurtma No"] = x.OrderNo, ["Sana"] = x.IssuedDate } }).ToList();
             return (items, new[] { "Buyurtma No", "Sana" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedSContracts(DBTHSNEntities db, string search)
@@ -386,9 +386,9 @@ namespace tahsinERP.Controllers
         {
             var query = db.FORWARDERS.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(f => (f.Name != null && f.Name.Contains(search)));
+                query = query.Where(f => (f.ForwarderName != null && f.ForwarderName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.ForwarderName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.ForwarderName } }).ToList();
             return (items, new[] { "Nomi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedFContracts(DBTHSNEntities db, string search)
@@ -411,28 +411,28 @@ namespace tahsinERP.Controllers
         {
             var query = db.WAREHOUSES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(w => (w.Name != null && w.Name.Contains(search)));
+                query = query.Where(w => (w.WHName != null && w.WHName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.WHName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.WHName } }).ToList();
             return (items, new[] { "Nomi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedUnits(DBTHSNEntities db, string search)
         {
             var query = db.UNITS.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(u => (u.Name != null && u.Name.Contains(search)));
+                query = query.Where(u => (u.UnitName != null && u.UnitName.Contains(search)) || (u.ShortName != null && u.ShortName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.UnitName ?? x.ShortName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.UnitName, ["Qisqacha"] = x.ShortName } }).ToList();
+            return (items, new[] { "Nomi", "Qisqacha" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedCurrencies(DBTHSNEntities db, string search)
         {
             var query = db.CURRENCIES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(c => (c.Code != null && c.Code.Contains(search)) || (c.Name != null && c.Name.Contains(search)));
+                query = query.Where(c => (c.Shortname != null && c.Shortname.Contains(search)) || (c.Longname != null && c.Longname.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Code ?? x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Kod"] = x.Code, ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Kod", "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Shortname ?? x.Longname ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Qisqa"] = x.Shortname, ["To'liq"] = x.Longname } }).ToList();
+            return (items, new[] { "Qisqa", "To'liq" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedProductCategories(DBTHSNEntities db, string search)
         {
@@ -456,10 +456,10 @@ namespace tahsinERP.Controllers
         {
             var query = db.FIN_CATEGORIES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(c => (c.Code != null && c.Code.Contains(search)) || (c.Name != null && c.Name.Contains(search)));
+                query = query.Where(c => (c.Name != null && c.Name.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Code ?? x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Kod"] = x.Code, ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Kod", "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
+            return (items, new[] { "Nomi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedFinTransactions(DBTHSNEntities db, string search)
         {
@@ -517,9 +517,9 @@ namespace tahsinERP.Controllers
         {
             var query = db.PRODUCTIONPROCESSES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(p => (p.Name != null && p.Name.Contains(search)));
+                query = query.Where(p => (p.ProcessName != null && p.ProcessName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.ProcessName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.ProcessName } }).ToList();
             return (items, new[] { "Nomi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedTannarx(DBTHSNEntities db, string search)
@@ -535,9 +535,9 @@ namespace tahsinERP.Controllers
         {
             var query = db.SHOPS.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(s => (s.Name != null && s.Name.Contains(search)));
+                query = query.Where(s => (s.ShopName != null && s.ShopName.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.ShopName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.ShopName } }).ToList();
             return (items, new[] { "Nomi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedDamagedProducts(DBTHSNEntities db, string search)
@@ -551,10 +551,10 @@ namespace tahsinERP.Controllers
         {
             var query = db.DEFECT_TYPES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(d => (d.Name != null && d.Name.Contains(search)));
+                query = query.Where(d => (d.DefectType != null && d.DefectType.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.DefectType ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nukson turi"] = x.DefectType } }).ToList();
+            return (items, new[] { "Nukson turi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedUsers(DBTHSNEntities db, string search)
         {
@@ -580,7 +580,7 @@ namespace tahsinERP.Controllers
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(t => (t.Title != null && t.Title.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Title ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Sarlavha"] = x.Title } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = (int)x.ID, DisplayText = x.Title ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Sarlavha"] = x.Title } }).ToList();
             return (items, new[] { "Sarlavha" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedAppTaskProjects(DBTHSNEntities db, string search)
@@ -614,18 +614,18 @@ namespace tahsinERP.Controllers
         {
             var query = db.STD_COMPANY_STANDARDS.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(s => (s.Description != null && s.Description.Contains(search)));
-            var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Description ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Tavsif"] = x.Description } }).ToList();
-            return (items, new[] { "Tavsif" });
+                query = query.Where(s => (s.Notes != null && s.Notes.Contains(search)) || (s.StandardCode != null && s.StandardCode.Contains(search)));
+            var list = await query.OrderByDescending(x => x.DocumentID).Take(500).ToListAsync();
+            var items = list.Select(x => new DeletedRecordItem { Id = (int)x.DocumentID, DisplayText = x.StandardCode ?? x.Notes ?? x.DocumentID.ToString(), Columns = new Dictionary<string, object> { ["Kod"] = x.StandardCode, ["Izoh"] = x.Notes } }).ToList();
+            return (items, new[] { "Kod", "Izoh" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedJobDesc(DBTHSNEntities db, string search)
         {
             var query = db.JOB_DESC.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(j => (j.Title != null && j.Title.Contains(search)));
-            var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Title ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Sarlavha"] = x.Title } }).ToList();
+                query = query.Where(j => (j.JobTitle != null && j.JobTitle.Contains(search)));
+            var list = await query.OrderByDescending(x => x.DocumentID).Take(500).ToListAsync();
+            var items = list.Select(x => new DeletedRecordItem { Id = (int)x.DocumentID, DisplayText = x.JobTitle ?? x.DocumentID.ToString(), Columns = new Dictionary<string, object> { ["Sarlavha"] = x.JobTitle } }).ToList();
             return (items, new[] { "Sarlavha" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedAdmCompanyOrders(DBTHSNEntities db, string search)
@@ -633,17 +633,17 @@ namespace tahsinERP.Controllers
             var query = db.ADM_COMPANY_ORDERS.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(o => (o.OrderNo != null && o.OrderNo.Contains(search)));
-            var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.OrderNo ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Buyruq No"] = x.OrderNo } }).ToList();
+            var list = await query.OrderByDescending(x => x.DocumentID).Take(500).ToListAsync();
+            var items = list.Select(x => new DeletedRecordItem { Id = (int)x.DocumentID, DisplayText = x.OrderNo ?? x.DocumentID.ToString(), Columns = new Dictionary<string, object> { ["Buyruq No"] = x.OrderNo } }).ToList();
             return (items, new[] { "Buyruq No" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedComOfficialLetters(DBTHSNEntities db, string search)
         {
             var query = db.COM_OFFICIAL_LETTERS.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(l => (l.Subject != null && l.Subject.Contains(search)));
-            var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Subject ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Mavzu"] = x.Subject } }).ToList();
+                query = query.Where(l => (l.Topic != null && l.Topic.Contains(search)));
+            var list = await query.OrderByDescending(x => x.DocumentID).Take(500).ToListAsync();
+            var items = list.Select(x => new DeletedRecordItem { Id = (int)x.DocumentID, DisplayText = x.Topic ?? x.DocumentID.ToString(), Columns = new Dictionary<string, object> { ["Mavzu"] = x.Topic } }).ToList();
             return (items, new[] { "Mavzu" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedNormVersions(DBTHSNEntities db, string search)
@@ -668,10 +668,10 @@ namespace tahsinERP.Controllers
         {
             var query = db.HR_EMPLOYEES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(e => (e.FullName != null && e.FullName.Contains(search)) || (e.PINFL != null && e.PINFL.Contains(search)));
+                query = query.Where(e => (e.FullName != null && e.FullName.Contains(search)) || (e.TabNo != null && e.TabNo.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.FullName ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Ism"] = x.FullName, ["PINFL"] = x.PINFL } }).ToList();
-            return (items, new[] { "Ism", "PINFL" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.FullName ?? x.TabNo ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Ism"] = x.FullName, ["Tabel No"] = x.TabNo } }).ToList();
+            return (items, new[] { "Ism", "Tabel No" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedHrPositions(DBTHSNEntities db, string search)
         {
@@ -716,10 +716,10 @@ namespace tahsinERP.Controllers
         {
             var query = db.F_TRANSPORT_TYPES.Where(x => x.IsDeleted == true);
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(t => (t.Name != null && t.Name.Contains(search)));
+                query = query.Where(t => (t.TransportType != null && t.TransportType.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.Name ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Nomi"] = x.Name } }).ToList();
-            return (items, new[] { "Nomi" });
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.TransportType ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Transport turi"] = x.TransportType } }).ToList();
+            return (items, new[] { "Transport turi" });
         }
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedExpenses(DBTHSNEntities db, string search)
         {
@@ -745,7 +745,7 @@ namespace tahsinERP.Controllers
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(p => (p.PRODUCT != null && p.PRODUCT.PNo != null && p.PRODUCT.PNo.Contains(search)));
             var list = await query.OrderByDescending(x => x.ID).Take(500).ToListAsync();
-            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.PRODUCT?.PNo ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Maxsulot"] = x.PRODUCT?.PNo, ["Sana"] = x.ProductionDate } }).ToList();
+            var items = list.Select(x => new DeletedRecordItem { Id = x.ID, DisplayText = x.PRODUCT?.PNo ?? x.ID.ToString(), Columns = new Dictionary<string, object> { ["Maxsulot"] = x.PRODUCT?.PNo, ["Sana"] = x.Date } }).ToList();
             return (items, new[] { "Maxsulot", "Sana" });
         }
         #endregion
@@ -797,14 +797,14 @@ namespace tahsinERP.Controllers
                 case "DEFECT_TYPES": entity = await db.DEFECT_TYPES.FindAsync(id); break;
                 case "USER": entity = await db.USERS.FindAsync(id); break;
                 case "ROLE": entity = await db.ROLES.FindAsync(id); break;
-                case "APP_TASKS": entity = await db.APP_TASKS.FindAsync(id); break;
+                case "APP_TASKS": entity = await db.APP_TASKS.FindAsync((long)id); break;
                 case "APP_TASK_PROJECTS": entity = await db.APP_TASK_PROJECTS.FindAsync(id); break;
                 case "APP_TASK_STATUS_REF": entity = await db.APP_TASK_STATUS_REF.FindAsync(id); break;
                 case "APP_TASK_PRIORITY_REF": entity = await db.APP_TASK_PRIORITY_REF.FindAsync(id); break;
-                case "STD_COMPANY_STANDARDS": entity = await db.STD_COMPANY_STANDARDS.FindAsync(id); break;
-                case "JOB_DESC": entity = await db.JOB_DESC.FindAsync(id); break;
-                case "ADM_COMPANY_ORDERS": entity = await db.ADM_COMPANY_ORDERS.FindAsync(id); break;
-                case "COM_OFFICIAL_LETTERS": entity = await db.COM_OFFICIAL_LETTERS.FindAsync(id); break;
+                case "STD_COMPANY_STANDARDS": entity = await db.STD_COMPANY_STANDARDS.FindAsync((long)id); break;
+                case "JOB_DESC": entity = await db.JOB_DESC.FindAsync((long)id); break;
+                case "ADM_COMPANY_ORDERS": entity = await db.ADM_COMPANY_ORDERS.FindAsync((long)id); break;
+                case "COM_OFFICIAL_LETTERS": entity = await db.COM_OFFICIAL_LETTERS.FindAsync((long)id); break;
                 case "NORMVERSION": entity = await db.NORMVERSIONS.FindAsync(id); break;
                 case "WASTE": entity = await db.WASTES.FindAsync(id); break;
                 case "HR_EMPLOYEES": entity = await db.HR_EMPLOYEES.FindAsync(id); break;

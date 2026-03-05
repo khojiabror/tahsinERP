@@ -476,6 +476,7 @@
     <Content Include="assets\manual\popper.min.js" />
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
+    <Compile Include="Controllers\AdminSetting\DeletedRecordsController.cs" />
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
@@ -557,11 +558,13 @@
     <Compile Include="Controllers\Engineering\ProductController.cs" />
     <Compile Include="Controllers\ProductionProcessController.cs" />
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
+    <Compile Include="Controllers\ReconciliationController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Controllers\AdminSetting\RoleController.cs" />
     <Compile Include="Controllers\CRM\SContractController.cs" />
     <Compile Include="Controllers\Engineering\ShopController.cs" />
     <Compile Include="Controllers\CRM\SOrderController.cs" />
+    <Compile Include="Controllers\SRM\SRMDashboardController.cs" />
     <Compile Include="Controllers\SRM\SupplierController.cs" />
     <Compile Include="Controllers\AdminSetting\UserController.cs" />
     <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
@@ -980,6 +983,7 @@
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
+    <Compile Include="Services\ReconciliationService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
@@ -998,6 +1002,7 @@
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
+    <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\WasteHandlingService.cs" />
     <Compile Include="Services\WordDocumentConverterService.cs" />
     <Compile Include="Services\WordDocumentImageService.cs" />
@@ -1008,6 +1013,7 @@
     <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
     <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
+    <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\InventoryAdjustmentViewModel.cs" />
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
@@ -1044,6 +1050,8 @@
     <Compile Include="ViewModels\ProductProductionDetailsViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\QualityInspectionViewModel.cs" />
+    <Compile Include="ViewModels\ReconciliationViewModel.cs" />
+    <Compile Include="ViewModels\SRMDashboardViewModel.cs" />
     <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
@@ -3156,6 +3164,8 @@
     <Content Include="Views\LogisticsDashboard\Index.cshtml" />
     <Content Include="Views\LogisticsDashboard\LanePerformance.cshtml" />
     <Content Include="Views\LogisticsDashboard\Reconciliation.cshtml" />
+    <Content Include="Views\SRMDashboard\Index.cshtml" />
+    <Content Include="Views\Reconciliation\AktSverki.cshtml" />
     <Content Include="Views\LogisticsDashboard\ForwarderComparison.cshtml" />
     <Content Include="Views\MESDashboard\Dashboard.cshtml" />
     <Content Include="Views\OfficialLetters\Create.cshtml" />
@@ -3178,6 +3188,7 @@
     <Content Include="Views\POrders\Edit.cshtml" />
     <Content Include="Views\POrders\Index.cshtml" />
     <Content Include="Views\ProductProduction\Create.cshtml" />
+    <Content Include="Views\ProductProduction\Edit.cshtml" />
     <Content Include="Views\ProductProduction\Details.cshtml" />
     <Content Include="Views\ProductProduction\Index.cshtml" />
     <Content Include="Views\QualityInspection\Create.cshtml" />
@@ -3273,6 +3284,7 @@
     <Content Include="Views\CustomerBase\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Index.cshtml" />
     <Content Include="Views\FinDashboard\LiabilitiesDashboard.cshtml" />
+    <Content Include="Views\DeletedRecords\Index.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

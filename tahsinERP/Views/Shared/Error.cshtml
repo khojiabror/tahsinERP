@@ -1,5 +1,9 @@
+@model System.Web.Mvc.HandleErrorInfo
 @{
     Layout = null;
+    var ex = Model?.Exception;
+    var msg = ex?.Message ?? "";
+    var innerMsg = ex?.InnerException?.Message ?? "";
 }
 <!DOCTYPE html>
 <html lang="uz">
@@ -52,6 +56,17 @@
                                     <p class="error-message">
                                         So'rovni qayta ishlashda server xatoligi yuz berdi. Iltimos, keyinroq qayta urinib ko'ring yoki tizim administratoriga murojaat qiling.
                                     </p>
+                                    @if (!string.IsNullOrWhiteSpace(msg) || !string.IsNullOrWhiteSpace(innerMsg))
+                                    {
+                                        <div class="error-detail-box">
+                                            <strong>Mana bunaqa xato:</strong>
+                                            <div class="error-detail-text">@msg</div>
+                                            @if (!string.IsNullOrWhiteSpace(innerMsg))
+                                            {
+                                                <div class="error-detail-text error-inner">@innerMsg</div>
+                                            }
+                                        </div>
+                                    }
                                     <div class="btn-group-error">
                                         <a href="~/Home" class="btn btn-primary round">Asosiy sahifaga qaytish</a>
                                         <a href="javascript:history.back()" class="btn btn-outline-primary round">Orqaga</a>
