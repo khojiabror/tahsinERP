@@ -59,6 +59,7 @@ namespace tahsinERP.Controllers.SRM
                 ViewBag.WarehouseId = warehouseId;
                 ViewBag.Status = status ?? "";
                 ViewBag.AssignedWarehouseIds = assignedWarehouseIds;
+                ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses");
                 return View(expenses);
             }
         }

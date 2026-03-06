@@ -49,16 +49,16 @@
                                             <h5 class="mb-2">Asosiy ma'lumotlar</h5>
                                             <dl class="row">
                                                 <dt class="col-sm-4">Hujjat raqami:</dt>
-                                                <dd class="col-sm-8"><strong>@Model.DocNo</strong></dd>
+                                                <dd class="col-sm-8"><a href="@Url.Action("Details", "Expenses", new { id = Model.ID })">@Model.DocNo</a></dd>
 
                                                 <dt class="col-sm-4">Ishlab chiqarish ombori:</dt>
                                                 <dd class="col-sm-8">
-                                                    <span class="badge badge-info">@(Model.Warehouse?.WHName ?? "-")</span>
+                                                    <span class="badge badge-info">@(Model.Warehouse != null ? Model.Warehouse.WHName : "-")</span>
                                                 </dd>
 
                                                 <dt class="col-sm-4">Sotuv ombori:</dt>
                                                 <dd class="col-sm-8">
-                                                    <span class="badge badge-success">@(Model.Warehouse1?.WHName ?? "-")</span>
+                                                    <span class="badge badge-success">@(Model.Warehouse1 != null ? Model.Warehouse1.WHName : "-")</span>
                                                 </dd>
 
                                                 <dt class="col-sm-4">Sana va vaqt:</dt>
@@ -90,7 +90,7 @@
                                                 <h5 class="mb-2">Qabul qilish hujjati</h5>
                                                 <dl class="row">
                                                     <dt class="col-sm-4">Hujjat raqami:</dt>
-                                                    <dd class="col-sm-8"><strong>@income.DocNo</strong></dd>
+                                                    <dd class="col-sm-8"><a href="@Url.Action("Details", "Incomes", new { id = income.ID })">@income.DocNo</a></dd>
 
                                                     <dt class="col-sm-4">Qabul qilish sanasi:</dt>
                                                     <dd class="col-sm-8">@income.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</dd>
@@ -129,11 +129,15 @@
                                                 {
                                                     foreach (var product in Model.EXPENSE_PRODUCTS)
                                                     {
+                                                        var prod = product.PRODUCT;
+                                                        var pNo = prod != null ? prod.PNo : product.ProductID.ToString();
+                                                        var pName = prod != null ? prod.Name : "-";
+                                                        var unitName = product.UNIT != null ? product.UNIT.ShortName : "-";
                                                         <tr>
-                                                            <td>@product.PRODUCT?.PNo</td>
-                                                            <td>@product.PRODUCT?.Name</td>
-                                                            <td>@product.Amount</td>
-                                                            <td>@product.UNIT?.ShortName</td>
+                                                            <td>@pNo</td>
+                                                            <td>@pName</td>
+                                                            <td>@product.Amount.ToString("N2")</td>
+                                                            <td>@unitName</td>
                                                         </tr>
                                                     }
                                                 }

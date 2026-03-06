@@ -314,6 +314,8 @@ namespace tahsinERP.Controllers
                         invoice.TotalWithVAT = totalAmount + totalVAT;
                         invoice.CreatedDT = DateTime.Now;
                         invoice.CreatedByUserID = GetCurrentUserID();
+                        if (string.IsNullOrWhiteSpace(invoice.InvoiceNo))
+                            invoice.InvoiceNo = GetNextInvoiceNo(db);
 
                         db.SALES_INVOICES.Add(invoice);
                         db.SaveChanges();
@@ -423,13 +425,26 @@ namespace tahsinERP.Controllers
             return View(invoice);
         }
 
-        // Olish so'rovi: yaratish (standalone)
+        private string GetNextInvoiceNo(DBTHSNEntities db)
+        {
+            var last = db.SALES_INVOICES.OrderByDescending(i => i.ID).Select(i => i.InvoiceNo).FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(last)) return "INV_0001";
+            var m = System.Text.RegularExpressions.Regex.Match(last, @"^(.*?)(\d+)$");
+            if (!m.Success) return "INV_0001";
+            var prefix = m.Groups[1].Value;
+            var num = int.Parse(m.Groups[2].Value) + 1;
+            var padLen = m.Groups[2].Length;
+            return prefix + num.ToString("D" + padLen);
+        }
+
+        // Olish so'rovi: yaratish (standalone) - SOrder/Create uslubida: xaridor -> shartnoma -> buyurtma
         public ActionResult Create(int? customerID, int? orderID, int? contractID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var invoice = new SALES_INVOICES
                 {
+                    InvoiceNo = GetNextInvoiceNo(db),
                     InvoiceDate = DateTime.Now,
                     StatusCode = "DRAFT",
                     CreatedDT = DateTime.Now
@@ -448,15 +463,104 @@ namespace tahsinERP.Controllers
                 if (contractID.HasValue)
                 {
                     invoice.ContractID = contractID.Value;
+                    var contract = db.S_CONTRACTS.Include(c => c.CURRENCy).FirstOrDefault(c => c.ID == contractID.Value);
+                    if (contract?.CURRENCy != null)
+                    {
+                        invoice.CurrencyCode = contract.CURRENCy.Shortname;
+                    }
                 }
 
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", customerID);
-                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", orderID);
-                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", contractID);
-                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname");
+                // Xaridorlar
+                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToList(), "ID", "Name", customerID);
+
+                // Faqat tanlangan xaridorning shartnomalari
+                var contractsList = new List<S_CONTRACTS>();
+                if (customerID.HasValue && customerID.Value > 0)
+                {
+                    contractsList = db.S_CONTRACTS
+                        .Where(c => c.CustomerID == customerID.Value && (c.IsDeleted == false || c.IsDeleted == null))
+                        .OrderBy(c => c.ContractNo)
+                        .ToList();
+                }
+                var contractsSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                contractsSelect.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == contractID }));
+                ViewBag.Contracts = new SelectList(contractsSelect, "Value", "Text", contractID?.ToString() ?? "");
+
+                // Faqat tanlangan shartnomaning buyurtmalari
+                var ordersList = new List<S_ORDERS>();
+                if (contractID.HasValue && contractID.Value > 0)
+                {
+                    ordersList = db.S_ORDERS
+                        .Where(o => o.ContractID == contractID.Value && (o.IsDeleted == false || o.IsDeleted == null))
+                        .OrderByDescending(o => o.IssuedDate)
+                        .ToList();
+                }
+                var ordersSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                ordersSelect.AddRange(ordersList.Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == orderID }));
+                ViewBag.Orders = new SelectList(ordersSelect, "Value", "Text", orderID?.ToString() ?? "");
+
+                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode ?? "UZS");
                 ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
 
                 return View(invoice);
+            }
+        }
+
+        // AJAX: Xaridorga qarab shartnomalar
+        [HttpGet]
+        public ActionResult GetContractsByCustomer(int customerId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                var contracts = db.S_CONTRACTS
+                    .Where(c => c.CustomerID == customerId && (c.IsDeleted == false || c.IsDeleted == null))
+                    .OrderBy(c => c.ContractNo)
+                    .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                    .ToList();
+                return Json(contracts, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // AJAX: Shartnomaga qarab buyurtmalar
+        [HttpGet]
+        public ActionResult GetOrdersByContract(int contractId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                var orders = db.S_ORDERS
+                    .Where(o => o.ContractID == contractId && (o.IsDeleted == false || o.IsDeleted == null))
+                    .OrderByDescending(o => o.IssuedDate)
+                    .Select(o => new { ID = o.ID, OrderNo = o.OrderNo })
+                    .ToList();
+                return Json(orders, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // AJAX: Shartnoma va maxsulot bo'yicha narx
+        [HttpGet]
+        public ActionResult GetContractPriceForProduct(int contractId, int productId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                var cp = db.S_CONTRACT_PRODUCTS
+                    .FirstOrDefault(c => c.ContractID == contractId && c.ProductID == productId);
+                if (cp == null)
+                    return Json(new { PiecePrice = (decimal?)null }, JsonRequestBehavior.AllowGet);
+                return Json(new { PiecePrice = (decimal)cp.PiecePrice }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // AJAX: Shartnoma valyutasi
+        [HttpGet]
+        public ActionResult GetContractCurrency(int contractId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                var contract = db.S_CONTRACTS
+                    .Include(c => c.CURRENCy)
+                    .FirstOrDefault(c => c.ID == contractId);
+                var code = contract?.CURRENCy?.Shortname ?? "UZS";
+                return Json(new { CurrencyCode = code }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -522,6 +626,8 @@ namespace tahsinERP.Controllers
                         invoice.TotalWithVAT = totalAmount + totalVAT;
                         invoice.CreatedDT = DateTime.Now;
                         invoice.CreatedByUserID = GetCurrentUserID();
+                        if (string.IsNullOrWhiteSpace(invoice.InvoiceNo))
+                            invoice.InvoiceNo = GetNextInvoiceNo(db);
 
                         db.SALES_INVOICES.Add(invoice);
                         db.SaveChanges();
@@ -613,12 +719,23 @@ namespace tahsinERP.Controllers
                 }
             }
 
+            if (lines == null || !lines.Any())
+            {
+                ModelState.AddModelError("", "Kamida bitta maxsulot qo'shish kerak. Mahsulot tanlang, miqdor va QQS % kiriting.");
+            }
+
             // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
-                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToList(), "ID", "Name", invoice.CustomerID);
+                var contractsList = db.S_CONTRACTS.Where(c => c.CustomerID == invoice.CustomerID && (c.IsDeleted == false || c.IsDeleted == null)).OrderBy(c => c.ContractNo).ToList();
+                var contractsSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                contractsSelect.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == invoice.ContractID }));
+                ViewBag.Contracts = new SelectList(contractsSelect, "Value", "Text", invoice.ContractID?.ToString() ?? "");
+                var ordersList = invoice.ContractID.HasValue ? db.S_ORDERS.Where(o => o.ContractID == invoice.ContractID && (o.IsDeleted == false || o.IsDeleted == null)).OrderByDescending(o => o.IssuedDate).ToList() : new List<S_ORDERS>();
+                var ordersSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                ordersSelect.AddRange(ordersList.Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == invoice.OrderID }));
+                ViewBag.Orders = new SelectList(ordersSelect, "Value", "Text", invoice.OrderID?.ToString() ?? "");
                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
                 ViewBag.Products = BuildSalesWarehouseProductSelectList(db, lines?.FirstOrDefault()?.ProductID);
             }
@@ -634,11 +751,15 @@ namespace tahsinERP.Controllers
                 return new SelectList(new List<SelectListItem>(), "Value", "Text", selectedProductId);
             }
 
+            // Faqat tayyor maxsulotlar (xomashyo emas) - Sales invoice uchun
             var products = db.PRODUCT_STOCKS
                 .Include(s => s.PRODUCT)
+                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
                 .Where(s => s.WHID == salesWH.ID
                     && s.Amount > 0
-                    && (s.PRODUCT.IsDeleted == false || s.PRODUCT.IsDeleted == null))
+                    && (s.PRODUCT.IsDeleted == false || s.PRODUCT.IsDeleted == null)
+                    && (s.PRODUCT.IsRawMaterial != true)
+                    && (s.PRODUCT.PRODUCT_CATEGORIES == null || s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial != true))
                 .OrderBy(s => s.PRODUCT.PNo)
                 .ToList();
 
@@ -677,11 +798,19 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Details", new { id = id });
                 }
 
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
-                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToList(), "ID", "Name", invoice.CustomerID);
+                var contractsList = db.S_CONTRACTS.Where(c => c.CustomerID == invoice.CustomerID && (c.IsDeleted == false || c.IsDeleted == null)).OrderBy(c => c.ContractNo).ToList();
+                var contractsSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                contractsSelect.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == invoice.ContractID }));
+                ViewBag.Contracts = new SelectList(contractsSelect, "Value", "Text", invoice.ContractID?.ToString() ?? "");
+                var ordersList = invoice.ContractID.HasValue
+                    ? db.S_ORDERS.Where(o => o.ContractID == invoice.ContractID && (o.IsDeleted == false || o.IsDeleted == null)).OrderByDescending(o => o.IssuedDate).ToList()
+                    : new List<S_ORDERS>();
+                var ordersSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                ordersSelect.AddRange(ordersList.Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == invoice.OrderID }));
+                ViewBag.Orders = new SelectList(ordersSelect, "Value", "Text", invoice.OrderID?.ToString() ?? "");
                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
 
                 return View(invoice);
             }
@@ -839,14 +968,20 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Reload ViewBag on xatolik
+            // Reload ViewBag on xatolik (Edit - cascade format)
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", invoice.CustomerID);
-                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
-                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToList(), "ID", "Name", invoice.CustomerID);
+                var contractsList = db.S_CONTRACTS.Where(c => c.CustomerID == invoice.CustomerID && (c.IsDeleted == false || c.IsDeleted == null)).OrderBy(c => c.ContractNo).ToList();
+                var contractsSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                contractsSelect.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == invoice.ContractID }));
+                ViewBag.Contracts = new SelectList(contractsSelect, "Value", "Text", invoice.ContractID?.ToString() ?? "");
+                var ordersList = invoice.ContractID.HasValue ? db.S_ORDERS.Where(o => o.ContractID == invoice.ContractID && (o.IsDeleted == false || o.IsDeleted == null)).OrderByDescending(o => o.IssuedDate).ToList() : new List<S_ORDERS>();
+                var ordersSelect = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+                ordersSelect.AddRange(ordersList.Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == invoice.OrderID }));
+                ViewBag.Orders = new SelectList(ordersSelect, "Value", "Text", invoice.OrderID?.ToString() ?? "");
                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
             }
 
             return View(invoice);

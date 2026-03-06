@@ -212,8 +212,6 @@
                         <td>@(string.IsNullOrWhiteSpace(Model.InvoiceNo) ? Model.ID.ToString() : Model.InvoiceNo)</td>
                         <td class="label">Invoys sanasi</td>
                         <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
-                        <td class="label">To'lov muddati</td>
-                        <td>@(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "-")</td>
                     </tr>
                     <tr>
                         <td class="label">Sales Order</td>

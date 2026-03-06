@@ -61,6 +61,10 @@ namespace tahsinERP.Controllers.SRM
                 ViewBag.Status = status;
                 ViewBag.WarehouseId = warehouseId;
                 ViewBag.AssignedWarehouseIds = assignedWarehouseIds;
+                var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
+                bool isMES = userRoles != null && userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
+                bool isSales = userRoles != null && userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+                ViewBag.ChangePermit = !isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes");
                 return View(incomes);
             }
         }

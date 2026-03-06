@@ -63,8 +63,12 @@ namespace tahsinERP.Controllers.MES
                     "DisplayText", 
                     productID
                 );
-                ViewBag.StatusCodes = new SelectList(new[] { "DRAFT", "APPROVED", "REJECTED" }, statusCode);
-                ViewBag.DefectTypes = new SelectList(await db.DEFECT_TYPES.ToListAsync(), "ID", "Name");
+                ViewBag.StatusCodes = new SelectList(new[] {
+                    new { Value = "DRAFT", Text = "Qoralama" },
+                    new { Value = "APPROVED", Text = "Tasdiqlangan" },
+                    new { Value = "REJECTED", Text = "Rad etilgan" }
+                }, "Value", "Text", statusCode);
+                ViewBag.DefectTypes = new SelectList(await db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToListAsync(), "ID", "DefectType");
                 ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
                 ViewBag.ToDate = toDate ?? DateTime.Now;
                 ViewBag.SearchTerm = searchTerm;
@@ -110,7 +114,7 @@ namespace tahsinERP.Controllers.MES
                 var inspectionDate = (date ?? DateTime.Now).Date;
                 var viewModel = BuildDailyInspectionViewModel(inspectionDate, db);
 
-                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
+                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
                 return View(viewModel);
             }
         }
@@ -208,14 +212,14 @@ namespace tahsinERP.Controllers.MES
 
                         if (!ModelState.IsValid)
                         {
-                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
+                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
                             return View(viewModel);
                         }
 
                         if (createdCount == 0)
                         {
                             ModelState.AddModelError("", "Tekshiruv uchun miqdor kiritilmadi");
-                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
+                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
                             return View(viewModel);
                         }
 
@@ -243,7 +247,7 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name");
+                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
             }
 
             return View(viewModel);
@@ -563,7 +567,7 @@ namespace tahsinERP.Controllers.MES
                 "ID",
                 "PNo",
                 viewModel.ProductID);
-            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.ToList(), "ID", "Name", viewModel.DefectTypeID);
+            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType", viewModel.DefectTypeID);
             ViewBag.SOrders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", viewModel.SOrderID);
             ViewBag.DeliverySchedules = new SelectList(db.SORDER_DELIVERY_SCHEDULE.ToList(), "ID", "ID", viewModel.DeliveryScheduleID);
         }

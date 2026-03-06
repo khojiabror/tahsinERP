@@ -29,6 +29,9 @@ namespace tahsinERP.Controllers
 
                 ViewBag.SourceList = new SelectList(sources, type);
                 ViewBag.Type = type;
+                ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier")
+                    || tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Suppliers")
+                    || tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier", "Create");
 
                 List<SUPPLIER> list;
                 if (!string.IsNullOrEmpty(type))

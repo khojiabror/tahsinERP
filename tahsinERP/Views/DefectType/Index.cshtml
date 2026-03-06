@@ -3,10 +3,12 @@
     ViewBag.Title = "Ro'yxat";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()) ||
+     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection"))
 {
     bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()) ||
+        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection"))
     {
         changePermit = true;
     }
@@ -24,7 +26,7 @@
                                     </li>
 
                                     <li class="breadcrumb-item active">
-                                        Defect Turlari
+                                        Nuqson turlari
                                     </li>
 
                                 </ol>
@@ -40,7 +42,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "DefectType")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                Yangi Defect Turi qo'shish
+                                Yangi nuqson turi qo'shish
                             </a>
                         </div>
                     }
@@ -55,7 +57,7 @@
                                                 <tr>
                                                     <th></th>
                                                     <th></th>
-                                                    <th>Defect Turi</th>
+                                                    <th>Nuqson turi</th>
                                                     <th>Batafsil</th>
                                                     @if (changePermit)
                                                     {

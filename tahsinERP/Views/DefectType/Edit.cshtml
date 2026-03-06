@@ -4,7 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()) ||
+     tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection"))
 {
     using (Html.BeginForm("Edit", "DefectType", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
@@ -21,10 +22,10 @@
                                             <a href="~/Home/Index"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/DefectType">Defect turlari</a>
+                                            <a href="~/DefectType">Nuqson turlari</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Defect turini tahrirlash
+                                            Nuqson turini tahrirlash
                                         </li>
                                     </ol>
                                 </div>
@@ -46,9 +47,9 @@
                                                     @Html.AntiForgeryToken()
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Defect turi</h6>
+                                                    <h6 class="invoice-to">Nuqson turi</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.DefectType, new { @class = "form-control", @placeholder = "Defect turi" })
+                                                        @Html.TextBoxFor(model => model.DefectType, new { @class = "form-control", @placeholder = "Nuqson turi" })
                                                         @Html.ValidationMessageFor(model => model.DefectType, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">Batafsil</h6>

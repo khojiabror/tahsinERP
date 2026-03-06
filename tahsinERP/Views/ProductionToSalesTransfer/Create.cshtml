@@ -70,7 +70,7 @@
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="TransferDate">O'tkazma sanasi <span class="text-danger">*</span></label>
-                                                        @Html.TextBoxFor(m => m.TransferDate, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
+                                                        @Html.TextBoxFor(m => m.TransferDate, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required", max = DateTime.Now.ToString("yyyy-MM-dd") + "T23:59" })
                                                         @Html.ValidationMessageFor(m => m.TransferDate, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
@@ -105,20 +105,22 @@
                                                     <div class="col-md-4">
                                                         <label>Mahsulot <span class="text-danger">*</span></label>
                                                         @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "---Tanlang---", new { @class = "form-control select2 product-select", @required = "required" })
+                                                        <small class="text-muted available-stock-hint"></small>
                                                     </div>
-                                                    <div class="col-md-2">
-                                                        <label>Lot (FIFO)</label>
-                                                        <select name="lines[0].IncomeID" class="form-control lot-select select2" title="FIFO: eng eski kirim avval">
+                                                    <div class="col-md-3">
+                                                        <label>Lot (ishlab chiqarish)</label>
+                                                        <select name="lines[0].LotAllocationsDummy" class="form-control lot-select select2" multiple="multiple" data-placeholder="Lot tanlang" title="Bir yoki bir nechta lot tanlang">
                                                             <option value="">---Tanlang---</option>
                                                         </select>
+                                                        <input type="hidden" name="lines[0].LotAllocations" class="lot-allocations-input" value="" />
                                                     </div>
                                                     <div class="col-md-2">
-                                                        <label>Mavjud qoldiq</label>
-                                                        <input type="text" class="form-control available-stock" readonly />
+                                                        <label>Tanlangan lotlar qoldig'i</label>
+                                                        <input type="text" class="form-control available-stock" readonly placeholder="0" />
                                                     </div>
                                                     <div class="col-md-2">
-                                                        <label>Miqdor <span class="text-danger">*</span></label>
-                                                        <input type="number" name="lines[0].Quantity" class="form-control quantity-input" step="0.01" min="0" required />
+                                                        <label>O'tkazish miqdori <span class="text-danger">*</span></label>
+                                                        <input type="number" name="lines[0].Quantity" class="form-control quantity-input" step="0.01" min="0" required placeholder="0" />
                                                     </div>
                                                     <div class="col-md-1">
                                                         <label>&nbsp;</label>
@@ -153,87 +155,210 @@
             </div>
         </div>
     }
-    
+
+    @section scripts {
     <script>
-        var productIndex = 1;
-        
-        $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Tanlang",
-                allowClear: true
-            });
-            
-            function loadLotOptions($line) {
-                var productID = $line.find('.product-select').val();
-                var $lotSelect = $line.find('.lot-select');
-                $lotSelect.html('<option value="">---Yuklanmoqda---</option>');
-                if (!productID) {
-                    $lotSelect.html('<option value="">---Tanlang---</option>');
-                    return;
-                }
-                $.get('@Url.Action("GetAvailableIncomeLots", "ProductionToSalesTransfer")', { productID: productID })
-                    .done(function(res) {
-                        var opts = '<option value="">---Tanlanmagan---</option>';
-                        if (res.success && res.data && res.data.length) {
-                            res.data.forEach(function(lot) {
-                                opts += '<option value="' + lot.IncomeID + '">' + (lot.DisplayText || lot.DocNo) + '</option>';
-                            });
-                            $lotSelect.html(opts);
-                            if (res.data.length) $lotSelect.val(res.data[0].IncomeID);
-                        } else {
-                            $lotSelect.html(opts);
-                        }
-                    })
-                    .fail(function() { $lotSelect.html('<option value="">---Xatolik---</option>'); });
+        (function() {
+            var $ = window.jQuery || window.$;
+            if (!$) return;
+
+            var productIndex = 1;
+            var productStockMap = {};
+            var lotDataMap = {}; // { productID: [{ ProductionID, RemainingAmount, DisplayText }] }
+
+            function parseAvailableFromText(text) {
+                var m = (text || '').match(/Mavjud:\s*([0-9]+(?:\.[0-9]+)?)/i);
+                return m ? m[1] : null;
             }
 
-            // Load stock and lots when product is selected
-            $(document).on('change', '.product-select', function() {
-                var $line = $(this).closest('.product-line');
-                var productID = $(this).val();
-                var $stockInput = $line.find('.available-stock');
-                
-                if (productID) {
-                    $.get('@Url.Action("GetProductionStock", "ProductionToSalesTransfer")', { productID: productID })
-                        .done(function(data) {
-                            if (data.success) {
-                                $stockInput.val(data.stock);
-                            } else {
-                                $stockInput.val('0');
-                            }
-                        })
-                        .fail(function() {
-                            $stockInput.val('0');
+            function buildStockMap() {
+                productStockMap = {};
+                var sel = $('#productLines .product-select').first();
+                if (sel.length) {
+                    sel.find('option').each(function() {
+                        var v = $(this).val();
+                        if (!v) return;
+                        var avail = parseAvailableFromText($(this).text());
+                        if (avail != null) productStockMap[v] = parseFloat(avail);
+                    });
+                }
+            }
+
+            function updateStockHint(line) {
+                var sel = line.find('.product-select');
+                var hint = line.find('.available-stock-hint');
+                var avail = productStockMap[sel.val()];
+                hint.text(avail != null ? ('Mavjud: ' + avail) : '');
+            }
+
+            function updateLotSelectedSum(line) {
+                var lotSelect = line.find('.lot-select');
+                var stockInp = line.find('.available-stock');
+                var productID = line.find('.product-select').val();
+                var lots = lotDataMap[productID];
+                if (!lots) { stockInp.val(''); return; }
+                var selected = lotSelect.val();
+                var sum = 0;
+                if (selected && selected.length) {
+                    selected.forEach(function(pid) {
+                        var l = lots.find(function(x) { return x.ProductionID == pid; });
+                        if (l) sum += l.RemainingAmount;
+                    });
+                }
+                stockInp.val(sum > 0 ? sum : '');
+            }
+
+            function buildLotAllocationsForLine(line) {
+                var lotSelect = line.find('.lot-select');
+                var qtyInp = line.find('.quantity-input');
+                var productID = line.find('.product-select').val();
+                var qty = parseFloat(qtyInp.val()) || 0;
+                var lots = lotDataMap[productID];
+                if (!lots || qty <= 0) return '';
+                var selected = lotSelect.val();
+                if (!selected || !selected.length) return '';
+                var ordered = [];
+                lots.forEach(function(l) {
+                    if (selected.indexOf('' + l.ProductionID) >= 0)
+                        ordered.push({ ProductionID: l.ProductionID, RemainingAmount: l.RemainingAmount });
+                });
+                var parts = [];
+                var remaining = qty;
+                for (var i = 0; i < ordered.length && remaining > 0.0001; i++) {
+                    var take = Math.min(ordered[i].RemainingAmount, remaining);
+                    if (take > 0) {
+                        parts.push('ProdID:' + ordered[i].ProductionID + ':' + take);
+                        remaining -= take;
+                    }
+                }
+                return parts.join('|');
+            }
+
+            function loadLotOptions(line) {
+                var productID = line.find('.product-select').val();
+                var lotSelect = line.find('.lot-select');
+                lotSelect.find('option:not([value=""])').remove();
+                lotSelect.html('<option value="">---Yuklanmoqda---</option>');
+                if (!productID) {
+                    lotSelect.html('<option value="">---Tanlang---</option>');
+                    line.find('.available-stock').val('');
+                    return;
+                }
+                $.get('@Url.RouteUrl("ProductionTransferLots")', { productID: productID })
+                    .done(function(res) {
+                        lotDataMap[productID] = res.data || [];
+                        var opts = '';
+                        (res.data || []).forEach(function(lot) {
+                            opts += '<option value="' + lot.ProductionID + '" data-remaining="' + lot.RemainingAmount + '">' + (lot.DisplayText || '') + '</option>';
                         });
-                    loadLotOptions($line);
-                } else {
-                    $stockInput.val('');
-                    $line.find('.lot-select').html('<option value="">---Tanlang---</option>');
+                        lotSelect.html(opts || '<option value="">---Lot topilmadi---</option>');
+                        line.find('.available-stock').val('');
+                        if (lotSelect.hasClass('select2-hidden-accessible')) {
+                            try { lotSelect.select2('destroy'); } catch(e) {}
+                        }
+                        lotSelect.select2({ placeholder: "Lot tanlang", allowClear: true });
+                    })
+                    .fail(function() {
+                        lotSelect.html('<option value="">---Xatolik---</option>');
+                        lotDataMap[productID] = [];
+                    });
+            }
+
+            function validateQuantity(line) {
+                var qtyInp = line.find('.quantity-input');
+                var stockInp = line.find('.available-stock');
+                var maxQty = parseFloat(stockInp.val()) || 0;
+                var qty = parseFloat(qtyInp.val()) || 0;
+                if (maxQty > 0 && qty > maxQty) {
+                    qtyInp.addClass('border-danger');
+                    return false;
                 }
+                qtyInp.removeClass('border-danger');
+                return true;
+            }
+
+            $(document).ready(function() {
+                buildStockMap();
+                $('.product-select, .lot-select').each(function() {
+                    if ($(this).hasClass('product-select'))
+                        $(this).select2({ placeholder: "Tanlang", allowClear: true });
+                    else
+                        $(this).select2({ placeholder: "Lot tanlang", allowClear: true });
+                });
+
+                $(document).on('change', '.product-select', function() {
+                    var line = $(this).closest('.product-line');
+                    updateStockHint(line);
+                    loadLotOptions(line);
+                    line.find('.quantity-input').val('').removeClass('border-danger');
+                });
+
+                $(document).on('change', '.lot-select', function() {
+                    var line = $(this).closest('.product-line');
+                    updateLotSelectedSum(line);
+                    line.find('.quantity-input').removeClass('border-danger');
+                });
+
+                $(document).on('input', '.quantity-input', function() {
+                    validateQuantity($(this).closest('.product-line'));
+                });
+
+                $('#addProductLine').on('click', function() {
+                    var first = $('.product-line').first();
+                    var newLine = first.clone();
+                    newLine.find('.select2-container').remove();
+                    newLine.find('select').removeClass('select2-hidden-accessible').show();
+                    newLine.find('select.product-select').attr('name', 'lines[' + productIndex + '].ProductID').val('');
+                    newLine.find('select.lot-select').removeAttr('name').html('<option value="">---Tanlang---</option>');
+                    newLine.find('input.lot-allocations-input').attr('name', 'lines[' + productIndex + '].LotAllocations').val('');
+                    newLine.find('input.quantity-input').attr('name', 'lines[' + productIndex + '].Quantity').val('');
+                    newLine.find('.available-stock').val('');
+                    newLine.find('.available-stock-hint').text('');
+                    newLine.find('.remove-line').show();
+                    $('#productLines').append(newLine);
+                    $('.product-line').last().find('.product-select').select2({ placeholder: "Tanlang", allowClear: true });
+                    $('.product-line').last().find('.lot-select').select2({ placeholder: "Lot tanlang", allowClear: true });
+                    buildStockMap();
+                    productIndex++;
+                });
+
+                $(document).on('click', '.remove-line', function() {
+                    if ($('.product-line').length > 1) {
+                        $(this).closest('.product-line').remove();
+                        buildStockMap();
+                    }
+                });
+
+                $('#transferForm').on('submit', function() {
+                    var ok = true;
+                    var hasLines = false;
+                    $('.product-line').each(function() {
+                        var line = $(this);
+                        var pid = line.find('.product-select').val();
+                        var qty = parseFloat(line.find('.quantity-input').val()) || 0;
+                        if (pid && qty > 0) {
+                            hasLines = true;
+                            var alloc = buildLotAllocationsForLine(line);
+                            line.find('.lot-allocations-input').val(alloc);
+                            if (!alloc) {
+                                ok = false;
+                                line.find('.lot-select').addClass('border-danger');
+                            } else {
+                                line.find('.lot-select').removeClass('border-danger');
+                            }
+                            if (!validateQuantity(line)) ok = false;
+                        }
+                    });
+                    if (hasLines && !ok) {
+                        alert('Lot tanlang va miqdor tanlangan lotlar qoldig\'idan oshmasligi kerak.');
+                        return false;
+                    }
+                    return true;
+                });
             });
-            
-            // Add new product line
-            $('#addProductLine').click(function() {
-                var newLine = $('.product-line').first().clone();
-                newLine.find('select.product-select').attr('name', 'lines[' + productIndex + '].ProductID');
-                newLine.find('select.lot-select').attr('name', 'lines[' + productIndex + '].IncomeID').html('<option value="">---Tanlang---</option>');
-                newLine.find('input.quantity-input').attr('name', 'lines[' + productIndex + '].Quantity').val('');
-                newLine.find('.available-stock').val('');
-                newLine.find('.remove-line').show();
-                newLine.find('select.product-select').val(null).trigger('change');
-                $('#productLines').append(newLine);
-                $('.select2').select2();
-                productIndex++;
-            });
-            
-            // Remove product line
-            $(document).on('click', '.remove-line', function() {
-                if ($('.product-line').length > 1) {
-                    $(this).closest('.product-line').remove();
-                }
-            });
-        });
+        })();
     </script>
+    }
 }
 else
 {

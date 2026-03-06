@@ -80,10 +80,6 @@
                                                         <span><b>Jami summa</b>: @Model.TotalAmount.ToString("N2") @Model.CurrencyCode</span><br />
                                                         <span><b>QQS</b>: @Model.TotalVAT.ToString("N2") @Model.CurrencyCode</span><br />
                                                         <span><b>Jami (QQS bilan)</b>: @(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @Model.CurrencyCode</span><br />
-                                                        @if (Model.DueDate.HasValue)
-                                                        {
-                                                            <span><b>Muddat</b>: @Model.DueDate.Value.ToString("dd.MM.yyyy")</span><br />
-                                                        }
                                                         <span><b>Holati</b>: 
                                                             <span class="badge badge-@(Model.StatusCode == "FINALIZED" ? "success" : Model.StatusCode == "DRAFT" ? "warning" : "info")">
                                                                 @Model.StatusCode

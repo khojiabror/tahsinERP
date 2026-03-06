@@ -4,15 +4,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts", "Index"))
-{
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts"))
-    {
-        changePermit = true;
-    }
-
-    <div class="app-content content">
+@{
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+}
+<div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
@@ -172,8 +167,3 @@
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

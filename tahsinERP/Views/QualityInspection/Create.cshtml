@@ -139,26 +139,37 @@
         </div>
     }
 
+    @section scripts {
     <script>
-        $(document).ready(function () {
-            $('.qty-accepted').on('input', function () {
-                var remaining = parseFloat($(this).data('remaining')) || 0;
-                var accepted = parseFloat($(this).val()) || 0;
-                var rejected = remaining - accepted;
-                var rejectedInput = $(this).closest('tr').find('.qty-rejected');
-                if (rejectedInput.val() === '' || rejectedInput.val() === '0') {
-                    rejectedInput.val(rejected >= 0 ? rejected.toFixed(3) : 0);
+        (function() {
+            function init() {
+                if (typeof jQuery === 'undefined') {
+                    setTimeout(init, 50);
+                    return;
                 }
-            });
+                jQuery(document).ready(function ($) {
+                    $('.qty-accepted').on('input', function () {
+                        var remaining = parseFloat($(this).data('remaining')) || 0;
+                        var accepted = parseFloat($(this).val()) || 0;
+                        var rejected = remaining - accepted;
+                        var rejectedInput = $(this).closest('tr').find('.qty-rejected');
+                        if (rejectedInput.val() === '' || rejectedInput.val() === '0') {
+                            rejectedInput.val(rejected >= 0 ? rejected.toFixed(3) : 0);
+                        }
+                    });
 
-            $('#inspection-date-load').on('click', function () {
-                var dateValue = $('#inspection-date-picker').val();
-                if (dateValue) {
-                    window.location = '@Url.Action("Create")' + '?date=' + dateValue;
-                }
-            });
-        });
+                    $('#inspection-date-load').on('click', function () {
+                        var dateValue = $('#inspection-date-picker').val();
+                        if (dateValue) {
+                            window.location = '@Url.Action("Create")' + '?date=' + dateValue;
+                        }
+                    });
+                });
+            }
+            init();
+        })();
     </script>
+    }
 }
 else
 {

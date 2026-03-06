@@ -25,8 +25,9 @@ namespace tahsinERP.Controllers.SRM
                     .Include(e => e.Warehouse) // Sender (Production WH)
                     .Include(e => e.Warehouse1) // Receiver (Sales WH)
                     .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.PRODUCT))
+                    .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.UNIT))
                     .Where(e => e.IsDeleted == false 
-                        && e.DocNo.Contains("TRANSFER-"))
+                        && (e.DocNo.StartsWith("TRNSF_") || e.DocNo.Contains("TRANSFER-")))
                     .AsQueryable();
 
                 if (fromDate.HasValue)
@@ -78,12 +79,7 @@ namespace tahsinERP.Controllers.SRM
 
                 ViewBag.ProductionWH = productionWH;
                 ViewBag.SalesWH = salesWH;
-                ViewBag.Products = new SelectList(
-                    await db.PRODUCTS
-                        .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
-                        .OrderBy(p => p.PNo)
-                        .ToListAsync(),
-                    "ID", "PNo");
+                ViewBag.Products = BuildProductionWarehouseProductSelectList(db);
 
                 var viewModel = new ProductionToSalesTransferViewModel
                 {
@@ -102,15 +98,31 @@ namespace tahsinERP.Controllers.SRM
         public ActionResult Create(ProductionToSalesTransferViewModel viewModel, 
             List<TransferLineViewModel> lines, HttpPostedFileBase transferDocument)
         {
+            // Transfer date max = today (server validation)
+            if (viewModel.TransferDate.Date > DateTime.Today)
+            {
+                ModelState.AddModelError("TransferDate", "O'tkazma sanasi bugungi kunidan oshmasligi kerak.");
+            }
+
             if (ModelState.IsValid && lines != null && lines.Any(l => l.Quantity > 0))
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     try
                     {
-                        // Tekshirish stock availability uchun barcha products
+                        // Tekshirish: lot tanlanishi, quality, va stock
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
+                            var allocations = ProductionLotService.ParseLotAllocations(line.LotAllocations);
+                            if (!allocations.Any())
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("", 
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun lot (ishlab chiqarish) tanlang. Sifat nazoratidan o'tgan lotlardan tanlashingiz kerak.");
+                                ReloadViewBag(db, viewModel);
+                                return View(viewModel);
+                            }
+
                             var availableStock = WarehouseFlowService.GetProductionStock(line.ProductID, db);
                             if (availableStock < line.Quantity)
                             {
@@ -118,19 +130,25 @@ namespace tahsinERP.Controllers.SRM
                                 ModelState.AddModelError("", 
                                     $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarish omborida yetarli qoldiq yo'q. " +
                                     $"Mavjud: {availableStock}, Talab qilinmoqda: {line.Quantity}");
-                                
-                                // Reload ViewBag
-                                var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-                                var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
-                                ViewBag.ProductionWH = productionWH;
-                                ViewBag.SalesWH = salesWH;
-                                ViewBag.Products = new SelectList(
-                                    db.PRODUCTS
-                                        .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
-                                        .OrderBy(p => p.PNo)
-                                        .ToList(),
-                                    "ID", "PNo");
+                                ReloadViewBag(db, viewModel);
                                 return View(viewModel);
+                            }
+
+                            if (allocations.Any())
+                            {
+                                var allocSum = allocations.Sum(a => a.Quantity);
+                                if (Math.Abs(allocSum - line.Quantity) > 0.001)
+                                {
+                                    ModelState.AddModelError("", $"Mahsulot uchun tanlangan lotlar yig'indisi ({allocSum}) kiritilgan miqdor ({line.Quantity})ga mos kelmadi.");
+                                    ReloadViewBag(db, viewModel);
+                                    return View(viewModel);
+                                }
+                                if (!ProductionLotService.AllLotsPassedQuality(allocations, line.ProductID, db, out var qErr))
+                                {
+                                    ModelState.AddModelError("", qErr);
+                                    ReloadViewBag(db, viewModel);
+                                    return View(viewModel);
+                                }
                             }
                         }
 
@@ -142,23 +160,32 @@ namespace tahsinERP.Controllers.SRM
                             transferDocument.InputStream.Read(documentBytes, 0, transferDocument.ContentLength);
                         }
 
+                        // DocNo: use GetNextTransferDocNo when empty (TRNSF_ddmmyy_N format)
+                        var transferDocNo = viewModel.TransferDocNo;
+                        if (string.IsNullOrWhiteSpace(transferDocNo))
+                        {
+                            transferDocNo = WarehouseFlowService.GetNextTransferDocNo(db, viewModel.TransferDate);
+                        }
+
                         // Process har bir transfer line
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
+                            var allocations = ProductionLotService.ParseLotAllocations(line.LotAllocations);
                             WarehouseFlowService.TransferProductionToSales(
                                 line.ProductID,
                                 line.Quantity,
                                 db,
                                 User.Identity.Name,
-                                viewModel.TransferDocNo,
+                                transferDocNo,
                                 documentBytes,
                                 viewModel.Description,
-                                line.IncomeID
+                                allocations,
+                                viewModel.TransferDate
                             );
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductionToSalesTransfer", "Create",
-                            $"Ishlab chiqarishdan sotuv omboriga o'tkazma yaratildi. DocNo: {viewModel.TransferDocNo}");
+                            $"Ishlab chiqarishdan sotuv omboriga o'tkazma yaratildi. DocNo: {transferDocNo}");
 
                         TempData["Success"] = "O'tkazma muvaffaqiyatli yaratildi";
                         return RedirectToAction("Index");
@@ -177,22 +204,46 @@ namespace tahsinERP.Controllers.SRM
                 }
             }
 
-            // Reload ViewBag on xatolik
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-                var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
-                ViewBag.ProductionWH = productionWH;
-                ViewBag.SalesWH = salesWH;
-                ViewBag.Products = new SelectList(
-                    db.PRODUCTS
-                        .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
-                        .OrderBy(p => p.PNo)
-                        .ToList(),
-                    "ID", "PNo");
+                ReloadViewBag(db, viewModel);
             }
 
             return View(viewModel);
+        }
+
+        private void ReloadViewBag(DBTHSNEntities db, ProductionToSalesTransferViewModel viewModel)
+        {
+            ViewBag.ProductionWH = WarehouseFlowService.GetProductionWarehouse(db);
+            ViewBag.SalesWH = WarehouseFlowService.GetSalesWarehouse(db);
+            ViewBag.Products = BuildProductionWarehouseProductSelectList(db);
+        }
+
+        /// <summary>
+        /// Faqat ishlab chiqarish omborida mavjud bo'lgan tayyor mahsulotlar (Mavjud: X formatida).
+        /// </summary>
+        private static System.Web.Mvc.SelectList BuildProductionWarehouseProductSelectList(DBTHSNEntities db, int? selectedProductId = null)
+        {
+            var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
+            if (productionWH == null)
+                return new SelectList(new List<SelectListItem>(), "Value", "Text", selectedProductId);
+
+            var products = db.PRODUCT_STOCKS
+                .Include(s => s.PRODUCT)
+                .Where(s => s.WHID == productionWH.ID
+                    && s.Amount > 0
+                    && (s.PRODUCT.IsDeleted == false || s.PRODUCT.IsDeleted == null)
+                    && s.PRODUCT.IsFinishedGood == true)
+                .OrderBy(s => s.PRODUCT.PNo)
+                .ToList();
+
+            var selectItems = products.Select(p => new SelectListItem
+            {
+                Value = p.ProductID.ToString(),
+                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} (Mavjud: {p.Amount})"
+            }).ToList();
+
+            return new SelectList(selectItems, "Value", "Text", selectedProductId);
         }
 
         // Olish so'rovi: ProductionToSalesTransfer/Details/5
@@ -218,9 +269,10 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                // Olish corresponding INCOME hujjat
+                // Olish corresponding INCOME hujjat (INCOME with INCOME_PRODUCTS and UNIT)
                 var income = await db.INCOMES
-                    .Include(i => i.INCOME_PRODUCTS)
+                    .Include(i => i.INCOME_PRODUCTS.Select(p => p.PRODUCT))
+                    .Include(i => i.INCOME_PRODUCTS.Select(p => p.UNIT))
                     .Include(i => i.WRHS_INCOME_DOCS)
                     .FirstOrDefaultAsync(i => i.DocNo.Contains(expense.DocNo) && i.ReceivingWHID == expense.ReceiverWhID);
 
@@ -230,24 +282,23 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // FIFO: Ishlab chiqarish omboridagi mahsulot uchun mavjud Income lotlar (FIFO)
+        /// <summary>
+        /// Production lots (PRODUCT_PRODUCTION) - faqat sifat nazoratidan o'tganlar, FIFO.
+        /// </summary>
         [HttpGet]
-        public async Task<JsonResult> GetAvailableIncomeLots(int productID)
+        public JsonResult GetAvailableProductionLots(int productID)
         {
             try
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-                    if (productionWH == null)
-                        return Json(new { success = false, message = "Ishlab chiqarish ombori topilmadi" }, JsonRequestBehavior.AllowGet);
-
-                    var lots = await LotTrackingService.GetAvailableIncomeLotsAsync(productionWH.ID, productID, db);
+                    var lots = ProductionLotService.GetAvailableProductionLots(productID, db);
                     var data = lots.Select(l => new
                     {
-                        l.IncomeID,
-                        l.DocNo,
-                        l.IssueDateTime,
+                        l.ProductionID,
+                        l.Date,
+                        l.Total,
+                        l.AcceptedQty,
                         l.RemainingAmount,
                         l.DisplayText
                     }).ToList();
@@ -302,5 +353,7 @@ namespace tahsinERP.Controllers.SRM
         public int ProductID { get; set; }
         public double Quantity { get; set; }
         public int? IncomeID { get; set; }
+        /// <summary>ProdID:123:7|ProdID:124:3</summary>
+        public string LotAllocations { get; set; }
     }
 }

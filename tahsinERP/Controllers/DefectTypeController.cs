@@ -136,7 +136,7 @@ namespace tahsinERP.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var Defect_type_delete = db.SHOPS.Find(model.ID);
+                    var Defect_type_delete = db.DEFECT_TYPES.Find(model.ID);
                     if (Defect_type_delete != null)
                     {
                         Defect_type_delete.IsDeleted = true;

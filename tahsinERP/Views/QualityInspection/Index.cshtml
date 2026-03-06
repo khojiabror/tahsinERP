@@ -116,13 +116,14 @@
                                                             <td>@item.QtyAccepted.ToString("N3")</td>
                                                             <td>@item.QtyRejected.ToString("N3")</td>
                                                             <td>
+                                                                @{ var statusText = item.StatusCode == "APPROVED" ? "Tasdiqlangan" : item.StatusCode == "REJECTED" ? "Rad etilgan" : item.StatusCode == "DRAFT" ? "Qoralama" : item.StatusCode ?? "-"; }
                                                                 <span class="badge badge-@(item.StatusCode == "APPROVED" ? "success" : item.StatusCode == "REJECTED" ? "danger" : "warning")">
-                                                                    @item.StatusCode
+                                                                    @statusText
                                                                 </span>
                                                             </td>
                                                             <td>
-                                                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-info">
-                                                                    <i class="bx bx-show"></i>
+                                                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-info" title="Batafsil">
+                                                                    <i class="bx bx-show"></i> Batafsil
                                                                 </a>
                                                                 @if (changePermit && item.StatusCode != "APPROVED")
                                                                 {

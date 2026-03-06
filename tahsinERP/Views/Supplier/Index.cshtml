@@ -5,14 +5,10 @@
     var type = ViewBag.Type;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Index"))
-{
-    // Try multiple permission names
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier") ||
-                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Suppliers") ||
-                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier", "Create");
-
-    <div class="app-content content">
+@{
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+}
+<div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
@@ -174,8 +170,3 @@
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

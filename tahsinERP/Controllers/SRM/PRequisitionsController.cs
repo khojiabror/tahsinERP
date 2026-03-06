@@ -36,6 +36,7 @@ namespace tahsinERP.Controllers.SRM
                     .ToListAsync();
 
                 ViewBag.StatusFilter = statusFilter;
+                ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PRequisitions");
                 ViewBag.StatusList = new SelectList(new[]
                 {
                     new { Value = "", Text = "All" },

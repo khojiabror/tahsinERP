@@ -49,6 +49,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.SupplierID = supplierID;
+                ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts");
 
                 return View(contracts);
             }

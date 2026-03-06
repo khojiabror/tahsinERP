@@ -86,12 +86,6 @@
                                                         @Html.DropDownListFor(m => m.CurrencyCode, ViewBag.Currencies as SelectList, new { @class = "form-control" })
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Muddat</label>
-                                                        @Html.TextBoxFor(m => m.DueDate, new { @class = "form-control", type = "date" })
-                                                    </div>
-                                                </div>
                                             </div>
 
                                             <hr />
@@ -132,7 +126,7 @@
                                                                         <small class="text-muted">Max: @orderProduct.Amount</small>
                                                                     </td>
                                                                     <td>
-                                                                        <input type="number" name="lines[@index].UnitPrice" class="form-control price-input" step="0.01" min="0" value="@orderProduct.Price" required />
+                                                                        <input type="number" name="lines[@index].UnitPrice" class="form-control price-input" step="0.01" min="0" value="@orderProduct.Price" required readonly />
                                                                     </td>
                                                                     <td>
                                                                         <input type="number" name="lines[@index].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="12" required />

@@ -15,7 +15,7 @@ namespace tahsinERP.Services
     {
         // Warehouse type identification constants
         private const string PRODUCTION_WH_KEYWORDS = "PRODUCTION,ISHLAB CHIQARISH,PROD";
-        private const string SALES_WH_KEYWORDS = "SALES,SOTUV,SALE";
+        private const string SALES_WH_KEYWORDS = "SALES,SOTUV,SALE,SAVDO";
         private const string SUPPLY_WH_KEYWORDS = "SUPPLY,XOMASHYO,SUPPLIER";
 
         private static string[] SplitKeywords(string keywords)
@@ -86,14 +86,20 @@ namespace tahsinERP.Services
         /// </summary>
         public static Warehouse GetSalesWarehouse(DBTHSNEntities db)
         {
-            // Try to find by name keywords
+            // Try to find by name keywords (Savdo Ombori, Sotuv ombori, Sales)
             var salesKeywords = SplitKeywords(SALES_WH_KEYWORDS);
             var salesWH = db.WAREHOUSES
                 .Where(w => w.IsDeleted != true)
                 .AsEnumerable()
                 .FirstOrDefault(w => NameMatchesKeywords(w.WHName, salesKeywords));
 
-            // Fallback: get first active warehouse
+            // Fallback: Warehouse ID 7 — odatda Savdo/Sotuv ombori
+            if (salesWH == null)
+            {
+                salesWH = db.WAREHOUSES.FirstOrDefault(w => w.ID == 7 && w.IsDeleted != true);
+            }
+
+            // Oxirgi fallback: birinchi faol ombor
             if (salesWH == null)
             {
                 salesWH = db.WAREHOUSES
@@ -270,13 +276,39 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
+        /// Generates next transfer document number in format TRNSF_ddmmyy_N (e.g. TRNSF_150326_1).
+        /// Same day increments N.
+        /// </summary>
+        public static string GetNextTransferDocNo(DBTHSNEntities db, DateTime? transferDate = null)
+        {
+            var dt = transferDate ?? DateTime.Now;
+            var datePart = dt.ToString("ddMMyy"); // ddmmyy
+            var prefix = "TRNSF_" + datePart + "_";
+
+            var maxN = db.EXPENSES
+                .Where(e => e.DocNo.StartsWith(prefix))
+                .ToList()
+                .Select(e =>
+                {
+                    var suffix = e.DocNo.Length > prefix.Length ? e.DocNo.Substring(prefix.Length) : "";
+                    int n;
+                    return int.TryParse(suffix, out n) ? n : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            return prefix + (maxN + 1);
+        }
+
+        /// <summary>
         /// Transfer finished goods from Production WH to Sales WH
         /// Creates linked EXPENS and INCOME documents
-        /// sourceIncomeID: FIFO - qaysi Income (lot) dan o'tkazilayotgani
+        /// lotAllocations: qaysi Production lotdan qancha olingani (ProdID:123:7|ProdID:124:3)
         /// </summary>
         public static void TransferProductionToSales(int productID, double quantity, 
             DBTHSNEntities db, string userEmail, string transferDocNo = null, 
-            byte[] transferDocument = null, string description = null, int? sourceIncomeID = null)
+            byte[] transferDocument = null, string description = null, 
+            System.Collections.Generic.List<LotAllocation> lotAllocations = null, DateTime? transferDate = null)
         {
             using (var transaction = new TransactionScope(TransactionScopeOption.Required))
             {
@@ -305,10 +337,24 @@ namespace tahsinERP.Services
                             $"Mavjud: {productionStock?.Amount ?? 0}, Talab qilinmoqda: {quantity}");
                     }
 
-                    // Generate transfer document number if not provided
+                    // Generate transfer document number if not provided (TRNSF_ddmmyy_N format)
                     if (string.IsNullOrEmpty(transferDocNo))
                     {
-                        transferDocNo = $"TRANSFER-{DateTime.Now:yyyyMMddHHmmss}-{productID}";
+                        transferDocNo = GetNextTransferDocNo(db, transferDate);
+                    }
+
+                    var issueDt = transferDate ?? DateTime.Now;
+
+                    // PiecePrice from S_CONTRACT_PRODUCTS (OrderByDescending IssuedDate, FirstOrDefault)
+                    double piecePrice = 0;
+                    var contractProduct = db.S_CONTRACT_PRODUCTS
+                        .Include(cp => cp.S_CONTRACTS)
+                        .Where(cp => cp.ProductID == productID && (cp.S_CONTRACTS.IsDeleted == false || cp.S_CONTRACTS.IsDeleted == null))
+                        .OrderByDescending(cp => cp.S_CONTRACTS.IssuedDate)
+                        .FirstOrDefault();
+                    if (contractProduct != null)
+                    {
+                        piecePrice = contractProduct.PiecePrice;
                     }
 
                     int currencyId = GetDefaultCurrencyId(db);
@@ -318,7 +364,7 @@ namespace tahsinERP.Services
                         DocNo = transferDocNo,
                         SenderWHID = productionWH.ID,
                         ReceiverWhID = salesWH.ID,
-                        IssueDateTime = DateTime.Now,
+                        IssueDateTime = issueDt,
                         CurrencyID = currencyId,
                         IsDeleted = false,
                         SendStatus = true,
@@ -328,15 +374,16 @@ namespace tahsinERP.Services
                     db.EXPENSES.Add(expense);
                     db.SaveChanges(); // Save to get ID
 
-                    // Create EXPENSE_PRODUCTS (FIFO: sourceIncomeID Comment da saqlanadi)
+                    // Create EXPENSE_PRODUCTS (Comment: ProdID:123:7|ProdID:124:3)
+                    var allocationComment = ProductionLotService.BuildLotAllocationsComment(lotAllocations);
                     var expenseProduct = new EXPENSE_PRODUCTS
                     {
                         ExpenseID = expense.ID,
                         ProductID = productID,
                         Amount = quantity,
-                        PiecePrice = 0,
+                        PiecePrice = piecePrice,
                         UnitID = product.UnitID,
-                        Comment = sourceIncomeID.HasValue ? LotTrackingService.FormatIncomeIdComment(sourceIncomeID.Value) : null
+                        Comment = allocationComment
                     };
 
                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
@@ -358,29 +405,36 @@ namespace tahsinERP.Services
                         productionStock.Amount = 0; // Safety check
                     db.Entry(productionStock).State = EntityState.Modified;
 
-                    // Create INCOME to Sales WH
+                    // Create INCOME to Sales WH (RecieveStatus = false - MRP accepts manually)
                     var income = new INCOME
                     {
                         DocNo = transferDocNo + "-IN",
                         ReceivingWHID = salesWH.ID,
                         SenderWHID = productionWH.ID,
-                        IssueDateTime = DateTime.Now,
+                        IssueDateTime = issueDt,
                         CurrencyID = currencyId,
                         IsDeleted = false,
-                        RecieveStatus = true,
+                        RecieveStatus = false,
                         Description = $"Ishlab chiqarishdan sotuv omboriga o'tkazma: {product.PNo}. EXPENS ID: {expense.ID}"
                     };
 
                     db.INCOMES.Add(income);
                     db.SaveChanges(); // Save to get ID
 
-                    // Create INCOME_PRODUCTS
+                    // Create INCOME_PRODUCTS (UnitID FK talab qiladi)
+                    var unitId = product.UnitID > 0
+                        ? product.UnitID
+                        : (db.UNITS.OrderBy(u => u.ID).Select(u => u.ID).FirstOrDefault());
+                    if (unitId <= 0)
+                        unitId = 1;
+
                     var incomeProduct = new INCOME_PRODUCTS
                     {
                         IncomeID = income.ID,
                         ProductID = productID,
                         Amount = quantity,
-                        PiecePrice = 0
+                        PiecePrice = piecePrice,
+                        UnitID = unitId
                     };
 
                     db.INCOME_PRODUCTS.Add(incomeProduct);

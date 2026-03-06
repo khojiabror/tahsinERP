@@ -14,6 +14,10 @@ namespace tahsinERP.Controllers.Settings
         // Olish so'rovi: Warehouse
         public async Task<ActionResult> Index()
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = await db.WAREHOUSES
@@ -25,9 +29,10 @@ namespace tahsinERP.Controllers.Settings
                 foreach (var w in list)
                 {
                     db.Entry(w).Reference(x => x.USER).Load();
-                    db.Entry(w).Reference(x => x.SHOP).Load(); // SHOP null bo‘lsa ham ok
+                    db.Entry(w).Reference(x => x.SHOP).Load(); // SHOP null bo'lsa ham ok
                 }
 
+                ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "Warehouse", "Index");
                 return View(list);
             }
         }

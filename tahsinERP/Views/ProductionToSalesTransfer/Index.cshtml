@@ -101,7 +101,8 @@
                                                 <th>Hujjat raqami</th>
                                                 <th>Ishlab chiqarish ombori</th>
                                                 <th>Sotuv ombori</th>
-                                                <th>Mahsulotlar</th>
+                                                <th>Mahsulot kodi</th>
+                                                <th>Jami miqdor</th>
                                                 <th>Sana</th>
                                                 <th>Holati</th>
                                                 <th>Amallar</th>
@@ -110,6 +111,10 @@
                                         <tbody>
                                             @foreach (var item in Model)
                                             {
+                                                var products = item.EXPENSE_PRODUCTS != null ? item.EXPENSE_PRODUCTS.ToList() : new List<tahsinERP.Models.EXPENSE_PRODUCTS>();
+                                                var totalQty = products.Sum(p => p.Amount);
+                                                var productCount = products.Count;
+                                                var pNo = productCount == 1 && products.Any() ? (products[0].PRODUCT != null ? products[0].PRODUCT.PNo : products[0].ProductID.ToString()) : (productCount > 1 ? productCount + " ta mahsulot" : "-");
                                                 <tr>
                                                     <td>
                                                         <a href="@Url.Action("Details", "ProductionToSalesTransfer", new { id = item.ID })" class="text-primary">
@@ -118,25 +123,8 @@
                                                     </td>
                                                     <td>@(item.Warehouse?.WHName ?? "-")</td>
                                                     <td>@(item.Warehouse1?.WHName ?? "-")</td>
-                                                    <td>
-                                                        @if (item.EXPENSE_PRODUCTS != null && item.EXPENSE_PRODUCTS.Any())
-                                                        {
-                                                            <ul class="list-unstyled mb-0">
-                                                                @foreach (var product in item.EXPENSE_PRODUCTS.Take(3))
-                                                                {
-                                                                    <li>@product.PRODUCT?.PNo - @product.Amount</li>
-                                                                }
-                                                                @if (item.EXPENSE_PRODUCTS.Count() > 3)
-                                                                {
-                                                                    <li class="text-muted">+@(item.EXPENSE_PRODUCTS.Count() - 3) boshqa</li>
-                                                                }
-                                                            </ul>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="text-muted">-</span>
-                                                        }
-                                                    </td>
+                                                    <td>@pNo</td>
+                                                    <td>@totalQty.ToString("N2")</td>
                                                     <td>@item.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
                                                     <td>
                                                         @if (item.SendStatus == true)
@@ -178,7 +166,7 @@
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
                 },
-                "order": [[4, "desc"]],
+                "order": [[5, "desc"]],
                 "pageLength": 25,
                 "responsive": true,
                 dom: 'lBfrtip',

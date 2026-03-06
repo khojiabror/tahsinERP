@@ -10,6 +10,18 @@ namespace tahsinERP
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
+                name: "ProductionTransferLots",
+                url: "ProductionToSalesTransfer/GetAvailableProductionLots",
+                defaults: new { controller = "ProductionToSalesTransfer", action = "GetAvailableProductionLots" },
+                namespaces: new[] { "tahsinERP.Controllers.SRM" }
+            );
+            routes.MapRoute(
+                name: "ProductionTransferStock",
+                url: "ProductionToSalesTransfer/GetProductionStock",
+                defaults: new { controller = "ProductionToSalesTransfer", action = "GetProductionStock" },
+                namespaces: new[] { "tahsinERP.Controllers.SRM" }
+            );
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }

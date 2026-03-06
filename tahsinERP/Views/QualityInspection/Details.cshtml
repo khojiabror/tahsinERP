@@ -48,12 +48,14 @@
                                                         <p><strong>Tekshirilgan miqdor:</strong> @Model.QtyInspected.ToString("N3")</p>
                                                         <p><strong>Qabul qilingan miqdor:</strong> <span class="text-success">@Model.QtyAccepted.ToString("N3")</span></p>
                                                         <p><strong>Rad etilgan miqdor:</strong> <span class="text-danger">@Model.QtyRejected.ToString("N3")</span></p>
-                                                        <p><strong>Nuqson turi:</strong> @(Model.DEFECT_TYPES?.Name ?? "-")</p>
+                                                        @{ var defectTypeDisplay = Model.DEFECT_TYPES != null && !string.IsNullOrEmpty(Model.DEFECT_TYPES.DefectType) ? Model.DEFECT_TYPES.DefectType : "-"; }
+                                                        <p><strong>Nuqson turi:</strong> @defectTypeDisplay</p>
                                                     </div>
                                                     <div class="col-md-6">
+                                                        @{ var statusDisplay = Model.StatusCode == "APPROVED" ? "Tasdiqlangan" : Model.StatusCode == "REJECTED" ? "Rad etilgan" : Model.StatusCode == "DRAFT" ? "Qoralama" : Model.StatusCode ?? "-"; }
                                                         <p><strong>Holat:</strong> 
                                                             <span class="badge badge-@(Model.StatusCode == "APPROVED" ? "success" : Model.StatusCode == "REJECTED" ? "danger" : "warning")">
-                                                                @Model.StatusCode
+                                                                @statusDisplay
                                                             </span>
                                                         </p>
                                                         @if (Model.ApprovalDate.HasValue)
