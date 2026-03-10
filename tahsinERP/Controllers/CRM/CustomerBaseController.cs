@@ -42,6 +42,11 @@ namespace tahsinERP.Controllers
                     .OrderBy(s => s.CompanyName)
                     .ToListAsync();
 
+                ViewBag.ChangePermit =
+                    RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase") ||
+                    RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBases") ||
+                    RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase", "Create");
+
                 return View(list);
             }
         }
@@ -66,6 +71,11 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
+
+                ViewBag.ChangePermit =
+                    RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase") ||
+                    RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBases") ||
+                    RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase", "Edit");
 
                 return View(customerBase);
             }

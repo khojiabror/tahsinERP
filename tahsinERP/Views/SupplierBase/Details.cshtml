@@ -2,15 +2,10 @@
 @{
     ViewBag.Title = "Tafsilotlar";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SupplierBase", "Details"))
-{
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase") ||
-                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBases") ||
-                        tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase", "Edit");
-
-    <div class="app-content content">
+<div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
@@ -125,9 +120,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
-

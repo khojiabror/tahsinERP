@@ -1780,21 +1780,29 @@
                     if (pdfButton) {
                         pdfButton.pageSize = 'A4';
                         pdfButton.orientation = 'portrait';
-                        pdfButton.customize = function (doc, config, dtApi) {
+                        pdfButton.customize = function (doc) {
                             try {
-                                var visibleColumns = dtApi && dtApi.columns ? dtApi.columns(':visible').count() : 0;
-                                var orientation = visibleColumns > 8 ? 'landscape' : 'portrait';
+                                // DataTables API from current button context
+                                var api = this && this.api ? this.api() : null;
+                                var visibleColumns = api && api.columns ? api.columns(':visible').count() : 0;
+
+                                // Orientation: ko'p ustun bo'lsa landscape
+                                var orientation = visibleColumns > 7 ? 'landscape' : 'portrait';
                                 doc.pageOrientation = orientation;
                                 doc.pageSize = 'A4';
-                                doc.pageMargins = [12, 12, 12, 12];
+                                doc.pageMargins = [15, 15, 15, 15];
 
-                                var fontSize = visibleColumns > 10 ? 7 : 8;
+                                // Kichik fontlar bilan ko'proq ma'lumot sig'dirish
+                                var baseFont = visibleColumns > 10 ? 7 : 8;
                                 doc.defaultStyle = doc.defaultStyle || {};
                                 doc.styles = doc.styles || {};
                                 doc.styles.tableHeader = doc.styles.tableHeader || {};
-                                doc.defaultStyle.fontSize = fontSize;
-                                doc.styles.tableHeader.fontSize = fontSize + 1;
+                                doc.defaultStyle.fontSize = baseFont;
+                                doc.styles.tableHeader.fontSize = baseFont + 1;
+                                doc.styles.tableHeader.fillColor = '#f2f2f2';
+                                doc.styles.tableHeader.color = '#000000';
 
+                                // Jadvalni topish
                                 var tableContent = null;
                                 for (var i = 0; i < (doc.content || []).length; i++) {
                                     if (doc.content[i] && doc.content[i].table) {
@@ -1805,10 +1813,12 @@
 
                                 if (tableContent && tableContent.table && tableContent.table.body && tableContent.table.body[0]) {
                                     var colCount = tableContent.table.body[0].length;
+                                    // Barcha ustunlarni bir xil nisbatda kenglikka yoyish
                                     tableContent.table.widths = Array(colCount).fill('*');
                                 }
                             } catch (e) {
-                                // Keep default export behavior if custom formatting fails.
+                                // Agar xatolik bo'lsa, default pdfHtml5 xulq-atvorini qoldiramiz
+                                console && console.warn && console.warn('PDF export customize error', e);
                             }
                         };
                     }

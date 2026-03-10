@@ -11,7 +11,8 @@
     var company = ViewBag.Company as tahsinERP.Models.COMPANy;
     var lines = Model.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
     var rowsToRender = Math.Max(lines.Count, 5);
-    var copyTitles = new[] { "Asl nusxa (Mijoz uchun)", "2-nusxa (Ombor uchun)", "3-nusxa (Buxgalteriya uchun)" };
+    var baseCopyTitles = new[] { "Asl nusxa (Mijoz uchun)", "2-nusxa (Ombor uchun)", "iPack uchun(qaytarib beriladi)" };
+    var maxCopies = 6;
     var orderDate = order != null ? order.IssuedDate.ToString("dd.MM.yyyy") : "-";
     var contractDate = contract != null ? contract.IssuedDate.ToString("dd.MM.yyyy") : "-";
 }
@@ -192,18 +193,29 @@
 </head>
 <body>
     <div class="toolbar no-print">
+        <label for="copyCountSelect" style="font-size: 12px; display: flex; align-items: center; gap: 4px; margin-right: 8px;">
+            Nusxa soni:
+            <select id="copyCountSelect" style="font-size: 12px; padding: 4px;">
+                <option value="3" selected>3</option>
+                <option value="6">6</option>
+            </select>
+        </label>
         <button type="button" onclick="window.print()">Chop etish</button>
         <button type="button" onclick="downloadPdf()">PDF yuklab olish</button>
         <button type="button" onclick="window.close()">Yopish</button>
     </div>
 
     <div class="print-root" id="invoice-print-root">
-        @for (var copyIndex = 0; copyIndex < 3; copyIndex++)
+        @for (var copyIndex = 0; copyIndex < maxCopies; copyIndex++)
         {
-            <section class="invoice-copy">
+            var label = copyIndex < baseCopyTitles.Length
+                ? baseCopyTitles[copyIndex]
+                : (copyIndex + 1) + "-nusxa";
+
+            <section class="invoice-copy" data-copy-index="@copyIndex" style="@(copyIndex < 3 ? "" : "display:none;")">
                 <div class="copy-top">
                     <div class="doc-title">SOTUV INVOYSI / TIJORAT INVOYSI</div>
-                    <div class="copy-label">@copyTitles[copyIndex]</div>
+                    <div class="copy-label">@label</div>
                 </div>
 
                 <table class="meta-table">
@@ -214,27 +226,25 @@
                         <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
                     </tr>
                     <tr>
-                        <td class="label">Sales Order</td>
+                        <td class="label">Buyurtma</td>
                         <td>@(order != null ? order.OrderNo : "-")</td>
-                        <td class="label">Order sanasi</td>
+                        <td class="label">Buyurtma sanasi</td>
                         <td>@orderDate</td>
                         <td class="label">Valyuta</td>
                         <td>@Model.CurrencyCode</td>
                     </tr>
                     <tr>
-                        <td class="label">Sales Contract</td>
+                        <td class="label">Shartnoma</td>
                         <td>@(contract != null ? contract.ContractNo : "-")</td>
-                        <td class="label">Contract sanasi</td>
+                        <td class="label">Shartnoma sanasi</td>
                         <td>@contractDate</td>
-                        <td class="label">Holat</td>
-                        <td>@Model.StatusCode</td>
                     </tr>
                 </table>
 
                 <div class="party-grid">
                     <table class="meta-table">
                         <tr><td class="label">Sotuvchi</td><td>@(company?.Name ?? "-")</td></tr>
-                        <tr><td class="label">Manzil</td><td>@(company?.Address ?? "-")</td></tr>
+                        <tr><td class="label">Manzil</td><td>Oltinkul tumani, Mehnat MFY., 90-uy</td></tr>
                         <tr><td class="label">Telefon</td><td>@(company?.Telephone ?? "-")</td></tr>
                         <tr><td class="label">Email</td><td>@(company?.Email ?? "-")</td></tr>
                         <tr><td class="label">STIR / DUNS</td><td>@(company?.DUNS ?? "-")</td></tr>
@@ -304,11 +314,10 @@
                 </table>
 
                 <div class="footer-meta">
-                    <div>Holat: @Model.StatusCode</div>
                     <div>Nusxa @(copyIndex + 1) / 3</div>
                 </div>
                 <div class="note">
-                    Ushbu hujjat ERP tizimidan shakllantirilgan.
+                    Ushbu hujjat tahsinERP tizimida yaratilgan.
                 </div>
             </section>
         }
@@ -316,9 +325,28 @@
 
     <script src="@Url.Content("~/app-assets/js/scripts/pdfMake/html2pdf.bundle.min.js")"></script>
     <script>
+        function setCopyCount(count) {
+            var copies = document.querySelectorAll('.invoice-copy');
+            copies.forEach(function (copy, idx) {
+                copy.style.display = (idx < count) ? 'flex' : 'none';
+            });
+        }
+
+        (function initCopyCount() {
+            var select = document.getElementById('copyCountSelect');
+            if (!select) return;
+            setCopyCount(parseInt(select.value || '3', 10));
+            select.addEventListener('change', function () {
+                var count = parseInt(this.value || '3', 10);
+                setCopyCount(count);
+            });
+        })();
+
         function downloadPdf() {
             var container = document.getElementById("invoice-print-root");
             var invoiceNo = "@(string.IsNullOrWhiteSpace(Model.InvoiceNo) ? Model.ID.ToString() : Model.InvoiceNo)";
+            var copyCountSelect = document.getElementById("copyCountSelect");
+            var copyCount = copyCountSelect ? parseInt(copyCountSelect.value || "3", 10) : 3;
 
             if (typeof html2pdf === "undefined") {
                 alert("PDF kutubxonasi yuklanmadi. Iltimos, qayta urinib koring.");
@@ -332,7 +360,18 @@
                 html2canvas: { scale: 2, useCORS: true, logging: false },
                 jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
                 pagebreak: { mode: ["css", "legacy"] }
-            }).from(container).save();
+            })
+            .from(container)
+            .toPdf()
+            .get('pdf')
+            .then(function (pdf) {
+                var totalPages = pdf.internal.getNumberOfPages();
+                if (copyCount === 3 && totalPages > 1) {
+                    // 3 nusxa uchun ba'zan bo'sh sahifa qo'shiladi, oxirgisini o'chiramiz
+                    pdf.deletePage(totalPages);
+                }
+            })
+            .save();
         }
     </script>
 </body>

@@ -26,9 +26,17 @@ namespace tahsinERP.Controllers.MES
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    query = query.Where(q => q.PRODUCT.PNo.Contains(searchTerm) || 
-                                             q.PRODUCT.Name.Contains(searchTerm) ||
-                                             (q.Notes != null && q.Notes.Contains(searchTerm)));
+                    query = query.Where(q =>
+                        (
+                            q.PRODUCT != null &&
+                            (
+                                (q.PRODUCT.PNo != null && q.PRODUCT.PNo.Contains(searchTerm)) ||
+                                (q.PRODUCT.Name != null && q.PRODUCT.Name.Contains(searchTerm))
+                            )
+                        )
+                        ||
+                        (q.Notes != null && q.Notes.Contains(searchTerm))
+                    );
                 }
 
                 if (productID.HasValue)

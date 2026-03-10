@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
+using System.Data.Entity.Validation;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -94,7 +95,9 @@ namespace tahsinERP.Controllers
                     .ToListAsync();
 
                 // ViewBag uchun filters
-                ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
+                var customersList = await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync();
+                ViewBag.Customers = new SelectList(customersList, "ID", "Name", customerID);
+                ViewBag.CustomerNames = customersList.ToDictionary(c => c.ID, c => c.Name);
                 ViewBag.Orders = new SelectList(await db.S_ORDERS.Where(o => o.IsDeleted == false).ToListAsync(), "ID", "OrderNo", orderID);
                 ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "ContractNo", contractID);
                 ViewBag.CurrentPage = currentPage;
@@ -314,6 +317,8 @@ namespace tahsinERP.Controllers
                         invoice.TotalWithVAT = totalAmount + totalVAT;
                         invoice.CreatedDT = DateTime.Now;
                         invoice.CreatedByUserID = GetCurrentUserID();
+                        if (string.IsNullOrWhiteSpace(invoice.StatusCode))
+                            invoice.StatusCode = "DRAFT";
                         if (string.IsNullOrWhiteSpace(invoice.InvoiceNo))
                             invoice.InvoiceNo = GetNextInvoiceNo(db);
 
@@ -392,6 +397,21 @@ namespace tahsinERP.Controllers
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{invoice.InvoiceNo} - Invoysni yaratdi (Buyurtma: {order.OrderNo})");
 
                         return RedirectToAction("Details", new { id = invoice.ID });
+                    }
+                    catch (DbEntityValidationException dbEx)
+                    {
+                        var validationErrors = new List<string>();
+                        foreach (var entityErrors in dbEx.EntityValidationErrors)
+                        {
+                            foreach (var error in entityErrors.ValidationErrors)
+                            {
+                                validationErrors.Add($"Maydon: {error.PropertyName}, Xatolik: {error.ErrorMessage}");
+                            }
+                        }
+
+                        var errorMessage = "Ma'lumotlar validatsiyadan o'tmadi. Quyidagi maydonlarni tekshiring: "
+                            + string.Join("; ", validationErrors);
+                        ModelState.AddModelError("", errorMessage);
                     }
                     catch (Exception ex)
                     {
@@ -569,12 +589,76 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(SALES_INVOICES invoice, List<SalesInvoiceLineViewModel> lines)
         {
+            // StatusCode formda yo'q, lekin bazada majburiy.
+            // Har doim default qiymatni DRAFT qilib qo'yamiz va ModelState xatosini tozalaymiz.
+            if (string.IsNullOrWhiteSpace(invoice.StatusCode))
+            {
+                invoice.StatusCode = "DRAFT";
+            }
+            if (ModelState.ContainsKey("StatusCode"))
+            {
+                ModelState["StatusCode"].Errors.Clear();
+            }
+
             if (ModelState.IsValid && lines != null && lines.Any())
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     try
                     {
+                        // Agar shartnoma/buyurtma tanlangan bo'lsa, mahsulotlar mosligini tekshirish
+                        HashSet<int> contractProductIds = null;
+                        HashSet<int> orderProductIds = null;
+
+                        if (invoice.ContractID.HasValue)
+                        {
+                            contractProductIds = new HashSet<int>(
+                                db.S_CONTRACT_PRODUCTS
+                                    .Where(cp => cp.ContractID == invoice.ContractID.Value)
+                                    .Select(cp => cp.ProductID)
+                                    .ToList()
+                            );
+                        }
+
+                        if (invoice.OrderID.HasValue)
+                        {
+                            orderProductIds = new HashSet<int>(
+                                db.S_ORDER_PRODUCTS
+                                    .Where(op => op.OrderID == invoice.OrderID.Value)
+                                    .Select(op => op.ProductID)
+                                    .ToList()
+                            );
+                        }
+
+                        foreach (var line in lines)
+                        {
+                            if (contractProductIds != null && contractProductIds.Count > 0 && !contractProductIds.Contains(line.ProductID))
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("",
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} tanlangan shartnomada mavjud emas.");
+                                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).ToList(), "ID", "Name", invoice.CustomerID);
+                                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
+                                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
+                                ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
+                                return View(invoice);
+                            }
+
+                            if (orderProductIds != null && orderProductIds.Count > 0 && !orderProductIds.Contains(line.ProductID))
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("",
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} tanlangan buyurtmada mavjud emas.");
+                                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).ToList(), "ID", "Name", invoice.CustomerID);
+                                ViewBag.Orders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", invoice.OrderID);
+                                ViewBag.Contracts = new SelectList(db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToList(), "ID", "ContractNo", invoice.ContractID);
+                                ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
+                                ViewBag.Products = BuildSalesWarehouseProductSelectList(db);
+                                return View(invoice);
+                            }
+                        }
+
                         // Tekshirish sales warehouse stock uchun har bir line
                         var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
                         if (salesWH == null)
@@ -704,6 +788,21 @@ namespace tahsinERP.Controllers
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{invoice.InvoiceNo} - Invoysni yaratdi");
 
                         return RedirectToAction("Details", new { id = invoice.ID });
+                    }
+                    catch (DbEntityValidationException dbEx)
+                    {
+                        var validationErrors = new List<string>();
+                        foreach (var entityErrors in dbEx.EntityValidationErrors)
+                        {
+                            foreach (var error in entityErrors.ValidationErrors)
+                            {
+                                validationErrors.Add($"Maydon: {error.PropertyName}, Xatolik: {error.ErrorMessage}");
+                            }
+                        }
+
+                        var errorMessage = "Ma'lumotlar validatsiyadan o'tmadi. Quyidagi maydonlarni tekshiring: "
+                            + string.Join("; ", validationErrors);
+                        ModelState.AddModelError("", errorMessage);
                     }
                     catch (Exception ex)
                     {
@@ -847,7 +946,6 @@ namespace tahsinERP.Controllers
                         existingInvoice.OrderID = invoice.OrderID;
                         existingInvoice.CurrencyCode = invoice.CurrencyCode;
                         existingInvoice.DueDate = invoice.DueDate;
-                        existingInvoice.StatusCode = invoice.StatusCode;
                         existingInvoice.UpdatedDT = DateTime.Now;
 
                         // O'chirish existing lines
@@ -893,9 +991,8 @@ namespace tahsinERP.Controllers
                         existingInvoice.TotalWithVAT = totalAmount + totalVAT;
                         }
 
-                        // Tekshirish agar holat changed ga FINALIZED yoki APPROVED - post ga finance va decrease stock
-                        bool statusChangedToFinalized = (existingInvoice.StatusCode != "FINALIZED" && existingInvoice.StatusCode != "APPROVED") 
-                            && (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED");
+                        // Holatni form orqali o'zgartirmaymiz (UI dan olib tashlangan)
+                        bool statusChangedToFinalized = false;
 
                         db.SaveChanges();
 

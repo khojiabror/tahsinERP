@@ -88,7 +88,6 @@
                                                     <th>Buyurtma</th>
                                                     <th>Summa</th>
                                                     <th>Valyuta</th>
-                                                    <th>Holati</th>
                                                     @if (changePermit)
                                                     {
                                                         <th class="text-center">Amallar</th>
@@ -109,12 +108,16 @@
                                                             <td>@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                                             <td>
                                                                 @{
-                                                                    var customer = ViewBag.Customers as SelectList;
-                                                                    var customerItem = customer?.Items.Cast<SelectListItem>().FirstOrDefault(c => c.Value == item.CustomerID.ToString());
+                                                                    var customerNames = ViewBag.CustomerNames as IDictionary<int, string>;
+                                                                    string customerName = null;
+                                                                    if (customerNames != null && customerNames.ContainsKey(item.CustomerID))
+                                                                    {
+                                                                        customerName = customerNames[item.CustomerID];
+                                                                    }
                                                                 }
-                                                                @if (!string.IsNullOrEmpty(customerItem?.Text))
+                                                                @if (!string.IsNullOrEmpty(customerName))
                                                                 {
-                                                                    <span class="font-weight-bold">@customerItem.Text</span>
+                                                                    <span class="font-weight-bold">@customerName</span>
                                                                 }
                                                                 else
                                                                 {
@@ -143,11 +146,6 @@
                                                                 {
                                                                     <span class="text-muted">-</span>
                                                                 }
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge badge-@(item.StatusCode == "FINALIZED" ? "success" : item.StatusCode == "DRAFT" ? "warning" : "info")">
-                                                                    @item.StatusCode
-                                                                </span>
                                                             </td>
                                                             @if (changePermit)
                                                             {

@@ -80,11 +80,6 @@
                                                         <span><b>Jami summa</b>: @Model.TotalAmount.ToString("N2") @Model.CurrencyCode</span><br />
                                                         <span><b>QQS</b>: @Model.TotalVAT.ToString("N2") @Model.CurrencyCode</span><br />
                                                         <span><b>Jami (QQS bilan)</b>: @(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @Model.CurrencyCode</span><br />
-                                                        <span><b>Holati</b>: 
-                                                            <span class="badge badge-@(Model.StatusCode == "FINALIZED" ? "success" : Model.StatusCode == "DRAFT" ? "warning" : "info")">
-                                                                @Model.StatusCode
-                                                            </span>
-                                                        </span><br />
                                                     </div>
                                                 </div>
                                                 <hr />
@@ -112,7 +107,7 @@
                                                             <a href="@Url.Action("Index", "SalesTTNK", new { invoiceID = Model.ID })" class="btn btn-outline-primary">
                                                                 <i class="bx bx-truck"></i> TTNK (@ViewBag.TTNKCount)
                                                             </a>
-                                                            @if (changePermit && Model.StatusCode != "FINALIZED" && Model.StatusCode != "PAID")
+                                                            @if (changePermit)
                                                             {
                                                                 <a href="@Url.Action("GenerateFromInvoice", "SalesSF", new { invoiceID = Model.ID })" class="btn btn-success">
                                                                     <i class="bx bx-plus"></i> SF yaratish

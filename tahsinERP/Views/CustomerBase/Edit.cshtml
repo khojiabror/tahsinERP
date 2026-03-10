@@ -3,10 +3,8 @@
     ViewBag.Title = "Tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+@using (Html.BeginForm("Edit", "CustomerBase", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
-    using (Html.BeginForm("Edit", "CustomerBase", FormMethod.Post, new { enctype = "multipart/form-data" }))
-    {
         @Html.AntiForgeryToken()
         @Html.HiddenFor(model => model.ID)
         <div class="app-content content">
@@ -110,7 +108,6 @@
             </div>
         </div>
     }
-}
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));

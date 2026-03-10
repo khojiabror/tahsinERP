@@ -373,6 +373,7 @@ namespace tahsinERP.Controllers.Finance
                     return View(transaction);
                 }
 
+                ViewBag.CannotEdit = false;
                 ViewBag.AccountID = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", transaction.AccountID);
