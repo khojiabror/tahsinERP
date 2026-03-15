@@ -1,0 +1,538 @@
+@model tahsinERP.ViewModels.CRMDashboardViewModel
+@{
+    ViewBag.Title = "CRM Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var fromDate = ViewBag.FromDate as DateTime?;
+    var toDate = ViewBag.ToDate as DateTime?;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") ||
+     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
+     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") ||
+     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/SOrder/Index">Sotuvlar</a></li>
+                                    <li class="breadcrumb-item active">CRM Dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <!-- Filtr -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("Index")" class="row align-items-end">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Dan</label>
+                                        <input type="date" name="fromDate" class="form-control" value="@(fromDate?.ToString("yyyy-MM-dd"))" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Gacha</label>
+                                        <input type="date" name="toDate" class="form-control" value="@(toDate?.ToString("yyyy-MM-dd"))" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-filter-alt"></i> Filtrlash</button>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Tozalash</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI kartalar -->
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card border-left-primary">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="mb-0 text-muted">Jami shartnomalar</p>
+                                            <h3 class="font-weight-bolder mb-0">@Model.TotalContracts</h3>
+                                            <small class="text-muted">Summa: @Model.ContractsTotalAmount.ToString("N0")</small>
+                                        </div>
+                                        <div class="avatar bg-rgba-primary p-50 m-0">
+                                            <div class="avatar-content"><i class="bx bx-file font-medium-3 text-primary"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card border-left-danger">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="mb-0 text-muted">Shartnoma muddati o'tgan</p>
+                                            <h3 class="font-weight-bolder mb-0 text-danger">@Model.ContractsOverdue</h3>
+                                            <small class="text-muted">Bajarilgan: @Model.ContractsCompleted</small>
+                                        </div>
+                                        <div class="avatar bg-rgba-danger p-50 m-0">
+                                            <div class="avatar-content"><i class="bx bx-calendar-x font-medium-3 text-danger"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card border-left-success">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="mb-0 text-muted">Jami buyurtmalar</p>
+                                            <h3 class="font-weight-bolder mb-0">@Model.TotalOrders</h3>
+                                            <small class="text-muted">Invoysiz: <span class="text-warning">@Model.OrdersWithoutInvoice</span></small>
+                                        </div>
+                                        <div class="avatar bg-rgba-success p-50 m-0">
+                                            <div class="avatar-content"><i class="bx bx-cart font-medium-3 text-success"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card border-left-warning">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="mb-0 text-muted">Yetkazib berish kechikkan</p>
+                                            <h3 class="font-weight-bolder mb-0 text-warning">@Model.OrdersDeliveryOverdue</h3>
+                                            <small class="text-muted">Jami invoys: @Model.TotalInvoices</small>
+                                        </div>
+                                        <div class="avatar bg-rgba-warning p-50 m-0">
+                                            <div class="avatar-content"><i class="bx bx-time-five font-medium-3 text-warning"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="mb-0 text-muted">Invoyslar (muddati o'tgan)</p>
+                                            <h3 class="font-weight-bolder mb-0">@Model.TotalInvoices <small class="text-danger">(@Model.InvoicesOverdue)</small></h3>
+                                            <small class="text-muted">Jami: @Model.InvoicesTotalAmount.ToString("N0")</small>
+                                        </div>
+                                        <div class="avatar bg-rgba-info p-50 m-0">
+                                            <div class="avatar-content"><i class="bx bx-receipt font-medium-3 text-info"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="mb-0 text-muted">Xaridorlar</p>
+                                            <h3 class="font-weight-bolder mb-0">@Model.TotalCustomers</h3>
+                                            <small class="text-muted">Bu yil buyurtma: @Model.CustomersWithOrdersThisYear</small>
+                                        </div>
+                                        <div class="avatar bg-rgba-secondary p-50 m-0">
+                                            <div class="avatar-content"><i class="bx bx-user font-medium-3 text-secondary"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafiklar -->
+                <div class="row">
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Shartnomalar - oy bo'yicha</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="contractsByMonthChart" style="min-height: 320px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Buyurtmalar - oy bo'yicha</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="ordersByMonthChart" style="min-height: 320px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Buyurtma bajarilishi - invoys bilan / invoysiz</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="orderFulfillmentChart" style="min-height: 320px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Shartnoma holati</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="contractStatusChart" style="min-height: 320px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Mijozlar bo'yicha buyurtma summasi (TOP 10)</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="topCustomersChart" style="min-height: 350px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hisobot jadvallari -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0">Invoys yaratilmagan buyurtmalar</h4>
+                                <a href="~/SOrder/Index" class="btn btn-sm btn-outline-primary">Barcha buyurtmalar</a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table id="tblOrdersWithoutInvoice" class="table table-hover mb-0 crm-dashboard-datatable">
+                                        <thead>
+                                            <tr>
+                                                <th>Buyurtma Raqami</th>
+                                                <th>Xaridor</th>
+                                                <th>Sana</th>
+                                                <th>Summa</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.OrdersWithoutInvoiceList != null && Model.OrdersWithoutInvoiceList.Any())
+                                            {
+                                                foreach (var o in Model.OrdersWithoutInvoiceList)
+                                                {
+                                                    <tr>
+                                                        <td>@o.OrderNo</td>
+                                                        <td>@o.CustomerName</td>
+                                                        <td>@o.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                        <td>@(o.Amount?.ToString("N0") ?? "") @o.CurrencyCode</td>
+                                                        <td><a href="@Url.Action("Create", "SalesInvoices", new { orderID = o.OrderId })" class="btn btn-sm btn-success">Invoys yaratish</a></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="5" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0">Muddati o'tgan shartnomalar</h4>
+                                <a href="~/SContract/Index" class="btn btn-sm btn-outline-secondary">Shartnomalar</a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Shartnoma №</th>
+                                                <th>Xaridor</th>
+                                                <th>Muddat</th>
+                                                <th>Kechikish (kun)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.ContractsOverdueList != null && Model.ContractsOverdueList.Any())
+                                            {
+                                                foreach (var c in Model.ContractsOverdueList)
+                                                {
+                                                    <tr>
+                                                        <td>@c.ContractNo</td>
+                                                        <td>@c.CustomerName</td>
+                                                        <td>@c.DueDate.ToString("dd.MM.yyyy")</td>
+                                                        <td><span class="badge badge-danger">@c.DaysOverdue</span></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="4" class="text-center text-muted">Yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0">Yetkazib berish kechikkan</h4>
+                                <a href="~/SOrder/Index" class="btn btn-sm btn-outline-secondary">Buyurtmalar</a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table id="tblDeliveryOverdue" class="table table-hover mb-0 crm-dashboard-datatable">
+                                        <thead>
+                                            <tr>
+                                                <th>Buyurtma</th>
+                                                <th>Mahsulot</th>
+                                                <th>Reja sana</th>
+                                                <th>Yuborilgan</th>
+                                                <th>Kechikish</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.DeliveryOverdueList != null && Model.DeliveryOverdueList.Any())
+                                            {
+                                                foreach (var d in Model.DeliveryOverdueList)
+                                                {
+                                                    <tr>
+                                                        <td>@d.OrderNo</td>
+                                                        <td>@d.ProductName</td>
+                                                        <td>@d.DeliveryDate.ToString("dd.MM.yyyy")</td>
+                                                        <td>@d.QtyShipped / @d.QtyPlanned</td>
+                                                        <td><span class="badge badge-warning">@d.DaysOverdue kun</span></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0">Muddati o'tgan invoyslar</h4>
+                                <a href="~/SalesInvoices/Index" class="btn btn-sm btn-outline-secondary">Invoyslar</a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table id="tblInvoicesOverdue" class="table table-hover mb-0 crm-dashboard-datatable">
+                                        <thead>
+                                            <tr>
+                                                <th>Invoys №</th>
+                                                <th>Xaridor</th>
+                                                <th>To'lov muddati</th>
+                                                <th>Kechikish (kun)</th>
+                                                <th>Summa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.InvoicesOverdueList != null && Model.InvoicesOverdueList.Any())
+                                            {
+                                                foreach (var i in Model.InvoicesOverdueList)
+                                                {
+                                                    <tr>
+                                                        <td>@i.InvoiceNo</td>
+                                                        <td>@i.CustomerName</td>
+                                                        <td>@(i.DueDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                                                        <td><span class="badge badge-danger">@i.DaysOverdue</span></td>
+                                                        <td>@i.TotalAmount.ToString("N0")</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section scripts
+    {
+        <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                if (typeof ApexCharts === 'undefined') {
+                    $('#contractsByMonthChart, #ordersByMonthChart, #orderFulfillmentChart, #contractStatusChart, #topCustomersChart').html('<p class="text-center text-muted">ApexCharts yuklanmadi</p>');
+                    return;
+                }
+
+                var contractsLabels = [ @Html.Raw(Model.ContractsByMonth != null && Model.ContractsByMonth.Any() ? string.Join(",", Model.ContractsByMonth.Select(x => "'" + x.Label + "'")) : "''") ];
+                var contractsSeries = [ @Html.Raw(Model.ContractsByMonth != null && Model.ContractsByMonth.Any() ? string.Join(",", Model.ContractsByMonth.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
+
+                var ordersLabels = [ @Html.Raw(Model.OrdersByMonth != null && Model.OrdersByMonth.Any() ? string.Join(",", Model.OrdersByMonth.Select(x => "'" + x.Label + "'")) : "''") ];
+                var ordersSeries = [ @Html.Raw(Model.OrdersByMonth != null && Model.OrdersByMonth.Any() ? string.Join(",", Model.OrdersByMonth.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
+
+                if (contractsLabels.length && contractsSeries.length) {
+                    new ApexCharts(document.querySelector("#contractsByMonthChart"), {
+                        chart: { type: 'bar', height: 320 },
+                        series: [{ name: 'Shartnomalar', data: contractsSeries }],
+                        xaxis: { categories: contractsLabels },
+                        plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+                        colors: ['#7367F0'],
+                        dataLabels: { enabled: false }
+                    }).render();
+                } else {
+                    document.querySelector("#contractsByMonthChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
+                }
+
+                if (ordersLabels.length && ordersSeries.length) {
+                    new ApexCharts(document.querySelector("#ordersByMonthChart"), {
+                        chart: { type: 'line', height: 320 },
+                        series: [{ name: 'Buyurtmalar', data: ordersSeries }],
+                        xaxis: { categories: ordersLabels },
+                        stroke: { curve: 'smooth', width: 2 },
+                        colors: ['#28a745'],
+                        dataLabels: { enabled: false }
+                    }).render();
+                } else {
+                    document.querySelector("#ordersByMonthChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
+                }
+
+                var fulfillmentLabels = [ @Html.Raw(Model.OrderFulfillmentStatus != null && Model.OrderFulfillmentStatus.Any() ? string.Join(",", Model.OrderFulfillmentStatus.Select(x => "'" + x.Label.Replace("'", "\\'") + "'")) : "''") ];
+                var fulfillmentSeries = [ @Html.Raw(Model.OrderFulfillmentStatus != null && Model.OrderFulfillmentStatus.Any() ? string.Join(",", Model.OrderFulfillmentStatus.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
+                if (fulfillmentSeries.length && fulfillmentSeries.some(function(v){ return v > 0; })) {
+                    new ApexCharts(document.querySelector("#orderFulfillmentChart"), {
+                        chart: { type: 'donut', height: 320 },
+                        labels: fulfillmentLabels,
+                        series: fulfillmentSeries,
+                        colors: ['#28a745', '#ffc107'],
+                        legend: { position: 'bottom' }
+                    }).render();
+                } else {
+                    document.querySelector("#orderFulfillmentChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
+                }
+
+                var statusLabels = [ @Html.Raw(Model.ContractCompletionStatus != null && Model.ContractCompletionStatus.Any() ? string.Join(",", Model.ContractCompletionStatus.Select(x => "'" + x.Label.Replace("'", "\\'") + "'")) : "''") ];
+                var statusSeries = [ @Html.Raw(Model.ContractCompletionStatus != null && Model.ContractCompletionStatus.Any() ? string.Join(",", Model.ContractCompletionStatus.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
+                if (statusSeries.length && statusSeries.some(function(v){ return v > 0; })) {
+                    new ApexCharts(document.querySelector("#contractStatusChart"), {
+                        chart: { type: 'donut', height: 320 },
+                        labels: statusLabels,
+                        series: statusSeries,
+                        colors: ['#dc3545', '#28a745', '#17a2b8'],
+                        legend: { position: 'bottom' }
+                    }).render();
+                } else {
+                    document.querySelector("#contractStatusChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
+                }
+
+                var topCustLabels = [ @Html.Raw(Model.TopCustomersByOrderAmount != null && Model.TopCustomersByOrderAmount.Any() ? string.Join(",", Model.TopCustomersByOrderAmount.Select(x => "'" + (x.CustomerName ?? "").Replace("'", "\\'").Replace("\"", "\\\"") + "'")) : "''") ];
+                var topCustSeries = [ @Html.Raw(Model.TopCustomersByOrderAmount != null && Model.TopCustomersByOrderAmount.Any() ? string.Join(",", Model.TopCustomersByOrderAmount.Select(x => ((double)x.TotalAmount).ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
+                function formatSumma(val) {
+                    var n = Number(val);
+                    if (isNaN(n)) return val;
+                    var parts = n.toFixed(2).split('.');
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+                    return parts.join(',') + '\u00A0so\'m';
+                }
+                if (topCustLabels.length && topCustSeries.length) {
+                    new ApexCharts(document.querySelector("#topCustomersChart"), {
+                        chart: { type: 'bar', height: 350, toolbar: { show: false } },
+                        plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '65%' } },
+                        series: [{ name: 'Summa', data: topCustSeries }],
+                        xaxis: { categories: topCustLabels },
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function(val) { return formatSumma(val); }
+                        },
+                        colors: ['#5e72e4']
+                    }).render();
+                } else {
+                    document.querySelector("#topCustomersChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
+                }
+
+                if (typeof $ !== 'undefined' && $.fn.DataTable) {
+                    var crmDtOptions = {
+                        pageLength: 25,
+                        lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "Barchasi"]],
+                        language: {
+                            lengthMenu: "Ko'rsatish: _MENU_",
+                            info: "_TOTAL_ ta yozuvdan _START_ - _END_",
+                            infoEmpty: "Yozuv yo'q",
+                            infoFiltered: "(_MAX_ ta yozuvdan filtrlangan)",
+                            search: "Qidirish:",
+                            paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
+                            zeroRecords: "Hech narsa topilmadi"
+                        },
+                        order: [],
+                        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
+                    };
+                    $('.crm-dashboard-datatable').each(function() {
+                        var $t = $(this);
+                        var hasDataRows = $t.find('tbody tr').length > 0 && $t.find('tbody tr td[colspan]').length === 0;
+                        if (hasDataRows) $t.DataTable(crmDtOptions);
+                    });
+                }
+            });
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

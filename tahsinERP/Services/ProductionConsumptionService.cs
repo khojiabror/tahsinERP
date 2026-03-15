@@ -344,7 +344,7 @@ namespace tahsinERP.Services
         /// For weight-based materials (e.g. shurup) BOM dona is converted to kg; expense and stock deduction use kg.
         /// Creates Expense document without linked Income.
         /// </summary>
-        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int warehouseId, int? productionProcessId = null)
+        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int warehouseId, int? productionProcessId = null, DateTime? productionDate = null)
         {
             var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
             var wasteService = new WasteHandlingService(_db);
@@ -376,7 +376,13 @@ namespace tahsinERP.Services
             var productPNo = product?.PNo ?? productId.ToString();
             var dateStr = DateTime.Now.ToString("yyyyMMdd");
             var docNo = $"{dateStr}_{productPNo}_{producedQty}";
-            var description = $"Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {producedQty}";
+            var description = productionDate.HasValue
+                ? $"{productionDate.Value:dd.MM.yyyy}y. kunlik reja asosida Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {producedQty}"
+                : $"Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {producedQty}";
+            if (productionProcessId.HasValue && productionProcessId.Value > 0)
+            {
+                description += $" | ProductionID:{productionProcessId.Value}";
+            }
 
             var expense = new EXPENS
             {

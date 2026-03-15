@@ -191,16 +191,27 @@
                 hint.text(avail != null ? ('Mavjud: ' + avail) : '');
             }
 
+            function isLotsizSelected(line) {
+                var selected = line.find('.lot-select').val();
+                return selected && selected.length && selected.indexOf('__LOTSIZ__') >= 0;
+            }
+
             function updateLotSelectedSum(line) {
                 var lotSelect = line.find('.lot-select');
                 var stockInp = line.find('.available-stock');
                 var productID = line.find('.product-select').val();
+                if (isLotsizSelected(line)) {
+                    var avail = productStockMap[productID];
+                    stockInp.val(avail != null ? avail : '');
+                    return;
+                }
                 var lots = lotDataMap[productID];
                 if (!lots) { stockInp.val(''); return; }
                 var selected = lotSelect.val();
                 var sum = 0;
                 if (selected && selected.length) {
                     selected.forEach(function(pid) {
+                        if (pid === '__LOTSIZ__') return;
                         var l = lots.find(function(x) { return x.ProductionID == pid; });
                         if (l) sum += l.RemainingAmount;
                     });
@@ -209,6 +220,7 @@
             }
 
             function buildLotAllocationsForLine(line) {
+                if (isLotsizSelected(line)) return 'LOTSIZ';
                 var lotSelect = line.find('.lot-select');
                 var qtyInp = line.find('.quantity-input');
                 var productID = line.find('.product-select').val();
@@ -251,12 +263,13 @@
                         (res.data || []).forEach(function(lot) {
                             opts += '<option value="' + lot.ProductionID + '" data-remaining="' + lot.RemainingAmount + '">' + (lot.DisplayText || '') + '</option>';
                         });
+                        opts += '<option value="__LOTSIZ__">Lotsiz o\'tkazish</option>';
                         lotSelect.html(opts || '<option value="">---Lot topilmadi---</option>');
                         line.find('.available-stock').val('');
                         if (lotSelect.hasClass('select2-hidden-accessible')) {
                             try { lotSelect.select2('destroy'); } catch(e) {}
                         }
-                        lotSelect.select2({ placeholder: "Lot tanlang", allowClear: true });
+                        lotSelect.select2({ placeholder: "Lot tanlang yoki lotsiz", allowClear: true });
                     })
                     .fail(function() {
                         lotSelect.html('<option value="">---Xatolik---</option>');
@@ -350,7 +363,7 @@
                         }
                     });
                     if (hasLines && !ok) {
-                        alert('Lot tanlang va miqdor tanlangan lotlar qoldig\'idan oshmasligi kerak.');
+                        alert('Lot tanlang (yoki \"Lotsiz o\'tkazish\") va miqdor mavjud qoldiqdan oshmasligi kerak.');
                         return false;
                     }
                     return true;

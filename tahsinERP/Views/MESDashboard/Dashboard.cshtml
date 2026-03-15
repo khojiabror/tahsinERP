@@ -1,4 +1,5 @@
 @model tahsinERP.ViewModels.MESDashboardViewModel
+@using System.Web.Helpers
 @{
     ViewBag.Title = "MES Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -183,14 +184,27 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-6">
+                                        <div class="col-md-6 col-12">
                                             <p><strong>Jami tekshiruvlar:</strong> @Model.TotalInspections</p>
                                             <p><strong>Tasdiqlangan:</strong> <span class="text-success">@Model.ApprovedInspections</span></p>
-                                            <p><strong>Rad etilgan:</strong> <span class="text-danger">@Model.RejectedInspections</span></p>
-                                        </div>
-                                        <div class="col-6">
                                             <p><strong>Qabul qilingan miqdor:</strong> @Model.TotalAcceptedQty.ToString("N3")</p>
-                                            <p><strong>Rad etilgan miqdor:</strong> @Model.TotalRejectedQty.ToString("N3")</p>
+                                            <p><strong>Brak miqdor:</strong> <span class="text-danger">@Model.TotalRejectedQty.ToString("N3")</span></p>
+                                            @if (Model.FTQPercent.HasValue)
+                                            {
+                                                <p><strong>FTQ (First Time Quality):</strong> <span class="text-primary">@Model.FTQPercent.Value.ToString("N1")%</span></p>
+                                            }
+                                            @if (Model.RejectedInspections > 0)
+                                            {
+                                                <p class="mb-0"><strong>Brak chiqqan tekshiruvlar:</strong> <span class="text-danger">@Model.RejectedInspections</span></p>
+                                            }
+                                        </div>
+                                        <div class="col-md-6 col-12">
+                                            <div class="mb-1">
+                                                <canvas id="qualityQtyChart" height="150"></canvas>
+                                            </div>
+                                            <div>
+                                                <canvas id="topDefectsChart" height="150"></canvas>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -204,13 +218,19 @@
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
+                                    <div class="text-muted mb-1" style="font-size: 12px;">
+                                        Qoldiq = Buyurtma (reja) − Invoice qilingan. Fakt = mahsulot bo'yicha jami ishlab chiqarilgan (orderga 1:1 bog'lanmagan).
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
                                                     <th>Buyurtma</th>
                                                     <th>Mahsulot</th>
-                                                    <th>Qoldiq</th>
+                                                    <th class="text-right">Reja</th>
+                                                    <th class="text-right">Fakt</th>
+                                                    <th class="text-right">Qoldiq</th>
+                                                    <th>Izoh</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -219,7 +239,10 @@
                                                     <tr>
                                                         <td>@bottleneck.OrderNo</td>
                                                         <td>@bottleneck.ProductNo</td>
-                                                        <td><strong>@bottleneck.RemainingQty.ToString("N3")</strong></td>
+                                                        <td class="text-right">@bottleneck.OrderedQty.ToString("N3")</td>
+                                                        <td class="text-right">@bottleneck.ProducedQty.ToString("N3")</td>
+                                                        <td class="text-right"><strong>@bottleneck.RemainingQty.ToString("N3")</strong></td>
+                                                        <td>@bottleneck.Note</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -236,21 +259,25 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        var planVsLabels = @Html.Raw(Json.Encode(Model.DailyPlanVsActual.Select(d => d.Date.ToString("dd.MM")).ToList()));
+        var planVsPlanned = @Html.Raw(Json.Encode(Model.DailyPlanVsActual.Select(d => d.Planned).ToList()));
+        var planVsActual = @Html.Raw(Json.Encode(Model.DailyPlanVsActual.Select(d => d.Actual).ToList()));
+
         // Plan vs Actual Chart
         var planVsActualCtx = document.getElementById('planVsActualChart').getContext('2d');
         var planVsActualChart = new Chart(planVsActualCtx, {
             type: 'line',
             data: {
-                labels: [@Html.Raw(string.Join(",", Model.DailyPlanVsActual.Select(d => $"'{d.Date:dd.MM}'")))],
+                labels: planVsLabels,
                 datasets: [{
                     label: 'Reja',
-                    data: [@string.Join(",", Model.DailyPlanVsActual.Select(d => d.Planned))],
+                    data: planVsPlanned,
                     borderColor: 'rgb(75, 192, 192)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     tension: 0.1
                 }, {
                     label: 'Fakt',
-                    data: [@string.Join(",", Model.DailyPlanVsActual.Select(d => d.Actual))],
+                    data: planVsActual,
                     borderColor: 'rgb(255, 99, 132)',
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     tension: 0.1
@@ -267,15 +294,18 @@
             }
         });
 
+        var shopLabels = @Html.Raw(Json.Encode(Model.ProductionByShop.Select(s => s.ShopName).ToList()));
+        var shopTotals = @Html.Raw(Json.Encode(Model.ProductionByShop.Select(s => s.TotalProduction).ToList()));
+
         // Production by Shop Chart
         var productionByShopCtx = document.getElementById('productionByShopChart').getContext('2d');
         var productionByShopChart = new Chart(productionByShopCtx, {
             type: 'bar',
             data: {
-                labels: [@Html.Raw(string.Join(",", Model.ProductionByShop.Select(s => $"'{s.ShopName}'")))],
+                labels: shopLabels,
                 datasets: [{
                     label: 'Ishlab chiqarish',
-                    data: [@string.Join(",", Model.ProductionByShop.Select(s => s.TotalProduction))],
+                    data: shopTotals,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
@@ -300,6 +330,56 @@
                     y: {
                         beginAtZero: true
                     }
+                }
+            }
+        });
+
+        // Quality Qty doughnut
+        var qualityQtyCtx = document.getElementById('qualityQtyChart').getContext('2d');
+        var qualityQtyChart = new Chart(qualityQtyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Qabul', 'Brak'],
+                datasets: [{
+                    data: @Html.Raw(Json.Encode(new[] { Model.TotalAcceptedQty, Model.TotalRejectedQty })),
+                    backgroundColor: ['rgba(40, 199, 111, 0.25)', 'rgba(234, 84, 85, 0.25)'],
+                    borderColor: ['rgba(40, 199, 111, 1)', 'rgba(234, 84, 85, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Top-3 defects chart
+        var defectLabels = @Html.Raw(Json.Encode((Model.TopDefects ?? new List<tahsinERP.ViewModels.TopDefectData>()).Select(d => d.DefectName).ToList()));
+        var defectValues = @Html.Raw(Json.Encode((Model.TopDefects ?? new List<tahsinERP.ViewModels.TopDefectData>()).Select(d => d.RejectedQty).ToList()));
+        var topDefectsCtx = document.getElementById('topDefectsChart').getContext('2d');
+        var topDefectsChart = new Chart(topDefectsCtx, {
+            type: 'bar',
+            data: {
+                labels: defectLabels,
+                datasets: [{
+                    label: 'Top-3 nuqson (brak miqdor)',
+                    data: defectValues,
+                    backgroundColor: 'rgba(234, 84, 85, 0.25)',
+                    borderColor: 'rgba(234, 84, 85, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
                 }
             }
         });

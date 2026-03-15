@@ -18,6 +18,8 @@ namespace tahsinERP.ViewModels.HR
         public int TenureYears { get; set; }
         public int TenureMonths { get; set; }
         public int TenureDays { get; set; }
+        /// <summary>Hozirgi lavozim qatori bo'lsa true (Ishdan chiqqan sana "shu kungacha" ko'rsatiladi).</summary>
+        public bool IsCurrentRow { get; set; }
     }
 }
 

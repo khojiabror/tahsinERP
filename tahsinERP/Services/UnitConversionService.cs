@@ -280,5 +280,51 @@ namespace tahsinERP.Services
             decimal pieceQuantity = kgQuantity / (decimal)product.Weight.Value;
             return pieceQuantity;
         }
+
+        /// <summary>
+        /// Converts quantity from one unit to another for a product (e.g. dona -> kg, kg -> dona).
+        /// Uses product Weight for piece &lt;-&gt; kg. If units are the same or conversion is not supported, returns quantity unchanged.
+        /// </summary>
+        /// <param name="productId">Product ID (for Weight when converting dona &lt;-&gt; kg)</param>
+        /// <param name="quantity">Quantity in source unit</param>
+        /// <param name="fromUnitId">Source unit ID</param>
+        /// <param name="toUnitId">Target unit ID (e.g. ombor qoldig'i birligi)</param>
+        /// <returns>Quantity in target unit</returns>
+        public async Task<decimal> ConvertToUnitAsync(int productId, decimal quantity, int fromUnitId, int toUnitId)
+        {
+            if (fromUnitId == toUnitId)
+                return quantity;
+
+            var fromUnit = await _db.UNITS.FindAsync(fromUnitId);
+            var toUnit = await _db.UNITS.FindAsync(toUnitId);
+            if (fromUnit == null || toUnit == null)
+                return quantity;
+
+            var fromIsKg = IsKgUnit(fromUnit);
+            var toIsKg = IsKgUnit(toUnit);
+            var fromIsDona = IsDonaUnit(fromUnit);
+            var toIsDona = IsDonaUnit(toUnit);
+
+            if (fromIsKg && toIsDona)
+                return await ConvertKgToPieceAsync(productId, quantity);
+            if (fromIsDona && toIsKg)
+                return await ConvertPieceToKgAsync(productId, quantity);
+
+            return quantity;
+        }
+
+        private static bool IsKgUnit(UNIT u)
+        {
+            if (u == null) return false;
+            var s = ((u.ShortName ?? "") + " " + (u.UnitName ?? "")).ToLowerInvariant();
+            return s.IndexOf("kg", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsDonaUnit(UNIT u)
+        {
+            if (u == null) return false;
+            var s = ((u.ShortName ?? "") + " " + (u.UnitName ?? "")).ToLowerInvariant();
+            return s.IndexOf("dona", StringComparison.OrdinalIgnoreCase) >= 0 || s.IndexOf("pc", StringComparison.OrdinalIgnoreCase) >= 0 || s.IndexOf("pcs", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
     }
 }

@@ -480,8 +480,10 @@
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
+    <Compile Include="Controllers\CRM\CRMDashboardController.cs" />
     <Compile Include="Controllers\CRM\CustomerBaseController.cs" />
     <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
+    <Compile Include="Controllers\CRM\SalesReportsController.cs" />
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
     <Compile Include="Controllers\Engineering\NormController.cs" />
@@ -512,6 +514,7 @@
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
     <Compile Include="Controllers\MES\DailyPlanUpdateItem.cs" />
     <Compile Include="Controllers\MES\MESDashboardController.cs" />
+    <Compile Include="Controllers\MES\MESReportsController.cs" />
     <Compile Include="Controllers\MES\ProductProductionController.cs" />
     <Compile Include="Controllers\MES\QualityInspectionController.cs" />
     <Compile Include="Controllers\OfficialLettersController.cs" />
@@ -1004,6 +1007,7 @@
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
+    <Compile Include="Services\WarehouseMonthlyReportService.cs" />
     <Compile Include="Services\WasteHandlingService.cs" />
     <Compile Include="Services\WordDocumentConverterService.cs" />
     <Compile Include="Services\WordDocumentImageService.cs" />
@@ -1013,6 +1017,7 @@
     <Compile Include="ViewModels\CompanyOrderCreateVm.cs" />
     <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
     <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
+    <Compile Include="ViewModels\CRMDashboardViewModel.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
@@ -1036,6 +1041,7 @@
     <Compile Include="ViewModels\IncomingLetterRegisterVm.cs" />
     <Compile Include="ViewModels\JobDescViewModel.cs" />
     <Compile Include="ViewModels\MESDashboardViewModel.cs" />
+    <Compile Include="ViewModels\MESReportViewModels.cs" />
     <Compile Include="ViewModels\NormLineViewModel.cs" />
     <Compile Include="ViewModels\OfficialLetterCreateVm.cs" />
     <Compile Include="ViewModels\OfficialLetterEditVm.cs" />
@@ -1053,8 +1059,11 @@
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\QualityInspectionViewModel.cs" />
     <Compile Include="ViewModels\ReconciliationViewModel.cs" />
+    <Compile Include="ViewModels\Reports\SRMABCSegmentationViewModel.cs" />
+    <Compile Include="ViewModels\Reports\SRMCoverageViewModel.cs" />
+    <Compile Include="ViewModels\Reports\SRMSafetyStockViewModel.cs" />
+    <Compile Include="ViewModels\SalesReportViewModels.cs" />
     <Compile Include="ViewModels\SRMDashboardViewModel.cs" />
-    <Compile Include="ViewModels\Reports\ReportViewModel.cs" />
     <Compile Include="ViewModels\SOrderViewModel.cs" />
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
     <Compile Include="ViewModels\PartIndexViewModel.cs" />
@@ -1080,6 +1089,7 @@
     <Compile Include="ViewModels\TransportSelectItem.cs" />
     <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
+    <Compile Include="ViewModels\WarehouseMonthlyReportViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
     <Compile Include="ViewModels\WaybillPaymentLinkedWaybillViewModel.cs" />
     <Compile Include="ViewModels\WaybillIndexItemViewModel.cs" />
@@ -2759,6 +2769,7 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\error-pages.css" />
     <Content Include="Content\flatpickr.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
@@ -3000,8 +3011,6 @@
     <Content Include="Views\DamagedProduct\Details.cshtml" />
     <Content Include="Views\PartStock\Index.cshtml" />
     <Content Include="Views\Log\Index.cshtml" />
-    <Content Include="Views\Reports\InTransit.cshtml" />
-    <Content Include="Views\Reports\PartRequirement.cshtml" />
     <Content Include="Views\Reports\Coverage.cshtml" />
     <Content Include="Views\Manual\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
@@ -3228,7 +3237,6 @@
     <Content Include="Views\Warehouse\Details.cshtml" />
     <Content Include="Views\Warehouse\Edit.cshtml" />
     <Content Include="Views\Warehouse\Index.cshtml" />
-    <Content Include="Services\MaterialConsumptionService_README.md" />
     <Content Include="Views\OfficialLetters\RegisterIncoming.cshtml" />
     <Content Include="Views\TaskKanban\Index.cshtml" />
     <Content Include="Views\Tannarx\Delete.cshtml" />
@@ -3287,6 +3295,18 @@
     <Content Include="Views\CustomerBase\Index.cshtml" />
     <Content Include="Views\FinDashboard\LiabilitiesDashboard.cshtml" />
     <Content Include="Views\DeletedRecords\Index.cshtml" />
+    <Content Include="Views\SalesInvoices\Print.cshtml" />
+    <Content Include="Views\PModule\MissingControllers.cshtml" />
+    <Content Include="Views\Reports\SafetyStock.cshtml" />
+    <Content Include="Views\Reports\ABCSegmentation.cshtml" />
+    <Content Include="Views\CRMDashboard\Index.cshtml" />
+    <Content Include="Views\MESReports\ProductionMonthly.cshtml" />
+    <Content Include="Views\MESReports\QualityMonthly.cshtml" />
+    <Content Include="Views\SalesReports\Index.cshtml" />
+    <Content Include="Views\SalesReports\MonthlyReport.cshtml" />
+    <Content Include="Views\SalesReports\SalesByCustomer.cshtml" />
+    <Content Include="Views\SalesReports\SalesByProduct.cshtml" />
+    <Content Include="Views\InventoryReports\MonthlyReport.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

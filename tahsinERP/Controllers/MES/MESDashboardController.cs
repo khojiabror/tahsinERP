@@ -147,14 +147,40 @@ namespace tahsinERP.Controllers.MES
 
                 // Quality Summary
                 var qualityInspections = await db.QUALITY_INSPECTION
+                    .Include(q => q.DEFECT_TYPES)
                     .Where(q => q.IsDeleted == false && q.InspectionDate >= startDate && q.InspectionDate <= endDate)
                     .ToListAsync();
 
                 viewModel.TotalInspections = qualityInspections.Count;
                 viewModel.ApprovedInspections = qualityInspections.Count(q => q.StatusCode == "APPROVED");
-                viewModel.RejectedInspections = qualityInspections.Count(q => q.StatusCode == "REJECTED");
+                // NOTE: amalda ko'p holatda tekshiruv APPROVED bo'lib turib ham QtyRejected > 0 (qisman brak) bo'lishi mumkin.
+                // Shuning uchun "RejectedInspections" ni brak chiqqan tekshiruvlar soni sifatida hisoblaymiz.
+                viewModel.RejectedInspections = qualityInspections.Count(q => q.QtyRejected > 0 || q.StatusCode == "REJECTED");
                 viewModel.TotalAcceptedQty = (double)(qualityInspections.Sum(q => (decimal?)q.QtyAccepted) ?? 0);
                 viewModel.TotalRejectedQty = (double)(qualityInspections.Sum(q => (decimal?)q.QtyRejected) ?? 0);
+                var totalInspectedQty = viewModel.TotalAcceptedQty + viewModel.TotalRejectedQty;
+                viewModel.FTQPercent = totalInspectedQty > 0
+                    ? (double?)Math.Round((viewModel.TotalAcceptedQty / totalInspectedQty) * 100, 1)
+                    : null;
+
+                viewModel.TopDefects = qualityInspections
+                    .Where(q => q.QtyRejected > 0 && q.DefectTypeID.HasValue)
+                    .GroupBy(q => new
+                    {
+                        q.DefectTypeID,
+                        DefectName = (q.DEFECT_TYPES != null ? q.DEFECT_TYPES.DefectType : null)
+                    })
+                    .Select(g => new TopDefectData
+                    {
+                        DefectTypeID = g.Key.DefectTypeID,
+                        DefectName = string.IsNullOrWhiteSpace(g.Key.DefectName) ? ("Nuqson #" + g.Key.DefectTypeID) : g.Key.DefectName,
+                        RejectedQty = (double)g.Sum(x => x.QtyRejected),
+                        InspectionCount = g.Count()
+                    })
+                    .OrderByDescending(x => x.RejectedQty)
+                    .ThenByDescending(x => x.InspectionCount)
+                    .Take(3)
+                    .ToList();
 
                 // Order Bottlenecks (remaining qty ga fulfill)
                 var orders = await db.S_ORDERS
@@ -188,6 +214,22 @@ namespace tahsinERP.Controllers.MES
                         if (remainingQty > 0)
                         {
                             var product = await db.PRODUCTS.FindAsync(orderProduct.ProductID);
+                            var needToProduce = Math.Max(0, remainingQty - producedQty);
+                            var needToInspect = Math.Max(0, remainingQty - inspectedQty);
+                            string note;
+                            if (needToProduce > 0)
+                            {
+                                note = $"Ishlab chiqarish kerak: {needToProduce:N3}";
+                            }
+                            else if (needToInspect > 0)
+                            {
+                                note = $"Sifat nazoratdan o'tkazish kerak: {needToInspect:N3}";
+                            }
+                            else
+                            {
+                                note = $"Sotuv hujjatini qilish / jo'natish mumkin: {remainingQty:N3}";
+                            }
+
                             bottlenecks.Add(new OrderBottleneck
                             {
                                 OrderID = order.ID,
@@ -198,7 +240,8 @@ namespace tahsinERP.Controllers.MES
                                 ProducedQty = producedQty,
                                 InspectedQty = inspectedQty,
                                 InvoicedQty = invoicedQty,
-                                RemainingQty = remainingQty
+                                RemainingQty = remainingQty,
+                                Note = note
                             });
                         }
                     }

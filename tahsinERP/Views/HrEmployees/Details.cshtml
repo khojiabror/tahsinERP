@@ -90,7 +90,7 @@
                                                         <td>@(item.FromOrgUnitName ?? "-")</td>
                                                         <td>@(item.FromPositionName ?? "-")</td>
                                                         <td>@(item.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
-                                                        <td>@(item.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                        <td>@(item.IsCurrentRow ? "shu kungacha" : (item.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-"))</td>
                                                         <td>@(item.Reason ?? "-")</td>
                                                     </tr>
                                                 }
@@ -143,7 +143,7 @@
                         }
                     },
                     "pageLength": 10,
-                    "order": [[5, "desc"]]
+                    "order": [[2, "asc"], [3, "asc"]]
                 });
             }
         });

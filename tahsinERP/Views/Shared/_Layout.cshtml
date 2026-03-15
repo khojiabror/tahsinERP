@@ -1037,6 +1037,10 @@
                             {
                                 <li><a href="~/TannarxAnalytics/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Tannarx Dashboard</span></a></li>
                             }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") || RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") || RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") || RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+                            {
+                                <li><a href="~/CRMDashboard"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-item">CRM Dashboard</span></a></li>
+                            }
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "LogisticsDashboard") || RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder"))
                             {
                                 <li><a href="~/LogisticsDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Logistika Dashboard</span></a></li>
@@ -1049,13 +1053,17 @@
                             {
                                 <li><a href="~/MESDashboard/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">MES Dashboard</span></a></li>
                             }
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
+                            {
+                                <li><a href="~/SRMDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">SRM Dashboard</span></a></li>
+                            }
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
                             {
                                 <li><a href="~/InventoryReports/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ombor Dashboard</span></a></li>
                             }
                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "TaskDashboard"))
                             {
-                                <li><a href="~/TaskDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Task Dashboard</span></a></li>
+                                <li><a href="~/TaskDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Vazifalar Dashboard</span></a></li>
                             }
                         </ul>
                     </li>
@@ -1079,7 +1087,10 @@
                             <li class="nav-item">
                                 <a href="#"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Hisobotlar</span></a>
                                 <ul class="menu-content">
-                                    <li><a href="~/SRMDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">SRM Hisobotlar</span></a></li>
+                                    <li><a href="~/SRMDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">SRM Dashboard</span></a></li>
+                                    <li><a href="~/Reports/Coverage"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Coverage</span></a></li>
+                                    <li><a href="~/Reports/ABCSegmentation"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">ABC / XYZ </span></a></li>
+                                    <li><a href="~/Reports/SafetyStock"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xavfsiz zahira</span></a></li>
                                 </ul>
                             </li>
                         }
@@ -1212,6 +1223,7 @@
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports"))
                                 {
                                     <li><a href="~/InventoryReports/Dashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">DOH Dashboard</span></a></li>
+                                    <li><a href="~/InventoryReports/MonthlyReport"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Oylik hisobot</span></a></li>
                                 }
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Warehouse"))
                                 {
@@ -1411,6 +1423,18 @@
                                 {
                                     <li><a href="~/DefectType/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Nuqson turlari</span></a></li>
                                 }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") || RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction") || RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection"))
+                                {
+                                    <li class="navigation-header"><span>Oylik hisobotlar</span></li>
+                                    if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") || RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction"))
+                                    {
+                                        <li><a href="~/MESReports/ProductionMonthly"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Ishlab chiqarish oylik</span></a></li>
+                                    }
+                                    if (RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection"))
+                                    {
+                                        <li><a href="~/MESReports/QualityMonthly"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Sifat oylik</span></a></li>
+                                    }
+                                }
                             </ul>
                         </li>
                     }
@@ -1431,6 +1455,10 @@
                         <li class="nav-item">
                             <a href="#"><i class="bx bxs-user-detail"></i><span class="menu-title">Sotuvlar</span></a>
                             <ul class="menu-content">
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") || RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") || RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") || RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+                                {
+                                    <li><a href="~/CRMDashboard"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-item">CRM Dashboard</span></a></li>
+                                }
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Customer"))
                                 {
                                     <li><a href="~/Customer/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xaridorlar</span></a></li>
@@ -1447,6 +1475,18 @@
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
                                 {
                                     <li><a href="~/SalesInvoices/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Invoyslar</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesReports") || RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") || RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+                                {
+                                    <li>
+                                        <a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisobotlar</span></a>
+                                        <ul class="menu-content">
+                                            <li><a href="~/SalesReports"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Barcha hisobotlar</span></a></li>
+                                            <li><a href="~/SalesReports/MonthlyReport"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Oylik savdo hisoboti</span></a></li>
+                                            <li><a href="~/SalesReports/SalesByCustomer"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Mijoz bo'yicha sotuv</span></a></li>
+                                            <li><a href="~/SalesReports/SalesByProduct"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Mahsulot bo'yicha sotuv</span></a></li>
+                                        </ul>
+                                    </li>
                                 }
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SalesSF"))
                                 {

@@ -478,6 +478,19 @@ namespace tahsinERP.Controllers
                 if (orderID.HasValue)
                 {
                     invoice.OrderID = orderID.Value;
+                    var order = db.S_ORDERS
+                        .Include(o => o.CUSTOMER)
+                        .Include(o => o.S_CONTRACTS)
+                        .Include(o => o.CURRENCy1)
+                        .FirstOrDefault(o => o.ID == orderID.Value && (o.IsDeleted == false || o.IsDeleted == null));
+                    if (order != null)
+                    {
+                        invoice.CustomerID = order.CustomerID;
+                        invoice.ContractID = order.ContractID;
+                        invoice.CurrencyCode = order.CURRENCy1?.Shortname ?? "UZS";
+                        customerID = order.CustomerID;
+                        contractID = order.ContractID;
+                    }
                 }
 
                 if (contractID.HasValue)
@@ -553,6 +566,29 @@ namespace tahsinERP.Controllers
                     .Select(o => new { ID = o.ID, OrderNo = o.OrderNo })
                     .ToList();
                 return Json(orders, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // AJAX: Buyurtma mahsulotlari — Create formda buyurtma bo'yicha qatorlarni to'ldirish uchun
+        [HttpGet]
+        public ActionResult GetOrderProductsForInvoice(int orderId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                var lines = db.S_ORDER_PRODUCTS
+                    .Include(op => op.PRODUCT)
+                    .Include(op => op.UNIT)
+                    .Where(op => op.OrderID == orderId)
+                    .Select(op => new
+                    {
+                        ProductID = op.ProductID,
+                        ProductName = op.PRODUCT != null ? op.PRODUCT.Name : "",
+                        PNo = op.PRODUCT != null ? op.PRODUCT.PNo : "",
+                        Qty = op.Amount,
+                        UnitPrice = op.Price
+                    })
+                    .ToList();
+                return Json(lines, JsonRequestBehavior.AllowGet);
             }
         }
 

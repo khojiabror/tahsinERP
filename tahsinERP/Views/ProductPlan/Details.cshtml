@@ -1,4 +1,5 @@
 @model tahsinERP.ViewModels.ProductPlanViewModel
+@using System.Web.Helpers
 @{
     ViewBag.Title = "Ishlab Chiqarish Rejasi Ma'lumotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -128,40 +129,60 @@
     {
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
         <script>
-            $(document).ready(function() {
-                // Plan vs Actual Chart
-                var ctx = document.getElementById('planVsActualChart').getContext('2d');
-                var chartData = {
-                    labels: [@Html.Raw(string.Join(",", Model.DailyPlans.Select(d => $"'{d.Day:dd.MM}'")))],
-                    datasets: [{
-                        label: 'Reja',
-                        data: [@string.Join(",", Model.DailyPlans.Select(d => d.Total))],
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.1
-                    }, {
-                        label: 'Fakt',
-                        data: [@string.Join(",", Model.DailyPlans.Select(d => d.ActualTotal.HasValue ? d.ActualTotal.Value.ToString() : "0"))],
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        tension: 0.1
-                    }]
-                };
+            (function() {
+                function initPlanVsActualChart() {
+                    var canvas = document.getElementById('planVsActualChart');
+                    if (!canvas || typeof Chart === 'undefined') {
+                        return;
+                    }
 
-                var planVsActualChart = new Chart(ctx, {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                    var ctx = canvas.getContext('2d');
+                    var labels = @Html.Raw(Json.Encode(Model.DailyPlans.Select(d => d.Day.ToString("dd.MM")).ToList()));
+                    var planData = @Html.Raw(Json.Encode(Model.DailyPlans.Select(d => d.Total).ToList()));
+                    var actualData = @Html.Raw(Json.Encode(Model.DailyPlans.Select(d => d.ActualTotal ?? 0).ToList()));
+
+                    var chartData = {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Reja',
+                            data: planData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }, {
+                            label: 'Fakt',
+                            data: actualData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1
+                        }]
+                    };
+
+                    if (window.planVsActualChart) {
+                        window.planVsActualChart.destroy();
+                    }
+
+                    window.planVsActualChart = new Chart(ctx, {
+                        type: 'line',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
                             }
                         }
-                    }
-                });
-            });
+                    });
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initPlanVsActualChart);
+                } else {
+                    initPlanVsActualChart();
+                }
+            })();
         </script>
     }
 }

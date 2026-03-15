@@ -76,7 +76,7 @@
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>Mahsulot</label>
-                                                    @Html.DropDownList("productID", ViewBag.Products as SelectList, "Barchasi", new { @class = "form-control" })
+                                                    @Html.DropDownList("productID", ViewBag.Products as SelectList, "Barchasi", new { @class = "form-control select2" })
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>&nbsp;</label>
@@ -140,6 +140,11 @@
     @section Scripts {
         <script>
             $(document).ready(function () {
+                $('.select2').select2({
+                    placeholder: "Barchasi",
+                    allowClear: true
+                });
+
                 $('#productionTable').DataTable({
                     "language": {
                         "search": "Qidirish:",

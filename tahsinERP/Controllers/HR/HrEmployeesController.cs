@@ -179,7 +179,6 @@ namespace tahsinERP.Controllers.HR
                 .Include(h => h.HR_ORG_UNITS)
                 .Include(h => h.HR_POSITIONS)
                 .Where(h => h.EmployeeID == id.Value)
-                .OrderBy(h => h.EffectiveDateFrom)
                 .ToListAsync();
 
             foreach (var h in historyRecords)
@@ -211,7 +210,29 @@ namespace tahsinERP.Controllers.HR
                     FromPositionName = h.HR_POSITIONS?.Name ?? "-",
                     EffectiveDate = effectiveDateFrom,
                     EffectiveDateTo = effectiveDateTo,
-                    Reason = h.Reason ?? "-"
+                    Reason = h.Reason ?? "-",
+                    IsCurrentRow = false
+                });
+            }
+
+            // fromDate va toDate bo'yicha ascending tartibda saralash (toDate null bo'lsa oxirida)
+            historyList = historyList
+                .OrderBy(x => x.EffectiveDate)
+                .ThenBy(x => x.EffectiveDateTo ?? DateTime.MaxValue)
+                .ToList();
+
+            // Hozirgi lavozimni tarixga qo'shish (oxirgi qator, toDate "shu kungacha") — faqat ishdan ketmagan xodim uchun
+            if (employee.DismissalDate == null && employee.EmploymentDate.HasValue &&
+                (employee.OrgUnitID.HasValue || employee.PositionID.HasValue))
+            {
+                historyList.Add(new HrEmployeeHistoryViewModel
+                {
+                    FromOrgUnitName = employee.HR_ORG_UNITS?.Name ?? "-",
+                    FromPositionName = employee.HR_POSITIONS?.Name ?? "-",
+                    EffectiveDate = employee.EmploymentDate,
+                    EffectiveDateTo = null,
+                    Reason = "-",
+                    IsCurrentRow = true
                 });
             }
             
@@ -672,11 +693,35 @@ namespace tahsinERP.Controllers.HR
             ViewBag.ToOrgUnitID = new SelectList(
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name");
-            ViewBag.ToPositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name");
+            // Lavozimlar bo'lim tanlangach AJAX orqali yuklanadi; boshida bo'sh
+            ViewBag.ToPositionID = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
 
             return View();
+        }
+
+        /// <summary>
+        /// Tanlangan bo'lim uchun faqat shu bo'limdagi lavozimlarni qaytaradi (HR_STAFFING_PLAN orqali).
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult> GetPositionsByOrgUnit(int orgUnitId)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrEmployees"))
+            {
+                return new HttpStatusCodeResult(403);
+            }
+            var positionIds = await db.HR_STAFFING_PLAN
+                .Where(sp => sp.OrgUnitID == orgUnitId && sp.IsActive
+                    && (sp.EffectiveTo == null || sp.EffectiveTo >= DateTime.Today)
+                    && (sp.IsDeleted != true))
+                .Select(sp => sp.PositionID)
+                .Distinct()
+                .ToListAsync();
+            var positions = await db.HR_POSITIONS
+                .Where(p => positionIds.Contains(p.ID) && p.IsActive)
+                .OrderBy(p => p.Name)
+                .Select(p => new { id = p.ID, name = p.Name })
+                .ToListAsync();
+            return Json(positions, JsonRequestBehavior.AllowGet);
         }
 
         // POST so'rovi: HR/Employees/Transfer/5
@@ -708,6 +753,17 @@ namespace tahsinERP.Controllers.HR
             if (employee.OrgUnitID == toOrgUnitId && employee.PositionID == toPositionId)
             {
                 TempData["Error"] = "Xodim allaqachon ushbu bo'lim va lavozimda";
+                return RedirectToAction("Transfer", new { id });
+            }
+
+            // Tanlangan lavozim shu bo'limda mavjud ekanligini tekshirish (HR_STAFFING_PLAN)
+            var positionInOrg = await db.HR_STAFFING_PLAN
+                .AnyAsync(sp => sp.OrgUnitID == toOrgUnitId && sp.PositionID == toPositionId && sp.IsActive
+                    && (sp.IsDeleted != true)
+                    && (sp.EffectiveTo == null || sp.EffectiveTo >= DateTime.Today));
+            if (!positionInOrg)
+            {
+                TempData["Error"] = "Tanlangan lavozim ushbu bo'lim uchun reja qilinmagan. Iltimos, faqat tanlangan bo'limdagi lavozimlardan birini tanlang.";
                 return RedirectToAction("Transfer", new { id });
             }
 

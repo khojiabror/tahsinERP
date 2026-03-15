@@ -51,7 +51,7 @@ namespace tahsinERP.Controllers.MES
                     .ToListAsync();
 
                 ViewBag.Shops = new SelectList(await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), "ID", "ShopName", shopID);
-                ViewBag.Products = new SelectList(await db.PRODUCTS.Where(p => p.IsDeleted == false).ToListAsync(), "ID", "PNo", productID);
+                ViewBag.Products = new SelectList(await db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToListAsync(), "ID", "PNo", productID);
                 ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
                 ViewBag.ToDate = toDate ?? DateTime.Now;
 
@@ -100,6 +100,7 @@ namespace tahsinERP.Controllers.MES
 
                         foreach (var item in viewModel.ProductionItems.Where(i => i.Total > 0))
                         {
+                            var productForLog = db.PRODUCTS.Find(item.ProductID);
                             // Tekshirish agar production already mavjud uchun this date/product/shop
                             var existing = allProductionsForDate
                                 .FirstOrDefault(p => p.Date.Date == dateOnly 
@@ -128,6 +129,9 @@ namespace tahsinERP.Controllers.MES
                                     Comment = item.Comment
                                 };
                                 db.PRODUCT_PRODUCTION.Add(production);
+                                // ID olish uchun saqlash (xomashyo chiqimni ProductionID bilan bog'lash uchun)
+                                db.SaveChanges();
+                                existing = production;
                             }
 
                             // Yangilash warehouse uchun finished goods (Production WH) without Income doc
@@ -144,13 +148,15 @@ namespace tahsinERP.Controllers.MES
                                 );
 
                                 // Consume raw materials dan Supply warehouse bilan BOM/NORM calculation
-                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, db);
+                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, db, existing?.ID, existing?.Date);
                             }
+
+                            if (productForLog != null)
+                                LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController",
+                                    $"{productForLog.PNo} uchun {item.Total} dona ishlab chiqarish kiritildi: {viewModel.Date:yyyy-MM-dd}");
                         }
 
                         db.SaveChanges();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish kiritildi: {viewModel.Date:yyyy-MM-dd}, Sex: {viewModel.ShopID}");
 
                         TempData["Success"] = "Ishlab chiqarish muvaffaqiyatli saqlandi";
                         return RedirectToAction("Index");
@@ -308,7 +314,7 @@ namespace tahsinERP.Controllers.MES
                         );
 
                         // Consume materials uchun new production
-                        await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, db);
+                        await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, db, viewModel.ID, viewModel.Date);
                     }
 
                     db.Entry(production).State = EntityState.Modified;
@@ -365,10 +371,21 @@ namespace tahsinERP.Controllers.MES
                 var productIdSuffix = "-" + production.ProductID;
                 var prodIdStr = "Mahsulot ID " + production.ProductID;
                 var newFormatSuffix = "_" + productPNo + "_" + production.Total;
+                var productionDateStr = production.Date.ToString("dd.MM.yyyy");
                 var searchStart = production.Date.Date.AddDays(-30);
                 var searchEnd = production.Date.Date.AddDays(31);
 
-                // 1) Sana oralig'ida barcha chiqimlarni yuklash (chiqim saqlangan sana production.Date dan farq qilishi mumkin)
+                // 0) Avval ProductionID marker bilan aniq topish (yangi yozuvlar uchun)
+                var prodMarker = "ProductionID:" + production.ID;
+                var expensesByProdId = await db.EXPENSES
+                    .Where(e => e.IsDeleted == false
+                        && e.Description != null
+                        && e.Description.Contains(prodMarker))
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .OrderByDescending(e => e.IssueDateTime)
+                    .ToListAsync();
+
+                // 1) Sana oralig'ida barcha chiqimlarni yuklash (fallback: eski yozuvlar uchun)
                 var expensesInRange = await db.EXPENSES
                     .Where(e => e.IsDeleted == false
                         && e.IssueDateTime >= searchStart
@@ -377,13 +394,29 @@ namespace tahsinERP.Controllers.MES
                     .OrderByDescending(e => e.IssueDateTime)
                     .ToListAsync();
 
+                // 1b) Izohda ishlab chiqarish sanasi va "kunlik reja asosida" bor chiqimlar (boshqa sana yaratilgan bo'lsa ham)
+                var expensesByDescDate = await db.EXPENSES
+                    .Where(e => e.IsDeleted == false
+                        && e.Description != null
+                        && e.Description.Contains(productionDateStr)
+                        && e.Description.Contains("kunlik reja asosida")
+                        && e.Description.Contains(productPNo))
+                    .Include(e => e.EXPENSE_PRODUCTS)
+                    .OrderByDescending(e => e.IssueDateTime)
+                    .ToListAsync();
+
                 // 2) Faqat ushbu mahsulotga tegishli BOM chiqimlari (DocNo yoki Description orqali)
-                var expenses = expensesInRange.Where(e =>
+                var fallbackFilter = new Func<EXPENS, bool>(e =>
                     (e.DocNo != null && e.DocNo.StartsWith("BOM-") && e.DocNo.EndsWith(productIdSuffix))
                     || (e.DocNo != null && e.DocNo.EndsWith(newFormatSuffix))
                     || (e.Description != null && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi") && e.Description.Contains(prodIdStr))
                     || (e.Description != null && e.Description.Contains("Ishlab chiqarish uchun xomashyo chiqimi") && e.Description.Contains(productPNo) && e.Description.Contains("Miqdor " + production.Total))
-                ).ToList();
+                    || (e.Description != null && e.Description.Contains(productionDateStr) && e.Description.Contains("kunlik reja asosida") && e.Description.Contains(productPNo)));
+                var expensesInRangeFiltered = expensesInRange.Where(fallbackFilter).ToList();
+                var expensesByDescDateFiltered = expensesByDescDate.Where(e => !expensesInRangeFiltered.Any(x => x.ID == e.ID)).ToList();
+                var expenses = expensesByProdId.Any()
+                    ? expensesByProdId
+                    : expensesInRangeFiltered.Union(expensesByDescDateFiltered).OrderByDescending(e => e.IssueDateTime).ToList();
 
                 // Chiqim hujjatlaridan material bo'yicha narx/summa (birinchi chiqimdan)
                 var materialPrices = new Dictionary<int, Tuple<double, double>>();
@@ -553,7 +586,7 @@ namespace tahsinERP.Controllers.MES
         /// Consumes materials dan Production warehouse when production is confirmed.
         /// uchun weight-based materials (e.g. shurup) BOM dona is converted ga kg va deducted dan stock.
         /// </summary>
-        private async Task ConsumeMaterialsForProduction(int productId, double producedQty, DBTHSNEntities db)
+        private async Task ConsumeMaterialsForProduction(int productId, double producedQty, DBTHSNEntities db, int? productionId = null, DateTime? productionDate = null)
         {
             var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
             if (productionWarehouse == null)
@@ -563,7 +596,7 @@ namespace tahsinERP.Controllers.MES
 
             var consumptionService = new ProductionConsumptionService(db);
             await consumptionService.ConsumeMaterialsForProductionAsync(
-                productId, producedQty, productionWarehouse.ID);
+                productId, producedQty, productionWarehouse.ID, productionId, productionDate);
         }
 
         /// <summary>

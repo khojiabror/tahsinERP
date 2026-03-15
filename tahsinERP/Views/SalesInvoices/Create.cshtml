@@ -61,7 +61,16 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>Invoys sanasi *</label>
-                                                        @Html.TextBoxFor(m => m.InvoiceDate, new { @class = "form-control", type = "date", required = "required", Value = Model.InvoiceDate.ToString("yyyy-MM-dd") })
+                                                        @Html.TextBoxFor(
+                                                            m => m.InvoiceDate,
+                                                            new
+                                                            {
+                                                                @class = "form-control",
+                                                                type = "date",
+                                                                required = "required",
+                                                                Value = Model.InvoiceDate.ToString("yyyy-MM-dd"),
+                                                                max = DateTime.Now.ToString("yyyy-MM-dd")
+                                                            })
                                                         @Html.ValidationMessageFor(m => m.InvoiceDate, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
@@ -188,8 +197,10 @@
                 contracts: '@Url.Action("GetContractsByCustomer", "SalesInvoices")',
                 orders: '@Url.Action("GetOrdersByContract", "SalesInvoices")',
                 price: '@Url.Action("GetContractPriceForProduct", "SalesInvoices")',
-                currency: '@Url.Action("GetContractCurrency", "SalesInvoices")'
+                currency: '@Url.Action("GetContractCurrency", "SalesInvoices")',
+                orderProducts: '@Url.Action("GetOrderProductsForInvoice", "SalesInvoices")'
             };
+            var initialOrderId = @(Model.OrderID.HasValue ? Model.OrderID.Value : 0);
 
             function init() {
                 var lineIndex = 1;
@@ -430,6 +441,39 @@
                 buildStockMap();
                 var firstRow = document.querySelector('#invoiceLinesTable tbody tr:first-child');
                 updateStockHint(firstRow);
+
+                if (initialOrderId) {
+                    fetch(urls.orderProducts + '?orderId=' + initialOrderId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (!data || data.length === 0) return;
+                            var tbody = document.getElementById('invoiceLinesTable').querySelector('tbody');
+                            var first = tbody.querySelector('tr');
+                            for (var i = 0; i < data.length; i++) {
+                                var row = (i === 0) ? first : first.cloneNode(true);
+                                var sel = row.querySelector('.product-select');
+                                var qtyInp = row.querySelector('.qty-input');
+                                var priceInp = row.querySelector('.price-input');
+                                var vatInp = row.querySelector('.vat-input');
+                                if (sel) sel.value = data[i].ProductID;
+                                if (qtyInp) qtyInp.value = data[i].Qty;
+                                if (priceInp) priceInp.value = data[i].UnitPrice;
+                                if (vatInp) vatInp.value = '12';
+                                if (i > 0) {
+                                    row.querySelectorAll('[name]').forEach(function(inp) {
+                                        if (inp.name && inp.name.indexOf('lines[0]') === 0)
+                                            inp.name = inp.name.replace('lines[0]', 'lines[' + i + ']');
+                                    });
+                                    tbody.appendChild(row);
+                                }
+                            }
+                            lineIndex = data.length;
+                            addListeners();
+                            calculateTotals();
+                            buildStockMap();
+                            document.querySelectorAll('#invoiceLinesTable tbody tr').forEach(function(r) { updateStockHint(r); });
+                        });
+                }
 
                 var vs = document.getElementById('validationSummary');
                 if (vs && vs.textContent.trim()) vs.scrollIntoView({ behavior: 'smooth', block: 'start' });

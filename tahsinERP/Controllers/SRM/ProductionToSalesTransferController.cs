@@ -110,18 +110,12 @@ namespace tahsinERP.Controllers.SRM
                 {
                     try
                     {
-                        // Tekshirish: lot tanlanishi, quality, va stock
+                        // Tekshirish: lot tanlanishi (yoki "lotsiz o'tkazish"), quality, va stock
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
-                            var allocations = ProductionLotService.ParseLotAllocations(line.LotAllocations);
-                            if (!allocations.Any())
-                            {
-                                var product = db.PRODUCTS.Find(line.ProductID);
-                                ModelState.AddModelError("", 
-                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun lot (ishlab chiqarish) tanlang. Sifat nazoratidan o'tgan lotlardan tanlashingiz kerak.");
-                                ReloadViewBag(db, viewModel);
-                                return View(viewModel);
-                            }
+                            var isLotsiz = string.Equals(line.LotAllocations?.Trim(), "LOTSIZ", StringComparison.OrdinalIgnoreCase)
+                                || string.IsNullOrWhiteSpace(line.LotAllocations);
+                            var allocations = isLotsiz ? new List<LotAllocation>() : ProductionLotService.ParseLotAllocations(line.LotAllocations);
 
                             var availableStock = WarehouseFlowService.GetProductionStock(line.ProductID, db);
                             if (availableStock < line.Quantity)
@@ -130,6 +124,15 @@ namespace tahsinERP.Controllers.SRM
                                 ModelState.AddModelError("", 
                                     $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarish omborida yetarli qoldiq yo'q. " +
                                     $"Mavjud: {availableStock}, Talab qilinmoqda: {line.Quantity}");
+                                ReloadViewBag(db, viewModel);
+                                return View(viewModel);
+                            }
+
+                            if (!isLotsiz && !allocations.Any())
+                            {
+                                var product = db.PRODUCTS.Find(line.ProductID);
+                                ModelState.AddModelError("", 
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun lot (ishlab chiqarish) tanlang yoki \"Lotsiz o'tkazish\" ni tanlang.");
                                 ReloadViewBag(db, viewModel);
                                 return View(viewModel);
                             }
@@ -170,7 +173,10 @@ namespace tahsinERP.Controllers.SRM
                         // Process har bir transfer line
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
-                            var allocations = ProductionLotService.ParseLotAllocations(line.LotAllocations);
+                            var isLotsiz = string.Equals(line.LotAllocations?.Trim(), "LOTSIZ", StringComparison.OrdinalIgnoreCase)
+                                || string.IsNullOrWhiteSpace(line.LotAllocations);
+                            var allocations = isLotsiz ? null : ProductionLotService.ParseLotAllocations(line.LotAllocations);
+                            if (allocations != null && !allocations.Any()) allocations = null;
                             WarehouseFlowService.TransferProductionToSales(
                                 line.ProductID,
                                 line.Quantity,
@@ -185,7 +191,7 @@ namespace tahsinERP.Controllers.SRM
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductionToSalesTransfer", "Create",
-                            $"Ishlab chiqarishdan sotuv omboriga o'tkazma yaratildi. DocNo: {transferDocNo}");
+                            $"Ishlab chiqarishdan sotuv omboriga o'tkazma yaratildi. Hujjat raqami: {transferDocNo}");
 
                         TempData["Success"] = "O'tkazma muvaffaqiyatli yaratildi";
                         return RedirectToAction("Index");

@@ -57,12 +57,15 @@
 
                                 <div class="form-group">
                                     <label for="toOrgUnitId">Yangi bo'lim <span class="text-danger">*</span></label>
-                                    @Html.DropDownList("toOrgUnitId", ViewBag.ToOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control", required = "required" })
+                                    @Html.DropDownList("toOrgUnitId", ViewBag.ToOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control", id = "toOrgUnitId", required = "required" })
                                 </div>
 
-                                <div class="form-group">
+                                <div class="form-group" id="positionGroup">
                                     <label for="toPositionId">Yangi lavozim <span class="text-danger">*</span></label>
-                                    @Html.DropDownList("toPositionId", ViewBag.ToPositionID as SelectList, "Lavozimni tanlang", new { @class = "form-control", required = "required" })
+                                    <select name="toPositionId" id="toPositionId" class="form-control" required disabled>
+                                        <option value="">Avval bo'limni tanlang</option>
+                                    </select>
+                                    <span class="text-muted small" id="positionHint">Bo'lim tanlangandan so'ng faqat shu bo'limdagi lavozimlar ko'rsatiladi.</span>
                                 </div>
 
                                 <div class="form-group">
@@ -90,6 +93,41 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (function() {
+            var toOrgUnitId = document.getElementById('toOrgUnitId');
+            var toPositionId = document.getElementById('toPositionId');
+            var positionHint = document.getElementById('positionHint');
+            var url = '@Url.Action("GetPositionsByOrgUnit", "HrEmployees")';
+
+            toOrgUnitId.addEventListener('change', function() {
+                var orgId = parseInt(this.value, 10);
+                toPositionId.innerHTML = '<option value="">Lavozimni tanlang</option>';
+                toPositionId.disabled = true;
+                if (!orgId) {
+                    positionHint.textContent = 'Bo\'lim tanlangandan so\'ng faqat shu bo\'limdagi lavozimlar ko\'rsatiladi.';
+                    return;
+                }
+                positionHint.textContent = 'Yuklanmoqda...';
+                fetch(url + '?orgUnitId=' + orgId)
+                    .then(function(r) { return r.json(); })
+                    .then(function(list) {
+                        list.forEach(function(p) {
+                            var opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.name;
+                            toPositionId.appendChild(opt);
+                        });
+                        toPositionId.disabled = false;
+                        positionHint.textContent = list.length ? 'Faqat tanlangan bo\'limdagi lavozimlar.' : 'Ushbu bo\'limda reja qilingan lavozimlar topilmadi.';
+                    })
+                    .catch(function() {
+                        positionHint.textContent = 'Lavozimlarni yuklashda xatolik.';
+                    });
+            });
+        })();
+    </script>
 }
 else
 {

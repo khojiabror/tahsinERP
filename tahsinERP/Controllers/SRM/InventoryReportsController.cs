@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
@@ -346,6 +347,68 @@ namespace tahsinERP.Controllers
                 ViewBag.RunnerTopN = runnerTopNValue;
                 ViewBag.FifoScope = fifoScopeValue;
                 ViewBag.ProductType = productType;
+
+                return View(model);
+            }
+        }
+
+        /// <summary>
+        /// Ombor oylik hisoboti (MRP topshirig'i) — kirim/chiqim va qoldiqlar. Barcha omborlar uchun.
+        /// Ma'lumotlar INCOME/EXPENSE dan dynamic hisoblanadi. Chop etish uchun mo'ljallangan.
+        /// </summary>
+        public async Task<ActionResult> MonthlyReport(int? warehouseId, int? year, int? month, string viewMode)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var mode = string.IsNullOrWhiteSpace(viewMode) || viewMode != "amount" ? "quantity" : "amount";
+
+            using (var db = new DBTHSNEntities())
+            {
+                var warehouses = await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync();
+                if (!warehouses.Any())
+                {
+                    var emptyModel = new WarehouseMonthlyReportViewModel
+                    {
+                        Year = year ?? DateTime.Today.Year,
+                        Month = month ?? DateTime.Today.Month,
+                        ViewMode = mode,
+                        ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
+                        CompanyName = db.COMPANIES.Any() ? db.COMPANIES.FirstOrDefault()?.Name : "",
+                        Rows = new List<WarehouseMonthlyReportRowViewModel>(),
+                        Totals = new WarehouseMonthlyReportTotalsViewModel(),
+                        Warehouses = new List<SelectListItem>()
+                    };
+                    return View(emptyModel);
+                }
+
+                var whId = warehouseId ?? warehouses.First().ID;
+                var y = year ?? DateTime.Today.Year;
+                var m = month ?? DateTime.Today.Month;
+                if (m < 1) m = 1;
+                if (m > 12) m = 12;
+
+                var companyName = db.COMPANIES.Any() ? db.COMPANIES.FirstOrDefault()?.Name : null;
+                var model = await WarehouseMonthlyReportService.BuildReportAsync(db, whId, y, m, companyName, mode);
+                if (model == null)
+                {
+                    var wh = warehouses.FirstOrDefault(w => w.ID == whId);
+                    model = new WarehouseMonthlyReportViewModel
+                    {
+                        SelectedWarehouseId = whId,
+                        SelectedWarehouseName = wh?.WHName,
+                        Year = y,
+                        Month = m,
+                        ViewMode = mode,
+                        ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
+                        CompanyName = companyName ?? "",
+                        Rows = new List<WarehouseMonthlyReportRowViewModel>(),
+                        Totals = new WarehouseMonthlyReportTotalsViewModel(),
+                        Warehouses = warehouses.Select(w => new SelectListItem { Value = w.ID.ToString(), Text = w.WHName, Selected = w.ID == whId }).ToList()
+                    };
+                }
 
                 return View(model);
             }

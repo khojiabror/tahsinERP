@@ -205,7 +205,7 @@ else
                 $(this).detach();
             });
 
-            // Initialize DataTables
+            // Initialize DataTables (doimiy: Excel va PDF eksport tugmalari)
             var table = $('#historyTable').DataTable({
                 "language": {
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -225,7 +225,11 @@ else
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
                 "searching": true,
                 "order": [[1, "asc"]],
-                "dom": "lfrtip"
+                "dom": "lBfrtip",
+                "buttons": [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', title: 'Xodimlar_staji', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', title: 'Xodimlar staji', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } }
+                ]
             });
 
             // Handle click on parent row to show/hide child rows

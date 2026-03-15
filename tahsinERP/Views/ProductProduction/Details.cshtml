@@ -4,13 +4,11 @@
     ViewBag.Title = "Ishlab Chiqarish Ma'lumotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var ModelProduction = Model.Production;
+    // TODO: agar kerak bo'lsa, ChangePermit ni controllerdan ViewBag orqali uzatish mumkin
+    bool changePermit = true;
 }
 
-@if (RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    bool changePermit = RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
-
-    <div class="app-content content">
+<div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
             <div class="content-header row">
@@ -205,7 +203,15 @@
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <td colspan="7" class="text-muted text-center">Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).</td>
+                                                            <td class="text-muted text-center">
+                                                                Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).
+                                                            </td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -221,52 +227,54 @@
         </div>
     </div>
 
-    if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
-    {
-        <script>
-            $(document).ready(function() {
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            if ($('#bomSarfTable').length) {
                 $('#bomSarfTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
-                        "zeroRecords": "Ma'lumot topilmadi"
+                    language: {
+                        search: "Qidirish:",
+                        lengthMenu: "_MENU_ ta ko'rsatish",
+                        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        infoEmpty: "Yozuvlar yo'q",
+                        infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        paginate: {
+                            first: "Birinchi",
+                            last: "Oxirgi",
+                            next: "Keyingi",
+                            previous: "Oldingi"
+                        },
+                        zeroRecords: "Ma'lumot topilmadi"
                     },
-                    "paging": true,
-                    "lengthChange": true,
-                    "order": [[1, "asc"]],
-                    "pageLength": 25
+                    paging: true,
+                    lengthChange: true,
+                    order: [[1, "asc"]],
+                    pageLength: 25
                 });
-            <text>}</text>);
-        </script>
-    }
-    if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
-    {
-        <script>
-            $(document).ready(function() {
+            }
+
+            if ($('#expenseTable').length) {
                 $('#expenseTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
-                        "zeroRecords": "Ma'lumot topilmadi"
+                    language: {
+                        search: "Qidirish:",
+                        lengthMenu: "_MENU_ ta ko'rsatish",
+                        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        infoEmpty: "Yozuvlar yo'q",
+                        infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        paginate: {
+                            first: "Birinchi",
+                            last: "Oxirgi",
+                            next: "Keyingi",
+                            previous: "Oldingi"
+                        },
+                        zeroRecords: "Ma'lumot topilmadi"
                     },
-                    "paging": true,
-                    "lengthChange": true,
-                    "order": [[1, "desc"]],
-                    "pageLength": 10
+                    paging: true,
+                    lengthChange: true,
+                    order: [[1, "desc"]],
+                    pageLength: 10
                 });
-            <text>}</text>);
-        </script>
-    }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+            }
+        });
+    </script>
 }

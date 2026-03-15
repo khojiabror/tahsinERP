@@ -26,6 +26,9 @@ namespace tahsinERP.ViewModels
         public int RejectedInspections { get; set; }
         public double TotalAcceptedQty { get; set; }
         public double TotalRejectedQty { get; set; }
+        /// <summary>First Time Quality: Qabul qilingan / Tekshirilgan * 100 (tanlangan davr).</summary>
+        public double? FTQPercent { get; set; }
+        public List<TopDefectData> TopDefects { get; set; }
         
         // Bottlenecks
         public List<OrderBottleneck> OrderBottlenecks { get; set; }
@@ -35,7 +38,16 @@ namespace tahsinERP.ViewModels
             DailyPlanVsActual = new List<DailyPlanVsActualData>();
             ProductionByShop = new List<ProductionByShopData>();
             OrderBottlenecks = new List<OrderBottleneck>();
+            TopDefects = new List<TopDefectData>();
         }
+    }
+
+    public class TopDefectData
+    {
+        public int? DefectTypeID { get; set; }
+        public string DefectName { get; set; }
+        public double RejectedQty { get; set; }
+        public int InspectionCount { get; set; }
     }
     
     public class DailyPlanVsActualData
@@ -63,6 +75,7 @@ namespace tahsinERP.ViewModels
         public double InspectedQty { get; set; }
         public double InvoicedQty { get; set; }
         public double RemainingQty { get; set; }
+        public string Note { get; set; }
     }
 }
 

@@ -40,6 +40,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
+                                        <div id="normContent">
                                         <h4 class="text-primary mb-3">Mahsulot ma'lumotlari</h4>
                                         <div class="row">
                                             <div class="col-md-4">
@@ -211,7 +212,7 @@
                                         </div>
 
                                         <hr>
-
+                                        </div>
                                         <div class="row mt-3">
                                             <div class="col-12">
                                                 <button id="generatePDF" class="btn btn-outline-danger">
@@ -279,10 +280,10 @@
 
                         waitForHtml2Pdf(function() {
                             // Get the content to convert to PDF - use the invoice-edit-wrapper
-                            var element = document.querySelector('.invoice-edit-wrapper');
+                            var element = document.getElementById('normContent');
                             
                             if (!element) {
-                                alert('PDF uchun kontent topilmadi. Element class: .invoice-edit-wrapper');
+                                alert('PDF uchun kontent topilmadi. Element ID: normContent');
                                 btn.prop('disabled', false).html(originalHtml);
                                 return;
                             }
@@ -290,12 +291,10 @@
                             // Configure PDF options
                             var productCode = '@(Model?.ProductCode ?? "Norm")';
                             var period = '@(Model?.Period ?? DateTime.Now.ToString("yyyy-MM"))';
-                            var orientation = (window.erpExportHelpers && window.erpExportHelpers.getOrientationByElementSize)
-                                ? window.erpExportHelpers.getOrientationByElementSize(element)
-                                : 'portrait';
+                            var orientation = 'landscape';
                             
                             var opt = {
-                                margin: [8, 8, 8, 8],
+                                margin: [0.3, 0.3, 0.3, 0.3],
                                 filename: 'Norm_' + productCode + '_' + period + '.pdf',
                                 image: { type: 'jpeg', quality: 0.98 },
                                 html2canvas: { 
@@ -308,7 +307,7 @@
                                     windowHeight: Math.max(element.scrollHeight, element.offsetHeight, document.body.scrollHeight)
                                 },
                                 jsPDF: { 
-                                    unit: 'mm', 
+                                    unit: 'in', 
                                     format: 'a4', 
                                     orientation: orientation
                                 },

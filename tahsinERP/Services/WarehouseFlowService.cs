@@ -150,7 +150,7 @@ namespace tahsinERP.Services
                     if (product.IsFinishedGood != true)
                     {
                         LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
-                            $"Mahsulot {product.PNo} finished good emas, o'tkazib yuborildi");
+                            $"Mahsulot {product.PNo} tayyor mahsulot emas, o'tkazib yuborildi");
                         return;
                     }
 
@@ -210,7 +210,7 @@ namespace tahsinERP.Services
                     transaction.Complete();
 
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
-                        $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. INCOME ID: {income.ID}, Production ID: {productionID}");
+                        $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Kirim ID: {income.ID}, Ishlab chiqarish ID: {productionID}");
                 }
                 catch (Exception ex)
                 {
@@ -236,7 +236,7 @@ namespace tahsinERP.Services
                 if (product.IsFinishedGood != true)
                 {
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
-                        $"Mahsulot {product.PNo} finished good emas, o'tkazib yuborildi");
+                        $"Mahsulot {product.PNo} tayyor mahsulot emas, o'tkazib yuborildi");
                     return;
                 }
 
@@ -265,7 +265,7 @@ namespace tahsinERP.Services
                 }
 
                 LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
-                    $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Production ID: {productionID}");
+                    $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Ishlab chiqarish ID: {productionID}");
             }
             catch (Exception ex)
             {
@@ -450,33 +450,14 @@ namespace tahsinERP.Services
                         db.WRHS_INCOME_DOCS.Add(incomeDoc);
                     }
 
-                    // Update or create Sales WH stock
-                    var salesStock = db.PRODUCT_STOCKS
-                        .FirstOrDefault(s => s.WHID == salesWH.ID && s.ProductID == productID);
-
-                    if (salesStock != null)
-                    {
-                        salesStock.Amount += quantity;
-                        db.Entry(salesStock).State = EntityState.Modified;
-                    }
-                    else
-                    {
-                        var newStock = new PRODUCT_STOCKS
-                        {
-                            WHID = salesWH.ID,
-                            ProductID = productID,
-                            Amount = quantity,
-                            UnitID = product.UnitID
-                        };
-                        db.PRODUCT_STOCKS.Add(newStock);
-                    }
+                    // Sotuv ombori qoldig'i faqat MRP kirimni "Qabul qilish" (Receive) qilganda yangilanadi (IncomesController.Receive).
 
                     db.SaveChanges();
                     transaction.Complete();
 
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "TransferProductionToSales",
                         $"Mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarishdan sotuv omboriga o'tkazildi. " +
-                        $"EXPENS ID: {expense.ID}, INCOME ID: {income.ID}");
+                        $"Chiqim ID: {expense.ID}, Kirim ID: {income.ID}");
                 }
                 catch (Exception ex)
                 {
@@ -567,12 +548,12 @@ namespace tahsinERP.Services
 
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "DecreaseSalesStock",
                         $"Sotuv invoysi {invoiceNo} uchun mahsulot {product.PNo} dan {qtyToDeduct} miqdor sotuv omboridan chiqarildi. " +
-                        $"EXPENS ID: {expense.ID}, Invoice ID: {invoiceID}");
+                        $"Chiqim ID: {expense.ID}, Hisob-faktura ID: {invoiceID}");
                 }
                 catch (Exception ex)
                 {
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "DecreaseSalesStock",
-                        $"Xatolik: {ex.Message}, Invoice ID: {invoiceID}");
+                        $"Xatolik: {ex.Message}, Hisob-faktura ID: {invoiceID}");
                     throw;
                 }
             }

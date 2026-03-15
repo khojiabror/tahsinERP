@@ -16,6 +16,10 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: QualityInspection
         public async Task<ActionResult> Index(string searchTerm, int? productID, string statusCode, DateTime? fromDate, DateTime? toDate)
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.QUALITY_INSPECTION
@@ -64,7 +68,10 @@ namespace tahsinERP.Controllers.MES
                     .ThenByDescending(q => q.ID)
                     .ToListAsync();
 
-                var products = await db.PRODUCTS.Where(p => p.IsDeleted == false).ToListAsync();
+                var products = await db.PRODUCTS
+                    .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
+                    .OrderBy(p => p.PNo)
+                    .ToListAsync();
                 ViewBag.Products = new SelectList(
                     products.Select(p => new { p.ID, DisplayText = $"{p.PNo} - {p.Name}" }), 
                     "ID", 
@@ -80,6 +87,7 @@ namespace tahsinERP.Controllers.MES
                 ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
                 ViewBag.ToDate = toDate ?? DateTime.Now;
                 ViewBag.SearchTerm = searchTerm;
+                ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Index");
 
                 return View(inspections);
             }
@@ -88,6 +96,10 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: QualityInspection/Details/5
         public ActionResult Details(long? id)
         {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "QualityInspection", "Details"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -110,6 +122,7 @@ namespace tahsinERP.Controllers.MES
                     return HttpNotFound();
                 }
 
+                ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Details");
                 return View(inspection);
             }
         }
@@ -117,6 +130,10 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: QualityInspection/yaratish
         public ActionResult Create(DateTime? date)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Create"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspectionDate = (date ?? DateTime.Now).Date;
@@ -132,6 +149,10 @@ namespace tahsinERP.Controllers.MES
         [ValidateAntiForgeryToken]
         public ActionResult Create(QualityInspectionDailyViewModel viewModel)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Create"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (viewModel == null)
             {
                 ModelState.AddModelError("", "Ma'lumotlar topilmadi");
@@ -315,6 +336,10 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: QualityInspection/Edit/5
         public ActionResult Edit(long? id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Edit"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -363,6 +388,10 @@ namespace tahsinERP.Controllers.MES
         [ValidateAntiForgeryToken]
         public ActionResult Edit(QualityInspectionViewModel viewModel)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Edit"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -419,6 +448,10 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: QualityInspection/Approve/5
         public ActionResult Approve(long? id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Approve"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -451,6 +484,10 @@ namespace tahsinERP.Controllers.MES
         [ValidateAntiForgeryToken]
         public ActionResult ApproveConfirmed(long id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Approve"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION.Find(id);
@@ -507,6 +544,10 @@ namespace tahsinERP.Controllers.MES
         // Olish so'rovi: QualityInspection/o'chirish/5
         public ActionResult Delete(long? id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Delete"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -540,6 +581,10 @@ namespace tahsinERP.Controllers.MES
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(long id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Delete"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION.Find(id);
