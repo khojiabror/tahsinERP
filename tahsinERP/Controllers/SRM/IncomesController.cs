@@ -826,12 +826,6 @@ namespace tahsinERP.Controllers.SRM
                             return HttpNotFound();
                         }
 
-                        var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                        if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
-                        {
-                            return RedirectToAction("Index", "ViewNotAuthorized");
-                        }
-
                         var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
                         bool isMrpForWarehouse = await db.WAREHOUSES
                             .AnyAsync(w => w.ID == income.ReceivingWHID && w.MRP == currentUserId);
@@ -910,12 +904,6 @@ namespace tahsinERP.Controllers.SRM
                         if (income == null)
                         {
                             return HttpNotFound();
-                        }
-
-                        var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                        if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
-                        {
-                            return RedirectToAction("Index", "ViewNotAuthorized");
                         }
 
                         var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
