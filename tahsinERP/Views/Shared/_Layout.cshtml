@@ -874,7 +874,7 @@
 </head>
 
 <body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 2-columns navbar-sticky footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
-    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Layout"))
+    @if (!Request.IsAuthenticated || RoleHelper.IsViewPermitted(User.Identity.Name, "Layout"))
     {
         <!-- Header -->
         <div class="header-navbar-shadow"></div>
@@ -1287,6 +1287,10 @@
                                             {
                                                 <li><a href="/FinBalanceCategories"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans kategoriyalari</span></a></li>
                                             }
+                                            @if (RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+                                            {
+                                                <li><a href="/OpeningBalance"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Opening balans</span></a></li>
+                                            }
                                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
                                             {
                                                 <li><a href="/FinPlItems"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">P&L elementlar</span></a></li>
@@ -1307,6 +1311,7 @@
                                             <li><a href="/FinDashboard/AccountBalances"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Hisoblardagi qoldiq</span></a></li>
                                             <li><a href="/FinDashboard/PL"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Foyda va zarar</span></a></li>
                                             <li><a href="/FinDashboard/BalanceSheet"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans</span></a></li>
+                                            <li><a href="/FinRecurringObligations"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Doimiy harajatlar</span></a></li>
                                         </ul>
                                     </li>
                                 }
@@ -1670,7 +1675,7 @@
                             </ul>
                         </li>
                     }
-
+                    <li><a href="~/UserManual"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Qo'llanma</span></a></li>
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Sozlamalar va Yordam -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -1683,14 +1688,13 @@
                             <li><a href="~/Warehouse/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Omborlar</span></a></li>
                             <li><a href="~/Unit/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">O'lchov birliklari</span></a></li>
                             <li><a href="~/Currency/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Valyutalar</span></a></li>
-                            <li><a href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Profil</span></a></li>
-                            <li><a href="~/UserManual"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Qo'llanma</span></a></li>
-                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
-                            {
-                                <li><a href="~/AdminPanel"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Admin panel</span></a></li>
-                            }
+                            <li><a href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Mening Profilim</span></a></li>
                         </ul>
                     </li>
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+                    {
+                        <li><a href="~/AdminPanel"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Admin panel</span></a></li>
+                    }
                 </ul>
             </div>
         </div>

@@ -100,11 +100,13 @@ namespace tahsinERP.Controllers.SRM
                 }
 
                 // View barcha uchun ochiq; Edit/Delete/Receive faqat MRP uchun
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                // Bir foydalanuvchi bir nechta omborga MRP bo'lishi mumkin,
+                // shuning uchun bitta emas, barcha biriktirilgan omborlarni tekshiramiz.
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                 var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
                 bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
                 bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
-                bool isMrpForWarehouse = assignedWarehouseId.HasValue && income.ReceivingWHID == assignedWarehouseId.Value;
+                bool isMrpForWarehouse = assignedWarehouseIds.Contains(income.ReceivingWHID);
 
                 ViewBag.CanMrpReceive = isMrpForWarehouse && income.RecieveStatus != true;
                 ViewBag.CanEdit = !isMES && !isSales

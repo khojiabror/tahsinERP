@@ -477,6 +477,7 @@
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\AdminSetting\DeletedRecordsController.cs" />
+    <Compile Include="Controllers\AdminSetting\DiagnosisSettingsController.cs" />
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
@@ -486,6 +487,7 @@
     <Compile Include="Controllers\CRM\SalesReportsController.cs" />
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
+    <Compile Include="Controllers\DiagnosisController.cs" />
     <Compile Include="Controllers\Engineering\NormController.cs" />
     <Compile Include="Controllers\Engineering\ProductCategoryController.cs" />
     <Compile Include="Controllers\Engineering\TannarxAnalyticsController.cs" />
@@ -497,6 +499,7 @@
     <Compile Include="Controllers\Finance\FinPlItemsController.cs" />
     <Compile Include="Controllers\Finance\FinPlPlansController.cs" />
     <Compile Include="Controllers\Finance\FinTransactionsController.cs" />
+    <Compile Include="Controllers\Finance\OpeningBalanceController.cs" />
     <Compile Include="Controllers\Finance\ShareholderController.cs" />
     <Compile Include="Controllers\HR\HrDashboardController.cs" />
     <Compile Include="Controllers\HR\HrEmployeeHistoryController.cs" />
@@ -1020,7 +1023,9 @@
     <Compile Include="ViewModels\CRMDashboardViewModel.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
+    <Compile Include="ViewModels\DiagnosisViewModels.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
+    <Compile Include="ViewModels\Finance\OpeningBalanceViewModel.cs" />
     <Compile Include="ViewModels\InventoryAdjustmentViewModel.cs" />
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
@@ -3307,6 +3312,9 @@
     <Content Include="Views\SalesReports\SalesByCustomer.cshtml" />
     <Content Include="Views\SalesReports\SalesByProduct.cshtml" />
     <Content Include="Views\InventoryReports\MonthlyReport.cshtml" />
+    <Content Include="Views\Diagnosis\Index.cshtml" />
+    <Content Include="Views\DiagnosisSettings\Index.cshtml" />
+    <Content Include="Views\OpeningBalance\Index.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

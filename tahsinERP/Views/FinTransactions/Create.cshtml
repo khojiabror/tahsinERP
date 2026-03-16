@@ -99,33 +99,43 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.CounterpartyType, "Kontragent turi", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control select2" })
-                                                    <small class="text-muted">Material: Ta'minotchi | Oylik/Avans: Xodim</small>
+                                                    @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = "form-control select2", id = "CounterpartyType" })
+                                                    <small class="text-muted">Material: Ta'minotchi | Oylik/Avans: Xodim. Tanlaganingizga qarab quyidagi ro'yxatda kontragentlar chiqadi.</small>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    @Html.LabelFor(m => m.CounterpartyID, "Kontragent ID", new { @class = "control-label" })
-                                                    @Html.TextBoxFor(m => m.CounterpartyID, new { @class = "form-control", type = "number", min = "1" })
-                                                    <small class="text-muted">SupplierID/XodimID (mapping uchun asosiy maydon)</small>
+                                                    @Html.LabelFor(m => m.CounterpartyID, "Kontragent", new { @class = "control-label" })
+                                                    @Html.DropDownListFor(m => m.CounterpartyID,
+                                                        Enumerable.Empty<SelectListItem>(),
+                                                        "Avval kontragent turini tanlang",
+                                                        new { @class = "form-control select2", id = "CounterpartyID" })
+                                                    <small class="text-muted">Mijoz/Ta'minotchi/Xodim ro'yxatidan tanlang – ID avtomatik bog'lanadi.</small>
                                                 </div>
                                             </div>
+                                        </div>
+                                        
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Purpose, "Maqsad", new { @class = "control-label" })
+                                            @Html.TextBoxFor(m => m.Purpose, new { @class = "form-control" })
                                         </div>
 
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    @Html.LabelFor(m => m.CounterpartyName, "Kontragent nomi", new { @class = "control-label" })
-                                                    @Html.TextBoxFor(m => m.CounterpartyName, new { @class = "form-control" })
-                                                    <small class="text-muted">Ixtiyoriy, faqat ko'rish uchun</small>
+                                                    <label class="control-label">Manba hujjat turi</label>
+                                                    @Html.DropDownList("SourceDocType", ViewBag.SourceDocTypeList as SelectList, new { @class = "form-control" })
+                                                    <small class="text-muted">Ta'minotchiga to'lovda: "Ta'minotchiga to'lov" ni tanlang, Kontragent turi = Ta'minotchi, Kontragent ID = ta'minotchi ID, Manba hujjat ID = xarid invoysi ID (balansda ayrilishi uchun).</small>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6"></div>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            @Html.LabelFor(m => m.Purpose, "Maqsad", new { @class = "control-label" })
-                                            @Html.TextBoxFor(m => m.Purpose, new { @class = "form-control" })
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    @Html.LabelFor(m => m.SourceDocID, "Manba hujjat ID (majburiyat ID)", new { @class = "control-label" })
+                                                    @Html.TextBoxFor(m => m.SourceDocID, new { @class = "form-control", type = "number", min = "0", placeholder = "Doimiy harajatlar ro'yxatidagi ID" })
+                                                    <small class="text-muted"><a href="@Url.Action("Index", "FinRecurringObligations")" target="_blank">Doimiy harajatlar</a> sahifasida ID ko'rsatilgan.</small>
+                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <div class="form-group">
@@ -155,6 +165,32 @@
                 // For now, currency is set in controller
             }
         }
+
+        $(document).ready(function () {
+            $('#CounterpartyType').on('change', function () {
+                var type = $(this).val();
+                var $cpSelect = $('#CounterpartyID');
+                $cpSelect.empty();
+
+                if (!type) {
+                    $cpSelect.append($('<option>').val('').text('Avval kontragent turini tanlang'));
+                    return;
+                }
+
+                $.getJSON('@Url.Action("GetCounterparties", "FinTransactions")', { type: type })
+                    .done(function (data) {
+                        $cpSelect.append($('<option>').val('').text('Tanlang...'));
+                        if (data && data.success && data.items) {
+                            $.each(data.items, function (idx, item) {
+                                $cpSelect.append($('<option>').val(item.id).text(item.name));
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $cpSelect.append($('<option>').val('').text('Yuklashda xato'));
+                    });
+            });
+        });
     </script>
 }
 else

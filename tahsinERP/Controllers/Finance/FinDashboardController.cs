@@ -315,26 +315,32 @@ namespace tahsinERP.Controllers.Finance
                         switch (category.CalculationType)
                         {
                             case 1: // Account-Based
-                                // Olish accounts mapped ga this balance category
-                                var mappedAccountIds = db.FIN_ACCOUNTS
-                                    .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
-                                    .Select(a => a.ID)
-                                    .ToList();
-                                
-                                // Fallback ga old name matching agar BalanceCategoryID is not set
-                                if (mappedAccountIds.Count == 0)
+                                // Ta'minotchilardan qarzlar: hujjat asosida (P_Invoices − to'lovlar, FIFO)
+                                // To'lovlar = FinTransactions (Direction=2, CounterpartyType=2 ta'minotchi) — hisobda emas, tranzaksiyada
+                                if (category.Name == "Ta'minotchilardan qarzlar")
                                 {
-                                    mappedAccountIds = accountToBalanceCategory
-                                        .Where(kvp => kvp.Value == category.ID)
-                                        .Select(kvp => kvp.Key)
-                                        .ToList();
+                                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate.Value);
+                                    amount = supplierSummary.Sum(s => s.Outstanding);
                                 }
-                                
-                                foreach (var accountId in mappedAccountIds)
+                                else
                                 {
-                                    if (accountBalances.ContainsKey(accountId))
+                                    var mappedAccountIds = db.FIN_ACCOUNTS
+                                        .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
+                                        .Select(a => a.ID)
+                                        .ToList();
+                                    if (mappedAccountIds.Count == 0)
                                     {
-                                        amount += accountBalances[accountId];
+                                        mappedAccountIds = accountToBalanceCategory
+                                            .Where(kvp => kvp.Value == category.ID)
+                                            .Select(kvp => kvp.Key)
+                                            .ToList();
+                                    }
+                                    foreach (var accountId in mappedAccountIds)
+                                    {
+                                        if (accountBalances.ContainsKey(accountId))
+                                        {
+                                            amount += accountBalances[accountId];
+                                        }
                                     }
                                 }
                                 break;
@@ -554,6 +560,34 @@ namespace tahsinERP.Controllers.Finance
 
                                     amount = (decimal)totalWaybillAmount - paidAmount;
                                 }
+                                else if (category.Name == "Doimiy harajatlar qarzi")
+                                {
+                                    // Doimiy harajatlar: har oy shakllanadigan qarz, to'lovlar orqali kamayadi
+                                    try
+                                    {
+                                        var obligations = db.Database.SqlQuery<RecurringObligationRow>(
+                                            "SELECT ID, Name, MonthlyAmount, CurrencyID, StartYear, StartMonth FROM FIN_RECURRING_OBLIGATIONS WHERE (IsDeleted = 0 OR IsDeleted IS NULL) AND IsActive = 1 AND BalanceCategoryID = @p0",
+                                            category.ID).ToList();
+                                        foreach (var ob in obligations)
+                                        {
+                                            var startDate = new DateTime(ob.StartYear, ob.StartMonth, 1);
+                                            var endDate = asOfDate.Value.Date;
+                                            if (endDate < startDate) continue;
+                                            var monthsCount = ((endDate.Year - startDate.Year) * 12) + (endDate.Month - startDate.Month) + 1;
+                                            if (monthsCount < 1) continue;
+                                            var accrued = ob.MonthlyAmount * monthsCount;
+                                            var paid = db.FIN_TRANSACTIONS
+                                                .Where(t => t.SourceDocType == "RecurringObligationPayment" && t.SourceDocID == ob.ID && t.TxnDate <= asOfDate.Value && (t.IsDeleted == null || t.IsDeleted == false))
+                                                .Sum(t => (decimal?)t.Amount) ?? 0m;
+                                            var net = accrued - paid;
+                                            if (net > 0) amount += net;
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Jadval mavjud emas yoki xato bo'lsa 0
+                                    }
+                                }
                                 break;
                         }
                     }
@@ -764,6 +798,20 @@ namespace tahsinERP.Controllers.Finance
                     detail.Amount = snapshots[category.ID];
                     detail.CalculationTypeName = "Snapshot";
                     detail.Explanation = "So'nggi snapshot bo'yicha hisoblandi";
+                    details.Add(detail);
+                    continue;
+                }
+
+                // Ta'minotchilardan qarzlar: P_Invoices − to'lovlar (FinTransactions Direction=2, CounterpartyType=2), FIFO
+                if (category.Name == "Ta'minotchilardan qarzlar")
+                {
+                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate);
+                    detail.Amount = supplierSummary.Sum(s => s.Outstanding);
+                    detail.TransactionCount = supplierSummary.Sum(s => s.InvoiceCount + s.PaymentCount);
+                    detail.AddedAmount = supplierSummary.Sum(s => s.InvoiceTotal);
+                    detail.SubtractedAmount = supplierSummary.Sum(s => s.PaymentTotal);
+                    detail.CalculationTypeName = "Document-Based";
+                    detail.Explanation = "Invoyslar va ta'minotchiga o'tkazilgan to'lovlar (FinTransactions, FIFO) bo'yicha hisoblandi";
                     details.Add(detail);
                     continue;
                 }
@@ -1050,7 +1098,8 @@ namespace tahsinERP.Controllers.Finance
                     SupplierID = t.CounterpartyID.Value,
                     t.TxnDate,
                     t.Amount,
-                    InvoiceID = (t.SourceDocType == "PurchaseInvoice" ? t.SourceDocID : null)
+                    // Invoysga bog'langan to'lov: SourceDocType = PurchaseInvoice yoki PurchaseInvoicePayment, SourceDocID = invoys ID
+                    InvoiceID = (t.SourceDocType == "PurchaseInvoice" || t.SourceDocType == "PurchaseInvoicePayment") ? t.SourceDocID : null
                 })
                 .ToList();
 
@@ -2082,5 +2131,16 @@ namespace tahsinERP.Controllers.Finance
         public SHAREHOLDER Shareholder { get; set; }
         public decimal SharePercent { get; set; }
         public decimal Value { get; set; }
+    }
+
+    /// <summary>FIN_RECURRING_OBLIGATIONS jadvalidan SqlQuery uchun qator.</summary>
+    public class RecurringObligationRow
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public decimal MonthlyAmount { get; set; }
+        public int CurrencyID { get; set; }
+        public int StartYear { get; set; }
+        public byte StartMonth { get; set; }
     }
 }

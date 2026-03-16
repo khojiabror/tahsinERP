@@ -257,6 +257,12 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text");
 
+                ViewBag.SourceDocTypeList = new SelectList(new[] {
+                    new { Value = "Manual", Text = "Qo'lda" },
+                    new { Value = "RecurringObligationPayment", Text = "Doimiy harajat to'lovi (ijara, buxgalteriya va h.k.)" },
+                    new { Value = "PurchaseInvoicePayment", Text = "Ta'minotchiga to'lov (xarid invoysiga bog'lash)" }
+                }, "Value", "Text", "Manual");
+
                 var model = new FIN_TRANSACTIONS
                 {
                     TxnDate = DateTime.Now,
@@ -340,7 +346,62 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", transaction.CounterpartyType);
 
+                ViewBag.SourceDocTypeList = new SelectList(new[] {
+                    new { Value = "Manual", Text = "Qo'lda" },
+                    new { Value = "RecurringObligationPayment", Text = "Doimiy harajat to'lovi (ijara, buxgalteriya va h.k.)" },
+                    new { Value = "PurchaseInvoicePayment", Text = "Ta'minotchiga to'lov (xarid invoysiga bog'lash)" }
+                }, "Value", "Text", transaction.SourceDocType ?? "Manual");
+
                 return View(transaction);
+            }
+        }
+
+        // AJAX: kontragent turiga qarab ro'yxat qaytarish
+        [HttpGet]
+        public JsonResult GetCounterparties(byte? type)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
+            {
+                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var items = new List<object>();
+
+                if (!type.HasValue)
+                {
+                    return Json(new { success = true, items }, JsonRequestBehavior.AllowGet);
+                }
+
+                switch (type.Value)
+                {
+                    case 1: // Mijoz
+                        items = db.CUSTOMERS
+                            .Where(c => c.IsDeleted == null || c.IsDeleted == false)
+                            .OrderBy(c => c.Name)
+                            .Select(c => new { id = c.ID, name = c.Name })
+                            .ToList<object>();
+                        break;
+                    case 2: // Ta'minotchi
+                        items = db.SUPPLIERS
+                            .Where(s => s.IsDeleted == null || s.IsDeleted == false)
+                            .OrderBy(s => s.Name)
+                            .Select(s => new { id = s.ID, name = s.Name })
+                            .ToList<object>();
+                        break;
+                    case 6: // Xodim
+                        items = db.HR_EMPLOYEES
+                            .Where(e => e.IsActive)
+                            .OrderBy(e => e.FullName)
+                            .Select(e => new { id = e.ID, name = e.FullName })
+                            .ToList<object>();
+                        break;
+                    default:
+                        break;
+                }
+
+                return Json(new { success = true, items }, JsonRequestBehavior.AllowGet);
             }
         }
 
