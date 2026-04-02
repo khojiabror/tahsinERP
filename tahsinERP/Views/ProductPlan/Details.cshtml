@@ -158,8 +158,14 @@
                         }]
                     };
 
-                    if (window.planVsActualChart) {
-                        window.planVsActualChart.destroy();
+                    // Eski chart (Chart.js 3: getChart; aks holda xavfsiz destroy)
+                    if (typeof Chart.getChart === 'function') {
+                        var existing = Chart.getChart(canvas);
+                        if (existing && typeof existing.destroy === 'function') {
+                            existing.destroy();
+                        }
+                    } else if (window.planVsActualChart && typeof window.planVsActualChart.destroy === 'function') {
+                        try { window.planVsActualChart.destroy(); } catch (e) { }
                     }
 
                     window.planVsActualChart = new Chart(ctx, {

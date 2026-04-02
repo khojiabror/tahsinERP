@@ -95,16 +95,21 @@ namespace tahsinERP.Services
 
             foreach (var a in allocations)
             {
-                var qi = db.QUALITY_INSPECTION
-                    .FirstOrDefault(q => q.ProductionID == a.ProductionID
+                var totalAcceptedForLot = (double)(db.QUALITY_INSPECTION
+                    .Where(q => q.ProductionID == a.ProductionID
                         && q.ProductID == productID
                         && q.IsDeleted == false
-                        && q.StatusCode == "APPROVED"
-                        && q.QtyAccepted >= (decimal)a.Quantity);
-                if (qi == null)
+                        && q.StatusCode == "APPROVED")
+                    .Sum(q => (decimal?)q.QtyAccepted) ?? 0m);
+
+                var alreadyTransferredFromLot = GetTransferredFromProduction(a.ProductionID, productID, db);
+                var wouldBeTransferred = alreadyTransferredFromLot + a.Quantity;
+
+                if (totalAcceptedForLot <= 0 || wouldBeTransferred > (totalAcceptedForLot + 0.0001))
                 {
                     var prod = db.PRODUCT_PRODUCTION.Find(a.ProductionID);
-                    errorMessage = $"Lot (Ishlab chiqarish #{a.ProductionID}, {(prod?.Date.ToString("dd.MM.yyyy") ?? "")}) sifat nazoratidan o'tmagan yoki qabul qilingan miqdor yetarli emas.";
+                    errorMessage = $"Lot (Ishlab chiqarish #{a.ProductionID}, {(prod?.Date.ToString("dd.MM.yyyy") ?? "")}) uchun qabul qilingan miqdor yetarli emas. " +
+                        $"Qabul qilingan jami: {totalAcceptedForLot:N2}, avval o'tkazilgan: {alreadyTransferredFromLot:N2}, hozir so'ralgan: {a.Quantity:N2}.";
                     return false;
                 }
             }

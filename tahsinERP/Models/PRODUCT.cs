@@ -27,7 +27,6 @@ namespace tahsinERP.Models
             this.INCOME_PRODUCTS = new HashSet<INCOME_PRODUCTS>();
             this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
             this.NORM_INPUT_LINES1 = new HashSet<NORM_INPUT_LINES>();
-            this.NORMLINES = new HashSet<NORMLINE>();
             this.NORMVERSIONS = new HashSet<NORMVERSION>();
             this.P_CONTRACT_PRODUCTS = new HashSet<P_CONTRACT_PRODUCTS>();
             this.P_INVOICE_PRODUCTS = new HashSet<P_INVOICE_PRODUCTS>();
@@ -45,6 +44,7 @@ namespace tahsinERP.Models
             this.SALES_TTNK_LINES = new HashSet<SALES_TTNK_LINES>();
             this.SORDER_DELIVERY_SCHEDULE = new HashSet<SORDER_DELIVERY_SCHEDULE>();
             this.TANNARXes = new HashSet<TANNARX>();
+            this.NORMLINES = new HashSet<NORMLINE>();
         }
     
         public int ID { get; set; }
@@ -94,8 +94,6 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NORM_INPUT_LINES> NORM_INPUT_LINES1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<NORMLINE> NORMLINES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NORMVERSION> NORMVERSIONS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_CONTRACT_PRODUCTS> P_CONTRACT_PRODUCTS { get; set; }
@@ -132,5 +130,7 @@ namespace tahsinERP.Models
         public virtual ICollection<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TANNARX> TANNARXes { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NORMLINE> NORMLINES { get; set; }
     }
 }

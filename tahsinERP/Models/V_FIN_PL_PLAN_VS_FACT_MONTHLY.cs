@@ -17,12 +17,9 @@ namespace tahsinERP.Models
         public Nullable<int> Year { get; set; }
         public Nullable<int> Month { get; set; }
         public Nullable<System.DateTime> PeriodStartDate { get; set; }
-        public Nullable<int> ItemID { get; set; }
+        public int ItemID { get; set; }
         public string ItemName { get; set; }
         public int SortOrder { get; set; }
-        public decimal AmountPlan { get; set; }
-        public decimal AmountFact { get; set; }
-        public Nullable<decimal> Delta { get; set; }
-        public Nullable<decimal> DeltaPercent { get; set; }
+        public Nullable<decimal> AmountFact { get; set; }
     }
 }

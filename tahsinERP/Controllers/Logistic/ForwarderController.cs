@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -292,6 +293,7 @@ namespace tahsinERP.Controllers
                         
                         try
                         {
+                            await SoftDeleteReferenceService.AfterForwarderSoftDeletedAsync(db, forwarderToDelete.ID);
                             await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;

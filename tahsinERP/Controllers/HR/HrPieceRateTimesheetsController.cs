@@ -675,6 +675,406 @@ namespace tahsinERP.Controllers.HR
                 "ID", "Name", viewModel.OrgUnitID);
         }
 
+        // Qo'shimcha grid-kiritish (CreateSimple o'rniga emas, qo'shimcha imkoniyat)
+        public async Task<ActionResult> GridCreate(int? year, int? month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var vm = new HrPieceRateGridEntryViewModel
+            {
+                Year = year ?? DateTime.Now.Year,
+                Month = month ?? DateTime.Now.Month,
+                OrgUnitID = orgUnitId
+            };
+
+            vm.Rows.Add(new HrPieceRateGridRowViewModel { WorkDate = new DateTime(vm.Year, vm.Month, 1) });
+
+            await PopulatePieceRateGridViewBags(orgUnitId);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> GridCreate(HrPieceRateGridEntryViewModel model)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (model.Rows == null || !model.Rows.Any())
+            {
+                TempData["Error"] = "Saqlash uchun qator yo'q";
+                await PopulatePieceRateGridViewBags(model.OrgUnitID);
+                return View(model);
+            }
+
+            var candidateEmpIds = model.Rows
+                .Where(r => r.EmployeeID.HasValue && r.ProductID.HasValue && r.OperationID.HasValue && r.WorkDate.HasValue && r.Quantity.HasValue && r.Quantity.Value > 0)
+                .Select(r => r.EmployeeID.Value).Distinct().ToList();
+            var blockMsg = await GetPieceRateEditBlockedMessageAsync(model.Year, model.Month, candidateEmpIds);
+            if (blockMsg != null)
+            {
+                TempData["Error"] = blockMsg;
+                await PopulatePieceRateGridViewBags(model.OrgUnitID);
+                return View(model);
+            }
+
+            int created = 0;
+            var errors = new List<string>();
+            var userId = UserHelper.GetUserId(User.Identity.Name);
+            var touchedEmployeeIds = new List<int>();
+
+            foreach (var row in model.Rows)
+            {
+                if (!row.EmployeeID.HasValue || !row.ProductID.HasValue || !row.OperationID.HasValue || !row.WorkDate.HasValue || !row.Quantity.HasValue)
+                {
+                    continue;
+                }
+                if (row.Quantity.Value <= 0)
+                {
+                    continue;
+                }
+
+                var exists = await db.HR_PIECE_RATE_WORK_ENTRIES.AnyAsync(e =>
+                    e.EmployeeID == row.EmployeeID.Value &&
+                    e.ProductID == row.ProductID.Value &&
+                    e.OperationID == row.OperationID.Value &&
+                    e.WorkDate == row.WorkDate.Value &&
+                    (e.IsDeleted == null || e.IsDeleted == false));
+                if (exists)
+                {
+                    errors.Add($"Qator o'tkazildi: xodim/mahsulot/operatsiya/sana bo'yicha dublikat mavjud");
+                    continue;
+                }
+
+                db.HR_PIECE_RATE_WORK_ENTRIES.Add(new HR_PIECE_RATE_WORK_ENTRIES
+                {
+                    EmployeeID = row.EmployeeID.Value,
+                    ProductID = row.ProductID.Value,
+                    OperationID = row.OperationID.Value,
+                    WorkDate = row.WorkDate.Value,
+                    Quantity = row.Quantity.Value,
+                    CreatedByUserID = userId,
+                    CreatedDT = DateTime.Now,
+                    IsDeleted = false
+                });
+                touchedEmployeeIds.Add(row.EmployeeID.Value);
+                created++;
+            }
+
+            await db.SaveChangesAsync();
+            if (created > 0)
+                await EnsurePieceRateDraftApprovalsForEmployeesAsync(model.Year, model.Month, touchedEmployeeIds);
+            TempData["Success"] = $"{created} ta yozuv saqlandi";
+            if (errors.Any()) TempData["Error"] = string.Join("<br/>", errors);
+            return RedirectToAction("GridCreate", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+        }
+
+        public async Task<ActionResult> Grids(int? year, int? month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
+                .Where(e => e.IsDeleted == false);
+            if (year.HasValue) query = query.Where(e => e.WorkDate.Year == year.Value);
+            if (month.HasValue) query = query.Where(e => e.WorkDate.Month == month.Value);
+            if (orgUnitId.HasValue) query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+
+            var entries = await query.ToListAsync();
+            var model = entries
+                .GroupBy(e => new { Year = e.WorkDate.Year, Month = e.WorkDate.Month, OrgUnitID = e.HR_EMPLOYEES.OrgUnitID })
+                .Select(g => new HrPieceRateTimesheetIndexViewModel
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
+                    OrgUnitID = g.Key.OrgUnitID,
+                    OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                    EntryCount = g.Count(),
+                    CalculatedAmount = CalculatePieceRateAmountForEntries(g.ToList()),
+                    CreatedDT = g.Min(x => x.CreatedDT),
+                    Status = "Draft"
+                })
+                .OrderByDescending(x => x.Year).ThenByDescending(x => x.Month).ToList();
+
+            ViewBag.Year = year;
+            ViewBag.Month = month;
+            ViewBag.OrgUnitID = new SelectList(await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(), "ID", "Name", orgUnitId);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> BulkDeleteGrid(int year, int month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate &&
+                            (e.IsDeleted == null || e.IsDeleted == false));
+            if (orgUnitId.HasValue) query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+
+            var rows = await query.ToListAsync();
+            if (rows.Count > 0)
+            {
+                var blockDel = await GetPieceRateEditBlockedMessageAsync(year, month, rows.Select(r => r.EmployeeID).Distinct());
+                if (blockDel != null)
+                {
+                    TempData["Error"] = blockDel;
+                    return RedirectToAction("Index", new { year, month, orgUnitId });
+                }
+            }
+            foreach (var r in rows)
+            {
+                r.IsDeleted = true;
+                db.Entry(r).State = EntityState.Modified;
+            }
+            await db.SaveChangesAsync();
+
+            TempData["Success"] = $"{rows.Count} ta yozuv o'chirildi";
+            return RedirectToAction("Index", new { year, month, orgUnitId });
+        }
+
+        // Qo'shimcha grid-tahrirlash (mavjud yozuvlarni jadvalda tahrirlash)
+        public async Task<ActionResult> GridEdit(int? year, int? month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var y = year ?? DateTime.Now.Year;
+            var m = month ?? DateTime.Now.Month;
+            var startDate = new DateTime(y, m, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            // Details bilan bir xil: IsDeleted null bo'lsa ham (eski yozuvlar) chiqsin
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate &&
+                            (e.IsDeleted == null || e.IsDeleted == false));
+
+            var entries = await query.OrderBy(e => e.WorkDate).ToListAsync();
+            var vm = new HrPieceRateGridEntryViewModel
+            {
+                Year = y,
+                Month = m,
+                OrgUnitID = orgUnitId,
+                Rows = entries.Select(e => new HrPieceRateGridRowViewModel
+                {
+                    EntryID = e.ID,
+                    EmployeeID = e.EmployeeID,
+                    ProductID = e.ProductID,
+                    OperationID = e.OperationID,
+                    WorkDate = e.WorkDate,
+                    Quantity = e.Quantity
+                }).ToList()
+            };
+
+            await PopulatePieceRateGridViewBags(orgUnitId, vm.Rows);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> GridEdit(HrPieceRateGridEntryViewModel model)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (model.Rows == null)
+            {
+                TempData["Error"] = "Saqlash uchun ma'lumot yo'q";
+                return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+            }
+
+            var editCandidates = model.Rows
+                .Where(r => r.EmployeeID.HasValue && r.ProductID.HasValue && r.OperationID.HasValue && r.WorkDate.HasValue && r.Quantity.HasValue && r.Quantity.Value > 0)
+                .Select(r => r.EmployeeID.Value).Distinct().ToList();
+            var blockEdit = await GetPieceRateEditBlockedMessageAsync(model.Year, model.Month, editCandidates);
+            if (blockEdit != null)
+            {
+                TempData["Error"] = blockEdit;
+                return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+            }
+
+            int updated = 0;
+            int inserted = 0;
+            var userId = UserHelper.GetUserId(User.Identity.Name);
+            var touchedEmployeeIds = new List<int>();
+
+            foreach (var row in model.Rows)
+            {
+                if (!row.EmployeeID.HasValue || !row.ProductID.HasValue || !row.OperationID.HasValue || !row.WorkDate.HasValue || !row.Quantity.HasValue)
+                {
+                    continue;
+                }
+                if (row.Quantity.Value <= 0) continue;
+
+                if (row.EntryID.HasValue)
+                {
+                    var entry = await db.HR_PIECE_RATE_WORK_ENTRIES.FirstOrDefaultAsync(e => e.ID == row.EntryID.Value);
+                    if (entry == null) continue;
+
+                    entry.EmployeeID = row.EmployeeID.Value;
+                    entry.ProductID = row.ProductID.Value;
+                    entry.OperationID = row.OperationID.Value;
+                    entry.WorkDate = row.WorkDate.Value;
+                    entry.Quantity = row.Quantity.Value;
+                    entry.CreatedByUserID = userId;
+                    entry.CreatedDT = DateTime.Now;
+                    touchedEmployeeIds.Add(row.EmployeeID.Value);
+                    updated++;
+                }
+                else
+                {
+                    db.HR_PIECE_RATE_WORK_ENTRIES.Add(new HR_PIECE_RATE_WORK_ENTRIES
+                    {
+                        EmployeeID = row.EmployeeID.Value,
+                        ProductID = row.ProductID.Value,
+                        OperationID = row.OperationID.Value,
+                        WorkDate = row.WorkDate.Value,
+                        Quantity = row.Quantity.Value,
+                        CreatedByUserID = userId,
+                        CreatedDT = DateTime.Now,
+                        IsDeleted = false
+                    });
+                    touchedEmployeeIds.Add(row.EmployeeID.Value);
+                    inserted++;
+                }
+            }
+
+            await db.SaveChangesAsync();
+            if (updated + inserted > 0)
+                await EnsurePieceRateDraftApprovalsForEmployeesAsync(model.Year, model.Month, touchedEmployeeIds);
+            TempData["Success"] = $"Yangilandi: {updated}, qo'shildi: {inserted}";
+            return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+        }
+
+        /// <summary>
+        /// Tasdiqlangan oy/bo'lim uchun ma'lumot kiritishni bloklaydi (avtomatik tasdiqni bekor qilmaymiz).
+        /// </summary>
+        private async Task<string> GetPieceRateEditBlockedMessageAsync(int year, int month, IEnumerable<int> employeeIds)
+        {
+            var ids = employeeIds?.Where(x => x > 0).Distinct().ToList();
+            if (ids == null || !ids.Any()) return null;
+
+            var companyWideApproved = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                .AnyAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == null &&
+                    (a.IsDeleted == null || a.IsDeleted == false) && a.Status == "Approved");
+            if (companyWideApproved)
+                return "Bu oy uchun tabel (butun kompaniya) allaqachon tasdiqlangan. O'zgartirish mumkin emas.";
+
+            var orgIds = await db.HR_EMPLOYEES.Where(e => ids.Contains(e.ID)).Select(e => e.OrgUnitID).Distinct().ToListAsync();
+            foreach (var ou in orgIds)
+            {
+                var orgApproved = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                    .AnyAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == ou &&
+                        (a.IsDeleted == null || a.IsDeleted == false) && a.Status == "Approved");
+                if (orgApproved)
+                    return "Bu oy uchun tegishli bo'lim tabeli allaqachon tasdiqlangan. O'zgartirish mumkin emas.";
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Yangi yoki o'zgargan yozuvlar uchun HR_PIECE_RATE_TIMESHEET_APPROVALS da Draft yozuv bor-yo'qligini ta'minlaydi (Index: Draft ko'rinishi).
+        /// </summary>
+        private async Task EnsurePieceRateDraftApprovalsForEmployeesAsync(int year, int month, IEnumerable<int> employeeIds)
+        {
+            var ids = employeeIds?.Where(x => x > 0).Distinct().ToList();
+            if (ids == null || !ids.Any()) return;
+
+            var orgIds = await db.HR_EMPLOYEES.Where(e => ids.Contains(e.ID)).Select(e => e.OrgUnitID).Distinct().ToListAsync();
+            var uid = UserHelper.GetUserId(User.Identity.Name);
+            var now = DateTime.Now;
+
+            foreach (var ou in orgIds)
+            {
+                var existing = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                    .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == ou &&
+                        (a.IsDeleted == null || a.IsDeleted == false));
+                if (existing == null)
+                {
+                    db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Add(new HR_PIECE_RATE_TIMESHEET_APPROVALS
+                    {
+                        Year = year,
+                        Month = month,
+                        OrgUnitID = ou,
+                        Status = "Draft",
+                        CreatedByUserID = uid,
+                        CreatedDT = now
+                    });
+                }
+            }
+            await db.SaveChangesAsync();
+        }
+
+        private async Task PopulatePieceRateGridViewBags(int? orgUnitId, List<HrPieceRateGridRowViewModel> existingRows = null)
+        {
+            IQueryable<HR_EMPLOYEES> employeeQuery = db.HR_EMPLOYEES.Where(e => e.IsDeleted != true);
+            if (orgUnitId.HasValue) employeeQuery = employeeQuery.Where(e => e.OrgUnitID == orgUnitId.Value);
+            var employees = await employeeQuery.OrderBy(e => e.FullName).ToListAsync();
+            var products = await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false).OrderBy(p => p.PNo).ToListAsync();
+            var operations = await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync();
+
+            if (existingRows != null && existingRows.Any())
+            {
+                var rowEmployeeIds = existingRows.Where(r => r.EmployeeID.HasValue).Select(r => r.EmployeeID.Value).Distinct().ToList();
+                var rowProductIds = existingRows.Where(r => r.ProductID.HasValue).Select(r => r.ProductID.Value).Distinct().ToList();
+                var rowOperationIds = existingRows.Where(r => r.OperationID.HasValue).Select(r => r.OperationID.Value).Distinct().ToList();
+
+                var missingEmployeeIds = rowEmployeeIds.Except(employees.Select(e => e.ID)).ToList();
+                if (missingEmployeeIds.Any())
+                {
+                    var missingEmployees = await db.HR_EMPLOYEES
+                        .Where(e => missingEmployeeIds.Contains(e.ID))
+                        .ToListAsync();
+                    employees.AddRange(missingEmployees);
+                    employees = employees.OrderBy(e => e.FullName).ToList();
+                }
+
+                var missingProductIds = rowProductIds.Except(products.Select(p => p.ID)).ToList();
+                if (missingProductIds.Any())
+                {
+                    var missingProducts = await db.PRODUCTS
+                        .Where(p => missingProductIds.Contains(p.ID))
+                        .ToListAsync();
+                    products.AddRange(missingProducts);
+                    products = products.OrderBy(p => p.PNo).ToList();
+                }
+
+                var missingOperationIds = rowOperationIds.Except(operations.Select(o => o.ID)).ToList();
+                if (missingOperationIds.Any())
+                {
+                    var missingOperations = await db.HR_PIECE_RATE_OPERATIONS
+                        .Where(o => missingOperationIds.Contains(o.ID))
+                        .ToListAsync();
+                    operations.AddRange(missingOperations);
+                    operations = operations.OrderBy(o => o.SortOrder).ThenBy(o => o.Name).ToList();
+                }
+            }
+
+            ViewBag.EmployeeID = new SelectList(employees, "ID", "FullName");
+            ViewBag.ProductID = new SelectList(products, "ID", "PNo");
+            ViewBag.OperationID = new SelectList(operations, "ID", "Name");
+            ViewBag.OrgUnitID = new SelectList(await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(), "ID", "Name", orgUnitId);
+        }
+
         // Olish so'rovi: HR/PieceRateTimesheets/CreateSimple
         public async Task<ActionResult> CreateSimple()
         {
@@ -707,6 +1107,14 @@ namespace tahsinERP.Controllers.HR
                 if (workDateMonth > currentMonth)
                 {
                     TempData["Error"] = "Kelajakka tabel kirita olmaysiz";
+                    await PopulateCreateSimpleViewBags();
+                    return View();
+                }
+
+                var blockSimple = await GetPieceRateEditBlockedMessageAsync(WorkDate.Year, WorkDate.Month, new List<int> { EmployeeID });
+                if (blockSimple != null)
+                {
+                    TempData["Error"] = blockSimple;
                     await PopulateCreateSimpleViewBags();
                     return View();
                 }
@@ -744,6 +1152,8 @@ namespace tahsinERP.Controllers.HR
 
                 await db.SaveChangesAsync();
 
+                await EnsurePieceRateDraftApprovalsForEmployeesAsync(WorkDate.Year, WorkDate.Month, new List<int> { EmployeeID });
+
                 var employee = await db.HR_EMPLOYEES.FindAsync(EmployeeID);
                 var product = await db.PRODUCTS.FindAsync(ProductID);
                 var operation = await db.HR_PIECE_RATE_OPERATIONS.FindAsync(OperationID);
@@ -765,10 +1175,11 @@ namespace tahsinERP.Controllers.HR
         }
 
         // Olish so'rovi: HR/PieceRateTimesheets/GetTariff
-        public async Task<JsonResult> GetTariff(int productId, int operationId, int? employeeId = null)
+        public async Task<JsonResult> GetTariff(int productId, int operationId, int? employeeId = null, DateTime? workDate = null)
         {
             try
             {
+                var tariffDate = workDate ?? DateTime.Now;
                 int? positionId = null;
                 if (employeeId.HasValue)
                 {
@@ -785,8 +1196,8 @@ namespace tahsinERP.Controllers.HR
                     .Where(t => t.ProductID == productId && 
                                t.OperationID == operationId && 
                                t.IsActive &&
-                               t.EffectiveFrom <= DateTime.Now &&
-                               (t.EffectiveTo == null || t.EffectiveTo >= DateTime.Now) &&
+                               t.EffectiveFrom <= tariffDate &&
+                               (t.EffectiveTo == null || t.EffectiveTo >= tariffDate) &&
                                (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
                     .OrderByDescending(t => t.PositionID) // Prefer position-specific
                     .FirstOrDefaultAsync();
@@ -800,8 +1211,8 @@ namespace tahsinERP.Controllers.HR
                                    t.OperationID == operationId && 
                                    t.PositionID == null &&
                                    t.IsActive &&
-                                   t.EffectiveFrom <= DateTime.Now &&
-                                   (t.EffectiveTo == null || t.EffectiveTo >= DateTime.Now))
+                                   t.EffectiveFrom <= tariffDate &&
+                                   (t.EffectiveTo == null || t.EffectiveTo >= tariffDate))
                         .FirstOrDefaultAsync();
                 }
 
@@ -1053,357 +1464,6 @@ namespace tahsinERP.Controllers.HR
             return RedirectToAction("Index", new { year, month, orgUnitId });
         }
 
-        // Olish so'rovi: HR/PieceRateTimesheets/ImportFromExcel
-        public ActionResult ImportFromExcel()
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            return View();
-        }
-
-        // POST so'rovi: HR/PieceRateTimesheets/ImportFromExcel
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ImportFromExcel(HttpPostedFileBase file)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (file == null || file.ContentLength == 0)
-            {
-                TempData["Error"] = "Fayl yuklanmadi yoki bo'sh!";
-                return View();
-            }
-
-            if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-            {
-                TempData["Error"] = "Faqat .xlsx formatidagi fayllarni yuklash mumkin!";
-                return View();
-            }
-
-            try
-            {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                var importResults = new List<string>();
-                int successCount = 0;
-                int skipCount = 0;
-                int errorCount = 0;
-
-                using (var package = new ExcelPackage(file.InputStream))
-                {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    if (worksheet.Dimension == null)
-                    {
-                        TempData["Error"] = "Excel fayl bo'sh!";
-                        return View();
-                    }
-
-                    int rowCount = worksheet.Dimension.Rows;
-                    int colCount = worksheet.Dimension.Columns;
-
-                    // Find ustun indices
-                    // Excel shablon struktura:
-                    // qator 1: Header (A1:J1)
-                    //   A: # (raqam - e'tiborsiz)
-                    //   B: Tabel. Code
-                    //   C: Ф.И.О
-                    //   D: Sana
-                    //   E: Maxsulot kodi
-                    //   F: kesish
-                    //   G: poddon
-                    //   H: ramka
-                    //   I: selofan /DVP /Karton
-                    //   J: ichki sxema
-                    // qator 2+: ma'lumot qatorlar
-                    
-                    int colIndex = -1, fullNameColIndex = -1, dateColIndex = -1, productCodeColIndex = -1;
-                    Dictionary<string, int> operationColumns = new Dictionary<string, int>();
-
-                    // O'qish header qator (qator 1) ga find ustun indices
-                    for (int col = 1; col <= colCount; col++)
-                    {
-                        string header = worksheet.Cells[1, col].Text.Trim();
-                        string headerLower = header.ToLower();
-                        string headerNormalized = headerLower.Replace(" ", "").Replace("/", "").Replace("\\", "").Replace(".", "");
-                        
-                        // Tabel. Code ustuni (B ustuni)
-                        if (headerNormalized.Contains("tabel") && headerNormalized.Contains("code"))
-                            colIndex = col;
-                        // Ф.И.О ustuni (C ustuni) - Cyrillic yoki Latin
-                        else if (header.Contains("Ф.И.О") || header.Contains("Ф.И.О") || 
-                                 headerNormalized.Contains("fio") || headerNormalized.Contains("fullname"))
-                            fullNameColIndex = col;
-                        // Sana ustuni (D ustuni)
-                        else if (headerLower == "sana" || headerLower.Contains("date"))
-                            dateColIndex = col;
-                        // Maxsulot kodi ustuni (E ustuni)
-                        else if ((headerLower.Contains("maxsulot") && headerLower.Contains("kodi")) ||
-                                 (headerLower.Contains("product") && headerLower.Contains("code")))
-                            productCodeColIndex = col;
-                        // Operatsiya ustunlari
-                        // kesish (F ustuni)
-                        else if (headerLower == "kesish" || headerLower.Contains("cutting"))
-                            operationColumns["kesish"] = col;
-                        // poddon (G ustuni)
-                        else if (headerLower == "poddon" || headerLower.Contains("pallet"))
-                            operationColumns["poddon"] = col;
-                        // ramka (H ustuni)
-                        else if (headerLower == "ramka" || headerLower.Contains("frame"))
-                            operationColumns["ramka"] = col;
-                        // selofan /DVP /Karton (I ustuni)
-                        else if (headerLower.Contains("selofan") || headerLower.Contains("dvp") || 
-                                 headerLower.Contains("karton") || headerLower.Contains("cellophane") || 
-                                 headerLower.Contains("carton"))
-                            operationColumns["selofan"] = col;
-                        // ichki sxema (J ustuni)
-                        else if (headerLower.Contains("ichki") && headerLower.Contains("sxema") ||
-                                 headerLower.Contains("internal") && headerLower.Contains("scheme"))
-                            operationColumns["ichki sxema"] = col;
-                    }
-
-                    // Tabel. Code majburiy, Ф.И.О ixtiyoriy (faqat tekshirish uchun)
-                    if (colIndex == -1 || dateColIndex == -1 || productCodeColIndex == -1)
-                    {
-                        TempData["Error"] = "Excel faylda kerakli ustunlar topilmadi! (Tabel. Code, Sana, Maxsulot kodi)";
-                        return View();
-                    }
-
-                    if (operationColumns.Count == 0)
-                    {
-                        TempData["Error"] = "Excel faylda operatsiya ustunlari topilmadi!";
-                        return View();
-                    }
-
-                    // Olish barcha employees (including nofaol) uchun lookup
-                    var allEmployees = await db.HR_EMPLOYEES
-                        .ToListAsync();
-
-                    // Olish barcha products bilan IsFinishedGood = true
-                    // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
-                    var validProducts = await db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .Where(p => p.IsDeleted == false && 
-                            (p.IsFinishedGood == true || 
-                             (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
-                        .ToListAsync();
-
-                    // Olish barcha operations
-                    var allOperations = await db.HR_PIECE_RATE_OPERATIONS
-                        .Where(o => o.IsActive)
-                        .ToListAsync();
-
-                    // Olish barcha tariffs
-                    var allTariffs = await db.HR_PIECE_RATE_TARIFFS
-                        .Where(t => t.IsActive && t.IsDeleted == false)
-                        .Include(t => t.PRODUCT)
-                        .ToListAsync();
-
-                    var userId = UserHelper.GetUserId(User.Identity.Name);
-                    var currentDate = DateTime.Now;
-
-                    // Process ma'lumot qatorlar (starting dan qator 2, as qator 1 is header)
-                    for (int row = 2; row <= rowCount; row++)
-                    {
-                        try
-                        {
-                            // O'qish qator ma'lumot
-                            string tabelCode = colIndex > 0 ? worksheet.Cells[row, colIndex].Text.Trim() : "";
-                            string fullName = fullNameColIndex > 0 ? worksheet.Cells[row, fullNameColIndex].Text.Trim() : "";
-                            string dateStr = worksheet.Cells[row, dateColIndex].Text.Trim();
-                            string productCode = worksheet.Cells[row, productCodeColIndex].Text.Trim();
-
-                            // Skip empty qatorlar
-                            if (string.IsNullOrWhiteSpace(tabelCode) && string.IsNullOrWhiteSpace(productCode))
-                                continue;
-
-                            // Tabel. Code majburiy
-                            if (string.IsNullOrWhiteSpace(tabelCode))
-                            {
-                                importResults.Add($"Qator {row}: Tabel. Code bo'sh bo'lishi mumkin emas");
-                                errorCount++;
-                                continue;
-                            }
-
-                            // Tahlil qilish date
-                            DateTime workDate;
-                            if (!DateTime.TryParse(dateStr, out workDate))
-                            {
-                                importResults.Add($"Qator {row}: Sana noto'g'ri format - {dateStr}");
-                                errorCount++;
-                                continue;
-                            }
-
-                            // Find employee by Tabel. Code (TabNo)
-                            var employee = allEmployees.FirstOrDefault(e => 
-                                e.TabNo != null && e.TabNo.Trim().Equals(tabelCode.Trim(), StringComparison.OrdinalIgnoreCase));
-
-                            if (employee == null)
-                            {
-                                importResults.Add($"Qator {row}: Tabel. Code bo'yicha xodim topilmadi - {tabelCode}");
-                                skipCount++;
-                                continue;
-                            }
-
-                            // Optional: Verify FullName matches agar provided (uchun validation)
-                            if (!string.IsNullOrWhiteSpace(fullName))
-                            {
-                                if (!employee.FullName.Trim().Equals(fullName.Trim(), StringComparison.OrdinalIgnoreCase))
-                                {
-                                    importResults.Add($"Qator {row}: Tabel. Code ({tabelCode}) va Ф.И.О ({fullName}) mos kelmaydi. Xodim: {employee.FullName}");
-                                    // Continue anyway, as Tabel. Code is the primary identifier
-                                }
-                            }
-
-                            // Find product by PNo, PNo2, PNo3, yoki PNo4 (case-insensitive, trimmed)
-                            string normalizedProductCode = productCode.Trim();
-                            var product = validProducts.FirstOrDefault(p => 
-                                (p.PNo != null && p.PNo.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
-                                (p.PNo2 != null && p.PNo2.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
-                                (p.PNo3 != null && p.PNo3.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
-                                (p.PNo4 != null && p.PNo4.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)));
-
-                            if (product == null)
-                            {
-                                // Urinish ga find product without IsFinishedGood filtrlash ga provide better xatolik message
-                                var allProducts = await db.PRODUCTS
-                                    .Where(p => p.IsDeleted == false &&
-                                        ((p.PNo != null && p.PNo.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
-                                         (p.PNo2 != null && p.PNo2.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
-                                         (p.PNo3 != null && p.PNo3.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase)) ||
-                                         (p.PNo4 != null && p.PNo4.Trim().Equals(normalizedProductCode, StringComparison.OrdinalIgnoreCase))))
-                                    .FirstOrDefaultAsync();
-
-                                if (allProducts != null)
-                                {
-                                    importResults.Add($"Qator {row}: Maxsulot topildi lekin IsFinishedGood = false yoki null - {productCode}");
-                                }
-                                else
-                                {
-                                    importResults.Add($"Qator {row}: Maxsulot topilmadi - {productCode}");
-                                }
-                                skipCount++;
-                                continue;
-                            }
-
-                            // Process har bir operation ustun
-                            foreach (var operationCol in operationColumns)
-                            {
-                                string operationName = operationCol.Key;
-                                int operationColIndex = operationCol.Value;
-
-                                string quantityStr = worksheet.Cells[row, operationColIndex].Text.Trim();
-                                if (string.IsNullOrWhiteSpace(quantityStr))
-                                    continue;
-
-                                // Tahlil qilish quantity
-                                decimal quantity;
-                                if (!decimal.TryParse(quantityStr, out quantity) || quantity <= 0)
-                                    continue;
-
-                                // Find operation by name (case-insensitive partial match)
-                                var operation = allOperations.FirstOrDefault(o => 
-                                    o.Name != null && o.Name.Trim().ToLower().Contains(operationName.ToLower()));
-
-                                if (operation == null)
-                                {
-                                    importResults.Add($"Qator {row}: Operatsiya topilmadi - {operationName}");
-                                    skipCount++;
-                                    continue;
-                                }
-
-                                // Tekshirish uchun duplicate entry
-                                bool exists = await db.HR_PIECE_RATE_WORK_ENTRIES
-                                    .AnyAsync(e => e.EmployeeID == employee.ID &&
-                                                  e.ProductID == product.ID &&
-                                                  e.OperationID == operation.ID &&
-                                                  e.WorkDate == workDate.Date &&
-                                                  e.Quantity == quantity &&
-                                                  e.IsDeleted == false);
-
-                                if (exists)
-                                {
-                                    importResults.Add($"Qator {row}: Bu yozuv allaqachon mavjud (Tabel. Code: {tabelCode}, Xodim: {employee.FullName}, Maxsulot: {productCode}, Operatsiya: {operationName}, Miqdor: {quantity}, Sana: {workDate:dd.MM.yyyy})");
-                                    skipCount++;
-                                    continue;
-                                }
-
-                                // Find tariff uchun this product va operation
-                                var tariff = allTariffs
-                                    .Where(t => t.ProductID == product.ID &&
-                                               t.OperationID == operation.ID &&
-                                               t.EffectiveFrom <= workDate &&
-                                               (t.EffectiveTo == null || t.EffectiveTo >= workDate))
-                                    .OrderByDescending(t => t.PositionID) // Prefer position-specific
-                                    .FirstOrDefault();
-
-                                // agar not found, try general tariff (PositionID == null)
-                                if (tariff == null)
-                                {
-                                    tariff = allTariffs
-                                        .Where(t => t.ProductID == product.ID &&
-                                                   t.OperationID == operation.ID &&
-                                                   t.PositionID == null &&
-                                                   t.EffectiveFrom <= workDate &&
-                                                   (t.EffectiveTo == null || t.EffectiveTo >= workDate))
-                                        .FirstOrDefault();
-                                }
-
-                                // Yaratish work entry
-                                var workEntry = new HR_PIECE_RATE_WORK_ENTRIES
-                                {
-                                    EmployeeID = employee.ID,
-                                    ProductID = product.ID,
-                                    OperationID = operation.ID,
-                                    WorkDate = workDate.Date,
-                                    Quantity = quantity,
-                                    CreatedByUserID = userId,
-                                    CreatedDT = currentDate,
-                                    IsDeleted = false
-                                };
-
-                                db.HR_PIECE_RATE_WORK_ENTRIES.Add(workEntry);
-                                successCount++;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            importResults.Add($"Qator {row}: Xatolik - {ex.Message}");
-                            errorCount++;
-                        }
-                    }
-
-                    // Saqlash barcha changes
-                    await db.SaveChangesAsync();
-
-                    // Tayyorlash result message
-                    string resultMessage = $"Muvaffaqiyatli: {successCount} ta yozuv qo'shildi. ";
-                    if (skipCount > 0)
-                        resultMessage += $"O'tkazib yuborildi: {skipCount} ta. ";
-                    if (errorCount > 0)
-                        resultMessage += $"Xatoliklar: {errorCount} ta.";
-
-                    if (importResults.Count > 0)
-                    {
-                        TempData["ImportResults"] = importResults;
-                    }
-
-                    TempData["Success"] = resultMessage;
-                    logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"MuvaffaqiyatliSoni: {successCount}, OtkazibYuborilganSoni: {skipCount}, XatolarSoni: {errorCount}");
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Xatolik: {ex.Message}";
-                logger.Log("HrPieceRateTimesheets", "ImportFromExcel", $"Xato: {ex.Message}");
-            }
-
-            return View();
-        }
     }
 }
 

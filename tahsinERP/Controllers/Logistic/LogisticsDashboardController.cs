@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -166,6 +167,28 @@ namespace tahsinERP.Controllers
                 ViewBag.MonthlyTrend = monthlyTrend;
 
                 return View();
+            }
+        }
+
+        /// <summary>
+        /// Logistika oylik hisoboti (forwarderlar bo'yicha)
+        /// </summary>
+        public async Task<ActionResult> MonthlyReport(int? year, int? month, int? forwarderId)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Waybill", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var y = year ?? DateTime.Today.Year;
+            var m = month ?? DateTime.Today.Month;
+            if (m < 1) m = 1;
+            if (m > 12) m = 12;
+
+            using (var db = new DBTHSNEntities())
+            {
+                var model = await LogisticsMonthlyReportService.BuildReportAsync(db, y, m, forwarderId);
+                return View(model);
             }
         }
 

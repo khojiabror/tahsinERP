@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -300,8 +301,9 @@ namespace tahsinERP.Controllers
                         return RedirectToAction("Index");
                     }
 
-                    // Soft o'chirish
+                    // Soft o'chirish + foydalanuvchi–rol bog‘lanishlarini uzish
                     role.IsDeleted = true;
+                    await SoftDeleteReferenceService.AfterRoleSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
                     // Cache ni tozalash

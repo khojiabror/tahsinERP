@@ -507,6 +507,7 @@ namespace tahsinERP.Controllers
                     {
                         jobDescription.DOC_DOCUMENTS.IsDeleted = true;
                         db.Entry(jobDescription.DOC_DOCUMENTS).State = System.Data.Entity.EntityState.Modified;
+                        await SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync(db, jobDescription.DocumentID);
                     }
                     else
                     {

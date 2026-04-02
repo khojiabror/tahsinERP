@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -464,6 +465,7 @@ namespace tahsinERP.Controllers
             try
             {
                 user.IsDeleted = true;
+                await SoftDeleteReferenceService.AfterUserSoftDeletedAsync(db, user.ID);
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimdan o'chirdi");

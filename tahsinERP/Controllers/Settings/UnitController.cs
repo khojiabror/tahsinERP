@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -94,6 +95,7 @@ namespace tahsinERP.Controllers.Settings
                     {
                         unitToDelete.IsDeleted = true;
                         db.Entry(unitToDelete).State = System.Data.Entity.EntityState.Modified;
+                        await SoftDeleteReferenceService.AfterUnitSoftDeletedAsync(db, unitToDelete.ID);
                         await db.SaveChangesAsync();
                         LogHelper.LogToDatabase(User.Identity.Name, "O'lchov birliklar", $"{unitToDelete.UnitName} - o'lchov birligini o'chirdi");
 

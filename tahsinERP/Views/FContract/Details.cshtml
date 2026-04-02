@@ -43,6 +43,14 @@
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                             <h4 class="text-primary">Shartnoma ma'lumotlari</h4>
+                                            @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder", "Details"))
+                                            {
+                                                <div class="mb-2">
+                                                    <a href="@Url.Action("Forwarder", "Reconciliation", new { id = Model.ForwarderID, contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bx bx-transfer-alt"></i> Akt-sverki (ushbu shartnoma)
+                                                    </a>
+                                                </div>
+                                            }
                                             <hr>
 
                                             <div class="row my-2 py-50">

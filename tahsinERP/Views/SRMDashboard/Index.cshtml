@@ -159,7 +159,7 @@
                                                     <tr>
                                                         <td><a href="~/Supplier/Details/@p.SupplierID">@p.SupplierName</a></td>
                                                         <td class="text-right">@p.Outstanding.ToString("N2")</td>
-                                                        <td><a href="~/Reconciliation/Supplier/@p.SupplierID" class="btn btn-xs btn-outline-primary">Akt-sverki</a></td>
+                                                        <td><a href="~/PContracts/Index?supplierID=@p.SupplierID" class="btn btn-xs btn-outline-primary">Shartnomalar</a></td>
                                                     </tr>
                                                 }
                                             }

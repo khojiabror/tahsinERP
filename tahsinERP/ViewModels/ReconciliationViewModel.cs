@@ -16,12 +16,24 @@ namespace tahsinERP.ViewModels
         public string AgreementInfo { get; set; }
         public string ReconciliationType { get; set; } // Supplier, Customer, Forwarder
         public int CounterpartyId { get; set; }
+        /// <summary>Tanlangan shartnoma (P_CONTRACTS / S_CONTRACTS / F_CONTRACTS ID).</summary>
+        public int ContractId { get; set; }
+        public string ContractNo { get; set; }
+        /// <summary>Dropdown: ushbu kontragentning barcha shartnomalari.</summary>
+        public List<ReconciliationContractOption> ContractsForParty { get; set; }
+        public bool HasSelectedContract => ContractId > 0;
         public List<ReconciliationRowViewModel> Rows { get; set; }
         public decimal Party1DebitTotal { get; set; }
         public decimal Party1CreditTotal { get; set; }
         public decimal Party2DebitTotal { get; set; }
         public decimal Party2CreditTotal { get; set; }
         public decimal FinalBalance { get; set; }  // Ijobiy = kontragent bizga qarzdor, manfiy = biz kontragentga qarzdor
+    }
+
+    public class ReconciliationContractOption
+    {
+        public int Id { get; set; }
+        public string ContractNo { get; set; }
     }
 
     public class ReconciliationRowViewModel
@@ -35,5 +47,6 @@ namespace tahsinERP.ViewModels
         public decimal Party2Credit { get; set; }
         public bool IsSubheader { get; set; }
         public bool IsBalanceRow { get; set; }
+        public bool IsAdjustmentRow { get; set; }
     }
 }

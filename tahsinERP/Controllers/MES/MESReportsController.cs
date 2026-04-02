@@ -48,7 +48,7 @@ namespace tahsinERP.Controllers.MES
 
                 // Fakt: PRODUCT_PRODUCTION (oy ichidagi ishlab chiqarish)
                 var actualByProduct = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate && (p.IsDeleted == false || p.IsDeleted == null))
+                    .Where(p => p.Date >= startDate && p.Date <= endDate && p.IsDeleted == false)
                     .GroupBy(p => p.ProductID)
                     .Select(g => new { ProductID = g.Key, Fakt = g.Sum(p => p.Total) })
                     .ToListAsync();
@@ -59,7 +59,7 @@ namespace tahsinERP.Controllers.MES
                     .ToList();
 
                 var products = await db.PRODUCTS
-                    .Where(p => productIds.Contains(p.ID) && (p.IsDeleted == false || p.IsDeleted == null))
+                    .Where(p => productIds.Contains(p.ID) && p.IsDeleted == false)
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
 
@@ -131,7 +131,7 @@ namespace tahsinERP.Controllers.MES
             {
                 // Ishlab chiqarilgan (oy davomida) — mahsulot bo'yicha
                 var producedByProduct = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate && (p.IsDeleted == false || p.IsDeleted == null))
+                    .Where(p => p.Date >= startDate && p.Date <= endDate && p.IsDeleted == false)
                     .GroupBy(p => p.ProductID)
                     .Select(g => new { ProductID = g.Key, Produced = g.Sum(x => x.Total) })
                     .ToListAsync();

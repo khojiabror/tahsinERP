@@ -64,7 +64,16 @@
                                                         ? -Math.Abs(item.Amount)
                                                         : item.Amount;
                                                     <tr>
-                                                        <td>@item.Category.Name</td>
+                                                        <td>
+                                                            @item.Category.Name
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-link p-0 ml-1 js-move-info"
+                                                                    data-category-id="@item.Category.ID"
+                                                                    data-category-name="@item.Category.Name"
+                                                                    title="Qo'shilgan/ayrilgan hujjatlar">
+                                                                <i class="bx bx-info-circle"></i>
+                                                            </button>
+                                                        </td>
                                                         <td>@item.CalculationTypeName</td>
                                                         <td>@item.Explanation</td>
                                                         <td class="text-right">@item.TransactionCount</td>
@@ -75,6 +84,38 @@
                                                 }
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <div class="modal fade" id="movementModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Kategoriya harakatlari</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div id="movementLoading" class="text-muted">Yuklanmoqda...</div>
+                                                    <div id="movementBody" style="display:none;">
+                                                        <h6>Qo'shilgan (Top 20)</h6>
+                                                        <div class="table-responsive mb-2">
+                                                            <table class="table table-sm table-bordered" id="tblAdded">
+                                                                <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                        <h6>Ayrilgan (Top 20)</h6>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-bordered" id="tblSubtracted">
+                                                                <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -88,4 +129,63 @@
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        (function () {
+            function fmtDate(v) {
+                if (!v) return '';
+                var d = new Date(v);
+                if (isNaN(d)) return v;
+                return d.toLocaleDateString('en-GB');
+            }
+            function fmtNum(v) {
+                var n = Number(v || 0);
+                return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            function fillRows(tbody, rows) {
+                tbody.innerHTML = '';
+                if (!rows || !rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Ma\'lumot yo\'q</td></tr>';
+                    return;
+                }
+                rows.forEach(function (r) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = '<td>' + fmtDate(r.date) + '</td><td>' + (r.doc || '') + '</td><td>' + (r.note || '') + '</td><td class="text-right">' + fmtNum(r.amount) + '</td>';
+                    tbody.appendChild(tr);
+                });
+            }
+            document.querySelectorAll('.js-move-info').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var categoryId = btn.getAttribute('data-category-id');
+                    var asOf = '@(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"))';
+                    document.querySelector('#movementModal .modal-title').textContent = (btn.getAttribute('data-category-name') || '') + ' - harakatlar';
+                    document.getElementById('movementLoading').style.display = 'block';
+                    document.getElementById('movementBody').style.display = 'none';
+                    $('#movementModal').modal('show');
+                    fetch('@Url.Action("BalanceCategoryMovements", "FinDashboard")' + '?categoryId=' + encodeURIComponent(categoryId) + '&asOfDate=' + encodeURIComponent(asOf))
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            document.getElementById('movementLoading').style.display = 'none';
+                            document.getElementById('movementBody').style.display = 'block';
+                            if (!data || !data.success) {
+                                document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
+                                document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
+                                return;
+                            }
+                            fillRows(document.querySelector('#tblAdded tbody'), data.added);
+                            fillRows(document.querySelector('#tblSubtracted tbody'), data.subtracted);
+                        })
+                        .catch(function () {
+                            document.getElementById('movementLoading').style.display = 'none';
+                            document.getElementById('movementBody').style.display = 'block';
+                            document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
+                            document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
+                        });
+                });
+            });
+        })();
+    </script>
 }

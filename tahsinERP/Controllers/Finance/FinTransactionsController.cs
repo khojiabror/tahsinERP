@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.Controllers;
 using OfficeOpenXml;
 using System.IO;
@@ -185,7 +186,7 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
                     .Include(t => t.USER)
-                    .FirstOrDefault(t => t.ID == id);
+                    .FirstOrDefault(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null));
 
                 if (transaction == null)
                 {
@@ -304,6 +305,25 @@ namespace tahsinERP.Controllers.Finance
                     ModelState.AddModelError("CurrencyID", "Hisob valyutasi bilan tranzaksiya valyutasi mos kelmaydi.");
                 }
 
+                // Ta'minotchiga to'lov bo'lsa, kontragent va invoys bog'lanishi majburiy.
+                if (string.Equals(transaction.SourceDocType, "PurchaseInvoicePayment", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (transaction.CounterpartyType != 2)
+                    {
+                        ModelState.AddModelError("CounterpartyType", "Ta'minotchiga to'lov uchun Kontragent turi = Ta'minotchi bo'lishi kerak.");
+                    }
+
+                    if (!transaction.CounterpartyID.HasValue)
+                    {
+                        ModelState.AddModelError("CounterpartyID", "Ta'minotchiga to'lov uchun Kontragent (ID) tanlanishi shart.");
+                    }
+
+                    if (!transaction.SourceDocID.HasValue)
+                    {
+                        ModelState.AddModelError("SourceDocID", "Ta'minotchiga to'lov uchun Manba hujjat ID (xarid invoysi ID) kiritilishi shart.");
+                    }
+                }
+
                 if (ModelState.IsValid)
                 {
                     transaction.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
@@ -365,43 +385,96 @@ namespace tahsinERP.Controllers.Finance
                 return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
             }
 
+            if (!type.HasValue)
+            {
+                return Json(new { success = true, items = new object[0] }, JsonRequestBehavior.AllowGet);
+            }
+
             using (var db = new DBTHSNEntities())
             {
-                var items = new List<object>();
-
-                if (!type.HasValue)
-                {
-                    return Json(new { success = true, items }, JsonRequestBehavior.AllowGet);
-                }
-
                 switch (type.Value)
                 {
                     case 1: // Mijoz
-                        items = db.CUSTOMERS
-                            .Where(c => c.IsDeleted == null || c.IsDeleted == false)
-                            .OrderBy(c => c.Name)
-                            .Select(c => new { id = c.ID, name = c.Name })
-                            .ToList<object>();
-                        break;
+                        return Json(new
+                        {
+                            success = true,
+                            items = db.CUSTOMERS
+                                .Where(c => c.IsDeleted != true)
+                                .OrderBy(c => c.Name)
+                                .Select(c => new { id = c.ID, name = c.Name })
+                                .ToList()
+                        }, JsonRequestBehavior.AllowGet);
                     case 2: // Ta'minotchi
-                        items = db.SUPPLIERS
-                            .Where(s => s.IsDeleted == null || s.IsDeleted == false)
-                            .OrderBy(s => s.Name)
-                            .Select(s => new { id = s.ID, name = s.Name })
-                            .ToList<object>();
-                        break;
+                        return Json(new
+                        {
+                            success = true,
+                            items = db.SUPPLIERS
+                                .Where(s => s.IsDeleted != true)
+                                .OrderBy(s => s.Name)
+                                .Select(s => new { id = s.ID, name = s.Name })
+                                .ToList()
+                        }, JsonRequestBehavior.AllowGet);
+                    case 3: // Aksiyador
+                        return Json(new
+                        {
+                            success = true,
+                            items = db.SHAREHOLDERS
+                                .Where(s => s.IsDeleted != true)
+                                .OrderBy(s => s.FullName)
+                                .Select(s => new { id = s.ID, name = s.FullName })
+                                .ToList()
+                        }, JsonRequestBehavior.AllowGet);
+                    case 4: // Forwarder
+                        return Json(new
+                        {
+                            success = true,
+                            items = db.FORWARDERS
+                                .Where(f => f.IsDeleted != true)
+                                .OrderBy(f => f.ForwarderName)
+                                .Select(f => new { id = f.ID, name = f.ForwarderName })
+                                .ToList()
+                        }, JsonRequestBehavior.AllowGet);
                     case 6: // Xodim
-                        items = db.HR_EMPLOYEES
-                            .Where(e => e.IsActive)
-                            .OrderBy(e => e.FullName)
-                            .Select(e => new { id = e.ID, name = e.FullName })
-                            .ToList<object>();
-                        break;
+                        return Json(new
+                        {
+                            success = true,
+                            items = db.HR_EMPLOYEES
+                                .Where(e => e.IsDeleted != true && e.IsActive)
+                                .OrderBy(e => e.FullName)
+                                .Select(e => new { id = e.ID, name = e.FullName })
+                                .ToList()
+                        }, JsonRequestBehavior.AllowGet);
                     default:
-                        break;
+                        return Json(new { success = true, items = new object[0] }, JsonRequestBehavior.AllowGet);
                 }
+            }
+        }
 
-                return Json(new { success = true, items }, JsonRequestBehavior.AllowGet);
+        /// <summary>
+        /// Ta'minotchi tanlanganda xarid shartnomalari (PInvoices/Create bilan bir xil ma'lumot).
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetContractsBySupplier(int supplierId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
+            {
+                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+            }
+
+            if (supplierId <= 0)
+            {
+                return Json(new { success = true, data = new object[0] }, JsonRequestBehavior.AllowGet);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var contracts = db.P_CONTRACTS
+                    .Where(c => c.SupplierID == supplierId && c.IsDeleted != true)
+                    .OrderByDescending(c => c.IssuedDate)
+                    .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                    .ToList();
+
+                return Json(new { success = true, data = contracts }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -420,21 +493,12 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var transaction = db.FIN_TRANSACTIONS.Find(id);
+                var transaction = db.FIN_TRANSACTIONS
+                    .FirstOrDefault(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null));
                 if (transaction == null)
                 {
                     return HttpNotFound();
                 }
-
-                // Don't allow editing agar linked ga source hujjat
-                if (!string.IsNullOrEmpty(transaction.SourceDocType) && transaction.SourceDocType != "Manual")
-                {
-                    ViewBag.CannotEdit = true;
-                    ViewBag.SourceDocType = transaction.SourceDocType;
-                    return View(transaction);
-                }
-
-                ViewBag.CannotEdit = false;
                 ViewBag.AccountID = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", transaction.AccountID);
@@ -462,6 +526,8 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", transaction.CounterpartyType);
 
+                ViewBag.SourceDocTypeList = BuildFinTransactionSourceDocTypeSelectList(transaction.SourceDocType);
+
                 return View(transaction);
             }
         }
@@ -478,18 +544,11 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var existing = db.FIN_TRANSACTIONS.Find(transaction.ID);
+                var existing = db.FIN_TRANSACTIONS
+                    .FirstOrDefault(t => t.ID == transaction.ID && (t.IsDeleted == false || t.IsDeleted == null));
                 if (existing == null)
                 {
                     return HttpNotFound();
-                }
-
-                // Don't allow editing agar linked ga source hujjat
-                if (!string.IsNullOrEmpty(existing.SourceDocType) && existing.SourceDocType != "Manual")
-                {
-                    ViewBag.CannotEdit = true;
-                    ViewBag.SourceDocType = existing.SourceDocType;
-                    return View(transaction);
                 }
 
                 var account = db.FIN_ACCOUNTS.Find(transaction.AccountID);
@@ -514,6 +573,8 @@ namespace tahsinERP.Controllers.Finance
                     existing.Purpose = transaction.Purpose;
                     existing.ContractNo = transaction.ContractNo;
                     existing.Comment = transaction.Comment;
+                    existing.SourceDocType = transaction.SourceDocType;
+                    existing.SourceDocID = transaction.SourceDocID;
 
                     db.SaveChanges();
 
@@ -549,6 +610,8 @@ namespace tahsinERP.Controllers.Finance
                     new { Value = (byte?)6, Text = "Xodim" },
                     new { Value = (byte?)5, Text = "Boshqa" }
                 }, "Value", "Text", transaction.CounterpartyType);
+
+                ViewBag.SourceDocTypeList = BuildFinTransactionSourceDocTypeSelectList(transaction.SourceDocType);
 
                 return View(transaction);
             }
@@ -604,7 +667,8 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var transaction = db.FIN_TRANSACTIONS.Find(id);
+                var transaction = db.FIN_TRANSACTIONS
+                    .FirstOrDefault(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null));
                 if (transaction != null)
                 {
                     // faqat allow deletion of manual transactions
@@ -612,6 +676,7 @@ namespace tahsinERP.Controllers.Finance
                     {
                         transaction.IsDeleted = true;
                         db.Entry(transaction).State = System.Data.Entity.EntityState.Modified;
+                        SoftDeleteReferenceService.AfterFinTransactionSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
                         db.SaveChanges();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "Delete", 
@@ -637,6 +702,7 @@ namespace tahsinERP.Controllers.Finance
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
+                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
                     .AsQueryable();
 
                 if (fromDate.HasValue)
@@ -1204,6 +1270,33 @@ namespace tahsinERP.Controllers.Finance
 
                 return View();
             }
+        }
+
+        private static SelectList BuildFinTransactionSourceDocTypeSelectList(string current)
+        {
+            var items = new List<object>
+            {
+                new { Value = "Manual", Text = "Qo'lda" },
+                new { Value = "RecurringObligationPayment", Text = "Doimiy harajat to'lovi (ijara, buxgalteriya va h.k.)" },
+                new { Value = "PurchaseInvoicePayment", Text = "Ta'minotchiga to'lov (xarid invoysiga bog'lash)" },
+                new { Value = "SalesInvoice", Text = "Sotuv invoysi" },
+                new { Value = "PurchaseInvoice", Text = "Xarid invoysi" },
+                new { Value = "IncomeDoc", Text = "Ombor kirimi" },
+                new { Value = "ExpenseDoc", Text = "Ombor chiqimi" },
+                new { Value = "WaybillPayment", Text = "Yo'l varaqasi to'lovi" },
+                new { Value = "ShareholderContribution", Text = "Aksiyador hissasi" }
+            };
+            var selected = string.IsNullOrWhiteSpace(current) ? "Manual" : current.Trim();
+            var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Manual", "RecurringObligationPayment", "PurchaseInvoicePayment", "SalesInvoice", "PurchaseInvoice",
+                "IncomeDoc", "ExpenseDoc", "WaybillPayment", "ShareholderContribution"
+            };
+            if (!known.Contains(selected))
+            {
+                items.Insert(0, new { Value = selected, Text = selected + " (maxsus)" });
+            }
+            return new SelectList(items, "Value", "Text", selected);
         }
 
         private string GetSourceDocLink(string sourceDocType, int sourceDocID)

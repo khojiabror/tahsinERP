@@ -351,16 +351,7 @@ namespace tahsinERP.Controllers
 
                 if (doc != null)
                 {
-                    // Avval, soft o'chirish barcha related DOC_FILES
-                    if (doc.DOC_FILES != null && doc.DOC_FILES.Any())
-                    {
-                        var files = doc.DOC_FILES.ToList();
-                        foreach (var file in files)
-                        {
-                            file.IsDeleted = true;
-                            db.Entry(file).State = System.Data.Entity.EntityState.Modified;
-                        }
-                    }
+                    await SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync(db, doc.ID);
 
                     // So'ng soft o'chirish the company order record
                     if (doc.ADM_COMPANY_ORDERS != null)

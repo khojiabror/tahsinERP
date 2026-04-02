@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Settings
@@ -234,9 +235,10 @@ namespace tahsinERP.Controllers.Settings
                     var warehouse = await db.WAREHOUSES.FindAsync(id);
                     if (warehouse != null)
                     {
-                        // Soft o'chirish
+                        // Soft o'chirish + nullable ombor havolalarini tozalash
                         warehouse.IsDeleted = true;
                         db.Entry(warehouse).State = EntityState.Modified;
+                        await SoftDeleteReferenceService.AfterWarehouseSoftDeletedAsync(db, id);
                         await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 

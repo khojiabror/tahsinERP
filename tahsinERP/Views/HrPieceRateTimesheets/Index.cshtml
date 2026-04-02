@@ -28,14 +28,17 @@
             </div>
 
             <div class="content-body">
+                @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+                @if (TempData["Warning"] != null) { <div class="alert alert-warning">@TempData["Warning"]</div> }
+                @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
                 @if (changePermit)
                 {
                     <div class="invoice-create-btn mb-1">
                         <a href="@Url.Action("CreateSimple")" class="btn btn-success">
                             <i class="bx bx-plus"></i> Ishbay ma'lumot kiritish
                         </a>
-                        <a href="@Url.Action("ImportFromExcel")" class="btn btn-info ml-1">
-                            <i class="bx bx-file"></i> Excel orqali yuklash
+                        <a href="@Url.Action("GridCreate")" class="btn btn-primary ml-1">
+                            <i class="bx bx-table"></i> Jadval orqali kiritish
                         </a>
                     </div>
                 }
@@ -107,6 +110,12 @@
                                                         }
                                                     </td>
                                                     <td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <a href="@Url.Action("GridEdit", new { year = item.Year, month = item.Month })" class="btn btn-sm btn-warning" title="Grid tahrirlash">
+                                                                <i class="bx bx-table"></i>
+                                                            </a>
+                                                        }
                                                         <a href="@Url.Action("Details", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-info">
                                                             <i class="bx bx-show"></i>
                                                         </a>
@@ -147,10 +156,22 @@
         $(document).ready(function() {
             var table = $('#timesheetsTable').DataTable({
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
+                    "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[0, "desc"], [1, "desc"]]
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
+                "order": [[0, "desc"], [1, "desc"]],
+                "dom": "lBfrtip",
+                buttons: [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                ]
             });
 
             // Handle month filter change - reload page with new filter

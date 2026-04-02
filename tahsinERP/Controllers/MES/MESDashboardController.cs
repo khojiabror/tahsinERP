@@ -63,7 +63,8 @@ namespace tahsinERP.Controllers.MES
                     .SumAsync(d => (double?)d.Total) ?? 0;
 
                 var periodActual = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate)
+                    .Where(p => p.Date >= startDate && p.Date <= endDate
+                        && (p.IsDeleted == false || p.IsDeleted == null))
                     .SumAsync(p => (double?)p.Total) ?? 0;
 
                 viewModel.TodayPlanned = periodPlanned;
@@ -89,7 +90,8 @@ namespace tahsinERP.Controllers.MES
                     .SumAsync(d => (double?)d.Total) ?? 0;
 
                 var secondaryActual = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= secondaryStart && p.Date <= secondaryEnd)
+                    .Where(p => p.Date >= secondaryStart && p.Date <= secondaryEnd
+                        && (p.IsDeleted == false || p.IsDeleted == null))
                     .SumAsync(p => (double?)p.Total) ?? 0;
 
                 viewModel.MonthPlanned = secondaryPlanned;
@@ -104,7 +106,8 @@ namespace tahsinERP.Controllers.MES
                     .ToListAsync();
 
                 var dailyActuals = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= chartStartDate && p.Date <= chartEndDate)
+                    .Where(p => p.Date >= chartStartDate && p.Date <= chartEndDate
+                        && (p.IsDeleted == false || p.IsDeleted == null))
                     .ToListAsync();
 
                 // Group by date in memory (after ToListAsync)
@@ -133,7 +136,8 @@ namespace tahsinERP.Controllers.MES
 
                 // Production by Shop
                 var productionByShop = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate)
+                    .Where(p => p.Date >= startDate && p.Date <= endDate
+                        && (p.IsDeleted == false || p.IsDeleted == null))
                     .GroupBy(p => new { p.ShopID, p.SHOP.ShopName })
                     .Select(g => new { g.Key.ShopID, g.Key.ShopName, Total = g.Sum(p => p.Total) })
                     .ToListAsync();
@@ -195,7 +199,8 @@ namespace tahsinERP.Controllers.MES
                     foreach (var orderProduct in order.S_ORDER_PRODUCTS)
                     {
                         var producedQty = await db.PRODUCT_PRODUCTION
-                            .Where(p => p.ProductID == orderProduct.ProductID)
+                            .Where(p => p.ProductID == orderProduct.ProductID
+                                && (p.IsDeleted == false || p.IsDeleted == null))
                             .SumAsync(p => (double?)p.Total) ?? 0;
 
                         var inspectedQty = await db.QUALITY_INSPECTION

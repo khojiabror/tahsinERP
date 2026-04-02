@@ -133,7 +133,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 // Olish transaction count
-                ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.AccountID == id);
+                ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.AccountID == id && t.IsDeleted != true);
 
                 return View(account);
             }
@@ -310,7 +310,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 // Tekshirish agar account has transactions
-                ViewBag.HasTransactions = db.FIN_TRANSACTIONS.Any(t => t.AccountID == id);
+                ViewBag.HasTransactions = db.FIN_TRANSACTIONS.Any(t => t.AccountID == id && t.IsDeleted != true);
 
                 return View(account);
             }

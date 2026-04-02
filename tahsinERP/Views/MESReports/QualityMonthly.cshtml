@@ -60,7 +60,7 @@
                     <div class="card-body">
                         <div class="report-header text-center mb-4">
                             <h4 class="text-primary mb-1">SIFAT OYLIK HISOBOTI</h4>
-                            <p class="mb-0 text-muted">@Model.StartDate.ToString("dd.MM.yyyy") – @Model.EndDate.ToString("dd.MM.yyyy") (@monthNames[Model.Month] @Model.Year)</p>
+                            <p class="mb-0 text-muted">@Model.StartDate.ToString("dd.MM.yyyy") - @Model.EndDate.ToString("dd.MM.yyyy") (@monthNames[Model.Month] @Model.Year)</p>
                             @if (Model.FTQPercent.HasValue)
                             {
                                 <p class="mb-0 mt-1"><strong>FTQ (First Time Quality): @Model.FTQPercent.Value.ToString("N1")%</strong></p>

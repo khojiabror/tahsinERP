@@ -8,19 +8,19 @@ namespace tahsinERP.ViewModels.HR
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Год обязателен")]
-        [Display(Name = "Год")]
+        [Required(ErrorMessage = "Yil majburiy")]
+        [Display(Name = "Yil")]
         public int Year { get; set; }
         
-        [Required(ErrorMessage = "Месяц обязателен")]
-        [Display(Name = "Месяц")]
+        [Required(ErrorMessage = "Oy majburiy")]
+        [Display(Name = "Oy")]
         public int Month { get; set; }
         
-        [Display(Name = "Подразделение")]
+        [Display(Name = "Bo'lim")]
         public int? OrgUnitID { get; set; }
         public string OrgUnitName { get; set; }
         
-        [Display(Name = "Статус")]
+        [Display(Name = "Holat")]
         public string Status { get; set; }
         
         public int? CreatedByUserID { get; set; }

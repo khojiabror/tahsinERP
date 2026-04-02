@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Helpers;
 using tahsinERP.Controllers;
 using System.Linq.Expressions;
 
@@ -24,7 +25,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_TRANSACTIONS
+                var query = ActiveFinTransactions(db)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
@@ -58,7 +59,7 @@ namespace tahsinERP.Controllers.Finance
                 var cashBalance = 0m;
                 foreach (var account in cashAccounts)
                 {
-                    var accountBalance = db.FIN_TRANSACTIONS
+                    var accountBalance = ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID)
                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                     cashBalance += accountBalance;
@@ -68,7 +69,7 @@ namespace tahsinERP.Controllers.Finance
                 var bankBalance = 0m;
                 foreach (var account in bankAccounts)
                 {
-                    var accountBalance = db.FIN_TRANSACTIONS
+                    var accountBalance = ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID)
                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                     bankBalance += accountBalance;
@@ -151,7 +152,7 @@ namespace tahsinERP.Controllers.Finance
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
                 // Olish transactions uchun the period - exclude liability transactions (faqat real P&L)
-                var transactions = db.FIN_TRANSACTIONS
+                var transactions = ActiveFinTransactions(db)
                     .Include(t => t.FIN_CATEGORIES)
                     .Where(t => t.TxnDate >= startDate && t.TxnDate <= endDate)
                     // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real transactions
@@ -255,16 +256,24 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(c => c.SortOrder)
                     .ToList();
 
-                // Olish snapshots uchun the date
-                var snapshots = db.FIN_BALANCE_SNAPSHOTS
-                    .Where(s => s.SnapshotDate <= asOfDate.Value)
+                // Faqat opening snapshotni bazaga olamiz.
+                // Qolgan snapshotlar balansni freeze qilmasin; tizim har doim dinamik hisoblaydi.
+                var openingSnapshots = db.FIN_BALANCE_SNAPSHOTS
+                    .Where(s => s.SnapshotDate <= asOfDate.Value && s.SourceType == "OpeningBalance")
                     .GroupBy(s => s.CategoryID)
                     .Select(g => new
                     {
                         CategoryID = g.Key,
-                        Amount = g.OrderByDescending(s => s.SnapshotDate).FirstOrDefault().Amount
+                        Latest = g.OrderByDescending(s => s.SnapshotDate).FirstOrDefault()
                     })
-                    .ToDictionary(x => x.CategoryID, x => x.Amount);
+                    .ToDictionary(
+                        x => x.CategoryID,
+                        x => new CategorySnapshotInfo
+                        {
+                            Amount = x.Latest.Amount,
+                            SnapshotDate = x.Latest.SnapshotDate,
+                            IsOpening = true
+                        });
 
                 // Calculate dan transactions va accounts
                 // Map accounts ga balance categories by name matching
@@ -273,7 +282,7 @@ namespace tahsinERP.Controllers.Finance
                 
                 foreach (var account in accounts)
                 {
-                    var balance = db.FIN_TRANSACTIONS
+                    var balance = ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID && t.TxnDate <= asOfDate.Value)
                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                     accountBalances[account.ID] = balance;
@@ -303,14 +312,13 @@ namespace tahsinERP.Controllers.Finance
                 foreach (var category in categories)
                 {
                     decimal amount = 0;
-                    
-                    // Avval tekshirish snapshots (highest priority)
-                    if (snapshots.ContainsKey(category.ID))
+                    DateTime? openingDate = null;
+                    if (openingSnapshots.TryGetValue(category.ID, out var openingSnapshotInfo))
                     {
-                        amount = snapshots[category.ID];
+                        amount = openingSnapshotInfo.Amount;
+                        openingDate = openingSnapshotInfo.SnapshotDate.Date;
                     }
-                    else
-                    {
+
                         // Calculate based on CalculationType
                         switch (category.CalculationType)
                         {
@@ -319,8 +327,13 @@ namespace tahsinERP.Controllers.Finance
                                 // To'lovlar = FinTransactions (Direction=2, CounterpartyType=2 ta'minotchi) — hisobda emas, tranzaksiyada
                                 if (category.Name == "Ta'minotchilardan qarzlar")
                                 {
-                                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate.Value);
-                                    amount = supplierSummary.Sum(s => s.Outstanding);
+                                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate.Value, openingDate);
+                                    amount += supplierSummary.Sum(s => s.Outstanding);
+                                }
+                                else if (category.Name == "Xaridorlardan haqlarimiz")
+                                {
+                                    var customerSummary = CalculateCustomerOutstanding(db, asOfDate.Value, openingDate);
+                                    amount += customerSummary.Sum(c => c.Outstanding);
                                 }
                                 else
                                 {
@@ -335,12 +348,14 @@ namespace tahsinERP.Controllers.Finance
                                             .Select(kvp => kvp.Key)
                                             .ToList();
                                     }
-                                    foreach (var accountId in mappedAccountIds)
+                                    if (mappedAccountIds.Count > 0)
                                     {
-                                        if (accountBalances.ContainsKey(accountId))
-                                        {
-                                            amount += accountBalances[accountId];
-                                        }
+                                        var movement = ActiveFinTransactions(db)
+                                            .Where(t => mappedAccountIds.Contains(t.AccountID) &&
+                                                        t.TxnDate <= asOfDate.Value &&
+                                                        (!openingDate.HasValue || t.TxnDate > openingDate.Value))
+                                            .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                                        amount += movement;
                                     }
                                 }
                                 break;
@@ -389,9 +404,10 @@ namespace tahsinERP.Controllers.Finance
                                 if (categoryIds.Count > 0)
                                 {
                                     // Calculate dan transactions in mapped categories
-                                    amount = db.FIN_TRANSACTIONS
+                                    amount += ActiveFinTransactions(db)
                                         .Where(t => categoryIds.Contains(t.CategoryID) && 
-                                                   t.TxnDate <= asOfDate.Value)
+                                                   t.TxnDate <= asOfDate.Value &&
+                                                   (!openingDate.HasValue || t.TxnDate > openingDate.Value))
                                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                                 }
                                 break;
@@ -417,7 +433,20 @@ namespace tahsinERP.Controllers.Finance
                                         {
                                             if (accountBalances.ContainsKey(accountId))
                                             {
-                                                amount += accountBalances[accountId];
+                                                // opening bo'lsa faqat opening sanasidan keyingi harakatlar
+                                                if (openingDate.HasValue)
+                                                {
+                                                    var mv = ActiveFinTransactions(db)
+                                                        .Where(t => t.AccountID == accountId &&
+                                                                    t.TxnDate <= asOfDate.Value &&
+                                                                    t.TxnDate > openingDate.Value)
+                                                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                                                    amount += mv;
+                                                }
+                                                else
+                                                {
+                                                    amount += accountBalances[accountId];
+                                                }
                                             }
                                         }
                                     }
@@ -427,16 +456,18 @@ namespace tahsinERP.Controllers.Finance
                                         // ga'lanmagan xarid invoyslari
                                         var unpaidInvoices = db.P_INVOICES
                                             .Where(i => i.InvoiceDate <= asOfDate.Value && 
+                                                       (!openingDate.HasValue || i.InvoiceDate > openingDate.Value) &&
                                                        (i.IsDeleted == null || i.IsDeleted == false))
                                             .ToList();
                                         
                                         foreach (var invoice in unpaidInvoices)
                                         {
                                             // Calculate total payments uchun this invoice
-                                            var totalPaid = db.FIN_TRANSACTIONS
+                                            var totalPaid = ActiveFinTransactions(db)
                                                 .Where(t => t.SourceDocType == "PurchaseInvoice" && 
                                                            t.SourceDocID == invoice.ID && 
                                                            t.TxnDate <= asOfDate.Value &&
+                                                           (!openingDate.HasValue || t.TxnDate > openingDate.Value) &&
                                                            t.Direction == 1) // Payments (incoming ga supplier)
                                                 .Sum(t => (decimal?)t.Amount) ?? 0m;
                                             
@@ -459,7 +490,8 @@ namespace tahsinERP.Controllers.Finance
                                                    (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
                                                    (l.HR_PAYROLL_HEADERS.Status == "Approved" || l.HR_PAYROLL_HEADERS.Status == "Posted") &&
                                                    l.HR_PAYROLL_HEADERS.ApprovedDT.HasValue &&
-                                                   l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOfDate.Value)
+                                                   l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOfDate.Value &&
+                                                   (!openingDate.HasValue || l.HR_PAYROLL_HEADERS.ApprovedDT.Value > openingDate.Value))
                                         .Sum(l => (decimal?)l.NetSalary) ?? 0m;
 
                                     var salaryCategoryIds = db.FIN_CATEGORIES
@@ -470,67 +502,26 @@ namespace tahsinERP.Controllers.Finance
                                     var salaryExpenses = 0m;
                                     if (salaryCategoryIds.Count > 0)
                                     {
-                                        salaryExpenses = db.FIN_TRANSACTIONS
+                                        salaryExpenses = ActiveFinTransactions(db)
                                             .Where(t => salaryCategoryIds.Contains(t.CategoryID) &&
                                                        t.Direction == 2 &&
-                                                       t.TxnDate <= asOfDate.Value)
+                                                       t.TxnDate <= asOfDate.Value &&
+                                                       (!openingDate.HasValue || t.TxnDate > openingDate.Value))
                                             .Sum(t => (decimal?)t.Amount) ?? 0m;
                                     }
 
-                                    amount = payrollTotal - salaryExpenses;
-                                    if (amount < 0)
+                                    var payrollNet = payrollTotal - salaryExpenses;
+                                    if (payrollNet < 0)
                                     {
-                                        amount = 0m;
+                                        payrollNet = 0m;
                                     }
+                                    amount += payrollNet;
                                 }
                                 else if (category.Name == "Xaridorlardan haqlarimiz")
                                 {
-                                    // Yechim 2: Account-Based ishlatish (hujjat-Based o'rniga)
-                                    // Avval Account-Based orqali hisoblashga harakat qilamiz
-                                    var receivablesAccountIds = db.FIN_ACCOUNTS
-                                        .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
-                                        .Select(a => a.ID)
-                                        .ToList();
-                                    
-                                    if (receivablesAccountIds.Count > 0)
-                                    {
-                                        // Account-Based: Account qoldiqlarini yig'ish
-                                        foreach (var accountId in receivablesAccountIds)
-                                        {
-                                            if (accountBalances.ContainsKey(accountId))
-                                            {
-                                                amount += accountBalances[accountId];
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Fallback: hujjat-Based (eski usul, Account-Based sozlanmagan bo'lsa)
-                                        // ga'lanmagan sotuv invoyslari
-                                        var unpaidInvoices = db.SALES_INVOICES
-                                            .Where(i => i.InvoiceDate <= asOfDate.Value && 
-                                                       (i.StatusCode == null || i.StatusCode != "Paid"))
-                                            .ToList();
-                                        
-                                        foreach (var invoice in unpaidInvoices)
-                                        {
-                                            // Calculate total payments uchun this invoice
-                                            var totalPaid = db.FIN_TRANSACTIONS
-                                                .Where(t => t.SourceDocType == "SalesInvoice" && 
-                                                           t.SourceDocID == invoice.ID && 
-                                                           t.TxnDate <= asOfDate.Value &&
-                                                           t.Direction == 1) // Payments (incoming dan customer)
-                                                .Sum(t => (decimal?)t.Amount) ?? 0m;
-                                            
-                                            var invoiceAmount = invoice.TotalAmount;
-                                            
-                                            // agar not fully paid, add unpaid amount
-                                            if (totalPaid < invoiceAmount)
-                                            {
-                                                amount += (invoiceAmount - totalPaid);
-                                            }
-                                        }
-                                    }
+                                    // Receivables: sales invoyslar - mijozdan tushumlar
+                                    var customerSummary = CalculateCustomerOutstanding(db, asOfDate.Value, openingDate);
+                                    amount += customerSummary.Sum(c => c.Outstanding);
                                 }
                                 else if (category.Name != null &&
                                          category.Name.ToLower().Contains("logistika") &&
@@ -538,6 +529,7 @@ namespace tahsinERP.Controllers.Finance
                                 {
                                     var totalWaybillAmount = db.F_WAYBILLS
                                         .Where(w => w.IsDeleted == false && w.Amount.HasValue &&
+                                                    (!openingDate.HasValue || w.IssueDate > openingDate.Value) &&
                                                     w.IssueDate <= asOfDate.Value)
                                         .Sum(w => (double?)w.Amount) ?? 0;
 
@@ -550,15 +542,16 @@ namespace tahsinERP.Controllers.Finance
                                     var paidAmount = 0m;
                                     if (logisticsCategoryIds.Count > 0)
                                     {
-                                        paidAmount = db.FIN_TRANSACTIONS
+                                        paidAmount = ActiveFinTransactions(db)
                                             .Where(t => logisticsCategoryIds.Contains(t.CategoryID) &&
                                                         t.TxnDate <= asOfDate.Value &&
+                                                        (!openingDate.HasValue || t.TxnDate > openingDate.Value) &&
                                                         (t.IsDeleted == null || t.IsDeleted == false) &&
                                                         t.Direction == 2)
                                             .Sum(t => (decimal?)t.Amount) ?? 0m;
                                     }
 
-                                    amount = (decimal)totalWaybillAmount - paidAmount;
+                                    amount += (decimal)totalWaybillAmount - paidAmount;
                                 }
                                 else if (category.Name == "Doimiy harajatlar qarzi")
                                 {
@@ -572,12 +565,19 @@ namespace tahsinERP.Controllers.Finance
                                         {
                                             var startDate = new DateTime(ob.StartYear, ob.StartMonth, 1);
                                             var endDate = asOfDate.Value.Date;
-                                            if (endDate < startDate) continue;
-                                            var monthsCount = ((endDate.Year - startDate.Year) * 12) + (endDate.Month - startDate.Month) + 1;
+                                            var effectiveStart = openingDate.HasValue && openingDate.Value > startDate
+                                                ? openingDate.Value
+                                                : startDate;
+                                            if (endDate < effectiveStart) continue;
+                                            var monthsCount = ((endDate.Year - effectiveStart.Year) * 12) + (endDate.Month - effectiveStart.Month) + 1;
                                             if (monthsCount < 1) continue;
                                             var accrued = ob.MonthlyAmount * monthsCount;
-                                            var paid = db.FIN_TRANSACTIONS
-                                                .Where(t => t.SourceDocType == "RecurringObligationPayment" && t.SourceDocID == ob.ID && t.TxnDate <= asOfDate.Value && (t.IsDeleted == null || t.IsDeleted == false))
+                                            var paid = ActiveFinTransactions(db)
+                                                .Where(t => t.SourceDocType == "RecurringObligationPayment" &&
+                                                            t.SourceDocID == ob.ID &&
+                                                            t.TxnDate <= asOfDate.Value &&
+                                                            (!openingDate.HasValue || t.TxnDate > openingDate.Value) &&
+                                                            (t.IsDeleted == null || t.IsDeleted == false))
                                                 .Sum(t => (decimal?)t.Amount) ?? 0m;
                                             var net = accrued - paid;
                                             if (net > 0) amount += net;
@@ -590,12 +590,12 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 break;
                         }
-                    }
 
                     balanceData.Add(new BalanceCategoryData
                     {
                         Category = category,
-                        Amount = amount
+                        Amount = amount,
+                        IsAssetColumn = BalanceCategoryDisplayHelper.IsAssetColumn(category)
                     });
                 }
 
@@ -618,13 +618,179 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var details = BuildBalanceCategoryDetails(db, asOfDate.Value, new[] { 2, 3 });
+                var details = BuildBalanceCategoryDetails(db, asOfDate.Value, new[] { 2, 3 }, false);
 
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.LiabilityDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
 
                 return View();
+            }
+        }
+
+        // Olish so'rovi: FinDashboard/BalanceSheetAssetDetails
+        public ActionResult BalanceSheetAssetDetails(DateTime? asOfDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            asOfDate = asOfDate ?? DateTime.Now;
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                // Type=2 bo'lib qolgan operatsion aktivlar ham kirishi uchun 1 va 2 ni beramiz.
+                var details = BuildBalanceCategoryDetails(db, asOfDate.Value, new[] { 1, 2 }, true);
+
+                ViewBag.AsOfDate = asOfDate;
+                ViewBag.AssetDetails = details;
+                ViewBag.TotalAmount = details.Sum(d => d.Amount);
+
+                return View();
+            }
+        }
+
+        [HttpGet]
+        public JsonResult BalanceCategoryMovements(int categoryId, DateTime asOfDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var category = db.FIN_BALANCE_CATEGORIES.FirstOrDefault(c => c.ID == categoryId && c.IsActive);
+                if (category == null)
+                {
+                    return Json(new { success = false, message = "Kategoriya topilmadi" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var openingDate = db.FIN_BALANCE_SNAPSHOTS
+                    .Where(s => s.CategoryID == categoryId && s.SourceType == "OpeningBalance" && s.SnapshotDate <= asOfDate)
+                    .OrderByDescending(s => s.SnapshotDate)
+                    .Select(s => (DateTime?)s.SnapshotDate)
+                    .FirstOrDefault();
+
+                var fromExclusive = openingDate;
+                var top = 20;
+
+                if (category.Name == "Ta'minotchilardan qarzlar")
+                {
+                    var materialCategoryIds = db.FIN_CATEGORIES
+                        .Where(c => c.IsActive && c.Type == 2 && c.Name.ToLower().Contains("material"))
+                        .Select(c => c.ID)
+                        .ToList();
+
+                    // P_INVOICES.Amount — double?; (decimal) cast SQL ga tarjima qilinmaydi — avval ToList, keyin memoryda cast.
+                    var added = db.P_INVOICES
+                        .Include(i => i.SUPPLIER)
+                        .Where(i => i.InvoiceDate <= asOfDate &&
+                                    (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value) &&
+                                    (i.IsDeleted == null || i.IsDeleted == false))
+                        .OrderByDescending(i => i.InvoiceDate)
+                        .Take(top)
+                        .ToList()
+                        .Select(i => new
+                        {
+                            date = i.InvoiceDate,
+                            doc = i.InvoiceNo,
+                            amount = (decimal)(i.Amount ?? 0d),
+                            note = i.SUPPLIER != null ? i.SUPPLIER.Name : ""
+                        })
+                        .ToList();
+
+                    var subtracted = ActiveFinTransactions(db)
+                        .Where(t => t.Direction == 2 &&
+                                    t.TxnDate <= asOfDate &&
+                                    (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
+                                    ((t.CounterpartyType == 2 && t.CounterpartyID.HasValue) ||
+                                     materialCategoryIds.Contains(t.CategoryID)))
+                        .OrderByDescending(t => t.TxnDate)
+                        .Take(top)
+                        .Select(t => new
+                        {
+                            date = t.TxnDate,
+                            doc = t.SourceDocType ?? "FinTransaction",
+                            amount = t.Amount,
+                            note = t.Purpose ?? t.Comment
+                        })
+                        .ToList();
+
+                    return Json(new { success = true, added, subtracted }, JsonRequestBehavior.AllowGet);
+                }
+
+                if (category.Name == "Xaridorlardan haqlarimiz")
+                {
+                    var added = db.SALES_INVOICES
+                        .Where(i => i.InvoiceDate <= asOfDate &&
+                                    (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
+                        .OrderByDescending(i => i.InvoiceDate)
+                        .Take(top)
+                        .Select(i => new
+                        {
+                            date = i.InvoiceDate,
+                            doc = i.InvoiceNo,
+                            amount = i.TotalAmount,
+                            note = (i.CUSTOMER != null ? i.CUSTOMER.Name : "")
+                        })
+                        .ToList();
+
+                    var salesCategoryIds = db.FIN_CATEGORIES
+                        .Where(c => c.IsActive && c.Type == 1 && c.Name.Contains("Sotuv"))
+                        .Select(c => c.ID)
+                        .ToList();
+
+                    var subtracted = ActiveFinTransactions(db)
+                        .Where(t => t.Direction == 1 &&
+                                    t.TxnDate <= asOfDate &&
+                                    (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
+                                    t.SourceDocType != "SalesInvoice" &&
+                                    ((t.CounterpartyType == 1 && t.CounterpartyID.HasValue) ||
+                                     salesCategoryIds.Contains(t.CategoryID)))
+                        .OrderByDescending(t => t.TxnDate)
+                        .Take(top)
+                        .Select(t => new
+                        {
+                            date = t.TxnDate,
+                            doc = t.SourceDocType ?? "FinTransaction",
+                            amount = t.Amount,
+                            note = t.Purpose ?? t.Comment
+                        })
+                        .ToList();
+
+                    return Json(new { success = true, added, subtracted }, JsonRequestBehavior.AllowGet);
+                }
+
+                var mappedCategoryIds = db.FIN_CATEGORIES
+                    .Where(fc => fc.IsActive && fc.FIN_BALANCE_CATEGORIES.Any(b => b.ID == categoryId))
+                    .Select(fc => fc.ID)
+                    .ToList();
+                var mappedAccountIds = db.FIN_ACCOUNTS
+                    .Where(a => a.IsActive && a.BalanceCategoryID == categoryId)
+                    .Select(a => a.ID)
+                    .ToList();
+
+                var baseQuery = ActiveFinTransactions(db)
+                    .Where(t => t.TxnDate <= asOfDate &&
+                                (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
+                                (mappedCategoryIds.Contains(t.CategoryID) || mappedAccountIds.Contains(t.AccountID)));
+
+                var defaultAdded = baseQuery
+                    .Where(t => t.Direction == 1)
+                    .OrderByDescending(t => t.TxnDate)
+                    .Take(top)
+                    .Select(t => new { date = t.TxnDate, doc = t.SourceDocType ?? "FinTransaction", amount = t.Amount, note = t.Purpose ?? t.Comment })
+                    .ToList();
+                var defaultSubtracted = baseQuery
+                    .Where(t => t.Direction != 1)
+                    .OrderByDescending(t => t.TxnDate)
+                    .Take(top)
+                    .Select(t => new { date = t.TxnDate, doc = t.SourceDocType ?? "FinTransaction", amount = t.Amount, note = t.Purpose ?? t.Comment })
+                    .ToList();
+
+                return Json(new { success = true, added = defaultAdded, subtracted = defaultSubtracted }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -688,7 +854,7 @@ namespace tahsinERP.Controllers.Finance
 
             foreach (var account in cashAccounts)
             {
-                var balance = db.FIN_TRANSACTIONS
+                var balance = ActiveFinTransactions(db)
                     .Where(t => t.AccountID == account.ID && t.TxnDate <= asOfDate)
                     .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                 value += balance;
@@ -709,7 +875,7 @@ namespace tahsinERP.Controllers.Finance
             var payables = db.P_INVOICES
                 .Where(i => i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
                 .ToList()
-                .Sum(i => (decimal?)(decimal)i.Amount) ?? 0m;
+                .Sum(i => (decimal?)(i.Amount ?? 0d)) ?? 0m;
             value -= payables;
 
             return value;
@@ -742,7 +908,7 @@ namespace tahsinERP.Controllers.Finance
             detail.SubtractedAmount = query.Where(t => t.Direction != 1).Sum(t => (decimal?)t.Amount) ?? 0m;
         }
 
-        private List<BalanceCategoryDetailData> BuildBalanceCategoryDetails(DBTHSNEntities db, DateTime asOfDate, int[] types)
+        private List<BalanceCategoryDetailData> BuildBalanceCategoryDetails(DBTHSNEntities db, DateTime asOfDate, int[] types, bool includeAssetColumn)
         {
             var typeSet = new HashSet<int>(types ?? new int[0]);
             var categories = db.FIN_BALANCE_CATEGORIES
@@ -750,21 +916,28 @@ namespace tahsinERP.Controllers.Finance
                 .OrderBy(c => c.SortOrder)
                 .ToList();
 
-            var snapshots = db.FIN_BALANCE_SNAPSHOTS
-                .Where(s => s.SnapshotDate <= asOfDate)
+            var openingSnapshots = db.FIN_BALANCE_SNAPSHOTS
+                .Where(s => s.SnapshotDate <= asOfDate && s.SourceType == "OpeningBalance")
                 .GroupBy(s => s.CategoryID)
                 .Select(g => new
                 {
                     CategoryID = g.Key,
-                    Amount = g.OrderByDescending(s => s.SnapshotDate).FirstOrDefault().Amount
+                    Latest = g.OrderByDescending(s => s.SnapshotDate).FirstOrDefault()
                 })
-                .ToDictionary(x => x.CategoryID, x => x.Amount);
+                .ToDictionary(
+                    x => x.CategoryID,
+                    x => new CategorySnapshotInfo
+                    {
+                        Amount = x.Latest.Amount,
+                        SnapshotDate = x.Latest.SnapshotDate,
+                        IsOpening = true
+                    });
 
             var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).ToList();
             var accountBalances = new Dictionary<int, decimal>();
             foreach (var account in accounts)
             {
-                var balance = db.FIN_TRANSACTIONS
+                var balance = ActiveFinTransactions(db)
                     .Where(t => t.AccountID == account.ID && t.TxnDate <= asOfDate)
                     .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                 accountBalances[account.ID] = balance;
@@ -787,31 +960,55 @@ namespace tahsinERP.Controllers.Finance
             var details = new List<BalanceCategoryDetailData>();
             foreach (var category in categories)
             {
+                var isAssetColumn = BalanceCategoryDisplayHelper.IsAssetColumn(category);
+                if (includeAssetColumn && !isAssetColumn)
+                {
+                    continue;
+                }
+                if (!includeAssetColumn && isAssetColumn)
+                {
+                    continue;
+                }
+
                 var detail = new BalanceCategoryDetailData
                 {
                     Category = category,
                     CalculationTypeName = GetCalculationTypeName(category.CalculationType)
                 };
 
-                if (snapshots.ContainsKey(category.ID))
+                DateTime? openingDate = null;
+                if (openingSnapshots.TryGetValue(category.ID, out var openingSnapshotInfo))
                 {
-                    detail.Amount = snapshots[category.ID];
-                    detail.CalculationTypeName = "Snapshot";
-                    detail.Explanation = "So'nggi snapshot bo'yicha hisoblandi";
-                    details.Add(detail);
-                    continue;
+                    detail.Amount = openingSnapshotInfo.Amount;
+                    openingDate = openingSnapshotInfo.SnapshotDate.Date;
+                    detail.Explanation = $"Opening balans ({openingDate.Value:dd.MM.yyyy}) + keyingi harakatlar bo'yicha";
                 }
 
                 // Ta'minotchilardan qarzlar: P_Invoices − to'lovlar (FinTransactions Direction=2, CounterpartyType=2), FIFO
                 if (category.Name == "Ta'minotchilardan qarzlar")
                 {
-                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate);
-                    detail.Amount = supplierSummary.Sum(s => s.Outstanding);
+                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate, openingDate);
+                    detail.Amount += supplierSummary.Sum(s => s.Outstanding);
                     detail.TransactionCount = supplierSummary.Sum(s => s.InvoiceCount + s.PaymentCount);
                     detail.AddedAmount = supplierSummary.Sum(s => s.InvoiceTotal);
                     detail.SubtractedAmount = supplierSummary.Sum(s => s.PaymentTotal);
                     detail.CalculationTypeName = "Document-Based";
-                    detail.Explanation = "Invoyslar va ta'minotchiga o'tkazilgan to'lovlar (FinTransactions, FIFO) bo'yicha hisoblandi";
+                    detail.Explanation = openingDate.HasValue
+                        ? $"Opening balans ({openingDate.Value:dd.MM.yyyy}) + invoys/to'lovlar (FIFO)"
+                        : "Invoyslar va ta'minotchiga o'tkazilgan to'lovlar (FinTransactions, FIFO) bo'yicha hisoblandi";
+                    details.Add(detail);
+                    continue;
+                }
+
+                if (category.Name == "Xaridorlardan haqlarimiz")
+                {
+                    var customerSummary = CalculateCustomerOutstanding(db, asOfDate, openingDate);
+                    detail.Amount = customerSummary.Sum(c => c.Outstanding);
+                    detail.TransactionCount = customerSummary.Sum(c => c.InvoiceCount + c.ReceiptCount);
+                    detail.AddedAmount = customerSummary.Sum(c => c.InvoiceTotal);
+                    detail.SubtractedAmount = customerSummary.Sum(c => c.ReceiptTotal);
+                    detail.CalculationTypeName = "Document-Based";
+                    detail.Explanation = "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
                     details.Add(detail);
                     continue;
                 }
@@ -842,10 +1039,15 @@ namespace tahsinERP.Controllers.Finance
 
                         if (mappedAccountIds.Count > 0)
                         {
-                            var accountTxnQuery = db.FIN_TRANSACTIONS
-                                .Where(t => mappedAccountIds.Contains(t.AccountID) && t.TxnDate <= asOfDate);
+                            var accountTxnQuery = ActiveFinTransactions(db)
+                                .Where(t => mappedAccountIds.Contains(t.AccountID) &&
+                                            t.TxnDate <= asOfDate &&
+                                            (!openingDate.HasValue || t.TxnDate > openingDate.Value));
                             PopulateTransactionStats(accountTxnQuery, detail);
-                            detail.Explanation = $"Hisoblar bo'yicha hisoblandi: {mappedAccountIds.Count} ta hisob";
+                            detail.Amount += accountTxnQuery.Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                            detail.Explanation = openingDate.HasValue
+                                ? $"Opening balans + hisob harakatlari: {mappedAccountIds.Count} ta hisob"
+                                : $"Hisoblar bo'yicha hisoblandi: {mappedAccountIds.Count} ta hisob";
                         }
                         else
                         {
@@ -892,13 +1094,16 @@ namespace tahsinERP.Controllers.Finance
 
                         if (categoryIds.Count > 0)
                         {
-                            var txnQuery = db.FIN_TRANSACTIONS
+                            var txnQuery = ActiveFinTransactions(db)
                                 .Where(t => categoryIds.Contains(t.CategoryID) &&
-                                           t.TxnDate <= asOfDate);
-                            detail.Amount = txnQuery
+                                           t.TxnDate <= asOfDate &&
+                                           (!openingDate.HasValue || t.TxnDate > openingDate.Value));
+                            detail.Amount += txnQuery
                                 .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                             PopulateTransactionStats(txnQuery, detail);
-                            detail.Explanation = $"Kategoriyalar bo'yicha hisoblandi: {categoryIds.Count} ta kategoriya";
+                            detail.Explanation = openingDate.HasValue
+                                ? $"Opening balans + kategoriyalar harakati: {categoryIds.Count} ta kategoriya"
+                                : $"Kategoriyalar bo'yicha hisoblandi: {categoryIds.Count} ta kategoriya";
                         }
                         else
                         {
@@ -924,7 +1129,8 @@ namespace tahsinERP.Controllers.Finance
                                            (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
                                            (l.HR_PAYROLL_HEADERS.Status == "Approved" || l.HR_PAYROLL_HEADERS.Status == "Posted") &&
                                            l.HR_PAYROLL_HEADERS.ApprovedDT.HasValue &&
-                                           l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOfDate)
+                                           l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOfDate &&
+                                           (!openingDate.HasValue || l.HR_PAYROLL_HEADERS.ApprovedDT.Value > openingDate.Value))
                                 .Sum(l => (decimal?)l.NetSalary) ?? 0m;
 
                             var salaryCategoryIds = db.FIN_CATEGORIES
@@ -933,11 +1139,15 @@ namespace tahsinERP.Controllers.Finance
                                 .ToList();
 
                             var salaryExpenses = 0m;
-                            var salaryTxnQuery = GetPayrollPaymentQuery(db, salaryCategoryIds, DateTime.MinValue, asOfDate);
+                            var salaryTxnQuery = GetPayrollPaymentQuery(
+                                db,
+                                salaryCategoryIds,
+                                openingDate.HasValue ? openingDate.Value.AddDays(1) : DateTime.MinValue,
+                                asOfDate);
                             salaryExpenses = salaryTxnQuery.Sum(t => (decimal?)t.Amount) ?? 0m;
                             PopulateTransactionStats(salaryTxnQuery, detail);
 
-                            detail.Amount = payrollTotal - salaryExpenses;
+                            detail.Amount += payrollTotal - salaryExpenses;
                             if (detail.Amount < 0)
                             {
                                 detail.Amount = 0m;
@@ -947,56 +1157,12 @@ namespace tahsinERP.Controllers.Finance
                         }
                         else if (category.Name == "Xaridorlardan haqlarimiz")
                         {
-                            var receivablesAccountIds = db.FIN_ACCOUNTS
-                                .Where(a => a.BalanceCategoryID == category.ID && a.IsActive)
-                                .Select(a => a.ID)
-                                .ToList();
-
-                            if (receivablesAccountIds.Count > 0)
-                            {
-                                foreach (var accountId in receivablesAccountIds)
-                                {
-                                    if (accountBalances.ContainsKey(accountId))
-                                    {
-                                        detail.Amount += accountBalances[accountId];
-                                    }
-                                }
-
-                                var accountTxnQuery = db.FIN_TRANSACTIONS
-                                    .Where(t => receivablesAccountIds.Contains(t.AccountID) && t.TxnDate <= asOfDate);
-                                PopulateTransactionStats(accountTxnQuery, detail);
-                                detail.Explanation = $"Hisoblar bo'yicha hisoblandi: {receivablesAccountIds.Count} ta hisob";
-                            }
-                            else
-                            {
-                                var unpaidInvoices = db.SALES_INVOICES
-                                    .Where(i => i.InvoiceDate <= asOfDate &&
-                                               (i.StatusCode == null || i.StatusCode != "Paid"))
-                                    .ToList();
-
-                                var invoiceIds = unpaidInvoices.Select(i => i.ID).ToList();
-                                var paymentTxnQuery = db.FIN_TRANSACTIONS
-                                    .Where(t => t.SourceDocType == "SalesInvoice" &&
-                                               invoiceIds.Contains((int)t.SourceDocID) &&
-                                               t.TxnDate <= asOfDate &&
-                                               t.Direction == 1);
-                                PopulateTransactionStats(paymentTxnQuery, detail);
-
-                                foreach (var invoice in unpaidInvoices)
-                                {
-                                    var totalPaid = paymentTxnQuery
-                                        .Where(t => t.SourceDocID == invoice.ID)
-                                        .Sum(t => (decimal?)t.Amount) ?? 0m;
-
-                                    var invoiceAmount = invoice.TotalAmount;
-                                    if (totalPaid < invoiceAmount)
-                                    {
-                                        detail.Amount += (invoiceAmount - totalPaid);
-                                    }
-                                }
-
-                                detail.Explanation = $"To'lanmagan invoyslar bo'yicha: {unpaidInvoices.Count} ta invoys";
-                            }
+                            var customerSummary = CalculateCustomerOutstanding(db, asOfDate, openingDate);
+                            detail.Amount = customerSummary.Sum(c => c.Outstanding);
+                            detail.TransactionCount = customerSummary.Sum(c => c.InvoiceCount + c.ReceiptCount);
+                            detail.AddedAmount = customerSummary.Sum(c => c.InvoiceTotal);
+                            detail.SubtractedAmount = customerSummary.Sum(c => c.ReceiptTotal);
+                            detail.Explanation = "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
                         }
                         else if (category.Name != null &&
                                  category.Name.ToLower().Contains("logistika") &&
@@ -1016,7 +1182,7 @@ namespace tahsinERP.Controllers.Finance
                             var paidAmount = 0m;
                             if (logisticsCategoryIds.Count > 0)
                             {
-                                var logisticsTxnQuery = db.FIN_TRANSACTIONS
+                                var logisticsTxnQuery = ActiveFinTransactions(db)
                                     .Where(t => logisticsCategoryIds.Contains(t.CategoryID) &&
                                                 t.TxnDate <= asOfDate &&
                                                 (t.IsDeleted == null || t.IsDeleted == false));
@@ -1040,7 +1206,7 @@ namespace tahsinERP.Controllers.Finance
 
         private IQueryable<FIN_TRANSACTIONS> GetPayrollPaymentQuery(DBTHSNEntities db, List<int> salaryCategoryIds, DateTime fromDate, DateTime toDate)
         {
-            var query = db.FIN_TRANSACTIONS
+            var query = ActiveFinTransactions(db)
                 .Where(t => t.Direction == 2 &&
                             t.TxnDate >= fromDate &&
                             t.TxnDate <= toDate &&
@@ -1064,11 +1230,43 @@ namespace tahsinERP.Controllers.Finance
             public decimal PaymentTotal { get; set; }
         }
 
-        private List<SupplierOutstandingData> CalculateSupplierOutstanding(DBTHSNEntities db, DateTime asOfDate)
+        private class SupplierInvoiceWork
         {
-            var invoices = db.P_INVOICES
+            public int ID { get; set; }
+            public int SupplierID { get; set; }
+            public DateTime InvoiceDate { get; set; }
+            public decimal Amount { get; set; }
+        }
+
+        private class CategorySnapshotInfo
+        {
+            public decimal Amount { get; set; }
+            public DateTime SnapshotDate { get; set; }
+            public bool IsOpening { get; set; }
+        }
+
+        private List<SupplierOutstandingData> CalculateSupplierOutstanding(DBTHSNEntities db, DateTime asOfDate, DateTime? fromExclusive = null)
+        {
+            var invoicesQuery = db.P_INVOICES
                 .Where(i => i.InvoiceDate <= asOfDate &&
-                           (i.IsDeleted == null || i.IsDeleted == false))
+                           (i.IsDeleted == null || i.IsDeleted == false));
+
+            // Openingdan keyingi davrda supplier qarzini aniqlash:
+            // 1) invoys sanasi openingdan keyin bo'lsa
+            // 2) yoki invoys oldin yozilgan bo'lsa ham, unga bog'langan ombor kirimi openingdan keyin qabul qilingan bo'lsa
+            if (fromExclusive.HasValue)
+            {
+                var fromDate = fromExclusive.Value;
+                invoicesQuery = invoicesQuery.Where(i =>
+                    i.InvoiceDate > fromDate ||
+                    db.INCOMES.Any(inc =>
+                        inc.InvoiceID == i.ID &&
+                        inc.IssueDateTime > fromDate &&
+                        inc.IssueDateTime <= asOfDate &&
+                        (inc.IsDeleted == null || inc.IsDeleted == false)));
+            }
+
+            var invoices = invoicesQuery
                 .Select(i => new
                 {
                     i.ID,
@@ -1086,29 +1284,116 @@ namespace tahsinERP.Controllers.Finance
                 })
                 .ToList();
 
-            var payments = db.FIN_TRANSACTIONS
+            // InvoiceID bo'lmagan ombor kirimlari ham supplier qarzini oshiradi (naqdga olingan kirimlar).
+            // Double-count bo'lmasligi uchun faqat InvoiceID == null bo'lgan kirimlarni qo'shamiz.
+            var unlinkedIncomes = db.INCOMES
+                .Where(inc => inc.InvoiceID == null &&
+                              inc.IssueDateTime <= asOfDate &&
+                              (!fromExclusive.HasValue || inc.IssueDateTime > fromExclusive.Value) &&
+                              (inc.IsDeleted == null || inc.IsDeleted == false) &&
+                              inc.TotalPrice.HasValue &&
+                              inc.TotalPrice.Value > 0)
+                .Select(inc => new
+                {
+                    inc.ID,
+                    inc.IssueDateTime,
+                    Amount = inc.TotalPrice.Value
+                })
+                .ToList();
+
+            var invoiceWork = invoices
+                .Select(i => new SupplierInvoiceWork
+                {
+                    ID = i.ID,
+                    SupplierID = i.SupplierID,
+                    InvoiceDate = i.InvoiceDate,
+                    Amount = i.Amount
+                })
+                .ToList();
+
+            // Supplier aniqlanmagan kirimlar uchun 0-bucket ishlatamiz.
+            // BalanceSheet yig'indisida bu ham ta'minotchilar qarziga qo'shiladi.
+            invoiceWork.AddRange(unlinkedIncomes.Select(inc => new SupplierInvoiceWork
+            {
+                ID = -inc.ID, // haqiqiy invoys IDlari bilan to'qnashmasin
+                SupplierID = 0,
+                InvoiceDate = inc.IssueDateTime,
+                Amount = Convert.ToDecimal(inc.Amount)
+            }));
+
+            var materialCategoryIds = db.FIN_CATEGORIES
+                .Where(c => c.IsActive && c.Type == 2 && c.Name.ToLower().Contains("material"))
+                .Select(c => c.ID)
+                .ToList();
+
+            var paymentCandidates = ActiveFinTransactions(db)
                 .Where(t => t.TxnDate <= asOfDate &&
+                            (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
                             t.Direction == 2 &&
-                            t.CounterpartyType == 2 &&
-                            t.CounterpartyID.HasValue &&
+                            t.SourceDocType != "PurchaseInvoice" &&
                             (t.IsDeleted == null || t.IsDeleted == false))
                 .Select(t => new
                 {
                     t.ID,
-                    SupplierID = t.CounterpartyID.Value,
+                    t.CounterpartyType,
+                    t.CounterpartyID,
+                    t.CategoryID,
                     t.TxnDate,
                     t.Amount,
-                    // Invoysga bog'langan to'lov: SourceDocType = PurchaseInvoice yoki PurchaseInvoicePayment, SourceDocID = invoys ID
-                    InvoiceID = (t.SourceDocType == "PurchaseInvoice" || t.SourceDocType == "PurchaseInvoicePayment") ? t.SourceDocID : null
+                    t.SourceDocType,
+                    t.SourceDocID
                 })
                 .ToList();
 
-            var invoiceRemaining = invoices.ToDictionary(i => i.ID, i => i.Amount);
-            var invoiceBySupplier = invoices
+            var linkedPurchaseInvoiceIds = paymentCandidates
+                .Where(p => p.SourceDocID.HasValue)
+                .Select(p => p.SourceDocID.Value)
+                .Distinct()
+                .ToList();
+
+            var invoiceSupplierMap = linkedPurchaseInvoiceIds.Count == 0
+                ? new Dictionary<int, int>()
+                : db.P_INVOICES
+                    .Where(i => linkedPurchaseInvoiceIds.Contains(i.ID))
+                    .Select(i => new { i.ID, i.SupplierID })
+                    .ToList()
+                    .ToDictionary(x => x.ID, x => x.SupplierID);
+
+            var payments = paymentCandidates
+                .Where(p =>
+                    (p.CounterpartyType == 2 && p.CounterpartyID.HasValue) ||
+                    materialCategoryIds.Contains(p.CategoryID))
+                .Select(p =>
+                {
+                    var supplierId = 0;
+                    if (p.CounterpartyType == 2 && p.CounterpartyID.HasValue)
+                    {
+                        supplierId = p.CounterpartyID.Value;
+                    }
+                    else if (p.SourceDocID.HasValue && invoiceSupplierMap.TryGetValue(p.SourceDocID.Value, out var mappedSupplierId))
+                    {
+                        supplierId = mappedSupplierId;
+                    }
+
+                    return new
+                    {
+                        p.ID,
+                        SupplierID = supplierId,
+                        p.TxnDate,
+                        p.Amount,
+                        // Invoysga bog'langan to'lov: SourceDocType = PurchaseInvoicePayment, SourceDocID = invoys ID
+                        InvoiceID = (p.SourceDocType == "PurchaseInvoicePayment") ? p.SourceDocID : null
+                    };
+                })
+                .ToList();
+
+            var invoiceRemaining = invoiceWork.ToDictionary(i => i.ID, i => i.Amount);
+            var invoiceBySupplier = invoiceWork
                 .GroupBy(i => i.SupplierID)
                 .ToDictionary(g => g.Key, g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
 
             var paymentRemainders = new List<(int SupplierID, DateTime TxnDate, decimal Amount)>();
+            var unappliedPaymentsBySupplier = new Dictionary<int, decimal>();
 
             foreach (var payment in payments)
             {
@@ -1131,6 +1416,39 @@ namespace tahsinERP.Controllers.Finance
             {
                 if (!invoiceBySupplier.ContainsKey(group.Key))
                 {
+                    // Supplier aniqlanmagan material to'lovlari: global FIFO bo'yicha eng eski ochiq invoyslardan ayiramiz.
+                    if (group.Key == 0)
+                    {
+                        var globalInvoiceQueue = new Queue<int>(invoiceWork.OrderBy(i => i.InvoiceDate).Select(i => i.ID));
+                        foreach (var payment in group.OrderBy(p => p.TxnDate))
+                        {
+                            var remaining = payment.Amount;
+                            while (remaining > 0 && globalInvoiceQueue.Count > 0)
+                            {
+                                var invoiceId = globalInvoiceQueue.Peek();
+                                var invoiceBalance = invoiceRemaining[invoiceId];
+                                if (invoiceBalance <= 0)
+                                {
+                                    globalInvoiceQueue.Dequeue();
+                                    continue;
+                                }
+
+                                var applied = Math.Min(invoiceBalance, remaining);
+                                invoiceRemaining[invoiceId] = invoiceBalance - applied;
+                                remaining -= applied;
+                                if (invoiceRemaining[invoiceId] <= 0)
+                                {
+                                    globalInvoiceQueue.Dequeue();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        unappliedPaymentsBySupplier[group.Key] = (unappliedPaymentsBySupplier.ContainsKey(group.Key)
+                            ? unappliedPaymentsBySupplier[group.Key]
+                            : 0m) + group.Sum(x => x.Amount);
+                    }
                     continue;
                 }
 
@@ -1156,10 +1474,16 @@ namespace tahsinERP.Controllers.Finance
                             invoiceQueue.Dequeue();
                         }
                     }
+                    if (remaining > 0)
+                    {
+                        unappliedPaymentsBySupplier[group.Key] = (unappliedPaymentsBySupplier.ContainsKey(group.Key)
+                            ? unappliedPaymentsBySupplier[group.Key]
+                            : 0m) + remaining;
+                    }
                 }
             }
 
-            var invoiceTotalsBySupplier = invoices
+            var invoiceTotalsBySupplier = invoiceWork
                 .GroupBy(i => i.SupplierID)
                 .ToDictionary(g => g.Key, g => new
                 {
@@ -1176,13 +1500,25 @@ namespace tahsinERP.Controllers.Finance
                 });
 
             var summary = new List<SupplierOutstandingData>();
-            foreach (var supplierId in invoiceTotalsBySupplier.Keys)
+            var supplierIds = invoiceTotalsBySupplier.Keys
+                .Union(paymentTotalsBySupplier.Keys)
+                .Union(unappliedPaymentsBySupplier.Keys)
+                .ToList();
+
+            foreach (var supplierId in supplierIds)
             {
-                var outstanding = invoices
+                var outstanding = invoiceWork
                     .Where(i => i.SupplierID == supplierId)
                     .Sum(i => invoiceRemaining[i.ID]);
 
-                var invoiceInfo = invoiceTotalsBySupplier[supplierId];
+                if (unappliedPaymentsBySupplier.TryGetValue(supplierId, out var unapplied))
+                {
+                    outstanding -= unapplied;
+                }
+
+                var invoiceInfo = invoiceTotalsBySupplier.ContainsKey(supplierId)
+                    ? invoiceTotalsBySupplier[supplierId]
+                    : new { Total = 0m, Count = 0 };
                 var paymentInfo = paymentTotalsBySupplier.ContainsKey(supplierId)
                     ? paymentTotalsBySupplier[supplierId]
                     : new { Total = 0m, Count = 0 };
@@ -1195,6 +1531,244 @@ namespace tahsinERP.Controllers.Finance
                     PaymentCount = paymentInfo.Count,
                     InvoiceTotal = invoiceInfo.Total,
                     PaymentTotal = paymentInfo.Total
+                });
+            }
+
+            return summary;
+        }
+
+        private class CustomerOutstandingData
+        {
+            public int CustomerID { get; set; }
+            public decimal Outstanding { get; set; }
+            public int InvoiceCount { get; set; }
+            public int ReceiptCount { get; set; }
+            public decimal InvoiceTotal { get; set; }
+            public decimal ReceiptTotal { get; set; }
+        }
+
+        private List<CustomerOutstandingData> CalculateCustomerOutstanding(DBTHSNEntities db, DateTime asOfDate, DateTime? fromExclusive = null)
+        {
+            var invoices = db.SALES_INVOICES
+                .Where(i => i.InvoiceDate <= asOfDate &&
+                            (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
+                .Select(i => new
+                {
+                    ID = (int)i.ID,
+                    i.CustomerID,
+                    i.InvoiceDate,
+                    Amount = i.TotalAmount
+                })
+                .ToList();
+
+            var salesCategoryIds = db.FIN_CATEGORIES
+                .Where(c => c.IsActive && c.Type == 1 && c.Name.Contains("Sotuv"))
+                .Select(c => c.ID)
+                .ToList();
+
+            var receiptCandidates = ActiveFinTransactions(db)
+                .Where(t => t.TxnDate <= asOfDate &&
+                            (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
+                            t.Direction == 1 &&
+                            t.SourceDocType != "SalesInvoice" &&
+                            (t.IsDeleted == null || t.IsDeleted == false))
+                .Select(t => new
+                {
+                    t.ID,
+                    t.CounterpartyType,
+                    t.CounterpartyID,
+                    t.CategoryID,
+                    t.TxnDate,
+                    t.Amount,
+                    t.SourceDocType,
+                    t.SourceDocID
+                })
+                .ToList();
+
+            var linkedInvoiceIds = receiptCandidates
+                .Where(r => r.SourceDocID.HasValue)
+                .Select(r => (long)r.SourceDocID.Value)
+                .Distinct()
+                .ToList();
+
+            var invoiceCustomerMap = linkedInvoiceIds.Count == 0
+                ? new Dictionary<long, int>()
+                : db.SALES_INVOICES
+                    .Where(i => linkedInvoiceIds.Contains(i.ID))
+                    .Select(i => new { i.ID, i.CustomerID })
+                    .ToList()
+                    .ToDictionary(x => x.ID, x => x.CustomerID);
+
+            var receipts = receiptCandidates
+                .Where(r =>
+                    (r.CounterpartyType == 1 && r.CounterpartyID.HasValue) ||
+                    salesCategoryIds.Contains(r.CategoryID))
+                .Select(r =>
+                {
+                    var customerId = 0;
+                    if (r.CounterpartyType == 1 && r.CounterpartyID.HasValue)
+                    {
+                        customerId = r.CounterpartyID.Value;
+                    }
+                    else if (r.SourceDocID.HasValue && invoiceCustomerMap.TryGetValue((long)r.SourceDocID.Value, out var mappedCustomerId))
+                    {
+                        customerId = mappedCustomerId;
+                    }
+
+                    return new
+                    {
+                        r.ID,
+                        CustomerID = customerId,
+                        r.TxnDate,
+                        r.Amount,
+                        InvoiceID = (r.SourceDocType == "SalesInvoicePayment") ? r.SourceDocID : null
+                    };
+                })
+                .ToList();
+
+            var invoiceRemaining = invoices.ToDictionary(i => i.ID, i => i.Amount);
+            var invoiceByCustomer = invoices
+                .GroupBy(i => i.CustomerID)
+                .ToDictionary(g => g.Key, g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
+
+            var receiptRemainders = new List<(int CustomerID, DateTime TxnDate, decimal Amount)>();
+            var unappliedReceiptsByCustomer = new Dictionary<int, decimal>();
+            foreach (var receipt in receipts)
+            {
+                var remaining = receipt.Amount;
+                if (receipt.InvoiceID.HasValue && invoiceRemaining.ContainsKey(receipt.InvoiceID.Value))
+                {
+                    var invoiceBalance = invoiceRemaining[receipt.InvoiceID.Value];
+                    var applied = Math.Min(invoiceBalance, remaining);
+                    invoiceRemaining[receipt.InvoiceID.Value] = invoiceBalance - applied;
+                    remaining -= applied;
+                }
+
+                if (remaining > 0)
+                {
+                    receiptRemainders.Add((receipt.CustomerID, receipt.TxnDate, remaining));
+                }
+            }
+
+            foreach (var group in receiptRemainders.GroupBy(p => p.CustomerID))
+            {
+                if (!invoiceByCustomer.ContainsKey(group.Key))
+                {
+                    // Customer aniqlanmagan "Sotuv" kirimlari: umumiy FIFO bo'yicha eng eski ochiq invoyslardan ayiramiz.
+                    if (group.Key == 0)
+                    {
+                        var globalInvoiceQueue = new Queue<int>(invoices.OrderBy(i => i.InvoiceDate).Select(i => i.ID));
+                        foreach (var receipt in group.OrderBy(p => p.TxnDate))
+                        {
+                            var remaining = receipt.Amount;
+                            while (remaining > 0 && globalInvoiceQueue.Count > 0)
+                            {
+                                var invoiceId = globalInvoiceQueue.Peek();
+                                var invoiceBalance = invoiceRemaining[invoiceId];
+                                if (invoiceBalance <= 0)
+                                {
+                                    globalInvoiceQueue.Dequeue();
+                                    continue;
+                                }
+
+                                var applied = Math.Min(invoiceBalance, remaining);
+                                invoiceRemaining[invoiceId] = invoiceBalance - applied;
+                                remaining -= applied;
+                                if (invoiceRemaining[invoiceId] <= 0)
+                                {
+                                    globalInvoiceQueue.Dequeue();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        unappliedReceiptsByCustomer[group.Key] = (unappliedReceiptsByCustomer.ContainsKey(group.Key)
+                            ? unappliedReceiptsByCustomer[group.Key]
+                            : 0m) + group.Sum(x => x.Amount);
+                    }
+                    continue;
+                }
+
+                var invoiceQueue = new Queue<int>(invoiceByCustomer[group.Key]);
+                foreach (var receipt in group.OrderBy(p => p.TxnDate))
+                {
+                    var remaining = receipt.Amount;
+                    while (remaining > 0 && invoiceQueue.Count > 0)
+                    {
+                        var invoiceId = invoiceQueue.Peek();
+                        var invoiceBalance = invoiceRemaining[invoiceId];
+                        if (invoiceBalance <= 0)
+                        {
+                            invoiceQueue.Dequeue();
+                            continue;
+                        }
+
+                        var applied = Math.Min(invoiceBalance, remaining);
+                        invoiceRemaining[invoiceId] = invoiceBalance - applied;
+                        remaining -= applied;
+                        if (invoiceRemaining[invoiceId] <= 0)
+                        {
+                            invoiceQueue.Dequeue();
+                        }
+                    }
+                    if (remaining > 0)
+                    {
+                        unappliedReceiptsByCustomer[group.Key] = (unappliedReceiptsByCustomer.ContainsKey(group.Key)
+                            ? unappliedReceiptsByCustomer[group.Key]
+                            : 0m) + remaining;
+                    }
+                }
+            }
+
+            var invoiceTotalsByCustomer = invoices
+                .GroupBy(i => i.CustomerID)
+                .ToDictionary(g => g.Key, g => new
+                {
+                    Total = g.Sum(x => x.Amount),
+                    Count = g.Count()
+                });
+
+            var receiptTotalsByCustomer = receipts
+                .GroupBy(p => p.CustomerID)
+                .ToDictionary(g => g.Key, g => new
+                {
+                    Total = g.Sum(x => x.Amount),
+                    Count = g.Count()
+                });
+
+            var summary = new List<CustomerOutstandingData>();
+            var customerIds = invoiceTotalsByCustomer.Keys
+                .Union(receiptTotalsByCustomer.Keys)
+                .Union(unappliedReceiptsByCustomer.Keys)
+                .ToList();
+
+            foreach (var customerId in customerIds)
+            {
+                var outstanding = invoices
+                    .Where(i => i.CustomerID == customerId)
+                    .Sum(i => invoiceRemaining[i.ID]);
+
+                if (unappliedReceiptsByCustomer.TryGetValue(customerId, out var unapplied))
+                {
+                    outstanding -= unapplied;
+                }
+
+                var invoiceInfo = invoiceTotalsByCustomer.ContainsKey(customerId)
+                    ? invoiceTotalsByCustomer[customerId]
+                    : new { Total = 0m, Count = 0 };
+                var receiptInfo = receiptTotalsByCustomer.ContainsKey(customerId)
+                    ? receiptTotalsByCustomer[customerId]
+                    : new { Total = 0m, Count = 0 };
+
+                summary.Add(new CustomerOutstandingData
+                {
+                    CustomerID = customerId,
+                    Outstanding = outstanding,
+                    InvoiceCount = invoiceInfo.Count,
+                    ReceiptCount = receiptInfo.Count,
+                    InvoiceTotal = invoiceInfo.Total,
+                    ReceiptTotal = receiptInfo.Total
                 });
             }
 
@@ -1215,7 +1789,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Olish summary statistics - exclude liability transactions (faqat real cash flow)
-                var transactions = db.FIN_TRANSACTIONS
+                var transactions = ActiveFinTransactions(db)
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
                     // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real transactions
                     .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == "")
@@ -1232,7 +1806,7 @@ namespace tahsinERP.Controllers.Finance
                 var cashBalance = 0m;
                 foreach (var account in cashAccounts)
                 {
-                    cashBalance += db.FIN_TRANSACTIONS
+                    cashBalance += ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID)
                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                 }
@@ -1240,7 +1814,7 @@ namespace tahsinERP.Controllers.Finance
                 var bankBalance = 0m;
                 foreach (var account in bankAccounts)
                 {
-                    bankBalance += db.FIN_TRANSACTIONS
+                    bankBalance += ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID)
                         .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
                 }
@@ -1312,7 +1886,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_TRANSACTIONS
+                var query = ActiveFinTransactions(db)
                     .Include(t => t.FIN_CATEGORIES)
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
                     // Exclude liability transactions - faqat show real transactions
@@ -1405,7 +1979,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_TRANSACTIONS
+                var query = ActiveFinTransactions(db)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.CURRENCy)
                     .Where(t => t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
@@ -1493,7 +2067,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var expenses = db.FIN_TRANSACTIONS
+                var expenses = ActiveFinTransactions(db)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Where(t => t.Direction == 2 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
@@ -1579,7 +2153,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var incomes = db.FIN_TRANSACTIONS
+                var incomes = ActiveFinTransactions(db)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Where(t => t.Direction == 1 && t.TxnDate >= fromDate.Value && t.TxnDate <= toDate.Value)
@@ -1692,24 +2266,69 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(a => a.Code)
                     .ToList();
 
+                // Opening balans: FIN_BALANCE_SNAPSHOTS (Opening balans sahifasi) — kategoriya bo'yicha
+                var accountIds = accounts.Select(a => a.ID).ToList();
+                var allTxnsByAccount = accountIds.Count == 0
+                    ? new Dictionary<int, List<FIN_TRANSACTIONS>>()
+                    : ActiveFinTransactions(db)
+                        .Where(t => t.TxnDate <= toDate.Value && accountIds.Contains(t.AccountID))
+                        .ToList()
+                        .GroupBy(t => t.AccountID)
+                        .ToDictionary(g => g.Key, g => g.ToList());
+
+                // So'nggi opening snapshot har bir kategoriya uchun (toDate gacha)
+                var openingSnapshots = db.FIN_BALANCE_SNAPSHOTS
+                    .Where(s => s.SnapshotDate <= toDate.Value)
+                    .ToList()
+                    .Where(s => s.SourceType == "OpeningBalance" || string.IsNullOrEmpty(s.SourceType))
+                    .GroupBy(s => s.CategoryID)
+                    .ToDictionary(g => g.Key, g => g.OrderByDescending(s => s.SnapshotDate).First());
+
+                var accountCountByCategory = accounts
+                    .Where(a => a.BalanceCategoryID.HasValue)
+                    .GroupBy(a => a.BalanceCategoryID.Value)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
                 var accountBalances = new List<AccountBalanceData>();
 
                 foreach (var account in accounts)
                 {
-                    // Yechim 1: Account qoldig'i hisoblashda barcha transactionlar (toDate gacha)
-                    // Cumulative balance - barcha vaqt uchun, faqat toDate gacha
-                    var allTransactions = db.FIN_TRANSACTIONS
-                        .Where(t => t.AccountID == account.ID && 
-                                   t.TxnDate <= toDate.Value)
-                        .ToList();
+                    if (!allTxnsByAccount.TryGetValue(account.ID, out var allTransactions))
+                    {
+                        allTransactions = new List<FIN_TRANSACTIONS>();
+                    }
 
-                    // Account qoldig'i = barcha transactionlar yig'indisi (cumulative)
-                    var qoldiq = allTransactions
-                        .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                    decimal qoldiq;
+                    var usesOpening = false;
+
+                    // Hisob FIN_BALANCE_CATEGORIES ga bog'langan va shu kategoriya uchun opening snapshot bo'lsa:
+                    // qoldiq = (snapshot / shu kategoriyadagi hisoblar soni) + opening sanasidan boshlab tranzaksiyalar
+                    // (openingdan oldingi tranzaksiyalar hisobga olinmaydi — migratsiya boshlang'ich nuqtasi)
+                    if (account.BalanceCategoryID.HasValue &&
+                        openingSnapshots.TryGetValue(account.BalanceCategoryID.Value, out var snapRow))
+                    {
+                        var snapDate = snapRow.SnapshotDate.Date;
+                        var cnt = accountCountByCategory.TryGetValue(account.BalanceCategoryID.Value, out var c)
+                            ? Math.Max(1, c)
+                            : 1;
+                        var allocated = snapRow.Amount / cnt;
+
+                        var txnAfterOpening = allTransactions
+                            .Where(t => t.TxnDate >= snapDate)
+                            .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+
+                        qoldiq = allocated + txnAfterOpening;
+                        usesOpening = true;
+                    }
+                    else
+                    {
+                        qoldiq = allTransactions
+                            .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                    }
 
                     // Vaqt oralig'idagi kirim/chiqim (faqat ko'rsatish uchun)
                     var periodTransactions = allTransactions
-                        .Where(t => t.TxnDate >= fromDate.Value && 
+                        .Where(t => t.TxnDate >= fromDate.Value &&
                                    t.TxnDate <= toDate.Value)
                         .ToList();
 
@@ -1738,7 +2357,8 @@ namespace tahsinERP.Controllers.Finance
                         CurrencyShortname = currencyShortname,
                         Kirim = kirim,
                         Chiqim = chiqim,
-                        Qoldiq = qoldiq
+                        Qoldiq = qoldiq,
+                        IncludesOpeningBalance = usesOpening
                     });
                 }
 
@@ -1765,7 +2385,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Olish faqat liability transactions (PurchaseInvoice va SalesInvoice)
-                var payablesTransactions = db.FIN_TRANSACTIONS
+                var payablesTransactions = ActiveFinTransactions(db)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
@@ -1774,7 +2394,7 @@ namespace tahsinERP.Controllers.Finance
                                t.TxnDate <= toDate.Value)
                     .ToList();
 
-                var receivablesTransactions = db.FIN_TRANSACTIONS
+                var receivablesTransactions = ActiveFinTransactions(db)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)
@@ -1933,7 +2553,7 @@ namespace tahsinERP.Controllers.Finance
                 var payablesAccountBalances = new List<AccountBalanceData>();
                 foreach (var account in payablesAccounts)
                 {
-                    var allTransactions = db.FIN_TRANSACTIONS
+                    var allTransactions = ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID && t.TxnDate <= toDate.Value)
                         .ToList();
 
@@ -1975,7 +2595,7 @@ namespace tahsinERP.Controllers.Finance
                 var receivablesAccountBalances = new List<AccountBalanceData>();
                 foreach (var account in receivablesAccounts)
                 {
-                    var allTransactions = db.FIN_TRANSACTIONS
+                    var allTransactions = ActiveFinTransactions(db)
                         .Where(t => t.AccountID == account.ID && t.TxnDate <= toDate.Value)
                         .ToList();
 
@@ -2036,10 +2656,15 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.PayablesAccountBalances = payablesAccountBalances;
                 ViewBag.ReceivablesAccountBalances = receivablesAccountBalances;
                 ViewBag.CurrencyShortname = primaryCurrency?.Shortname ?? "UZS";
-                ViewBag.PassiveBalanceStats = BuildBalanceCategoryDetails(db, toDate.Value, new[] { 2, 3 });
+                ViewBag.PassiveBalanceStats = BuildBalanceCategoryDetails(db, toDate.Value, new[] { 2, 3 }, false);
 
                 return View();
             }
+        }
+
+        private static IQueryable<FIN_TRANSACTIONS> ActiveFinTransactions(DBTHSNEntities db)
+        {
+            return db.FIN_TRANSACTIONS.Where(t => t.IsDeleted != true);
         }
     }
 
@@ -2053,6 +2678,11 @@ namespace tahsinERP.Controllers.Finance
         public decimal Kirim { get; set; } // Period kirim (vaqt oralig'idagi)
         public decimal Chiqim { get; set; } // Period chiqim (vaqt oralig'idagi)
         public decimal Qoldiq { get; set; } // Cumulative balance (barcha vaqt uchun, toDate gacha)
+
+        /// <summary>
+        /// true bo'lsa, qoldiq opening balans + opening sanasidan keyingi tranzaksiyalar bo'yicha hisoblangan.
+        /// </summary>
+        public bool IncludesOpeningBalance { get; set; }
     }
 
     public class AccountUsageData
@@ -2113,6 +2743,11 @@ namespace tahsinERP.Controllers.Finance
     {
         public FIN_BALANCE_CATEGORIES Category { get; set; }
         public decimal Amount { get; set; }
+
+        /// <summary>
+        /// true = "Aktivlar" ustuni (chap); false = "Passivlar va Kapital" (o'ng).
+        /// </summary>
+        public bool IsAssetColumn { get; set; }
     }
 
     public class BalanceCategoryDetailData

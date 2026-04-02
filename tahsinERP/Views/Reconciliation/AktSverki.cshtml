@@ -1,10 +1,11 @@
 @model tahsinERP.ViewModels.ReconciliationViewModel
+@using tahsinERP.Models
 @{
     ViewBag.Title = "Akt-sverki";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var controllerName = Model.ReconciliationType == "Supplier" ? "Supplier" : Model.ReconciliationType == "Customer" ? "Customer" : "Forwarder";
     var listUrl = Model.ReconciliationType == "Supplier" ? Url.Action("Index", "Supplier") : Model.ReconciliationType == "Customer" ? Url.Action("Index", "Customer") : Url.Action("Index", "Forwarder");
     var detailUrl = Model.ReconciliationType == "Supplier" ? Url.Action("Details", "Supplier", new { id = Model.CounterpartyId }) : Model.ReconciliationType == "Customer" ? Url.Action("Details", "Customer", new { Id = Model.CounterpartyId }) : Url.Action("Details", "Forwarder", new { id = Model.CounterpartyId });
+    var contracts = Model.ContractsForParty ?? new List<tahsinERP.ViewModels.ReconciliationContractOption>();
 }
 
 <div class="app-content content">
@@ -19,7 +20,14 @@
                                 <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                 <li class="breadcrumb-item"><a href="@listUrl">@(Model.ReconciliationType == "Supplier" ? "Ta'minotchilar" : Model.ReconciliationType == "Customer" ? "Xaridorlar" : "Yuk tashuvchilar")</a></li>
                                 <li class="breadcrumb-item"><a href="@detailUrl">@Model.Party2Name</a></li>
-                                <li class="breadcrumb-item active">Akt-sverki</li>
+                                @if (Model.HasSelectedContract && !string.IsNullOrEmpty(Model.ContractNo))
+                                {
+                                    <li class="breadcrumb-item active">Akt-sverki — @Model.ContractNo</li>
+                                }
+                                else
+                                {
+                                    <li class="breadcrumb-item active">Akt-sverki</li>
+                                }
                             </ol>
                         </div>
                     </div>
@@ -29,15 +37,35 @@
 
         <div class="content-body">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Akt-sverki (O'zaro hisob-kitoblar akti)</h4>
-                    <a href="@detailUrl" class="btn btn-sm btn-secondary"><i class="bx bx-arrow-back"></i> Orqaga</a>
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h4 class="card-title mb-0">Akt-sverki (bitta shartnoma bo'yicha)</h4>
+                    <div>
+                        @if (User.Identity.IsAuthenticated && Model.HasSelectedContract && RoleHelper.IsChangePermitted(User.Identity.Name, Model.ReconciliationType == "Supplier" ? "Supplier" : Model.ReconciliationType == "Customer" ? "Customer" : "Forwarder"))
+                        {
+                            <a href="@Url.Action("EditAdjustment", "Reconciliation", new { type = Model.ReconciliationType, id = Model.CounterpartyId, contractId = Model.ContractId })" class="btn btn-sm btn-outline-warning mr-1"><i class="bx bx-edit-alt"></i> Tuzatish</a>
+                        }
+                        <a href="@detailUrl" class="btn btn-sm btn-secondary"><i class="bx bx-arrow-back"></i> Orqaga</a>
+                    </div>
                 </div>
                 <div class="card-content">
                     <div class="card-body">
-                        <form method="get" action="@Url.Action(Model.ReconciliationType, "Reconciliation")" class="mb-4">
+                        <form method="get" action="@Url.Action(Model.ReconciliationType, "Reconciliation")" class="mb-4" id="aktSverkiFilterForm">
                             <input type="hidden" name="id" value="@Model.CounterpartyId" />
                             <div class="row">
+                                <div class="col-md-4">
+                                    <label>Shartnoma <span class="text-danger">*</span></label>
+                                    <select name="contractId" class="form-control" required onchange="document.getElementById('aktSverkiFilterForm').submit();">
+                                        <option value="">— Tanlang —</option>
+                                        @foreach (var c in contracts)
+                                        {
+                                            <option value="@c.Id" @(Model.ContractId == c.Id ? "selected" : "")>@c.ContractNo</option>
+                                        }
+                                    </select>
+                                    @if (!contracts.Any())
+                                    {
+                                        <small class="text-danger">Ushbu kontragent uchun faol shartnoma topilmadi.</small>
+                                    }
+                                </div>
                                 <div class="col-md-4">
                                     <label>Qoldiq sanasi:</label>
                                     <input type="date" name="asOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
@@ -46,23 +74,37 @@
                                     <label>&nbsp;</label>
                                     <button type="submit" class="btn btn-primary btn-block">Yangilash</button>
                                 </div>
-                                <div class="col-md-4 d-flex align-items-end justify-content-md-end mt-2 mt-md-0">
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12 d-flex justify-content-md-end">
                                     <div id="aktSverkiExportButtons" class="text-md-right"></div>
                                 </div>
                             </div>
                         </form>
 
+                        @if (!Model.HasSelectedContract)
+                        {
+                            <div class="alert alert-warning">Akt-sverkini ko'rish uchun yuqoridan <strong>bitta shartnoma</strong> tanlang (barcha shartnomalar bir vaqtda chiqmaydi).</div>
+                        }
+
                         <div class="text-center mb-4">
                             <h5 class="text-primary">AKT-SVERKI</h5>
                             <p class="mb-1">O'zaro hisob-kitoblar sanasi: <strong>@Model.AsOfDate.ToString("dd.MM.yyyy")</strong></p>
                             <p class="mb-1">Hujjat sanasi: <strong>@Model.ReportDate</strong></p>
-                            <p class="mb-1 text-muted">@Model.AgreementInfo</p>
+                            @if (Model.HasSelectedContract)
+                            {
+                                <p class="mb-1 text-muted">@Model.AgreementInfo</p>
+                            }
                         </div>
 
-                        <p class="mb-2">
-                            <strong>@Model.Party1Name</strong> va <strong>@Model.Party2Name</strong> o'rtasida
-                            @Model.AsOfDate.ToString("dd.MM.yyyy") sanasiga qadar o'zaro hisob-kitoblar quyidagicha tekshirildi va tasdiqlandi.
-                        </p>
+                        @if (Model.HasSelectedContract)
+                        {
+                            <p class="mb-2">
+                                <strong>@Model.Party1Name</strong> va <strong>@Model.Party2Name</strong> o'rtasida
+                                shartnoma <strong>№ @Model.ContractNo</strong> bo'yicha
+                                @Model.AsOfDate.ToString("dd.MM.yyyy") sanasiga qadar o'zaro hisob-kitoblar quyidagicha tekshirildi va tasdiqlandi.
+                            </p>
+                        }
 
                         <div class="table-responsive">
                             <table id="aktSverkiTable" class="table table-bordered table-sm" style="width:100%">
@@ -80,43 +122,66 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (Model.Rows != null)
+                                    @if (Model.HasSelectedContract && Model.Rows != null)
                                     {
                                         foreach (var row in Model.Rows)
                                         {
-                                        <tr class="@(row.IsBalanceRow ? "table-warning font-weight-bold" : "")">
-                                            <td>@row.Content</td>
-                                            <td class="text-right">@(row.Party1Debit > 0 ? row.Party1Debit.ToString("N2") : "")</td>
-                                            <td class="text-right">@(row.Party1Credit > 0 ? row.Party1Credit.ToString("N2") : "")</td>
-                                            <td class="text-right">@(row.Party2Debit > 0 ? row.Party2Debit.ToString("N2") : "")</td>
-                                            <td class="text-right">@(row.Party2Credit > 0 ? row.Party2Credit.ToString("N2") : "")</td>
-                                        </tr>
+                                            <tr class="@(row.IsBalanceRow ? "table-warning font-weight-bold" : row.IsAdjustmentRow ? "table-info" : "")">
+                                                <td>@row.Content</td>
+                                                <td class="text-right">@(row.Party1Debit > 0 ? row.Party1Debit.ToString("N2") : "")</td>
+                                                <td class="text-right">@(row.Party1Credit > 0 ? row.Party1Credit.ToString("N2") : "")</td>
+                                                <td class="text-right">@(row.Party2Debit > 0 ? row.Party2Debit.ToString("N2") : "")</td>
+                                                <td class="text-right">@(row.Party2Credit > 0 ? row.Party2Credit.ToString("N2") : "")</td>
+                                            </tr>
                                         }
                                     }
-                                    @if (Model.Rows == null || Model.Rows.Count == 0)
+                                    @if (!Model.HasSelectedContract || Model.Rows == null || Model.Rows.Count == 0)
                                     {
                                         <tr>
-                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
+                                            <td colspan="5" class="text-center">@(Model.HasSelectedContract ? "Ma'lumot topilmadi" : "Shartnoma tanlang")</td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
 
-                        <div class="mt-3">
-                            @if (Model.FinalBalance > 0)
-                            {
-                                <p><strong>Yakuniy qoldiq:</strong> @Model.Party2Name @Model.FinalBalance.ToString("N2") summa miqdorida qarzdor.</p>
-                            }
-                            else if (Model.FinalBalance < 0)
-                            {
-                                <p><strong>Yakuniy qoldiq:</strong> @Model.Party1Name @Math.Abs(Model.FinalBalance).ToString("N2") summa miqdorida qarzdor.</p>
-                            }
-                            else
-                            {
-                                <p><strong>Yakuniy qoldiq:</strong> O'zaro hisob-kitoblar tenglashtirilgan (0).</p>
-                            }
-                        </div>
+                        @if (Model.HasSelectedContract)
+                        {
+                            <div class="mt-3">
+                                @* Mijoz: ijobiy qoldiq — mijoz qarzdor. Ta'minotchi / yuk tashuvchi: ijobiy — korxona qarzdor, kontragent haqdor (mijoz bilan teskarisi). *@
+                                @if (Model.ReconciliationType == "Customer")
+                                {
+                                    if (Model.FinalBalance > 0)
+                                    {
+                                        <p><strong>Yakuniy qoldiq:</strong> @Model.Party2Name @Model.FinalBalance.ToString("N2") summa miqdorida qarzdor.</p>
+                                    }
+                                    else if (Model.FinalBalance < 0)
+                                    {
+                                        <p><strong>Yakuniy qoldiq:</strong> @Model.Party1Name @Math.Abs(Model.FinalBalance).ToString("N2") summa miqdorida qarzdor.</p>
+                                    }
+                                    else
+                                    {
+                                        <p><strong>Yakuniy qoldiq:</strong> O'zaro hisob-kitoblar tenglashtirilgan (0).</p>
+                                    }
+                                }
+                                else
+                                {
+                                    @* Supplier yoki Forwarder *@
+                                    if (Model.FinalBalance > 0)
+                                    {
+                                        <p><strong>Yakuniy qoldiq:</strong> @Model.Party1Name @Model.Party2Name ga @Model.FinalBalance.ToString("N2") summa miqdorida <strong>qarzdor</strong>; @Model.Party2Name ushbu summa bo'yicha <strong>haqdor</strong> (hisob-fakturalar to'lovlardan ortiqcha).</p>
+                                    }
+                                    else if (Model.FinalBalance < 0)
+                                    {
+                                        <p><strong>Yakuniy qoldiq:</strong> @Model.Party2Name @Model.Party1Name ga @Math.Abs(Model.FinalBalance).ToString("N2") summa miqdorida <strong>qarzdor</strong>; @Model.Party1Name ushbu summa bo'yicha <strong>haqdor</strong> (bank to'lovlari hisob-fakturalardan ortiqcha).</p>
+                                    }
+                                    else
+                                    {
+                                        <p><strong>Yakuniy qoldiq:</strong> O'zaro hisob-kitoblar tenglashtirilgan (0).</p>
+                                    }
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -125,52 +190,56 @@
 </div>
 
 @section scripts {
-<script>
-    $(document).ready(function () {
-        var partyName = '@Html.Raw(Model.Party2Name?.Replace("'", "\\'") ?? "Akt_sverki")';
-        var baseName = 'Akt_sverki_' + partyName.replace(/[^a-zA-Z0-9-_]/g, '_');
-        $('#aktSverkiTable').DataTable({
-            "language": {
-                "search": "Qidirish:",
-                "lengthMenu": "_MENU_ ta ko'rsatish",
-                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                "infoEmpty": "Yozuvlar yo'q",
-                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
-                "zeroRecords": "Ma'lumot topilmadi"
-            },
-            "pageLength": 50,
-            "order": [],
-            dom: 'lBfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="bx bxs-file-excel"></i> Excel',
-                    titleAttr: 'Excelga yuklash',
-                    className: 'btn btn-success btn-sm mr-1',
-                    filename: function () {
-                        var d = new Date();
-                        return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
+    @if (Model.HasSelectedContract && Model.Rows != null && Model.Rows.Count > 0)
+    {
+        <script>
+            $(document).ready(function () {
+                var partyName = '@Html.Raw(Model.Party2Name?.Replace("'", "\\'") ?? "Akt_sverki")';
+                var cn = '@Html.Raw((Model.ContractNo ?? "").Replace("'", "\\'"))';
+                var baseName = 'Akt_sverki_' + partyName.replace(/[^a-zA-Z0-9-_]/g, '_') + '_' + cn.replace(/[^a-zA-Z0-9-_]/g, '_');
+                $('#aktSverkiTable').DataTable({
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
+                        "zeroRecords": "Ma'lumot topilmadi"
                     },
-                    exportOptions: { columns: ':visible' }
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: '<i class="bx bxs-file-pdf"></i> PDF',
-                    titleAttr: 'PDFga yuklash',
-                    className: 'btn btn-danger btn-sm',
-                    pageSize: 'A4',
-                    orientation: 'landscape',
-                    filename: function () {
-                        var d = new Date();
-                        return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
-                    },
-                    exportOptions: { columns: ':visible' },
-                    title: 'Akt-sverki'
-                }
-            ]
-        });
-        $('#aktSverkiTable').DataTable().buttons().container().appendTo('#aktSverkiExportButtons');
-    });
-</script>
+                    "pageLength": 50,
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: '<i class="bx bxs-file-excel"></i> Excel',
+                            titleAttr: 'Excelga yuklash',
+                            className: 'btn btn-success btn-sm mr-1',
+                            filename: function () {
+                                var d = new Date();
+                                return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
+                            },
+                            exportOptions: { columns: ':visible' }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="bx bxs-file-pdf"></i> PDF',
+                            titleAttr: 'PDFga yuklash',
+                            className: 'btn btn-danger btn-sm',
+                            pageSize: 'A4',
+                            orientation: 'landscape',
+                            filename: function () {
+                                var d = new Date();
+                                return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
+                            },
+                            exportOptions: { columns: ':visible' },
+                            title: 'Akt-sverki'
+                        }
+                    ]
+                });
+                $('#aktSverkiTable').DataTable().buttons().container().appendTo('#aktSverkiExportButtons');
+            });
+        </script>
+    }
 }

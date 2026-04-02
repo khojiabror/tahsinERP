@@ -217,6 +217,7 @@ namespace tahsinERP.Controllers.HR
 
                 position.IsDeleted = true;
                 db.Entry(position).State = System.Data.Entity.EntityState.Modified;
+                await SoftDeleteReferenceService.AfterPositionSoftDeletedAsync(db, id);
                 await db.SaveChangesAsync();
 
                 logger.Log("HrPositions", "Delete", $"Lavozim: {position.Name}");

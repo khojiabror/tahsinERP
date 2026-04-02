@@ -30,10 +30,9 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // standart ga current year; month supports "barcha months" filtrlash
+            // Default filter: selected year/month (month is required for generation/count logic)
             var currentYear = year ?? DateTime.Now.Year;
-            bool hasMonthFilter = !string.IsNullOrWhiteSpace(Request.QueryString["month"]);
-            int? currentMonth = hasMonthFilter ? month : DateTime.Now.Month;
+            var currentMonth = month ?? DateTime.Now.Month;
 
             ViewBag.Year = currentYear;
             ViewBag.Month = currentMonth;
@@ -80,12 +79,8 @@ namespace tahsinERP.Controllers.Engineering
                 .Include(t => t.PRODUCT)
                 .Include(t => t.PRODUCT.PRODUCT_CATEGORIES)
                 .Where(t => t.Year == currentYear 
+                    && t.Month == currentMonth
                     && t.IsDeleted == false);
-
-            if (currentMonth.HasValue)
-            {
-                query = query.Where(t => t.Month == currentMonth.Value);
-            }
 
             if (productID.HasValue)
             {
@@ -98,15 +93,40 @@ namespace tahsinERP.Controllers.Engineering
 
             // Olish count of finished goods products that have norms uchun this month
             // Use TannarxService method uchun consistent logic
-            int finishedGoodsWithNorms = 0;
-            if (currentMonth.HasValue)
+            int finishedGoodsWithNorms;
+            int totalTannarxForMonth;
+
+            if (productID.HasValue)
             {
-                finishedGoodsWithNorms = await _tannarxService.GetFinishedGoodsWithNormsCountAsync(currentYear, currentMonth.Value);
+                // Product filter tanlangan bo'lsa, hamma count faqat shu product uchun bo'ladi
+                var hasNormForSelectedProduct = await _tannarxService.HasNormsForMonthAsync(productID.Value, currentYear, currentMonth);
+                finishedGoodsWithNorms = hasNormForSelectedProduct ? 1 : 0;
+                totalTannarxForMonth = await db.TANNARXes
+                    .Where(t => t.Year == currentYear
+                        && t.Month == currentMonth
+                        && t.ProductID == productID.Value
+                        && !t.IsDeleted)
+                    .CountAsync();
+            }
+            else
+            {
+                // Product filter yo'q bo'lsa, count normasi bor barcha mahsulotlar bo'yicha bo'ladi
+                var normProductIds = await _tannarxService.GetFinishedGoodsWithNormsProductIdsAsync(currentYear, currentMonth);
+                finishedGoodsWithNorms = normProductIds.Count;
+                totalTannarxForMonth = await db.TANNARXes
+                    .Where(t => t.Year == currentYear
+                        && t.Month == currentMonth
+                        && normProductIds.Contains(t.ProductID)
+                        && !t.IsDeleted)
+                    .CountAsync();
             }
 
+            var missingTannarxCount = Math.Max(0, finishedGoodsWithNorms - totalTannarxForMonth);
+
             ViewBag.FinishedGoodsWithNormsCount = finishedGoodsWithNorms;
-            ViewBag.TannarxCount = tannarxList.Count;
-            ViewBag.ShowGenerateButton = currentMonth.HasValue && (tannarxList.Count == 0 || tannarxList.Count < finishedGoodsWithNorms);
+            ViewBag.TannarxCount = totalTannarxForMonth;
+            ViewBag.MissingTannarxCount = missingTannarxCount;
+            ViewBag.ShowGenerateButton = missingTannarxCount > 0;
 
             // Map ga ViewModel
             var viewModelList = tannarxList.Select(t => new TannarxIndexViewModel
@@ -165,7 +185,26 @@ namespace tahsinERP.Controllers.Engineering
                 }
                 else
                 {
-                    TempData["Info"] = "Yangi tannarx yaratilmadi. Barcha mahsulotlar uchun tannarx allaqachon mavjud.";
+                    var normProductIds = await _tannarxService.GetFinishedGoodsWithNormsProductIdsAsync(year, month);
+                    var existingCount = await db.TANNARXes
+                        .Where(t => t.Year == year
+                            && t.Month == month
+                            && !t.IsDeleted
+                            && normProductIds.Contains(t.ProductID))
+                        .CountAsync();
+
+                    if (!normProductIds.Any())
+                    {
+                        TempData["Info"] = "Ushbu oy uchun norma kiritilgan mahsulot topilmadi.";
+                    }
+                    else if (existingCount >= normProductIds.Count)
+                    {
+                        TempData["Info"] = "Yangi tannarx yaratilmadi. Norma mavjud mahsulotlar uchun tannarx allaqachon yaratilgan.";
+                    }
+                    else
+                    {
+                        TempData["Info"] = "Yangi tannarx yaratilmadi. Iltimos, norma davri va mahsulot ma'lumotlarini tekshiring.";
+                    }
                 }
             }
             catch (Exception ex)

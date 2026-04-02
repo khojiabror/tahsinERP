@@ -1,0 +1,81 @@
+@model tahsinERP.Models.SALES_INVOICES
+@{
+    ViewBag.Title = "Invoysni bekor qilish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/SalesInvoices/Index">Sotuv invoyslari</a></li>
+                                    <li class="breadcrumb-item active">Bekor qilish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title text-danger">Invoysni bekor qilish</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning">
+                                    Ushbu invoys bekor qilinsa, unga bog'langan moliyaviy posting ham bekor qilinadi.
+                                </div>
+
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width:220px;">Invoys raqami:</th>
+                                        <td>@Model.InvoiceNo</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Invoys sanasi:</th>
+                                        <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mijoz:</th>
+                                        <td>@(Model.CUSTOMER?.Name ?? "-")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Jami summa:</th>
+                                        <td>@Model.TotalAmount.ToString("N2") @(Model.CurrencyCode ?? "")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td>@(Model.StatusCode ?? "-")</td>
+                                    </tr>
+                                </table>
+
+                                @using (Html.BeginForm("Delete", "SalesInvoices", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.HiddenFor(m => m.ID)
+                                    <button type="submit" class="btn btn-danger">Ha, bekor qilish</button>
+                                    <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.ID })" class="btn btn-secondary">Ortga</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

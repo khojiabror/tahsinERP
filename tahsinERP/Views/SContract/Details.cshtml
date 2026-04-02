@@ -55,6 +55,14 @@
                                                 </div>
                                             </section>
                                             <h4 class="text-primary">Shartnoma  ma'lumotlari</h4>
+                                            @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Customer", "Details"))
+                                            {
+                                                <div class="mb-2">
+                                                    <a href="@Url.Action("Customer", "Reconciliation", new { id = Model.CustomerID, contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bx bx-transfer-alt"></i> Akt-sverki (ushbu shartnoma)
+                                                    </a>
+                                                </div>
+                                            }
                                             <hr />
                                             <span>
                                                 <b>Shartnoma raqami</b>: @Html.DisplayFor(model => model.ContractNo, new { @class = "form-control" })

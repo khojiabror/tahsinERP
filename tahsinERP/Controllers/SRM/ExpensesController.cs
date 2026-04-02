@@ -211,7 +211,7 @@ namespace tahsinERP.Controllers.SRM
                 if (isProductionToSales)
                 {
                     var approvedByProduct = await db.QUALITY_INSPECTION
-                        .Where(q => q.StatusCode == "APPROVED" && (q.IsDeleted == false || q.IsDeleted == null))
+                        .Where(q => q.StatusCode == "APPROVED" && q.IsDeleted == false)
                         .GroupBy(q => q.ProductID)
                         .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
                         .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
@@ -219,7 +219,7 @@ namespace tahsinERP.Controllers.SRM
                     var transferredByProduct = await db.EXPENSE_PRODUCTS
                         .Where(ep => ep.EXPENS.SenderWHID == productionWH.ID
                             && ep.EXPENS.ReceiverWhID == salesWH.ID
-                            && (ep.EXPENS.IsDeleted == false || ep.EXPENS.IsDeleted == null))
+                            && ep.EXPENS.IsDeleted == false)
                         .GroupBy(ep => ep.ProductID)
                         .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
                         .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
@@ -322,7 +322,7 @@ namespace tahsinERP.Controllers.SRM
                             if (isProductionToSales)
                             {
                                 var approvedByProduct = await db.QUALITY_INSPECTION
-                                    .Where(q => q.StatusCode == "APPROVED" && (q.IsDeleted == false || q.IsDeleted == null))
+                                    .Where(q => q.StatusCode == "APPROVED" && q.IsDeleted == false)
                                     .GroupBy(q => q.ProductID)
                                     .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
                                     .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
@@ -330,7 +330,7 @@ namespace tahsinERP.Controllers.SRM
                                 var transferredByProduct = await db.EXPENSE_PRODUCTS
                                     .Where(ep => ep.EXPENS.SenderWHID == productionWH.ID
                                         && ep.EXPENS.ReceiverWhID == salesWH.ID
-                                        && (ep.EXPENS.IsDeleted == false || ep.EXPENS.IsDeleted == null))
+                                        && ep.EXPENS.IsDeleted == false)
                                     .GroupBy(ep => ep.ProductID)
                                     .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
                                     .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
@@ -430,14 +430,8 @@ namespace tahsinERP.Controllers.SRM
                                             var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
                                             if (productEntity != null)
                                             {
-                                                var newStock = new PRODUCT_STOCKS
-                                                {
-                                                    WHID = expense.ReceiverWhID.Value,
-                                                    ProductID = product.ProductID,
-                                                    Amount = product.Amount,
-                                                    UnitID = product.UnitID
-                                                };
-                                                db.PRODUCT_STOCKS.Add(newStock);
+                                                var ensuredReceiverStock = WarehouseFlowService.GetOrCreateStockRow(db, expense.ReceiverWhID.Value, product.ProductID, product.UnitID);
+                                                ensuredReceiverStock.Amount += product.Amount;
                                             }
                                         }
 
@@ -829,14 +823,8 @@ namespace tahsinERP.Controllers.SRM
                                             var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
                                             if (productEntity != null)
                                             {
-                                                var newStock = new PRODUCT_STOCKS
-                                                {
-                                                    WHID = expense.ReceiverWhID.Value,
-                                                    ProductID = product.ProductID,
-                                                    Amount = product.Amount,
-                                                    UnitID = product.UnitID
-                                                };
-                                                db.PRODUCT_STOCKS.Add(newStock);
+                                                var ensuredReceiverStock = WarehouseFlowService.GetOrCreateStockRow(db, expense.ReceiverWhID.Value, product.ProductID, product.UnitID);
+                                                ensuredReceiverStock.Amount += product.Amount;
                                             }
                                         }
                                     }

@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services;
 using tahsinERP.Controllers;
 using tahsinERP.ViewModels;
 
@@ -345,10 +346,11 @@ namespace tahsinERP.Controllers.Logistic
 
                     // Bog'liq moliyaviy tranzaksiyani ham bekor qilish
                     var finTransaction = db.FIN_TRANSACTIONS
-                        .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == ID);
+                        .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == ID && t.IsDeleted != true);
                     if (finTransaction != null)
                     {
                         finTransaction.IsDeleted = true;
+                        SoftDeleteReferenceService.AfterFinTransactionSoftDeletedAsync(db, finTransaction.ID).ConfigureAwait(false).GetAwaiter().GetResult();
                         db.SaveChanges();
                     }
 
@@ -452,7 +454,7 @@ namespace tahsinERP.Controllers.Logistic
 
                         // Bog'liq chiqim tranzaksiyasi summa/sana bilan bir xil bo'lib qolsin
                         var finTransaction = db.FIN_TRANSACTIONS
-                            .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == waybillPayment.ID);
+                            .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == waybillPayment.ID && t.IsDeleted != true);
                         if (finTransaction != null)
                         {
                             try

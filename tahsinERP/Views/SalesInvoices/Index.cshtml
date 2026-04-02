@@ -154,6 +154,13 @@
                                                                        class="btn btn-sm btn-outline-primary" title="Tahrirlash">
                                                                         <i class="bx bx-edit"></i>
                                                                     </a>
+                                                                    @if (item.StatusCode != "PAID" && item.StatusCode != "CANCELED")
+                                                                    {
+                                                                        <a href="@Url.Action("Delete", "SalesInvoices", new { id = item.ID })"
+                                                                           class="btn btn-sm btn-outline-danger" title="Bekor qilish">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </a>
+                                                                    }
                                                                 </td>
                                                             }
                                                         </tr>

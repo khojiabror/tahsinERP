@@ -262,12 +262,13 @@
                     <thead>
                         <tr>
                             <th style="width:6%;">#</th>
-                            <th style="width:16%;">SKU</th>
-                            <th style="width:30%;">Mahsulot nomi / Tavsif</th>
+                            <th style="width:14%;">SKU</th>
+                            <th style="width:26%;">Mahsulot nomi / Tavsif</th>
                             <th style="width:8%;">Birlik</th>
                             <th style="width:10%;">Miqdor</th>
-                            <th style="width:14%;">Birlik narxi</th>
-                            <th style="width:16%;">Summa</th>
+                            <th style="width:14%;">Birlik narxi (QQS siz)</th>
+                            <th style="width:8%;">QQS %</th>
+                            <th style="width:14%;">Summa</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -282,6 +283,7 @@
                                 <td class="center">@(line != null ? (product?.UNIT?.ShortName ?? "-") : "")</td>
                                 <td class="right">@(line != null ? line.Qty.ToString("N3") : "")</td>
                                 <td class="right">@(line != null ? line.UnitPrice.ToString("N2") : "")</td>
+                                <td class="right">@(line != null ? line.VATRate.ToString("N2") : "")</td>
                                 <td class="right">@(line != null ? (line.LineAmount.HasValue ? line.LineAmount.Value.ToString("N2") : "0.00") : "")</td>
                             </tr>
                         }

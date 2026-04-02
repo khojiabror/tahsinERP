@@ -69,7 +69,7 @@
                                     
                                     @if (ViewBag.CannotDelete != true)
                                     {
-                                        @using (Html.BeginForm("Delete", "FinTransactions", FormMethod.Post))
+                                        using (Html.BeginForm("Delete", "FinTransactions", FormMethod.Post))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.Hidden("id", Model.ID)

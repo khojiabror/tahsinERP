@@ -25,7 +25,7 @@
             </div>
 
             <div class="content-body">
-                @using (Html.BeginForm(ViewBag.PayrollType == "PieceRate" ? "GeneratePieceRate" : "Generate", "HrPayroll", FormMethod.Post))
+                @using (Html.BeginForm(ViewBag.PayrollType == "PieceRate" ? "GeneratePieceRate" : "GenerateHourly", "HrPayroll", FormMethod.Post))
                 {
                     @Html.AntiForgeryToken()
 
@@ -96,88 +96,96 @@
 
     @section scripts {
         <script>
-            var payrollType = '@ViewBag.PayrollType';
-            
-            // Wait for jQuery and Select2 to be loaded
-            function initSelect2() {
-                if (typeof jQuery !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
-                    $('.select2').select2({ width: '100%' });
-                } else {
-                    // If Select2 is not loaded yet, wait a bit and try again
-                    setTimeout(initSelect2, 100);
-                }
-            }
-            
-            // Function to update timesheet dropdown
-            function updateTimesheetDropdown() {
-                var year = $('#year').val();
-                var month = $('#month').val();
-                var orgUnitId = $('#orgUnitId').val();
-                
-                if (!year || !month) {
-                    return;
-                }
-                
-                $.ajax({
-                    url: '@Url.Action("GetTimesheets", "HrPayroll")',
-                    type: 'GET',
-                    data: {
-                        year: year,
-                        month: month,
-                        orgUnitId: orgUnitId || null,
-                        payrollType: payrollType
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            var timesheetDropdown = $('#timesheetId');
-                            timesheetDropdown.empty();
-                            
-                            // Add default option
-                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
-                            
-                            // Add timesheet options
-                            $.each(response.data, function (index, item) {
-                                timesheetDropdown.append(new Option(item.Name, item.ID));
-                            });
-                            
-                            // Trigger Select2 update
-                            timesheetDropdown.trigger('change');
-                        } else {
-                            console.error('Xatolik: ' + response.message);
-                            var timesheetDropdown = $('#timesheetId');
-                            timesheetDropdown.empty();
-                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
-                            timesheetDropdown.trigger('change');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Tabel ro\'yxatini olishda xatolik:', error);
-                        var timesheetDropdown = $('#timesheetId');
-                        timesheetDropdown.empty();
-                        timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
-                        timesheetDropdown.trigger('change');
+            (function ($) {
+                if (!$) return;
+                var payrollType = '@(ViewBag.PayrollType ?? "Hourly")';
+
+                function initSelect2() {
+                    if ($.fn && $.fn.select2) {
+                        $('.select2').each(function () {
+                            var $el = $(this);
+                            if ($el.hasClass('select2-hidden-accessible')) {
+                                $el.select2('destroy');
+                            }
+                        });
+                        $('.select2').select2({ width: '100%' });
+                        return true;
                     }
-                });
-            }
-            
-            // Start initialization when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(initSelect2, 500);
-                    
-                    // Attach change event listeners
-                    $('#year, #month, #orgUnitId').on('change', function() {
-                        updateTimesheetDropdown();
+                    return false;
+                }
+
+                function refreshTimesheetSelect2($ts) {
+                    if ($.fn && $.fn.select2) {
+                        if ($ts.hasClass('select2-hidden-accessible')) {
+                            $ts.select2('destroy');
+                        }
+                        $ts.select2({ width: '100%' });
+                    }
+                }
+
+                function updateTimesheetDropdown() {
+                    var year = $('#year').val();
+                    var month = $('#month').val();
+                    var orgUnitId = $('#orgUnitId').val();
+
+                    if (!year || !month) return;
+
+                    $.ajax({
+                        url: '@Url.Action("GetTimesheets", "HrPayroll")',
+                        type: 'GET',
+                        data: {
+                            year: year,
+                            month: month,
+                            orgUnitId: orgUnitId || null,
+                            payrollType: payrollType
+                        },
+                        success: function (response) {
+                            var timesheetDropdown = $('#timesheetId');
+                            if (timesheetDropdown.hasClass('select2-hidden-accessible')) {
+                                timesheetDropdown.select2('destroy');
+                            }
+                            timesheetDropdown.empty();
+                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                            if (response.success && response.data && response.data.length) {
+                                $.each(response.data, function (index, item) {
+                                    timesheetDropdown.append(new Option(item.Name, item.ID));
+                                });
+                            } else if (!response.success && response.message) {
+                                console.error('Xatolik: ' + response.message);
+                            }
+                            refreshTimesheetSelect2(timesheetDropdown);
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Tabel ro\'yxatini olishda xatolik:', error);
+                            var timesheetDropdown = $('#timesheetId');
+                            if (timesheetDropdown.hasClass('select2-hidden-accessible')) {
+                                timesheetDropdown.select2('destroy');
+                            }
+                            timesheetDropdown.empty();
+                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                            refreshTimesheetSelect2(timesheetDropdown);
+                        }
                     });
+                }
+
+                var _tryInitAttempts = 0;
+                function tryInit() {
+                    _tryInitAttempts++;
+                    if (_tryInitAttempts > 120) return;
+                    if (initSelect2()) {
+                        $('#year, #month, #orgUnitId').off('change.hrpayroll').on('change.hrpayroll', function () {
+                            updateTimesheetDropdown();
+                        });
+                        updateTimesheetDropdown();
+                    } else {
+                        setTimeout(tryInit, 50);
+                    }
+                }
+
+                $(document).ready(function () {
+                    tryInit();
                 });
-            } else {
-                setTimeout(initSelect2, 500);
-                
-                // Attach change event listeners
-                $('#year, #month, #orgUnitId').on('change', function() {
-                    updateTimesheetDropdown();
-                });
-            }
+            })(window.jQuery || window.$j);
         </script>
     }
 }

@@ -67,6 +67,9 @@
                                                 Noto'g'ri ma'lumot kiritsam salbiy oqibatlarga olib kelsa, qonun oldida va korxona tartib qoidalariga muvofiq
                                                 javob berishga tayyorman.
                                             </div>
+                                            <div class="alert alert-info" id="monthlyLimitAlert" style="display:none;">
+                                                Ushbu ombor uchun joriy oy inventarizatsiyasi allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.
+                                            </div>
                                             <div class="mb-2">
                                                 <a href="@Url.Action("DownloadTemplate", "Inventory")" class="btn btn-outline-primary">
                                                     <i class="bx bx-download"></i> Excel shablonini yuklab olish
@@ -131,11 +134,29 @@
         (function () {
             var check = document.getElementById('confirmCheck');
             var submit = document.getElementById('submitBtn');
-            if (check && submit) {
+            var warehouse = document.getElementById('WarehouseId');
+            var monthlyLimitAlert = document.getElementById('monthlyLimitAlert');
+            var lockedWarehouseIds = @Html.Raw(Json.Encode((ViewBag.LockedWarehouseIds as IEnumerable<int>) ?? new int[0]));
+
+            if (check && submit && warehouse) {
+                var isLockedWarehouse = function () {
+                    var whId = parseInt(warehouse.value || "0");
+                    if (!whId) return false;
+                    for (var i = 0; i < lockedWarehouseIds.length; i++) {
+                        if (lockedWarehouseIds[i] === whId) return true;
+                    }
+                    return false;
+                };
+
                 var toggle = function () {
-                    submit.disabled = !check.checked;
+                    var locked = isLockedWarehouse();
+                    submit.disabled = locked || !check.checked;
+                    if (monthlyLimitAlert) {
+                        monthlyLimitAlert.style.display = locked ? "block" : "none";
+                    }
                 };
                 check.addEventListener('change', toggle);
+                warehouse.addEventListener('change', toggle);
                 toggle();
             }
         })();

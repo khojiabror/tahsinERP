@@ -28,7 +28,7 @@
             <div class="content-body">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Opening balans – boshlang'ich qoldiqlar</h4>
+                        <h4 class="card-title">Opening balans - boshlang'ich qoldiqlar</h4>
                     </div>
                     <div class="card-content">
                         <div class="card-body">
@@ -53,6 +53,13 @@
                                                 Value = Model.SnapshotDate.ToString("yyyy-MM-dd")
                                             })
                                             <small class="text-muted">Bu sanaga nisbatan barcha balanslar birinchi marta kiritiladi.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-end">
+                                        <div class="form-group">
+                                            <button type="button" id="btnLoadOpeningByDate" class="btn btn-info">
+                                                Load qilish
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -110,5 +117,26 @@
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        (function () {
+            var loadBtn = document.getElementById('btnLoadOpeningByDate');
+            var dateInput = document.getElementById('SnapshotDate');
+            if (!loadBtn || !dateInput) return;
+
+            loadBtn.addEventListener('click', function () {
+                var dateValue = dateInput.value;
+                if (!dateValue) {
+                    alert('Avval sana tanlang.');
+                    return;
+                }
+                var baseUrl = '@Url.Action("Index", "OpeningBalance")';
+                window.location.href = baseUrl + '?snapshotDate=' + encodeURIComponent(dateValue);
+            });
+        })();
+    </script>
 }
 

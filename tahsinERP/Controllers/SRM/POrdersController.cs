@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Validation;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -91,8 +93,55 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                ViewBag.BomVersionNotes = BuildBomVersionNotes(order);
                 return View(order);
             }
+        }
+
+        private static List<string> BuildBomVersionNotes(P_ORDERS order)
+        {
+            var notes = new List<string>();
+            if (order?.P_ORDER_PRODUCTS == null)
+            {
+                return notes;
+            }
+
+            var pattern = new Regex(
+                @"BOM qaysi mahsulot uchun:\s*(?<owner>.+?)\r?\n.*?BOM versiyasi:\s*(?<version>.+?)\r?\n",
+                RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            foreach (var row in order.P_ORDER_PRODUCTS)
+            {
+                if (string.IsNullOrWhiteSpace(row.Priority))
+                {
+                    continue;
+                }
+
+                foreach (Match m in pattern.Matches(row.Priority))
+                {
+                    var ownerRaw = (m.Groups["owner"].Value ?? "").Trim();
+                    var versionRaw = (m.Groups["version"].Value ?? "").Trim();
+                    if (string.IsNullOrWhiteSpace(ownerRaw) || string.IsNullOrWhiteSpace(versionRaw))
+                    {
+                        continue;
+                    }
+
+                    var ownerName = ownerRaw;
+                    var dashIndex = ownerRaw.IndexOf("—");
+                    if (dashIndex >= 0 && dashIndex < ownerRaw.Length - 1)
+                    {
+                        ownerName = ownerRaw.Substring(dashIndex + 1).Trim();
+                    }
+
+                    var line = ownerName + " maxsuloti uchun BOM " + versionRaw + " oyidagi versiyasi dan olindi";
+                    if (!notes.Contains(line))
+                    {
+                        notes.Add(line);
+                    }
+                }
+            }
+
+            return notes;
         }
 
         // Olish so'rovi: POrders/yaratish
@@ -303,7 +352,8 @@ namespace tahsinERP.Controllers
                         EstimatedPrice = cr.EstimatedPrice.HasValue ? (double?)cr.EstimatedPrice.Value : null,
                         EstimatedAmount = cr.EstimatedAmount.HasValue ? (double?)cr.EstimatedAmount.Value : null,
                         MOQ = (double?)null,
-                        CalculationExplanation = cr.CalculationExplanation ?? ""
+                        CalculationExplanation = cr.CalculationExplanation ?? "",
+                        CalculationSummary = cr.CalculationSummary ?? ""
                     }).ToList();
 
                     return Json(new { success = true, data = result });
@@ -348,6 +398,12 @@ namespace tahsinERP.Controllers
                             var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                             var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
 
+                            int? supplierId = model.SupplierID;
+                            if (!supplierId.HasValue || supplierId.Value <= 0)
+                            {
+                                supplierId = null;
+                            }
+
                             // Xarid turini aniqlash
                             byte purchaseType = 0; // Standart: Bevosita
                             int? requisitionId = null;
@@ -377,7 +433,7 @@ namespace tahsinERP.Controllers
                                 OrderNo = model.OrderNo,
                                 IssuedDate = model.IssuedDate,
                                 CompanyID = companyId,
-                                SupplierID = model.SupplierID ?? 0,
+                                SupplierID = supplierId,
                                 ContractID = model.ContractID,
                                 CurrencyID = model.CurrencyID ?? 0,
                                 Description = model.Description,
@@ -415,13 +471,14 @@ namespace tahsinERP.Controllers
                                         continue; // O'chirilgan yoki topilmagan mahsulotlarni o'tkazib yuborish
                                     }
 
-                                        // Talabnomadan ustuvorlik va kerakli sanani olish (mavjud bo'lsa)
+                                        // Talabnomadan ustuvorlik va kerakli sanani olish (mavjud bo'lsa).
+                                        // Hisob tushuntirish (sotuv/BOM generatsiyasi) bo'lsa — P_ORDER_PRODUCTS.Priority maydonida saqlanadi.
                                         string priority = null;
                                         DateTime? requiredDate = null;
                                         if (requisitionId.HasValue)
                                         {
                                             var reqProduct = await db.P_REQUISITION_PRODUCTS
-                                                .FirstOrDefaultAsync(rp => rp.RequisitionID == requisitionId.Value && 
+                                                .FirstOrDefaultAsync(rp => rp.RequisitionID == requisitionId.Value &&
                                                                           rp.ProductID == orderProduct.ProductID);
                                             if (reqProduct != null)
                                             {
@@ -429,6 +486,17 @@ namespace tahsinERP.Controllers
                                                 requiredDate = reqProduct.RequiredDate;
                                             }
                                         }
+
+                                        if (!string.IsNullOrWhiteSpace(orderProduct.CalculationSummary))
+                                        {
+                                            priority = orderProduct.CalculationSummary.Trim();
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(orderProduct.CalculationExplanation))
+                                        {
+                                            priority = orderProduct.CalculationExplanation.Trim();
+                                        }
+
+                                        priority = TruncateToPOrderProductPriority(priority);
 
                                         var pOrderProduct = new P_ORDER_PRODUCTS
                                         {
@@ -484,20 +552,13 @@ namespace tahsinERP.Controllers
                                     dbTransaction.Rollback();
                                 }
                             }
-                            catch (Exception rollbackEx)
+                            catch (Exception)
                             {
                                 // Bekor qilish xatolarini e'tiborsiz qoldiramiz - tranzaksiya allaqachon yaroqsiz holatda bo'lishi mumkin
                                 // Bu SaveChangesAsync xatoga uchrab ulanish yopilganida yuz berishi mumkin
                             }
 
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
-                            ModelState.AddModelError("", errorMessage);
+                            AppendDatabaseErrorsToModelState(ModelState, ex);
                         }
                     }
                 }
@@ -594,7 +655,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var order = await db.P_ORDERS
-                    .Include(o => o.P_ORDER_PRODUCTS)
+                    .Include(o => o.P_ORDER_PRODUCTS.Select(p => p.PRODUCT))
                     .FirstOrDefaultAsync(o => o.ID == id && o.IsDeleted != true);
 
                 if (order == null)
@@ -608,7 +669,7 @@ namespace tahsinERP.Controllers
                     OrderNo = order.OrderNo,
                     IssuedDate = order.IssuedDate,
                     CompanyID = order.CompanyID ?? 0,
-                    SupplierID = order.SupplierID ?? 0,
+                    SupplierID = order.SupplierID,
                     ContractID = order.ContractID ?? 0,
                     CurrencyID = order.CurrencyID ?? 0,
                     Description = order.Description,
@@ -622,7 +683,9 @@ namespace tahsinERP.Controllers
                         Amount = op.Amount,
                         UnitID = op.UnitID,
                         TotalPrice = op.TotalPrice,
-                        MOQ = op.MOQ
+                        MOQ = op.MOQ,
+                        CalculationExplanation = op.Priority ?? "",
+                        CalculationSummary = op.Priority ?? ""
                     }).ToList()
                 };
 
@@ -649,12 +712,12 @@ namespace tahsinERP.Controllers
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
 
+                ViewBag.PurchasableProductsList = purchasableProducts;
                 ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
 
-                ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
-                    "ID", "ShortName"
-                );
+                var units = await db.UNITS.ToListAsync();
+                ViewBag.UnitsList = units;
+                ViewBag.Units = new SelectList(units, "ID", "ShortName");
 
                 return View(model);
             }
@@ -690,7 +753,13 @@ namespace tahsinERP.Controllers
 
                         order.IssuedDate = model.IssuedDate;
                         order.CompanyID = companyId;
-                        order.SupplierID = model.SupplierID;
+                        int? supplierId = model.SupplierID;
+                        if (!supplierId.HasValue || supplierId.Value <= 0)
+                        {
+                            supplierId = null;
+                        }
+
+                        order.SupplierID = supplierId;
                         order.ContractID = model.ContractID;
                         order.CurrencyID = model.CurrencyID;
                         order.Description = model.Description;
@@ -719,7 +788,13 @@ namespace tahsinERP.Controllers
                                         Amount = orderProduct.Amount,
                                         UnitID = orderProduct.UnitID ?? (product.UnitID > 0 ? product.UnitID : 1),
                                         TotalPrice = orderProduct.Price * orderProduct.Amount,
-                                        MOQ = orderProduct.MOQ
+                                        MOQ = orderProduct.MOQ,
+                                        Priority = TruncateToPOrderProductPriority(
+                                            !string.IsNullOrWhiteSpace(orderProduct.CalculationSummary)
+                                                ? orderProduct.CalculationSummary.Trim()
+                                                : (string.IsNullOrWhiteSpace(orderProduct.CalculationExplanation)
+                                                    ? null
+                                                    : orderProduct.CalculationExplanation.Trim()))
                                     };
 
                                     db.P_ORDER_PRODUCTS.Add(pOrderProduct);
@@ -738,14 +813,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        AppendDatabaseErrorsToModelState(ModelState, ex);
                     }
                 }
             }
@@ -776,12 +844,12 @@ namespace tahsinERP.Controllers
                     .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
 
+                ViewBag.PurchasableProductsList = purchasableProducts;
                 ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
 
-                ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
-                    "ID", "ShortName"
-                );
+                var units = await db.UNITS.ToListAsync();
+                ViewBag.UnitsList = units;
+                ViewBag.Units = new SelectList(units, "ID", "ShortName");
             }
 
             return View(model);
@@ -835,6 +903,7 @@ namespace tahsinERP.Controllers
                 if (order != null)
                 {
                     order.IsDeleted = true;
+                    await SoftDeleteReferenceService.AfterPOrderSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
                     // Amalni logga yozish
@@ -843,6 +912,104 @@ namespace tahsinERP.Controllers
 
                 return RedirectToAction("Index");
             }
+        }
+
+        /// <summary>
+        /// P_ORDER_PRODUCTS.Priority — jadvalda nvarchar(50): talabnomada "ustuvorlik" uchun.
+        /// Hisob tushuntirish uzun bo'lsa, saqlashdan oldin qisqartiriladi (to'liq matn DB ga sig'maydi).
+        /// </summary>
+        private static string TruncateToPOrderProductPriority(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            const int maxLen = 50;
+            var t = value.Trim();
+            if (t.Length <= maxLen)
+            {
+                return t;
+            }
+
+            return t.Substring(0, maxLen - 3) + "...";
+        }
+
+        /// <summary>
+        /// EF EntityValidationErrors va yangilanish xatolarini ModelState orqali forma ustida ko'rsatish.
+        /// </summary>
+        private static void AppendDatabaseErrorsToModelState(System.Web.Mvc.ModelStateDictionary modelState, Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            var dbVal = ex as DbEntityValidationException ?? FindInnerException<DbEntityValidationException>(ex);
+            if (dbVal != null)
+            {
+                foreach (var eve in dbVal.EntityValidationErrors)
+                {
+                    string entityLabel;
+                    try
+                    {
+                        entityLabel = eve.Entry?.Entity?.GetType()?.Name ?? "Entity";
+                    }
+                    catch
+                    {
+                        entityLabel = "Entity";
+                    }
+
+                    if (eve.ValidationErrors == null || !eve.ValidationErrors.Any())
+                    {
+                        modelState.AddModelError("", entityLabel + ": validatsiya xatosi (batafsil yo'q).");
+                        continue;
+                    }
+
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        var prop = string.IsNullOrEmpty(ve.PropertyName) ? "(maydon)" : ve.PropertyName;
+                        modelState.AddModelError("", $"{entityLabel} — {prop}: {ve.ErrorMessage}");
+                    }
+                }
+
+                return;
+            }
+
+            var dbUp = ex as DbUpdateException ?? FindInnerException<DbUpdateException>(ex);
+            if (dbUp != null)
+            {
+                modelState.AddModelError("", "Ma'lumotlar bazasiga yozishda xatolik: " + dbUp.Message);
+                var inner = dbUp.InnerException;
+                while (inner != null)
+                {
+                    modelState.AddModelError("", "Ichki: " + inner.Message);
+                    inner = inner.InnerException;
+                }
+
+                return;
+            }
+
+            var msg = "Xatolik: " + ex.Message;
+            for (var innerEx = ex.InnerException; innerEx != null; innerEx = innerEx.InnerException)
+            {
+                msg += " | Ichki xatolik: " + innerEx.Message;
+            }
+
+            modelState.AddModelError("", msg);
+        }
+
+        private static T FindInnerException<T>(Exception ex) where T : Exception
+        {
+            for (var cur = ex.InnerException; cur != null; cur = cur.InnerException)
+            {
+                if (cur is T match)
+                {
+                    return match;
+                }
+            }
+
+            return null;
         }
     }
 }

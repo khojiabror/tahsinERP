@@ -2,6 +2,27 @@
 @{
     ViewBag.Title = "Ombor oylik hisoboti";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    Func<object, string, decimal> getDecimal = (obj, propName) =>
+    {
+        if (obj == null || string.IsNullOrWhiteSpace(propName))
+        {
+            return 0m;
+        }
+
+        var prop = obj.GetType().GetProperty(propName);
+        if (prop == null)
+        {
+            return 0m;
+        }
+
+        var raw = prop.GetValue(obj, null);
+        if (raw == null)
+        {
+            return 0m;
+        }
+
+        try { return Convert.ToDecimal(raw); } catch { return 0m; }
+    };
 }
 <style>
     @@media print {
@@ -107,6 +128,7 @@
                                         <th>Birlik</th>
                                     }
                                     <th class="text-right">Oldingi qoldiq</th>
+                                    <th class="text-right">Inventarizatsiya</th>
                                     <th class="text-right">Kirim</th>
                                     <th class="text-right">Chiqim</th>
                                     <th class="text-right">Oy oxiridagi qoldiq</th>
@@ -130,6 +152,7 @@
                                             @if (byAmount)
                                             {
                                                 <td class="text-right">@row.OpeningBalanceSum.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(row, "AdjustmentSum").ToString("N2")</td>
                                                 <td class="text-right">@row.IncomeSum.ToString("N2")</td>
                                                 <td class="text-right">@row.ExpenseSum.ToString("N2")</td>
                                                 <td class="text-right">@row.ClosingBalanceSum.ToString("N2")</td>
@@ -137,6 +160,7 @@
                                             else
                                             {
                                                 <td class="text-right">@row.OpeningBalance.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(row, "AdjustmentQty").ToString("N2")</td>
                                                 <td class="text-right">@row.IncomeQty.ToString("N2")</td>
                                                 <td class="text-right">@row.ExpenseQty.ToString("N2")</td>
                                                 <td class="text-right">@row.ClosingBalance.ToString("N2")</td>
@@ -150,6 +174,7 @@
                                             @if (byAmount)
                                             {
                                                 <td class="text-right">@Model.Totals.TotalOpeningSum.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(Model.Totals, "TotalAdjustmentSum").ToString("N2")</td>
                                                 <td class="text-right">@Model.Totals.TotalIncomeSum.ToString("N2")</td>
                                                 <td class="text-right">@Model.Totals.TotalExpenseSum.ToString("N2")</td>
                                                 <td class="text-right">@Model.Totals.TotalClosingSum.ToString("N2")</td>
@@ -157,6 +182,7 @@
                                             else
                                             {
                                                 <td class="text-right">@Model.Totals.TotalOpening.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(Model.Totals, "TotalAdjustment").ToString("N2")</td>
                                                 <td class="text-right">@Model.Totals.TotalIncome.ToString("N2")</td>
                                                 <td class="text-right">@Model.Totals.TotalExpense.ToString("N2")</td>
                                                 <td class="text-right">@Model.Totals.TotalClosing.ToString("N2")</td>
@@ -166,8 +192,9 @@
                                 }
                                 else
                                 {
+                                    var emptyColspan = Model.ViewMode == "amount" ? 8 : 9;
                                     <tr>
-                                        <td colspan="8" class="text-center">Ushbu oy uchun kirim/chiqim ma'lumotlari topilmadi.</td>
+                                        <td colspan="@emptyColspan" class="text-center">Ushbu oy uchun kirim/chiqim ma'lumotlari topilmadi.</td>
                                     </tr>
                                 }
                             </tbody>

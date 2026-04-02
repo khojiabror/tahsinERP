@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -808,6 +809,7 @@ namespace tahsinERP.Controllers
                 if (order != null)
                 {
                     order.IsDeleted = true;
+                    SoftDeleteReferenceService.AfterSOrderSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
                     db.SaveChanges();
                     LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani o'chirdi");
                 }

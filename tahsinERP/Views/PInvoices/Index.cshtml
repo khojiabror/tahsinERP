@@ -124,7 +124,7 @@
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-                                                            <td>@item.Amount.ToString("N2")</td>
+                                                            <td>@(item.Amount.HasValue ? item.Amount.Value.ToString("N2") : "-")</td>
                                                             <td>@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)
                                                             {

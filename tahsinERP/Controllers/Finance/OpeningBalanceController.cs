@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Controllers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -60,7 +61,7 @@ namespace tahsinERP.Controllers.Finance
                         CategoryID = cat.ID,
                         CategoryName = cat.Name,
                         Type = cat.Type,
-                        TypeName = cat.Type == 1 ? "Aktiv" : cat.Type == 2 ? "Passiv" : "Kapital",
+                        TypeName = BalanceCategoryDisplayHelper.GetSideLabel(cat),
                         Amount = snap?.Amount ?? 0,
                         CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 1),
                         CurrencyShortname = snap != null

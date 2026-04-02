@@ -1,0 +1,141 @@
+@model tahsinERP.ViewModels.HR.HrPieceRateGridEntryViewModel
+@{
+    ViewBag.Title = "Ishbay jadval kiritish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            @if (TempData["Success"] != null) { <div class="alert alert-success">@Html.Raw(TempData["Success"])</div> }
+            @if (TempData["Warning"] != null) { <div class="alert alert-warning">@Html.Raw(TempData["Warning"])</div> }
+            @if (TempData["Error"] != null) { <div class="alert alert-danger">@Html.Raw(TempData["Error"])</div> }
+            <div class="card mb-1">
+                <div class="card-body">
+                    <h4 class="mb-1">Ishbay grid kiritish</h4>
+                    <div class="form-row">
+                        <div class="col-md-2">
+                            <label>Yil</label>
+                            <input id="yearPick" type="number" class="form-control" value="@Model.Year" min="2000" max="2100" />
+                        </div>
+                        <div class="col-md-2">
+                            <label>Oy</label>
+                            <select id="monthPick" class="form-control">
+                                @for (int m = 1; m <= 12; m++)
+                                {
+                                    <option value="@m" @(Model.Month == m ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-primary" onclick="reloadByMonth()"><i class="bx bx-refresh"></i> Oyni qo'llash</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @using (Html.BeginForm("GridCreate", "HrPieceRateTimesheets", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Year)
+                @Html.HiddenFor(m => m.Month)
+                @Html.HiddenFor(m => m.OrgUnitID)
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="gridTable">
+                        <thead>
+                            <tr class="thead-light">
+                                <th>Xodim</th><th>Mahsulot</th><th>Operatsiya</th><th>Sana</th><th>Miqdor</th><th>Tarif</th><th>Summa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Rows.Count; i++)
+                            {
+                                <tr>
+                                    <td class="freeze-emp">@Html.DropDownListFor(m => m.Rows[i].EmployeeID, ViewBag.EmployeeID as SelectList, "Tanlang", new { @class = "form-control select2 emp" })</td>
+                                    <td>@Html.DropDownListFor(m => m.Rows[i].ProductID, ViewBag.ProductID as SelectList, "Tanlang", new { @class = "form-control product" })</td>
+                                    <td>@Html.DropDownListFor(m => m.Rows[i].OperationID, ViewBag.OperationID as SelectList, "Tanlang", new { @class = "form-control operation" })</td>
+                                    <td>@Html.TextBoxFor(m => m.Rows[i].WorkDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control" })</td>
+                                    <td>@Html.TextBoxFor(m => m.Rows[i].Quantity, new { @type = "number", step = "0.01", @class = "form-control qty" })</td>
+                                    <td><input type="text" class="form-control rate" readonly /></td>
+                                    <td><input type="text" class="form-control amount" readonly /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-1">
+                    <button type="button" class="btn btn-outline-success" onclick="addRow()"><i class="bx bx-plus"></i> Yangi qator qo'shish</button>
+                </div>
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> Saqlash</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">Orqaga</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<script>
+    const employeeOptions = `@Html.Raw(string.Join("", (ViewBag.EmployeeID as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
+    const productOptions = `@Html.Raw(string.Join("", (ViewBag.ProductID as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
+    const operationOptions = `@Html.Raw(string.Join("", (ViewBag.OperationID as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
+
+    function reloadByMonth(){
+        const y = document.getElementById('yearPick').value;
+        const m = document.getElementById('monthPick').value;
+        window.location.href = '@Url.Action("GridCreate")' + '?year=' + y + '&month=' + m;
+    }
+
+    function recalcRow(tr){
+        const pid = tr.querySelector('.product').value;
+        const oid = tr.querySelector('.operation').value;
+        const eid = tr.querySelector('.emp').value;
+        const wdate = tr.querySelector('input[type="date"]').value;
+        const qty = parseFloat(tr.querySelector('.qty').value || '0');
+        const rateInput = tr.querySelector('.rate');
+        const amountInput = tr.querySelector('.amount');
+        if(!pid || !oid){ rateInput.value=''; amountInput.value=''; return; }
+
+        const qs = new URLSearchParams({ productId: pid, operationId: oid, employeeId: eid || '', workDate: wdate || '' });
+        fetch('@Url.Action("GetTariff")' + '?' + qs.toString())
+            .then(r => r.json())
+            .then(r => {
+                if(r && r.success){
+                    const rate = parseFloat(r.tariff.ratePerUnit || 0);
+                    rateInput.value = rate.toFixed(2);
+                    amountInput.value = (rate * qty).toFixed(2);
+                } else {
+                    rateInput.value = '0.00';
+                    amountInput.value = '0.00';
+                }
+            }).catch(() => { rateInput.value = '0.00'; amountInput.value = '0.00'; });
+    }
+
+    function bindRowEvents(tr){
+        tr.querySelectorAll('.emp,.product,.operation,.qty,input[type="date"]').forEach(el => {
+            el.addEventListener('change', () => recalcRow(tr));
+            el.addEventListener('keyup', () => recalcRow(tr));
+        });
+    }
+
+    function addRow(){
+        const tbody = document.querySelector('#gridTable tbody');
+        const idx = tbody.querySelectorAll('tr').length;
+        const y = document.getElementById('yearPick').value;
+        const m = document.getElementById('monthPick').value.toString().padStart(2,'0');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="freeze-emp"><select name="Rows[${idx}].EmployeeID" class="form-control emp"><option value="">Tanlang</option>${employeeOptions}</select></td>
+            <td><select name="Rows[${idx}].ProductID" class="form-control product"><option value="">Tanlang</option>${productOptions}</select></td>
+            <td><select name="Rows[${idx}].OperationID" class="form-control operation"><option value="">Tanlang</option>${operationOptions}</select></td>
+            <td><input name="Rows[${idx}].WorkDate" type="date" class="form-control" value="${y}-${m}-01"/></td>
+            <td><input name="Rows[${idx}].Quantity" type="number" step="0.01" class="form-control qty"/></td>
+            <td><input type="text" class="form-control rate" readonly/></td>
+            <td><input type="text" class="form-control amount" readonly/></td>`;
+        tbody.appendChild(tr);
+        bindRowEvents(tr);
+    }
+
+    document.querySelectorAll('#gridTable tbody tr').forEach(bindRowEvents);
+</script>
+<style>
+    #gridTable .freeze-emp{ position: sticky; left: 0; background: #fff; z-index: 4; min-width: 220px; }
+    #gridTable thead th:first-child{ position: sticky; left: 0; background: #f8f9fa; z-index: 8; min-width: 220px; }
+</style>

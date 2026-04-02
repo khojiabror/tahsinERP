@@ -51,7 +51,12 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "Bitta mahsulot uchun chiqindi (m)")]
         public decimal WastePerProduct { get; set; }
+
+        public bool IsWasteManual { get; set; }
         
+        [Display(Name = "Birlik")]
+        public int? UnitID { get; set; }
+
         [Display(Name = "Narx")]
         public decimal? UnitPrice { get; set; }
         

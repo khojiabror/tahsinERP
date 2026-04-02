@@ -238,7 +238,7 @@ namespace tahsinERP.Controllers.SRM
                 .Include(s => s.PRODUCT)
                 .Where(s => s.WHID == productionWH.ID
                     && s.Amount > 0
-                    && (s.PRODUCT.IsDeleted == false || s.PRODUCT.IsDeleted == null)
+                    && s.PRODUCT.IsDeleted == false
                     && s.PRODUCT.IsFinishedGood == true)
                 .OrderBy(s => s.PRODUCT.PNo)
                 .ToList();

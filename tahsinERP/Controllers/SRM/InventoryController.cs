@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using OfficeOpenXml;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -78,10 +79,24 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                var stocks = await query
+                var rawStocks = await query
                     .OrderBy(s => s.Warehouse.WHName)
                     .ThenBy(s => s.PRODUCT.PNo)
                     .ToListAsync();
+
+                // Prevent duplicate display when legacy duplicate rows exist for same WHID+ProductID.
+                var stocks = rawStocks
+                    .GroupBy(s => new { s.WHID, s.ProductID })
+                    .Select(g =>
+                    {
+                        var first = g.First();
+                        first.Amount = g.Sum(x => x.Amount);
+                        return first;
+                    })
+                    .OrderBy(s => s.Warehouse?.WHName)
+                    .ThenBy(s => s.PRODUCT?.PNo)
+                    .Where(s => s.Amount > 0)
+                    .ToList();
 
                 // ViewBag uchun filters
                 ViewBag.Warehouses = new SelectList(
@@ -207,6 +222,17 @@ namespace tahsinERP.Controllers
                     "ID", "WHName"
                 );
 
+                var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                var lockedWarehouseIds = new List<int>();
+                foreach (var whId in assignedWarehouseIds)
+                {
+                    if (await HasAdjustmentThisMonthAsync(currentUserId, whId, db))
+                    {
+                        lockedWarehouseIds.Add(whId);
+                    }
+                }
+                ViewBag.LockedWarehouseIds = lockedWarehouseIds;
+
                 return View(new ViewModels.InventoryAdjustmentViewModel());
             }
         }
@@ -314,13 +340,26 @@ namespace tahsinERP.Controllers
                         ModelState.AddModelError("", "Excel fayl yuklanmadi.");
                     }
 
+                    var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                    if (await HasAdjustmentThisMonthAsync(currentUserId, model.WarehouseId, db))
+                    {
+                        ModelState.AddModelError("", "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.");
+                    }
+
                     if (!ModelState.IsValid)
                     {
                         await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
+                        var lockedWarehouseIds = new List<int>();
+                        foreach (var whId in assignedWarehouseIds)
+                        {
+                            if (await HasAdjustmentThisMonthAsync(currentUserId, whId, db))
+                            {
+                                lockedWarehouseIds.Add(whId);
+                            }
+                        }
+                        ViewBag.LockedWarehouseIds = lockedWarehouseIds;
                         return View(model);
                     }
-
-                    var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
 
                     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                     using (var package = new ExcelPackage(model.ExcelFile.InputStream))
@@ -333,6 +372,14 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
+                        var headerMap = BuildHeaderMap(worksheet);
+                        if (!headerMap.ContainsKey("productpno") || !headerMap.ContainsKey("quantity"))
+                        {
+                            ModelState.AddModelError("", "Excel format xato. Majburiy ustunlar: ProductPNo va Quantity.");
+                            await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
+                            return View(model);
+                        }
+
                         var productMap = db.PRODUCTS
                             .AsNoTracking()
                             .AsEnumerable()
@@ -341,55 +388,187 @@ namespace tahsinERP.Controllers
                                 p => p.PNo.Trim().ToUpperInvariant(),
                                 p => new { p.ID, p.PNo, p.Name, p.UnitID });
 
+                        var qtyCol = headerMap["quantity"];
+                        var pnoCol = headerMap["productpno"];
+                        var parsedRows = new List<InventoryAdjustmentRow>();
+                        var errorDetails = new List<string>();
+                        var seenProducts = new HashSet<int>();
+
+                        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                        {
+                            var pno = GetCellString(worksheet, row, pnoCol);
+                            var qtyValue = GetCellString(worksheet, row, qtyCol);
+
+                            if (string.IsNullOrWhiteSpace(pno))
+                            {
+                                if (string.IsNullOrWhiteSpace(qtyValue))
+                                {
+                                    continue;
+                                }
+                                errorDetails.Add($"{row}-qator: ProductPNo bo'sh.");
+                                continue;
+                            }
+
+                            var key = pno.Trim().ToUpperInvariant();
+                            if (!productMap.TryGetValue(key, out var product))
+                            {
+                                errorDetails.Add($"{row}-qator: Mahsulot topilmadi ({pno}).");
+                                continue;
+                            }
+
+                            if (!TryParseQuantity(qtyValue, out var qty))
+                            {
+                                errorDetails.Add($"{row}-qator: Quantity noto'g'ri ({qtyValue}).");
+                                continue;
+                            }
+
+                            if (qty < 0)
+                            {
+                                errorDetails.Add($"{row}-qator: Quantity manfiy bo'lishi mumkin emas ({qtyValue}).");
+                                continue;
+                            }
+
+                            if (!seenProducts.Add(product.ID))
+                            {
+                                errorDetails.Add($"{row}-qator: Bir xil ProductPNo bir martadan ko'p kiritilgan ({product.PNo}).");
+                                continue;
+                            }
+
+                            parsedRows.Add(new InventoryAdjustmentRow
+                            {
+                                ProductPNo = product.PNo,
+                                Quantity = qty,
+                                RowNumber = row
+                            });
+                        }
+
+                        if (errorDetails.Any())
+                        {
+                            ViewBag.ErrorDetails = errorDetails;
+                            ModelState.AddModelError("", "Excel faylda xatolar bor. Tuzatib qayta yuklang.");
+                            await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
+                            return View(model);
+                        }
+
                         using (var transaction = db.Database.BeginTransaction())
                         {
                             try
                             {
-                                for (int row = 1; row <= worksheet.Dimension.End.Row; row++)
+                                var currencyId = await GetDefaultCurrencyIdAsync(db);
+                                var now = DateTime.Now;
+                                // Kirim/chiqim hujjat nomi: INV_{oy}_{kun}_IN|OUT_{ombor}_{vaqt}_{tartib} — bir sessiyada noyob
+                                var invMonthDay = $"{now.Month:00}_{now.Day:00}";
+                                var invTimeToken = now.ToString("HHmmssfff");
+                                int incomeSeq = 1;
+                                int expenseSeq = 1;
+
+                                // Merge existing duplicates first, so every product has only one stock row in this warehouse.
+                                await NormalizeWarehouseStocksAsync(db, model.WarehouseId, parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
+
+                                foreach (var parsedRow in parsedRows)
                                 {
-                                    var pno = GetCellString(worksheet, row, 1);
-                                    var qtyValue = GetCellString(worksheet, row, 2);
-
-                                    if (string.IsNullOrWhiteSpace(pno))
-                                    {
-                                        continue;
-                                    }
-
-                                    if (string.Equals(pno.Trim(), "ProductPNo", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        continue;
-                                    }
-
-                                    var key = pno.Trim().ToUpperInvariant();
-                                    if (!productMap.TryGetValue(key, out var product))
-                                    {
-                                        continue;
-                                    }
-
-                                    var qty = ParseLooseQuantity(qtyValue);
+                                    var key = parsedRow.ProductPNo.Trim().ToUpperInvariant();
+                                    var product = productMap[key];
+                                    var qty = parsedRow.Quantity;
 
                                     var stock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == model.WarehouseId && s.ProductID == product.ID);
 
+                                    var oldQty = stock?.Amount ?? 0;
+                                    var diff = qty - oldQty;
+
+                                    if (Math.Abs(diff) < 0.000001)
+                                    {
+                                        continue;
+                                    }
+
                                     if (stock == null)
                                     {
-                                        stock = new PRODUCT_STOCKS
+                                        if (qty > 0)
                                         {
-                                            WHID = model.WarehouseId,
-                                            ProductID = product.ID,
-                                            Amount = qty,
-                                            UnitID = product.UnitID
-                                        };
-                                        db.PRODUCT_STOCKS.Add(stock);
+                                            stock = WarehouseFlowService.GetOrCreateStockRow(
+                                                db,
+                                                model.WarehouseId,
+                                                product.ID,
+                                                product.UnitID > 0 ? product.UnitID : 1);
+                                            stock.Amount = qty;
+                                        }
                                     }
                                     else
                                     {
                                         stock.Amount = qty;
                                     }
+
+                                    if (diff > 0)
+                                    {
+                                        var income = new INCOME
+                                        {
+                                            DocNo = $"INV_{invMonthDay}_IN_{model.WarehouseId}_{invTimeToken}_{incomeSeq++}",
+                                            ReceivingWHID = model.WarehouseId,
+                                            SenderWHID = null,
+                                            IssueDateTime = now,
+                                            CurrencyID = currencyId,
+                                            Amount = diff,
+                                            TotalPrice = 0,
+                                            Description = $"Inventarizatsiya qo'shimcha kirim: {product.PNo}",
+                                            RecieveStatus = true,
+                                            IsDeleted = false
+                                        };
+                                        db.INCOMES.Add(income);
+                                        await db.SaveChangesAsync();
+
+                                        db.INCOME_PRODUCTS.Add(new INCOME_PRODUCTS
+                                        {
+                                            IncomeID = income.ID,
+                                            ProductID = product.ID,
+                                            Amount = diff,
+                                            PiecePrice = 0,
+                                            TotalPrice = 0,
+                                            UnitID = product.UnitID > 0 ? product.UnitID : 1,
+                                            Comment = "Inventarizatsiya"
+                                        });
+                                    }
+                                    else
+                                    {
+                                        var outQty = Math.Abs(diff);
+                                        var expense = new EXPENS
+                                        {
+                                            DocNo = $"INV_{invMonthDay}_OUT_{model.WarehouseId}_{invTimeToken}_{expenseSeq++}",
+                                            SenderWHID = model.WarehouseId,
+                                            ReceiverWhID = null,
+                                            IssueDateTime = now,
+                                            CurrencyID = currencyId,
+                                            Amount = outQty,
+                                            TotalPrice = 0,
+                                            Description = $"Inventarizatsiya kamaytirish chiqimi: {product.PNo}",
+                                            SendStatus = true,
+                                            IsDeleted = false
+                                        };
+                                        db.EXPENSES.Add(expense);
+                                        await db.SaveChangesAsync();
+
+                                        db.EXPENSE_PRODUCTS.Add(new EXPENSE_PRODUCTS
+                                        {
+                                            ExpenseID = expense.ID,
+                                            ProductID = product.ID,
+                                            Amount = outQty,
+                                            PiecePrice = 0,
+                                            TotalPrice = 0,
+                                            UnitID = product.UnitID > 0 ? product.UnitID : 1,
+                                            Comment = "Inventarizatsiya"
+                                        });
+                                    }
                                 }
 
                                 await db.SaveChangesAsync();
                                 transaction.Commit();
+
+                                tahsinERP.Controllers.LogHelper.LogToDatabase(
+                                    User.Identity.Name,
+                                    "InventoryAdjustment",
+                                    $"Apply-WH-{model.WarehouseId}",
+                                    null,
+                                    HttpContext);
 
                                 TempData["Success"] = "Inventarizatsiya muvaffaqiyatli yakunlandi.";
                                 return RedirectToAction("Index");
@@ -419,6 +598,16 @@ namespace tahsinERP.Controllers
                 {
                     var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                     await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
+                    var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                    var lockedWarehouseIds = new List<int>();
+                    foreach (var whId in assignedWarehouseIds)
+                    {
+                        if (await HasAdjustmentThisMonthAsync(currentUserId, whId, db))
+                        {
+                            lockedWarehouseIds.Add(whId);
+                        }
+                    }
+                    ViewBag.LockedWarehouseIds = lockedWarehouseIds;
                 }
                 return View(model);
             }
@@ -572,10 +761,23 @@ namespace tahsinERP.Controllers
                                            s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial == true));
             }
 
-            var stocks = await query
+            var rawStocks = await query
                 .OrderBy(s => s.Warehouse.WHName)
                 .ThenBy(s => s.PRODUCT.PNo)
                 .ToListAsync();
+
+            var stocks = rawStocks
+                .GroupBy(s => new { s.WHID, s.ProductID })
+                .Select(g =>
+                {
+                    var first = g.First();
+                    first.Amount = g.Sum(x => x.Amount);
+                    return first;
+                })
+                .Where(s => s.Amount > 0)
+                .OrderBy(s => s.Warehouse?.WHName)
+                .ThenBy(s => s.PRODUCT?.PNo)
+                .ToList();
 
             return stocks.Select(s => new InventoryExportRow
             {
@@ -757,21 +959,31 @@ namespace tahsinERP.Controllers
             public string UnitName { get; set; }
         }
 
-        private double ParseLooseQuantity(string input)
+        private bool TryParseQuantity(string input, out double value)
         {
+            value = 0;
             if (string.IsNullOrWhiteSpace(input))
             {
-                return 0;
+                return false;
             }
 
             var cleaned = input.Trim().Replace(" ", "").Replace(",", ".");
-            var filtered = new string(cleaned.Where(c => char.IsDigit(c) || c == '.').ToArray());
-            if (double.TryParse(filtered, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var value))
+            var filtered = new string(cleaned.Where(c => char.IsDigit(c) || c == '.' || c == '-').ToArray());
+            if (double.TryParse(filtered, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
             {
-                return value;
+                value = parsed;
+                return true;
             }
 
-            return 0;
+            return false;
+        }
+
+        private async Task<int> GetDefaultCurrencyIdAsync(DBTHSNEntities db)
+        {
+            var uzs = await db.CURRENCIES.FirstOrDefaultAsync(c => c.Shortname != null && c.Shortname.Trim().ToUpper() == "UZS");
+            if (uzs != null) return uzs.ID;
+            var first = await db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
+            return first?.ID ?? 1;
         }
 
         private class InventoryExportRow
@@ -782,6 +994,41 @@ namespace tahsinERP.Controllers
             public string CategoryName { get; set; }
             public double Amount { get; set; }
             public string UnitName { get; set; }
+        }
+
+        /// <summary>
+        /// Ensures single stock row per (warehouse, product) by summing duplicates and removing extras.
+        /// </summary>
+        private async Task NormalizeWarehouseStocksAsync(DBTHSNEntities db, int warehouseId, IEnumerable<int> productIds)
+        {
+            var ids = (productIds ?? Enumerable.Empty<int>()).Distinct().ToList();
+            if (!ids.Any()) return;
+
+            var stocks = await db.PRODUCT_STOCKS
+                .Where(s => s.WHID == warehouseId && ids.Contains(s.ProductID))
+                .OrderBy(s => s.ID)
+                .ToListAsync();
+
+            var duplicateGroups = stocks
+                .GroupBy(s => s.ProductID)
+                .Where(g => g.Count() > 1)
+                .ToList();
+
+            foreach (var group in duplicateGroups)
+            {
+                var keeper = group.First();
+                keeper.Amount = group.Sum(x => x.Amount);
+
+                foreach (var duplicate in group.Skip(1))
+                {
+                    db.PRODUCT_STOCKS.Remove(duplicate);
+                }
+            }
+
+            if (duplicateGroups.Any())
+            {
+                await db.SaveChangesAsync();
+            }
         }
     }
 }

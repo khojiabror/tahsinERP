@@ -1,10 +1,13 @@
 @model tahsinERP.ViewModels.HR.HrPayrollHeaderViewModel
+@using System.Collections.Generic
+@using tahsinERP.Models
 @{
     ViewBag.Title = "Ish haqi hisobini tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var currencyItems = ViewBag.CurrencyItems as List<CURRENCy> ?? new List<CURRENCy>();
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
+@if (RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
 {
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -17,6 +20,7 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ish haqi hisobi</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = Model.ID })">Batafsil</a></li>
                                     <li class="breadcrumb-item active">Tahrirlash</li>
                                 </ol>
                             </div>
@@ -45,6 +49,9 @@
                 <div class="row mb-2">
                     <div class="col-12">
                         <div class="btn-group" role="group">
+                            <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-sm btn-outline-secondary">
+                                <i class="bx bx-show"></i> Batafsil
+                            </a>
                             <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-sm btn-success">
                                 <i class="bx bx-export"></i> Excelga eksport
                             </a>
@@ -119,34 +126,50 @@
                                                 <td>@line.HoursWorked.ToString("F2")</td>
                                                 <td>@line.GrossSalary.ToString("N2")</td>
                                                 <td>
-                                                    <input type="number" 
-                                                           class="form-control form-control-sm bonuses-input" 
+                                                    <input type="number"
+                                                           class="form-control form-control-sm bonuses-input"
                                                            data-line-id="@line.ID"
-                                                           value="@line.Bonuses.ToString("F2")" 
-                                                           step="0.01" 
+                                                           value="@line.Bonuses.ToString("F2")"
+                                                           step="0.01"
                                                            min="0"
                                                            style="width: 100px;"
                                                            @(Model.Status != "Draft" ? "readonly" : "") />
                                                 </td>
                                                 <td>
-                                                    <input type="number" 
-                                                           class="form-control form-control-sm penalties-input" 
+                                                    <input type="number"
+                                                           class="form-control form-control-sm penalties-input"
                                                            data-line-id="@line.ID"
-                                                           value="@line.Penalties.ToString("F2")" 
-                                                           step="0.01" 
+                                                           value="@line.Penalties.ToString("F2")"
+                                                           step="0.01"
                                                            min="0"
                                                            style="width: 100px;"
                                                            @(Model.Status != "Draft" ? "readonly" : "") />
                                                 </td>
                                                 <td class="net-salary">@line.NetSalary.ToString("N2")</td>
-                                                <td>@line.CurrencyCode</td>
+                                                <td>
+                                                    @if (Model.Status == "Draft" && currencyItems.Count > 0)
+                                                    {
+                                                        <select class="form-control form-control-sm currency-select"
+                                                                data-line-id="@line.ID"
+                                                                style="min-width: 90px;">
+                                                            @foreach (var c in currencyItems)
+                                                            {
+                                                                <option value="@c.ID" @(line.CurrencyID == c.ID ? "selected" : "")>@c.Shortname</option>
+                                                            }
+                                                        </select>
+                                                    }
+                                                    else
+                                                    {
+                                                        @(line.CurrencyCode ?? "-")
+                                                    }
+                                                </td>
                                             </tr>
                                             rowNum++;
                                         }
                                     </tbody>
                                     <tfoot>
                                         <tr class="font-weight-bold">
-                                            <td colspan="6" class="text-right">ИТОГО:</td>
+                                            <td colspan="6" class="text-right">JAMI:</td>
                                             <td>@Model.TotalGrossSalary.ToString("N2")</td>
                                             <td>@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
                                             <td>@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
@@ -163,33 +186,64 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            // Update bonuses/penalties
-            $('.bonuses-input, .penalties-input').on('change blur', function() {
-                var $input = $(this);
-                var lineId = $input.data('line-id');
-                var bonuses = parseFloat($('.bonuses-input[data-line-id="' + lineId + '"]').val()) || 0;
-                var penalties = parseFloat($('.penalties-input[data-line-id="' + lineId + '"]').val()) || 0;
-
-                $.post('@Url.Action("UpdateLine")', {
-                    lineId: lineId,
-                    bonuses: bonuses,
-                    penalties: penalties
-                }, function(result) {
-                    if (result.success) {
-                        $('tr[data-line-id="' + lineId + '"] .net-salary').text(result.netSalary.toFixed(2));
-                        location.reload();
-                    } else {
-                        alert('Xatolik: ' + result.message);
+    @section Scripts {
+        <script>
+            (function ($) {
+                if (!$) return;
+                $(document).ready(function () {
+                    if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#payrollGrid')) {
+                        $('#payrollGrid').DataTable({
+                            language: { url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json" },
+                            pageLength: 25,
+                            order: [[1, "asc"]],
+                            scrollX: true,
+                            columnDefs: [
+                                { orderable: false, targets: [7, 8, 10] }
+                            ]
+                        });
                     }
+
+                    $('.bonuses-input, .penalties-input').on('change blur', function () {
+                        var $input = $(this);
+                        var lineId = $input.data('line-id');
+                        var bonuses = parseFloat($('.bonuses-input[data-line-id="' + lineId + '"]').val()) || 0;
+                        var penalties = parseFloat($('.penalties-input[data-line-id="' + lineId + '"]').val()) || 0;
+
+                        $.post('@Url.Action("UpdateLine")', {
+                            lineId: lineId,
+                            bonuses: bonuses,
+                            penalties: penalties
+                        }, function (result) {
+                            if (result.success) {
+                                $('tr[data-line-id="' + lineId + '"] .net-salary').text(parseFloat(result.netSalary).toFixed(2));
+                                location.reload();
+                            } else {
+                                alert('Xatolik: ' + result.message);
+                            }
+                        });
+                    });
+
+                    $('.currency-select').on('change', function () {
+                        var $sel = $(this);
+                        var lineId = $sel.data('line-id');
+                        var currencyId = parseInt($sel.val(), 10);
+                        if (!lineId || !currencyId) return;
+                        $.post('@Url.Action("UpdateLine")', {
+                            lineId: lineId,
+                            currencyId: currencyId
+                        }, function (result) {
+                            if (!result.success) {
+                                alert('Xatolik: ' + result.message);
+                                location.reload();
+                            }
+                        });
+                    });
                 });
-            });
-        });
-    </script>
+            })(window.jQuery || window.$j);
+        </script>
+    }
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
-

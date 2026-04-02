@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using System.Data.Entity;
 
 namespace tahsinERP.Controllers
@@ -384,6 +385,7 @@ namespace tahsinERP.Controllers
                 return HttpNotFound();
 
             product.IsDeleted = true;
+            await SoftDeleteReferenceService.AfterProductSoftDeletedAsync(db, id);
             await db.SaveChangesAsync();
 
             LogHelper.LogToDatabase(User.Identity.Name, "ProductController",

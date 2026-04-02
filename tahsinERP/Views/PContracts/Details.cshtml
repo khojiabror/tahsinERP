@@ -43,6 +43,12 @@
                                             <i class="bx bx-edit-alt"></i> Tahrirlash
                                         </a>
                                     }
+                                    @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Details"))
+                                    {
+                                        <a href="@Url.Action("Supplier", "Reconciliation", new { id = Model.SupplierID, contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-transfer-alt"></i> Akt-sverki
+                                        </a>
+                                    }
                                     <a href="@Url.Action("Index", "PContracts")" class="btn btn-sm btn-secondary">
                                         <i class="bx bx-arrow-back"></i> Orqaga
                                     </a>
@@ -231,7 +237,7 @@
                                                                                         <a href="@Url.Action("Details", "PInvoices", new { id = invoice.ID })">@invoice.InvoiceNo</a>
                                                                                     </td>
                                                                                     <td>@invoice.InvoiceDate.ToString("dd.MM.yyyy")</td>
-                                                                                    <td>@invoice.Amount.ToString("N2")</td>
+                                                                                    <td>@((invoice.Amount ?? 0).ToString("N2"))</td>
                                                                                     <td>@(invoice.CURRENCy?.Shortname ?? "")</td>
                                                                                 </tr>
                                                                             }

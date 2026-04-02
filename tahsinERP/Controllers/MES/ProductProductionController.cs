@@ -573,6 +573,7 @@ namespace tahsinERP.Controllers.MES
 
                 production.IsDeleted = true;
                 db.Entry(production).State = System.Data.Entity.EntityState.Modified;
+                await SoftDeleteReferenceService.AfterProductProductionSoftDeletedAsync(db, id);
                 db.SaveChanges();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish o'chirildi: ID {id}");

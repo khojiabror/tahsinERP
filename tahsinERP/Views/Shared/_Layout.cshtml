@@ -1180,6 +1180,10 @@
                                         <li><a href="~/TransportLoadSimulation"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Yuklash simulyatsiyasi</span></a></li>
                                     </ul>
                                 </li>
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Waybill", "Index"))
+                                {
+                                    <li><a href="~/LogisticsDashboard/MonthlyReport"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Oylik hisobot</span></a></li>
+                                }
                             </ul>
                         </li>
                     }

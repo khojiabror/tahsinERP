@@ -37,11 +37,13 @@ namespace tahsinERP.ViewModels
         public string ProductName { get; set; }
         public string UnitName { get; set; }
         public double OpeningBalance { get; set; }
+        public double AdjustmentQty { get; set; }
         public double IncomeQty { get; set; }
         public double ExpenseQty { get; set; }
         public double ClosingBalance { get; set; }
         /// <summary> Summa bo'yicha: oldingi qoldiq (jami narx) </summary>
         public decimal OpeningBalanceSum { get; set; }
+        public decimal AdjustmentSum { get; set; }
         public decimal IncomeSum { get; set; }
         public decimal ExpenseSum { get; set; }
         public decimal ClosingBalanceSum { get; set; }
@@ -53,10 +55,12 @@ namespace tahsinERP.ViewModels
     public class WarehouseMonthlyReportTotalsViewModel
     {
         public double TotalOpening { get; set; }
+        public double TotalAdjustment { get; set; }
         public double TotalIncome { get; set; }
         public double TotalExpense { get; set; }
         public double TotalClosing { get; set; }
         public decimal TotalOpeningSum { get; set; }
+        public decimal TotalAdjustmentSum { get; set; }
         public decimal TotalIncomeSum { get; set; }
         public decimal TotalExpenseSum { get; set; }
         public decimal TotalClosingSum { get; set; }

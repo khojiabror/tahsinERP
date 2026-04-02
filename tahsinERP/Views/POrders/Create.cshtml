@@ -41,7 +41,7 @@
                                         @using (Html.BeginForm("Create", "POrders", FormMethod.Post, new { @class = "form", @id = "orderForm" }))
                                         {
                                             @Html.AntiForgeryToken()
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-2" })
 
                                             {
                                                 var purchaseType = ViewBag.PurchaseType != null ? (int)ViewBag.PurchaseType : 0;
@@ -100,7 +100,7 @@
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>
                                                     @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2" })
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
@@ -284,7 +284,8 @@ else
                                                     item.UnitID || null,
                                                     item.EstimatedPrice || 0,
                                                     null, // MOQ
-                                                    '' // Calculation explanation
+                                                    '',
+                                                    ''
                                                 );
                                             } catch (err) {
                                                 console.error('Error adding product row:', err, item);
@@ -340,7 +341,8 @@ else
                                                     item.UnitID || null,
                                                     item.EstimatedPrice || 0,
                                                     item.MOQ || null,
-                                                    item.CalculationExplanation || ''
+                                                    item.CalculationExplanation || '',
+                                                    item.CalculationSummary || ''
                                                 );
                                             } catch (err) {
                                                 console.error('Error adding product row:', err, item);
@@ -381,7 +383,7 @@ else
 
                     // Add new row manually
                     $(document).on('click', '#addRowBtn', function () {
-                        addProductRow(null, '', '', 0, null, null, null, '');
+                        addProductRow(null, '', '', 0, null, null, null, '', '');
                     });
 
                     // Helper function to escape HTML
@@ -403,7 +405,7 @@ else
                             .replace(/>/g, '&gt;');
                     }
 
-                    function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation) {
+                    function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation, calculationSummary) {
                         // Ensure all values are safe
                         var safeProductPNo = productPNo || '';
                         var safeProductName = productName || '';
@@ -411,7 +413,7 @@ else
                         var safePrice = parseFloat(price) || 0;
                         var safeMoq = parseFloat(moq) || 0;
                         var safeCalcExplanation = calculationExplanation || '';
-                        var safeCalcDisplay = safeCalcExplanation ? (safeCalcExplanation.length > 50 ? safeCalcExplanation.substring(0, 50) + '...' : safeCalcExplanation) : '-';
+                        var safeCalcSummary = calculationSummary || '';
 
                         // Create row using jQuery for safer DOM manipulation
                         var $row = $('<tr>').attr('data-row-index', productRowIndex);
@@ -511,16 +513,17 @@ else
                             .attr('step', '0.01')
                             .attr('min', '0'));
                         
-                        // Calculation explanation column
-                        var $calcCell = $('<td>');
-                        $calcCell.append($('<small>')
-                            .addClass('text-muted calculation-explanation')
-                            .attr('title', safeCalcExplanation)
-                            .text(safeCalcDisplay));
+                        // Hisob tushuntirish (max 50 belgi, oddiy matn)
+                        var $calcCell = $('<td>').addClass('align-top small');
+                        $calcCell.append($('<span>').text(safeCalcExplanation ? safeCalcExplanation : '—'));
                         $calcCell.append($('<input>')
                             .attr('type', 'hidden')
                             .attr('name', 'OrderProducts[' + productRowIndex + '].CalculationExplanation')
                             .val(safeCalcExplanation));
+                        $calcCell.append($('<input>')
+                            .attr('type', 'hidden')
+                            .attr('name', 'OrderProducts[' + productRowIndex + '].CalculationSummary')
+                            .val(safeCalcSummary));
                         
                         // Actions column
                         var $actionCell = $('<td>');

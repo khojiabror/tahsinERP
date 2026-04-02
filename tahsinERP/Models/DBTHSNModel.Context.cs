@@ -39,6 +39,7 @@ namespace tahsinERP.Models
         public virtual DbSet<COMPANY_LICENSES> COMPANY_LICENSES { get; set; }
         public virtual DbSet<COOKIES_CONFIRMATION> COOKIES_CONFIRMATION { get; set; }
         public virtual DbSet<CURRENCy> CURRENCIES { get; set; }
+        public virtual DbSet<CUSTOMER_BASE> CUSTOMER_BASE { get; set; }
         public virtual DbSet<CUSTOMER> CUSTOMERS { get; set; }
         public virtual DbSet<DAMAGED_PRODUCTS> DAMAGED_PRODUCTS { get; set; }
         public virtual DbSet<DEFECT_TYPES> DEFECT_TYPES { get; set; }
@@ -65,6 +66,7 @@ namespace tahsinERP.Models
         public virtual DbSet<FIN_PL_PLANS> FIN_PL_PLANS { get; set; }
         public virtual DbSet<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
         public virtual DbSet<FORWARDER> FORWARDERS { get; set; }
+        public virtual DbSet<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
         public virtual DbSet<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }
         public virtual DbSet<HR_JOB_DESCRIPTIONS> HR_JOB_DESCRIPTIONS { get; set; }
         public virtual DbSet<HR_ORG_UNITS> HR_ORG_UNITS { get; set; }
@@ -149,8 +151,6 @@ namespace tahsinERP.Models
         public virtual DbSet<V_TANNARX_ACTUAL_LABOR_COSTS> V_TANNARX_ACTUAL_LABOR_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_COSTS> V_TANNARX_ACTUAL_MATERIAL_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_TRANSPORT> V_TANNARX_ACTUAL_MATERIAL_TRANSPORT { get; set; }
-        public virtual DbSet<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
-        public virtual DbSet<CUSTOMER_BASE> CUSTOMER_BASE { get; set; }
     
         public virtual int sp_Fin_AddTransaction(Nullable<System.DateTime> txnDate, Nullable<int> accountID, Nullable<int> categoryID, Nullable<byte> direction, Nullable<decimal> amount, Nullable<int> currencyID, Nullable<decimal> qty, Nullable<decimal> pricePerUnit, Nullable<byte> counterpartyType, Nullable<int> counterpartyID, string counterpartyName, string purpose, string sourceDocType, Nullable<int> sourceDocID, string contractNo, string comment, Nullable<int> createdByUserID, ObjectParameter newID)
         {

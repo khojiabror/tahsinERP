@@ -28,6 +28,20 @@
             </div>
 
             <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
@@ -67,6 +81,14 @@
                             <hr />
 
                             <h5 class="mb-2">Xodim tarixi</h5>
+                            @if (changePermit)
+                            {
+                                <div class="mb-1">
+                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTenureModal">
+                                        <i class="bx bx-plus"></i> Staj qo'shish
+                                    </button>
+                                </div>
+                            }
                             @if (ViewBag.History != null)
                             {
                                 var history = ViewBag.History as List<tahsinERP.ViewModels.HR.HrEmployeeHistoryViewModel>;
@@ -123,6 +145,52 @@
             </div>
         </div>
     </div>
+
+    if (changePermit)
+    {
+        <div class="modal fade" id="addTenureModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    @using (Html.BeginForm("AddTenure", "HrEmployees", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="employeeId" value="@Model.ID" />
+                        <div class="modal-header">
+                            <h5 class="modal-title">Ko'rsatilmayotgan staj davrini qo'shish</h5>
+                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Bo'lim <span class="text-danger">*</span></label>
+                                @Html.DropDownList("fromOrgUnitId", ViewBag.HistoryOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control", required = "required" })
+                            </div>
+                            <div class="form-group">
+                                <label>Lavozim <span class="text-danger">*</span></label>
+                                @Html.DropDownList("fromPositionId", ViewBag.HistoryPositionID as SelectList, "Lavozimni tanlang", new { @class = "form-control", required = "required" })
+                            </div>
+                            <div class="form-group">
+                                <label>Boshlanish sanasi <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="effectiveDateFrom" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Tugash sanasi (ixtiyoriy)</label>
+                                <input type="date" class="form-control" name="effectiveDateTo" />
+                                <small class="text-muted">Bo'sh qoldirilsa "shu kungacha" deb olinadi.</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Sabab</label>
+                                <textarea class="form-control" name="reason" rows="2" placeholder="Masalan: arxivdagi davrni tiklash"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
+                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <script>
         $(document).ready(function() {

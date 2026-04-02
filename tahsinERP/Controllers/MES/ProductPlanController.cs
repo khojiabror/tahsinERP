@@ -80,7 +80,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var plan = db.PRODUCTPLANS
-                    .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
+                    .Where(p => p.ID == id && p.IsDeleted == false)
                     .Include(p => p.PRODUCT)
                     .FirstOrDefault();
 
@@ -99,7 +99,8 @@ namespace tahsinERP.Controllers.MES
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
                 // Yuklash production ma'lumot birinchi, so'ng filtrlash in memory
                 var allProductions = db.PRODUCT_PRODUCTION
-                    .Where(p => p.ProductID == plan.ProductID)
+                    .Where(p => p.ProductID == plan.ProductID
+                        && p.IsDeleted == false)
                     .ToList();
 
                 var actualProductions = allProductions
@@ -456,6 +457,7 @@ namespace tahsinERP.Controllers.MES
 
                 plan.IsDeleted = true;
                 db.Entry(plan).State = EntityState.Modified;
+                SoftDeleteReferenceService.AfterProductPlanSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
                 db.SaveChanges();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan o'chirildi: ID {id}");
@@ -524,7 +526,8 @@ namespace tahsinERP.Controllers.MES
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
                 // Yuklash production ma'lumot birinchi, so'ng filtrlash in memory
                 var allProductions = db.PRODUCT_PRODUCTION
-                    .Where(p => p.ProductID == plan.ProductID)
+                    .Where(p => p.ProductID == plan.ProductID
+                        && p.IsDeleted == false)
                     .ToList();
 
                 var actualProductions = allProductions

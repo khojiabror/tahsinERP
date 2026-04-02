@@ -1,8 +1,10 @@
 using System.Data.Entity.Infrastructure;
 using System.Net;
 using System;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using tahsinERP.ViewModels;
@@ -324,7 +326,7 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int? ID, FormCollection gfs)
+        public async Task<ActionResult> Delete(int? ID, FormCollection gfs)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -343,7 +345,8 @@ namespace tahsinERP.Controllers
 
                         try
                         {
-                            db.SaveChanges();
+                            await SoftDeleteReferenceService.AfterTransportTypeSoftDeletedAsync(db, transportTypeToDelete.ID);
+                            await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;
                             LogHelper.LogToDatabase(userEmail, "FTransportTypeController", "Delete", $"{transportTypeToDelete.TransportType} - transport turi o'chirildi.");

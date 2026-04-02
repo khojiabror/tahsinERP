@@ -146,14 +146,6 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            // Olish employee history - simple query
-            var allHistory = db.HR_EMPLOYEE_HISTORY
-                .Include(h => h.HR_ORG_UNITS)
-                .Include(h => h.HR_POSITIONS)
-                .Where(h => h.EmployeeID == id.Value)
-                .OrderBy(h => h.EffectiveDateFrom)
-                .ToList();
-
             var viewModel = new HrEmployeeViewModel
             {
                 ID = employee.ID,
@@ -171,75 +163,111 @@ namespace tahsinERP.Controllers.HR
                 IsActive = employee.IsActive
             };
 
-            // Pass history ga view bilan EffectiveDateFrom va EffectiveDateTo dan database
+            // History ni faqat history jadvalidan chiqaramiz.
             var historyList = new List<HrEmployeeHistoryViewModel>();
-            
-            // Use Entity Framework bilan Include ga ensure navigation properties are loaded
             var historyRecords = await db.HR_EMPLOYEE_HISTORY
                 .Include(h => h.HR_ORG_UNITS)
                 .Include(h => h.HR_POSITIONS)
                 .Where(h => h.EmployeeID == id.Value)
+                .OrderBy(h => h.EffectiveDateFrom)
                 .ToListAsync();
 
-            foreach (var h in historyRecords)
+            if (historyRecords.Any())
             {
-                DateTime effectiveDateFrom = h.EffectiveDateFrom;
-                DateTime? effectiveDateTo = h.EffectiveDateTo;
-                
-                // agar EffectiveDateTo is null, try ga get dan next record yoki employee DismissalDate
-                if (!effectiveDateTo.HasValue)
+                foreach (var h in historyRecords)
                 {
-                    var nextRecord = historyRecords
-                        .Where(h2 => h2.EffectiveDateFrom > effectiveDateFrom)
-                        .OrderBy(h2 => h2.EffectiveDateFrom)
-                        .FirstOrDefault();
-                    
-                    if (nextRecord != null)
+                    historyList.Add(new HrEmployeeHistoryViewModel
                     {
-                        effectiveDateTo = nextRecord.EffectiveDateFrom;
-                    }
-                    else if (employee.DismissalDate.HasValue)
-                    {
-                        effectiveDateTo = employee.DismissalDate;
-                    }
+                        FromOrgUnitName = h.HR_ORG_UNITS?.Name ?? "-",
+                        FromPositionName = h.HR_POSITIONS?.Name ?? "-",
+                        EffectiveDate = h.EffectiveDateFrom,
+                        EffectiveDateTo = h.EffectiveDateTo,
+                        Reason = h.Reason ?? "-",
+                        IsCurrentRow = !h.EffectiveDateTo.HasValue
+                    });
                 }
-
-                historyList.Add(new HrEmployeeHistoryViewModel
-                {
-                    FromOrgUnitName = h.HR_ORG_UNITS?.Name ?? "-",
-                    FromPositionName = h.HR_POSITIONS?.Name ?? "-",
-                    EffectiveDate = effectiveDateFrom,
-                    EffectiveDateTo = effectiveDateTo,
-                    Reason = h.Reason ?? "-",
-                    IsCurrentRow = false
-                });
             }
-
-            // fromDate va toDate bo'yicha ascending tartibda saralash (toDate null bo'lsa oxirida)
-            historyList = historyList
-                .OrderBy(x => x.EffectiveDate)
-                .ThenBy(x => x.EffectiveDateTo ?? DateTime.MaxValue)
-                .ToList();
-
-            // Hozirgi lavozimni tarixga qo'shish (oxirgi qator, toDate "shu kungacha") — faqat ishdan ketmagan xodim uchun
-            if (employee.DismissalDate == null && employee.EmploymentDate.HasValue &&
-                (employee.OrgUnitID.HasValue || employee.PositionID.HasValue))
+            else if (employee.EmploymentDate.HasValue && (employee.OrgUnitID.HasValue || employee.PositionID.HasValue))
             {
                 historyList.Add(new HrEmployeeHistoryViewModel
                 {
                     FromOrgUnitName = employee.HR_ORG_UNITS?.Name ?? "-",
                     FromPositionName = employee.HR_POSITIONS?.Name ?? "-",
-                    EffectiveDate = employee.EmploymentDate,
-                    EffectiveDateTo = null,
+                    EffectiveDate = employee.EmploymentDate.Value,
+                    EffectiveDateTo = employee.DismissalDate,
                     Reason = "-",
-                    IsCurrentRow = true
+                    IsCurrentRow = !employee.DismissalDate.HasValue
                 });
             }
             
             ViewBag.History = historyList;
+            ViewBag.HistoryOrgUnitID = new SelectList(
+                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
+                "ID", "Name", employee.OrgUnitID);
+            ViewBag.HistoryPositionID = new SelectList(
+                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
+                "ID", "Name", employee.PositionID);
 
             logger.Log("HrEmployees", "Details", $"Xodim: {viewModel.FullName} ({viewModel.TabNo ?? "-"})");
             return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AddTenure(int employeeId, int fromOrgUnitId, int fromPositionId, DateTime effectiveDateFrom, DateTime? effectiveDateTo, string reason)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
+            if (employee == null)
+            {
+                TempData["Error"] = "Xodim topilmadi";
+                return RedirectToAction("Index");
+            }
+
+            if (effectiveDateTo.HasValue && effectiveDateTo.Value.Date < effectiveDateFrom.Date)
+            {
+                TempData["Error"] = "Tugash sanasi boshlanish sanasidan oldin bo'lmasligi kerak";
+                return RedirectToAction("Details", new { id = employeeId });
+            }
+
+            // Agar yangi satr ochiq davr bo'lsa, oldingi ochiq satrni yopib qo'yamiz.
+            if (!effectiveDateTo.HasValue)
+            {
+                var openHistory = await db.HR_EMPLOYEE_HISTORY
+                    .Where(h => h.EmployeeID == employeeId && h.EffectiveDateTo == null)
+                    .OrderByDescending(h => h.EffectiveDateFrom)
+                    .FirstOrDefaultAsync();
+
+                if (openHistory != null && openHistory.EffectiveDateFrom.Date <= effectiveDateFrom.Date)
+                {
+                    openHistory.EffectiveDateTo = effectiveDateFrom.Date.AddDays(-1);
+                }
+            }
+
+            var history = new HR_EMPLOYEE_HISTORY
+            {
+                EmployeeID = employeeId,
+                ActionType = "ManualTenure",
+                FromOrgUnitID = fromOrgUnitId,
+                FromPositionID = fromPositionId,
+                ToOrgUnitID = null,
+                ToPositionID = null,
+                EffectiveDateFrom = effectiveDateFrom.Date,
+                EffectiveDateTo = effectiveDateTo?.Date,
+                Reason = string.IsNullOrWhiteSpace(reason) ? "Qo'lda staj qo'shildi" : reason.Trim(),
+                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                CreatedDT = DateTime.Now
+            };
+
+            db.HR_EMPLOYEE_HISTORY.Add(history);
+            await db.SaveChangesAsync();
+
+            TempData["Success"] = "Staj davri muvaffaqiyatli qo'shildi";
+            return RedirectToAction("Details", new { id = employeeId });
         }
 
         // Olish so'rovi: HR/Employees/yaratish
@@ -767,35 +795,60 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Transfer", new { id });
             }
 
-            // Yaratish history record uchun the OLD position (dan EmploymentDate ga effectiveDate - new position start date)
-            if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
-            {
-                try
-                {
-                    // Yaratish HR_EMPLOYEE_HISTORY object foydalanib Entity Framework
-                    var history = new HR_EMPLOYEE_HISTORY
-                    {
-                        EmployeeID = id,
-                        ActionType = "History",
-                        FromOrgUnitID = employee.OrgUnitID,
-                        FromPositionID = employee.PositionID,
-                        ToOrgUnitID = toOrgUnitId,
-                        ToPositionID = toPositionId,
-                        EffectiveDateFrom = employee.EmploymentDate.Value, // Old position start date
-                        EffectiveDateTo = effectiveDate, // Old position end date (new position start date)
-                        Reason = reason ?? "Boshqa lavozimga o'tkazilgan",
-                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                        CreatedDT = DateTime.Now
-                    };
+            // Transfer mantiqi:
+            // 1) oldingi ochiq history satrini yopish (to = effectiveDate - 1 kun),
+            // 2) yangi bo'lim/lavozim uchun yangi history satrini ochish (from = effectiveDate, to = null).
+            var openHistory = await db.HR_EMPLOYEE_HISTORY
+                .Where(h => h.EmployeeID == id && h.EffectiveDateTo == null)
+                .OrderByDescending(h => h.EffectiveDateFrom)
+                .FirstOrDefaultAsync();
 
-                    db.HR_EMPLOYEE_HISTORY.Add(history);
-                }
-                catch (Exception ex)
+            if (openHistory != null)
+            {
+                var closeDate = effectiveDate.Date.AddDays(-1);
+                if (closeDate >= openHistory.EffectiveDateFrom.Date)
                 {
-                    // Log xatolik but continue bilan employee yangilash
-                    System.Diagnostics.Debug.WriteLine($"Error creating history record: {ex.Message}");
+                    openHistory.EffectiveDateTo = closeDate;
+                }
+                else
+                {
+                    openHistory.EffectiveDateTo = openHistory.EffectiveDateFrom;
                 }
             }
+            else if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
+            {
+                // History bo'lmagan eski ma'lumotlar uchun old periodni tiklab qo'yamiz.
+                var closeDate = effectiveDate.Date.AddDays(-1);
+                db.HR_EMPLOYEE_HISTORY.Add(new HR_EMPLOYEE_HISTORY
+                {
+                    EmployeeID = id,
+                    ActionType = "Initial Employment",
+                    FromOrgUnitID = employee.OrgUnitID,
+                    FromPositionID = employee.PositionID,
+                    ToOrgUnitID = null,
+                    ToPositionID = null,
+                    EffectiveDateFrom = employee.EmploymentDate.Value.Date,
+                    EffectiveDateTo = closeDate >= employee.EmploymentDate.Value.Date ? (DateTime?)closeDate : employee.EmploymentDate.Value.Date,
+                    Reason = "Transfer oldidan mavjud lavozim davri",
+                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                    CreatedDT = DateTime.Now
+                });
+            }
+
+            db.HR_EMPLOYEE_HISTORY.Add(new HR_EMPLOYEE_HISTORY
+            {
+                EmployeeID = id,
+                ActionType = "Transfer",
+                FromOrgUnitID = toOrgUnitId,
+                FromPositionID = toPositionId,
+                ToOrgUnitID = null,
+                ToPositionID = null,
+                EffectiveDateFrom = effectiveDate.Date,
+                EffectiveDateTo = null,
+                Reason = string.IsNullOrWhiteSpace(reason) ? "Transfer qilindi" : reason.Trim(),
+                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                CreatedDT = DateTime.Now
+            });
 
             // Yangilash employee ga new position
             employee.OrgUnitID = toOrgUnitId;

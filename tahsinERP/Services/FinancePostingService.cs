@@ -26,23 +26,36 @@ namespace tahsinERP.Services
 
             // Check if already posted
             var existing = db.FIN_TRANSACTIONS
-                .FirstOrDefault(t => t.SourceDocType == "SalesInvoice" && t.SourceDocID == invoiceID);
+                .FirstOrDefault(t => t.SourceDocType == "SalesInvoice" && t.SourceDocID == invoiceID && t.IsDeleted != true);
 
-            if (existing != null) return; // Already posted
+            // Already posted bo'lsa, mavjud yozuvni yangilaymiz (edit oqimi uchun)
 
             // Find or create account for receivables
-            var account = db.FIN_ACCOUNTS
-                .FirstOrDefault(a => a.Name.Contains("Debitorlar") && a.IsActive && 
-                    (invoice.CurrencyID.HasValue ? a.CurrencyID == invoice.CurrencyID.Value : true));
+            var currencyId = invoice.CurrencyID ?? 1;
+            var receivableCode = "RECEIVABLES_" + currencyId;
 
-            if (account == null && invoice.CurrencyID.HasValue)
+            // 1) Preferred: deterministic code-based lookup
+            var account = db.FIN_ACCOUNTS.FirstOrDefault(a => a.Code == receivableCode);
+
+            // 2) Fallback: legacy name-based lookup for old data
+            if (account == null)
             {
-                // Create default receivables account
+                account = db.FIN_ACCOUNTS
+                    .FirstOrDefault(a =>
+                        a.IsActive &&
+                        a.CurrencyID == currencyId &&
+                        !a.IsCash &&
+                        !a.IsBank &&
+                        (a.Name.Contains("Debitorlar") || a.Name.Contains("Receivable")));
+            }
+
+            if (account == null)
+            {
                 account = new FIN_ACCOUNTS
                 {
-                    Code = "RECEIVABLES_" + invoice.CurrencyID.Value,
+                    Code = receivableCode,
                     Name = "Debitorlar qarzi",
-                    CurrencyID = invoice.CurrencyID.Value,
+                    CurrencyID = currencyId,
                     IsCash = false,
                     IsBank = false,
                     IsActive = true,
@@ -52,8 +65,15 @@ namespace tahsinERP.Services
                 db.FIN_ACCOUNTS.Add(account);
                 db.SaveChanges();
             }
-            
-            if (account == null) return; // Cannot proceed without account
+            else if (!account.IsActive)
+            {
+                account.IsActive = true;
+                if (account.CurrencyID <= 0)
+                {
+                    account.CurrencyID = currencyId;
+                }
+                db.SaveChanges();
+            }
 
             // Find sales revenue category
             var category = db.FIN_CATEGORIES
@@ -72,26 +92,30 @@ namespace tahsinERP.Services
                 db.SaveChanges();
             }
 
-            // Create transaction
-            var transaction = new FIN_TRANSACTIONS
+            var transaction = existing ?? new FIN_TRANSACTIONS
             {
-                TxnDate = invoice.InvoiceDate,
-                AccountID = account.ID,
-                CategoryID = category.ID,
-                Direction = 1, // In
-                Amount = invoice.TotalAmount,
-                CurrencyID = invoice.CurrencyID ?? 1, // Default currency if null
-                CounterpartyType = 1, // Customer
-                CounterpartyID = invoice.CustomerID,
-                CounterpartyName = invoice.CUSTOMER?.Name,
-                Purpose = $"Sotuv invoysi #{invoice.InvoiceNo}",
                 SourceDocType = "SalesInvoice",
                 SourceDocID = (int)invoice.ID, // SALES_INVOICES.ID is long
                 CreatedByUserID = userId,
                 CreatedDT = DateTime.Now
             };
 
-            db.FIN_TRANSACTIONS.Add(transaction);
+            transaction.TxnDate = invoice.InvoiceDate;
+            transaction.AccountID = account.ID;
+            transaction.CategoryID = category.ID;
+            transaction.Direction = 1; // In
+            transaction.Amount = invoice.TotalAmount;
+            transaction.CurrencyID = currencyId;
+            transaction.CounterpartyType = 1; // Customer
+            transaction.CounterpartyID = invoice.CustomerID;
+            transaction.CounterpartyName = invoice.CUSTOMER?.Name;
+            transaction.Purpose = $"Sotuv invoysi #{invoice.InvoiceNo}";
+            transaction.IsDeleted = false;
+
+            if (existing == null)
+            {
+                db.FIN_TRANSACTIONS.Add(transaction);
+            }
             db.SaveChanges();
 
             LogHelper.LogToDatabase("System", "FinancePosting", "PostSalesInvoice", $"Sotuv invoysi tranzaksiyaga kiritildi: {invoiceID}");
@@ -111,9 +135,9 @@ namespace tahsinERP.Services
 
             // Check if already posted
             var existing = db.FIN_TRANSACTIONS
-                .FirstOrDefault(t => t.SourceDocType == "PurchaseInvoice" && t.SourceDocID == invoiceID);
+                .FirstOrDefault(t => t.SourceDocType == "PurchaseInvoice" && t.SourceDocID == invoiceID && t.IsDeleted != true);
 
-            if (existing != null) return;
+            // Already posted bo'lsa, mavjud yozuvni yangilaymiz (edit oqimi uchun)
 
             // Find or create account for payables
             var account = db.FIN_ACCOUNTS
@@ -156,26 +180,30 @@ namespace tahsinERP.Services
                 db.SaveChanges();
             }
 
-            // Create transaction
-            var transaction = new FIN_TRANSACTIONS
+            var transaction = existing ?? new FIN_TRANSACTIONS
             {
-                TxnDate = invoice.InvoiceDate,
-                AccountID = account.ID,
-                CategoryID = category.ID,
-                Direction = 2, // Out
-                Amount = (decimal)invoice.Amount, // P_INVOICES.Amount is double
-                CurrencyID = invoice.CurrencyID ?? 1, // Default currency if null
-                CounterpartyType = 2, // Supplier
-                CounterpartyID = invoice.SupplierID,
-                CounterpartyName = invoice.SUPPLIER?.Name,
-                Purpose = $"Xarid invoysi #{invoice.InvoiceNo}",
                 SourceDocType = "PurchaseInvoice",
                 SourceDocID = invoiceID,
                 CreatedByUserID = userId,
                 CreatedDT = DateTime.Now
             };
 
-            db.FIN_TRANSACTIONS.Add(transaction);
+            transaction.TxnDate = invoice.InvoiceDate;
+            transaction.AccountID = account.ID;
+            transaction.CategoryID = category.ID;
+            transaction.Direction = 2; // Out
+            transaction.Amount = (decimal)invoice.Amount; // P_INVOICES.Amount is double
+            transaction.CurrencyID = invoice.CurrencyID ?? 1;
+            transaction.CounterpartyType = 2; // Supplier
+            transaction.CounterpartyID = invoice.SupplierID;
+            transaction.CounterpartyName = invoice.SUPPLIER?.Name;
+            transaction.Purpose = $"Xarid invoysi #{invoice.InvoiceNo}";
+            transaction.IsDeleted = false;
+
+            if (existing == null)
+            {
+                db.FIN_TRANSACTIONS.Add(transaction);
+            }
             db.SaveChanges();
 
             LogHelper.LogToDatabase("System", "FinancePosting", "PostPurchaseInvoice", $"Xarid invoysi tranzaksiyaga kiritildi: {invoiceID}");
@@ -196,7 +224,7 @@ namespace tahsinERP.Services
 
             // Check if already posted
             var existing = db.FIN_TRANSACTIONS
-                .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == paymentID);
+                .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == paymentID && t.IsDeleted != true);
 
             if (existing != null) return;
 
@@ -288,6 +316,42 @@ namespace tahsinERP.Services
             }
 
             return category;
+        }
+
+        public static void RemovePurchaseInvoicePosting(int invoiceID, DBTHSNEntities db)
+        {
+            var txns = db.FIN_TRANSACTIONS
+                .Where(t => t.SourceDocType == "PurchaseInvoice" && t.SourceDocID == invoiceID && (t.IsDeleted == null || t.IsDeleted == false))
+                .ToList();
+
+            if (!txns.Any())
+            {
+                return;
+            }
+
+            foreach (var t in txns)
+            {
+                t.IsDeleted = true;
+            }
+            db.SaveChanges();
+        }
+
+        public static void RemoveSalesInvoicePosting(int invoiceID, DBTHSNEntities db)
+        {
+            var txns = db.FIN_TRANSACTIONS
+                .Where(t => t.SourceDocType == "SalesInvoice" && t.SourceDocID == invoiceID && (t.IsDeleted == null || t.IsDeleted == false))
+                .ToList();
+
+            if (!txns.Any())
+            {
+                return;
+            }
+
+            foreach (var t in txns)
+            {
+                t.IsDeleted = true;
+            }
+            db.SaveChanges();
         }
     }
 }

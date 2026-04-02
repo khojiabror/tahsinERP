@@ -1,0 +1,63 @@
+@model tahsinERP.ViewModels.HR.KoreshokFilterViewModel
+@{
+    Layout = null;
+    ViewBag.Title = "Koreshok hisoblash";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
+    <style>
+        body { background: #f3f8f3; }
+        .cardx { max-width: 760px; margin: 50px auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+        .head { background: linear-gradient(135deg,#198754,#2bb673); color: #fff; padding: 18px 24px; border-radius: 12px 12px 0 0; font-weight: 700; }
+        .bodyx { padding: 24px; }
+        .select2-container { width: 100% !important; }
+    </style>
+    <script defer>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
+                $('.select2').select2({
+                    width: '100%',
+                    placeholder: 'Xodimni tanlang',
+                    allowClear: true
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="cardx">
+        <div class="head">Koreshok hisoblash</div>
+        <div class="bodyx">
+            @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+            @using (Html.BeginForm("Calculate", "Koreshok", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label>Xodim</label>
+                    @Html.DropDownListFor(m => m.EmployeeID, ViewBag.EmployeeID as SelectList, "Xodimni tanlang", new { @class = "form-control select2", required = "required" })
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Dan</label>
+                        @Html.TextBoxFor(m => m.DateFrom, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", required = "required" })
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Gacha</label>
+                        @Html.TextBoxFor(m => m.DateTo, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", required = "required" })
+                    </div>
+                </div>
+                <button class="btn btn-success btn-block"><i class="bx bx-calculator"></i> Oylikni hisobla</button>
+            }
+        </div>
+    </div>
+</body>
+</html>

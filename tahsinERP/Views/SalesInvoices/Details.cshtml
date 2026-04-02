@@ -68,6 +68,12 @@
                                                             <a href="@Url.Action("Print", new { id = Model.ID })" target="_blank" class="btn btn-primary">
                                                                 <i class="bx bx-printer"></i> Chop etish
                                                             </a>
+                                                            @if (changePermit && Model.StatusCode != "PAID" && Model.StatusCode != "CANCELED")
+                                                            {
+                                                                <a href="@Url.Action("Delete", "SalesInvoices", new { id = Model.ID })" class="btn btn-danger">
+                                                                    <i class="bx bx-trash"></i> Bekor qilish
+                                                                </a>
+                                                            }
                                                         </div>
                                                         @if (contract != null)
                                                         {

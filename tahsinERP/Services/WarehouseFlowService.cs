@@ -185,26 +185,9 @@ namespace tahsinERP.Services
 
                     db.INCOME_PRODUCTS.Add(incomeProduct);
 
-                    // Update or create PRODUCT_STOCKS
-                    var stock = db.PRODUCT_STOCKS
-                        .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == productID);
-
-                    if (stock != null)
-                    {
-                        stock.Amount += quantity;
-                        db.Entry(stock).State = EntityState.Modified;
-                    }
-                    else
-                    {
-                        var newStock = new PRODUCT_STOCKS
-                        {
-                            WHID = productionWH.ID,
-                            ProductID = productID,
-                            Amount = quantity,
-                            UnitID = product.UnitID
-                        };
-                        db.PRODUCT_STOCKS.Add(newStock);
-                    }
+                    // Update or create PRODUCT_STOCKS (single row per WHID+ProductID)
+                    var stock = GetOrCreateStockRow(db, productionWH.ID, productID, product.UnitID);
+                    stock.Amount += quantity;
 
                     db.SaveChanges();
                     transaction.Complete();
@@ -244,25 +227,8 @@ namespace tahsinERP.Services
                 if (productionWH == null)
                     throw new Exception("Ishlab chiqarish ombori topilmadi");
 
-                var stock = db.PRODUCT_STOCKS
-                    .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == productID);
-
-                if (stock != null)
-                {
-                    stock.Amount += quantity;
-                    db.Entry(stock).State = EntityState.Modified;
-                }
-                else
-                {
-                    var newStock = new PRODUCT_STOCKS
-                    {
-                        WHID = productionWH.ID,
-                        ProductID = productID,
-                        Amount = quantity,
-                        UnitID = product.UnitID
-                    };
-                    db.PRODUCT_STOCKS.Add(newStock);
-                }
+                var stock = GetOrCreateStockRow(db, productionWH.ID, productID, product.UnitID);
+                stock.Amount += quantity;
 
                 LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
                     $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Ishlab chiqarish ID: {productionID}");
@@ -469,11 +435,53 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
+        /// Returns a single stock row for (warehouse, product). If duplicates exist, merges them.
+        /// If none exists, creates one.
+        /// </summary>
+        public static PRODUCT_STOCKS GetOrCreateStockRow(DBTHSNEntities db, int warehouseId, int productId, int unitId = 1)
+        {
+            var rows = db.PRODUCT_STOCKS
+                .Where(s => s.WHID == warehouseId && s.ProductID == productId)
+                .OrderBy(s => s.ID)
+                .ToList();
+
+            if (!rows.Any())
+            {
+                var stock = new PRODUCT_STOCKS
+                {
+                    WHID = warehouseId,
+                    ProductID = productId,
+                    Amount = 0,
+                    UnitID = unitId > 0 ? unitId : 1
+                };
+                db.PRODUCT_STOCKS.Add(stock);
+                return stock;
+            }
+
+            var keeper = rows.First();
+            if (keeper.UnitID <= 0)
+            {
+                keeper.UnitID = unitId > 0 ? unitId : 1;
+            }
+
+            if (rows.Count > 1)
+            {
+                keeper.Amount = rows.Sum(x => x.Amount);
+                foreach (var duplicate in rows.Skip(1))
+                {
+                    db.PRODUCT_STOCKS.Remove(duplicate);
+                }
+            }
+
+            return keeper;
+        }
+
+        /// <summary>
         /// Decrease stock in Sales Warehouse when sales invoice is confirmed
         /// Prevents negative stock
         /// </summary>
         public static void DecreaseSalesStock(int productID, decimal quantity, 
-            DBTHSNEntities db, string userEmail, long invoiceID, string invoiceNo)
+            DBTHSNEntities db, string userEmail, long invoiceID, string invoiceNo, DateTime? invoiceDate = null, int? contractID = null)
         {
             using (var transaction = new TransactionScope(TransactionScopeOption.Required))
             {
@@ -504,16 +512,47 @@ namespace tahsinERP.Services
                     }
 
                     int currencyId = GetDefaultCurrencyId(db);
-                    // Create EXPENS document
+                    var issueDate = invoiceDate ?? DateTime.Now;
+                    var dateStr = issueDate.ToString("yyyyMMdd");
+                    var qtyStr = ((double)quantity).ToString("0.##");
+
+                    // Piece price olish: avvalo tanlangan sotuv shartnomasidan, bo'lmasa oxirgi sotuv shartnomasidan
+                    double piecePrice = 0;
+
+                    S_CONTRACT_PRODUCTS contractProduct = null;
+                    if (contractID.HasValue)
+                    {
+                        contractProduct = db.S_CONTRACT_PRODUCTS
+                            .Include(cp => cp.S_CONTRACTS)
+                            .FirstOrDefault(cp => cp.ContractID == contractID.Value && cp.ProductID == productID);
+                    }
+                    if (contractProduct == null)
+                    {
+                        contractProduct = db.S_CONTRACT_PRODUCTS
+                            .Include(cp => cp.S_CONTRACTS)
+                            .Where(cp => cp.ProductID == productID && (cp.S_CONTRACTS.IsDeleted == false || cp.S_CONTRACTS.IsDeleted == null))
+                            .OrderByDescending(cp => cp.S_CONTRACTS.IssuedDate)
+                            .FirstOrDefault();
+                    }
+                    if (contractProduct != null)
+                    {
+                        piecePrice = contractProduct.PiecePrice;
+                    }
+                    var totalPrice = piecePrice * qtyToDeduct;
+                    var invoiceUrl = $"/SalesInvoices/Details/{invoiceID}";
+
+                    // Create EXPENS document (ProductProduction uslubiga yaqin: date_pno_qty + marker)
                     var expense = new EXPENS
                     {
-                        DocNo = $"SALES-{invoiceNo}-{DateTime.Now:yyyyMMddHHmmss}",
+                        DocNo = $"{dateStr}_{product.PNo}_{qtyStr}",
                         SenderWHID = salesWH.ID,
-                        IssueDateTime = DateTime.Now,
+                        IssueDateTime = issueDate,
                         CurrencyID = currencyId,
                         IsDeleted = false,
                         SendStatus = true,
-                        Description = $"Sotuv invoysi: {invoiceNo}, Mahsulot: {product.PNo}"
+                        Amount = qtyToDeduct,
+                        TotalPrice = totalPrice,
+                        Description = $"{issueDate:dd.MM.yyyy}y. sotuv invoysi asosida tayyor mahsulot chiqimi: {product.PNo}, Miqdor {qtyStr}. Invoys raqami: {invoiceNo}. URL: {invoiceUrl}"
                     };
 
                     db.EXPENSES.Add(expense);
@@ -525,7 +564,10 @@ namespace tahsinERP.Services
                         ExpenseID = expense.ID,
                         ProductID = productID,
                         Amount = qtyToDeduct,
-                        PiecePrice = 0
+                        PiecePrice = piecePrice,
+                        TotalPrice = totalPrice,
+                        UnitID = product.UnitID > 0 ? product.UnitID : 1,
+                        Comment = $"Invoys raqami: {invoiceNo}. URL: {invoiceUrl}"
                     };
 
                     db.EXPENSE_PRODUCTS.Add(expenseProduct);

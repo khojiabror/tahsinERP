@@ -34,6 +34,20 @@
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
                 }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+                @if (TempData["Info"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        @TempData["Info"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
                 @if (Model.Status != "Draft")
                 {
                     <div class="alert alert-warning" role="alert">
@@ -41,30 +55,35 @@
                     </div>
                 }
 
+                @if (Model.Status == "Draft")
+                {
+                    @using (Html.BeginForm("SaveTimesheet", "HrTimesheets", FormMethod.Post, new { id = "timesheetSaveForm", style = "display:none;" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="timesheetId" value="@Model.ID" />
+                        <input type="hidden" name="gridJson" id="timesheetGridJson" />
+                    }
+                }
+
                 <div class="row mb-2">
                     <div class="col-12">
                         <div class="btn-group" role="group">
                             @if (Model.Status == "Draft")
                             {
-                                <button type="button" class="btn btn-sm btn-primary" onclick="setDefaultHours(8)">
-                                    <i class="bx bx-time"></i> Tanlanganlarga 8 soat belgilash
+                                
+                                <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#addEmployeesModal">
+                                    <i class="bx bx-user-plus"></i> Xodim qo'shish
                                 </button>
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="markWeekend()">
-                                    <i class="bx bx-calendar"></i> Dam olish kunlarini belgilash
+                                <button type="button" class="btn btn-sm btn-primary" onclick="saveTimesheetGrid(); return false;" title="Barcha katakchalarni bazaga yozish">
+                                    <i class="bx bx-save"></i> Saqlash
                                 </button>
                             }
                             <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-sm btn-success">
                                 <i class="bx bx-export"></i> Excelga eksport
                             </a>
-                            <a href="@Url.Action("Report", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
-                                <i class="bx bx-printer"></i> Chop etish
+                            <a href="@Url.Action("Preview", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
+                                <i class="bx bx-show"></i> Ko'rib chiqish
                             </a>
-                            @if (Model.Status == "Draft")
-                            {
-                                <a href="@Url.Action("Approve", new { id = Model.ID })" class="btn btn-sm btn-warning" onclick="return confirm('Tabelni tasdiqlash?');">
-                                    <i class="bx bx-check"></i> Tasdiqlash
-                                </a>
-                            }
                         </div>
                         <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Closed" ? "info" : "warning") ml-2">
                             Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
@@ -79,13 +98,13 @@
                                 <table class="table table-bordered table-striped" id="timesheetGrid">
                                     <thead class="thead-light" style="position: sticky; top: 0; z-index: 10; background: white;">
                                         <tr>
-                                            <th rowspan="2" style="min-width: 30px;">
+                                            <th rowspan="2" class="freeze-col freeze-col-1" style="min-width: 30px;">
                                                 <input type="checkbox" id="selectAll" title="Barchasini tanlash" />
                                             </th>
-                                            <th rowspan="2" style="min-width: 50px;">№</th>
-                                            <th rowspan="2" style="min-width: 80px;">Tab.№</th>
-                                            <th rowspan="2" style="min-width: 200px;">F.I.O.</th>
-                                            <th rowspan="2" style="min-width: 150px;">Lavozim</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-2" style="min-width: 50px;">№</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-3" style="min-width: 80px;">Tab.№</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-4" style="min-width: 200px;">F.I.O.</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-5" style="min-width: 150px;">Lavozim</th>
                                             <th colspan="@daysInMonth" style="text-align: center;">Oy kunlari</th>
                                             <th rowspan="2" style="min-width: 80px;">Ish kunlari</th>
                                             <th rowspan="2" style="min-width: 80px;">Ish soatlari</th>
@@ -113,13 +132,13 @@
                                         @foreach (var line in Model.Lines)
                                         {
                                             <tr data-employee-id="@line.EmployeeID">
-                                                <td>
+                                                <td class="freeze-col freeze-col-1">
                                                     <input type="checkbox" class="row-checkbox" data-employee-id="@line.EmployeeID" />
                                                 </td>
-                                                <td>@rowNum</td>
-                                                <td>@line.EmployeeTabNo</td>
-                                                <td>@line.EmployeeFullName</td>
-                                                <td>@line.PositionName</td>
+                                                <td class="freeze-col freeze-col-2">@rowNum</td>
+                                                <td class="freeze-col freeze-col-3">@line.EmployeeTabNo</td>
+                                                <td class="freeze-col freeze-col-4">@line.EmployeeFullName</td>
+                                                <td class="freeze-col freeze-col-5">@line.PositionName</td>
                                                 @for (int day = 1; day <= daysInMonth; day++)
                                                 {
                                                     var propertyName = $"Day{day:D2}Hours";
@@ -205,6 +224,33 @@
         </div>
     </div>
 
+    if (Model.Status == "Draft")
+    {
+        <div class="modal fade" id="addEmployeesModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    @using (Html.BeginForm("AddEmployees", "HrTimesheets", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("timesheetId", Model.ID)
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tabelga xodim qo'shish</h5>
+                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        </div>
+                        <div class="modal-body">
+                            <label>Xodimlar (bir nechta tanlash mumkin)</label>
+                            @Html.ListBox("employeeIds", ViewBag.AvailableEmployees as MultiSelectList, new { @class = "form-control employee-multi-select", @style = "min-height: 280px;" })
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
+                            <button type="submit" class="btn btn-success"><i class="bx bx-user-plus"></i> Qo'shish</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
     <style>
         #timesheetGrid {
             font-size: 12px;
@@ -222,6 +268,20 @@
         #timesheetGrid tbody tr:hover {
             background-color: #f5f5f5;
         }
+        #timesheetGrid .freeze-col {
+            position: sticky;
+            background: #fff;
+            z-index: 5;
+        }
+        #timesheetGrid thead .freeze-col {
+            z-index: 20;
+            background: #f8f9fa;
+        }
+        #timesheetGrid .freeze-col-1 { left: 0; min-width: 30px; }
+        #timesheetGrid .freeze-col-2 { left: 30px; min-width: 50px; }
+        #timesheetGrid .freeze-col-3 { left: 80px; min-width: 80px; }
+        #timesheetGrid .freeze-col-4 { left: 160px; min-width: 200px; }
+        #timesheetGrid .freeze-col-5 { left: 360px; min-width: 150px; }
     </style>
 }
 else
@@ -235,8 +295,56 @@ else
         var timesheetId = @Model.ID;
         var daysInMonth = @daysInMonth;
 
+        function saveTimesheetGrid() {
+            var hours = [];
+            $('.day-hours').each(function () {
+                var $input = $(this);
+                var v = parseFloat($input.val());
+                if (isNaN(v)) v = 0;
+                hours.push({
+                    LineId: parseInt($input.data('line-id'), 10),
+                    Day: parseInt($input.data('day'), 10),
+                    Hours: v
+                });
+            });
+            var quantities = [];
+            $('.day-quantity').each(function () {
+                var $input = $(this);
+                var v = parseFloat($input.val());
+                if (isNaN(v)) v = 0;
+                quantities.push({
+                    LineId: parseInt($input.data('line-id'), 10),
+                    Day: parseInt($input.data('day'), 10),
+                    Quantity: v
+                });
+            });
+            var products = [];
+            $('.piece-rate-product').each(function () {
+                var $sel = $(this);
+                var pid = $sel.val();
+                if (!pid) return;
+                var lineId = $sel.data('line_id');
+                if (lineId == null) lineId = $sel.attr('data-line_id');
+                if (lineId == null) return;
+                products.push({
+                    LineId: parseInt(lineId, 10),
+                    ProductId: parseInt(pid, 10)
+                });
+            });
+            var payload = { Hours: hours, Quantities: quantities, Products: products };
+            $('#timesheetGridJson').val(JSON.stringify(payload));
+            $('#timesheetSaveForm').submit();
+        }
+
         $(document).ready(function() {
             // Handle hour input changes
+            $('.employee-multi-select').select2({
+                width: '100%',
+                placeholder: "Xodimlarni tanlang",
+                allowClear: true,
+                dropdownParent: $('#addEmployeesModal')
+            });
+
             $('.day-hours').on('change blur', function() {
                 var $input = $(this);
                 var lineId = $input.data('line-id');
@@ -402,6 +510,20 @@ else
             alert('Ishbay ma\'lumotlarini kiritish funksiyasi ishlab chiqilmoqda');
         }
 
+        function postBulkUpdate(employeeIds, day, hours) {
+            return $.ajax({
+                url: '@Url.Action("BulkUpdate")',
+                type: 'POST',
+                traditional: true,
+                data: {
+                    timesheetId: timesheetId,
+                    employeeIds: employeeIds,
+                    day: day,
+                    hours: hours
+                }
+            });
+        }
+
         function setDefaultHours(hours) {
             var selectedRows = $('#timesheetGrid tbody tr').filter(function() {
                 return $(this).find('.row-checkbox').prop('checked');
@@ -418,21 +540,17 @@ else
                     employeeIds.push($(this).data('employee-id'));
                 });
 
-                // Get first day of month
-                var firstDay = 1;
-                var lastDay = daysInMonth;
-
-                // Set for all days
-                for (var day = firstDay; day <= lastDay; day++) {
-                    $.post('@Url.Action("BulkUpdate")', {
-                        timesheetId: timesheetId,
-                        employeeIds: employeeIds,
-                        day: day,
-                        hours: hours
-                    });
+                var requests = [];
+                for (var day = 1; day <= daysInMonth; day++) {
+                    requests.push(postBulkUpdate(employeeIds, day, hours));
                 }
 
-                location.reload();
+                $.when.apply($, requests)
+                    .done(function () { location.reload(); })
+                    .fail(function (xhr) {
+                        var msg = (xhr && xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : "Yangilashda xatolik";
+                        alert(msg);
+                    });
             }
         }
 
@@ -454,20 +572,25 @@ else
                 employeeIds.push($(this).data('employee-id'));
             });
 
+            var requests = [];
             for (var day = 1; day <= daysInMonth; day++) {
                 var date = new Date(year, month - 1, day);
                 var dayOfWeek = date.getDay();
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    $.post('@Url.Action("BulkUpdate")', {
-                        timesheetId: timesheetId,
-                        employeeIds: employeeIds,
-                        day: day,
-                        hours: 0
-                    });
+                    requests.push(postBulkUpdate(employeeIds, day, 0));
                 }
             }
+            if (requests.length === 0) {
+                alert('Bu oyda dam olish kuni topilmadi');
+                return;
+            }
 
-            location.reload();
+            $.when.apply($, requests)
+                .done(function () { location.reload(); })
+                .fail(function (xhr) {
+                    var msg = (xhr && xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : "Yangilashda xatolik";
+                    alert(msg);
+                });
         }
 
     </script>

@@ -119,6 +119,9 @@
                                                 <td>@item.TotalNetSalary.ToString("N2")</td>
                                                 <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
                                                 <td>
+                                                    <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-secondary" title="Batafsil">
+                                                        <i class="bx bx-show"></i>
+                                                    </a>
                                                     <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info">
                                                         <i class="bx bx-edit"></i>
                                                     </a>
@@ -147,22 +150,30 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            $('#payrollTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
-                },
-                "pageLength": 25,
-                "order": [[0, "desc"], [1, "desc"]],
-                dom: 'lBfrtip',
-                buttons: [
-                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
-                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
-                ]
-            });
-        });
-    </script>
+    @section Scripts {
+        <script>
+            (function ($) {
+                if (!$ || !$.fn.DataTable) return;
+                $(document).ready(function () {
+                    if ($.fn.DataTable.isDataTable('#payrollTable')) {
+                        $('#payrollTable').DataTable().destroy();
+                    }
+                    $('#payrollTable').DataTable({
+                        "language": {
+                            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                        },
+                        "pageLength": 25,
+                        "order": [[0, "desc"], [1, "desc"]],
+                        dom: 'lBfrtip',
+                        buttons: [
+                            { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function (d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } },
+                            { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function (d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } }
+                        ]
+                    });
+                });
+            })(window.jQuery || window.$j);
+        </script>
+    }
 }
 else
 {

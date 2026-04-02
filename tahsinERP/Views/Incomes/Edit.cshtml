@@ -98,6 +98,7 @@
 
                                             <br />
                                             <h5>Kirim mahsulotlari</h5>
+                                            <p class="text-muted small mb-2">QQS % (0–100). Jami = miqdor × dona narx × (1 + QQS/100). Izohga <code>QQS %: …%</code> qo‘shiladi.</p>
                                             
                                             <div class="table-responsive">
                                                 <table id="incomeProductsTable" class="table table-bordered">
@@ -108,6 +109,7 @@
                                                             <th>Miqdor</th>
                                                             <th>Birlik</th>
                                                             <th>Dona narxi</th>
+                                                            <th>QQS %</th>
                                                             <th>Jami</th>
                                                             <th>Izoh</th>
                                                             <th>Amallar</th>
@@ -146,10 +148,13 @@
                                                                         @Html.TextBoxFor(m => m.IncomeProducts[i].PiecePrice, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0" })
                                                                     </td>
                                                                     <td>
+                                                                        @Html.TextBoxFor(m => m.IncomeProducts[i].VATRate, new { @type = "number", @class = "form-control vat-input", @step = "0.01", @min = "0", @max = "100" })
+                                                                    </td>
+                                                                    <td>
                                                                         @Html.TextBoxFor(m => m.IncomeProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.TextBoxFor(m => m.IncomeProducts[i].Comment, new { @class = "form-control" })
+                                                                        @Html.TextBoxFor(m => m.IncomeProducts[i].Comment, new { @class = "form-control comment-input" })
                                                                     </td>
                                                                     <td>
                                                                         <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
@@ -160,7 +165,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td colspan="5" class="text-right"><strong>Jami:</strong></td>
+                                                            <td colspan="6" class="text-right"><strong>Jami:</strong></td>
                                                             <td id="totalAmount" class="text-right"><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
                                                             <td colspan="2"></td>
                                                         </tr>
@@ -254,17 +259,47 @@
                         $row.find('.product-pno').val(pno);
                     }
 
-                    // Calculate totals for existing rows
-                    $('.amount-input, .price-input').each(function () {
-                        var $row = $(this).closest('tr');
+                    function stripQqsFromComment(text) {
+                        if (!text) return '';
+                        return String(text)
+                            .replace(/\s*\|\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
+                            .replace(/\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
+                            .trim();
+                    }
+
+                    function mergeIncomeComment(userPart, vatRate) {
+                        var u = stripQqsFromComment(userPart || '');
+                        var v = isNaN(vatRate) ? 0 : Number(vatRate);
+                        var pct = (Math.round(v * 100) / 100).toString();
+                        var qqs = 'QQS %: ' + pct + '%';
+                        if (!u) return qqs;
+                        return u + ' | ' + qqs;
+                    }
+
+                    function recalcRow($row) {
                         var amount = parseFloat($row.find('.amount-input').val()) || 0;
                         var price = parseFloat($row.find('.price-input').val()) || 0;
-                        var total = amount * price;
+                        var vat = parseFloat($row.find('.vat-input').val());
+                        if (isNaN(vat)) vat = 0;
+                        vat = Math.max(0, Math.min(100, vat));
+                        var base = amount * price;
+                        var total = base * (1 + vat / 100);
                         $row.find('.total-price').val(total.toFixed(2));
-                    });
+                        var $comm = $row.find('.comment-input');
+                        var user = $comm.data('userComment');
+                        if (user === undefined) user = stripQqsFromComment($comm.val());
+                        $comm.val(mergeIncomeComment(user, vat));
+                        $comm.data('userComment', user);
+                    }
 
                     $('#incomeProductsTable tbody tr').each(function () {
-                        syncProductFields($(this));
+                        var $r = $(this);
+                        $r.find('.comment-input').each(function () {
+                            var $c = $(this);
+                            $c.data('userComment', stripQqsFromComment($c.val()));
+                        });
+                        syncProductFields($r);
+                        recalcRow($r);
                     });
 
                     updateTotal();
@@ -276,6 +311,7 @@
                                     buildProductOptions(null) +
                                 '</select>' +
                                 '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="" />' +
+                                '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ID" value="" />' +
                             '</td>' +
                             '<td>' +
                                 '<input type="text" class="form-control product-name-display" value="" disabled />' +
@@ -288,10 +324,10 @@
                                 '</select>' +
                             '</td>' +
                             '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].PiecePrice" class="form-control price-input" step="0.01" min="0" /></td>' +
+                            '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].VATRate" class="form-control vat-input" value="12" step="0.01" min="0" max="100" /></td>' +
                             '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" readonly /></td>' +
-                            '<td><input type="text" name="IncomeProducts[' + productRowIndex + '].Comment" class="form-control" /></td>' +
+                            '<td><input type="text" name="IncomeProducts[' + productRowIndex + '].Comment" class="form-control comment-input" /></td>' +
                             '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
-                            '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ID" value="" />' +
                             '</tr>';
 
                         $('#incomeProductsTable tbody').append(row);
@@ -302,7 +338,9 @@
                             $row.find('select.unit-select').select2();
                         }
 
+                        $row.find('.comment-input').data('userComment', '');
                         syncProductFields($row);
+                        recalcRow($row);
                         productRowIndex++;
                     });
 
@@ -316,13 +354,14 @@
                         syncProductFields($row);
                     });
 
-                    $(document).on('input', '.amount-input, .price-input', function () {
-                        var $row = $(this).closest('tr');
-                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
-                        var price = parseFloat($row.find('.price-input').val()) || 0;
-                        var total = amount * price;
-                        $row.find('.total-price').val(total.toFixed(2));
+                    $(document).on('input', '.amount-input, .price-input, .vat-input', function () {
+                        recalcRow($(this).closest('tr'));
                         updateTotal();
+                    });
+
+                    $(document).on('input', '.comment-input', function () {
+                        var $c = $(this);
+                        $c.data('userComment', stripQqsFromComment($c.val()));
                     });
 
                     function updateTotal() {

@@ -826,6 +826,7 @@ namespace tahsinERP.Controllers
                 if (contract != null)
                 {
                     contract.IsDeleted = true;
+                    await SoftDeleteReferenceService.AfterPContractSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
                     // Log the action

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -236,34 +237,12 @@ namespace tahsinERP.Controllers
 
                                 if (part != null)
                                 {
-                                    PRODUCT_STOCKS stock = db.PRODUCT_STOCKS.Where(ps => ps.ProductID == part.ID).FirstOrDefault();
-
-                                    if (stock != null)
-                                    {
-                                        stock.Amount = Convert.ToDouble(amount);
-                                        if (unit != null)
-                                            stock.UnitID = unit.ID;
-                                        else
-                                            stock.UnitID = 1;
-                                        stock.WHID = Convert.ToInt32(WarehouseID);
-                                        db.Entry(stock).State = EntityState.Modified;
-                                        db.SaveChanges();
-                                    }
-                                    else
-                                    {
-                                        PRODUCT_STOCKS newStock = new PRODUCT_STOCKS();
-
-                                        newStock.ProductID = part.ID;
-                                        newStock.Amount = Convert.ToDouble(amount);
-                                        if (unit != null)
-                                            newStock.UnitID = unit.ID;
-                                        else
-                                            newStock.UnitID = 1;
-                                        newStock.WHID = Convert.ToInt32(WarehouseID);
-
-                                        db.PRODUCT_STOCKS.Add(newStock);
-                                        db.SaveChanges();
-                                    }
+                                    var whId = Convert.ToInt32(WarehouseID);
+                                    var unitId = unit != null ? unit.ID : 1;
+                                    var stock = WarehouseFlowService.GetOrCreateStockRow(db, whId, part.ID, unitId);
+                                    stock.Amount = Convert.ToDouble(amount);
+                                    stock.UnitID = unitId;
+                                    db.SaveChanges();
 
                                     var userEmail1 = User.Identity.Name;
                                     LogHelper.LogToDatabase(userEmail1, "Inventarizatsiya", $"{pNo} ehtiyot qismi uchun {amount}  {unit.ShortName} bo'lgan qoldiqni {DateTime.Now} paytida kiritdi");

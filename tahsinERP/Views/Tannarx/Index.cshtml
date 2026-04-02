@@ -70,7 +70,6 @@
                                     @Html.DropDownList(
                                         "month",
                                         (SelectList)ViewBag.Months,
-                                        "Barcha oylar",
                                         new { @id = "monthFilter", @class = "form-control" }
                                     )
                                 </div>
@@ -169,10 +168,10 @@
                                         </table>
                                     </div>
 
-                                    @if (ViewBag.ShowGenerateButton == true)
-                                    {
-                                        <div class="mt-3 text-center">
-                                            @using (Html.BeginForm("Generate", "Tannarx", FormMethod.Post, new { @class = "d-inline" }))
+                                    <div class="mt-3 text-center">
+                                        @if (ViewBag.ShowGenerateButton == true)
+                                        {
+                                            using (Html.BeginForm("Generate", "Tannarx", FormMethod.Post, new { @class = "d-inline" }))
                                             {
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="year" value="@ViewBag.Year" />
@@ -181,11 +180,15 @@
                                                     <i class="bx bx-plus"></i> Tannarx shakllantirish
                                                 </button>
                                             }
-                                            <p class="text-muted mt-2 text-center">
-                                                <small>Norma kiritilgan maxsulotlar: @ViewBag.FinishedGoodsWithNormsCount | Tannarx mavjud: @ViewBag.TannarxCount</small>
-                                            </p>
-                                        </div>
-                                    }
+                                        }
+                                        <p class="text-muted mt-2 text-center mb-0">
+                                            <small>
+                                                Norma kiritilgan maxsulotlar: @ViewBag.FinishedGoodsWithNormsCount |
+                                                Tannarx mavjud: @ViewBag.TannarxCount |
+                                                Tannarx yo'q: @ViewBag.MissingTannarxCount
+                                            </small>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

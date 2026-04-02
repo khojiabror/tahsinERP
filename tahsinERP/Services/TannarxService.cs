@@ -36,6 +36,7 @@ namespace tahsinERP.Services
                 {
                     var version = await _db.NORMVERSIONS
                         .Where(nv => nv.ProductID == productID
+                            && nv.IsDeleted != true
                             && nv.EffectiveFrom.HasValue
                             && nv.EffectiveFrom.Value <= requestedDate
                             && (nv.EffectiveTo == null || nv.EffectiveTo.Value >= requestedDate))
@@ -206,52 +207,51 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Check if product has norms (NORM_INPUT_LINES or NORMLINES) for the given month
-        /// Supports multiple Month formats: "2025-09", "2025-9", "Sentabr-25", etc.
-        /// If NORM_INPUT_LINES exists for the month, return true.
-        /// If NORMVERSION exists (regardless of date range) and has NORMLINES, return true.
+        /// Check if product has norms (NORM_INPUT_LINES or NORMLINES) for the given month.
+        /// Rule: norm is valid only when selected month is within EffectiveFrom-EffectiveTo.
         /// </summary>
         public async Task<bool> HasNormsForMonthAsync(int productID, int year, int month)
         {
-            // Try different Month format variations (based on how NormController saves it)
-            var monthFormats = new List<string>
-            {
-                $"{year}-{month:D2}",      // "2025-09" (standard format from NormController)
-                $"{year}-{month}",         // "2025-9" (without leading zero)
-                $"{GetMonthName(month)}-{year % 100:D2}",  // "Sentabr-25"
-                $"{GetMonthName(month)}-{year % 100}",    // "Sentabr-25" (without leading zero)
-            };
-
-            // Check NORM_INPUT_LINES for the specific month (try all formats)
-            // Use ToListAsync first, then check in memory to support multiple formats
-            var normInputLines = await _db.NORM_INPUT_LINES
-                .Where(n => n.ProductID == productID && n.Month != null)
-                .Select(n => n.Month)
+            var requestedDate = new DateTime(year, month, 1);
+            var activeVersions = await _db.NORMVERSIONS
+                .Include(nv => nv.NORMLINES)
+                .Where(nv => nv.ProductID.HasValue
+                    && nv.ProductID.Value == productID
+                    && nv.IsDeleted != true
+                    && nv.EffectiveFrom.HasValue
+                    && nv.EffectiveFrom.Value <= requestedDate
+                    && (!nv.EffectiveTo.HasValue || nv.EffectiveTo.Value >= requestedDate))
+                .OrderByDescending(nv => nv.EffectiveFrom)
                 .ToListAsync();
 
-            var hasNormInputLines = normInputLines.Any(m => monthFormats.Contains(m));
+            if (!activeVersions.Any())
+                return false;
 
-            if (hasNormInputLines)
+            // If any active version has NORMLINES - norm exists.
+            if (activeVersions.Any(nv => nv.NORMLINES != null && nv.NORMLINES.Any()))
                 return true;
 
-            // Check NORMLINES through NORMVERSION
-            // IMPORTANT: Check ALL NORMVERSIONS for the product (not just active ones)
-            // because NormController shows all versions regardless of date range
-            var normVersions = await _db.NORMVERSIONS
-                .Include(nv => nv.NORMLINES)
-                .Where(nv => nv.ProductID.HasValue && nv.ProductID.Value == productID)
-                .ToListAsync();
+            // Norm module stores NORM_INPUT_LINES by EffectiveFrom month.
+            // For active version(s), check NORM_INPUT_LINES on their EffectiveFrom period.
+            var periods = activeVersions
+                .Where(v => v.EffectiveFrom.HasValue)
+                .Select(v => v.EffectiveFrom.Value.ToString("yyyy-MM"))
+                .Distinct()
+                .ToList();
 
-            // Check if any NORMVERSION has NORMLINES
-            var hasNormLines = normVersions.Any(nv => nv.NORMLINES != null && nv.NORMLINES.Any());
+            if (!periods.Any())
+                return false;
 
-            return hasNormLines;
+            return await _db.NORM_INPUT_LINES
+                .AnyAsync(n => n.ProductID == productID
+                    && n.Month != null
+                    && periods.Contains(n.Month));
         }
 
         /// <summary>
-        /// Get count of finished goods products that have norms for a specific month
+        /// Get finished goods product IDs that have norms for a specific month.
         /// </summary>
-        public async Task<int> GetFinishedGoodsWithNormsCountAsync(int year, int month)
+        public async Task<List<int>> GetFinishedGoodsWithNormsProductIdsAsync(int year, int month)
         {
             // Get all finished goods products
             // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
@@ -263,18 +263,27 @@ namespace tahsinERP.Services
                 .Select(p => p.ID)
                 .ToListAsync();
 
-            int count = 0;
+            var productIdsWithNorms = new List<int>();
             
             // Check each product for norms
             foreach (var productId in finishedGoods)
             {
                 if (await HasNormsForMonthAsync(productId, year, month))
                 {
-                    count++;
+                    productIdsWithNorms.Add(productId);
                 }
             }
 
-            return count;
+            return productIdsWithNorms;
+        }
+
+        /// <summary>
+        /// Get count of finished goods products that have norms for a specific month
+        /// </summary>
+        public async Task<int> GetFinishedGoodsWithNormsCountAsync(int year, int month)
+        {
+            var ids = await GetFinishedGoodsWithNormsProductIdsAsync(year, month);
+            return ids.Count;
         }
 
         /// <summary>

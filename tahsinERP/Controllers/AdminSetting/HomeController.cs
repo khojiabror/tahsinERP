@@ -71,6 +71,7 @@ namespace tahsinERP.Controllers
                         .Include(t => t.FIN_CATEGORIES)
                         .Where(t => (!fromDate.HasValue || t.TxnDate >= fromDate.Value) &&
                                    (!toDate.HasValue || t.TxnDate <= toDate.Value) &&
+                                   t.IsDeleted != true &&
                                    // Exclude liability transactions (PurchaseInvoice va SalesInvoice) - faqat show real transactions
                                    ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
                         .ToList();
@@ -214,6 +215,7 @@ namespace tahsinERP.Controllers
                         var openingTransactions = db.FIN_TRANSACTIONS
                             .Where(t => t.AccountID == account.ID && 
                                        t.TxnDate < from &&
+                                       t.IsDeleted != true &&
                                        // Exclude liability transactions
                                        ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
                             .ToList();
@@ -227,6 +229,7 @@ namespace tahsinERP.Controllers
                                        t.Direction == 1 &&
                                        t.TxnDate >= from && 
                                        t.TxnDate <= to &&
+                                       t.IsDeleted != true &&
                                        // Exclude liability transactions
                                        ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
                             .ToList();
@@ -240,6 +243,7 @@ namespace tahsinERP.Controllers
                                        t.Direction == 2 &&
                                        t.TxnDate >= from && 
                                        t.TxnDate <= to &&
+                                       t.IsDeleted != true &&
                                        // Exclude liability transactions
                                        ((t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice") || t.SourceDocType == null || t.SourceDocType == ""))
                             .ToList();

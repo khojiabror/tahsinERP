@@ -347,7 +347,7 @@ namespace tahsinERP.Controllers
                                 var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
                                 FinancePostingService.PostPurchaseInvoice(invoice.ID, db, userId);
                             }
-                            catch (Exception ex)
+                            catch (Exception)
                             {
                                 // Finance posting xatolik - don't log as it's not a database change
                             }
@@ -535,7 +535,7 @@ namespace tahsinERP.Controllers
                     CompanyID = invoice.CompanyID,
                     ContractID = invoice.ContractID,
                     CurrencyID = invoice.CurrencyID ?? 0,
-                    Amount = invoice.Amount,
+                    Amount = invoice.Amount ?? 0,
                     InvoiceProducts = invoice.P_INVOICE_PRODUCTS.Select(ip => new PInvoiceProductViewModel
                     {
                         ID = ip.ID,
@@ -756,6 +756,18 @@ namespace tahsinERP.Controllers
 
                         await db.SaveChangesAsync();
 
+                        // Editdan keyin finance postingni ham yangilash (upsert)
+                        try
+                        {
+                            var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                            FinancePostingService.PostPurchaseInvoice(invoice.ID, db, userId);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", "Edit",
+                                $"Finance posting update error for invoice {invoice.ID}: {ex.Message}");
+                        }
+
                         // Log the action
                         LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Edit - {invoice.InvoiceNo} invoysi tahrirlandi");
 
@@ -909,6 +921,9 @@ namespace tahsinERP.Controllers
                 if (invoice != null)
                 {
                     invoice.IsDeleted = true;
+                    await SoftDeleteReferenceService.AfterPInvoiceSoftDeletedAsync(db, id);
+                    // O'chirilgan invoys uchun auto-post qilingan finance yozuvini ham bekor qilamiz
+                    FinancePostingService.RemovePurchaseInvoicePosting(id, db);
                     await db.SaveChangesAsync();
 
                     // Log the action

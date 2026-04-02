@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
@@ -8,10 +9,15 @@ using tahsinERP.Models;
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Service for generating Purchase Orders from Sales Orders using BOM explosion
+    /// Sotuv buyurtmalari asosida BOM portlash orqali xarid buyurtmasi uchun xomashyo ehtiyoji.
+    /// Bir nechta sotuv buyurtmasi / turli tayyor mahsulotlar: xuddi shu xomashyo ComponentID bo'yicha yig'iladi.
+    /// BOM: faol versiyalar ichidan eng yangi (VersionNo sana + CreatedAt).
+    /// Tayyor mahsulot (FG) komponenti: agar uning o'zining BOM'i bo'lsa, rekursiv portlanadi.
     /// </summary>
     public class POrderGenerationService
     {
+        private const int MaxBomDepth = 10;
+
         private readonly DBTHSNEntities _db;
         private readonly UnitConversionService _conversionService;
 
@@ -22,165 +28,65 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Generates raw material requirements from Sales Orders
+        /// Generates raw material requirements from Sales Orders (aggregated by material).
         /// </summary>
-        /// <param name="salesOrderIds">Array of Sales Order IDs</param>
-        /// <returns>List of required raw materials with converted quantities</returns>
         public async Task<List<RawMaterialRequirement>> GenerateRequirementsFromSalesOrdersAsync(int[] salesOrderIds)
         {
-            if (salesOrderIds == null || salesOrderIds.Length == 0)
+            var normalizedSalesOrderIds = (salesOrderIds ?? Array.Empty<int>())
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray();
+
+            if (normalizedSalesOrderIds.Length == 0)
             {
                 throw new ArgumentException("Sales order IDs cannot be empty.");
             }
 
-            // Load sales orders with products
             var salesOrders = await _db.S_ORDERS
                 .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT))
                 .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT.PRODUCT_CATEGORIES))
-                .Where(o => salesOrderIds.Contains(o.ID) && o.IsDeleted != true)
+                .Where(o => normalizedSalesOrderIds.Contains(o.ID) && o.IsDeleted != true)
+                .OrderBy(o => o.ID)
                 .ToListAsync();
 
-            // Dictionary to aggregate required quantities by component (raw material)
             var componentRequirements = new Dictionary<int, RawMaterialRequirement>();
+            var bomCache = new Dictionary<int, BOM_HEADERS>();
+            var productCache = new Dictionary<int, PRODUCT>();
 
-            // Process each sales order
             foreach (var sOrder in salesOrders)
             {
-                foreach (var sOrderProduct in sOrder.S_ORDER_PRODUCTS)
+                var lines = (sOrder.S_ORDER_PRODUCTS ?? Enumerable.Empty<S_ORDER_PRODUCTS>())
+                    .OrderBy(l => l.ID)
+                    .ToList();
+
+                foreach (var sOrderProduct in lines)
                 {
-                    var product = sOrderProduct.PRODUCT;
-                    if (product == null) continue;
-
-                    // Get product quantity from sales order
-                    double productQty = sOrderProduct.Amount;
-
-                    // Find latest active BOM for this product (try for all products, not just finished goods)
-                    var bomHeader = await GetLatestActiveBOMAsync(product.ID);
-
-                    if (bomHeader != null && bomHeader.BOM_LINES != null && bomHeader.BOM_LINES.Any())
+                    if (sOrderProduct.PRODUCT == null)
                     {
-                        // Process each BOM line
-                        foreach (var bomLine in bomHeader.BOM_LINES)
-                        {
-                            // Check if BOM line has required data
-                            if (!bomLine.ComponentID.HasValue || !bomLine.Qty.HasValue || bomLine.Qty.Value <= 0)
-                            {
-                                continue; // Skip invalid BOM lines
-                            }
-
-                            int componentId = bomLine.ComponentID.Value;
-                            decimal bomQtyPerUnit = bomLine.Qty.Value;
-                            
-                            // Calculate required quantity: BOM quantity × Product quantity
-                            decimal requiredQty = bomQtyPerUnit * (decimal)productQty;
-
-                            // Load component product with category
-                            var component = await _db.PRODUCTS
-                                .Include(p => p.PRODUCT_CATEGORIES)
-                                .FirstOrDefaultAsync(p => p.ID == componentId && p.IsDeleted != true);
-
-                            if (component != null)
-                            {
-                                // Check if component is purchasable (not a finished good)
-                                // If category is null, assume it's purchasable
-                                bool isPurchasable = component.PRODUCT_CATEGORIES == null ||
-                                                    component.PRODUCT_CATEGORIES.IsFinishedGood == false;
-
-                                if (isPurchasable)
-                                {
-                                    // Get BOM unit ID (from BOM_LINES)
-                                    int bomUnitId = bomLine.UnitID ?? component.UnitID;
-
-                                    // Check if product should use weight-based calculations
-                                    bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(componentId);
-                                    
-                                    // Check if conversion is needed
-                                    bool requiresConversion = await _conversionService.RequiresCuttingAsync(componentId);
-                                    decimal finalQuantity = requiredQty;
-                                    int finalUnitId = bomUnitId;
-                                    string calculationExplanation = "";
-
-                                    // If product uses weight-based calculations, convert from pieces to kg
-                                    if (calculateByWeight)
-                                    {
-                                        try
-                                        {
-                                            // First, ensure we have quantity in pieces
-                                            decimal pieceQuantity = requiredQty;
-                                            
-                                            // If BOM unit is METER (5) and product requires cutting, convert to pieces first
-                                            if (requiresConversion && bomUnitId == 5)
-                                            {
-                                                pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(
-                                                    componentId, requiredQty);
-                                                calculationExplanation = 
-                                                    $"{requiredQty:F2} m (BOM) × {productQty} (Product qty) = {requiredQty:F2} m → " +
-                                                    $"Converted to {pieceQuantity:F0} pcs";
-                                            }
-
-                                            // Convert pieces to kg
-                                            finalQuantity = await _conversionService.ConvertPieceToKgAsync(componentId, pieceQuantity);
-                                            // Use component's UnitID (should be kg/gr for weight-based products)
-                                            finalUnitId = component.UnitID > 0 ? component.UnitID : 2; // Default to 2 if not set
-                                            calculationExplanation += $" → {finalQuantity:F2} kg (Weight: {component.Weight} kg/pc)";
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            calculationExplanation = 
-                                                $"Error converting to kg: {ex.Message}. Using original quantity: {requiredQty:F2}";
-                                        }
-                                    }
-                                    // If BOM unit is METER (5) and product requires cutting, convert to pieces
-                                    else if (requiresConversion && bomUnitId == 5)
-                                    {
-                                        try
-                                        {
-                                            finalQuantity = await _conversionService.ConvertMeterToPieceAsync(
-                                                componentId, requiredQty);
-                                            finalUnitId = 1; // Piece
-                                            calculationExplanation = 
-                                                $"{requiredQty:F2} m (BOM) × {productQty} (Product qty) = {requiredQty:F2} m → " +
-                                                $"Converted to {finalQuantity:F0} pcs using Length: {component.Length}mm";
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            calculationExplanation = 
-                                                $"Error converting: {ex.Message}. Using original quantity: {requiredQty:F2}";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        calculationExplanation = 
-                                            $"{bomQtyPerUnit:F2} (BOM qty) × {productQty} (Product qty) = {requiredQty:F2}";
-                                    }
-
-                                    // Aggregate quantities
-                                    if (componentRequirements.ContainsKey(componentId))
-                                    {
-                                        var existing = componentRequirements[componentId];
-                                        existing.RequiredQty += finalQuantity;
-                                        existing.CalculationExplanation += $"; {calculationExplanation}";
-                                    }
-                                    else
-                                    {
-                                        // Get estimated price from NORM_INPUT_LINES
-                                        decimal? estimatedPrice = await GetEstimatedPriceAsync(product.ID, componentId);
-
-                                        componentRequirements[componentId] = new RawMaterialRequirement
-                                        {
-                                            ComponentID = componentId,
-                                            ComponentPNo = component.PNo,
-                                            ComponentName = component.Name,
-                                            UnitID = finalUnitId,
-                                            RequiredQty = finalQuantity,
-                                            EstimatedPrice = estimatedPrice,
-                                            CalculationExplanation = calculationExplanation
-                                        };
-                                    }
-                                }
-                            }
-                        }
+                        continue;
                     }
+
+                    decimal lineQty = (decimal)sOrderProduct.Amount;
+                    if (lineQty <= 0)
+                    {
+                        continue;
+                    }
+
+                    var orderNo = string.IsNullOrWhiteSpace(sOrder.OrderNo)
+                        ? ("Sotuv №" + sOrder.ID)
+                        : sOrder.OrderNo.Trim();
+
+                    await ExplodeProductBomAsync(
+                        sOrderProduct.PRODUCT.ID,
+                        lineQty,
+                        componentRequirements,
+                        new HashSet<int>(),
+                        0,
+                        orderNo,
+                        sOrderProduct.PRODUCT.PNo ?? "",
+                        sOrderProduct.PRODUCT.Name ?? "",
+                        bomCache,
+                        productCache);
                 }
             }
 
@@ -188,12 +94,707 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Gets the latest active BOM header for a product
+        /// BOM ni portlash: varaqali xomashyolarni jamlash; FG bo'lsa va uning BOM'i bo'lsa — ichkariga kirish.
+        /// </summary>
+        private async Task ExplodeProductBomAsync(
+            int productId,
+            decimal demandQty,
+            Dictionary<int, RawMaterialRequirement> componentRequirements,
+            HashSet<int> recursionStack,
+            int depth,
+            string salesOrderNo,
+            string bomOwnerPNo,
+            string bomOwnerName,
+            Dictionary<int, BOM_HEADERS> bomCache,
+            Dictionary<int, PRODUCT> productCache)
+        {
+            if (demandQty <= 0 || depth > MaxBomDepth)
+            {
+                return;
+            }
+
+            if (recursionStack.Contains(productId))
+            {
+                return;
+            }
+
+            recursionStack.Add(productId);
+            try
+            {
+                var bomHeader = await GetLatestActiveBOMCachedAsync(productId, bomCache);
+                if (bomHeader?.BOM_LINES == null || !bomHeader.BOM_LINES.Any())
+                {
+                    return;
+                }
+                var bomVersionText = FormatBomVersionForUz(bomHeader);
+
+                foreach (var bomLine in bomHeader.BOM_LINES.OrderBy(l => l.ID))
+                {
+                    if (!bomLine.ComponentID.HasValue || !bomLine.Qty.HasValue || bomLine.Qty.Value <= 0)
+                    {
+                        continue;
+                    }
+
+                    int componentId = bomLine.ComponentID.Value;
+                    decimal scaledQty = bomLine.Qty.Value * demandQty;
+
+                    var component = await GetProductForExplosionAsync(componentId, productCache);
+
+                    if (component == null)
+                    {
+                        continue;
+                    }
+
+                    bool isFinishedGood = component.PRODUCT_CATEGORIES?.IsFinishedGood == true;
+                    if (isFinishedGood)
+                    {
+                        var subBom = await GetLatestActiveBOMCachedAsync(componentId, bomCache);
+                        if (subBom != null && subBom.BOM_LINES != null && subBom.BOM_LINES.Any())
+                        {
+                            await ExplodeProductBomAsync(
+                                componentId,
+                                scaledQty,
+                                componentRequirements,
+                                recursionStack,
+                                depth + 1,
+                                salesOrderNo,
+                                component.PNo ?? "",
+                                component.Name ?? "",
+                                bomCache,
+                                productCache);
+                        }
+                        continue;
+                    }
+
+                    bool isPurchasable = component.PRODUCT_CATEGORIES == null ||
+                                         component.PRODUCT_CATEGORIES.IsFinishedGood == false;
+
+                    if (!isPurchasable)
+                    {
+                        continue;
+                    }
+
+                    await AddPurchasedLeafAsync(
+                        component,
+                        bomLine,
+                        scaledQty,
+                        demandQty,
+                        componentRequirements,
+                        salesOrderNo,
+                        bomOwnerPNo,
+                        bomOwnerName,
+                        bomVersionText);
+                }
+            }
+            finally
+            {
+                recursionStack.Remove(productId);
+            }
+        }
+
+        private async Task<BOM_HEADERS> GetLatestActiveBOMCachedAsync(int productId, Dictionary<int, BOM_HEADERS> bomCache)
+        {
+            if (bomCache.TryGetValue(productId, out var cached))
+            {
+                return cached;
+            }
+
+            var bom = await GetLatestActiveBOMAsync(productId);
+            bomCache[productId] = bom;
+            return bom;
+        }
+
+        private async Task<PRODUCT> GetProductForExplosionAsync(int productId, Dictionary<int, PRODUCT> productCache)
+        {
+            if (productCache.TryGetValue(productId, out var cached))
+            {
+                return cached;
+            }
+
+            var product = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .FirstOrDefaultAsync(p => p.ID == productId && p.IsDeleted != true);
+
+            productCache[productId] = product;
+            return product;
+        }
+
+        /// <summary>
+        /// Buy# = sotuv buyurtma raqami (raqamlar); Mx = xomashyo PNo; Ts = tayyor mahsulot (BOM egasi) PNo;
+        /// S = soni (kerak miqdor), N = norma (BOM 1 dona uchun), S*N=R (BOM qatori), F = yakun (xarid birligi).
+        /// Qator generatsiya paytida 50 belgidan oshmaydi (uzun matnning boshini DB ga yozib kesish emas).
+        /// </summary>
+        private static string BuildCompactPriorityLine50(
+            string salesOrderRef,
+            string materialPNo,
+            string fgPNo,
+            string bomVersionText,
+            decimal norma,
+            decimal soni,
+            decimal rBom,
+            decimal finalQty,
+            string finalUnitName)
+        {
+            var buy = ExtractBuyDigits(salesOrderRef);
+            var u = AbbrevUnit(finalUnitName);
+
+            for (var mxLen = 10; mxLen >= 3; mxLen--)
+            {
+                var mx = SanitizePNo(materialPNo, mxLen);
+                var ts = SanitizePNo(fgPNo, Math.Min(8, mxLen + 2));
+                var vRaw = string.IsNullOrWhiteSpace(bomVersionText) ? "" : bomVersionText.Replace("—", "-").Trim();
+                var v = string.IsNullOrEmpty(vRaw) ? "" : SanitizePNo(vRaw, Math.Min(8, mxLen + 1));
+
+                for (var numCap = 12; numCap >= 3; numCap--)
+                {
+                    var S = FormatQtyForLine(soni, numCap);
+                    var N = FormatQtyForLine(norma, numCap);
+                    var R = FormatQtyForLine(rBom, numCap);
+                    var F = FormatQtyForLine(finalQty, numCap);
+
+                    var candidates = new[]
+                    {
+                        $"Buy#{buy};Mx:{mx};Ts:{ts};v:{v};S:{S};N:{N};{S}*{N}={R};F:{F}{u}",
+                        $"Buy#{buy};Mx:{mx};Ts:{ts};{S}*{N}={R};F:{F}{u}",
+                        $"Buy#{buy};Mx:{mx};Ts:{ts};v:{v};{S}*{N}={R}",
+                        $"Buy#{buy};Mx:{mx};{S}*{N}={R};F:{F}{u}",
+                        $"Buy#{buy};Mx:{mx};{S}*{N}={R}",
+                        $"Mx:{mx};Ts:{ts};v:{v};{S}*{N}={R};F:{F}{u}",
+                        $"Mx:{mx};Ts:{ts};{S}*{N}={R};F:{F}{u}",
+                        $"Mx:{mx};{S}*{N}={R};F:{F}{u}",
+                        $"Mx:{mx};{S}*{N}={R}",
+                        $"Mx:{mx};F:{F}{u}",
+                        $"B:{buy};M:{mx};{S}*{N}={R};F:{F}{u}",
+                        $"M:{mx};{S}*{N}={R};F:{F}{u}"
+                    };
+
+                    foreach (var c in candidates)
+                    {
+                        if (c.Length <= 50)
+                        {
+                            return c;
+                        }
+                    }
+                }
+            }
+
+            var mxMin = SanitizePNo(materialPNo, 3);
+            var fMin = FormatQtyForLine(finalQty, 8);
+            var tail = $"M:{mxMin};F:{fMin}{u}";
+            return tail.Length <= 50 ? tail : $"M:{mxMin};F:{fMin}";
+        }
+
+        /// <summary> Raqamni qatorga joylash uchun qisqartiradi; uzun tushuntirish o‘rniga kompakt ko‘rinish. </summary>
+        private static string FormatQtyForLine(decimal d, int maxLen)
+        {
+            if (maxLen < 1)
+            {
+                return "?";
+            }
+
+            var s = FormatQtyShort(d);
+            if (s.Length <= maxLen)
+            {
+                return s;
+            }
+
+            s = d.ToString("0.##", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+            if (s.Length <= maxLen)
+            {
+                return s;
+            }
+
+            s = d.ToString("G2", CultureInfo.InvariantCulture);
+            if (s.Length <= maxLen)
+            {
+                return s;
+            }
+
+            s = ((double)d).ToString("E1", CultureInfo.InvariantCulture);
+            return s.Length <= maxLen ? s : s.Substring(0, maxLen);
+        }
+
+        private static string ExtractBuyDigits(string orderRef)
+        {
+            if (string.IsNullOrWhiteSpace(orderRef))
+            {
+                return "?";
+            }
+
+            var digits = new string(orderRef.Where(char.IsDigit).ToArray());
+            if (digits.Length == 0)
+            {
+                var t = orderRef.Trim();
+                return t.Length <= 6 ? t : t.Substring(0, 6);
+            }
+
+            return digits.Length <= 6 ? digits : digits.Substring(digits.Length - 6);
+        }
+
+        private static string SanitizePNo(string pno, int maxLen)
+        {
+            if (string.IsNullOrWhiteSpace(pno))
+            {
+                return "?";
+            }
+
+            var t = pno.Trim().Replace(" ", "");
+            return t.Length <= maxLen ? t : t.Substring(0, maxLen);
+        }
+
+        private static string FormatQtyShort(decimal d)
+        {
+            var x = (double)d;
+            if (Math.Abs(x - Math.Round(x, 4)) < 0.0000001)
+            {
+                return ((long)Math.Round(x)).ToString(CultureInfo.InvariantCulture);
+            }
+
+            var s = d.ToString("0.####", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+            return s.Length > 12 ? d.ToString("G4", CultureInfo.InvariantCulture) : s;
+        }
+
+        private static string AbbrevUnit(string unitName)
+        {
+            if (string.IsNullOrWhiteSpace(unitName))
+            {
+                return "";
+            }
+
+            var u = unitName.Trim();
+            return u.Length <= 3 ? u : u.Substring(0, 3);
+        }
+
+        private static string CombineCompactPriority50(string existing, string addition)
+        {
+            if (string.IsNullOrWhiteSpace(addition))
+            {
+                return existing ?? "";
+            }
+
+            if (string.IsNullOrWhiteSpace(existing))
+            {
+                return addition.Length <= 50 ? addition : BuildCompactFromAdditionOnly(addition);
+            }
+
+            var a = existing.Trim();
+            var b = addition.Trim();
+            if (a == b)
+            {
+                return a;
+            }
+
+            var mergedBuy = TryMergeSameRestAfterBuy(a, b);
+            if (!string.IsNullOrEmpty(mergedBuy) && mergedBuy.Length <= 50)
+            {
+                return mergedBuy;
+            }
+
+            var x = a + "|" + b;
+            if (x.Length <= 50)
+            {
+                return x;
+            }
+
+            if (!string.IsNullOrEmpty(mergedBuy))
+            {
+                return mergedBuy.Length <= 50 ? mergedBuy : PickShorterSingleLine(a, b);
+            }
+
+            return PickShorterSingleLine(a, b);
+        }
+
+        /// <summary> Bir xil qolgan qism bo‘lsa, faqat Buy# raqamlarini birlashtiradi (matn boshini kesmaydi). </summary>
+        private static string TryMergeSameRestAfterBuy(string a, string b)
+        {
+            var ia = a.IndexOf(';');
+            var ib = b.IndexOf(';');
+            if (ia < 0 || ib < 0)
+            {
+                return null;
+            }
+
+            var restA = a.Substring(ia + 1);
+            var restB = b.Substring(ib + 1);
+            if (!string.Equals(restA, restB, StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            var buyA = ExtractBuyToken(a.Substring(0, ia));
+            var buyB = ExtractBuyToken(b.Substring(0, ib));
+            if (buyA == null || buyB == null)
+            {
+                return null;
+            }
+
+            if (buyA == buyB)
+            {
+                return a;
+            }
+
+            return $"Buy#{buyA},{buyB};{restA}";
+        }
+
+        private static string ExtractBuyToken(string buySegment)
+        {
+            var t = buySegment.Trim();
+            if (t.StartsWith("Buy#", StringComparison.OrdinalIgnoreCase))
+            {
+                return t.Substring(4).Trim();
+            }
+
+            if (t.StartsWith("B:", StringComparison.OrdinalIgnoreCase))
+            {
+                return t.Substring(2).Trim();
+            }
+
+            return null;
+        }
+
+        private static string PickShorterSingleLine(string a, string b)
+        {
+            if (a.Length <= 50 && b.Length <= 50)
+            {
+                return a.Length <= b.Length ? a : b;
+            }
+
+            if (a.Length <= 50)
+            {
+                return a;
+            }
+
+            if (b.Length <= 50)
+            {
+                return b;
+            }
+
+            var ca = BuildCompactFromAdditionOnly(a);
+            var cb = BuildCompactFromAdditionOnly(b);
+            if (ca.Length <= 50 && cb.Length <= 50)
+            {
+                return ca.Length >= cb.Length ? ca : cb;
+            }
+
+            if (ca.Length <= 50)
+            {
+                return ca;
+            }
+
+            if (cb.Length <= 50)
+            {
+                return cb;
+            }
+
+            return ca.Length <= cb.Length ? ca : cb;
+        }
+
+        /// <summary> Eski/uzun qatorni Mx/F bo‘yicha qayta jamlaydi; umumiy matn boshini 50 belgi qilib kesmaydi. </summary>
+        private static string BuildCompactFromAdditionOnly(string addition)
+        {
+            var mx = TryExtractMx(addition);
+            var fv = TryExtractF(addition);
+            if (!string.IsNullOrEmpty(mx) && !string.IsNullOrEmpty(fv))
+            {
+                var u = AbbrevUnit(StripLeadingNumber(fv));
+                var numPart = ExtractLeadingDecimal(fv);
+                if (!string.IsNullOrEmpty(numPart) && decimal.TryParse(numPart, NumberStyles.Any, CultureInfo.InvariantCulture, out var fd))
+                {
+                    var f = FormatQtyForLine(fd, 10);
+                    var tail = $"M:{SanitizePNo(mx, 10)};F:{f}{u}";
+                    if (tail.Length <= 50)
+                    {
+                        return tail;
+                    }
+
+                    tail = $"M:{SanitizePNo(mx, 4)};F:{FormatQtyForLine(fd, 6)}{u}";
+                    if (tail.Length <= 50)
+                    {
+                        return tail;
+                    }
+                }
+            }
+
+            return "M:?;F:?";
+        }
+
+        private static string StripLeadingNumber(string fv)
+        {
+            var i = 0;
+            while (i < fv.Length && (char.IsDigit(fv[i]) || fv[i] == '.' || fv[i] == '-' || fv[i] == 'e' || fv[i] == 'E' || fv[i] == '+'))
+            {
+                i++;
+            }
+
+            return i < fv.Length ? fv.Substring(i).Trim() : "";
+        }
+
+        private static string ExtractLeadingDecimal(string fv)
+        {
+            var i = 0;
+            while (i < fv.Length && (char.IsDigit(fv[i]) || fv[i] == '.' || fv[i] == '-' || fv[i] == 'e' || fv[i] == 'E' || fv[i] == '+'))
+            {
+                i++;
+            }
+
+            return i > 0 ? fv.Substring(0, i) : "";
+        }
+
+        private static string TryExtractMx(string s)
+        {
+            var idx = s.IndexOf("Mx:", StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+            {
+                idx = s.IndexOf("M:", StringComparison.OrdinalIgnoreCase);
+                if (idx < 0)
+                {
+                    return null;
+                }
+
+                return ExtractUntilSemicolon(s, idx + 2);
+            }
+
+            return ExtractUntilSemicolon(s, idx + 3);
+        }
+
+        private static string ExtractUntilSemicolon(string s, int start)
+        {
+            var end = s.IndexOf(';', start);
+            return end < 0 ? s.Substring(start).Trim() : s.Substring(start, end - start).Trim();
+        }
+
+        private static string TryExtractF(string s)
+        {
+            var idx = s.IndexOf("F:", StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+            {
+                return null;
+            }
+
+            var tail = s.Substring(idx + 2);
+            var end = tail.IndexOfAny(new[] { ';', '|' });
+            return end < 0 ? tail.Trim() : tail.Substring(0, end).Trim();
+        }
+
+        private static string FormatBomVersionForUz(BOM_HEADERS bomHeader)
+        {
+            if (bomHeader == null)
+            {
+                return "noma'lum";
+            }
+
+            if (!string.IsNullOrWhiteSpace(bomHeader.VersionNo))
+            {
+                var raw = bomHeader.VersionNo.Trim();
+                var parts = raw.Split('-');
+                if (parts.Length >= 2 &&
+                    int.TryParse(parts[0], out var y) &&
+                    int.TryParse(parts[1], out var m))
+                {
+                    return y + "-" + m;
+                }
+
+                return raw;
+            }
+
+            var dt = bomHeader.CreatedAt ?? DateTime.Now;
+            return dt.Year + "-" + dt.Month;
+        }
+
+        private async Task<string> GetUnitShortNameAsync(int unitId)
+        {
+            if (unitId <= 0)
+            {
+                return "?";
+            }
+
+            var u = await _db.UNITS.AsNoTracking().FirstOrDefaultAsync(x => x.ID == unitId);
+            return u?.ShortName ?? u?.UnitName ?? ("ID " + unitId);
+        }
+
+        /// <summary>
+        /// Konvertatsiya xatosi bo'lsa — mahsulot kartasidagi asosiy birlik (bo'sh bo'lsa 1 = dona).
+        /// </summary>
+        private static int GetProductDefaultUnitId(PRODUCT component)
+        {
+            if (component != null && component.UnitID > 0)
+            {
+                return component.UnitID;
+            }
+
+            return 1;
+        }
+
+        private async Task AddPurchasedLeafAsync(
+            PRODUCT component,
+            BOM_LINES bomLine,
+            decimal requiredQty,
+            decimal parentProductQtyForExplanation,
+            Dictionary<int, RawMaterialRequirement> componentRequirements,
+            string salesOrderNo,
+            string bomOwnerPNo,
+            string bomOwnerName,
+            string bomVersionText)
+        {
+            _ = bomOwnerName;
+            int componentId = component.ID;
+            decimal bomQtyPerUnit = bomLine.Qty ?? 0;
+            int bomUnitId = bomLine.UnitID ?? component.UnitID;
+
+            var orderLine = string.IsNullOrWhiteSpace(salesOrderNo) ? "—" : salesOrderNo.Trim();
+            var fgPnRaw = (bomOwnerPNo ?? "").Trim();
+
+            bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(componentId);
+            bool requiresConversion = await _conversionService.RequiresCuttingAsync(componentId);
+
+            int productDefaultUnitId = GetProductDefaultUnitId(component);
+
+            decimal finalQuantity = requiredQty;
+            int finalUnitId = bomUnitId;
+
+            if (calculateByWeight)
+            {
+                decimal pieceQuantity = requiredQty;
+                try
+                {
+                    if (requiresConversion && bomUnitId == 5)
+                    {
+                        pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(componentId, requiredQty);
+                    }
+
+                    finalQuantity = await _conversionService.ConvertPieceToKgAsync(componentId, pieceQuantity);
+                    finalUnitId = component.UnitID > 0 ? component.UnitID : 2;
+                }
+                catch (Exception)
+                {
+                    finalQuantity = pieceQuantity;
+                    finalUnitId = productDefaultUnitId;
+                }
+            }
+            else if (requiresConversion && bomUnitId == 5)
+            {
+                try
+                {
+                    finalQuantity = await _conversionService.ConvertMeterToPieceAsync(componentId, requiredQty);
+                    finalUnitId = 1;
+                }
+                catch (Exception)
+                {
+                    finalQuantity = requiredQty;
+                    finalUnitId = productDefaultUnitId;
+                }
+            }
+
+            int stockUnitId = component.UnitID > 0 ? component.UnitID : finalUnitId;
+            if (stockUnitId > 0 && finalUnitId > 0 && stockUnitId != finalUnitId)
+            {
+                var qtyBeforeStock = finalQuantity;
+                try
+                {
+                    finalQuantity = await _conversionService.ConvertToUnitAsync(
+                        componentId,
+                        finalQuantity,
+                        finalUnitId,
+                        stockUnitId);
+                    finalUnitId = stockUnitId;
+                }
+                catch (Exception)
+                {
+                    finalQuantity = qtyBeforeStock;
+                    finalUnitId = productDefaultUnitId;
+                }
+            }
+
+            if (componentRequirements.ContainsKey(componentId))
+            {
+                var existing = componentRequirements[componentId];
+                if (existing.UnitID != finalUnitId)
+                {
+                    try
+                    {
+                        var merged = await _conversionService.ConvertToUnitAsync(
+                            componentId,
+                            finalQuantity,
+                            finalUnitId,
+                            existing.UnitID);
+                        finalQuantity = merged;
+                        finalUnitId = existing.UnitID;
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            var merged = await _conversionService.ConvertToUnitAsync(
+                                componentId,
+                                requiredQty,
+                                productDefaultUnitId,
+                                existing.UnitID);
+                            finalQuantity = merged;
+                            finalUnitId = existing.UnitID;
+                        }
+                        catch (Exception)
+                        {
+                            if (existing.UnitID != finalUnitId)
+                            {
+                                finalUnitId = existing.UnitID;
+                                finalQuantity = requiredQty;
+                            }
+                        }
+                    }
+                }
+
+                var finalUnitName = await GetUnitShortNameAsync(finalUnitId);
+                var compactLine = BuildCompactPriorityLine50(
+                    orderLine,
+                    component.PNo,
+                    fgPnRaw,
+                    bomVersionText,
+                    bomQtyPerUnit,
+                    parentProductQtyForExplanation,
+                    requiredQty,
+                    finalQuantity,
+                    finalUnitName);
+
+                existing.RequiredQty += finalQuantity;
+                existing.CalculationExplanation = CombineCompactPriority50(existing.CalculationExplanation, compactLine);
+                existing.CalculationSummary = CombineCompactPriority50(existing.CalculationSummary, compactLine);
+            }
+            else
+            {
+                var finalUnitName = await GetUnitShortNameAsync(finalUnitId);
+                var compactLine = BuildCompactPriorityLine50(
+                    orderLine,
+                    component.PNo,
+                    fgPnRaw,
+                    bomVersionText,
+                    bomQtyPerUnit,
+                    parentProductQtyForExplanation,
+                    requiredQty,
+                    finalQuantity,
+                    finalUnitName);
+
+                decimal? estimatedPrice = await GetEstimatedPriceAsync(componentId, finalUnitId);
+
+                componentRequirements[componentId] = new RawMaterialRequirement
+                {
+                    ComponentID = componentId,
+                    ComponentPNo = component.PNo,
+                    ComponentName = component.Name,
+                    UnitID = finalUnitId,
+                    RequiredQty = finalQuantity,
+                    EstimatedPrice = estimatedPrice,
+                    CalculationExplanation = compactLine,
+                    CalculationSummary = compactLine
+                };
+            }
+        }
+
+        /// <summary>
+        /// Eng mos BOM: barcha faol yozuvlar ichidan VersionNo (oy/yil) va CreatedAt bo'yicha eng yangisi.
+        /// VersionNo bo'sh bo'lsa ham CreatedAt bilan tanlanadi (oldingi logikada faqat VersionNo bo'lganlar tanlanib, yangi yozuv e'tiborsiz qolardi).
         /// </summary>
         private async Task<BOM_HEADERS> GetLatestActiveBOMAsync(int productId)
         {
-            // Get BOM headers - IsActive can be null, true, or false
-            // Consider active if IsActive == true OR IsActive == null (treat null as active)
             var bomHeaders = await _db.BOM_HEADERS
                 .Include(b => b.BOM_LINES)
                 .Include(b => b.BOM_LINES.Select(bl => bl.PRODUCT))
@@ -206,42 +807,115 @@ namespace tahsinERP.Services
                 return null;
             }
 
-            // Sort by VersionNo as date (YYYY-MM format) descending, then by CreatedAt
-            var sortedBomHeaders = bomHeaders
-                .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
-                .OrderByDescending(bh =>
-                {
-                    string versionNo = bh.VersionNo.Trim();
-                    if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, 
-                        System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
-                    {
-                        return parsedDate;
-                    }
-                    var parts = versionNo.Split('-');
-                    if (parts.Length >= 2 && 
-                        int.TryParse(parts[0], out int year) && 
-                        int.TryParse(parts[1], out int month))
-                    {
-                        if (month >= 1 && month <= 12 && year > 1900 && year < 2100)
-                        {
-                            return new DateTime(year, month, 1);
-                        }
-                    }
-                    return DateTime.MinValue;
-                })
-                .ThenByDescending(bh => bh.CreatedAt)
+            return bomHeaders
+                .OrderByDescending(bh => GetBomSortKey(bh))
+                .ThenByDescending(bh => bh.CreatedAt ?? DateTime.MinValue)
+                .ThenByDescending(bh => bh.ID)
                 .FirstOrDefault();
+        }
 
-            return sortedBomHeaders ?? bomHeaders.OrderByDescending(bh => bh.CreatedAt).FirstOrDefault();
+        private static DateTime GetBomSortKey(BOM_HEADERS bh)
+        {
+            var fromVersion = TryParseBomVersionDate(bh?.VersionNo);
+            if (fromVersion.HasValue)
+            {
+                return fromVersion.Value;
+            }
+
+            return bh?.CreatedAt ?? DateTime.MinValue;
+        }
+
+        private static DateTime? TryParseBomVersionDate(string versionNo)
+        {
+            if (string.IsNullOrWhiteSpace(versionNo))
+            {
+                return null;
+            }
+
+            versionNo = versionNo.Trim();
+
+            if (DateTime.TryParseExact(versionNo, "yyyy-MM", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out DateTime ym))
+            {
+                return ym;
+            }
+
+            if (DateTime.TryParseExact(versionNo, "yyyy-MM-dd", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out DateTime ymd))
+            {
+                return ymd;
+            }
+
+            var parts = versionNo.Split('-');
+            if (parts.Length >= 2 &&
+                int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int year) &&
+                int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int month) &&
+                month >= 1 && month <= 12 && year > 1900 && year < 2100)
+            {
+                return new DateTime(year, month, 1);
+            }
+
+            return null;
         }
 
         /// <summary>
-        /// Gets estimated price from NORM_INPUT_LINES
+        /// Narx: avvalo qabul qilingan kirim narxi (material), keyin eng yangi norma (material bo'yicha, bir nechta FG dan yig'ilgan buyurtmada ham bir xil).
         /// </summary>
-        private async Task<decimal?> GetEstimatedPriceAsync(int finishedGoodId, int materialId)
+        private async Task<decimal?> GetEstimatedPriceAsync(int materialId, int targetUnitId)
         {
+            var latestIncomeProduct = await _db.INCOME_PRODUCTS
+                .Include(ip => ip.INCOME)
+                .Where(ip => ip.ProductID == materialId
+                    && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
+                    && ip.INCOME.RecieveStatus == true
+                    && ip.Amount > 0)
+                .OrderByDescending(ip => ip.INCOME.IssueDateTime)
+                .FirstOrDefaultAsync();
+
+            if (latestIncomeProduct != null)
+            {
+                decimal sourcePrice = 0m;
+                if (latestIncomeProduct.PiecePrice.HasValue && latestIncomeProduct.PiecePrice.Value > 0)
+                {
+                    sourcePrice = (decimal)latestIncomeProduct.PiecePrice.Value;
+                }
+                else if (latestIncomeProduct.TotalPrice.HasValue && latestIncomeProduct.TotalPrice.Value > 0 && latestIncomeProduct.Amount > 0)
+                {
+                    sourcePrice = (decimal)(latestIncomeProduct.TotalPrice.Value / latestIncomeProduct.Amount);
+                }
+
+                if (sourcePrice > 0)
+                {
+                    var sourceUnitId = latestIncomeProduct.UnitID;
+                    if (sourceUnitId == targetUnitId)
+                    {
+                        return sourcePrice;
+                    }
+
+                    try
+                    {
+                        var qtyInSourceForOneTarget = await _conversionService.ConvertToUnitAsync(
+                            materialId,
+                            1m,
+                            targetUnitId,
+                            sourceUnitId);
+
+                        if (qtyInSourceForOneTarget > 0)
+                        {
+                            return sourcePrice * qtyInSourceForOneTarget;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+                    return sourcePrice;
+                }
+            }
+
             var normLine = await _db.NORM_INPUT_LINES
-                .Where(n => n.ProductID == finishedGoodId && n.MaterialID == materialId)
+                .Where(n => n.MaterialID == materialId)
                 .OrderByDescending(n => n.CreatedDT)
                 .FirstOrDefaultAsync();
 
@@ -262,8 +936,11 @@ namespace tahsinERP.Services
         public decimal? EstimatedPrice { get; set; }
         public string CalculationExplanation { get; set; }
 
-        public decimal? EstimatedAmount => EstimatedPrice.HasValue 
-            ? RequiredQty * EstimatedPrice.Value 
+        /// <summary> P_ORDER_PRODUCTS.Priority (max 50) uchun qisqa matn. </summary>
+        public string CalculationSummary { get; set; }
+
+        public decimal? EstimatedAmount => EstimatedPrice.HasValue
+            ? RequiredQty * EstimatedPrice.Value
             : (decimal?)null;
     }
 }

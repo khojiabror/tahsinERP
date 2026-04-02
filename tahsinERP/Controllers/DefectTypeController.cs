@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -145,6 +146,7 @@ namespace tahsinERP.Controllers
                         {
                             try
                             {
+                                SoftDeleteReferenceService.AfterDefectTypeSoftDeletedAsync(db, Defect_type_delete.ID).ConfigureAwait(false).GetAwaiter().GetResult();
                                 db.SaveChanges();
 
                                 var userEmail = User.Identity.Name;

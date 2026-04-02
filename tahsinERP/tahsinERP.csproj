@@ -498,6 +498,7 @@
     <Compile Include="Controllers\Finance\FinDashboardController.cs" />
     <Compile Include="Controllers\Finance\FinPlItemsController.cs" />
     <Compile Include="Controllers\Finance\FinPlPlansController.cs" />
+    <Compile Include="Controllers\Finance\FinRecurringObligationsController.cs" />
     <Compile Include="Controllers\Finance\FinTransactionsController.cs" />
     <Compile Include="Controllers\Finance\OpeningBalanceController.cs" />
     <Compile Include="Controllers\Finance\ShareholderController.cs" />
@@ -512,6 +513,7 @@
     <Compile Include="Controllers\HR\HrSalaryGradesController.cs" />
     <Compile Include="Controllers\HR\HrStaffingPlanController.cs" />
     <Compile Include="Controllers\HR\HrTimesheetsController.cs" />
+    <Compile Include="Controllers\HR\KoreshokController.cs" />
     <Compile Include="Controllers\JobDescController.cs" />
     <Compile Include="Controllers\Logistic\LogisticsDashboardController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
@@ -942,6 +944,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Models\RoleHelper.cs" />
     <Compile Include="Models\USER_ENTRIES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
@@ -990,6 +993,7 @@
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\ReconciliationService.cs" />
+    <Compile Include="Services\ReconciliationAdjustmentService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
@@ -1001,12 +1005,14 @@
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
     <Compile Include="Services\TannarxAnalyticsService.cs" />
+    <Compile Include="Services\SoftDeleteReferenceService.cs" />
     <Compile Include="Services\TannarxService.cs" />
     <Compile Include="Services\TextSuggestionService.cs" />
     <Compile Include="Services\TransportLoadCalculator.cs" />
     <Compile Include="Services\UnitConversionService.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
+    <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
@@ -1026,6 +1032,8 @@
     <Compile Include="ViewModels\DiagnosisViewModels.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\Finance\OpeningBalanceViewModel.cs" />
+    <Compile Include="ViewModels\HR\HrPieceRateGridEntryViewModel.cs" />
+    <Compile Include="ViewModels\HR\KoreshokViewModel.cs" />
     <Compile Include="ViewModels\InventoryAdjustmentViewModel.cs" />
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
@@ -1058,12 +1066,12 @@
     <Compile Include="ViewModels\ProductNormViewModel.cs" />
     <Compile Include="ViewModels\ProductPlanDailyViewModel.cs" />
     <Compile Include="ViewModels\ProductPlanViewModel.cs" />
-    <Compile Include="ViewModels\ProductProductionDetailsViewModel.cs" />
     <Compile Include="ViewModels\ProductProductionViewModel.cs" />
     <Compile Include="ViewModels\ProductProductionDetailsViewModel.cs" />
     <Compile Include="ViewModels\ProformaInvoiceViewModel.cs" />
     <Compile Include="ViewModels\QualityInspectionViewModel.cs" />
     <Compile Include="ViewModels\ReconciliationViewModel.cs" />
+    <Compile Include="ViewModels\ReconciliationAdjustmentEditViewModel.cs" />
     <Compile Include="ViewModels\Reports\SRMABCSegmentationViewModel.cs" />
     <Compile Include="ViewModels\Reports\SRMCoverageViewModel.cs" />
     <Compile Include="ViewModels\Reports\SRMSafetyStockViewModel.cs" />
@@ -1094,6 +1102,7 @@
     <Compile Include="ViewModels\TransportSelectItem.cs" />
     <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
+    <Compile Include="ViewModels\LogisticsMonthlyReportViewModel.cs" />
     <Compile Include="ViewModels\WarehouseMonthlyReportViewModel.cs" />
     <Compile Include="ViewModels\WaybillCreateViewModel.cs" />
     <Compile Include="ViewModels\WaybillPaymentLinkedWaybillViewModel.cs" />
@@ -2863,6 +2872,8 @@
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include="app-assets\js\scripts\pdfMake\html2pdf.bundle.min.js" />
     <Content Include="assets\manual\images\.DS_Store" />
+    <Content Include="App_Data\Templates\CompanyStandardTemplate.docx" />
+    <Content Include="App_Data\Templates\JobDescriptionTemplate.docx" />
     <EntityDeploy Include="Models\DBTHSNModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>DBTHSNModel.Designer.cs</LastGenOutput>
@@ -2870,8 +2881,6 @@
     <Content Include="Models\DBTHSNModel.edmx.diagram">
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Content>
-    <Content Include="App_Data\Templates\CompanyStandardTemplate.docx" />
-    <Content Include="App_Data\Templates\JobDescriptionTemplate.docx" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\device-identifier.js" />
     <Content Include="Scripts\flatpickr.js" />
@@ -3053,6 +3062,7 @@
     <Content Include="Views\SalesSF\Index.cshtml" />
     <Content Include="Views\SalesInvoices\Create.cshtml" />
     <Content Include="Views\SalesInvoices\CreateFromOrder.cshtml" />
+    <Content Include="Views\SalesInvoices\Delete.cshtml" />
     <Content Include="Views\SalesInvoices\Details.cshtml" />
     <Content Include="Views\SalesInvoices\Edit.cshtml" />
     <Content Include="Views\SalesInvoices\Index.cshtml" />
@@ -3076,6 +3086,8 @@
     <Content Include="Views\Expenses\Edit.cshtml" />
     <Content Include="Views\Expenses\Index.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheet.cshtml" />
+    <Content Include="Views\FinDashboard\BalanceSheetAssetDetails.cshtml" />
+    <Content Include="Views\FinDashboard\BalanceSheetLiabilityDetails.cshtml" />
     <Content Include="Views\FinDashboard\Cashflow.cshtml" />
     <Content Include="Views\FinDashboard\PL.cshtml" />
     <Content Include="Views\FinDashboard\ShareholderValue.cshtml" />
@@ -3178,10 +3190,12 @@
     <Content Include="Views\Inventory\AdjustResult.cshtml" />
     <Content Include="Views\InventoryReports\Dashboard.cshtml" />
     <Content Include="Views\LogisticsDashboard\Index.cshtml" />
+    <Content Include="Views\LogisticsDashboard\MonthlyReport.cshtml" />
     <Content Include="Views\LogisticsDashboard\LanePerformance.cshtml" />
     <Content Include="Views\LogisticsDashboard\Reconciliation.cshtml" />
     <Content Include="Views\SRMDashboard\Index.cshtml" />
     <Content Include="Views\Reconciliation\AktSverki.cshtml" />
+    <Content Include="Views\Reconciliation\EditAdjustment.cshtml" />
     <Content Include="Views\LogisticsDashboard\ForwarderComparison.cshtml" />
     <Content Include="Views\MESDashboard\Dashboard.cshtml" />
     <Content Include="Views\OfficialLetters\Create.cshtml" />
@@ -3315,6 +3329,15 @@
     <Content Include="Views\Diagnosis\Index.cshtml" />
     <Content Include="Views\DiagnosisSettings\Index.cshtml" />
     <Content Include="Views\OpeningBalance\Index.cshtml" />
+    <Content Include="Views\FinRecurringObligations\Create.cshtml" />
+    <Content Include="Views\FinRecurringObligations\Edit.cshtml" />
+    <Content Include="Views\FinRecurringObligations\Index.cshtml" />
+    <Content Include="Views\HrTimesheets\Details.cshtml" />
+    <Content Include="Views\HrPieceRateTimesheets\GridCreate.cshtml" />
+    <Content Include="Views\HrPieceRateTimesheets\GridEdit.cshtml" />
+    <Content Include="Views\HrPieceRateTimesheets\Grids.cshtml" />
+    <Content Include="Views\Koreshok\Index.cshtml" />
+    <Content Include="Views\Koreshok\Result.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

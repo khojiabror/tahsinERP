@@ -1,4 +1,5 @@
 @model tahsinERP.Models.P_ORDERS
+@using System.Collections.Generic
 @{
     ViewBag.Title = "Buyurtma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -113,6 +114,19 @@
 
                                     <hr />
 
+                                    @{
+                                        var bomVersionNotes = ViewBag.BomVersionNotes as List<string>;
+                                    }
+                                    @if (bomVersionNotes != null && bomVersionNotes.Any())
+                                    {
+                                        <div class="alert alert-info mb-2">
+                                            @foreach (var note in bomVersionNotes)
+                                            {
+                                                <div>@note</div>
+                                            }
+                                        </div>
+                                    }
+
                                     <h5>Buyurtma mahsulotlari</h5>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
@@ -125,6 +139,7 @@
                                                     <th>Narx</th>
                                                     <th>Jami</th>
                                                     <th>MOQ</th>
+                                                    <th>Hisob tushuntirishi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -140,13 +155,14 @@
                                                             <td>@product.Price.ToString("N2")</td>
                                                             <td>@product.TotalPrice.ToString("N2")</td>
                                                             <td>@(product.MOQ?.ToString("N2") ?? "-")</td>
+                                                            <td class="align-top small">@(string.IsNullOrWhiteSpace(product.Priority) ? "—" : product.Priority)</td>
                                                         </tr>
                                                     }
                                                 }
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="7" class="text-center">Mahsulotlar topilmadi</td>
+                                                        <td colspan="8" class="text-center">Mahsulotlar topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>

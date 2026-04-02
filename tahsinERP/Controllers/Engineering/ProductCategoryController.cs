@@ -5,6 +5,7 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using System.Data.Entity;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -257,6 +258,7 @@ namespace tahsinERP.Controllers
                     category.UpdatedDT = DateTime.Now;
 
                     db.Entry(category).State = EntityState.Modified;
+                    SoftDeleteReferenceService.AfterProductCategorySoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "ProductCategoryController",

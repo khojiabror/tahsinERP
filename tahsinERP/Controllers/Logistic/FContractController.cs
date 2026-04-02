@@ -12,13 +12,14 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.UI.WebControls;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
     public class FContractController : Controller
     {
         // Olish so'rovi: FContract
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(int? forwarderID)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -26,12 +27,18 @@ namespace tahsinERP.Controllers
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = await db.F_CONTRACTS
+                var q = db.F_CONTRACTS
                     .Include(fc => fc.FORWARDER)
                     .Include(fc => fc.CURRENCy)
-                    .Where(fc => fc.IsDeleted == false)
-                    .ToListAsync();
+                    .Where(fc => fc.IsDeleted == false);
 
+                if (forwarderID.HasValue && forwarderID.Value > 0)
+                {
+                    q = q.Where(fc => fc.ForwarderID == forwarderID.Value);
+                }
+
+                var list = await q.ToListAsync();
+                ViewBag.ForwarderID = forwarderID;
                 return View(list);
             }
         }
@@ -247,6 +254,7 @@ namespace tahsinERP.Controllers
                         try
                         {
                             db.Entry(contractToDelete).State = EntityState.Modified;
+                            await SoftDeleteReferenceService.AfterFContractSoftDeletedAsync(db, contractToDelete.ID);
                             await db.SaveChangesAsync();
 
                             var userEmail = User.Identity.Name;

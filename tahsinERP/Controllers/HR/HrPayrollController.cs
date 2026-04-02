@@ -195,71 +195,7 @@ namespace tahsinERP.Controllers.HR
 
                 if (payrollType == "PieceRate")
                 {
-                    // Olish approved timesheets uchun this month
-                    var approvedTimesheets = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
-                        .Include(a => a.HR_ORG_UNITS)
-                        .Where(a => a.Year == year && a.Month == month && 
-                            a.Status == "Approved" && 
-                            a.IsDeleted == false &&
-                            (orgUnitId == null ? true : a.OrgUnitID == orgUnitId.Value))
-                        .OrderBy(a => a.HR_ORG_UNITS.Name)
-                        .ToListAsync();
-
-                    // Olish piece-rate work entries grouped bo'yicha year, month, va org unit
-                    var startDate = new DateTime(year, month, 1);
-                    var endDate = startDate.AddMonths(1).AddDays(-1);
-
-                    IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
-                        .Include(e => e.HR_EMPLOYEES)
-                        .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
-                        .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
-
-                    if (orgUnitId.HasValue)
-                    {
-                        query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
-                    }
-
-                    var workEntries = await query.ToListAsync();
-
-                    // Group by year, month, va org unit
-                    var groupedData = workEntries
-                        .GroupBy(e => new { 
-                            Year = e.WorkDate.Year, 
-                            Month = e.WorkDate.Month,
-                            OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
-                        })
-                        .Select(g => new
-                        {
-                            Year = g.Key.Year,
-                            Month = g.Key.Month,
-                            OrgUnitID = g.Key.OrgUnitID,
-                            OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
-                            EntryCount = g.Count(),
-                            IsApproved = approvedTimesheets.Any(a => a.Year == g.Key.Year && 
-                                a.Month == g.Key.Month && 
-                                a.OrgUnitID == g.Key.OrgUnitID)
-                        })
-                        .Where(g => g.IsApproved) // faqat show approved timesheets
-                        .OrderBy(x => x.OrgUnitName)
-                        .ToList();
-
-                    // Yaratish timesheet list uchun dropdown
-                    timesheetList = groupedData.Select(g => new
-                    {
-                        ID = $"{g.Year}-{g.Month}-{g.OrgUnitID}",
-                        Name = $"{g.OrgUnitName} - {g.Year}-{g.Month:D2} ({g.EntryCount} ta yozuv)"
-                    }).Cast<object>().ToList();
-
-                    // Qo'shish "barcha timesheets" option agar there are multiple approved timesheets
-                    if (groupedData.Count > 1)
-                    {
-                        var totalEntries = groupedData.Sum(g => g.EntryCount);
-                        timesheetList.Insert(0, new
-                        {
-                            ID = "ALL",
-                            Name = $"Ushbu oydagi barcha tabellar ({groupedData.Count} ta tabel, {totalEntries} ta yozuv)"
-                        });
-                    }
+                    timesheetList = (await BuildPieceRateTimesheetDropdownItemsAsync(year, month, orgUnitId)).Cast<object>().ToList();
                 }
                 else
                 {
@@ -298,71 +234,7 @@ namespace tahsinERP.Controllers.HR
             year = year ?? DateTime.Now.Year;
             month = month ?? DateTime.Now.Month;
 
-            // Olish approved timesheets uchun this month
-            var approvedTimesheets = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
-                .Include(a => a.HR_ORG_UNITS)
-                .Where(a => a.Year == year.Value && a.Month == month.Value && 
-                    a.Status == "Approved" && 
-                    a.IsDeleted == false &&
-                    (orgUnitId == null ? true : a.OrgUnitID == orgUnitId.Value))
-                .OrderBy(a => a.HR_ORG_UNITS.Name)
-                .ToListAsync();
-
-            // Olish piece-rate work entries grouped bo'yicha year, month, va org unit
-            var startDate = new DateTime(year.Value, month.Value, 1);
-            var endDate = startDate.AddMonths(1).AddDays(-1);
-
-            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
-                .Include(e => e.HR_EMPLOYEES)
-                .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
-
-            if (orgUnitId.HasValue)
-            {
-                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
-            }
-
-            var workEntries = await query.ToListAsync();
-
-            // Group by year, month, va org unit
-            var groupedData = workEntries
-                .GroupBy(e => new { 
-                    Year = e.WorkDate.Year, 
-                    Month = e.WorkDate.Month,
-                    OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
-                })
-                .Select(g => new
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    OrgUnitID = g.Key.OrgUnitID,
-                    OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
-                    EntryCount = g.Count(),
-                    IsApproved = approvedTimesheets.Any(a => a.Year == g.Key.Year && 
-                        a.Month == g.Key.Month && 
-                        a.OrgUnitID == g.Key.OrgUnitID)
-                })
-                .Where(g => g.IsApproved) // faqat show approved timesheets
-                .OrderBy(x => x.OrgUnitName)
-                .ToList();
-
-            // Yaratish timesheet list uchun dropdown (foydalanib a composite key: Year-Month-OrgUnitID)
-            var timesheetList = groupedData.Select(g => new
-            {
-                ID = $"{g.Year}-{g.Month}-{g.OrgUnitID}",
-                Name = $"{g.OrgUnitName} - {g.Year}-{g.Month:D2} ({g.EntryCount} ta yozuv)"
-            }).ToList();
-
-            // Qo'shish "barcha timesheets" option agar there are multiple approved timesheets
-            if (groupedData.Count > 1)
-            {
-                var totalEntries = groupedData.Sum(g => g.EntryCount);
-                timesheetList.Insert(0, new
-                {
-                    ID = "ALL",
-                    Name = $"Ushbu oydagi barcha tabellar ({groupedData.Count} ta tabel, {totalEntries} ta yozuv)"
-                });
-            }
+            var pieceDropItems = await BuildPieceRateTimesheetDropdownItemsAsync(year.Value, month.Value, orgUnitId);
 
             ViewBag.Year = year;
             ViewBag.Month = month;
@@ -371,7 +243,7 @@ namespace tahsinERP.Controllers.HR
                 await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
                 "ID", "Name", orgUnitId);
             ViewBag.TimesheetID = new SelectList(
-                timesheetList,
+                pieceDropItems,
                 "ID", "Name");
 
             return View("Generate");
@@ -402,8 +274,8 @@ namespace tahsinERP.Controllers.HR
                     .Include(a => a.HR_ORG_UNITS)
                     .Where(a => a.Year == year && a.Month == month && 
                         a.Status == "Approved" && 
-                        a.IsDeleted == false &&
-                        (orgUnitId == null ? true : a.OrgUnitID == orgUnitId.Value))
+                        (a.IsDeleted == null || a.IsDeleted == false) &&
+                        (orgUnitId == null ? true : (a.OrgUnitID == null || a.OrgUnitID == orgUnitId.Value)))
                     .ToListAsync();
 
                 if (approvedTimesheets.Count == 0)
@@ -460,18 +332,27 @@ namespace tahsinERP.Controllers.HR
             int parsedMonth = int.Parse(parts[1]);
             int? parsedOrgUnitId = string.IsNullOrEmpty(parts[2]) ? (int?)null : int.Parse(parts[2]);
 
-            // Verify the parsed values match the form values
-            if (parsedYear != year || parsedMonth != month || parsedOrgUnitId != orgUnitId)
+            if (parsedYear != year || parsedMonth != month)
             {
                 TempData["Error"] = "Tabel ma'lumotlari mos kelmaydi";
                 return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
             }
 
+            // Forma bo'lim filtri: bo'lim tanlangan bo'lsa, tabel ham shu bo'limga tegishli bo'lishi kerak
+            if (orgUnitId.HasValue && parsedOrgUnitId != orgUnitId.Value)
+            {
+                TempData["Error"] = "Tabel ma'lumotlari mos kelmaydi";
+                return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
+            }
+
+            // Hisob tanlangan tabel (yil-oy-bo'lim) bo'yicha bo'ladi; "Butun kompaniya" filtrida ham bo'lim bo'yicha tabel tanlangan bo'lishi mumkin
+            int? payrollOrgUnitId = parsedOrgUnitId;
+
             // Tekshirish agar payroll already mavjud
             var existingSingle = await db.HR_PAYROLL_HEADERS
                 .FirstOrDefaultAsync(p => p.Year == year && p.Month == month && 
                     p.PayrollType == "PieceRate" &&
-                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value));
+                    (payrollOrgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == payrollOrgUnitId));
 
             if (existingSingle != null)
             {
@@ -483,7 +364,7 @@ namespace tahsinERP.Controllers.HR
             {
                 Year = year,
                 Month = month,
-                OrgUnitID = orgUnitId,
+                OrgUnitID = payrollOrgUnitId,
                 Status = "Draft",
                 TimesheetID = null, // Piece-rate doesn't use HR_TIMESHEET_HEADERS
                 PayrollType = "PieceRate",
@@ -495,13 +376,36 @@ namespace tahsinERP.Controllers.HR
             await db.SaveChangesAsync();
 
             // Yaratish payroll lines uchun piece-rate employees based on work entries
-            await GeneratePieceRatePayrollLinesFromWorkEntries(payrollSingle.ID, year, month, orgUnitId);
+            await GeneratePieceRatePayrollLinesFromWorkEntries(payrollSingle.ID, year, month, payrollOrgUnitId);
 
-            var orgUnitNameSingle = orgUnitId.HasValue
-                ? (await db.HR_ORG_UNITS.FindAsync(orgUnitId.Value))?.Name ?? "Butun kompaniya"
+            var orgUnitNameSingle = payrollOrgUnitId.HasValue
+                ? (await db.HR_ORG_UNITS.FindAsync(payrollOrgUnitId.Value))?.Name ?? "Butun kompaniya"
                 : "Butun kompaniya";
             logger.Log("HrPayroll", "GeneratePieceRate", $"Tabel: {year}-{month:D2}, Bo'lim: {orgUnitNameSingle}, Tur: Ishbay");
             return RedirectToAction("Edit", new { id = payrollSingle.ID });
+        }
+
+        // Olish so'rovi: HR/Payroll/Details/5
+        public async Task<ActionResult> Details(int? id)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var viewModel = await BuildPayrollViewModelAsync(id.Value);
+            if (viewModel == null)
+            {
+                return HttpNotFound();
+            }
+
+            logger.Log("HrPayroll", "Details", $"Hisob: {viewModel.Year}-{viewModel.Month:D2}, Bo'lim: {viewModel.OrgUnitName ?? "Butun kompaniya"}, Tur: {(viewModel.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay")}");
+            return View(viewModel);
         }
 
         // Olish so'rovi: HR/Payroll/Edit/5
@@ -517,6 +421,23 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
+            var viewModel = await BuildPayrollViewModelAsync(id.Value);
+            if (viewModel == null)
+            {
+                return HttpNotFound();
+            }
+
+            ViewBag.CurrencyItems = await db.CURRENCIES
+                .Where(c => c.IsDeleted == null || c.IsDeleted == false)
+                .OrderBy(c => c.Shortname)
+                .ToListAsync();
+
+            logger.Log("HrPayroll", "Edit", $"Hisob: {viewModel.Year}-{viewModel.Month:D2}, Bo'lim: {viewModel.OrgUnitName ?? "Butun kompaniya"}, Tur: {(viewModel.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay")}");
+            return View(viewModel);
+        }
+
+        private async Task<HrPayrollHeaderViewModel> BuildPayrollViewModelAsync(int id)
+        {
             var payroll = await db.HR_PAYROLL_HEADERS
                 .Include(p => p.HR_ORG_UNITS)
                 .Include(p => p.HR_PAYROLL_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
@@ -526,8 +447,32 @@ namespace tahsinERP.Controllers.HR
 
             if (payroll == null)
             {
-                return HttpNotFound();
+                return null;
             }
+
+            var lines = payroll.HR_PAYROLL_LINES
+                .Where(l => l.IsDeleted == null || l.IsDeleted == false)
+                .Select(l => new HrPayrollLineViewModel
+                {
+                    ID = l.ID,
+                    PayrollID = l.PayrollID,
+                    EmployeeID = l.EmployeeID,
+                    EmployeeTabNo = l.HR_EMPLOYEES.TabNo,
+                    EmployeeFullName = l.HR_EMPLOYEES.FullName,
+                    PositionName = l.HR_EMPLOYEES.HR_POSITIONS?.Name,
+                    OrgUnitName = l.HR_EMPLOYEES.HR_ORG_UNITS?.Name,
+                    BaseSalary = l.BaseSalary ?? 0,
+                    HoursWorked = l.HoursWorked ?? 0,
+                    PieceQty = l.PieceQty ?? 0,
+                    HourlyRate = l.HourlyRate ?? 0,
+                    GrossSalary = l.GrossSalary ?? 0,
+                    Bonuses = l.Bonuses ?? 0,
+                    Penalties = l.Penalties ?? 0,
+                    NetSalary = l.NetSalary ?? 0,
+                    CurrencyID = l.CurrencyID,
+                    CurrencyCode = l.CURRENCy?.Shortname,
+                    Notes = l.Notes
+                }).OrderBy(l => l.EmployeeTabNo).ToList();
 
             var viewModel = new HrPayrollHeaderViewModel
             {
@@ -542,41 +487,19 @@ namespace tahsinERP.Controllers.HR
                 CreatedByUserID = payroll.CreatedByUserID,
                 CreatedDT = payroll.CreatedDT,
                 ApprovedByUserID = payroll.ApprovedByUserID,
-                ApprovedDT = payroll.ApprovedDT
+                ApprovedDT = payroll.ApprovedDT,
+                Lines = lines
             };
-
-            viewModel.Lines = payroll.HR_PAYROLL_LINES.Select(l => new HrPayrollLineViewModel
-            {
-                ID = l.ID,
-                PayrollID = l.PayrollID,
-                EmployeeID = l.EmployeeID,
-                EmployeeTabNo = l.HR_EMPLOYEES.TabNo,
-                EmployeeFullName = l.HR_EMPLOYEES.FullName,
-                PositionName = l.HR_EMPLOYEES.HR_POSITIONS?.Name,
-                OrgUnitName = l.HR_EMPLOYEES.HR_ORG_UNITS?.Name,
-                BaseSalary = l.BaseSalary ?? 0,
-                HoursWorked = l.HoursWorked ?? 0,
-                PieceQty = l.PieceQty ?? 0,
-                HourlyRate = l.HourlyRate ?? 0,
-                GrossSalary = l.GrossSalary ?? 0,
-                Bonuses = l.Bonuses ?? 0,
-                Penalties = l.Penalties ?? 0,
-                NetSalary = l.NetSalary ?? 0,
-                CurrencyID = l.CurrencyID,
-                CurrencyCode = l.CURRENCy?.Shortname,
-                Notes = l.Notes
-            }).OrderBy(l => l.EmployeeTabNo).ToList();
 
             viewModel.TotalGrossSalary = viewModel.Lines.Sum(l => l.GrossSalary);
             viewModel.TotalNetSalary = viewModel.Lines.Sum(l => l.NetSalary);
 
-            logger.Log("HrPayroll", "Edit", $"Hisob: {payroll.Year}-{payroll.Month:D2}, Bo'lim: {payroll.HR_ORG_UNITS?.Name ?? "Butun kompaniya"}, Tur: {(payroll.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay")}");
-            return View(viewModel);
+            return viewModel;
         }
 
         // POST so'rovi: HR/Payroll/UpdateLine
         [HttpPost]
-        public async Task<JsonResult> UpdateLine(int lineId, decimal? bonuses, decimal? penalties, string notes)
+        public async Task<JsonResult> UpdateLine(int lineId, decimal? bonuses, decimal? penalties, string notes, int? currencyId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
@@ -585,10 +508,18 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
-                var line = await db.HR_PAYROLL_LINES.FindAsync(lineId);
+                var line = await db.HR_PAYROLL_LINES
+                    .Include(l => l.HR_PAYROLL_HEADERS)
+                    .Include(l => l.HR_EMPLOYEES)
+                    .FirstOrDefaultAsync(l => l.ID == lineId);
                 if (line == null)
                 {
                     return Json(new { success = false, message = "Строка не найдена" });
+                }
+
+                if (line.HR_PAYROLL_HEADERS == null || line.HR_PAYROLL_HEADERS.Status != "Draft")
+                {
+                    return Json(new { success = false, message = "Faqat qoralama holatidagi hisob satrlari tahrirlanadi" });
                 }
 
                 if (bonuses.HasValue)
@@ -606,17 +537,29 @@ namespace tahsinERP.Controllers.HR
                     line.Notes = notes;
                 }
 
+                if (currencyId.HasValue)
+                {
+                    var ok = await db.CURRENCIES.AnyAsync(c => c.ID == currencyId.Value && (c.IsDeleted == null || c.IsDeleted == false));
+                    if (!ok)
+                    {
+                        return Json(new { success = false, message = "Valyuta topilmadi" });
+                    }
+                    line.CurrencyID = currencyId.Value;
+                }
+
                 // Recalculate net salary
                 line.NetSalary = (line.GrossSalary ?? 0) + (line.Bonuses ?? 0) - (line.Penalties ?? 0);
 
                 db.Entry(line).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
+                await db.Entry(line).Reference(l => l.CURRENCy).LoadAsync();
+
                 var employeeLabel = line.HR_EMPLOYEES == null
                     ? "-"
                     : $"{line.HR_EMPLOYEES.FullName} ({line.HR_EMPLOYEES.TabNo ?? "-"})";
                 logger.Log("HrPayroll", "UpdateLine", $"Xodim: {employeeLabel}");
-                return Json(new { success = true, netSalary = line.NetSalary });
+                return Json(new { success = true, netSalary = line.NetSalary, currencyCode = line.CURRENCy?.Shortname });
             }
             catch (Exception ex)
             {
@@ -1270,6 +1213,133 @@ namespace tahsinERP.Controllers.HR
 
             logger.Log("HrPayroll", "Delete", $"Hisob: {payroll.Year}-{payroll.Month:D2}, Bo'lim: {payroll.HR_ORG_UNITS?.Name ?? "Butun kompaniya"}, Tur: {(payroll.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay")}");
             return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Tasdiqda OrgUnitID null bo'lsa — butun kompaniya bo'yicha tasdiqlangan; har qanday bo'lim guruhiga mos keladi.
+        /// </summary>
+        private static bool PieceApprovalMatchesWorkGroup(HR_PIECE_RATE_TIMESHEET_APPROVALS a, int? workGroupOrgUnitId)
+        {
+            if (a.OrgUnitID == null) return true;
+            return a.OrgUnitID == workGroupOrgUnitId;
+        }
+
+        private sealed class PieceRateGroupRow
+        {
+            public int Year { get; set; }
+            public int Month { get; set; }
+            public int? OrgUnitID { get; set; }
+            public string OrgUnitName { get; set; }
+            public int EntryCount { get; set; }
+        }
+
+        private sealed class PieceRateDropdownItem
+        {
+            public string ID { get; set; }
+            public string Name { get; set; }
+        }
+
+        /// <summary>
+        /// Ishbay dropdown: tasdiqlar + ish hajmi yozuvlari; tasdiq (null org) bo'lim yozuvlari bilan moslashadi.
+        /// </summary>
+        private async Task<List<PieceRateDropdownItem>> BuildPieceRateTimesheetDropdownItemsAsync(int year, int month, int? orgUnitIdFilter)
+        {
+            var approvedTimesheets = (await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                .Include(a => a.HR_ORG_UNITS)
+                .Where(a => a.Year == year && a.Month == month &&
+                    a.Status == "Approved" &&
+                    (a.IsDeleted == null || a.IsDeleted == false) &&
+                    (orgUnitIdFilter == null ? true : (a.OrgUnitID == null || a.OrgUnitID == orgUnitIdFilter.Value)))
+                .ToListAsync())
+                .OrderBy(a => a.HR_ORG_UNITS != null ? a.HR_ORG_UNITS.Name : "")
+                .ToList();
+
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
+                .Include(e => e.HR_EMPLOYEES)
+                .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+
+            if (orgUnitIdFilter.HasValue)
+            {
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitIdFilter.Value);
+            }
+
+            var workEntries = await query.ToListAsync();
+
+            var groupedFromWork = workEntries
+                .GroupBy(e => new
+                {
+                    Year = e.WorkDate.Year,
+                    Month = e.WorkDate.Month,
+                    OrgUnitID = e.HR_EMPLOYEES.OrgUnitID
+                })
+                .Select(g => new PieceRateGroupRow
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    OrgUnitID = g.Key.OrgUnitID,
+                    OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                    EntryCount = g.Count()
+                })
+                .Where(g => approvedTimesheets.Any(a => a.Year == g.Year && a.Month == g.Month && PieceApprovalMatchesWorkGroup(a, g.OrgUnitID)))
+                .ToList();
+
+            var groupedData = groupedFromWork.ToList();
+
+            foreach (var a in approvedTimesheets)
+            {
+                if (a.OrgUnitID == null)
+                {
+                    if (groupedData.Count == 0)
+                    {
+                        groupedData.Add(new PieceRateGroupRow
+                        {
+                            Year = a.Year,
+                            Month = a.Month,
+                            OrgUnitID = null,
+                            OrgUnitName = "Butun kompaniya",
+                            EntryCount = 0
+                        });
+                    }
+                }
+                else
+                {
+                    if (!groupedData.Any(g => g.OrgUnitID == a.OrgUnitID))
+                    {
+                        groupedData.Add(new PieceRateGroupRow
+                        {
+                            Year = a.Year,
+                            Month = a.Month,
+                            OrgUnitID = a.OrgUnitID,
+                            OrgUnitName = a.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                            EntryCount = 0
+                        });
+                    }
+                }
+            }
+
+            groupedData = groupedData.OrderBy(x => x.OrgUnitName ?? "").ToList();
+
+            var timesheetList = groupedData.Select(g => new PieceRateDropdownItem
+            {
+                ID = $"{g.Year}-{g.Month}-{(g.OrgUnitID.HasValue ? g.OrgUnitID.Value.ToString() : "")}",
+                Name = $"{g.OrgUnitName} - {g.Year}-{g.Month:D2} ({g.EntryCount} ta yozuv)"
+            }).ToList();
+
+            if (groupedData.Count > 1)
+            {
+                var totalEntries = groupedData.Sum(g => g.EntryCount);
+                timesheetList.Insert(0, new PieceRateDropdownItem
+                {
+                    ID = "ALL",
+                    Name = $"Ushbu oydagi barcha tabellar ({groupedData.Count} ta tabel, {totalEntries} ta yozuv)"
+                });
+            }
+
+            return timesheetList;
         }
 
         protected override void Dispose(bool disposing)

@@ -1,7 +1,30 @@
 @model tahsinERP.ViewModels.POrder.POrderEditViewModel
+@using System.Collections.Generic
+@using System.Web.Mvc
 @{
     ViewBag.Title = "Buyurtmani tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var purchasableProductsData = new List<object>();
+    var unitsData = new List<object>();
+
+    if (ViewBag.PurchasableProductsList != null)
+    {
+        var ppSl = new SelectList(ViewBag.PurchasableProductsList, "ID", "PNo");
+        foreach (SelectListItem item in ppSl)
+        {
+            purchasableProductsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+
+    if (ViewBag.UnitsList != null)
+    {
+        var uSl = new SelectList(ViewBag.UnitsList, "ID", "ShortName");
+        foreach (SelectListItem item in uSl)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
@@ -41,7 +64,7 @@
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.HiddenFor(model => model.ID)
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-2" })
 
                                             <!-- Order Header -->
                                             <div class="row">
@@ -62,7 +85,7 @@
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2" })
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
@@ -92,6 +115,7 @@
                                                             <th>Narx</th>
                                                             <th>Jami</th>
                                                             <th>MOQ</th>
+                                                            <th style="min-width: 16rem;">Hisob tushuntirishi</th>
                                                             <th>Amallar</th>
                                                         </tr>
                                                     </thead>
@@ -103,7 +127,7 @@
                                                                 var product = Model.OrderProducts[i];
                                                                 <tr data-row-index="@i">
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control product-select", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].ProductID, new SelectList(ViewBag.PurchasableProductsList, "ID", "PNo", product.ProductID), "---Tanlang---", new { @class = "form-control product-select", @required = "required" })
                                                                         @Html.HiddenFor(m => m.OrderProducts[i].ID)
                                                                         @Html.HiddenFor(m => m.OrderProducts[i].ProductPNo, new { @class = "product-pno" })
                                                                     </td>
@@ -114,7 +138,7 @@
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "ShortName", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
@@ -124,6 +148,11 @@
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
+                                                                    </td>
+                                                                    <td class="align-top small">
+                                                                        @(string.IsNullOrWhiteSpace(product.CalculationExplanation) ? "—" : product.CalculationExplanation)
+                                                                        @Html.HiddenFor(m => m.OrderProducts[i].CalculationExplanation)
+                                                                        @Html.HiddenFor(m => m.OrderProducts[i].CalculationSummary)
                                                                     </td>
                                                                     <td>
                                                                         <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
@@ -136,7 +165,7 @@
                                                         <tr>
                                                             <td colspan="5" class="text-right"><strong>Jami:</strong></td>
                                                             <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
-                                                            <td colspan="2"></td>
+                                                            <td colspan="3"></td>
                                                         </tr>
                                                     </tfoot>
                                                 </table>
@@ -176,8 +205,8 @@
             $('.select2').select2();
 
             var productRowIndex = @(Model.OrderProducts?.Count ?? 0);
-            var purchasableProducts = @Html.Raw(Json.Encode((ViewBag.PurchasableProducts as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
-            var units = @Html.Raw(Json.Encode((ViewBag.Units as SelectList).Items.Cast<SelectListItem>().Select(x => new { Value = x.Value, Text = x.Text })));
+            var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData ?? new List<object>()));
+            var units = @Html.Raw(Json.Encode(unitsData ?? new List<object>()));
 
             // Calculate totals for existing rows
             $('.amount-input, .price-input').each(function () {
@@ -191,10 +220,28 @@
 
             // Add new row manually
             $('#addRowBtn').click(function () {
-                addProductRow(null, '', '', 0, null, null, null);
+                addProductRow(null, '', '', 0, null, null, null, '', '');
             });
 
-            function addProductRow(productId, productPNo, productName, amount, unitId, price, moq) {
+            function escapeHtmlEdit(text) {
+                if (text == null || text === undefined) return '';
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            function escapeAttrEdit(text) {
+                if (text == null || text === undefined) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#x27;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            }
+
+            function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation, calculationSummary) {
+                var calc = calculationExplanation || '';
+                var sum = calculationSummary || '';
                 var row = '<tr data-row-index="' + productRowIndex + '">' +
                     '<td>' +
                         '<select name="OrderProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
@@ -224,6 +271,9 @@
                     '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
                     '<td><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
                     '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
+                    '<td class="align-top small">' + escapeHtmlEdit(calc || '—') +
+                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + escapeAttrEdit(calc) + '" />' +
+                    '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationSummary" value="' + escapeAttrEdit(sum) + '" /></td>' +
                     '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                     '</tr>';
 

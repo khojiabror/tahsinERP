@@ -1,0 +1,147 @@
+@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
+@{
+    ViewBag.Title = "Tabel ko'rib chiqish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int daysInMonth = DateTime.DaysInMonth(Model.Year, Model.Month);
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrTimesheets")">Tabel</a></li>
+                                    <li class="breadcrumb-item active">Ko'rib chiqish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row mb-2">
+                    <div class="col-12 text-right">
+                        <button type="button" onclick="printReport()" class="btn btn-primary">
+                            <i class="bx bx-printer"></i> Chop etish
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="downloadPdf()">
+                            <i class="bx bxs-file-pdf"></i> PDF olish
+                        </button>
+                        <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-success">
+                            <i class="bx bx-export"></i> Excelga eksport
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card" id="printArea" data-print-target="true">
+                    <div class="card-body">
+                        <div class="text-center mb-2">
+                            <h5>Tabel ko'rib chiqish</h5>
+                            <div>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month) @Model.Year</div>
+                            <div><strong>Bo'lim:</strong> @(string.IsNullOrWhiteSpace(Model.OrgUnitName) ? "Butun kompaniya" : Model.OrgUnitName)</div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="table table-bordered preview-table">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">№</th>
+                                        <th rowspan="2">Tab.№</th>
+                                        <th rowspan="2">F.I.O.</th>
+                                        <th rowspan="2">Lavozim</th>
+                                        <th colspan="@daysInMonth" style="text-align:center;">Oy kunlari</th>
+                                        <th rowspan="2">Ish kunlari</th>
+                                        <th rowspan="2">Ish soatlari</th>
+                                    </tr>
+                                    <tr>
+                                        @for (int day = 1; day <= daysInMonth; day++)
+                                        {
+                                            <th>@day</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int i = 1; }
+                                    @foreach (var line in Model.Lines.OrderBy(x => x.EmployeeTabNo))
+                                    {
+                                        <tr>
+                                            <td>@i</td>
+                                            <td>@line.EmployeeTabNo</td>
+                                            <td>@line.EmployeeFullName</td>
+                                            <td>@line.PositionName</td>
+                                            @for (int day = 1; day <= daysInMonth; day++)
+                                            {
+                                                var prop = typeof(tahsinERP.ViewModels.HR.HrTimesheetLineViewModel).GetProperty($"Day{day:D2}Hours");
+                                                var h = prop?.GetValue(line) as decimal?;
+                                                <td style="text-align:center;">@(h?.ToString("F1") ?? "0")</td>
+                                            }
+                                            <td style="text-align:center;">@line.TotalWorkedDays.ToString("F1")</td>
+                                            <td style="text-align:center;">@line.TotalWorkedHours.ToString("F2")</td>
+                                        </tr>
+                                        i++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .table-wrap { overflow: auto; border: 1px solid #e5e7eb; }
+        .preview-table { width: max-content; min-width: 100%; font-size: 10px; }
+        .preview-table th, .preview-table td { white-space: nowrap; padding: 2px 4px; }
+    </style>
+    <style media="print">
+        @@page { size: A4 landscape; margin: 8mm; }
+        body * { visibility: hidden; }
+        #printArea, #printArea * { visibility: visible; }
+        #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+        .content-header, .btn, .content-overlay, .main-menu, .header-navbar { display: none !important; }
+        .app-content { margin: 0 !important; padding: 0 !important; }
+        #printArea { border: none !important; box-shadow: none !important; }
+        .table-wrap { overflow: visible !important; border: none !important; }
+        .preview-table { font-size: 8px !important; width: 100% !important; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        function printReport() {
+            var el = document.getElementById('printArea');
+            if (!el) { window.print(); return; }
+
+            var popup = window.open('', '_blank', 'width=1200,height=900');
+            if (!popup) { window.print(); return; }
+
+            popup.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tabel chop etish</title><style>body{font-family:Arial,sans-serif;margin:10mm;color:#111}.preview-table{border-collapse:collapse;width:100%;font-size:9px}.preview-table th,.preview-table td{border:1px solid #333;padding:2px 4px;white-space:nowrap}.table-wrap{overflow:visible !important;border:none !important}@@page{size:A4 landscape;margin:8mm}</style></head><body>' + el.innerHTML + '</body></html>');
+            popup.document.close();
+            popup.focus();
+            setTimeout(function () { popup.print(); popup.close(); }, 300);
+        }
+
+        function downloadPdf() {
+            var element = document.getElementById('printArea');
+            var opt = {
+                margin: 5,
+                filename: 'soatbay-tabel-preview.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

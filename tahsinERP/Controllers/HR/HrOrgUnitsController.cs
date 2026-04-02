@@ -365,6 +365,7 @@ namespace tahsinERP.Controllers.HR
 
             orgUnit.IsDeleted = true;
             db.Entry(orgUnit).State = System.Data.Entity.EntityState.Modified;
+            await SoftDeleteReferenceService.AfterOrgUnitSoftDeletedAsync(db, id);
             await db.SaveChangesAsync();
 
             logger.Log("HrOrgUnits", "Delete", $"Bo'lim: {orgUnit.Name}");

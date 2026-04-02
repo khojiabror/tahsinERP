@@ -21,6 +21,8 @@ namespace tahsinERP.Models
             this.EXPENSE_PRODUCTS = new HashSet<EXPENSE_PRODUCTS>();
             this.F_TRANSPORT_TYPES = new HashSet<F_TRANSPORT_TYPES>();
             this.INCOME_PRODUCTS = new HashSet<INCOME_PRODUCTS>();
+            this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
+            this.NORMLINES = new HashSet<NORMLINE>();
             this.P_CONTRACT_PRODUCTS = new HashSet<P_CONTRACT_PRODUCTS>();
             this.P_INVOICE_PRODUCTS = new HashSet<P_INVOICE_PRODUCTS>();
             this.P_ORDER_PRODUCTS = new HashSet<P_ORDER_PRODUCTS>();
@@ -46,6 +48,10 @@ namespace tahsinERP.Models
         public virtual ICollection<F_TRANSPORT_TYPES> F_TRANSPORT_TYPES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<INCOME_PRODUCTS> INCOME_PRODUCTS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NORMLINE> NORMLINES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<P_CONTRACT_PRODUCTS> P_CONTRACT_PRODUCTS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

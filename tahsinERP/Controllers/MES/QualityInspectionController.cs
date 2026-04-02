@@ -108,7 +108,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION
-                    .Where(q => q.ID == id && (q.IsDeleted == false || q.IsDeleted == null))
+                    .Where(q => q.ID == id && q.IsDeleted == false)
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
                     .Include(q => q.S_ORDERS)
@@ -182,7 +182,7 @@ namespace tahsinERP.Controllers.MES
                             var production = db.PRODUCT_PRODUCTION
                                 .Include(p => p.PRODUCT)
                                 .FirstOrDefault(p => p.ID == item.ProductionID
-                                    && (p.IsDeleted == false || p.IsDeleted == null));
+                                    && p.IsDeleted == false);
 
                             if (production == null)
                             {
@@ -190,11 +190,13 @@ namespace tahsinERP.Controllers.MES
                                 continue;
                             }
 
-                            var alreadyInspected = db.QUALITY_INSPECTION
-                                .Where(q => q.ProductionID == item.ProductionID && (q.IsDeleted == false || q.IsDeleted == null))
-                                .Sum(q => (decimal?)q.QtyInspected) ?? 0;
+                            var alreadyAccepted = db.QUALITY_INSPECTION
+                                .Where(q => q.ProductionID == item.ProductionID && q.IsDeleted == false)
+                                .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
 
-                            var remaining = (decimal)production.Total - alreadyInspected;
+                            // Re-inspection support: rejected qty qayta sifatga kirishi mumkin.
+                            // Shuning uchun limit accepted bo'yicha yuradi, inspected bo'yicha emas.
+                            var remaining = (decimal)production.Total - alreadyAccepted;
                             if (inspectedQty > remaining)
                             {
                                 ModelState.AddModelError("",
@@ -289,23 +291,24 @@ namespace tahsinERP.Controllers.MES
 
             var productions = db.PRODUCT_PRODUCTION
                 .Include(p => p.PRODUCT)
-                .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
+                .Where(p => p.IsDeleted == false
                     && p.Date >= dateOnly
                     && p.Date < nextDay
-                    && (p.PRODUCT.IsFinishedGood == true || p.PRODUCT.IsFinishedGood == null)
-                    && (p.PRODUCT.IsDeleted == false || p.PRODUCT.IsDeleted == null))
+                    && p.PRODUCT.IsFinishedGood == true
+                    && p.PRODUCT.IsDeleted == false)
                 .ToList();
 
             var items = new List<QualityInspectionDailyItemViewModel>();
 
             foreach (var production in productions)
             {
-                var alreadyInspected = db.QUALITY_INSPECTION
-                    .Where(q => q.ProductionID == production.ID && (q.IsDeleted == false || q.IsDeleted == null))
-                    .Sum(q => (decimal?)q.QtyInspected) ?? 0;
+                var alreadyAccepted = db.QUALITY_INSPECTION
+                    .Where(q => q.ProductionID == production.ID && q.IsDeleted == false)
+                    .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
 
                 var producedQty = (decimal)production.Total;
-                var remaining = producedQty - alreadyInspected;
+                // Re-inspection support: rejected miqdor qayta tekshiruvga chiqadi.
+                var remaining = producedQty - alreadyAccepted;
 
                 if (remaining <= 0)
                 {
@@ -319,7 +322,7 @@ namespace tahsinERP.Controllers.MES
                     ProductNo = production.PRODUCT?.PNo,
                     ProductName = production.PRODUCT?.Name,
                     ProducedQty = producedQty,
-                    AlreadyInspectedQty = alreadyInspected,
+                    AlreadyInspectedQty = alreadyAccepted,
                     RemainingQty = remaining,
                     QtyAccepted = remaining,
                     QtyRejected = 0
@@ -347,7 +350,8 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var inspection = db.QUALITY_INSPECTION.Find(id);
+                var inspection = db.QUALITY_INSPECTION
+                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
                 if (inspection == null)
                 {
                     return HttpNotFound();
@@ -396,7 +400,8 @@ namespace tahsinERP.Controllers.MES
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var inspection = db.QUALITY_INSPECTION.Find(viewModel.ID);
+                    var inspection = db.QUALITY_INSPECTION
+                        .FirstOrDefault(q => q.ID == viewModel.ID && q.IsDeleted == false);
                     if (inspection == null)
                     {
                         return HttpNotFound();
@@ -462,7 +467,7 @@ namespace tahsinERP.Controllers.MES
                 var inspection = db.QUALITY_INSPECTION
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .FirstOrDefault(q => q.ID == id);
+                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
 
                 if (inspection == null)
                 {
@@ -490,7 +495,8 @@ namespace tahsinERP.Controllers.MES
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var inspection = db.QUALITY_INSPECTION.Find(id);
+                var inspection = db.QUALITY_INSPECTION
+                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
                 if (inspection == null)
                 {
                     return HttpNotFound();
@@ -558,7 +564,7 @@ namespace tahsinERP.Controllers.MES
                 var inspection = db.QUALITY_INSPECTION
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .FirstOrDefault(q => q.ID == id);
+                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
 
                 if (inspection == null)
                 {
@@ -587,7 +593,8 @@ namespace tahsinERP.Controllers.MES
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var inspection = db.QUALITY_INSPECTION.Find(id);
+                var inspection = db.QUALITY_INSPECTION
+                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
                 if (inspection == null)
                 {
                     return HttpNotFound();

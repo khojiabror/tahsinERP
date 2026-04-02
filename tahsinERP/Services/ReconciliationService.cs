@@ -7,11 +7,20 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Akt-sverki (O'zaro hisob-kitoblar akti) uchun xizmat - barcha content o'zbekcha
+    /// Akt-sverki — faqat bitta shartnoma (xarid/sotuv/yuk tashish) bo'yicha.
+    /// To'lovlar: FIN_TRANSACTIONS (naqd/chiqim), invoys-oyna qatorlari (PurchaseInvoice/SalesInvoice) bundan chiqariladi.
     /// </summary>
     public static class ReconciliationService
     {
-        public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, DateTime asOfDate, string companyName, string supplierName)
+        /// <summary>FIN da invoys bo'yicha faqat balans (qarz) aks ettiruvchi yozuvlar — to'lov emas.</summary>
+        private static bool IsFinInvoiceLedgerMirror(string sourceDocType)
+        {
+            if (string.IsNullOrEmpty(sourceDocType)) return false;
+            return sourceDocType.Equals("PurchaseInvoice", StringComparison.OrdinalIgnoreCase)
+                || sourceDocType.Equals("SalesInvoice", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, int contractId, DateTime asOfDate, string companyName, string supplierName, string contractNo)
         {
             var vm = new ReconciliationViewModel
             {
@@ -21,24 +30,39 @@ namespace tahsinERP.Services
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
                 ReconciliationType = "Supplier",
                 CounterpartyId = supplierId,
+                ContractId = contractId,
+                ContractNo = contractNo,
                 Rows = new List<ReconciliationRowViewModel>(),
-                AgreementInfo = $"Xarid-xo'jalik faoliyati bo'yicha o'zaro hisob-kitoblar"
+                AgreementInfo = $"Shartnoma №{contractNo} — xarid-xo'jalik faoliyati bo'yicha o'zaro hisob-kitoblar"
             };
 
             var invoices = db.P_INVOICES
-                .Where(i => i.SupplierID == supplierId && i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
+                .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
                 .OrderBy(i => i.InvoiceDate)
                 .Select(i => new { i.ID, i.InvoiceNo, i.InvoiceDate, i.Amount })
                 .ToList();
 
-            var payments = db.FIN_TRANSACTIONS
+            var invIdSet = new HashSet<int>(invoices.Select(i => i.ID));
+            var payCandidates = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 2 && t.CounterpartyID == supplierId && t.TxnDate <= asOfDate
                     && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 2)
                 .OrderBy(t => t.TxnDate)
-                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose, t.SourceDocType })
                 .ToList();
 
-            decimal balance1Dr = 0, balance1Cr = 0, balance2Dr = 0, balance2Cr = 0;
+            var contractNoNorm = (contractNo ?? "").Trim();
+            // Naqd to'lovlar FIN dan: invoys ID si shu shartnoma invoyslariga bog'langan (tur qanday bo'lishidan qat'iy nazarda tutmasdan),
+            // yoki shartnoma raqami mos; PurchaseInvoice yozuvlari — invoys bilan dublikat, chiqarilmaydi.
+            var payments = payCandidates.Where(t =>
+            {
+                if (IsFinInvoiceLedgerMirror(t.SourceDocType))
+                    return false;
+                if (t.SourceDocID.HasValue && invIdSet.Contains(t.SourceDocID.Value))
+                    return true;
+                if (!string.IsNullOrEmpty(contractNoNorm) && !string.IsNullOrEmpty(t.ContractNo)
+                    && string.Equals(t.ContractNo.Trim(), contractNoNorm, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                return false;
+            }).OrderBy(t => t.TxnDate).ToList();
 
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
 
@@ -51,13 +75,22 @@ namespace tahsinERP.Services
             }
             foreach (var pay in payments)
             {
-                var purpose = !string.IsNullOrEmpty(pay.Purpose) ? pay.Purpose : $"To'lov #{pay.ID}";
+                var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : " — " + pay.Purpose;
                 allItems.Add((pay.TxnDate, "pay",
-                    $"Bank to'lovi / To'lov №{pay.ID} sanasi {pay.TxnDate:dd.MM.yyyy}",
+                    $"FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}",
                     pay.Amount, 0, 0, pay.Amount));
             }
 
-            var ordered = allItems.OrderBy(x => x.dt).ToList();
+            var adjustments = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartySupplier, supplierId, contractId, asOfDate);
+            foreach (var a in adjustments)
+            {
+                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
+                allItems.Add((a.CutoffDate, "adj",
+                    $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
+                    a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
+            }
+
+            var ordered = allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "inv" ? 0 : x.type == "pay" ? 1 : 2).ToList();
 
             foreach (var item in ordered)
             {
@@ -68,21 +101,21 @@ namespace tahsinERP.Services
                     Party1Debit = item.p1Dr,
                     Party1Credit = item.p1Cr,
                     Party2Debit = item.p2Dr,
-                    Party2Credit = item.p2Cr
+                    Party2Credit = item.p2Cr,
+                    IsAdjustmentRow = item.type == "adj"
                 });
-                balance1Dr += item.p1Dr - item.p1Cr;
-                balance1Cr += item.p1Cr - item.p1Dr;
-                balance2Dr += item.p2Dr - item.p2Cr;
-                balance2Cr += item.p2Cr - item.p2Dr;
             }
 
             var totalInv = invoices.Sum(i => Convert.ToDecimal(i.Amount));
             var totalPay = payments.Sum(p => p.Amount);
-            vm.Party1DebitTotal = payments.Sum(p => p.Amount);
-            vm.Party1CreditTotal = totalInv;
-            vm.Party2DebitTotal = totalInv;
-            vm.Party2CreditTotal = totalPay;
-            vm.FinalBalance = totalInv - totalPay;
+            var adjDr = adjustments.Sum(a => a.Party1Debit);
+            var adjCr = adjustments.Sum(a => a.Party1Credit);
+
+            vm.Party1DebitTotal = totalPay + adjDr;
+            vm.Party1CreditTotal = totalInv + adjCr;
+            vm.Party2DebitTotal = totalInv + adjCr;
+            vm.Party2CreditTotal = totalPay + adjDr;
+            vm.FinalBalance = vm.Party1CreditTotal - vm.Party1DebitTotal;
 
             if (vm.Rows != null && vm.Rows.Count > 0)
             {
@@ -101,7 +134,7 @@ namespace tahsinERP.Services
             return vm;
         }
 
-        public static ReconciliationViewModel BuildCustomerReconciliation(DBTHSNEntities db, int customerId, DateTime asOfDate, string companyName, string customerName)
+        public static ReconciliationViewModel BuildCustomerReconciliation(DBTHSNEntities db, int customerId, int contractId, DateTime asOfDate, string companyName, string customerName, string contractNo)
         {
             var vm = new ReconciliationViewModel
             {
@@ -111,40 +144,65 @@ namespace tahsinERP.Services
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
                 ReconciliationType = "Customer",
                 CounterpartyId = customerId,
+                ContractId = contractId,
+                ContractNo = contractNo,
                 Rows = new List<ReconciliationRowViewModel>(),
-                AgreementInfo = $"Sotuv faoliyati bo'yicha o'zaro hisob-kitoblar"
+                AgreementInfo = $"Shartnoma №{contractNo} — sotuv faoliyati bo'yicha o'zaro hisob-kitoblar"
             };
 
             var invoices = db.SALES_INVOICES
-                .Where(i => i.CustomerID == customerId && i.InvoiceDate <= asOfDate)
+                .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= asOfDate)
                 .OrderBy(i => i.InvoiceDate)
                 .Select(i => new { i.ID, i.InvoiceNo, i.InvoiceDate, Amount = i.TotalAmount })
                 .ToList();
 
-            var payments = db.FIN_TRANSACTIONS
+            var invIdSet = new HashSet<long>(invoices.Select(i => i.ID));
+            var contractNoNorm = (contractNo ?? "").Trim();
+
+            var payCandidates = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 1 && t.CounterpartyID == customerId && t.TxnDate <= asOfDate
                     && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 1)
                 .OrderBy(t => t.TxnDate)
-                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose })
                 .ToList();
 
-            var allItems = new List<(DateTime dt, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
+            var payments = payCandidates.Where(t =>
+            {
+                if (IsFinInvoiceLedgerMirror(t.SourceDocType))
+                    return false;
+                if (t.SourceDocID.HasValue && invIdSet.Contains((long)t.SourceDocID.Value))
+                    return true;
+                if (!string.IsNullOrEmpty(contractNoNorm) && !string.IsNullOrEmpty(t.ContractNo)
+                    && string.Equals(t.ContractNo.Trim(), contractNoNorm, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                return false;
+            }).OrderBy(t => t.TxnDate).ToList();
+
+            var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
 
             foreach (var inv in invoices)
             {
-                allItems.Add((inv.InvoiceDate,
+                allItems.Add((inv.InvoiceDate, "inv",
                     $"Sotuv invoysi №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}",
                     inv.Amount, 0, 0, inv.Amount));
             }
             foreach (var pay in payments)
             {
-                var purpose = !string.IsNullOrEmpty(pay.Purpose) ? pay.Purpose : $"To'lov #{pay.ID}";
-                allItems.Add((pay.TxnDate,
-                    $"Mijoz to'lovi №{pay.ID} sanasi {pay.TxnDate:dd.MM.yyyy}",
+                var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : " — " + pay.Purpose;
+                allItems.Add((pay.TxnDate, "pay",
+                    $"FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}",
                     0, pay.Amount, pay.Amount, 0));
             }
 
-            foreach (var item in allItems.OrderBy(x => x.dt))
+            var adjList = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartyCustomer, customerId, contractId, asOfDate);
+            foreach (var a in adjList)
+            {
+                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
+                allItems.Add((a.CutoffDate, "adj",
+                    $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
+                    a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
+            }
+
+            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "inv" ? 0 : x.type == "pay" ? 1 : 2))
             {
                 vm.Rows.Add(new ReconciliationRowViewModel
                 {
@@ -153,17 +211,21 @@ namespace tahsinERP.Services
                     Party1Debit = item.p1Dr,
                     Party1Credit = item.p1Cr,
                     Party2Debit = item.p2Dr,
-                    Party2Credit = item.p2Cr
+                    Party2Credit = item.p2Cr,
+                    IsAdjustmentRow = item.type == "adj"
                 });
             }
 
             var totalInv = invoices.Sum(i => i.Amount);
             var totalPay = payments.Sum(p => p.Amount);
-            vm.Party1DebitTotal = totalInv;
-            vm.Party1CreditTotal = totalPay;
-            vm.Party2DebitTotal = totalPay;
-            vm.Party2CreditTotal = totalInv;
-            vm.FinalBalance = totalInv - totalPay;
+            var adjDr = adjList.Sum(a => a.Party1Debit);
+            var adjCr = adjList.Sum(a => a.Party1Credit);
+
+            vm.Party1DebitTotal = totalInv + adjDr;
+            vm.Party1CreditTotal = totalPay + adjCr;
+            vm.Party2DebitTotal = totalPay + adjCr;
+            vm.Party2CreditTotal = totalInv + adjDr;
+            vm.FinalBalance = vm.Party1DebitTotal - vm.Party1CreditTotal;
 
             if (vm.Rows.Count > 0)
             {
@@ -182,7 +244,7 @@ namespace tahsinERP.Services
             return vm;
         }
 
-        public static ReconciliationViewModel BuildForwarderReconciliation(DBTHSNEntities db, int forwarderId, DateTime asOfDate, string companyName, string forwarderName)
+        public static ReconciliationViewModel BuildForwarderReconciliation(DBTHSNEntities db, int forwarderId, int contractId, DateTime asOfDate, string companyName, string forwarderName, string contractNo)
         {
             var vm = new ReconciliationViewModel
             {
@@ -192,40 +254,53 @@ namespace tahsinERP.Services
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
                 ReconciliationType = "Forwarder",
                 CounterpartyId = forwarderId,
+                ContractId = contractId,
+                ContractNo = contractNo,
                 Rows = new List<ReconciliationRowViewModel>(),
-                AgreementInfo = $"Yuk tashish xizmatlari bo'yicha o'zaro hisob-kitoblar"
+                AgreementInfo = $"Shartnoma №{contractNo} — yuk tashish xizmatlari bo'yicha o'zaro hisob-kitoblar"
             };
 
             var waybills = db.F_WAYBILLS
-                .Where(w => w.ForwarderID == forwarderId && w.IssueDate <= asOfDate && (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue)
+                .Where(w => w.ForwarderID == forwarderId && w.ContractID == contractId && w.IssueDate <= asOfDate && (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue)
                 .OrderBy(w => w.IssueDate)
                 .Select(w => new { w.ID, w.WaybillNo, w.IssueDate, w.Amount })
                 .ToList();
 
+            var wbIds = new HashSet<int>(waybills.Select(w => w.ID));
+
             var payments = db.F_WAYBILL_PAYMENTS
-                .Where(p => p.ForwarderID == forwarderId && (p.PaymentDate ?? DateTime.MinValue) <= asOfDate && !p.IsDeleted)
+                .Where(p => p.ForwarderID == forwarderId && wbIds.Contains(p.WaybillID) && (p.PaymentDate ?? DateTime.MinValue) <= asOfDate && !p.IsDeleted)
                 .OrderBy(p => p.PaymentDate)
                 .Select(p => new { p.ID, p.PaymentDate, p.Payment_Amount, p.WaybillID })
                 .ToList();
 
-            var allItems = new List<(DateTime dt, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
+            var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
 
             foreach (var wb in waybills)
             {
                 var amt = Convert.ToDecimal(wb.Amount ?? 0);
-                allItems.Add((wb.IssueDate ?? DateTime.MinValue,
+                allItems.Add((wb.IssueDate ?? DateTime.MinValue, "wb",
                     $"Yo'l varaqasi №{wb.WaybillNo} sanasi {(wb.IssueDate?.ToString("dd.MM.yyyy") ?? "")}",
                     0, amt, amt, 0));
             }
             foreach (var pay in payments)
             {
                 var amt = Convert.ToDecimal(pay.Payment_Amount);
-                allItems.Add((pay.PaymentDate ?? DateTime.MinValue,
+                allItems.Add((pay.PaymentDate ?? DateTime.MinValue, "pay",
                     $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}",
                     amt, 0, 0, amt));
             }
 
-            foreach (var item in allItems.OrderBy(x => x.dt))
+            var adjList = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartyForwarder, forwarderId, contractId, asOfDate);
+            foreach (var a in adjList)
+            {
+                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
+                allItems.Add((a.CutoffDate, "adj",
+                    $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
+                    a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
+            }
+
+            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "wb" ? 0 : x.type == "pay" ? 1 : 2))
             {
                 vm.Rows.Add(new ReconciliationRowViewModel
                 {
@@ -234,17 +309,21 @@ namespace tahsinERP.Services
                     Party1Debit = item.p1Dr,
                     Party1Credit = item.p1Cr,
                     Party2Debit = item.p2Dr,
-                    Party2Credit = item.p2Cr
+                    Party2Credit = item.p2Cr,
+                    IsAdjustmentRow = item.type == "adj"
                 });
             }
 
             var totalWb = waybills.Sum(w => Convert.ToDecimal(w.Amount ?? 0));
             var totalPay = payments.Sum(p => Convert.ToDecimal(p.Payment_Amount));
-            vm.Party1DebitTotal = totalPay;
-            vm.Party1CreditTotal = totalWb;
-            vm.Party2DebitTotal = totalWb;
-            vm.Party2CreditTotal = totalPay;
-            vm.FinalBalance = totalWb - totalPay;
+            var adjDr = adjList.Sum(a => a.Party1Debit);
+            var adjCr = adjList.Sum(a => a.Party1Credit);
+
+            vm.Party1DebitTotal = totalPay + adjDr;
+            vm.Party1CreditTotal = totalWb + adjCr;
+            vm.Party2DebitTotal = totalWb + adjCr;
+            vm.Party2CreditTotal = totalPay + adjDr;
+            vm.FinalBalance = vm.Party1CreditTotal - vm.Party1DebitTotal;
 
             if (vm.Rows.Count > 0)
             {

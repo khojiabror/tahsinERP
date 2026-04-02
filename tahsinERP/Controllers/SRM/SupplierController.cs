@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -108,6 +109,7 @@ namespace tahsinERP.Controllers
                     }
 
                     supplier.IsDeleted = true;
+                    await SoftDeleteReferenceService.AfterSupplierSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Supplier", $"Delete - {supplier.Name} ta'minotchi o'chirildi");

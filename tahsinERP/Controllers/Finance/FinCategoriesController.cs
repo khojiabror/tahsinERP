@@ -115,7 +115,7 @@ namespace tahsinERP.Controllers.Finance
                     .ToList();
 
                 // Olish transaction count
-                ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.CategoryID == id);
+                ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.CategoryID == id && t.IsDeleted != true);
 
                 return View(category);
             }
@@ -321,7 +321,7 @@ namespace tahsinERP.Controllers.Finance
                 // Tekshirish agar category has children
                 ViewBag.HasChildren = db.FIN_CATEGORIES.Any(c => c.ParentID == id && c.IsActive);
                 // Tekshirish agar category has transactions
-                ViewBag.HasTransactions = db.FIN_TRANSACTIONS.Any(t => t.CategoryID == id);
+                ViewBag.HasTransactions = db.FIN_TRANSACTIONS.Any(t => t.CategoryID == id && t.IsDeleted != true);
 
                 return View(category);
             }

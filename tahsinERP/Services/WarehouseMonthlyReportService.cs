@@ -38,6 +38,7 @@ namespace tahsinERP.Services
                                      where i.ReceivingWHID == warehouseId
                                            && i.IssueDateTime < periodStart
                                            && (i.IsDeleted == null || i.IsDeleted == false)
+                                           && i.RecieveStatus == true
                                      group ip by ip.ProductID into g
                                      select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
 
@@ -59,28 +60,57 @@ namespace tahsinERP.Services
                 openingByProduct[x.ProductId] -= x.Total;
             }
 
-            // Kirim: faqat shu oy ichidagi kirim (oy 1-kunidan oxirigacha)
+            // Kirim: faqat operatsion kirim (inventarizatsiya hujjatlari/satrlari alohida ustunda yuritiladi)
             var incomeInPeriod = await (from ip in db.INCOME_PRODUCTS
                                        join i in db.INCOMES on ip.IncomeID equals i.ID
                                        where i.ReceivingWHID == warehouseId
                                              && i.IssueDateTime >= periodStart
                                              && i.IssueDateTime <= periodEnd
                                              && (i.IsDeleted == null || i.IsDeleted == false)
+                                             && i.RecieveStatus == true
+                                             && !(i.Description ?? "").Contains("Inventarizatsiya")
+                                             && !(ip.Comment ?? "").Contains("Inventarizatsiya")
                                        group ip by ip.ProductID into g
                                        select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
 
-            // Chiqim: faqat shu oy ichidagi chiqim (oy 1-kunidan oxirigacha)
+            // Chiqim: faqat operatsion chiqim (inventarizatsiya hujjatlari/satrlari alohida ustunda yuritiladi)
             var expenseInPeriod = await (from ep in db.EXPENSE_PRODUCTS
                                         join e in db.EXPENSES on ep.ExpenseID equals e.ID
                                         where e.SenderWHID == warehouseId
                                               && e.IssueDateTime >= periodStart
                                               && e.IssueDateTime <= periodEnd
                                               && e.IsDeleted == false
+                                              && !(e.Description ?? "").Contains("Inventarizatsiya")
+                                              && !(ep.Comment ?? "").Contains("Inventarizatsiya")
                                         group ep by ep.ProductID into g
                                         select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
 
+            // Inventarizatsiya: shu oy ichidagi adjustment hujjatlari (net = qo'shimcha kirim - kamaytirish chiqimi)
+            var adjustmentIncomeInPeriod = await (from ip in db.INCOME_PRODUCTS
+                                                  join i in db.INCOMES on ip.IncomeID equals i.ID
+                                                  where i.ReceivingWHID == warehouseId
+                                                        && i.IssueDateTime >= periodStart
+                                                        && i.IssueDateTime <= periodEnd
+                                                        && (i.IsDeleted == null || i.IsDeleted == false)
+                                                        && i.RecieveStatus == true
+                                                        && ((i.Description ?? "").Contains("Inventarizatsiya") || (ip.Comment ?? "").Contains("Inventarizatsiya"))
+                                                  group ip by ip.ProductID into g
+                                                  select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
+
+            var adjustmentExpenseInPeriod = await (from ep in db.EXPENSE_PRODUCTS
+                                                   join e in db.EXPENSES on ep.ExpenseID equals e.ID
+                                                   where e.SenderWHID == warehouseId
+                                                         && e.IssueDateTime >= periodStart
+                                                         && e.IssueDateTime <= periodEnd
+                                                         && e.IsDeleted == false
+                                                         && ((e.Description ?? "").Contains("Inventarizatsiya") || (ep.Comment ?? "").Contains("Inventarizatsiya"))
+                                                   group ep by ep.ProductID into g
+                                                   select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
+
             var incomeByProduct = incomeInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
             var expenseByProduct = expenseInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
+            var adjustmentInByProduct = adjustmentIncomeInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
+            var adjustmentOutByProduct = adjustmentExpenseInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
 
             // Summa bo'yicha: har bir harakatda TotalPrice (yoki Amount*PiecePrice) yig'indisi
             var incomeBeforeSum = await (from ip in db.INCOME_PRODUCTS
@@ -88,6 +118,7 @@ namespace tahsinERP.Services
                                         where i.ReceivingWHID == warehouseId
                                               && i.IssueDateTime < periodStart
                                               && (i.IsDeleted == null || i.IsDeleted == false)
+                                              && i.RecieveStatus == true
                                         group ip by ip.ProductID into g
                                         select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)) }).ToListAsync();
             var expenseBeforeSum = await (from ep in db.EXPENSE_PRODUCTS
@@ -101,6 +132,9 @@ namespace tahsinERP.Services
                                                 && i.IssueDateTime >= periodStart
                                                 && i.IssueDateTime <= periodEnd
                                                 && (i.IsDeleted == null || i.IsDeleted == false)
+                                                && i.RecieveStatus == true
+                                                && !(i.Description ?? "").Contains("Inventarizatsiya")
+                                                && !(ip.Comment ?? "").Contains("Inventarizatsiya")
                                           group ip by ip.ProductID into g
                                           select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)) }).ToListAsync();
             var expenseInPeriodSum = await (from ep in db.EXPENSE_PRODUCTS
@@ -109,8 +143,30 @@ namespace tahsinERP.Services
                                                   && e.IssueDateTime >= periodStart
                                                   && e.IssueDateTime <= periodEnd
                                                   && e.IsDeleted == false
+                                                  && !(e.Description ?? "").Contains("Inventarizatsiya")
+                                                  && !(ep.Comment ?? "").Contains("Inventarizatsiya")
                                             group ep by ep.ProductID into g
                                             select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice) }).ToListAsync();
+
+            var adjustmentIncomeInPeriodSum = await (from ip in db.INCOME_PRODUCTS
+                                                     join i in db.INCOMES on ip.IncomeID equals i.ID
+                                                     where i.ReceivingWHID == warehouseId
+                                                           && i.IssueDateTime >= periodStart
+                                                           && i.IssueDateTime <= periodEnd
+                                                           && (i.IsDeleted == null || i.IsDeleted == false)
+                                                           && i.RecieveStatus == true
+                                                           && ((i.Description ?? "").Contains("Inventarizatsiya") || (ip.Comment ?? "").Contains("Inventarizatsiya"))
+                                                     group ip by ip.ProductID into g
+                                                     select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)) }).ToListAsync();
+            var adjustmentExpenseInPeriodSum = await (from ep in db.EXPENSE_PRODUCTS
+                                                      join e in db.EXPENSES on ep.ExpenseID equals e.ID
+                                                      where e.SenderWHID == warehouseId
+                                                            && e.IssueDateTime >= periodStart
+                                                            && e.IssueDateTime <= periodEnd
+                                                            && e.IsDeleted == false
+                                                            && ((e.Description ?? "").Contains("Inventarizatsiya") || (ep.Comment ?? "").Contains("Inventarizatsiya"))
+                                                      group ep by ep.ProductID into g
+                                                      select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice) }).ToListAsync();
 
             var openingSumByProduct = new Dictionary<int, decimal>();
             foreach (var x in incomeBeforeSum)
@@ -123,11 +179,15 @@ namespace tahsinERP.Services
             }
             var incomeSumByProduct = incomeInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
             var expenseSumByProduct = expenseInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
+            var adjustmentInSumByProduct = adjustmentIncomeInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
+            var adjustmentOutSumByProduct = adjustmentExpenseInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
 
             var allProductIds = new HashSet<int>();
             foreach (var k in openingByProduct.Keys) allProductIds.Add(k);
             foreach (var k in incomeByProduct.Keys) allProductIds.Add(k);
             foreach (var k in expenseByProduct.Keys) allProductIds.Add(k);
+            foreach (var k in adjustmentInByProduct.Keys) allProductIds.Add(k);
+            foreach (var k in adjustmentOutByProduct.Keys) allProductIds.Add(k);
 
             if (allProductIds.Count == 0)
             {
@@ -153,26 +213,34 @@ namespace tahsinERP.Services
             var productDict = products.ToDictionary(p => p.ID);
 
             var rows = new List<WarehouseMonthlyReportRowViewModel>();
-            double sumOpen = 0, sumIn = 0, sumOut = 0, sumClose = 0;
-            decimal sumOpenSum = 0, sumInSum = 0, sumOutSum = 0, sumCloseSum = 0;
+            double sumOpen = 0, sumAdj = 0, sumIn = 0, sumOut = 0, sumClose = 0;
+            decimal sumOpenSum = 0, sumAdjSum = 0, sumInSum = 0, sumOutSum = 0, sumCloseSum = 0;
 
             foreach (var pid in allProductIds.OrderBy(id => productDict.ContainsKey(id) ? productDict[id].PNo ?? "" : ""))
             {
                 openingByProduct.TryGetValue(pid, out var open);
                 incomeByProduct.TryGetValue(pid, out var inc);
                 expenseByProduct.TryGetValue(pid, out var exp);
-                var close = open + inc - exp;
+                adjustmentInByProduct.TryGetValue(pid, out var adjIn);
+                adjustmentOutByProduct.TryGetValue(pid, out var adjOut);
+                var adj = adjIn - adjOut;
+                var close = open + adj + inc - exp;
 
                 openingSumByProduct.TryGetValue(pid, out var openSum);
                 incomeSumByProduct.TryGetValue(pid, out var incSum);
                 expenseSumByProduct.TryGetValue(pid, out var expSum);
-                var closeSum = openSum + incSum - expSum;
+                adjustmentInSumByProduct.TryGetValue(pid, out var adjInSum);
+                adjustmentOutSumByProduct.TryGetValue(pid, out var adjOutSum);
+                var adjSum = adjInSum - adjOutSum;
+                var closeSum = openSum + adjSum + incSum - expSum;
 
                 sumOpen += open;
+                sumAdj += adj;
                 sumIn += inc;
                 sumOut += exp;
                 sumClose += close;
                 sumOpenSum += openSum;
+                sumAdjSum += adjSum;
                 sumInSum += incSum;
                 sumOutSum += expSum;
                 sumCloseSum += closeSum;
@@ -185,10 +253,12 @@ namespace tahsinERP.Services
                     ProductName = prod?.Name ?? "",
                     UnitName = prod?.UNIT?.ShortName ?? prod?.UNIT?.UnitName ?? "",
                     OpeningBalance = open,
+                    AdjustmentQty = adj,
                     IncomeQty = inc,
                     ExpenseQty = exp,
                     ClosingBalance = close,
                     OpeningBalanceSum = openSum,
+                    AdjustmentSum = adjSum,
                     IncomeSum = incSum,
                     ExpenseSum = expSum,
                     ClosingBalanceSum = closeSum
@@ -219,10 +289,12 @@ namespace tahsinERP.Services
                 Totals = new WarehouseMonthlyReportTotalsViewModel
                 {
                     TotalOpening = sumOpen,
+                    TotalAdjustment = sumAdj,
                     TotalIncome = sumIn,
                     TotalExpense = sumOut,
                     TotalClosing = sumClose,
                     TotalOpeningSum = sumOpenSum,
+                    TotalAdjustmentSum = sumAdjSum,
                     TotalIncomeSum = sumInSum,
                     TotalExpenseSum = sumOutSum,
                     TotalClosingSum = sumCloseSum

@@ -16,7 +16,6 @@ namespace tahsinERP.ViewModels.POrder
         [Display(Name = "Korxona")]
         public int? CompanyID { get; set; }
         
-        [Required(ErrorMessage = "Ta'minotchi tanlanishi shart")]
         [Display(Name = "Ta'minotchi")]
         public int? SupplierID { get; set; }
         
@@ -76,6 +75,9 @@ namespace tahsinERP.ViewModels.POrder
         // Conversion information
         [Display(Name = "Hisob tushuntirishi")]
         public string CalculationExplanation { get; set; }
+
+        /// <summary> DB Priority (max 50) uchun qisqa qator — generatsiyadan. </summary>
+        public string CalculationSummary { get; set; }
         
         [Display(Name = "Konvertatsiya qilingan")]
         public bool IsConverted { get; set; }
@@ -103,7 +105,6 @@ namespace tahsinERP.ViewModels.POrder
         [Display(Name = "Korxona")]
         public int? CompanyID { get; set; }
         
-        [Required(ErrorMessage = "Ta'minotchi tanlanishi shart")]
         [Display(Name = "Ta'minotchi")]
         public int? SupplierID { get; set; }
         

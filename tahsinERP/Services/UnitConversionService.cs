@@ -304,14 +304,68 @@ namespace tahsinERP.Services
             var toIsKg = IsKgUnit(toUnit);
             var fromIsDona = IsDonaUnit(fromUnit);
             var toIsDona = IsDonaUnit(toUnit);
+            var fromIsMeter = IsMeterUnit(fromUnit);
+            var toIsMeter = IsMeterUnit(toUnit);
 
             if (fromIsKg && toIsDona)
                 return await ConvertKgToPieceAsync(productId, quantity);
             if (fromIsDona && toIsKg)
                 return await ConvertPieceToKgAsync(productId, quantity);
 
+            // Yog'och: metr (zaxira) &lt;-&gt; dona (shtuk)
+            if (fromIsMeter && toIsDona)
+                return await ConvertMeterToPieceAsync(productId, quantity);
+            if (fromIsDona && toIsMeter)
+                return await ConvertPieceToMeterAsync(productId, quantity);
+
             return quantity;
         }
+
+        /// <summary>
+        /// Yog'och shtukasi uzunligi bo'yicha: dona → metr (bir dona = mahsulot Length mm / 1000).
+        /// </summary>
+        public async Task<decimal> ConvertPieceToMeterAsync(int productId, decimal pieceQuantity)
+        {
+            var product = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .FirstOrDefaultAsync(p => p.ID == productId);
+
+            if (product == null)
+                throw new ArgumentException($"Product with ID {productId} not found.");
+
+            bool requiresCutting = product.CategoryID.HasValue &&
+                                   product.PRODUCT_CATEGORIES != null &&
+                                   product.PRODUCT_CATEGORIES.RequiresCutting;
+
+            if (!requiresCutting)
+                return pieceQuantity;
+
+            if (!product.Length.HasValue || product.Length.Value <= 0)
+                throw new InvalidOperationException(
+                    $"Product {product.PNo} does not have a valid Length value. Cannot convert piece to meter.");
+
+            decimal lengthInMeters = (decimal)(product.Length.Value / 1000.0);
+            return pieceQuantity * lengthInMeters;
+        }
+
+        /// <summary>
+        /// Birinchi mos keladigan birlik ID (masalan, kg, dona, m) — ombor kirimi bilan solishtirish uchun.
+        /// </summary>
+        public async Task<int?> FindFirstUnitIdAsync(Func<UNIT, bool> predicate)
+        {
+            var list = await _db.UNITS
+                .Where(x => x.IsDeleted == null || x.IsDeleted == false)
+                .OrderBy(x => x.ID)
+                .ToListAsync();
+            var u = list.FirstOrDefault(predicate);
+            return u != null ? (int?)u.ID : null;
+        }
+
+        public Task<int?> FindKgUnitIdAsync() => FindFirstUnitIdAsync(IsKgUnit);
+
+        public Task<int?> FindDonaUnitIdAsync() => FindFirstUnitIdAsync(IsDonaUnit);
+
+        public Task<int?> FindMeterUnitIdAsync() => FindFirstUnitIdAsync(IsMeterUnit);
 
         private static bool IsKgUnit(UNIT u)
         {
@@ -325,6 +379,17 @@ namespace tahsinERP.Services
             if (u == null) return false;
             var s = ((u.ShortName ?? "") + " " + (u.UnitName ?? "")).ToLowerInvariant();
             return s.IndexOf("dona", StringComparison.OrdinalIgnoreCase) >= 0 || s.IndexOf("pc", StringComparison.OrdinalIgnoreCase) >= 0 || s.IndexOf("pcs", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>Metr (mm emas) — yog'och zaxira o'lchovi.</summary>
+        private static bool IsMeterUnit(UNIT u)
+        {
+            if (u == null) return false;
+            var sn = (u.ShortName ?? "").Trim().ToLowerInvariant();
+            var un = (u.UnitName ?? "").ToLowerInvariant();
+            if (sn == "mm" || un.Contains("milli") || un.Contains("мм")) return false;
+            if (sn == "m" || sn == "m." || un.Contains("metr") || un.Contains("метр")) return true;
+            return false;
         }
     }
 }

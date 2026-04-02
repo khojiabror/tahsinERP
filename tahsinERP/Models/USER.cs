@@ -22,6 +22,7 @@ namespace tahsinERP.Models
             this.FIN_BALANCE_SNAPSHOTS = new HashSet<FIN_BALANCE_SNAPSHOTS>();
             this.FIN_PL_PLANS = new HashSet<FIN_PL_PLANS>();
             this.FIN_TRANSACTIONS = new HashSet<FIN_TRANSACTIONS>();
+            this.HR_EMPLOYEE_HISTORY = new HashSet<HR_EMPLOYEE_HISTORY>();
             this.HR_EMPLOYEES = new HashSet<HR_EMPLOYEES>();
             this.HR_PAYROLL_HEADERS = new HashSet<HR_PAYROLL_HEADERS>();
             this.HR_PAYROLL_HEADERS1 = new HashSet<HR_PAYROLL_HEADERS>();
@@ -36,7 +37,6 @@ namespace tahsinERP.Models
             this.HR_PIECE_RATE_WORK_ENTRIES1 = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
             this.HR_TIMESHEET_HEADERS = new HashSet<HR_TIMESHEET_HEADERS>();
             this.HR_TIMESHEET_HEADERS1 = new HashSet<HR_TIMESHEET_HEADERS>();
-            this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
             this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
             this.QUALITY_INSPECTION1 = new HashSet<QUALITY_INSPECTION>();
             this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
@@ -49,7 +49,7 @@ namespace tahsinERP.Models
             this.USERLOGS = new HashSet<USERLOG>();
             this.WAREHOUSES = new HashSet<Warehouse>();
             this.ROLES = new HashSet<ROLE>();
-            this.HR_EMPLOYEE_HISTORY = new HashSet<HR_EMPLOYEE_HISTORY>();
+            this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
         }
     
         public int ID { get; set; }
@@ -73,6 +73,8 @@ namespace tahsinERP.Models
         public virtual ICollection<FIN_PL_PLANS> FIN_PL_PLANS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -102,8 +104,6 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION1 { get; set; }
@@ -128,6 +128,6 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ROLE> ROLES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
+        public virtual ICollection<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
     }
 }

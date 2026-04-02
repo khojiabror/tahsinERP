@@ -493,7 +493,7 @@ namespace tahsinERP.Controllers.Finance
                             $"Balans kategoriyasi kategoriyalari yangilandi: {category.Name}");
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // agar relationship doesn't work, try direct SQL approach
                     try

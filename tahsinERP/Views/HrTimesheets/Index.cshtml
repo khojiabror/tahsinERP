@@ -101,21 +101,15 @@
                                                 <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
                                                 <td>@(item.ApprovedDT?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                 <td>
+                                                    <a href="@Url.Action("Preview", new { id = item.ID })" class="btn btn-sm btn-outline-info" target="_blank" title="Ko'rib chiqish">
+                                                        <i class="bx bx-show"></i>
+                                                    </a>
                                                     @if (item.Status == "Draft")
                                                     {
                                                         <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info" title="Tahrirlash">
                                                             <i class="bx bx-edit"></i>
                                                         </a>
                                                     }
-                                                    else
-                                                    {
-                                                        <a href="@Url.Action("Report", new { id = item.ID })" class="btn btn-sm btn-outline-info" target="_blank" title="Ko'rish">
-                                                            <i class="bx bx-show"></i>
-                                                        </a>
-                                                    }
-                                                    <a href="@Url.Action("Export", new { id = item.ID })" class="btn btn-sm btn-success">
-                                                        <i class="bx bx-export"></i>
-                                                    </a>
                                                     @if (changePermit && item.Status == "Draft")
                                                     {
                                                         <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Tabelni tasdiqlash?');">
@@ -165,6 +159,7 @@
                     }
                 },
                 "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
                 "order": [[0, "desc"], [1, "desc"]],
                 dom: 'lBfrtip',
                 buttons: [

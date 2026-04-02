@@ -99,7 +99,29 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Izoh:</th>
-                                                    <td>@(Model.Description ?? "-")</td>
+                                                    <td>
+                                                        @{
+                                                            var desc = Model.Description ?? "-";
+                                                            var invoiceUrl = string.Empty;
+                                                            if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("URL: "))
+                                                            {
+                                                                var idx = Model.Description.IndexOf("URL: ", StringComparison.OrdinalIgnoreCase);
+                                                                if (idx >= 0)
+                                                                {
+                                                                    invoiceUrl = Model.Description.Substring(idx + 5).Trim();
+                                                                }
+                                                            }
+                                                        }
+                                                        <div>@desc</div>
+                                                        @if (!string.IsNullOrWhiteSpace(invoiceUrl))
+                                                        {
+                                                            <div class="mt-1">
+                                                                <a href="@invoiceUrl" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bx bx-link-external"></i> Invoysga o'tish
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                    </td>
                                                 </tr>
                                             </table>
                                         </div>

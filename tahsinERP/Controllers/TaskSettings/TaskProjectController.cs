@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.TaskSettings
@@ -235,6 +236,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                 project.IsDeleted = true;
                 db.Entry(project).State = System.Data.Entity.EntityState.Modified;
+                await SoftDeleteReferenceService.AfterTaskProjectSoftDeletedAsync(db, id);
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} o'chirildi");

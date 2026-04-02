@@ -207,7 +207,7 @@ namespace tahsinERP.Controllers
                     ContractID = order.ContractID,
                     OrderID = order.ID,
                     CurrencyCode = order.CURRENCy1?.Shortname ?? "UZS",
-                    StatusCode = "DRAFT",
+                    StatusCode = "APPROVED",
                     CreatedDT = DateTime.Now
                 };
 
@@ -317,8 +317,8 @@ namespace tahsinERP.Controllers
                         invoice.TotalWithVAT = totalAmount + totalVAT;
                         invoice.CreatedDT = DateTime.Now;
                         invoice.CreatedByUserID = GetCurrentUserID();
-                        if (string.IsNullOrWhiteSpace(invoice.StatusCode))
-                            invoice.StatusCode = "DRAFT";
+                        // Biznes qoidasi: invoys yaratildimi — darhol APPROVED
+                        invoice.StatusCode = "APPROVED";
                         if (string.IsNullOrWhiteSpace(invoice.InvoiceNo))
                             invoice.InvoiceNo = GetNextInvoiceNo(db);
 
@@ -347,51 +347,55 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        // Post ga finance va decrease stock agar invoice is created bilan FINALIZED yoki APPROVED holat
-                        if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
+                        // Har doim sotuv omboridan chiqim qilamiz (invoys yaratilganda avtomatik expense + stock kamayish)
+                        try
                         {
-                            try
+                            foreach (var line in lines)
                             {
-                                var userId = UserHelper.GetUserId(User.Identity.Name);
-                                FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                                try
+                                {
+                                    WarehouseFlowService.DecreaseSalesStock(
+                                        line.ProductID,
+                                        line.Qty,
+                                        db,
+                                        User.Identity.Name,
+                                        invoice.ID,
+                                        invoice.InvoiceNo ?? invoice.ID.ToString(),
+                                        invoice.InvoiceDate,
+                                        invoice.ContractID
+                                    );
+                                }
+                                catch (Exception stockEx)
+                                {
+                                    LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder",
+                                        $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
+                                    if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
+                                    {
+                                        throw;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder",
+                                $"Stock decrease error for invoice {invoice.ID}: {ex.Message}");
+                            if (ex.Message.Contains("yetarli mahsulot yo'q"))
+                            {
+                                throw;
+                            }
+                        }
 
-                                // Decrease stock in Sales Warehouse uchun har bir invoice line
-                                foreach (var line in lines)
-                                {
-                                    try
-                                    {
-                                        WarehouseFlowService.DecreaseSalesStock(
-                                            line.ProductID,
-                                            line.Qty,
-                                            db,
-                                            User.Identity.Name,
-                                            invoice.ID,
-                                            invoice.InvoiceNo ?? invoice.ID.ToString()
-                                        );
-                                    }
-                                    catch (Exception stockEx)
-                                    {
-                                        // Log stock xatolik but don't fail the invoice creation
-                                        LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder",
-                                            $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
-                                        // Re-throw agar it's a critical stock shortage
-                                        if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
-                                        {
-                                            throw;
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder", 
-                                    $"Finance posting or stock decrease error for invoice {invoice.ID}: {ex.Message}");
-                                // Re-throw agar it's a stock shortage
-                                if (ex.Message.Contains("yetarli mahsulot yo'q"))
-                                {
-                                    throw;
-                                }
-                            }
+                        // Biznes qoidasi: invoys yaratilganda darhol finance posting qilinadi
+                        try
+                        {
+                            var userId = UserHelper.GetUserId(User.Identity.Name);
+                            FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "CreateFromOrder",
+                                $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{invoice.InvoiceNo} - Invoysni yaratdi (Buyurtma: {order.OrderNo})");
@@ -466,7 +470,7 @@ namespace tahsinERP.Controllers
                 {
                     InvoiceNo = GetNextInvoiceNo(db),
                     InvoiceDate = DateTime.Now,
-                    StatusCode = "DRAFT",
+                    StatusCode = "APPROVED",
                     CreatedDT = DateTime.Now
                 };
 
@@ -625,12 +629,8 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(SALES_INVOICES invoice, List<SalesInvoiceLineViewModel> lines)
         {
-            // StatusCode formda yo'q, lekin bazada majburiy.
-            // Har doim default qiymatni DRAFT qilib qo'yamiz va ModelState xatosini tozalaymiz.
-            if (string.IsNullOrWhiteSpace(invoice.StatusCode))
-            {
-                invoice.StatusCode = "DRAFT";
-            }
+            // Biznes qoidasi: invoys yaratilganda status doim APPROVED.
+            invoice.StatusCode = "APPROVED";
             if (ModelState.ContainsKey("StatusCode"))
             {
                 ModelState["StatusCode"].Errors.Clear();
@@ -774,51 +774,55 @@ namespace tahsinERP.Controllers
 
                         db.SaveChanges();
 
-                        // Post ga finance va decrease stock agar invoice is created bilan FINALIZED yoki APPROVED holat
-                        if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "APPROVED")
+                        // Har doim sotuv omboridan chiqim qilamiz (invoys yaratilganda avtomatik expense + stock kamayish)
+                        try
                         {
-                            try
+                            foreach (var line in lines)
                             {
-                                var userId = UserHelper.GetUserId(User.Identity.Name);
-                                FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                                try
+                                {
+                                    WarehouseFlowService.DecreaseSalesStock(
+                                        line.ProductID,
+                                        line.Qty,
+                                        db,
+                                        User.Identity.Name,
+                                        invoice.ID,
+                                        invoice.InvoiceNo ?? invoice.ID.ToString(),
+                                        invoice.InvoiceDate,
+                                        invoice.ContractID
+                                    );
+                                }
+                                catch (Exception stockEx)
+                                {
+                                    LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create",
+                                        $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
+                                    if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
+                                    {
+                                        throw;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create",
+                                $"Stock decrease error for invoice {invoice.ID}: {ex.Message}");
+                            if (ex.Message.Contains("yetarli mahsulot yo'q"))
+                            {
+                                throw;
+                            }
+                        }
 
-                                // Decrease stock in Sales Warehouse uchun har bir invoice line
-                                foreach (var line in lines)
-                                {
-                                    try
-                                    {
-                                        WarehouseFlowService.DecreaseSalesStock(
-                                            line.ProductID,
-                                            line.Qty,
-                                            db,
-                                            User.Identity.Name,
-                                            invoice.ID,
-                                            invoice.InvoiceNo ?? invoice.ID.ToString()
-                                        );
-                                    }
-                                    catch (Exception stockEx)
-                                    {
-                                        // Log stock xatolik but don't fail the invoice creation
-                                        LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create",
-                                            $"Stock decrease error for product {line.ProductID} in invoice {invoice.ID}: {stockEx.Message}");
-                                        // Re-throw agar it's a critical stock shortage
-                                        if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
-                                        {
-                                            throw;
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create", 
-                                    $"Finance posting or stock decrease error for invoice {invoice.ID}: {ex.Message}");
-                                // Re-throw agar it's a stock shortage
-                                if (ex.Message.Contains("yetarli mahsulot yo'q"))
-                                {
-                                    throw;
-                                }
-                            }
+                        // Biznes qoidasi: invoys yaratilganda darhol finance posting qilinadi
+                        try
+                        {
+                            var userId = UserHelper.GetUserId(User.Identity.Name);
+                            FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Create",
+                                $"Finance posting error for invoice {invoice.ID}: {ex.Message}");
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{invoice.InvoiceNo} - Invoysni yaratdi");
@@ -886,13 +890,19 @@ namespace tahsinERP.Controllers
                 return new SelectList(new List<SelectListItem>(), "Value", "Text", selectedProductId);
             }
 
-            // Faqat tayyor maxsulotlar (xomashyo emas) - Sales invoice uchun
+            // Sales invoice uchun mahsulotlar (qat'iy qoida):
+            // 1) Savdo omborida qoldiq > 0
+            // 2) O'chirilmagan
+            // 3) IsFinishedGood == true (PRODUCT yoki CATEGORY)
+            // 4) IsRawMaterial == true bo'lsa ko'rsatilmaydi (PRODUCT yoki CATEGORY)
             var products = db.PRODUCT_STOCKS
                 .Include(s => s.PRODUCT)
                 .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
                 .Where(s => s.WHID == salesWH.ID
                     && s.Amount > 0
-                    && (s.PRODUCT.IsDeleted == false || s.PRODUCT.IsDeleted == null)
+                    && s.PRODUCT.IsDeleted == false
+                    && (s.PRODUCT.IsFinishedGood == true
+                        || (s.PRODUCT.PRODUCT_CATEGORIES != null && s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true))
                     && (s.PRODUCT.IsRawMaterial != true)
                     && (s.PRODUCT.PRODUCT_CATEGORIES == null || s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial != true))
                 .OrderBy(s => s.PRODUCT.PNo)
@@ -927,9 +937,9 @@ namespace tahsinERP.Controllers
                 }
 
                 // Tekshirish agar invoice can be edited (business rule)
-                if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "PAID")
+                if (invoice.StatusCode == "FINALIZED" || invoice.StatusCode == "PAID" || invoice.StatusCode == "CANCELED")
                 {
-                    TempData["ErrorMessage"] = "Yakunlangan yoki to'langan invoysni tahrirlash mumkin emas";
+                    TempData["ErrorMessage"] = "Yakunlangan/to'langan/bekor qilingan invoysni tahrirlash mumkin emas";
                     return RedirectToAction("Details", new { id = id });
                 }
 
@@ -967,9 +977,9 @@ namespace tahsinERP.Controllers
                     }
 
                     // Tekshirish agar invoice can be edited
-                    if (existingInvoice.StatusCode == "FINALIZED" || existingInvoice.StatusCode == "PAID")
+                    if (existingInvoice.StatusCode == "FINALIZED" || existingInvoice.StatusCode == "PAID" || existingInvoice.StatusCode == "CANCELED")
                     {
-                        ModelState.AddModelError("", "Yakunlangan yoki to'langan invoysni tahrirlash mumkin emas");
+                        ModelState.AddModelError("", "Yakunlangan/to'langan/bekor qilingan invoysni tahrirlash mumkin emas");
                         return View(invoice);
                     }
 
@@ -1027,60 +1037,21 @@ namespace tahsinERP.Controllers
                         existingInvoice.TotalWithVAT = totalAmount + totalVAT;
                         }
 
-                        // Holatni form orqali o'zgartirmaymiz (UI dan olib tashlangan)
-                        bool statusChangedToFinalized = false;
+                        // Biznes qoidasi: yaratilgan/tahrirlangan invoys doim approved oqimida yuradi
+                        existingInvoice.StatusCode = "APPROVED";
 
                         db.SaveChanges();
 
-                        // Post ga finance va decrease stock agar holat changed ga finalized/approved
-                        if (statusChangedToFinalized)
+                        // Editdan keyin finance postingni yangilaymiz (upsert)
+                        try
                         {
-                            try
-                            {
-                                var userId = UserHelper.GetUserId(User.Identity.Name);
-                                FinancePostingService.PostSalesInvoice((int)existingInvoice.ID, db, userId);
-
-                                // Decrease stock in Sales Warehouse uchun har bir invoice line
-                                if (lines != null && lines.Any())
-                                {
-                                    foreach (var line in lines)
-                                    {
-                                        try
-                                        {
-                                            WarehouseFlowService.DecreaseSalesStock(
-                                                line.ProductID,
-                                                line.Qty,
-                                                db,
-                                                User.Identity.Name,
-                                                existingInvoice.ID,
-                                                existingInvoice.InvoiceNo ?? existingInvoice.ID.ToString()
-                                            );
-                                        }
-                                        catch (Exception stockEx)
-                                        {
-                                            // Log stock xatolik but don't fail the invoice saqlash
-                                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit",
-                                                $"Stock decrease error for product {line.ProductID} in invoice {existingInvoice.ID}: {stockEx.Message}");
-                                            // Re-throw agar it's a critical stock shortage
-                                            if (stockEx.Message.Contains("yetarli mahsulot yo'q"))
-                                            {
-                                                throw;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                // Log xatolik but don't fail the invoice saqlash (unless it's stock shortage)
-                                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit", 
-                                    $"Finance posting or stock decrease error for invoice {existingInvoice.ID}: {ex.Message}");
-                                // Re-throw agar it's a stock shortage
-                                if (ex.Message.Contains("yetarli mahsulot yo'q"))
-                                {
-                                    throw;
-                                }
-                            }
+                            var userId = UserHelper.GetUserId(User.Identity.Name);
+                            FinancePostingService.PostSalesInvoice((int)existingInvoice.ID, db, userId);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", "Edit",
+                                $"Finance posting update error for invoice {existingInvoice.ID}: {ex.Message}");
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoicesController", $"{existingInvoice.InvoiceNo} - Invoysni tahrirladi");
@@ -1118,6 +1089,61 @@ namespace tahsinERP.Controllers
             }
 
             return View(invoice);
+        }
+
+        // Olish so'rovi: SalesInvoices/Delete/5
+        public ActionResult Delete(long? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var invoice = db.SALES_INVOICES
+                    .Include(i => i.CUSTOMER)
+                    .FirstOrDefault(i => i.ID == id);
+
+                if (invoice == null)
+                {
+                    return HttpNotFound();
+                }
+
+                return View(invoice);
+            }
+        }
+
+        // POST so'rovi: SalesInvoices/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(long id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var invoice = db.SALES_INVOICES.FirstOrDefault(i => i.ID == id);
+                if (invoice == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Paid invoysni bekor qilishga ruxsat bermaymiz
+                if (invoice.StatusCode == "PAID")
+                {
+                    TempData["ErrorMessage"] = "To'langan invoysni o'chirib bo'lmaydi.";
+                    return RedirectToAction("Details", new { id });
+                }
+
+                invoice.StatusCode = "CANCELED";
+                invoice.UpdatedDT = DateTime.Now;
+
+                // Auto-post qilingan finance yozuvini ham bekor qilamiz
+                FinancePostingService.RemoveSalesInvoicePosting((int)id, db);
+                db.SaveChanges();
+
+                LogHelper.LogToDatabase(User.Identity.Name, "SalesInvoices", $"Delete - {invoice.InvoiceNo} invoysi bekor qilindi");
+                return RedirectToAction("Index");
+            }
         }
 
         // yordamchi method ga get current user ID

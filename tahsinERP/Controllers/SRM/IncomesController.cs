@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -14,6 +16,10 @@ namespace tahsinERP.Controllers.SRM
 {
     public class IncomesController : Controller
     {
+        private static readonly Regex IncomeLineVatInComment = new Regex(
+            @"\s*\|\s*QQS\s*%:\s*[\d.,]+\s*%|\s*QQS\s*%:\s*[\d.,]+\s*%",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         // Olish so'rovi: Incomes
         public async Task<ActionResult> Index(int? status, int? warehouseId)
         {
@@ -240,7 +246,8 @@ namespace tahsinERP.Controllers.SRM
                         Amount = ip.Quantity,
                         UnitID = ip.UnitID,
                         PiecePrice = ip.Price,
-                        TotalPrice = ip.TotalPrice
+                        TotalPrice = ip.TotalPrice,
+                        VATRate = 0d
                     })
                     .ToListAsync();
 
@@ -332,15 +339,20 @@ namespace tahsinERP.Controllers.SRM
                                         unitId = product.UnitID ?? (productEntity?.UnitID ?? 1);
                                     }
 
+                                    var vat = Math.Max(0, Math.Min(100, product.VATRate));
+                                    var baseLine = product.Amount * (product.PiecePrice ?? 0);
+                                    var lineTotal = baseLine * (1.0 + vat / 100.0);
+                                    var mergedComment = MergeIncomeCommentWithVat(product.Comment, vat);
+
                                     var incomeProduct = new INCOME_PRODUCTS
                                     {
                                         IncomeID = income.ID,
                                         ProductID = product.ProductID,
                                         Amount = product.Amount, // In PIECES uchun cutting products, yoki user-selected unit uchun others
                                         PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
+                                        TotalPrice = lineTotal,
                                         UnitID = unitId,
-                                        Comment = product.Comment
+                                        Comment = mergedComment
                                     };
 
                                     db.INCOME_PRODUCTS.Add(incomeProduct);
@@ -367,19 +379,10 @@ namespace tahsinERP.Controllers.SRM
                                             stock.Amount += product.Amount;
                                         }
                                     }
-                                    else
+                                    else if (productEntity != null)
                                     {
-                                        if (productEntity != null)
-                                        {
-                                            var newStock = new PRODUCT_STOCKS
-                                            {
-                                                WHID = income.ReceivingWHID,
-                                                ProductID = product.ProductID,
-                                                Amount = product.Amount, // In PIECES uchun cutting products
-                                                UnitID = unitId
-                                            };
-                                            db.PRODUCT_STOCKS.Add(newStock);
-                                        }
+                                        var ensuredStock = WarehouseFlowService.GetOrCreateStockRow(db, income.ReceivingWHID, product.ProductID, unitId);
+                                        ensuredStock.Amount += product.Amount; // In PIECES uchun cutting products
                                     }
                                 }
 
@@ -572,7 +575,8 @@ namespace tahsinERP.Controllers.SRM
                         UnitID = ip.UnitID,
                         PiecePrice = ip.PiecePrice,
                         TotalPrice = ip.TotalPrice,
-                        Comment = ip.Comment
+                        Comment = ip.Comment,
+                        VATRate = GetVatRateForIncomeLine(ip.TotalPrice, ip.Amount, ip.PiecePrice, ip.Comment)
                     }).ToList()
                 };
 
@@ -697,15 +701,20 @@ namespace tahsinERP.Controllers.SRM
                                 {
                                     var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
                                     var unitId = product.UnitID ?? (productEntity != null ? productEntity.UnitID : 1);
+                                    var vat = Math.Max(0, Math.Min(100, product.VATRate));
+                                    var baseLine = product.Amount * (product.PiecePrice ?? 0);
+                                    var lineTotal = baseLine * (1.0 + vat / 100.0);
+                                    var mergedComment = MergeIncomeCommentWithVat(product.Comment, vat);
+
                                     var incomeProduct = new INCOME_PRODUCTS
                                     {
                                         IncomeID = income.ID,
                                         ProductID = product.ProductID,
                                         Amount = product.Amount,
                                         PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
+                                        TotalPrice = lineTotal,
                                         UnitID = unitId,
-                                        Comment = product.Comment
+                                        Comment = mergedComment
                                     };
 
                                     db.INCOME_PRODUCTS.Add(incomeProduct);
@@ -720,19 +729,10 @@ namespace tahsinERP.Controllers.SRM
                                     {
                                         stock.Amount += product.Amount;
                                     }
-                                    else
+                                    else if (productEntity != null)
                                     {
-                                        if (productEntity != null)
-                                        {
-                                            var newStock = new PRODUCT_STOCKS
-                                            {
-                                                WHID = income.ReceivingWHID,
-                                                ProductID = product.ProductID,
-                                                Amount = product.Amount,
-                                                UnitID = unitId
-                                            };
-                                            db.PRODUCT_STOCKS.Add(newStock);
-                                        }
+                                        var ensuredStock = WarehouseFlowService.GetOrCreateStockRow(db, income.ReceivingWHID, product.ProductID, unitId);
+                                        ensuredStock.Amount += product.Amount;
                                     }
                                 }
                             }
@@ -856,13 +856,8 @@ namespace tahsinERP.Controllers.SRM
                                 }
                                 else
                                 {
-                                    db.PRODUCT_STOCKS.Add(new PRODUCT_STOCKS
-                                    {
-                                        WHID = income.ReceivingWHID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount,
-                                        UnitID = product.UnitID
-                                    });
+                                    var ensuredStock = WarehouseFlowService.GetOrCreateStockRow(db, income.ReceivingWHID, product.ProductID, product.UnitID);
+                                    ensuredStock.Amount += product.Amount;
                                 }
                             }
                         }
@@ -953,13 +948,8 @@ namespace tahsinERP.Controllers.SRM
                             }
                             else
                             {
-                                db.PRODUCT_STOCKS.Add(new PRODUCT_STOCKS
-                                {
-                                    WHID = expense.SenderWHID,
-                                    ProductID = product.ProductID,
-                                    Amount = product.Amount,
-                                    UnitID = product.UnitID
-                                });
+                                var ensuredSenderStock = WarehouseFlowService.GetOrCreateStockRow(db, expense.SenderWHID, product.ProductID, product.UnitID);
+                                ensuredSenderStock.Amount += product.Amount;
                             }
 
                             if (expense.ReceiverWhID.HasValue)
@@ -1132,6 +1122,74 @@ namespace tahsinERP.Controllers.SRM
 
                 return File(doc.Doc, "application/pdf", $"Income_{doc.IncomeID}.pdf");
             }
+        }
+
+        private static string MergeIncomeCommentWithVat(string commentFromForm, double vatRate)
+        {
+            var userPart = string.IsNullOrWhiteSpace(commentFromForm)
+                ? ""
+                : IncomeLineVatInComment.Replace(commentFromForm, "").Trim().Trim('|').Trim();
+            var pct = vatRate.ToString("0.##", CultureInfo.InvariantCulture);
+            var qqs = "QQS %: " + pct + "%";
+            if (string.IsNullOrEmpty(userPart))
+            {
+                return qqs;
+            }
+
+            return userPart + " | " + qqs;
+        }
+
+        private static double? TryParseVatFromComment(string comment)
+        {
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                return null;
+            }
+
+            var m = Regex.Match(comment, @"QQS\s*%:\s*([\d.,]+)\s*%", RegexOptions.IgnoreCase);
+            if (!m.Success)
+            {
+                return null;
+            }
+
+            var s = m.Groups[1].Value.Replace(",", ".");
+            if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
+            {
+                return v;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Tahrirlash: izohdan QQS o‘qiladi; yo‘q bo‘lsa, jami va asosiy summadan taxmin qilinadi (eski yozuvlar).
+        /// </summary>
+        private static double GetVatRateForIncomeLine(double? totalPrice, double amount, double? piecePrice, string comment)
+        {
+            var parsed = TryParseVatFromComment(comment);
+            if (parsed.HasValue)
+            {
+                return Math.Max(0, Math.Min(100, parsed.Value));
+            }
+
+            var b = amount * (piecePrice ?? 0);
+            if (b <= 0.0000001)
+            {
+                return 12;
+            }
+
+            if (!totalPrice.HasValue || Math.Abs(totalPrice.Value - b) < 0.02)
+            {
+                return 0;
+            }
+
+            var implied = (totalPrice.Value / b - 1.0) * 100.0;
+            if (implied >= -0.5 && implied <= 100.5)
+            {
+                return Math.Max(0, Math.Min(100, Math.Round(implied, 4)));
+            }
+
+            return 0;
         }
 
         private string ExtractLinkedExpenseDocNo(string description)

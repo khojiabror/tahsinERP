@@ -292,6 +292,7 @@ namespace tahsinERP.Controllers.HR
 
             grade.IsDeleted = true;
             db.Entry(grade).State = System.Data.Entity.EntityState.Modified;
+            await SoftDeleteReferenceService.AfterSalaryGradeSoftDeletedAsync(db, id);
             await db.SaveChangesAsync();
 
             logger.Log("HrSalaryGrades", "Delete", $"Daraja: {grade.Name}, Kod: {grade.GradeCode}");

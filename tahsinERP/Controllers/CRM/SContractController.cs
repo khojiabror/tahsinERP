@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels;
 using System.Web.Security;
 
@@ -579,6 +580,7 @@ namespace tahsinERP.Controllers
                 {
                     contract.IsDeleted = true;
                     db.Entry(contract).State = EntityState.Modified;
+                    SoftDeleteReferenceService.AfterSContractSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{contract.ContractNo} - SContractni o'chirdi");

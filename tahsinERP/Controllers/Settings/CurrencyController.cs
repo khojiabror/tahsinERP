@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -98,6 +99,7 @@ namespace tahsinERP.Controllers.Settings
                     {
                         currencyToDelete.IsDeleted = true;
                         db.Entry(currencyToDelete).State = System.Data.Entity.EntityState.Modified;
+                        await SoftDeleteReferenceService.AfterCurrencySoftDeletedAsync(db, currencyToDelete.ID);
                         await db.SaveChangesAsync();
                         LogHelper.LogToDatabase(User.Identity.Name, "Valyutalar", $"{currencyToDelete.Shortname} - o'lchov birligini o'chirdi");
 

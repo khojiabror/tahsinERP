@@ -84,6 +84,15 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label">Qo'lda xodim qo'shish (ixtiyoriy)</label>
+                                            @Html.ListBox("selectedEmployeeIds", ViewBag.EmployeeOptions as MultiSelectList, new { @class = "form-control select2-multi", @style = "min-height: 180px;" })
+                                            <small class="text-muted">Bir yoki bir nechta xodimni tanlab yuborsangiz, tabel ochilganda darrov qo'shiladi.</small>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
@@ -102,6 +111,11 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2({ width: '100%' });
+            $('.select2-multi').select2({
+                width: '100%',
+                placeholder: "Xodimlarni tanlang",
+                allowClear: true
+            });
 
             // Validate Year and Month - cannot be in future
             $('form').on('submit', function(e) {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
@@ -83,6 +84,7 @@ namespace tahsinERP.Controllers
                         {
                             try
                             {
+                                SoftDeleteReferenceService.AfterShopSoftDeletedAsync(db, prod_shop_deleted.ID).ConfigureAwait(false).GetAwaiter().GetResult();
                                 db.SaveChanges();
 
                                 LogHelper.LogToDatabase(User.Identity.Name, "ShopController", $"{prod_shop_deleted.ShopName} - Shopni o'chirdi");

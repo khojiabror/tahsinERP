@@ -128,6 +128,11 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "Narx (dona)")]
         public double? PiecePrice { get; set; }
+
+        /// <summary>QQS foizi (0–100). 0 = QQS yo‘q.</summary>
+        [Display(Name = "QQS %")]
+        [Range(0, 100, ErrorMessage = "QQS 0 dan 100 gacha")]
+        public double VATRate { get; set; }
         
         [Display(Name = "Jami summa")]
         public double? TotalPrice { get; set; }
