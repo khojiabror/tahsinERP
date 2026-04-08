@@ -381,7 +381,7 @@ namespace tahsinERP.Services
                         CurrencyID = currencyId,
                         IsDeleted = false,
                         RecieveStatus = false,
-                        Description = $"Ishlab chiqarishdan sotuv omboriga o'tkazma: {product.PNo}. EXPENS ID: {expense.ID}"
+                        Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - Ishlab chiqarishdan sotuv omboriga o'tkazma: {product.PNo}. EXPENS ID: {expense.ID}"
                     };
 
                     db.INCOMES.Add(income);

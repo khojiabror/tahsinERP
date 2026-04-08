@@ -72,7 +72,32 @@ namespace tahsinERP.Controllers
 
                 var paymentLookup = paymentTotals.ToDictionary(x => x.WaybillID, x => x.TotalPaid);
                 var totalPaid = paymentTotals.Sum(p => p.TotalPaid);
-                var unpaidAmount = totalCost - totalPaid;
+
+                // FIN_TRANSACTIONS dagi qo'lda kiritilgan Forwarder to'lovlari (WaybillPayment dublikatini chiqaramiz)
+                var finForwarderPaymentsQuery = db.FIN_TRANSACTIONS
+                    .Where(t => t.CounterpartyType == 4
+                        && t.Direction == 2
+                        && (t.IsDeleted == null || t.IsDeleted == false)
+                        && t.TxnDate >= startDate.Value
+                        && t.TxnDate <= endDate.Value
+                        && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment"));
+
+                if (forwarderId.HasValue)
+                {
+                    finForwarderPaymentsQuery = finForwarderPaymentsQuery.Where(t => t.CounterpartyID == forwarderId.Value);
+                }
+
+                var finForwarderPayments = await finForwarderPaymentsQuery
+                    .GroupBy(t => t.CounterpartyID)
+                    .Select(g => new { ForwarderID = g.Key, TotalPaid = g.Sum(t => t.Amount) })
+                    .ToListAsync();
+
+                var finPaymentByForwarder = finForwarderPayments
+                    .Where(x => x.ForwarderID.HasValue)
+                    .ToDictionary(x => x.ForwarderID.Value, x => x.TotalPaid);
+
+                var additionalFinPaid = finForwarderPayments.Sum(x => x.TotalPaid);
+                var unpaidAmount = totalCost - (totalPaid + (double)additionalFinPaid);
 
                 // Calculate logistics cost as % of sales (uchun outbound waybills)
                 var outboundWaybills = waybills.Where(w => w.Direction == 1 && w.SalesInvoiceID.HasValue).ToList();
@@ -99,6 +124,7 @@ namespace tahsinERP.Controllers
                         TotalCost = g.Sum(w => w.Amount.Value),
                         TotalTonnage = g.Where(w => w.GrWeight.HasValue).Sum(w => w.GrWeight.Value),
                         TotalPaid = g.Sum(w => paymentLookup.ContainsKey(w.ID) ? paymentLookup[w.ID] : 0)
+                            + (double)(g.Key.HasValue && finPaymentByForwarder.ContainsKey(g.Key.Value) ? finPaymentByForwarder[g.Key.Value] : 0m)
                     })
                     .OrderByDescending(f => f.TotalCost)
                     .Take(10)

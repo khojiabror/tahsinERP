@@ -39,6 +39,7 @@ namespace tahsinERP.ViewModels.Tannarx
         public decimal ActualEXWWithVAT { get; set; }
         public decimal ActualCIPWithoutVAT { get; set; }
         public decimal ActualCIPWithVAT { get; set; }
+        public decimal ActualFinishedProductTransportCost { get; set; }
         
         // Variances
         public decimal MaterialPriceVariance { get; set; }
@@ -53,6 +54,8 @@ namespace tahsinERP.ViewModels.Tannarx
         public decimal EXWVariancePercent { get; set; }
         public decimal CIPVariance { get; set; }
         public decimal CIPVariancePercent { get; set; }
+        public decimal FinishedProductTransportVariance { get; set; }
+        public decimal FinishedProductTransportVariancePercent { get; set; }
         
         // Additional info
         public int? ActualProductionQuantity { get; set; }

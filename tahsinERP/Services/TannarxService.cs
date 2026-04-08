@@ -56,7 +56,19 @@ namespace tahsinERP.Services
             if (!normLines.Any())
                 return 0;
 
-            return SumMaterialPriceFromNormLines(normLines);
+            var materialIds = normLines
+                .Select(n => n.MaterialID)
+                .Distinct()
+                .ToList();
+
+            var requiresCuttingByMaterial = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Where(p => materialIds.Contains(p.ID))
+                .ToDictionaryAsync(
+                    p => p.ID,
+                    p => p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting);
+
+            return SumMaterialPriceFromNormLines(normLines, requiresCuttingByMaterial);
         }
 
         /// <summary>
@@ -87,7 +99,9 @@ namespace tahsinERP.Services
         /// <summary>
         /// Sum material price from a list of NORM_INPUT_LINES.
         /// </summary>
-        private decimal SumMaterialPriceFromNormLines(List<NORM_INPUT_LINES> normLines)
+        private decimal SumMaterialPriceFromNormLines(
+            List<NORM_INPUT_LINES> normLines,
+            IDictionary<int, bool> requiresCuttingByMaterial)
         {
             decimal total = 0;
             foreach (var line in normLines)
@@ -95,12 +109,19 @@ namespace tahsinERP.Services
                 if (line.Price <= 0)
                     continue;
 
+                var requiresCutting = requiresCuttingByMaterial != null
+                    && requiresCuttingByMaterial.ContainsKey(line.MaterialID)
+                    && requiresCuttingByMaterial[line.MaterialID];
+
                 decimal consumptionMeters = 0;
                 if (line.Consumption.HasValue && line.Consumption.Value > 0)
                 {
-                    consumptionMeters = (decimal)(line.Consumption.Value / 1000.0);
+                    consumptionMeters = NormInputLineConsumptionToDisplay(
+                        requiresCutting,
+                        line.CutLengthMm,
+                        line.Consumption);
                 }
-                else if (line.CutLengthMm > 0)
+                else if (requiresCutting && line.CutLengthMm > 0)
                 {
                     consumptionMeters = (decimal)(line.CutLengthMm / 1000.0) * line.PiecesPerProduct;
                 }
@@ -112,12 +133,27 @@ namespace tahsinERP.Services
                 decimal wasteMeters = 0;
                 if (line.WasteAmount.HasValue && line.WasteAmount.Value > 0)
                 {
-                    wasteMeters = (decimal)(line.WasteAmount.Value / 1000.0);
+                    wasteMeters = (requiresCutting && line.CutLengthMm > 0)
+                        ? (decimal)(line.WasteAmount.Value / 1000.0)
+                        : (decimal)line.WasteAmount.Value;
                 }
 
                 total += (consumptionMeters + wasteMeters) * line.Price;
             }
             return total;
+        }
+
+        /// <summary>
+        /// NORM_INPUT_LINES.Consumption: kesish qatori (CutLengthMm > 0) bo'lsa jami mm saqlanadi -> m ga /1000.
+        /// Qolganlarda Consumption qiymati as-is olinadi.
+        /// </summary>
+        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
+        {
+            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
+                return 0;
+            if (requiresCutting && cutLengthMm > 0)
+                return (decimal)(consumptionDb.Value / 1000.0);
+            return (decimal)consumptionDb.Value;
         }
 
         /// <summary>

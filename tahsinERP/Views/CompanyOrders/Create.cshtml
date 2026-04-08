@@ -107,59 +107,65 @@
             </div>
         </div>
     </div>
-
-    <script>
-        jQuery(document).ready(function($) {
-            $('#btnSuggestText').click(function() {
-                var $btn = $(this);
-                var originalText = $btn.html();
-                $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
-
-                var orderTypeCode = $('#OrderTypeCode').val() || '';
-                var orderDate = $('#OrderDate').val() || '';
-                var orgUnitId = $('#OrgUnitId').val() || null;
-                var topic = $('#TopicInput').val() || '';
-
-                $.ajax({
-                    url: '@Url.Action("SuggestText", "CompanyOrders")',
-                    type: 'POST',
-                    headers: {
-                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    data: {
-                        orderTypeCode: orderTypeCode,
-                        orderDate: orderDate || null,
-                        orgUnitId: orgUnitId,
-                        topic: topic,
-                        employeeNames: []
-                    },
-                    success: function(response) {
-                        if (response && response.success) {
-                            $('#BodyTextArea').val(response.text);
-                        } else {
-                            alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('AJAX Error:', error, xhr.responseText);
-                        var errorMsg = 'Xatolik yuz berdi';
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            errorMsg = xhr.responseJSON.error;
-                        } else if (xhr.responseText) {
-                            errorMsg = xhr.responseText;
-                        }
-                        alert(errorMsg);
-                    },
-                    complete: function() {
-                        $btn.prop('disabled', false).html(originalText);
-                    }
-                });
-            });
-        });
-    </script>
 }
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
+    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    {
+        <script>
+            jQuery(document).ready(function ($) {
+                $('#btnSuggestText').click(function () {
+                    var $btn = $(this);
+                    var originalText = $btn.html();
+                    $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
+
+                    var orderTypeCode = $('#OrderTypeCode').val() || '';
+                    var orderDate = $('#OrderDate').val() || '';
+                    var orgUnitId = $('#OrgUnitId').val() || null;
+                    var topic = $('#TopicInput').val() || '';
+
+                    $.ajax({
+                        url: '@Url.Action("SuggestText", "CompanyOrders")',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: {
+                            orderTypeCode: orderTypeCode,
+                            orderDate: orderDate || null,
+                            orgUnitId: orgUnitId,
+                            topic: topic,
+                            employeeNames: []
+                        },
+                        success: function (response) {
+                            if (response && response.success) {
+                                $('#BodyTextArea').val(response.text);
+                            } else {
+                                alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('AJAX Error:', error, xhr.responseText);
+                            var errorMsg = 'Xatolik yuz berdi';
+                            if (xhr.responseJSON && xhr.responseJSON.error) {
+                                errorMsg = xhr.responseJSON.error;
+                            } else if (xhr.responseText) {
+                                errorMsg = xhr.responseText;
+                            }
+                            alert(errorMsg);
+                        },
+                        complete: function () {
+                            $btn.prop('disabled', false).html(originalText);
+                        }
+                    });
+                });
+            });
+        </script>
+    }
 }
 

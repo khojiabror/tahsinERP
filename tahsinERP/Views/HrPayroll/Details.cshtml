@@ -145,11 +145,24 @@
                     if ($.fn.DataTable.isDataTable('#payrollDetailsGrid')) {
                         $('#payrollDetailsGrid').DataTable().destroy();
                     }
+                    var dtUz = {
+                        decimal: "",
+                        emptyTable: "Jadvalda ma'lumot yo'q",
+                        info: "_TOTAL_ yozuvdan _START_ - _END_ gacha ko'rsatilmoqda",
+                        infoEmpty: "0 yozuvdan 0 - 0 gacha ko'rsatilmoqda",
+                        infoFiltered: "(_MAX_ yozuvdan filtrlangan)",
+                        lengthMenu: "Ko'rsatish _MENU_ ta yozuv",
+                        loadingRecords: "Yuklanmoqda...",
+                        processing: "Qayta ishlanmoqda...",
+                        search: "Qidirish:",
+                        zeroRecords: "Mos yozuv topilmadi",
+                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" }
+                    };
                     $('#payrollDetailsGrid').DataTable({
-                        language: { url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json" },
+                        language: dtUz,
                         pageLength: 25,
                         order: [[1, "asc"]],
-                        scrollX: true
+                        autoWidth: false
                     });
                 });
             })(window.jQuery || window.$j);

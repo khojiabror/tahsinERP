@@ -650,11 +650,16 @@ namespace tahsinERP.Controllers
             var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             var actionName = $"Apply-WH-{warehouseId}";
 
-            return await db.USERLOGS.AnyAsync(l =>
-                l.UserID == userId &&
-                l.ControllerName == "InventoryAdjustment" &&
-                l.ActionName == actionName &&
-                l.DateTime >= startOfMonth);
+            // USERLOGS.ControllerName/ActionName bazada text bo'lsa, SQL da = varchar bilan mos kelmaydi.
+            // Shuning uchun matn solishtirishni SQL o'rniga xotirada qilamiz.
+            var logsThisMonth = await db.USERLOGS
+                .AsNoTracking()
+                .Where(l => l.UserID == userId && l.DateTime >= startOfMonth)
+                .ToListAsync();
+
+            return logsThisMonth.Any(l =>
+                string.Equals(l.ControllerName, "InventoryAdjustment", StringComparison.Ordinal) &&
+                string.Equals(l.ActionName, actionName, StringComparison.Ordinal));
         }
 
         private async Task PopulateAdjustmentViewBags(DBTHSNEntities db, List<int> assignedWarehouseIds, int? selectedWarehouseId)

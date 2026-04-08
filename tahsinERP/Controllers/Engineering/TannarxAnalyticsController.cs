@@ -135,7 +135,7 @@ namespace tahsinERP.Controllers.Engineering
         // POST so'rovi: TannarxAnalytics/UpdateActualCosts
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdateActualCosts(int? year, int? month)
+        public async Task<ActionResult> UpdateActualCosts(int? year, int? month, int? productID, string returnTo)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit"))
             {
@@ -149,16 +149,19 @@ namespace tahsinERP.Controllers.Engineering
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics", 
                     $"Actual costs yangilandi - Year: {year}, Month: {month}, Records: {recordsUpdated}");
                 
-                TempData["Success"] = $"{recordsUpdated} ta tannarx uchun actual costs yangilandi.";
+                TempData["Success"] = $"{recordsUpdated} ta tannarx yozuvi uchun fakt xarajatlar yangilandi.";
             }
             catch (Exception ex)
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics", 
                     $"Actual costs yangilashda xatolik: {ex.Message}");
-                TempData["Error"] = $"Actual costs yangilashda xatolik: {ex.Message}";
+                TempData["Error"] = $"Fakt xarajatlarni yangilashda xatolik: {ex.Message}";
             }
 
-            return RedirectToAction("Dashboard", new { year = year, month = month });
+            if (string.Equals(returnTo, "Report", System.StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Report", new { year = year, month = month, productID = productID });
+
+            return RedirectToAction("Dashboard", new { year = year, month = month, productID = productID });
         }
 
         // Olish so'rovi: TannarxAnalytics/ProductDetails

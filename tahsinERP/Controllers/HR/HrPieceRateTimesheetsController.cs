@@ -510,7 +510,7 @@ namespace tahsinERP.Controllers.HR
         public async Task<ActionResult> Approve(int year, int? month, int? orgUnitId)
         {
             // Tekshirish permission uchun Approve action specifically
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets", "Approve"))
             {
                 TempData["Error"] = "Sizda tasdiqlash huquqi yo'q";
                 return RedirectToAction("Index", new { year, month, orgUnitId });
@@ -1087,10 +1087,46 @@ namespace tahsinERP.Controllers.HR
             return View();
         }
 
+        // Olish so'rovi: HR/PieceRateTimesheets/EditWorkEntry/5 (grid yoki ro'yxatdan bitta yozuv)
+        public async Task<ActionResult> EditWorkEntry(int? id, int? year, int? month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+
+            var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
+                .FirstOrDefaultAsync(e => e.ID == id.Value && (e.IsDeleted == null || e.IsDeleted == false));
+            if (entry == null)
+            {
+                return HttpNotFound();
+            }
+
+            var blockEdit = await GetPieceRateEditBlockedMessageAsync(entry.WorkDate.Year, entry.WorkDate.Month, new List<int> { entry.EmployeeID });
+            if (blockEdit != null)
+            {
+                TempData["Error"] = blockEdit;
+                return RedirectToAction("GridEdit", new { year = year ?? entry.WorkDate.Year, month = month ?? entry.WorkDate.Month, orgUnitId });
+            }
+
+            await PopulateCreateSimpleViewBags(entry.EmployeeID, entry.ProductID, entry.OperationID);
+            ViewBag.EntryID = entry.ID;
+            ViewBag.PrefillWorkDate = entry.WorkDate.ToString("yyyy-MM-dd");
+            ViewBag.PrefillQuantity = entry.Quantity;
+            ViewBag.ReturnUrl = Url.Action("GridEdit", "HrPieceRateTimesheets", new { year = year ?? entry.WorkDate.Year, month = month ?? entry.WorkDate.Month, orgUnitId });
+            ViewBag.PageTitle = "Ishbay yozuvni tahrirlash";
+            return View("CreateSimple");
+        }
+
         // POST so'rovi: HR/PieceRateTimesheets/CreateSimple
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CreateSimple(int EmployeeID, int ProductID, int OperationID, DateTime WorkDate, decimal Quantity)
+        public async Task<ActionResult> CreateSimple(int? entryId, int EmployeeID, int ProductID, int OperationID, DateTime WorkDate, decimal Quantity, string returnUrl = null)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
             {
@@ -1099,12 +1135,67 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
+                if (entryId.HasValue)
+                {
+                    var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
+                        .FirstOrDefaultAsync(e => e.ID == entryId.Value && (e.IsDeleted == null || e.IsDeleted == false));
+                    if (entry == null)
+                    {
+                        TempData["Error"] = "Yozuv topilmadi";
+                        await PopulateCreateSimpleViewBags();
+                        return View();
+                    }
+
+                    var workDateMonth = new DateTime(WorkDate.Year, WorkDate.Month, 1);
+                    var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                    if (workDateMonth > currentMonth)
+                    {
+                        TempData["Error"] = "Kelajakka tabel kirita olmaysiz";
+                        await PopulateCreateSimpleViewBags(EmployeeID, ProductID, OperationID);
+                        ViewBag.EntryID = entry.ID;
+                        ViewBag.PrefillWorkDate = WorkDate.ToString("yyyy-MM-dd");
+                        ViewBag.PrefillQuantity = Quantity;
+                        ViewBag.ReturnUrl = returnUrl;
+                        ViewBag.PageTitle = "Ishbay yozuvni tahrirlash";
+                        return View();
+                    }
+
+                    var editBlockedMessage = await GetPieceRateEditBlockedMessageAsync(WorkDate.Year, WorkDate.Month, new List<int> { EmployeeID });
+                    if (editBlockedMessage != null)
+                    {
+                        TempData["Error"] = editBlockedMessage;
+                        await PopulateCreateSimpleViewBags(EmployeeID, ProductID, OperationID);
+                        ViewBag.EntryID = entry.ID;
+                        ViewBag.PrefillWorkDate = WorkDate.ToString("yyyy-MM-dd");
+                        ViewBag.PrefillQuantity = Quantity;
+                        ViewBag.ReturnUrl = returnUrl;
+                        ViewBag.PageTitle = "Ishbay yozuvni tahrirlash";
+                        return View();
+                    }
+
+                    entry.EmployeeID = EmployeeID;
+                    entry.ProductID = ProductID;
+                    entry.OperationID = OperationID;
+                    entry.WorkDate = WorkDate;
+                    entry.Quantity = Quantity;
+                    entry.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
+                    entry.CreatedDT = DateTime.Now;
+                    await db.SaveChangesAsync();
+                    await EnsurePieceRateDraftApprovalsForEmployeesAsync(WorkDate.Year, WorkDate.Month, new List<int> { EmployeeID });
+                    TempData["Success"] = "Yozuv yangilandi";
+                    if (!string.IsNullOrWhiteSpace(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    return RedirectToAction("CreateSimple");
+                }
+
                 // Tekshirish: Cannot yaratish timesheet uchun future months
                 var currentDate = DateTime.Now;
-                var workDateMonth = new DateTime(WorkDate.Year, WorkDate.Month, 1);
-                var currentMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+                var workDateMonthNew = new DateTime(WorkDate.Year, WorkDate.Month, 1);
+                var currentMonthNew = new DateTime(currentDate.Year, currentDate.Month, 1);
 
-                if (workDateMonth > currentMonth)
+                if (workDateMonthNew > currentMonthNew)
                 {
                     TempData["Error"] = "Kelajakka tabel kirita olmaysiz";
                     await PopulateCreateSimpleViewBags();
@@ -1121,10 +1212,11 @@ namespace tahsinERP.Controllers.HR
 
                 // Tekshirish agar work entry already mavjud uchun this employee, product, operation, va date
                 var existing = await db.HR_PIECE_RATE_WORK_ENTRIES
-                    .FirstOrDefaultAsync(e => e.EmployeeID == EmployeeID && 
-                                             e.ProductID == ProductID && 
-                                             e.OperationID == OperationID && 
-                                             e.WorkDate == WorkDate);
+                    .FirstOrDefaultAsync(e => e.EmployeeID == EmployeeID &&
+                                             e.ProductID == ProductID &&
+                                             e.OperationID == OperationID &&
+                                             e.WorkDate == WorkDate &&
+                                             (e.IsDeleted == null || e.IsDeleted == false));
 
                 if (existing != null)
                 {
@@ -1172,6 +1264,39 @@ namespace tahsinERP.Controllers.HR
                 await PopulateCreateSimpleViewBags();
                 return View();
             }
+        }
+
+        /// <summary>
+        /// GridEdit jadvalidan bitta yozuvni o'chirish (soft delete).
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteGridEntry(int id, int year, int month, int? orgUnitId)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var entry = await db.HR_PIECE_RATE_WORK_ENTRIES.FirstOrDefaultAsync(e => e.ID == id && (e.IsDeleted == null || e.IsDeleted == false));
+            if (entry == null)
+            {
+                TempData["Error"] = "Yozuv topilmadi";
+                return RedirectToAction("GridEdit", new { year, month, orgUnitId });
+            }
+
+            var blockEdit = await GetPieceRateEditBlockedMessageAsync(entry.WorkDate.Year, entry.WorkDate.Month, new List<int> { entry.EmployeeID });
+            if (blockEdit != null)
+            {
+                TempData["Error"] = blockEdit;
+                return RedirectToAction("GridEdit", new { year, month, orgUnitId });
+            }
+
+            entry.IsDeleted = true;
+            db.Entry(entry).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+            TempData["Success"] = "Yozuv o'chirildi";
+            return RedirectToAction("GridEdit", new { year, month, orgUnitId });
         }
 
         // Olish so'rovi: HR/PieceRateTimesheets/GetTariff
@@ -1235,7 +1360,7 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        private async Task PopulateCreateSimpleViewBags()
+        private async Task PopulateCreateSimpleViewBags(int? selectedEmployeeId = null, int? selectedProductId = null, int? selectedOperationId = null)
         {
             // Olish piece-rate employees
             var pieceRatePositionIds = await db.HR_STAFFING_PLAN
@@ -1264,18 +1389,13 @@ namespace tahsinERP.Controllers.HR
                     .ToListAsync();
             }
 
-            ViewBag.EmployeeID = new SelectList(
-                employees,
-                "ID", "FullName");
+            var products = await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                .OrderBy(p => p.PNo).ToListAsync();
+            var operations = await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync();
 
-            ViewBag.ProductID = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                    .OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo");
-
-            ViewBag.OperationID = new SelectList(
-                await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
-                "ID", "Name");
+            ViewBag.EmployeeID = new SelectList(employees, "ID", "FullName", selectedEmployeeId);
+            ViewBag.ProductID = new SelectList(products, "ID", "PNo", selectedProductId);
+            ViewBag.OperationID = new SelectList(operations, "ID", "Name", selectedOperationId);
         }
 
         // Olish so'rovi: HR/PieceRateTimesheets/o'chirish/5

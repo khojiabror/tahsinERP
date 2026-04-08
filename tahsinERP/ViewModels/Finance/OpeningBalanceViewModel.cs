@@ -5,6 +5,18 @@ using tahsinERP.Models;
 
 namespace tahsinERP.ViewModels.Finance
 {
+    public class OpeningBalanceDateRow
+    {
+        public DateTime SnapshotDate { get; set; }
+        public int LineCount { get; set; }
+    }
+
+    public class OpeningBalanceDeleteViewModel
+    {
+        public DateTime SnapshotDate { get; set; }
+        public int LineCount { get; set; }
+    }
+
     public class OpeningBalanceCategoryItem
     {
         public int CategoryID { get; set; }

@@ -43,10 +43,15 @@ namespace tahsinERP.ViewModels
     
     public class ProductProductionDailyEntryViewModel
     {
-        [Required(ErrorMessage = "Sanani tanlang")]
-        [Display(Name = "Sana")]
+        [Required(ErrorMessage = "Reja sanasini tanlang")]
+        [Display(Name = "Reja sanasi")]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
+
+        [Required(ErrorMessage = "Fakt ishlab chiqarish sanasini tanlang")]
+        [Display(Name = "Fakt ishlab chiqarish sanasi")]
+        [DataType(DataType.Date)]
+        public DateTime ProductionDate { get; set; }
         
         [Required(ErrorMessage = "Sexni tanlang")]
         [Display(Name = "Sex")]

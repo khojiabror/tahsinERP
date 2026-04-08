@@ -57,7 +57,7 @@
 
                 @if (Model.Status == "Draft")
                 {
-                    @using (Html.BeginForm("SaveTimesheet", "HrTimesheets", FormMethod.Post, new { id = "timesheetSaveForm", style = "display:none;" }))
+                    using (Html.BeginForm("SaveTimesheet", "HrTimesheets", FormMethod.Post, new { id = "timesheetSaveForm", style = "display:none;" }))
                     {
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="timesheetId" value="@Model.ID" />

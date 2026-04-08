@@ -67,6 +67,7 @@ namespace tahsinERP.Controllers.MES
                 var viewModel = new ProductProductionDailyEntryViewModel
                 {
                     Date = date ?? DateTime.Now,
+                    ProductionDate = date ?? DateTime.Now,
                     ShopID = shopID ?? 0
                 };
 
@@ -93,12 +94,37 @@ namespace tahsinERP.Controllers.MES
                 {
                     try
                     {
-                        var dateOnly = viewModel.Date.Date;
+                        var dateOnly = viewModel.ProductionDate.Date;
                         var allProductionsForDate = db.PRODUCT_PRODUCTION
                             .Where(p => p.ShopID == viewModel.ShopID)
                             .ToList();
+                        var itemsToProcess = viewModel.ProductionItems.Where(i => i.Total > 0).ToList();
 
-                        foreach (var item in viewModel.ProductionItems.Where(i => i.Total > 0))
+                        // Xomashyo yetarliligini oldindan tekshirish: production kiritishda bloklansin,
+                        // reja yaratishda emas. Avval tekshirib olamiz, keyin yozishlarni boshlaymiz.
+                        foreach (var item in itemsToProcess)
+                        {
+                            var existingForCheck = allProductionsForDate
+                                .FirstOrDefault(p => p.Date.Date == dateOnly && p.ProductID == item.ProductID);
+
+                            var stockError = await ValidateRawMaterialStockForProductionAsync(
+                                item.ProductID,
+                                item.Total,
+                                db,
+                                existingForCheck?.ProductID,
+                                existingForCheck?.Total);
+
+                            if (!string.IsNullOrEmpty(stockError))
+                            {
+                                ModelState.AddModelError("", stockError);
+                                LoadPlannedProducts(viewModel, db);
+                                ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
+                                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                                return View(viewModel);
+                            }
+                        }
+
+                        foreach (var item in itemsToProcess)
                         {
                             var productForLog = db.PRODUCTS.Find(item.ProductID);
                             // Tekshirish agar production already mavjud uchun this date/product/shop
@@ -122,7 +148,7 @@ namespace tahsinERP.Controllers.MES
                                 {
                                     ProductID = item.ProductID,
                                     ShopID = viewModel.ShopID,
-                                    Date = viewModel.Date,
+                                    Date = viewModel.ProductionDate,
                                     DayShift = item.DayShift,
                                     NightShift = item.NightShift,
                                     Total = item.Total,
@@ -153,7 +179,7 @@ namespace tahsinERP.Controllers.MES
 
                             if (productForLog != null)
                                 LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController",
-                                    $"{productForLog.PNo} uchun {item.Total} dona ishlab chiqarish kiritildi: {viewModel.Date:yyyy-MM-dd}");
+                                    $"{productForLog.PNo} uchun {item.Total} dona ishlab chiqarish kiritildi: {viewModel.ProductionDate:yyyy-MM-dd}");
                         }
 
                         db.SaveChanges();
@@ -264,6 +290,22 @@ namespace tahsinERP.Controllers.MES
                     if (hasQualityInspection || hasSalesInvoice)
                     {
                         ModelState.AddModelError("", "Bu ishlab chiqarish sifat nazorati yoki sotuv fakturasi bilan bog'langan. O'zgartirish mumkin emas.");
+                        ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
+                        ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                        return View(viewModel);
+                    }
+
+                    // Yangi natija uchun xomashyo yetarliligi: joriy yozuvning eski sarfi mavjud deb hisoblaymiz
+                    // (go'yo revert qilingan) va shundan keyin yangi talabni tekshiramiz.
+                    var stockError = await ValidateRawMaterialStockForProductionAsync(
+                        viewModel.ProductID,
+                        viewModel.Total,
+                        db,
+                        production.ProductID,
+                        production.Total);
+                    if (!string.IsNullOrEmpty(stockError))
+                    {
+                        ModelState.AddModelError("", stockError);
                         ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
                         ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
                         return View(viewModel);
@@ -581,6 +623,78 @@ namespace tahsinERP.Controllers.MES
                 TempData["Success"] = "Ishlab chiqarish muvaffaqiyatli o'chirildi";
                 return RedirectToAction("Index");
             }
+        }
+
+        /// <summary>
+        /// Ishlab chiqarish natijasini kiritishda xomashyo yetarliligini tekshiradi.
+        /// oldProductId/oldProducedQty berilsa (Edit holati), eski yozuv sarfi omborga qaytgandek hisoblanadi.
+        /// </summary>
+        private async Task<string> ValidateRawMaterialStockForProductionAsync(
+            int productId,
+            double producedQty,
+            DBTHSNEntities db,
+            int? oldProductId = null,
+            double? oldProducedQty = null)
+        {
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
+            if (productionWarehouse == null)
+            {
+                return "Ishlab chiqarish ombori topilmadi";
+            }
+
+            var consumptionService = new ProductionConsumptionService(db);
+            var newRequirements = await consumptionService.CalculateRequiredRawMaterialsAsync(productId, producedQty);
+            if (newRequirements == null || newRequirements.Count == 0)
+            {
+                return null;
+            }
+
+            var oldConsumptionByMaterial = new Dictionary<int, double>();
+            if (oldProductId.HasValue && oldProducedQty.HasValue && oldProducedQty.Value > 0)
+            {
+                var oldRequirements = await consumptionService.CalculateRequiredRawMaterialsAsync(oldProductId.Value, oldProducedQty.Value);
+                if (oldRequirements != null)
+                {
+                    foreach (var req in oldRequirements)
+                    {
+                        if (!oldConsumptionByMaterial.ContainsKey(req.MaterialID))
+                        {
+                            oldConsumptionByMaterial[req.MaterialID] = 0d;
+                        }
+                        oldConsumptionByMaterial[req.MaterialID] += req.TotalConsumption;
+                    }
+                }
+            }
+
+            foreach (var req in newRequirements)
+            {
+                var stock = await db.PRODUCT_STOCKS
+                    .Include(s => s.UNIT)
+                    .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
+
+                var availableQty = stock?.Amount ?? 0d;
+                if (oldConsumptionByMaterial.ContainsKey(req.MaterialID))
+                {
+                    availableQty += oldConsumptionByMaterial[req.MaterialID];
+                }
+
+                if (availableQty + 1e-9 < req.TotalConsumption)
+                {
+                    var unitName = (stock?.UNIT != null)
+                        ? (stock.UNIT.ShortName ?? stock.UNIT.UnitName ?? "").Trim()
+                        : "";
+                    var availableWithUnit = string.IsNullOrEmpty(unitName)
+                        ? availableQty.ToString("N2")
+                        : $"{availableQty:N2} {unitName}";
+                    var requiredWithUnit = string.IsNullOrEmpty(unitName)
+                        ? req.TotalConsumption.ToString("N2")
+                        : $"{req.TotalConsumption:N2} {unitName}";
+
+                    return $"Ishlab chiqarish natijasini saqlab bo'lmadi: xomashyo yetarli emas. Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, omborda {availableWithUnit}, kerak {requiredWithUnit}.";
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

@@ -45,7 +45,7 @@
                     <table class="table table-bordered" id="gridTable">
                         <thead>
                             <tr class="thead-light">
-                                <th>Xodim</th><th>Mahsulot</th><th>Operatsiya</th><th>Sana</th><th>Miqdor</th><th>Tarif</th><th>Summa</th>
+                                <th>Xodim</th><th>Mahsulot</th><th>Operatsiya</th><th>Sana</th><th>Miqdor</th><th>Tarif</th><th>Summa</th><th class="text-center" style="min-width:100px;">Amallar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,6 +78,20 @@
                                     <td>@Html.TextBoxFor(m => m.Rows[i].Quantity, new { @type = "number", step = "0.01", @class = "form-control qty" })</td>
                                     <td><input type="text" class="form-control rate" readonly /></td>
                                     <td><input type="text" class="form-control amount" readonly /></td>
+                                    <td class="text-nowrap text-center align-middle">
+                                        @if (Model.Rows[i].EntryID.HasValue)
+                                        {
+                                            <a href="@Url.Action("EditWorkEntry", new { id = Model.Rows[i].EntryID, year = Model.Year, month = Model.Month, orgUnitId = Model.OrgUnitID })" class="btn btn-sm btn-outline-primary mb-0" title="Tahrirlash"><i class="bx bx-edit"></i></a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger mb-0" title="O'chirish"
+                                                    onclick="deleteGridEntry(@Model.Rows[i].EntryID.Value, @Model.Year, @Model.Month, @(Model.OrgUnitID.HasValue ? Model.OrgUnitID.Value.ToString() : "null"))">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger row-remove" title="Qatorni olib tashlash"><i class="bx bx-trash"></i></button>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -101,10 +115,36 @@
     const productOptions = `@Html.Raw(string.Join("", (ViewBag.ProductID as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
     const operationOptions = `@Html.Raw(string.Join("", (ViewBag.OperationID as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
 
+    function deleteGridEntry(id, year, month, orgUnitId) {
+        if (!confirm('O\'chirilsinmi?')) return;
+        var token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!token) { alert('Token topilmadi'); return; }
+        var body = new URLSearchParams();
+        body.append('id', id);
+        body.append('year', year);
+        body.append('month', month);
+        body.append('__RequestVerificationToken', token.value);
+        if (orgUnitId != null && orgUnitId !== '') body.append('orgUnitId', orgUnitId);
+        fetch('@Url.Action("DeleteGridEntry", "HrPieceRateTimesheets")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: body.toString(),
+            credentials: 'same-origin'
+        }).then(function (r) {
+            if (r.ok || r.status === 302) window.location.reload();
+            else alert('O\'chirishda xatolik');
+        }).catch(function () { alert('Tarmoq xatosi'); });
+    }
+
     function reloadByMonth() {
         const y = document.getElementById('yearPick').value;
         const m = document.getElementById('monthPick').value;
-        window.location.href = '@Url.Action("GridEdit")' + '?year=' + y + '&month=' + m;
+        const ou = document.querySelector('input[name="OrgUnitID"]');
+        let url = '@Url.Action("GridEdit")' + '?year=' + encodeURIComponent(y) + '&month=' + encodeURIComponent(m);
+        if (ou && ou.value) {
+            url += '&orgUnitId=' + encodeURIComponent(ou.value);
+        }
+        window.location.href = url;
     }
 
     function recalcRow(tr) {
@@ -155,10 +195,19 @@
             <td><input name="Rows[${idx}].WorkDate" type="date" class="form-control" value="${y}-${m}-01"/></td>
             <td><input name="Rows[${idx}].Quantity" type="number" step="0.01" class="form-control qty"/></td>
             <td><input type="text" class="form-control rate" readonly/></td>
-            <td><input type="text" class="form-control amount" readonly/></td>`;
+            <td><input type="text" class="form-control amount" readonly/></td>
+            <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-outline-danger row-remove" title="Qatorni olib tashlash"><i class="bx bx-trash"></i></button></td>`;
         tbody.appendChild(tr);
         bindRowEvents(tr);
     }
+
+    document.querySelector('#gridTable tbody').addEventListener('click', function (e) {
+        var btn = e.target.closest('.row-remove');
+        if (!btn) return;
+        e.preventDefault();
+        var tr = btn.closest('tr');
+        if (tr) tr.remove();
+    });
 
     document.querySelectorAll('#gridTable tbody tr').forEach(bindRowEvents);
 </script>

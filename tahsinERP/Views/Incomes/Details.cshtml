@@ -183,6 +183,19 @@
                                                     }
                                                 </div>
                                             }
+                                            else if (ViewBag.CanRepairTransferStock == true)
+                                            {
+                                                <div class="mt-2">
+                                                    @using (Html.BeginForm("RepairTransferStock", "Incomes", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Transfer qoldig\\'ini qayta tiklashni tasdiqlaysizmi?');" }))
+                                                    {
+                                                        @Html.AntiForgeryToken()
+                                                        @Html.Hidden("id", Model.ID)
+                                                        <button type="submit" class="btn btn-sm btn-warning">
+                                                            <i class="bx bx-refresh"></i> Qoldiqni qayta tiklash
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
                                         </div>
                                     </div>
 

@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxAnalyticsDashboardViewModel
 
 @{
-    ViewBag.Title = "Tannarx Analytics Dashboard";
+    ViewBag.Title = "Tannarx tahlili";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,7 +20,7 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item active">Analytics Dashboard</li>
+                                    <li class="breadcrumb-item active">Tahlil</li>
                                 </ol>
                             </div>
                         </div>
@@ -69,22 +69,21 @@
                                                 <i class="bx bx-search"></i> Filtrlash
                                             </button>
                                         </div>
-                                        @if (changePermit)
-                                        {
-                                            <div class="col-md-3 d-flex align-items-end">
-                                                @using (Html.BeginForm("UpdateActualCosts", "TannarxAnalytics", FormMethod.Post, new { @class = "d-inline" }))
-                                                {
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="year" value="@Model.Year" />
-                                                    <input type="hidden" name="month" value="@Model.Month" />
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-refresh"></i> Actual Costs Yangilash
-                                                    </button>
-                                                }
-                                            </div>
-                                        }
                                     </div>
                                 </form>
+                                @if (changePermit)
+                                {
+                                    using (Html.BeginForm("UpdateActualCosts", "TannarxAnalytics", FormMethod.Post, new { @class = "mt-2" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="year" value="@Model.Year" />
+                                        <input type="hidden" name="month" value="@Model.Month" />
+                                        <input type="hidden" name="returnTo" value="Dashboard" />
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bx bx-refresh"></i> Fakt xarajatlarni yangilash
+                                        </button>
+                                    }
+                                }
                             </div>
                         </div>
                     </div>
@@ -99,13 +98,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">Material Narxi</p>
+                                            <p class="mb-0 text-muted">Material narxi</p>
                                             <h2 class="font-weight-bolder mb-0" style="color: @(Model.MaterialPriceVariance >= 0 ? "#dc3545" : "#198754");">
                                                 @Model.MaterialPriceVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Planned: @Model.TotalPlannedMaterialPrice.ToString("N0")<br />
-                                                Actual: @Model.TotalActualMaterialPrice.ToString("N0")
+                                                Reja: @Model.TotalPlannedMaterialPrice.ToString("N0")<br />
+                                                Fakt: @Model.TotalActualMaterialPrice.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -128,13 +127,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">Ish Haqi</p>
+                                            <p class="mb-0 text-muted">Ish haqi</p>
                                             <h2 class="font-weight-bolder mb-0" style="color: @(Model.LaborCostVariance >= 0 ? "#dc3545" : "#198754");">
                                                 @Model.LaborCostVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Planned: @Model.TotalPlannedLaborCost.ToString("N0")<br />
-                                                Actual: @Model.TotalActualLaborCost.ToString("N0")
+                                                Reja: @Model.TotalPlannedLaborCost.ToString("N0")<br />
+                                                Fakt: @Model.TotalActualLaborCost.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -157,13 +156,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">EXW Narxi</p>
-                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.EXWVariance >= 0 ? "#dc3545" : "#198754");">
+                                            <p class="mb-0 text-muted">EXW narxi</p>
+                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.EXWVariance >= 0 ? "#198754" : "#dc3545");">
                                                 @Model.EXWVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Planned: @Model.TotalPlannedEXWWithVAT.ToString("N0")<br />
-                                                Actual: @Model.TotalActualEXWWithVAT.ToString("N0")
+                                                Reja: @Model.TotalPlannedEXWWithVAT.ToString("N0")<br />
+                                                Fakt: @Model.TotalActualEXWWithVAT.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -186,13 +185,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">CIP Narxi</p>
-                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.CIPVariance >= 0 ? "#dc3545" : "#198754");">
+                                            <p class="mb-0 text-muted">CIP narxi</p>
+                                            <h2 class="font-weight-bolder mb-0" style="color: @(Model.CIPVariance >= 0 ? "#198754" : "#dc3545");">
                                                 @Model.CIPVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Planned: @Model.TotalPlannedCIPWithVAT.ToString("N0")<br />
-                                                Actual: @Model.TotalActualCIPWithVAT.ToString("N0")
+                                                Reja: @Model.TotalPlannedCIPWithVAT.ToString("N0")<br />
+                                                Fakt: @Model.TotalActualCIPWithVAT.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -215,7 +214,7 @@
                     <div class="col-lg-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Oylik Trend (Planned vs Actual)</h4>
+                                <h4 class="card-title">Oylik trend (reja va fakt)</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -228,7 +227,7 @@
                                         <div class="text-center text-muted" style="min-height: 350px; display: flex; align-items: center; justify-content: center;">
                                             <div>
                                                 <i class="bx bx-info-circle" style="font-size: 48px; margin-bottom: 10px;"></i>
-                                                <p class="mb-0">Chart ko'rsatish uchun maxsulotni tanlang</p>
+                                                <p class="mb-0">Grafikni ko‘rish uchun maxsulotni tanlang</p>
                                             </div>
                                         </div>
                                     }
@@ -241,7 +240,7 @@
                     <div class="col-lg-4 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Eng Katta Variancelar</h4>
+                                <h4 class="card-title">Eng katta farqlar (EXW)</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -250,7 +249,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>Maxsulot</th>
-                                                    <th>Variance</th>
+                                                    <th>Farq %</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -264,7 +263,7 @@
                                                                 <span class="font-weight-bold">@product.ProductName</span>
                                                             </td>
                                                             <td class="text-right">
-                                                                <span class="badge badge-@(product.Variance >= 0 ? "danger" : "success")">
+                                                                <span class="badge badge-@(product.Variance >= 0 ? "success" : "danger")">
                                                                     @product.VariancePercent.ToString("N1")%
                                                                 </span>
                                                             </td>
@@ -291,7 +290,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Umumiy Statistika</h4>
+                                <h4 class="card-title">Umumiy statistika</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -301,18 +300,18 @@
                                             <h3 class="font-weight-bolder">@Model.TotalProducts</h3>
                                         </div>
                                         <div class="col-md-3">
-                                            <p class="mb-0 text-muted">Actual Ma'lumotli</p>
+                                            <p class="mb-0 text-muted">Fakt bo'yicha ma'lumot</p>
                                             <h3 class="font-weight-bolder">@Model.ProductsWithActualData</h3>
                                         </div>
                                         <div class="col-md-3">
-                                            <p class="mb-0 text-muted">To'ldirilgan Foiz</p>
+                                            <p class="mb-0 text-muted">To'ldirilgan foiz</p>
                                             <h3 class="font-weight-bolder">
                                                 @(Model.TotalProducts > 0 ? ((Model.ProductsWithActualData * 100) / Model.TotalProducts).ToString("N1") : "0")%
                                             </h3>
                                         </div>
                                         <div class="col-md-3">
                                             <a href="@Url.Action("Report", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-primary btn-block">
-                                                <i class="bx bx-file"></i> Batafsil Hisobot
+                                                <i class="bx bx-file"></i> Batafsil hisobot
                                             </a>
                                         </div>
                                     </div>
@@ -381,8 +380,8 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             colors: ['#198754', '#dc3545'],
             series: [
-                { name: 'Planned', data: monthlyTrendData.planned },
-                { name: 'Actual', data: monthlyTrendData.actual }
+                { name: 'Reja', data: monthlyTrendData.planned },
+                { name: 'Fakt', data: monthlyTrendData.actual }
             ],
             xaxis: {
                 categories: monthlyTrendData.labels

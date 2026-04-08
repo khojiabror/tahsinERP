@@ -207,16 +207,6 @@ namespace tahsinERP.Controllers.MES
                             return View(viewModel);
                         }
 
-                        var stockError = await ValidateRawMaterialStockAsync(viewModel.ProductID, viewModel.TotalQty, db);
-                        if (!string.IsNullOrEmpty(stockError))
-                        {
-                            ModelState.AddModelError("", stockError);
-                            ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                                "ID", "PNo", viewModel.ProductID);
-                            return View(viewModel);
-                        }
-
                         // Yaratish plan
                         var plan = new PRODUCTPLAN
                         {
@@ -365,16 +355,6 @@ namespace tahsinERP.Controllers.MES
                         if (overlappingPlan != null)
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud");
-                            ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                                "ID", "PNo", viewModel.ProductID);
-                            return View(viewModel);
-                        }
-
-                        var stockError = await ValidateRawMaterialStockAsync(viewModel.ProductID, viewModel.TotalQty, db);
-                        if (!string.IsNullOrEmpty(stockError))
-                        {
-                            ModelState.AddModelError("", stockError);
                             ViewBag.Products = new SelectList(
                                 db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
                                 "ID", "PNo", viewModel.ProductID);

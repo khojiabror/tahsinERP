@@ -2788,6 +2788,7 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\tannarx-print-tables.css" />
     <Content Include="icon.ico" />
     <Content Include="Models\DBTHSNModel.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -3328,6 +3329,8 @@
     <Content Include="Views\InventoryReports\MonthlyReport.cshtml" />
     <Content Include="Views\Diagnosis\Index.cshtml" />
     <Content Include="Views\DiagnosisSettings\Index.cshtml" />
+    <Content Include="Views\OpeningBalance\Delete.cshtml" />
+    <Content Include="Views\OpeningBalance\Edit.cshtml" />
     <Content Include="Views\OpeningBalance\Index.cshtml" />
     <Content Include="Views\FinRecurringObligations\Create.cshtml" />
     <Content Include="Views\FinRecurringObligations\Edit.cshtml" />
@@ -3335,9 +3338,9 @@
     <Content Include="Views\HrTimesheets\Details.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\GridCreate.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\GridEdit.cshtml" />
-    <Content Include="Views\HrPieceRateTimesheets\Grids.cshtml" />
     <Content Include="Views\Koreshok\Index.cshtml" />
     <Content Include="Views\Koreshok\Result.cshtml" />
+    <Content Include="Views\HrPayroll\Details.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

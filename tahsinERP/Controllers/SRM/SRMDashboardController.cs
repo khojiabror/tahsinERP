@@ -138,29 +138,39 @@ namespace tahsinERP.Controllers
     {
         public static List<SupplierOutstandingItem> GetSupplierOutstanding(DBTHSNEntities db, DateTime asOfDate)
         {
+            Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
             var invoices = db.P_INVOICES
                 .Where(i => i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
-                .Select(i => new { i.ID, i.SupplierID, i.InvoiceDate, i.Amount })
+                .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.InvoiceDate, i.Amount })
                 .ToList()
-                .Select(i => new { i.ID, i.SupplierID, i.InvoiceDate, Amount = Convert.ToDecimal(i.Amount) })
+                .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.InvoiceDate, Amount = Convert.ToDecimal(i.Amount) })
                 .ToList();
+
+            var contractIds = invoices.Select(i => i.ContractID).Distinct().ToList();
+            var contractNoById = contractIds.Count == 0
+                ? new Dictionary<int, string>()
+                : db.P_CONTRACTS
+                    .Where(c => contractIds.Contains(c.ID))
+                    .Select(c => new { c.ID, c.ContractNo })
+                    .ToList()
+                    .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
 
             var payments = db.FIN_TRANSACTIONS
                 .Where(t => t.TxnDate <= asOfDate && t.Direction == 2 && t.CounterpartyType == 2 &&
                     t.CounterpartyID.HasValue && (t.IsDeleted == null || t.IsDeleted == false))
-                .Select(t => new { t.ID, SupplierID = t.CounterpartyID.Value, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID })
+                .Select(t => new { t.ID, SupplierID = t.CounterpartyID.Value, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .ToList();
 
             var invoiceRemaining = invoices.ToDictionary(i => i.ID, i => i.Amount);
             var invoiceBySupplier = invoices
-                .GroupBy(i => i.SupplierID)
-                .ToDictionary(g => g.Key, g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
+                .GroupBy(i => new { i.SupplierID, ContractNo = contractNoById.ContainsKey(i.ContractID) ? contractNoById[i.ContractID] : "" })
+                .ToDictionary(g => Tuple.Create(g.Key.SupplierID, g.Key.ContractNo), g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
 
-            var paymentRemainders = new List<(int SupplierID, DateTime TxnDate, decimal Amount)>();
+            var paymentRemainders = new List<(int SupplierID, string ContractNo, DateTime TxnDate, decimal Amount)>();
             foreach (var payment in payments)
             {
                 var remaining = payment.Amount;
-                if (payment.SourceDocType == "PurchaseInvoice" && payment.SourceDocID.HasValue &&
+                if (payment.SourceDocType == "PurchaseInvoicePayment" && payment.SourceDocID.HasValue &&
                     invoiceRemaining.ContainsKey(payment.SourceDocID.Value))
                 {
                     var invBal = invoiceRemaining[payment.SourceDocID.Value];
@@ -169,10 +179,10 @@ namespace tahsinERP.Controllers
                     remaining -= applied;
                 }
                 if (remaining > 0)
-                    paymentRemainders.Add((payment.SupplierID, payment.TxnDate, remaining));
+                    paymentRemainders.Add((payment.SupplierID, normalize(payment.ContractNo), payment.TxnDate, remaining));
             }
 
-            foreach (var g in paymentRemainders.GroupBy(p => p.SupplierID))
+            foreach (var g in paymentRemainders.GroupBy(p => Tuple.Create(p.SupplierID, p.ContractNo)))
             {
                 if (!invoiceBySupplier.ContainsKey(g.Key)) continue;
                 var queue = new Queue<int>(invoiceBySupplier[g.Key]);

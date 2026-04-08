@@ -451,31 +451,60 @@ namespace tahsinERP.Controllers.Finance
         }
 
         /// <summary>
-        /// Ta'minotchi tanlanganda xarid shartnomalari (PInvoices/Create bilan bir xil ma'lumot).
+        /// Kontragent turi/id bo'yicha shartnomalar ro'yxati.
+        /// type: 1=Mijoz(S_CONTRACTS), 2=Ta'minotchi(P_CONTRACTS), 4=Forwarder(F_CONTRACTS)
         /// </summary>
         [HttpGet]
-        public JsonResult GetContractsBySupplier(int supplierId)
+        public JsonResult GetContractsByCounterparty(byte? type, int? counterpartyId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
             {
                 return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
             }
 
-            if (supplierId <= 0)
+            if (!type.HasValue || !counterpartyId.HasValue || counterpartyId.Value <= 0)
             {
                 return Json(new { success = true, data = new object[0] }, JsonRequestBehavior.AllowGet);
             }
 
             using (var db = new DBTHSNEntities())
             {
-                var contracts = db.P_CONTRACTS
-                    .Where(c => c.SupplierID == supplierId && c.IsDeleted != true)
-                    .OrderByDescending(c => c.IssuedDate)
-                    .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
-                    .ToList();
-
-                return Json(new { success = true, data = contracts }, JsonRequestBehavior.AllowGet);
+                switch (type.Value)
+                {
+                    case 1: // Mijoz
+                        var salesContracts = db.S_CONTRACTS
+                            .Where(c => c.CustomerID == counterpartyId.Value && (c.IsDeleted == false || c.IsDeleted == null))
+                            .OrderByDescending(c => c.IssuedDate)
+                            .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                            .ToList();
+                        return Json(new { success = true, data = salesContracts }, JsonRequestBehavior.AllowGet);
+                    case 2: // Ta'minotchi
+                        var purchaseContracts = db.P_CONTRACTS
+                            .Where(c => c.SupplierID == counterpartyId.Value && c.IsDeleted != true)
+                            .OrderByDescending(c => c.IssuedDate)
+                            .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                            .ToList();
+                        return Json(new { success = true, data = purchaseContracts }, JsonRequestBehavior.AllowGet);
+                    case 4: // Forwarder
+                        var forwarderContracts = db.F_CONTRACTS
+                            .Where(c => c.ForwarderID == counterpartyId.Value && (c.IsDeleted == false || c.IsDeleted == null))
+                            .OrderByDescending(c => c.IssueDate)
+                            .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                            .ToList();
+                        return Json(new { success = true, data = forwarderContracts }, JsonRequestBehavior.AllowGet);
+                    default:
+                        return Json(new { success = true, data = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
             }
+        }
+
+        /// <summary>
+        /// Backward compatibility: eski endpoint (faqat ta'minotchi).
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetContractsBySupplier(int supplierId)
+        {
+            return GetContractsByCounterparty(2, supplierId);
         }
 
         // Olish so'rovi: FinTransactions/Edit/5
@@ -667,21 +696,42 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var transaction = db.FIN_TRANSACTIONS
-                    .FirstOrDefault(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null));
-                if (transaction != null)
+                try
                 {
-                    // faqat allow deletion of manual transactions
-                    if (string.IsNullOrEmpty(transaction.SourceDocType) || transaction.SourceDocType == "Manual")
-                    {
-                        transaction.IsDeleted = true;
-                        db.Entry(transaction).State = System.Data.Entity.EntityState.Modified;
-                        SoftDeleteReferenceService.AfterFinTransactionSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
-                        db.SaveChanges();
+                    var transaction = db.FIN_TRANSACTIONS
+                        .FirstOrDefault(t => t.ID == id && (t.IsDeleted == false || t.IsDeleted == null));
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "Delete", 
-                            $"Tranzaksiya o'chirildi: ID {id}");
+                    if (transaction == null)
+                    {
+                        TempData["Error"] = "Tranzaksiya topilmadi yoki oldin o'chirilgan.";
+                        return RedirectToAction("Index");
                     }
+
+                    var sourceDocType = (transaction.SourceDocType ?? string.Empty).Trim();
+                    var isManual = string.IsNullOrEmpty(sourceDocType) ||
+                                   string.Equals(sourceDocType, "Manual", StringComparison.OrdinalIgnoreCase);
+
+                    // Faqat qo'lda (Manual) yaratilgan tranzaksiyani o'chirishga ruxsat.
+                    if (!isManual)
+                    {
+                        TempData["Error"] = $"Ushbu tranzaksiya '{transaction.SourceDocType}' hujjatidan yaratilgan. O'chirish mumkin emas.";
+                        return RedirectToAction("Delete", new { id });
+                    }
+
+                    transaction.IsDeleted = true;
+                    db.Entry(transaction).State = System.Data.Entity.EntityState.Modified;
+                    SoftDeleteReferenceService.AfterFinTransactionSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
+                    db.SaveChanges();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "Delete",
+                        $"Tranzaksiya o'chirildi: ID {id}");
+                    TempData["Success"] = "Tranzaksiya muvaffaqiyatli o'chirildi.";
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"O'chirishda xatolik: {ex.Message}";
+                    LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "DeleteError",
+                        $"Tranzaksiya o'chirishda xatolik: ID {id}. Tafsilot: {ex}");
                 }
 
                 return RedirectToAction("Index");

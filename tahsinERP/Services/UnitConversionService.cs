@@ -254,6 +254,46 @@ namespace tahsinERP.Services
                 }
             }
 
+            // Metiz (shurup, bolt va h.k.): kategoriyada CalculateByWeight qo'lda yoqilmagan bo'lsa ham,
+            // dona → kg (Weight dona massasi) — xarid/ombor bilan mos.
+            if (product.PRODUCT_CATEGORIES != null && IsMetizHardwareCategory(product.PRODUCT_CATEGORIES))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// BOM/xarid generatsiyasida metiz guruhini aniqlash (CalculateByWeight flag qo'shilmagan mahsulotlar uchun).
+        /// </summary>
+        private static bool IsMetizHardwareCategory(PRODUCT_CATEGORIES c)
+        {
+            if (c == null)
+            {
+                return false;
+            }
+
+            var parts = new[] { c.Name, c.RawMaterialGroup, c.RawMaterialSubGrp, c.Code };
+            foreach (var p in parts)
+            {
+                if (string.IsNullOrWhiteSpace(p))
+                {
+                    continue;
+                }
+
+                var t = p.Trim().ToLowerInvariant();
+                if (t.IndexOf("metiz", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.IndexOf("shurup", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.IndexOf("murvat", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.IndexOf("bolt", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.IndexOf("gaika", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    t.IndexOf("крепеж", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 

@@ -90,7 +90,9 @@ namespace tahsinERP.Services
                 }
             }
 
-            return componentRequirements.Values.ToList();
+            return componentRequirements.Values
+                .OrderBy(x => x.ComponentName ?? "", StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         /// <summary>
@@ -625,6 +627,45 @@ namespace tahsinERP.Services
             return 1;
         }
 
+        /// <summary>
+        /// Faqat yog'och uchun BOM metr → dona (rulon) aylantirish. Selofan/karton RequiresCutting bo'lsa ham
+        /// bu yerda yog'och emas — metr norma/BOM bo'yicha saqlanadi (PRODUCT.Length bilan bo'linmaydi).
+        /// </summary>
+        private static bool IsWoodProductCategory(PRODUCT component)
+        {
+            var c = component?.PRODUCT_CATEGORIES;
+            if (c == null)
+            {
+                return false;
+            }
+
+            if (c.RawMaterialGroup != null)
+            {
+                var g = c.RawMaterialGroup;
+                if (g.IndexOf("Yo'goch", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    g.IndexOf("Yog'och", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    g.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    g.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(c.Name))
+            {
+                var n = c.Name;
+                if (n.IndexOf("Yo'goch", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("Yog'och", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private async Task AddPurchasedLeafAsync(
             PRODUCT component,
             BOM_LINES bomLine,
@@ -645,38 +686,27 @@ namespace tahsinERP.Services
             var fgPnRaw = (bomOwnerPNo ?? "").Trim();
 
             bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(componentId);
-            bool requiresConversion = await _conversionService.RequiresCuttingAsync(componentId);
+            bool requiresCutting = await _conversionService.RequiresCuttingAsync(componentId);
 
             int productDefaultUnitId = GetProductDefaultUnitId(component);
 
             decimal finalQuantity = requiredQty;
             int finalUnitId = bomUnitId;
+            var skipStockConversion = false;
 
-            if (calculateByWeight)
-            {
-                decimal pieceQuantity = requiredQty;
-                try
-                {
-                    if (requiresConversion && bomUnitId == 5)
-                    {
-                        pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(componentId, requiredQty);
-                    }
+            // BOM birligi metr (5) bo'lmaganda: metiz/shurup — dona miqdorini kg ga (RequiresCutting + metr bloki bundan oldin
+            // ishga tushib, kg konvertatsiyasini "yeb qo'yardi").
+            bool bomQtyInMeters = bomUnitId == 5;
 
-                    finalQuantity = await _conversionService.ConvertPieceToKgAsync(componentId, pieceQuantity);
-                    finalUnitId = component.UnitID > 0 ? component.UnitID : 2;
-                }
-                catch (Exception)
-                {
-                    finalQuantity = pieceQuantity;
-                    finalUnitId = productDefaultUnitId;
-                }
-            }
-            else if (requiresConversion && bomUnitId == 5)
+            // 1) Metiz va h.m.: BOM dona/kg boshqa — Weight bo'yicha kg (birinchi, chunki yog'och/selofan metr sharti bilan to'qnashmasin)
+            if (calculateByWeight && !bomQtyInMeters)
             {
                 try
                 {
-                    finalQuantity = await _conversionService.ConvertMeterToPieceAsync(componentId, requiredQty);
-                    finalUnitId = 1;
+                    finalQuantity = await _conversionService.ConvertPieceToKgAsync(componentId, requiredQty);
+                    var kgUnitId = await _conversionService.FindKgUnitIdAsync();
+                    finalUnitId = kgUnitId ?? (component.UnitID > 0 ? component.UnitID : 2);
+                    skipStockConversion = true;
                 }
                 catch (Exception)
                 {
@@ -684,24 +714,51 @@ namespace tahsinERP.Services
                     finalUnitId = productDefaultUnitId;
                 }
             }
-
-            int stockUnitId = component.UnitID > 0 ? component.UnitID : finalUnitId;
-            if (stockUnitId > 0 && finalUnitId > 0 && stockUnitId != finalUnitId)
+            // 2) Yog'och: BOM metr → dona (rulon). Selofan/yelim/karton: metrni saqlash.
+            else if (requiresCutting && bomQtyInMeters)
             {
-                var qtyBeforeStock = finalQuantity;
-                try
+                if (IsWoodProductCategory(component))
                 {
-                    finalQuantity = await _conversionService.ConvertToUnitAsync(
-                        componentId,
-                        finalQuantity,
-                        finalUnitId,
-                        stockUnitId);
-                    finalUnitId = stockUnitId;
+                    try
+                    {
+                        finalQuantity = await _conversionService.ConvertMeterToPieceAsync(componentId, requiredQty);
+                        finalUnitId = await _conversionService.FindDonaUnitIdAsync() ?? 1;
+                        skipStockConversion = true;
+                    }
+                    catch (Exception)
+                    {
+                        finalQuantity = requiredQty;
+                        finalUnitId = productDefaultUnitId;
+                    }
                 }
-                catch (Exception)
+                else
                 {
-                    finalQuantity = qtyBeforeStock;
-                    finalUnitId = productDefaultUnitId;
+                    finalQuantity = requiredQty;
+                    finalUnitId = bomUnitId;
+                    skipStockConversion = true;
+                }
+            }
+
+            if (!skipStockConversion)
+            {
+                int stockUnitId = component.UnitID > 0 ? component.UnitID : finalUnitId;
+                if (stockUnitId > 0 && finalUnitId > 0 && stockUnitId != finalUnitId)
+                {
+                    var qtyBeforeStock = finalQuantity;
+                    try
+                    {
+                        finalQuantity = await _conversionService.ConvertToUnitAsync(
+                            componentId,
+                            finalQuantity,
+                            finalUnitId,
+                            stockUnitId);
+                        finalUnitId = stockUnitId;
+                    }
+                    catch (Exception)
+                    {
+                        finalQuantity = qtyBeforeStock;
+                        finalUnitId = productDefaultUnitId;
+                    }
                 }
             }
 
@@ -859,9 +916,66 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Narx: avvalo qabul qilingan kirim narxi (material), keyin eng yangi norma (material bo'yicha, bir nechta FG dan yig'ilgan buyurtmada ham bir xil).
+        /// Narx: avvalo eng so'nggi qabul qilingan ombor kirimi (1 qator birligi bo'yicha o'rtacha narx, masalan 1 kg),
+        /// keyin norma (NORM_INPUT_LINES). Metizlar kg da kirganda PiecePrice dona uchun bo'lishi mumkin — TotalPrice/Amount ustun.
         /// </summary>
         private async Task<decimal?> GetEstimatedPriceAsync(int materialId, int targetUnitId)
+        {
+            var fromIncome = await TryGetEstimatedPriceFromLatestIncomeAsync(materialId, targetUnitId);
+            if (fromIncome.HasValue)
+            {
+                return fromIncome;
+            }
+
+            var normLine = await _db.NORM_INPUT_LINES
+                .AsNoTracking()
+                .Where(n => n.MaterialID == materialId && n.Price > 0)
+                .OrderByDescending(n => n.CreatedDT)
+                .FirstOrDefaultAsync();
+
+            if (normLine == null)
+            {
+                return null;
+            }
+
+            var normPrice = normLine.Price;
+            var normUnitId = normLine.UnitID ?? 0;
+            if (normUnitId <= 0)
+            {
+                var product = await _db.PRODUCTS.AsNoTracking().FirstOrDefaultAsync(p => p.ID == materialId);
+                normUnitId = product != null && product.UnitID > 0 ? product.UnitID : targetUnitId;
+            }
+
+            if (normUnitId == targetUnitId)
+            {
+                return normPrice;
+            }
+
+            try
+            {
+                var normQtyPerOneTarget = await _conversionService.ConvertToUnitAsync(
+                    materialId,
+                    1m,
+                    targetUnitId,
+                    normUnitId);
+
+                if (normQtyPerOneTarget > 0)
+                {
+                    return normPrice * normQtyPerOneTarget;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return normPrice;
+        }
+
+        /// <summary>
+        /// Kirim qatoridagi <b>birlik narxi</b>: asosan TotalPrice/Amount (masalan kg bo'lsa — so'm/kg).
+        /// </summary>
+        private async Task<decimal?> TryGetEstimatedPriceFromLatestIncomeAsync(int materialId, int targetUnitId)
         {
             var latestIncomeProduct = await _db.INCOME_PRODUCTS
                 .Include(ip => ip.INCOME)
@@ -872,54 +986,55 @@ namespace tahsinERP.Services
                 .OrderByDescending(ip => ip.INCOME.IssueDateTime)
                 .FirstOrDefaultAsync();
 
-            if (latestIncomeProduct != null)
+            if (latestIncomeProduct == null)
             {
-                decimal sourcePrice = 0m;
-                if (latestIncomeProduct.PiecePrice.HasValue && latestIncomeProduct.PiecePrice.Value > 0)
-                {
-                    sourcePrice = (decimal)latestIncomeProduct.PiecePrice.Value;
-                }
-                else if (latestIncomeProduct.TotalPrice.HasValue && latestIncomeProduct.TotalPrice.Value > 0 && latestIncomeProduct.Amount > 0)
-                {
-                    sourcePrice = (decimal)(latestIncomeProduct.TotalPrice.Value / latestIncomeProduct.Amount);
-                }
-
-                if (sourcePrice > 0)
-                {
-                    var sourceUnitId = latestIncomeProduct.UnitID;
-                    if (sourceUnitId == targetUnitId)
-                    {
-                        return sourcePrice;
-                    }
-
-                    try
-                    {
-                        var qtyInSourceForOneTarget = await _conversionService.ConvertToUnitAsync(
-                            materialId,
-                            1m,
-                            targetUnitId,
-                            sourceUnitId);
-
-                        if (qtyInSourceForOneTarget > 0)
-                        {
-                            return sourcePrice * qtyInSourceForOneTarget;
-                        }
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    return sourcePrice;
-                }
+                return null;
             }
 
-            var normLine = await _db.NORM_INPUT_LINES
-                .Where(n => n.MaterialID == materialId)
-                .OrderByDescending(n => n.CreatedDT)
-                .FirstOrDefaultAsync();
+            decimal sourcePrice = 0m;
+            if (latestIncomeProduct.TotalPrice.HasValue && latestIncomeProduct.TotalPrice.Value > 0)
+            {
+                sourcePrice = (decimal)(latestIncomeProduct.TotalPrice.Value / latestIncomeProduct.Amount);
+            }
+            else if (latestIncomeProduct.PiecePrice.HasValue && latestIncomeProduct.PiecePrice.Value > 0)
+            {
+                sourcePrice = (decimal)latestIncomeProduct.PiecePrice.Value;
+            }
+            else
+            {
+                return null;
+            }
 
-            return normLine?.Price;
+            if (sourcePrice <= 0)
+            {
+                return null;
+            }
+
+            var sourceUnitId = latestIncomeProduct.UnitID;
+            if (sourceUnitId == targetUnitId)
+            {
+                return sourcePrice;
+            }
+
+            try
+            {
+                var qtyInSourceForOneTarget = await _conversionService.ConvertToUnitAsync(
+                    materialId,
+                    1m,
+                    targetUnitId,
+                    sourceUnitId);
+
+                if (qtyInSourceForOneTarget > 0)
+                {
+                    return sourcePrice * qtyInSourceForOneTarget;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return sourcePrice;
         }
     }
 

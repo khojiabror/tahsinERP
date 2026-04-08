@@ -113,8 +113,12 @@ namespace tahsinERP.Controllers.SRM
                 bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
                 bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
                 bool isMrpForWarehouse = assignedWarehouseIds.Contains(income.ReceivingWHID);
+                var isTransferIncome = ((income.DocNo ?? "").StartsWith("TRNSF_", StringComparison.OrdinalIgnoreCase) && income.SenderWHID.HasValue)
+                    || (!string.IsNullOrEmpty(income.Description) && income.Description.Contains("Chiqimdan avtomatik bog'langan:"));
 
                 ViewBag.CanMrpReceive = isMrpForWarehouse && income.RecieveStatus != true;
+                ViewBag.CanRepairTransferStock = isMrpForWarehouse && income.RecieveStatus == true && isTransferIncome
+                    && (income.Description == null || !income.Description.Contains("| STOCK_REPAIRED"));
                 ViewBag.CanEdit = !isMES && !isSales
                     && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes")
                     && isMrpForWarehouse
@@ -840,8 +844,11 @@ namespace tahsinERP.Controllers.SRM
                             return RedirectToAction("Details", new { id });
                         }
 
-                        var isAutoLinkedTransfer = income.Description != null &&
-                            income.Description.Contains("Chiqimdan avtomatik bog'langan:");
+                        var isAutoLinkedTransfer =
+                            // Current canonical marker
+                            (income.Description != null && income.Description.Contains("Chiqimdan avtomatik bog'langan:"))
+                            // Backward compatibility for old transfer descriptions
+                            || ((income.DocNo ?? "").StartsWith("TRNSF_", StringComparison.OrdinalIgnoreCase) && income.SenderWHID.HasValue);
 
                         if (isAutoLinkedTransfer && income.INCOME_PRODUCTS != null)
                         {
@@ -869,6 +876,85 @@ namespace tahsinERP.Controllers.SRM
                         LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
                             $"Receive - {income.DocNo} kirim hujjati qabul qilindi");
 
+                        return RedirectToAction("Details", new { id });
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        return RedirectToAction("Details", new { id });
+                    }
+                }
+            }
+        }
+
+        // POST so'rovi: Incomes/RepairTransferStock/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RepairTransferStock(int id)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                using (var transaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var income = await db.INCOMES
+                            .Include(i => i.INCOME_PRODUCTS)
+                            .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
+                        if (income == null)
+                        {
+                            return HttpNotFound();
+                        }
+
+                        var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                        bool isMrpForWarehouse = await db.WAREHOUSES
+                            .AnyAsync(w => w.ID == income.ReceivingWHID && w.MRP == currentUserId);
+                        if (!isMrpForWarehouse)
+                        {
+                            return RedirectToAction("Index", "ViewNotAuthorized");
+                        }
+
+                        var isTransferIncome = ((income.DocNo ?? "").StartsWith("TRNSF_", StringComparison.OrdinalIgnoreCase) && income.SenderWHID.HasValue)
+                            || (!string.IsNullOrEmpty(income.Description) && income.Description.Contains("Chiqimdan avtomatik bog'langan:"));
+                        if (!isTransferIncome || income.RecieveStatus != true)
+                        {
+                            TempData["Error"] = "Bu hujjat uchun repair qo'llab bo'lmaydi.";
+                            return RedirectToAction("Details", new { id });
+                        }
+
+                        if (!string.IsNullOrEmpty(income.Description) && income.Description.Contains("| STOCK_REPAIRED"))
+                        {
+                            TempData["Error"] = "Repair allaqachon bajarilgan.";
+                            return RedirectToAction("Details", new { id });
+                        }
+
+                        if (income.INCOME_PRODUCTS != null)
+                        {
+                            foreach (var product in income.INCOME_PRODUCTS)
+                            {
+                                var stock = await db.PRODUCT_STOCKS
+                                    .FirstOrDefaultAsync(s => s.WHID == income.ReceivingWHID && s.ProductID == product.ProductID);
+
+                                if (stock != null)
+                                {
+                                    stock.Amount += product.Amount;
+                                }
+                                else
+                                {
+                                    var ensuredStock = WarehouseFlowService.GetOrCreateStockRow(db, income.ReceivingWHID, product.ProductID, product.UnitID);
+                                    ensuredStock.Amount += product.Amount;
+                                }
+                            }
+                        }
+
+                        income.Description = (income.Description ?? string.Empty) + " | STOCK_REPAIRED";
+                        await db.SaveChangesAsync();
+                        transaction.Commit();
+
+                        TempData["Success"] = "Transfer kirimi uchun qoldiq qayta tiklandi.";
+                        LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
+                            $"RepairTransferStock - {income.DocNo} uchun qoldiq qayta tiklandi");
                         return RedirectToAction("Details", new { id });
                     }
                     catch (Exception ex)
@@ -1201,21 +1287,34 @@ namespace tahsinERP.Controllers.SRM
 
             const string marker = "Chiqimdan avtomatik bog'langan: ";
             var index = description.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-            if (index < 0)
+            if (index >= 0)
             {
-                return null;
+                var start = index + marker.Length;
+                var rest = description.Substring(start);
+                var end = rest.IndexOf(" - ", StringComparison.Ordinal);
+                if (end < 0) end = rest.Length;
+                var docNo = rest.Substring(0, end).Trim();
+                if (!string.IsNullOrWhiteSpace(docNo))
+                {
+                    return docNo;
+                }
             }
 
-            var start = index + marker.Length;
-            var rest = description.Substring(start);
-            var end = rest.IndexOf(" - ", StringComparison.Ordinal);
-            if (end < 0)
+            // Backward compatibility: old format "... EXPENS ID: 488"
+            var idMatch = Regex.Match(description, @"EXPENS\s*ID\s*:\s*(\d+)", RegexOptions.IgnoreCase);
+            if (idMatch.Success && int.TryParse(idMatch.Groups[1].Value, out var expenseId))
             {
-                end = rest.Length;
+                using (var db = new DBTHSNEntities())
+                {
+                    var exp = db.EXPENSES.FirstOrDefault(e => e.ID == expenseId && e.IsDeleted != true);
+                    if (exp != null && !string.IsNullOrWhiteSpace(exp.DocNo))
+                    {
+                        return exp.DocNo;
+                    }
+                }
             }
 
-            var docNo = rest.Substring(0, end).Trim();
-            return string.IsNullOrWhiteSpace(docNo) ? null : docNo;
+            return null;
         }
 
         private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)

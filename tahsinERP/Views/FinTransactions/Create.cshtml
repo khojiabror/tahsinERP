@@ -186,7 +186,7 @@ else
     <script type="text/javascript">
         (function () {
             var counterpartiesUrl = '@Html.Raw(Url.Action("GetCounterparties", "FinTransactions"))';
-            var contractsBySupplierUrl = '@Html.Raw(Url.Action("GetContractsBySupplier", "FinTransactions"))';
+            var contractsByCounterpartyUrl = '@Html.Raw(Url.Action("GetContractsByCounterparty", "FinTransactions"))';
             var savedCounterpartyId = '@(Model.CounterpartyID.HasValue ? Model.CounterpartyID.Value.ToString() : "")';
             var initialContractNo = @Html.Raw(System.Web.Helpers.Json.Encode(Model.ContractNo ?? ""));
             /** Parallel AJAX (change + select2:select) oldini olish uchun */
@@ -213,13 +213,25 @@ else
                 $cs.empty().append($('<option></option>').val('').text('---Tanlang---')).prop('disabled', true);
             }
 
-            function loadContractsForSupplier(supplierId, selectContractNo) {
+            function shouldShowContractByType(type) {
+                return type === '1' || type === '2' || type === '4';
+            }
+
+            function contractLabelByType(type) {
+                if (type === '1') return "Shartnoma (sotuv)";
+                if (type === '2') return "Shartnoma (xarid)";
+                if (type === '4') return "Shartnoma (forwarder)";
+                return "Shartnoma";
+            }
+
+            function loadContractsForCounterparty(type, counterpartyId, selectContractNo) {
                 resetSupplierContracts();
-                if (!supplierId) return;
+                if (!shouldShowContractByType(type) || !counterpartyId) return;
+                $('#supplierContractRow label[for="contractSelect"]').text(contractLabelByType(type));
                 $.ajax({
-                    url: contractsBySupplierUrl,
+                    url: contractsByCounterpartyUrl,
                     type: 'GET',
-                    data: { supplierId: supplierId },
+                    data: { type: type, counterpartyId: counterpartyId },
                     traditional: true
                 }).done(function (res) {
                     if (!res || !res.success || !res.data || !res.data.length) {
@@ -285,8 +297,8 @@ else
                     }
                     if (restoreCounterpartyId) {
                         $cp.val(restoreCounterpartyId);
-                        if (type === '2' && restoreCounterpartyId) {
-                            loadContractsForSupplier(restoreCounterpartyId, initialContractNo);
+                        if (shouldShowContractByType(type) && restoreCounterpartyId) {
+                            loadContractsForCounterparty(type, restoreCounterpartyId, initialContractNo);
                         } else if (initialContractNo) {
                             $('#ContractNo').val(initialContractNo);
                         }
@@ -312,8 +324,8 @@ else
                 $cp.off('change.finctr').on('change.finctr', function () {
                     var t = $type.val();
                     var id = $(this).val();
-                    if (t === '2' && id) {
-                        loadContractsForSupplier(id);
+                    if (shouldShowContractByType(t) && id) {
+                        loadContractsForCounterparty(t, id);
                     } else {
                         resetSupplierContracts();
                     }

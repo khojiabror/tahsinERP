@@ -45,10 +45,17 @@
                                                     
                                                     <div class="row">
                                                         <div class="col-md-4">
-                                                            <h6 class="invoice-to">Sana *</h6>
+                                                            <h6 class="invoice-to">Reja sanasi *</h6>
                                                             <fieldset class="invoice-address form-group">
-                                                                @Html.TextBoxFor(model => model.Date, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required", @id = "productionDate" })
+                                                                @Html.TextBoxFor(model => model.Date, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required", @id = "planDate" })
                                                                 @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger" })
+                                                            </fieldset>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <h6 class="invoice-to">Fakt ishlab chiqarish sanasi *</h6>
+                                                            <fieldset class="invoice-address form-group">
+                                                                @Html.TextBoxFor(model => model.ProductionDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required", @id = "factProductionDate" })
+                                                                @Html.ValidationMessageFor(model => model.ProductionDate, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                         </div>
                                                         <div class="col-md-4">
@@ -58,7 +65,7 @@
                                                                 @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                         </div>
-                                                        <div class="col-md-4">
+                                                        <div class="col-md-12">
                                                             <h6 class="invoice-to">&nbsp;</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 <button type="button" id="loadPlannedBtn" class="btn btn-primary btn-block">
@@ -169,7 +176,7 @@
         $(document).ready(function() {
             // Load planned products
             $('#loadPlannedBtn').on('click', function() {
-                var date = $('#productionDate').val();
+                var date = $('#planDate').val();
                 var shopID = $('#shopSelect').val();
                 
                 if (!date || !shopID) {

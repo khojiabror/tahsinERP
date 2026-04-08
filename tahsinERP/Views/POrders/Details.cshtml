@@ -1,5 +1,7 @@
 @model tahsinERP.Models.P_ORDERS
+@using System
 @using System.Collections.Generic
+@using System.Linq
 @{
     ViewBag.Title = "Buyurtma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -145,7 +147,7 @@
                                             <tbody>
                                                 @if (Model.P_ORDER_PRODUCTS != null && Model.P_ORDER_PRODUCTS.Any())
                                                 {
-                                                    foreach (var product in Model.P_ORDER_PRODUCTS)
+                                                    foreach (var product in Model.P_ORDER_PRODUCTS.OrderBy(p => p.PRODUCT != null ? (p.PRODUCT.Name ?? "") : "", StringComparer.OrdinalIgnoreCase).ThenBy(p => p.ID))
                                                     {
                                                         <tr>
                                                             <td>@(product.PRODUCT?.PNo ?? "-")</td>

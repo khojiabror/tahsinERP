@@ -42,6 +42,20 @@ namespace tahsinERP.Services
                 })
                 .ToListAsync();
 
+            var finPayments = await db.FIN_TRANSACTIONS
+                .Where(t => t.CounterpartyType == 4
+                    && t.Direction == 2
+                    && (t.IsDeleted == null || t.IsDeleted == false)
+                    && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment")
+                    && t.CounterpartyID.HasValue)
+                .Select(t => new
+                {
+                    ForwarderID = t.CounterpartyID.Value,
+                    Amount = (double)t.Amount,
+                    PaymentDate = (DateTime?)t.TxnDate
+                })
+                .ToListAsync();
+
             var filteredWaybills = waybills
                 .Where(w => !forwarderId.HasValue || w.ForwarderID == forwarderId.Value)
                 .ToList();
@@ -65,11 +79,15 @@ namespace tahsinERP.Services
             {
                 var wbForForwarder = filteredWaybills.Where(w => w.ForwarderID == fid).ToList();
                 var payForForwarder = filteredPayments.Where(p => p.ForwarderID == fid).ToList();
+                var finPayForForwarder = finPayments.Where(p => p.ForwarderID == fid).ToList();
 
                 var openingFreight = wbForForwarder
                     .Where(w => w.IssueDate.HasValue && w.IssueDate.Value < periodStart)
                     .Sum(w => w.Amount);
                 var openingPayment = payForForwarder
+                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value < periodStart)
+                    .Sum(p => p.Amount)
+                    + finPayForForwarder
                     .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value < periodStart)
                     .Sum(p => p.Amount);
                 var openingDebt = openingFreight - openingPayment;
@@ -81,6 +99,9 @@ namespace tahsinERP.Services
                     w.IssueDate.HasValue && w.IssueDate.Value >= periodStart && w.IssueDate.Value <= periodEnd);
 
                 var paymentInMonth = payForForwarder
+                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value >= periodStart && p.PaymentDate.Value <= periodEnd)
+                    .Sum(p => p.Amount)
+                    + finPayForForwarder
                     .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value >= periodStart && p.PaymentDate.Value <= periodEnd)
                     .Sum(p => p.Amount);
 

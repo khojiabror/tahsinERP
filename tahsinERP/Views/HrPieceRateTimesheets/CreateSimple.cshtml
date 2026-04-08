@@ -1,6 +1,10 @@
 @{
-    ViewBag.Title = "Ishbay tabel kiritish";
+    ViewBag.Title = ViewBag.PageTitle as string ?? "Ishbay tabel kiritish";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var prefillDate = ViewBag.PrefillWorkDate as string;
+    var prefillQty = ViewBag.PrefillQuantity as decimal?;
+    var returnUrl = ViewBag.ReturnUrl as string;
+    int? editingEntryId = ViewBag.EntryID != null ? (int)ViewBag.EntryID : (int?)null;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -16,7 +20,7 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ishbay tabel</a></li>
-                                    <li class="breadcrumb-item active">Kiritish</li>
+                                    <li class="breadcrumb-item active">@(editingEntryId.HasValue ? "Tahrirlash" : "Kiritish")</li>
                                 </ol>
                             </div>
                         </div>
@@ -61,12 +65,20 @@
                             @using (Html.BeginForm("CreateSimple", "HrPieceRateTimesheets", FormMethod.Post, new { @class = "form" }))
                             {
                                 @Html.AntiForgeryToken()
+                                if (editingEntryId.HasValue)
+                                {
+                                    <input type="hidden" name="entryId" value="@editingEntryId.Value" />
+                                    if (!string.IsNullOrEmpty(returnUrl))
+                                    {
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                    }
+                                }
 
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="EmployeeID">Xodim <span class="text-danger">*</span></label>
-                                            @Html.DropDownList("EmployeeID", ViewBag.EmployeeID as SelectList, "Xodimni tanlang", new { @class = "form-control", required = "required" })
+                                            @Html.DropDownList("EmployeeID", ViewBag.EmployeeID as SelectList, "Xodimni tanlang", new { @class = "form-control", required = "required", id = "EmployeeID" })
                                             @Html.ValidationMessage("EmployeeID", "", new { @class = "text-danger" })
                                         </div>
                                     </div>
@@ -102,7 +114,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="WorkDate">Sana <span class="text-danger">*</span></label>
-                                            <input type="date" name="WorkDate" id="WorkDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                                            <input type="date" name="WorkDate" id="WorkDate" class="form-control" value="@(prefillDate ?? DateTime.Now.ToString("yyyy-MM-dd"))" required />
                                             @Html.ValidationMessage("WorkDate", "", new { @class = "text-danger" })
                                         </div>
                                     </div>
@@ -110,7 +122,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="Quantity">Miqdor (operatsiya miqdori) <span class="text-danger">*</span></label>
-                                            <input type="number" name="Quantity" id="Quantity" class="form-control" step="0.0001" min="0" required />
+                                            <input type="number" name="Quantity" id="Quantity" class="form-control" step="0.0001" min="0" value="@(prefillQty.HasValue ? prefillQty.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" required />
                                             @Html.ValidationMessage("Quantity", "", new { @class = "text-danger" })
                                         </div>
                                     </div>
@@ -120,7 +132,7 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bx bx-save"></i> Saqlash
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                    <a href="@(string.IsNullOrEmpty(returnUrl) ? Url.Action("Index") : returnUrl)" class="btn btn-secondary">
                                         <i class="bx bx-x"></i> Bekor qilish
                                     </a>
                                 </div>
@@ -145,6 +157,8 @@
                 $('#EmployeeID').on('change', function() {
                     loadTariff();
                 });
+
+                loadTariff();
 
                 // Validate WorkDate - cannot be in future months
                 $('#WorkDate').on('change', function() {

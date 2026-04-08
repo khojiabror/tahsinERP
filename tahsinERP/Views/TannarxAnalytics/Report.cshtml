@@ -1,12 +1,13 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxAnalyticsReportListViewModel
 
 @{
-    ViewBag.Title = "Tannarx Analytics Report";
+    ViewBag.Title = "Tannarx tahlil hisoboti";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
 {
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit");
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -18,7 +19,7 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "TannarxAnalytics")">Analytics</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "TannarxAnalytics")">Tahlil</a></li>
                                     <li class="breadcrumb-item active">Hisobot</li>
                                 </ol>
                             </div>
@@ -28,6 +29,20 @@
             </div>
 
             <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
                 <!-- Filters -->
                 <div class="row mb-2">
                     <div class="col-12">
@@ -54,6 +69,29 @@
                                         </div>
                                     </div>
                                 </form>
+                                @if (changePermit)
+                                {
+                                    using (Html.BeginForm("UpdateActualCosts", "TannarxAnalytics", FormMethod.Post, new { @class = "mt-2" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        if (Model.Year.HasValue)
+                                        {
+                                            <input type="hidden" name="year" value="@Model.Year.Value" />
+                                        }
+                                        if (Model.Month.HasValue)
+                                        {
+                                            <input type="hidden" name="month" value="@Model.Month.Value" />
+                                        }
+                                        if (ViewBag.ProductID != null)
+                                        {
+                                            <input type="hidden" name="productID" value="@ViewBag.ProductID" />
+                                        }
+                                        <input type="hidden" name="returnTo" value="Report" />
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bx bx-refresh"></i> Fakt xarajatlarni yangilash
+                                        </button>
+                                    }
+                                }
                             </div>
                         </div>
                     </div>
@@ -66,7 +104,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Umumiy Xulosa</h4>
+                                    <h4 class="card-title">Umumiy xulosa</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -76,17 +114,17 @@
                                                 <h3 class="font-weight-bolder">@Model.Summary.TotalProducts</h3>
                                             </div>
                                             <div class="col-md-3">
-                                                <p class="mb-0 text-muted">Actual Ma'lumotli</p>
+                                                <p class="mb-0 text-muted">Fakt bo'yicha ma'lumot</p>
                                                 <h3 class="font-weight-bolder">@Model.Summary.ProductsWithActualData</h3>
                                             </div>
                                             <div class="col-md-3">
-                                                <p class="mb-0 text-muted">Jami Variance</p>
+                                                <p class="mb-0 text-muted">Jami farq</p>
                                                 <h3 class="font-weight-bolder" style="color: @(Model.Summary.TotalVariance >= 0 ? "#dc3545" : "#198754");">
                                                     @Model.Summary.TotalVariancePercent.ToString("N2")%
                                                 </h3>
                                             </div>
                                             <div class="col-md-3">
-                                                <p class="mb-0 text-muted">O'rtacha Variance</p>
+                                                <p class="mb-0 text-muted">O'rtacha farq</p>
                                                 <h3 class="font-weight-bolder" style="color: @(Model.Summary.AverageVariancePercent >= 0 ? "#dc3545" : "#198754");">
                                                     @Model.Summary.AverageVariancePercent.ToString("N2")%
                                                 </h3>
@@ -112,22 +150,22 @@
                                                     <th>Maxsulot</th>
                                                     <th>Oy</th>
                                                     <th colspan="2" class="text-center" style="background-color: #fff3cd;">Material</th>
-                                                    <th colspan="2" class="text-center" style="background-color: #fff3cd;">Ish Haqi</th>
-                                                    <th colspan="2" class="text-center" style="background-color: #ffe5cc;">EXW Narxi</th>
-                                                    <th colspan="2" class="text-center" style="background-color: #cce5ff;">CIP Narxi</th>
+                                                    <th colspan="2" class="text-center" style="background-color: #fff3cd;">Ish haqi</th>
+                                                    <th colspan="2" class="text-center" style="background-color: #ffe5cc;">EXW narxi</th>
+                                                    <th colspan="2" class="text-center" style="background-color: #cce5ff;">CIP narxi</th>
                                                     <th class="text-center">Amallar</th>
                                                 </tr>
                                                 <tr>
                                                     <th></th>
                                                     <th></th>
-                                                    <th>Planned</th>
-                                                    <th>Actual</th>
-                                                    <th>Planned</th>
-                                                    <th>Actual</th>
-                                                    <th>Planned</th>
-                                                    <th>Actual</th>
-                                                    <th>Planned</th>
-                                                    <th>Actual</th>
+                                                    <th>Reja</th>
+                                                    <th>Fakt</th>
+                                                    <th>Reja</th>
+                                                    <th>Fakt</th>
+                                                    <th>Reja</th>
+                                                    <th>Fakt</th>
+                                                    <th>Reja</th>
+                                                    <th>Fakt</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -160,7 +198,7 @@
                                                                 }
                                                             </td>
                                                             <td>@report.PlannedSetPriceEXWWithVAT.ToString("N0")</td>
-                                                            <td class="@(report.EXWVariance >= 0 ? "text-danger" : "text-success")">
+                                                            <td class="@(report.EXWVariance >= 0 ? "text-success" : "text-danger")">
                                                                 @report.ActualEXWWithVAT.ToString("N0")
                                                                 @if (report.EXWVariancePercent != 0)
                                                                 {
@@ -168,7 +206,7 @@
                                                                 }
                                                             </td>
                                                             <td>@report.PlannedSetPriceCIPWithVAT.ToString("N0")</td>
-                                                            <td class="@(report.CIPVariance >= 0 ? "text-danger" : "text-success")">
+                                                            <td class="@(report.CIPVariance >= 0 ? "text-success" : "text-danger")">
                                                                 @report.ActualCIPWithVAT.ToString("N0")
                                                                 @if (report.CIPVariancePercent != 0)
                                                                 {
@@ -255,7 +293,7 @@
                                 }
                             }
                         },
-                        title: 'Tannarx Analytics Report'
+                        title: 'Tannarx tahlil hisoboti'
                     }
                 ]
             });

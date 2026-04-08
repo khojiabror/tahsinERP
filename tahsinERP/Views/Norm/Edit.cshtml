@@ -96,7 +96,7 @@
                                             <h4 class="text-primary mb-3">Kesish variantlari</h4>
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="autoPriceFromWarehouse" checked />
+                                                    <input type="checkbox" class="custom-control-input" id="autoPriceFromWarehouse" />
                                                     <label class="custom-control-label" for="autoPriceFromWarehouse">material narxlarini ombor avtomatik tortish</label>
                                                 </div>
                                             </div>
@@ -220,7 +220,7 @@
                                                         <div class="card-body">
                                                             <h6>Umumiy chiqindi (m)</h6>
                                                             <br />
-                                                            <small class="text-muted">faqat kesiladigan lar uchun</small>
+                                                            <small class="text-muted">barcha elementlar uchun</small>
                                                             <h4 id="totalWaste">@Model.TotalWaste.ToString("F4")</h4>
                                                         </div>
                                                     </div>
@@ -236,7 +236,7 @@
                                                         <div class="card-body">
                                                             <h6>Umumiy toza sarf summa</h6>
                                                             <br />
-                                                            <small class="text-muted">faqat kesiladigan lar uchun</small>
+                                                            <small class="text-muted">barcha elementlar uchun</small>
                                                             <h4 id="totalSarfSumma">0.00</h4>
                                                         </div>
                                                     </div>
@@ -835,7 +835,7 @@ else
                     if (setPrice && response.unitPrice) {
                             row.find('.price-input').val(response.unitPrice);
                         }
-                        if (response.defaultUnitId) {
+                        if (setPrice && response.defaultUnitId) {
                             row.find('.unit-select').val(String(response.defaultUnitId)).trigger('change.select2');
                         }
                         // Recalculate row after loading data
@@ -924,43 +924,35 @@ else
         function recalculateTotals() {
             var totalNorm = 0;
             var totalWaste = 0;
-            var totalSarfSumma = 0; // A: TotalAmount (price * consumption) - faqat kesiladigan materiallar uchun
-            var totalChiqindiSumma = 0; // B: Price * wasteAmount (in meters) - faqat kesiladigan materiallar uchun
+            var totalSarfSumma = 0; // A: TotalAmount (price * consumption) - barcha elementlar uchun
+            var totalChiqindiSumma = 0; // B: Price * wasteAmount (in meters) - barcha elementlar uchun
             var totalCost = 0; // A + B
 
             $('.line-row').each(function () {
-                if ($(this).find('.line-select').prop('checked')) {
-                    var requiresCutting = $(this).data('requires-cutting') || false;
-                    var consumption = parseFloat($(this).find('.consumption').text()) || 0;
-                    var price = parseFloat($(this).find('.price-input').val()) || 0;
-                    var quantity = parseInt($(this).find('.quantity-input').val()) || 0;
-                    
-                    // Faqat kesiladigan materiallar uchun hisobla
-                    if (requiresCutting) {
-                        totalNorm += consumption;
-                        
-                        // Get waste from input field (in meters)
-                        var wasteInput = $(this).find('.waste-input');
-                        var wasteMeters = 0;
-                        if (wasteInput.length > 0) {
-                            wasteMeters = parseFloat(wasteInput.val()) || 0;
-                            totalWaste += wasteMeters;
-                        } else {
-                            wasteMeters = parseFloat($(this).find('.waste').text()) || 0;
-                            totalWaste += wasteMeters;
-                        }
-                        
-                        // A: Umumiy toza sarf summa = TotalAmount = (CutLengthMm / 1000) * PiecesPerProduct * Price
-                        // But we have consumption in meters already, so: consumption * price
-                        if (consumption > 0 && price > 0) {
-                            totalSarfSumma += consumption * price;
-                        }
-                        
-                        // B: Umumiy chiqindi summa = Price * wasteAmount (wasteAmount allaqachon metrlarda, umumiy chiqindi miqdori)
-                        if (price > 0 && wasteMeters > 0) {
-                            totalChiqindiSumma += price * wasteMeters;
-                        }
-                    }
+                var requiresCutting = $(this).data('requires-cutting') || false;
+                var consumption = parseFloat($(this).find('.consumption').text()) || 0;
+                var price = parseFloat($(this).find('.price-input').val()) || 0;
+
+                // Norm/waste kartalari: faqat kesiladigan materiallar
+                var wasteInput = $(this).find('.waste-input');
+                var wasteMeters = 0;
+                if (wasteInput.length > 0) {
+                    wasteMeters = parseFloat(wasteInput.val()) || 0;
+                } else {
+                    wasteMeters = parseFloat($(this).find('.waste').text()) || 0;
+                }
+
+                if (requiresCutting) {
+                    totalNorm += consumption;
+                    totalWaste += wasteMeters;
+                }
+
+                // Summa kartalari: ViewDetails kabi barcha elementlar bo'yicha
+                if (consumption > 0 && price > 0) {
+                    totalSarfSumma += consumption * price;
+                }
+                if (price > 0 && wasteMeters > 0) {
+                    totalChiqindiSumma += price * wasteMeters;
                 }
             });
 

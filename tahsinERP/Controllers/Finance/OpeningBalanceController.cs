@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
@@ -12,76 +11,58 @@ namespace tahsinERP.Controllers.Finance
 {
     public class OpeningBalanceController : Controller
     {
-        // Olish so'rovi: OpeningBalance
-        public ActionResult Index(DateTime? snapshotDate)
+        /// <summary>Ro'yxat: OpeningBalance moduli — ko'rish ruxsati</summary>
+        public ActionResult Index()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
             using (var db = new DBTHSNEntities())
             {
-                var date = snapshotDate ?? DateTime.Today;
-
-                var categories = db.FIN_BALANCE_CATEGORIES
-                    .Where(c => c.IsActive)
-                    .OrderBy(c => c.Type)
-                    .ThenBy(c => c.SortOrder)
-                    .ThenBy(c => c.Name)
+                var rows = db.FIN_BALANCE_SNAPSHOTS
+                    .AsNoTracking()
+                    .Where(s => s.SourceType == "OpeningBalance" || s.SourceType == null)
+                    .Select(s => s.SnapshotDate)
+                    .ToList()
+                    .GroupBy(d => d.Date)
+                    .Select(g => new OpeningBalanceDateRow
+                    {
+                        SnapshotDate = g.Key,
+                        LineCount = g.Count()
+                    })
+                    .OrderByDescending(r => r.SnapshotDate)
                     .ToList();
 
-                var snapshots = db.FIN_BALANCE_SNAPSHOTS
-                    .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == DbFunctions.TruncateTime(date))
-                    .ToList()
-                    .GroupBy(s => s.CategoryID)
-                    .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreatedDT).FirstOrDefault());
+                ViewBag.CanChange = RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance");
+                return View(rows);
+            }
+        }
 
-                var defaultCurrency = db.CURRENCIES.FirstOrDefault();
-                var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
+        /// <summary>Tahrir / ko'rish — GET: ko'rish ruxsati</summary>
+        public ActionResult Edit(DateTime? snapshotDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
 
-                var model = new OpeningBalanceViewModel
-                {
-                    SnapshotDate = date,
-                    DefaultCurrencyID = defaultCurrency?.ID ?? 1,
-                    CurrencyList = currencies.Select(c => new SelectListItem
-                    {
-                        Value = c.ID.ToString(),
-                        Text = c.Shortname
-                    })
-                };
-
-                foreach (var cat in categories)
-                {
-                    FIN_BALANCE_SNAPSHOTS snap = null;
-                    snapshots.TryGetValue(cat.ID, out snap);
-
-                    var item = new OpeningBalanceCategoryItem
-                    {
-                        CategoryID = cat.ID,
-                        CategoryName = cat.Name,
-                        Type = cat.Type,
-                        TypeName = BalanceCategoryDisplayHelper.GetSideLabel(cat),
-                        Amount = snap?.Amount ?? 0,
-                        CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 1),
-                        CurrencyShortname = snap != null
-                            ? currencies.FirstOrDefault(c => c.ID == snap.CurrencyID)?.Shortname ?? defaultCurrency?.Shortname
-                            : defaultCurrency?.Shortname
-                    };
-
-                    model.Items.Add(item);
-                }
-
+            var date = (snapshotDate ?? DateTime.Today).Date;
+            using (var db = new DBTHSNEntities())
+            {
+                var model = BuildOpeningBalanceViewModel(db, date);
+                ViewBag.CanChange = RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance");
                 return View(model);
             }
         }
 
-        // POST so'rovi: OpeningBalance saqlash
+        /// <summary>Saqlash — faqat o'zgartirish ruxsati</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Index(OpeningBalanceViewModel model)
+        public ActionResult Edit(OpeningBalanceViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -96,7 +77,6 @@ namespace tahsinERP.Controllers.Finance
                 var date = model.SnapshotDate.Date;
                 var userId = UserHelper.GetUserId(User.Identity.Name);
 
-                // Eski opening snapshotlarni shu sana uchun tozalash
                 var existing = db.FIN_BALANCE_SNAPSHOTS
                     .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == date &&
                                 (s.SourceType == "OpeningBalance" || s.SourceType == null))
@@ -119,7 +99,6 @@ namespace tahsinERP.Controllers.Finance
                             continue;
                         }
 
-                        // Faqat nol bo'lmagan summalarni saqlaymiz
                         if (item.Amount == 0)
                         {
                             continue;
@@ -152,8 +131,124 @@ namespace tahsinERP.Controllers.Finance
             }
 
             TempData["Success"] = "Opening balans muvaffaqiyatli saqlandi.";
-            return RedirectToAction("Index", new { snapshotDate = model.SnapshotDate.ToString("yyyy-MM-dd") });
+            return RedirectToAction("Edit", new { snapshotDate = model.SnapshotDate.ToString("yyyy-MM-dd") });
+        }
+
+        /// <summary>O'chirish tasdiq — faqat o'zgartirish ruxsati</summary>
+        [HttpGet]
+        public ActionResult Delete(DateTime? snapshotDate)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            if (snapshotDate == null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var date = snapshotDate.Value.Date;
+            using (var db = new DBTHSNEntities())
+            {
+                var lineCount = db.FIN_BALANCE_SNAPSHOTS.Count(s =>
+                    DbFunctions.TruncateTime(s.SnapshotDate) == date &&
+                    (s.SourceType == "OpeningBalance" || s.SourceType == null));
+
+                if (lineCount == 0)
+                {
+                    TempData["Error"] = "Tanlangan sana uchun opening balans yozuvlari topilmadi.";
+                    return RedirectToAction("Index");
+                }
+
+                return View(new OpeningBalanceDeleteViewModel
+                {
+                    SnapshotDate = date,
+                    LineCount = lineCount
+                });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(DateTime snapshotDate)
+        {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var date = snapshotDate.Date;
+            using (var db = new DBTHSNEntities())
+            {
+                var existing = db.FIN_BALANCE_SNAPSHOTS
+                    .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == date &&
+                                (s.SourceType == "OpeningBalance" || s.SourceType == null))
+                    .ToList();
+
+                if (existing.Any())
+                {
+                    db.FIN_BALANCE_SNAPSHOTS.RemoveRange(existing);
+                    db.SaveChanges();
+                }
+            }
+
+            TempData["Success"] = $"Opening balans ({date:yyyy-MM-dd}) o'chirildi.";
+            return RedirectToAction("Index");
+        }
+
+        private static OpeningBalanceViewModel BuildOpeningBalanceViewModel(DBTHSNEntities db, DateTime date)
+        {
+            var categories = db.FIN_BALANCE_CATEGORIES
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Type)
+                .ThenBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .ToList();
+
+            var snapshots = db.FIN_BALANCE_SNAPSHOTS
+                .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == DbFunctions.TruncateTime(date) &&
+                            (s.SourceType == "OpeningBalance" || s.SourceType == null))
+                .ToList()
+                .GroupBy(s => s.CategoryID)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreatedDT).FirstOrDefault());
+
+            var defaultCurrency = db.CURRENCIES.FirstOrDefault();
+            var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
+
+            var model = new OpeningBalanceViewModel
+            {
+                SnapshotDate = date,
+                DefaultCurrencyID = defaultCurrency?.ID ?? 1,
+                CurrencyList = currencies.Select(c => new SelectListItem
+                {
+                    Value = c.ID.ToString(),
+                    Text = c.Shortname
+                })
+            };
+
+            foreach (var cat in categories)
+            {
+                FIN_BALANCE_SNAPSHOTS snap = null;
+                snapshots.TryGetValue(cat.ID, out snap);
+
+                var item = new OpeningBalanceCategoryItem
+                {
+                    CategoryID = cat.ID,
+                    CategoryName = cat.Name,
+                    Type = cat.Type,
+                    TypeName = BalanceCategoryDisplayHelper.GetSideLabel(cat),
+                    Amount = snap?.Amount ?? 0,
+                    CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 1),
+                    CurrencyShortname = snap != null
+                        ? currencies.FirstOrDefault(c => c.ID == snap.CurrencyID)?.Shortname ?? defaultCurrency?.Shortname
+                        : defaultCurrency?.Shortname
+                };
+
+                model.Items.Add(item);
+            }
+
+            return model;
         }
     }
 }
-

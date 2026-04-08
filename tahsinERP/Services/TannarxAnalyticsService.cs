@@ -25,13 +25,13 @@ namespace tahsinERP.Services
         {
             try
             {
+                // SP oxirida SELECT @@ROWCOUNT qaytaradi; ExecuteSqlCommand ko'pincha -1 beradi
                 var sql = "EXEC SP_TANNARX_UPDATE_ACTUAL_COSTS @Year, @Month";
                 var yearParam = new SqlParameter("@Year", (object)year ?? DBNull.Value);
                 var monthParam = new SqlParameter("@Month", (object)month ?? DBNull.Value);
 
-                var result = await _db.Database.ExecuteSqlCommandAsync(
-                    sql,
-                    yearParam, monthParam);
+                var result = await _db.Database.SqlQuery<int>(sql, yearParam, monthParam)
+                    .FirstOrDefaultAsync();
 
                 return result;
             }
@@ -268,7 +268,8 @@ namespace tahsinERP.Services
                     ActualEXWWithoutVAT = tannarx.ActualSalesPriceEXWWithoutVAT ?? 0,
                     ActualEXWWithVAT = tannarx.ActualSalesPriceEXWWithVAT ?? 0,
                     ActualCIPWithoutVAT = tannarx.ActualSalesPriceCIPWithoutVAT ?? 0,
-                    ActualCIPWithVAT = tannarx.ActualSalesPriceCIPWithVAT ?? 0
+                    ActualCIPWithVAT = tannarx.ActualSalesPriceCIPWithVAT ?? 0,
+                    ActualFinishedProductTransportCost = tannarx.ActualFinishedProductTransportCost ?? 0
                 };
 
                 // Calculate variances
@@ -300,6 +301,11 @@ namespace tahsinERP.Services
                 report.CIPVariance = report.ActualCIPWithVAT - report.PlannedSetPriceCIPWithVAT;
                 report.CIPVariancePercent = report.PlannedSetPriceCIPWithVAT != 0
                     ? (report.CIPVariance / report.PlannedSetPriceCIPWithVAT) * 100
+                    : 0;
+
+                report.FinishedProductTransportVariance = report.ActualFinishedProductTransportCost - report.PlannedFinishedProductTransportCost;
+                report.FinishedProductTransportVariancePercent = report.PlannedFinishedProductTransportCost != 0
+                    ? (report.FinishedProductTransportVariance / report.PlannedFinishedProductTransportCost) * 100
                     : 0;
 
                 reportList.Reports.Add(report);

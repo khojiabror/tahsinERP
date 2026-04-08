@@ -1261,7 +1261,8 @@
                          RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder") ||
-                         RoleHelper.IsViewPermitted(User.Identity.Name, "Payment"))
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "Payment") ||
+                         RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
                     {
                         <li class="navigation-header"><span>Moliya</span></li>
 
@@ -1270,7 +1271,8 @@
                             <ul class="menu-content">
                                 @if (RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts") ||
                                      RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions") ||
-                                     RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
+                                     RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories") ||
+                                     RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
                                 {
                                     <li>
                                         <a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Boshqaruv</span></a>
@@ -1291,7 +1293,7 @@
                                             {
                                                 <li><a href="/FinBalanceCategories"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Balans kategoriyalari</span></a></li>
                                             }
-                                            @if (RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+                                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
                                             {
                                                 <li><a href="/OpeningBalance"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Opening balans</span></a></li>
                                             }

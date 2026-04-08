@@ -200,9 +200,13 @@
                                                                     <a href="@Url.Action("Edit", "Tasks", new { id = item.ID })" class="btn btn-sm btn-outline-warning" title="Tahrirlash">
                                                                         <i class="bx bx-edit"></i>
                                                                     </a>
-                                                                    <a href="@Url.Action("Delete", "Tasks", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?');">
-                                                                        <i class="bx bx-trash"></i>
-                                                                    </a>
+                                                                    using (Html.BeginForm("Delete", "Tasks", new { id = item.ID }, FormMethod.Post, new { @class = "d-inline" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="O'chirish" onclick="return confirm('O\\'chirishni tasdiqlaysizmi?');">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    }
                                                                 }
                                                             </td>
                                                         </tr>

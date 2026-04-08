@@ -1,0 +1,157 @@
+/*
+  Tannarx / ERP — jadval chop etish andozasi.
+  Qo‘llash: jadvalga class="... tannarx-print-table" qo‘shing, sahifada:
+  <link href="~/Content/tannarx-print-tables.css" rel="stylesheet" media="print" />
+*/
+
+@page {
+    size: A4 portrait;
+    margin: 12mm;
+}
+
+html, body {
+    background: #fff !important;
+    height: auto !important;
+    width: 100% !important;
+}
+
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* Boxicon tema: .content chapdan 260px — chop etishda kontent kesilmasin */
+html body .content,
+html body .content.app-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+}
+
+html body .content .content-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.no-print,
+.content-overlay,
+.main-menu,
+.main-menu.menu-fixed,
+.header-navbar,
+.header-navbar-shadow,
+.footer,
+.footer-static,
+.breadcrumb-wrapper,
+.content-header,
+.sidenav-overlay,
+.drag-target {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+.app-content .content-body,
+.content-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+.row, .col-12 {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+
+#printArea.card {
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: auto;
+}
+
+#printArea .card-header,
+#printArea .card-body {
+    padding: 0 0 8px 0 !important;
+}
+
+.tannarx-detail-card-header {
+    background: #f0f3f8 !important;
+    padding: 10px 12px !important;
+    margin-bottom: 10px !important;
+    border-radius: 4px !important;
+    border: 1px solid #ccc !important;
+}
+
+.tannarx-section-title {
+    page-break-after: avoid;
+    margin: 10px 0 6px 0 !important;
+    font-size: 11pt !important;
+    color: #000 !important;
+    border-left: 3px solid #333 !important;
+}
+
+.table-responsive {
+    overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.tannarx-print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 9pt !important;
+    table-layout: fixed;
+}
+
+.tannarx-print-table thead th {
+    background: #e8ecf1 !important;
+    color: #111 !important;
+    font-weight: 700 !important;
+    border: 1px solid #333 !important;
+    padding: 6px 8px !important;
+    vertical-align: middle !important;
+}
+
+.tannarx-print-table tbody td {
+    border: 1px solid #444 !important;
+    padding: 5px 8px !important;
+    vertical-align: middle !important;
+    color: #000 !important;
+    word-wrap: break-word;
+}
+
+.tannarx-print-table .text-right {
+    text-align: right !important;
+}
+
+.text-success {
+    color: #0d6e3f !important;
+}
+
+.text-danger {
+    color: #b02a37 !important;
+}
+
+.text-muted {
+    color: #555 !important;
+}
+
+.tannarx-profit-table {
+    page-break-inside: avoid;
+}
+
+.tannarx-profit-table tbody tr {
+    background: #f9fafb !important;
+}
+
+small, .small {
+    font-size: 8.5pt !important;
+    color: #333 !important;
+}

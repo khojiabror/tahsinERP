@@ -94,6 +94,14 @@ namespace tahsinERP.Controllers.Engineering
                         .Where(il => il.ProductID == id.Value && il.Month == period)
                         .ToList();
                     
+                    var materialIdsInPeriod = inputLines.Select(il => il.MaterialID).Distinct().ToList();
+                    var requiresCuttingByMaterial = db.PRODUCTS
+                        .Include(p => p.PRODUCT_CATEGORIES)
+                        .Where(p => materialIdsInPeriod.Contains(p.ID))
+                        .ToDictionary(
+                            p => p.ID,
+                            p => p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting);
+
                     decimal totalSarfSumma = 0;
                     decimal totalChiqindiSumma = 0;
                     foreach (var il in inputLines)
@@ -103,12 +111,18 @@ namespace tahsinERP.Controllers.Engineering
                             continue;
                         }
 
+                        var requiresCutting = requiresCuttingByMaterial.ContainsKey(il.MaterialID) &&
+                                              requiresCuttingByMaterial[il.MaterialID];
+
                         decimal consumptionMeters = 0;
                         if (il.Consumption.HasValue && il.Consumption.Value > 0)
                         {
-                            consumptionMeters = (decimal)(il.Consumption.Value / 1000.0);
+                            // ViewDetails bilan bir xil mantiq:
+                            // kesish materialida (CutLengthMm > 0) DBdagi mm ni m ga o'tkazamiz,
+                            // qolganlarda saqlangan qiymatni as-is olamiz.
+                            consumptionMeters = NormInputLineConsumptionToDisplay(requiresCutting, il.CutLengthMm, il.Consumption);
                         }
-                        else if (il.CutLengthMm > 0)
+                        else if (requiresCutting && il.CutLengthMm > 0)
                         {
                             consumptionMeters = (decimal)(il.CutLengthMm / 1000.0) * il.PiecesPerProduct;
                         }
@@ -120,7 +134,10 @@ namespace tahsinERP.Controllers.Engineering
                         decimal wasteMeters = 0;
                         if (il.WasteAmount.HasValue && il.WasteAmount.Value > 0)
                         {
-                            wasteMeters = (decimal)(il.WasteAmount.Value / 1000.0);
+                            // Moslik: kesish materialida mm -> m, boshqada as-is
+                            wasteMeters = (requiresCutting && il.CutLengthMm > 0)
+                                ? (decimal)(il.WasteAmount.Value / 1000.0)
+                                : (decimal)il.WasteAmount.Value;
                         }
 
                         totalSarfSumma += consumptionMeters * il.Price;
@@ -196,7 +213,8 @@ namespace tahsinERP.Controllers.Engineering
                 .Include("PRODUCT.PRODUCT_CATEGORIES")
                 .Include("UNIT")
                 .Where(il => il.ProductID == viewModel.ProductID && il.Month == period)
-                .OrderBy(il => il.MaterialID)
+                .OrderByDescending(il => il.PRODUCT.Name)
+                .ThenBy(il => il.MaterialID)
                 .ThenBy(il => il.CutLengthMm)
                 .ToListAsync();
 
@@ -228,8 +246,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Avval, try ga use saved values dan NORM_INPUT_LINES
                     if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
                     {
-                        // Consumption is stored in mm, convert ga m
-                        consumption = (decimal)(inputLine.Consumption.Value / 1000.0);
+                        consumption = NormInputLineConsumptionToDisplay(requiresCutting, inputLine.CutLengthMm, inputLine.Consumption);
                     }
                     else if (requiresCutting && inputLine.CutLengthMm > 0)
                     {
@@ -592,7 +609,8 @@ namespace tahsinERP.Controllers.Engineering
                 .Include("PRODUCT.PRODUCT_CATEGORIES")
                 .Include("UNIT")
                 .Where(il => il.ProductID == viewModel.ProductID && il.Month == period)
-                .OrderBy(il => il.MaterialID)
+                .OrderByDescending(il => il.PRODUCT.Name)
+                .ThenBy(il => il.MaterialID)
                 .ThenBy(il => il.CutLengthMm)
                 .ToListAsync();
 
@@ -624,8 +642,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Avval, try ga use saved values dan NORM_INPUT_LINES
                     if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
                     {
-                        // Consumption is stored in mm, convert ga m
-                        consumption = (decimal)(inputLine.Consumption.Value / 1000.0);
+                        consumption = NormInputLineConsumptionToDisplay(requiresCutting, inputLine.CutLengthMm, inputLine.Consumption);
                     }
                     else if (requiresCutting && inputLine.CutLengthMm > 0)
                     {
@@ -1509,12 +1526,16 @@ namespace tahsinERP.Controllers.Engineering
                         int? bomUnitId = NormalizeUnitFk(firstLineUnit)
                             ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null);
 
-                        // BOM: 1 ta tayyor mahsulot uchun material umumiy talab = toza sarf + chiqindi (waste)
+                        bool requiresCuttingBom = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                        // Jami metr (sarf + chiqindi) — kesish materiallarida BOM dona: metr / (taxta uzunligi m)
+                        var totalMetersPerFg = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct);
+                        var bomQty = BomQtyFromNormAggregatedMeters(material, requiresCuttingBom, totalMetersPerFg);
+
                         var bomLine = new BOM_LINES
                         {
                             BOMID = bomHeader.ID,
                             ComponentID = materialId,
-                            Qty = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct),
+                            Qty = bomQty,
                             UnitID = bomUnitId
                         };
 
@@ -1566,6 +1587,39 @@ namespace tahsinERP.Controllers.Engineering
             if (unitId.HasValue && unitId.Value > 0)
                 return unitId;
             return null;
+        }
+
+        /// <summary>
+        /// NORM_INPUT_LINES.Consumption: kesish qatori (CutLengthMm &gt; 0) bo'lsa jami mm saqlanadi → m ga /1000.
+        /// Dona/metiz va h.k. (uzunlik 0): UI dagi ConsumptionPerProduct o'zicha saqlanadi — /1000 qilinmaydi.
+        /// </summary>
+        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
+        {
+            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
+                return 0;
+            if (requiresCutting && cutLengthMm > 0)
+                return (decimal)(consumptionDb.Value / 1000.0);
+            return (decimal)consumptionDb.Value;
+        }
+
+        /// <summary>
+        /// BOM qatori: kesish bo'lgan yog'och/plastik uchun normadagi jami metr (sarf + chiqindi) → taxta uzunligi bo'yicha dona.
+        /// UnitConversionService.ConvertMeterToPieceAsync bilan mos: piece = ceil(m / (LengthMm/1000)).
+        /// </summary>
+        private static decimal BomQtyFromNormAggregatedMeters(PRODUCT material, bool requiresCutting, decimal totalMeters)
+        {
+            if (!requiresCutting || totalMeters <= 0)
+                return totalMeters;
+
+            var lengthMm = material.StandardLengthMm ?? material.Length ?? 0;
+            if (lengthMm <= 0)
+                return totalMeters;
+
+            var lengthM = (decimal)(lengthMm / 1000.0);
+            if (lengthM <= 0)
+                return totalMeters;
+
+            return Math.Ceiling(totalMeters / lengthM);
         }
 
         /// <summary>

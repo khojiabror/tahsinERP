@@ -1029,22 +1029,34 @@ namespace tahsinERP.Controllers.Finance
                                 .ToList();
                         }
 
-                        foreach (var accountId in mappedAccountIds)
-                        {
-                            if (accountBalances.ContainsKey(accountId))
-                            {
-                                detail.Amount += accountBalances[accountId];
-                            }
-                        }
-
                         if (mappedAccountIds.Count > 0)
                         {
-                            var accountTxnQuery = ActiveFinTransactions(db)
+                            // Opening balans mavjud bo'lsa: opening + openingdan keyingi harakatlar.
+                            // Opening bo'lmasa: accountBalances allaqachon asOfDate gacha bo'lgan yakuniy qoldiq.
+                            if (!openingDate.HasValue)
+                            {
+                                foreach (var accountId in mappedAccountIds)
+                                {
+                                    if (accountBalances.ContainsKey(accountId))
+                                    {
+                                        detail.Amount += accountBalances[accountId];
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var accountTxnQuery = ActiveFinTransactions(db)
+                                    .Where(t => mappedAccountIds.Contains(t.AccountID) &&
+                                                t.TxnDate <= asOfDate &&
+                                                t.TxnDate > openingDate.Value);
+                                detail.Amount += accountTxnQuery.Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                            }
+
+                            var accountTxnStatsQuery = ActiveFinTransactions(db)
                                 .Where(t => mappedAccountIds.Contains(t.AccountID) &&
                                             t.TxnDate <= asOfDate &&
                                             (!openingDate.HasValue || t.TxnDate > openingDate.Value));
-                            PopulateTransactionStats(accountTxnQuery, detail);
-                            detail.Amount += accountTxnQuery.Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                            PopulateTransactionStats(accountTxnStatsQuery, detail);
                             detail.Explanation = openingDate.HasValue
                                 ? $"Opening balans + hisob harakatlari: {mappedAccountIds.Count} ta hisob"
                                 : $"Hisoblar bo'yicha hisoblandi: {mappedAccountIds.Count} ta hisob";
@@ -1236,6 +1248,7 @@ namespace tahsinERP.Controllers.Finance
             public int SupplierID { get; set; }
             public DateTime InvoiceDate { get; set; }
             public decimal Amount { get; set; }
+            public string ContractNo { get; set; }
         }
 
         private class CategorySnapshotInfo
@@ -1247,45 +1260,42 @@ namespace tahsinERP.Controllers.Finance
 
         private List<SupplierOutstandingData> CalculateSupplierOutstanding(DBTHSNEntities db, DateTime asOfDate, DateTime? fromExclusive = null)
         {
-            var invoicesQuery = db.P_INVOICES
-                .Where(i => i.InvoiceDate <= asOfDate &&
-                           (i.IsDeleted == null || i.IsDeleted == false));
+            Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
 
-            // Openingdan keyingi davrda supplier qarzini aniqlash:
-            // 1) invoys sanasi openingdan keyin bo'lsa
-            // 2) yoki invoys oldin yozilgan bo'lsa ham, unga bog'langan ombor kirimi openingdan keyin qabul qilingan bo'lsa
+            var invoicesQuery = db.P_INVOICES
+                .Where(i => i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false));
+
             if (fromExclusive.HasValue)
             {
                 var fromDate = fromExclusive.Value;
                 invoicesQuery = invoicesQuery.Where(i =>
                     i.InvoiceDate > fromDate ||
-                    db.INCOMES.Any(inc =>
-                        inc.InvoiceID == i.ID &&
-                        inc.IssueDateTime > fromDate &&
-                        inc.IssueDateTime <= asOfDate &&
-                        (inc.IsDeleted == null || inc.IsDeleted == false)));
+                    db.INCOMES.Any(inc => inc.InvoiceID == i.ID && inc.IssueDateTime > fromDate && inc.IssueDateTime <= asOfDate && (inc.IsDeleted == null || inc.IsDeleted == false)));
             }
 
             var invoices = invoicesQuery
-                .Select(i => new
-                {
-                    i.ID,
-                    i.SupplierID,
-                    i.InvoiceDate,
-                    i.Amount
-                })
-                .AsEnumerable()
-                .Select(i => new
-                {
-                    i.ID,
-                    i.SupplierID,
-                    i.InvoiceDate,
-                    Amount = Convert.ToDecimal(i.Amount)
-                })
+                .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.InvoiceDate, i.Amount })
+                .ToList()
+                .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.InvoiceDate, Amount = Convert.ToDecimal(i.Amount) })
                 .ToList();
 
-            // InvoiceID bo'lmagan ombor kirimlari ham supplier qarzini oshiradi (naqdga olingan kirimlar).
-            // Double-count bo'lmasligi uchun faqat InvoiceID == null bo'lgan kirimlarni qo'shamiz.
+            var contractIds = invoices.Select(i => i.ContractID).Distinct().ToList();
+            var contractNoById = contractIds.Count == 0
+                ? new Dictionary<int, string>()
+                : db.P_CONTRACTS.Where(c => contractIds.Contains(c.ID))
+                    .Select(c => new { c.ID, c.ContractNo })
+                    .ToList()
+                    .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
+
+            var invoiceWork = invoices.Select(i => new SupplierInvoiceWork
+            {
+                ID = i.ID,
+                SupplierID = i.SupplierID,
+                InvoiceDate = i.InvoiceDate,
+                Amount = i.Amount,
+                ContractNo = contractNoById.ContainsKey(i.ContractID) ? contractNoById[i.ContractID] : ""
+            }).ToList();
+
             var unlinkedIncomes = db.INCOMES
                 .Where(inc => inc.InvoiceID == null &&
                               inc.IssueDateTime <= asOfDate &&
@@ -1293,244 +1303,140 @@ namespace tahsinERP.Controllers.Finance
                               (inc.IsDeleted == null || inc.IsDeleted == false) &&
                               inc.TotalPrice.HasValue &&
                               inc.TotalPrice.Value > 0)
-                .Select(inc => new
-                {
-                    inc.ID,
-                    inc.IssueDateTime,
-                    Amount = inc.TotalPrice.Value
-                })
+                .Select(inc => new { inc.ID, inc.IssueDateTime, Amount = inc.TotalPrice.Value })
                 .ToList();
 
-            var invoiceWork = invoices
-                .Select(i => new SupplierInvoiceWork
-                {
-                    ID = i.ID,
-                    SupplierID = i.SupplierID,
-                    InvoiceDate = i.InvoiceDate,
-                    Amount = i.Amount
-                })
-                .ToList();
-
-            // Supplier aniqlanmagan kirimlar uchun 0-bucket ishlatamiz.
-            // BalanceSheet yig'indisida bu ham ta'minotchilar qarziga qo'shiladi.
             invoiceWork.AddRange(unlinkedIncomes.Select(inc => new SupplierInvoiceWork
             {
-                ID = -inc.ID, // haqiqiy invoys IDlari bilan to'qnashmasin
+                ID = -inc.ID,
                 SupplierID = 0,
                 InvoiceDate = inc.IssueDateTime,
-                Amount = Convert.ToDecimal(inc.Amount)
+                Amount = Convert.ToDecimal(inc.Amount),
+                ContractNo = ""
             }));
-
-            var materialCategoryIds = db.FIN_CATEGORIES
-                .Where(c => c.IsActive && c.Type == 2 && c.Name.ToLower().Contains("material"))
-                .Select(c => c.ID)
-                .ToList();
 
             var paymentCandidates = ActiveFinTransactions(db)
                 .Where(t => t.TxnDate <= asOfDate &&
                             (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
                             t.Direction == 2 &&
-                            t.SourceDocType != "PurchaseInvoice" &&
-                            (t.IsDeleted == null || t.IsDeleted == false))
-                .Select(t => new
-                {
-                    t.ID,
-                    t.CounterpartyType,
-                    t.CounterpartyID,
-                    t.CategoryID,
-                    t.TxnDate,
-                    t.Amount,
-                    t.SourceDocType,
-                    t.SourceDocID
-                })
+                            t.SourceDocType != "PurchaseInvoice")
+                .Select(t => new { t.CounterpartyType, t.CounterpartyID, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .ToList();
 
-            var linkedPurchaseInvoiceIds = paymentCandidates
-                .Where(p => p.SourceDocID.HasValue)
+            var linkedInvoiceIds = paymentCandidates
+                .Where(p => p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue)
                 .Select(p => p.SourceDocID.Value)
                 .Distinct()
                 .ToList();
 
-            var invoiceSupplierMap = linkedPurchaseInvoiceIds.Count == 0
-                ? new Dictionary<int, int>()
+            var invoiceMetaById = linkedInvoiceIds.Count == 0
+                ? new Dictionary<int, Tuple<int, string>>()
                 : db.P_INVOICES
-                    .Where(i => linkedPurchaseInvoiceIds.Contains(i.ID))
-                    .Select(i => new { i.ID, i.SupplierID })
+                    .Where(i => linkedInvoiceIds.Contains(i.ID))
+                    .Select(i => new { i.ID, i.SupplierID, i.ContractID })
                     .ToList()
-                    .ToDictionary(x => x.ID, x => x.SupplierID);
+                    .ToDictionary(
+                        x => x.ID,
+                        x => Tuple.Create(x.SupplierID, contractNoById.ContainsKey(x.ContractID) ? contractNoById[x.ContractID] : ""));
 
             var payments = paymentCandidates
-                .Where(p =>
-                    (p.CounterpartyType == 2 && p.CounterpartyID.HasValue) ||
-                    materialCategoryIds.Contains(p.CategoryID))
+                .Where(p => p.CounterpartyType == 2 && p.CounterpartyID.HasValue)
                 .Select(p =>
                 {
-                    var supplierId = 0;
-                    if (p.CounterpartyType == 2 && p.CounterpartyID.HasValue)
+                    var supplierId = p.CounterpartyID.Value;
+                    var contractNo = normalize(p.ContractNo);
+                    if (p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue && invoiceMetaById.ContainsKey(p.SourceDocID.Value))
                     {
-                        supplierId = p.CounterpartyID.Value;
+                        var meta = invoiceMetaById[p.SourceDocID.Value];
+                        if (string.IsNullOrEmpty(contractNo))
+                        {
+                            contractNo = meta.Item2;
+                        }
                     }
-                    else if (p.SourceDocID.HasValue && invoiceSupplierMap.TryGetValue(p.SourceDocID.Value, out var mappedSupplierId))
-                    {
-                        supplierId = mappedSupplierId;
-                    }
-
                     return new
                     {
-                        p.ID,
                         SupplierID = supplierId,
+                        ContractNo = contractNo,
                         p.TxnDate,
                         p.Amount,
-                        // Invoysga bog'langan to'lov: SourceDocType = PurchaseInvoicePayment, SourceDocID = invoys ID
                         InvoiceID = (p.SourceDocType == "PurchaseInvoicePayment") ? p.SourceDocID : null
                     };
-                })
-                .ToList();
+                }).ToList();
 
             var invoiceRemaining = invoiceWork.ToDictionary(i => i.ID, i => i.Amount);
-            var invoiceBySupplier = invoiceWork
-                .GroupBy(i => i.SupplierID)
+            var invoiceByKey = invoiceWork
+                .GroupBy(i => Tuple.Create(i.SupplierID, i.ContractNo))
                 .ToDictionary(g => g.Key, g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
 
-            var paymentRemainders = new List<(int SupplierID, DateTime TxnDate, decimal Amount)>();
-            var unappliedPaymentsBySupplier = new Dictionary<int, decimal>();
+            var paymentRemainders = new List<(int SupplierID, string ContractNo, DateTime TxnDate, decimal Amount)>();
+            var unappliedByKey = new Dictionary<Tuple<int, string>, decimal>();
 
             foreach (var payment in payments)
             {
                 var remaining = payment.Amount;
                 if (payment.InvoiceID.HasValue && invoiceRemaining.ContainsKey(payment.InvoiceID.Value))
                 {
-                    var invoiceBalance = invoiceRemaining[payment.InvoiceID.Value];
-                    var applied = Math.Min(invoiceBalance, remaining);
-                    invoiceRemaining[payment.InvoiceID.Value] = invoiceBalance - applied;
+                    var bal = invoiceRemaining[payment.InvoiceID.Value];
+                    var applied = Math.Min(bal, remaining);
+                    invoiceRemaining[payment.InvoiceID.Value] = bal - applied;
                     remaining -= applied;
                 }
-
                 if (remaining > 0)
                 {
-                    paymentRemainders.Add((payment.SupplierID, payment.TxnDate, remaining));
+                    paymentRemainders.Add((payment.SupplierID, payment.ContractNo, payment.TxnDate, remaining));
                 }
             }
 
-            foreach (var group in paymentRemainders.GroupBy(p => p.SupplierID))
+            foreach (var g in paymentRemainders.GroupBy(x => Tuple.Create(x.SupplierID, x.ContractNo)))
             {
-                if (!invoiceBySupplier.ContainsKey(group.Key))
+                if (!invoiceByKey.ContainsKey(g.Key))
                 {
-                    // Supplier aniqlanmagan material to'lovlari: global FIFO bo'yicha eng eski ochiq invoyslardan ayiramiz.
-                    if (group.Key == 0)
-                    {
-                        var globalInvoiceQueue = new Queue<int>(invoiceWork.OrderBy(i => i.InvoiceDate).Select(i => i.ID));
-                        foreach (var payment in group.OrderBy(p => p.TxnDate))
-                        {
-                            var remaining = payment.Amount;
-                            while (remaining > 0 && globalInvoiceQueue.Count > 0)
-                            {
-                                var invoiceId = globalInvoiceQueue.Peek();
-                                var invoiceBalance = invoiceRemaining[invoiceId];
-                                if (invoiceBalance <= 0)
-                                {
-                                    globalInvoiceQueue.Dequeue();
-                                    continue;
-                                }
-
-                                var applied = Math.Min(invoiceBalance, remaining);
-                                invoiceRemaining[invoiceId] = invoiceBalance - applied;
-                                remaining -= applied;
-                                if (invoiceRemaining[invoiceId] <= 0)
-                                {
-                                    globalInvoiceQueue.Dequeue();
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        unappliedPaymentsBySupplier[group.Key] = (unappliedPaymentsBySupplier.ContainsKey(group.Key)
-                            ? unappliedPaymentsBySupplier[group.Key]
-                            : 0m) + group.Sum(x => x.Amount);
-                    }
+                    unappliedByKey[g.Key] = (unappliedByKey.ContainsKey(g.Key) ? unappliedByKey[g.Key] : 0m) + g.Sum(x => x.Amount);
                     continue;
                 }
-
-                var invoiceQueue = new Queue<int>(invoiceBySupplier[group.Key]);
-                foreach (var payment in group.OrderBy(p => p.TxnDate))
+                var queue = new Queue<int>(invoiceByKey[g.Key]);
+                foreach (var p in g.OrderBy(x => x.TxnDate))
                 {
-                    var remaining = payment.Amount;
-                    while (remaining > 0 && invoiceQueue.Count > 0)
+                    var remaining = p.Amount;
+                    while (remaining > 0 && queue.Count > 0)
                     {
-                        var invoiceId = invoiceQueue.Peek();
-                        var invoiceBalance = invoiceRemaining[invoiceId];
-                        if (invoiceBalance <= 0)
-                        {
-                            invoiceQueue.Dequeue();
-                            continue;
-                        }
-
-                        var applied = Math.Min(invoiceBalance, remaining);
-                        invoiceRemaining[invoiceId] = invoiceBalance - applied;
+                        var invId = queue.Peek();
+                        var invBal = invoiceRemaining[invId];
+                        if (invBal <= 0) { queue.Dequeue(); continue; }
+                        var applied = Math.Min(invBal, remaining);
+                        invoiceRemaining[invId] = invBal - applied;
                         remaining -= applied;
-                        if (invoiceRemaining[invoiceId] <= 0)
-                        {
-                            invoiceQueue.Dequeue();
-                        }
+                        if (invoiceRemaining[invId] <= 0) queue.Dequeue();
                     }
                     if (remaining > 0)
                     {
-                        unappliedPaymentsBySupplier[group.Key] = (unappliedPaymentsBySupplier.ContainsKey(group.Key)
-                            ? unappliedPaymentsBySupplier[group.Key]
-                            : 0m) + remaining;
+                        unappliedByKey[g.Key] = (unappliedByKey.ContainsKey(g.Key) ? unappliedByKey[g.Key] : 0m) + remaining;
                     }
                 }
             }
 
-            var invoiceTotalsBySupplier = invoiceWork
-                .GroupBy(i => i.SupplierID)
-                .ToDictionary(g => g.Key, g => new
-                {
-                    Total = g.Sum(x => x.Amount),
-                    Count = g.Count()
-                });
+            var invoiceTotals = invoiceWork.GroupBy(i => i.SupplierID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
+            var paymentTotals = payments.GroupBy(i => i.SupplierID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
 
-            var paymentTotalsBySupplier = payments
-                .GroupBy(p => p.SupplierID)
-                .ToDictionary(g => g.Key, g => new
-                {
-                    Total = g.Sum(x => x.Amount),
-                    Count = g.Count()
-                });
-
+            var supplierIds = invoiceTotals.Keys.Union(paymentTotals.Keys).ToList();
             var summary = new List<SupplierOutstandingData>();
-            var supplierIds = invoiceTotalsBySupplier.Keys
-                .Union(paymentTotalsBySupplier.Keys)
-                .Union(unappliedPaymentsBySupplier.Keys)
-                .ToList();
-
             foreach (var supplierId in supplierIds)
             {
-                var outstanding = invoiceWork
-                    .Where(i => i.SupplierID == supplierId)
-                    .Sum(i => invoiceRemaining[i.ID]);
+                var outstanding = invoiceWork.Where(i => i.SupplierID == supplierId).Sum(i => invoiceRemaining[i.ID]);
+                var unapplied = unappliedByKey.Where(k => k.Key.Item1 == supplierId).Sum(k => k.Value);
+                outstanding -= unapplied;
 
-                if (unappliedPaymentsBySupplier.TryGetValue(supplierId, out var unapplied))
-                {
-                    outstanding -= unapplied;
-                }
-
-                var invoiceInfo = invoiceTotalsBySupplier.ContainsKey(supplierId)
-                    ? invoiceTotalsBySupplier[supplierId]
-                    : new { Total = 0m, Count = 0 };
-                var paymentInfo = paymentTotalsBySupplier.ContainsKey(supplierId)
-                    ? paymentTotalsBySupplier[supplierId]
-                    : new { Total = 0m, Count = 0 };
+                var invInfo = invoiceTotals.ContainsKey(supplierId) ? invoiceTotals[supplierId] : new { Total = 0m, Count = 0 };
+                var payInfo = paymentTotals.ContainsKey(supplierId) ? paymentTotals[supplierId] : new { Total = 0m, Count = 0 };
 
                 summary.Add(new SupplierOutstandingData
                 {
                     SupplierID = supplierId,
                     Outstanding = outstanding,
-                    InvoiceCount = invoiceInfo.Count,
-                    PaymentCount = paymentInfo.Count,
-                    InvoiceTotal = invoiceInfo.Total,
-                    PaymentTotal = paymentInfo.Total
+                    InvoiceCount = invInfo.Count,
+                    PaymentCount = payInfo.Count,
+                    InvoiceTotal = invInfo.Total,
+                    PaymentTotal = payInfo.Total
                 });
             }
 
@@ -1549,90 +1455,75 @@ namespace tahsinERP.Controllers.Finance
 
         private List<CustomerOutstandingData> CalculateCustomerOutstanding(DBTHSNEntities db, DateTime asOfDate, DateTime? fromExclusive = null)
         {
+            Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
             var invoices = db.SALES_INVOICES
-                .Where(i => i.InvoiceDate <= asOfDate &&
-                            (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
-                .Select(i => new
-                {
-                    ID = (int)i.ID,
-                    i.CustomerID,
-                    i.InvoiceDate,
-                    Amount = i.TotalAmount
-                })
+                .Where(i => i.InvoiceDate <= asOfDate && (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
+                .Select(i => new { ID = (int)i.ID, i.CustomerID, i.ContractID, i.InvoiceDate, Amount = i.TotalAmount })
                 .ToList();
 
-            var salesCategoryIds = db.FIN_CATEGORIES
-                .Where(c => c.IsActive && c.Type == 1 && c.Name.Contains("Sotuv"))
-                .Select(c => c.ID)
-                .ToList();
+            var contractIds = invoices.Where(i => i.ContractID.HasValue).Select(i => i.ContractID.Value).Distinct().ToList();
+            var contractNoById = contractIds.Count == 0
+                ? new Dictionary<int, string>()
+                : db.S_CONTRACTS.Where(c => contractIds.Contains(c.ID))
+                    .Select(c => new { c.ID, c.ContractNo })
+                    .ToList()
+                    .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
 
             var receiptCandidates = ActiveFinTransactions(db)
                 .Where(t => t.TxnDate <= asOfDate &&
                             (!fromExclusive.HasValue || t.TxnDate > fromExclusive.Value) &&
                             t.Direction == 1 &&
-                            t.SourceDocType != "SalesInvoice" &&
-                            (t.IsDeleted == null || t.IsDeleted == false))
-                .Select(t => new
-                {
-                    t.ID,
-                    t.CounterpartyType,
-                    t.CounterpartyID,
-                    t.CategoryID,
-                    t.TxnDate,
-                    t.Amount,
-                    t.SourceDocType,
-                    t.SourceDocID
-                })
+                            t.SourceDocType != "SalesInvoice")
+                .Select(t => new { t.CounterpartyType, t.CounterpartyID, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .ToList();
 
             var linkedInvoiceIds = receiptCandidates
-                .Where(r => r.SourceDocID.HasValue)
+                .Where(r => r.SourceDocType == "SalesInvoicePayment" && r.SourceDocID.HasValue)
                 .Select(r => (long)r.SourceDocID.Value)
                 .Distinct()
                 .ToList();
 
-            var invoiceCustomerMap = linkedInvoiceIds.Count == 0
-                ? new Dictionary<long, int>()
+            var invoiceMetaById = linkedInvoiceIds.Count == 0
+                ? new Dictionary<long, Tuple<int, string>>()
                 : db.SALES_INVOICES
                     .Where(i => linkedInvoiceIds.Contains(i.ID))
-                    .Select(i => new { i.ID, i.CustomerID })
+                    .Select(i => new { i.ID, i.CustomerID, i.ContractID })
                     .ToList()
-                    .ToDictionary(x => x.ID, x => x.CustomerID);
+                    .ToDictionary(
+                        x => x.ID,
+                        x => Tuple.Create(x.CustomerID, x.ContractID.HasValue && contractNoById.ContainsKey(x.ContractID.Value) ? contractNoById[x.ContractID.Value] : ""));
 
             var receipts = receiptCandidates
-                .Where(r =>
-                    (r.CounterpartyType == 1 && r.CounterpartyID.HasValue) ||
-                    salesCategoryIds.Contains(r.CategoryID))
+                .Where(r => r.CounterpartyType == 1 && r.CounterpartyID.HasValue)
                 .Select(r =>
                 {
-                    var customerId = 0;
-                    if (r.CounterpartyType == 1 && r.CounterpartyID.HasValue)
+                    var customerId = r.CounterpartyID.Value;
+                    var contractNo = normalize(r.ContractNo);
+                    if (r.SourceDocType == "SalesInvoicePayment" && r.SourceDocID.HasValue && invoiceMetaById.ContainsKey((long)r.SourceDocID.Value))
                     {
-                        customerId = r.CounterpartyID.Value;
+                        var meta = invoiceMetaById[(long)r.SourceDocID.Value];
+                        if (string.IsNullOrEmpty(contractNo))
+                        {
+                            contractNo = meta.Item2;
+                        }
                     }
-                    else if (r.SourceDocID.HasValue && invoiceCustomerMap.TryGetValue((long)r.SourceDocID.Value, out var mappedCustomerId))
-                    {
-                        customerId = mappedCustomerId;
-                    }
-
                     return new
                     {
-                        r.ID,
                         CustomerID = customerId,
+                        ContractNo = contractNo,
                         r.TxnDate,
                         r.Amount,
                         InvoiceID = (r.SourceDocType == "SalesInvoicePayment") ? r.SourceDocID : null
                     };
-                })
-                .ToList();
+                }).ToList();
 
             var invoiceRemaining = invoices.ToDictionary(i => i.ID, i => i.Amount);
-            var invoiceByCustomer = invoices
-                .GroupBy(i => i.CustomerID)
+            var invoiceByKey = invoices
+                .GroupBy(i => Tuple.Create(i.CustomerID, i.ContractID.HasValue && contractNoById.ContainsKey(i.ContractID.Value) ? contractNoById[i.ContractID.Value] : ""))
                 .ToDictionary(g => g.Key, g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
 
-            var receiptRemainders = new List<(int CustomerID, DateTime TxnDate, decimal Amount)>();
-            var unappliedReceiptsByCustomer = new Dictionary<int, decimal>();
+            var receiptRemainders = new List<(int CustomerID, string ContractNo, DateTime TxnDate, decimal Amount)>();
+            var unappliedByKey = new Dictionary<Tuple<int, string>, decimal>();
             foreach (var receipt in receipts)
             {
                 var remaining = receipt.Amount;
@@ -1643,54 +1534,20 @@ namespace tahsinERP.Controllers.Finance
                     invoiceRemaining[receipt.InvoiceID.Value] = invoiceBalance - applied;
                     remaining -= applied;
                 }
-
                 if (remaining > 0)
                 {
-                    receiptRemainders.Add((receipt.CustomerID, receipt.TxnDate, remaining));
+                    receiptRemainders.Add((receipt.CustomerID, receipt.ContractNo, receipt.TxnDate, remaining));
                 }
             }
 
-            foreach (var group in receiptRemainders.GroupBy(p => p.CustomerID))
+            foreach (var group in receiptRemainders.GroupBy(p => Tuple.Create(p.CustomerID, p.ContractNo)))
             {
-                if (!invoiceByCustomer.ContainsKey(group.Key))
+                if (!invoiceByKey.ContainsKey(group.Key))
                 {
-                    // Customer aniqlanmagan "Sotuv" kirimlari: umumiy FIFO bo'yicha eng eski ochiq invoyslardan ayiramiz.
-                    if (group.Key == 0)
-                    {
-                        var globalInvoiceQueue = new Queue<int>(invoices.OrderBy(i => i.InvoiceDate).Select(i => i.ID));
-                        foreach (var receipt in group.OrderBy(p => p.TxnDate))
-                        {
-                            var remaining = receipt.Amount;
-                            while (remaining > 0 && globalInvoiceQueue.Count > 0)
-                            {
-                                var invoiceId = globalInvoiceQueue.Peek();
-                                var invoiceBalance = invoiceRemaining[invoiceId];
-                                if (invoiceBalance <= 0)
-                                {
-                                    globalInvoiceQueue.Dequeue();
-                                    continue;
-                                }
-
-                                var applied = Math.Min(invoiceBalance, remaining);
-                                invoiceRemaining[invoiceId] = invoiceBalance - applied;
-                                remaining -= applied;
-                                if (invoiceRemaining[invoiceId] <= 0)
-                                {
-                                    globalInvoiceQueue.Dequeue();
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        unappliedReceiptsByCustomer[group.Key] = (unappliedReceiptsByCustomer.ContainsKey(group.Key)
-                            ? unappliedReceiptsByCustomer[group.Key]
-                            : 0m) + group.Sum(x => x.Amount);
-                    }
+                    unappliedByKey[group.Key] = (unappliedByKey.ContainsKey(group.Key) ? unappliedByKey[group.Key] : 0m) + group.Sum(x => x.Amount);
                     continue;
                 }
-
-                var invoiceQueue = new Queue<int>(invoiceByCustomer[group.Key]);
+                var invoiceQueue = new Queue<int>(invoiceByKey[group.Key]);
                 foreach (var receipt in group.OrderBy(p => p.TxnDate))
                 {
                     var remaining = receipt.Amount;
@@ -1698,68 +1555,32 @@ namespace tahsinERP.Controllers.Finance
                     {
                         var invoiceId = invoiceQueue.Peek();
                         var invoiceBalance = invoiceRemaining[invoiceId];
-                        if (invoiceBalance <= 0)
-                        {
-                            invoiceQueue.Dequeue();
-                            continue;
-                        }
-
+                        if (invoiceBalance <= 0) { invoiceQueue.Dequeue(); continue; }
                         var applied = Math.Min(invoiceBalance, remaining);
                         invoiceRemaining[invoiceId] = invoiceBalance - applied;
                         remaining -= applied;
-                        if (invoiceRemaining[invoiceId] <= 0)
-                        {
-                            invoiceQueue.Dequeue();
-                        }
+                        if (invoiceRemaining[invoiceId] <= 0) invoiceQueue.Dequeue();
                     }
                     if (remaining > 0)
                     {
-                        unappliedReceiptsByCustomer[group.Key] = (unappliedReceiptsByCustomer.ContainsKey(group.Key)
-                            ? unappliedReceiptsByCustomer[group.Key]
-                            : 0m) + remaining;
+                        unappliedByKey[group.Key] = (unappliedByKey.ContainsKey(group.Key) ? unappliedByKey[group.Key] : 0m) + remaining;
                     }
                 }
             }
 
-            var invoiceTotalsByCustomer = invoices
-                .GroupBy(i => i.CustomerID)
-                .ToDictionary(g => g.Key, g => new
-                {
-                    Total = g.Sum(x => x.Amount),
-                    Count = g.Count()
-                });
-
-            var receiptTotalsByCustomer = receipts
-                .GroupBy(p => p.CustomerID)
-                .ToDictionary(g => g.Key, g => new
-                {
-                    Total = g.Sum(x => x.Amount),
-                    Count = g.Count()
-                });
+            var invoiceTotalsByCustomer = invoices.GroupBy(i => i.CustomerID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
+            var receiptTotalsByCustomer = receipts.GroupBy(p => p.CustomerID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
 
             var summary = new List<CustomerOutstandingData>();
-            var customerIds = invoiceTotalsByCustomer.Keys
-                .Union(receiptTotalsByCustomer.Keys)
-                .Union(unappliedReceiptsByCustomer.Keys)
-                .ToList();
-
+            var customerIds = invoiceTotalsByCustomer.Keys.Union(receiptTotalsByCustomer.Keys).ToList();
             foreach (var customerId in customerIds)
             {
-                var outstanding = invoices
-                    .Where(i => i.CustomerID == customerId)
-                    .Sum(i => invoiceRemaining[i.ID]);
+                var outstanding = invoices.Where(i => i.CustomerID == customerId).Sum(i => invoiceRemaining[i.ID]);
+                var unapplied = unappliedByKey.Where(k => k.Key.Item1 == customerId).Sum(k => k.Value);
+                outstanding -= unapplied;
 
-                if (unappliedReceiptsByCustomer.TryGetValue(customerId, out var unapplied))
-                {
-                    outstanding -= unapplied;
-                }
-
-                var invoiceInfo = invoiceTotalsByCustomer.ContainsKey(customerId)
-                    ? invoiceTotalsByCustomer[customerId]
-                    : new { Total = 0m, Count = 0 };
-                var receiptInfo = receiptTotalsByCustomer.ContainsKey(customerId)
-                    ? receiptTotalsByCustomer[customerId]
-                    : new { Total = 0m, Count = 0 };
+                var invoiceInfo = invoiceTotalsByCustomer.ContainsKey(customerId) ? invoiceTotalsByCustomer[customerId] : new { Total = 0m, Count = 0 };
+                var receiptInfo = receiptTotalsByCustomer.ContainsKey(customerId) ? receiptTotalsByCustomer[customerId] : new { Total = 0m, Count = 0 };
 
                 summary.Add(new CustomerOutstandingData
                 {

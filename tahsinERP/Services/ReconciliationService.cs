@@ -274,6 +274,23 @@ namespace tahsinERP.Services
                 .Select(p => new { p.ID, p.PaymentDate, p.Payment_Amount, p.WaybillID })
                 .ToList();
 
+            var contractNoNorm = (contractNo ?? "").Trim();
+            // Qo'lda kiritilgan FIN to'lovlari: WaybillPayment dublikatlarini chiqaramiz.
+            // Agar shartnoma tanlangan bo'lsa, faqat ContractNo mos to'lovlar kiritiladi.
+            var finPayments = db.FIN_TRANSACTIONS
+                .Where(t => t.CounterpartyType == 4
+                    && t.CounterpartyID == forwarderId
+                    && t.Direction == 2
+                    && (t.IsDeleted == null || t.IsDeleted == false)
+                    && t.TxnDate <= asOfDate
+                    && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment")
+                    && (string.IsNullOrEmpty(contractNoNorm)
+                        || (!string.IsNullOrEmpty(t.ContractNo)
+                            && t.ContractNo.Trim().Equals(contractNoNorm, StringComparison.OrdinalIgnoreCase))))
+                .OrderBy(t => t.TxnDate)
+                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose })
+                .ToList();
+
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
 
             foreach (var wb in waybills)
@@ -290,6 +307,13 @@ namespace tahsinERP.Services
                     $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}",
                     amt, 0, 0, amt));
             }
+            foreach (var pay in finPayments)
+            {
+                var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : $" — {pay.Purpose}";
+                allItems.Add((pay.TxnDate, "fin",
+                    $"FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}",
+                    pay.Amount, 0, 0, pay.Amount));
+            }
 
             var adjList = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartyForwarder, forwarderId, contractId, asOfDate);
             foreach (var a in adjList)
@@ -300,7 +324,7 @@ namespace tahsinERP.Services
                     a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
             }
 
-            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "wb" ? 0 : x.type == "pay" ? 1 : 2))
+            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "wb" ? 0 : (x.type == "pay" || x.type == "fin") ? 1 : 2))
             {
                 vm.Rows.Add(new ReconciliationRowViewModel
                 {
@@ -315,7 +339,8 @@ namespace tahsinERP.Services
             }
 
             var totalWb = waybills.Sum(w => Convert.ToDecimal(w.Amount ?? 0));
-            var totalPay = payments.Sum(p => Convert.ToDecimal(p.Payment_Amount));
+            var totalPay = payments.Sum(p => Convert.ToDecimal(p.Payment_Amount))
+                + finPayments.Sum(p => p.Amount);
             var adjDr = adjList.Sum(a => a.Party1Debit);
             var adjCr = adjList.Sum(a => a.Party1Credit);
 

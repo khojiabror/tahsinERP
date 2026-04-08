@@ -47,6 +47,15 @@
                     <div class="card">
                         <div class="card-content">
                             <div class="card-body">
+                                @if (TempData["Success"] != null)
+                                {
+                                    <div class="alert alert-success">@TempData["Success"]</div>
+                                }
+                                @if (TempData["Error"] != null)
+                                {
+                                    <div class="alert alert-danger">@TempData["Error"]</div>
+                                }
+
                                 <form method="get" action="@Url.Action("Index")" class="mb-3" id="filterForm">
                                     <div class="row">
                                         <div class="col-md-2">
