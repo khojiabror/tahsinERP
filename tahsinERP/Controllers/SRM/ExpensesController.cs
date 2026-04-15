@@ -14,6 +14,8 @@ namespace tahsinERP.Controllers.SRM
 {
     public class ExpensesController : Controller
     {
+        private const string LinkedExpenseIdMarker = "EXPENSE_ID:";
+
         // Olish so'rovi: Expenses
         // status: null/"" = barchasi, "pending" = Kutilmoqda, "sent" = Yuborilgan
         public async Task<ActionResult> Index(int? warehouseId, string status)
@@ -439,16 +441,15 @@ namespace tahsinERP.Controllers.SRM
                                     }
                                 }
 
-                                expense.Amount = totalAmount;
-                                expense.TotalPrice = totalPrice;
-                                await db.SaveChangesAsync();
+                            expense.Amount = totalAmount;
+                            expense.TotalPrice = totalPrice;
+                            await db.SaveChangesAsync();
 
-                                // Ichki o‘tkazma uchun avtomatik kirim hujjati yaratish (Xomashyo → Ishlab chiqarish/Sotuv)
-                                // Har bir chiqim uchun BIRTA kirim hujjati (mahsulotlar bo‘yicha emas)
-                                if (expense.ReceiverWhID.HasValue)
-                                {
-                                    await CreateLinkedIncomeDocumentForExpenseAsync(expense, model.ExpenseProducts, db);
-                                }
+                            // Ichki o'tkazma bo'lsa linked income hujjatini majburiy upsert qilamiz.
+                            if (expense.ReceiverWhID.HasValue && expense.ReceiverWhID.Value != expense.SenderWHID)
+                            {
+                                await CreateLinkedIncomeDocumentForExpenseAsync(expense, model.ExpenseProducts, db);
+                            }
                             }
 
                             // Upload expense hujjat agar provided
@@ -546,21 +547,15 @@ namespace tahsinERP.Controllers.SRM
 
         private bool ShouldUpdateReceiverStockImmediately(DBTHSNEntities db, int? receiverWhId)
         {
+            _ = db;
             if (!receiverWhId.HasValue)
             {
                 return false;
             }
-
-            var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
-
-            if ((productionWH != null && receiverWhId.Value == productionWH.ID) ||
-                (salesWH != null && receiverWhId.Value == salesWH.ID))
-            {
-                return false;
-            }
-
-            return true;
+            // Ichki o‘tkazmalar pending income orqali qabul qilinadi.
+            // Shu sabab receiver qoldig'ini chiqim paytida darhol oshirmaymiz
+            // (aks holda Receive vaqtida ikki marta qo'shilib qoladi).
+            return false;
         }
 
         private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
@@ -861,6 +856,12 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             await db.SaveChangesAsync();
+
+                            // Editda ham linked income hujjatini yangilab/yaratib turamiz.
+                            if (expense.ReceiverWhID.HasValue && expense.ReceiverWhID.Value != expense.SenderWHID)
+                            {
+                                await CreateLinkedIncomeDocumentForExpenseAsync(expense, model.ExpenseProducts, db);
+                            }
                             transaction.Commit();
 
                             // Log the action
@@ -1048,44 +1049,65 @@ namespace tahsinERP.Controllers.SRM
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
             int created = 0;
+            int updated = 0;
+            int skipped = 0;
+            var errors = new List<string>();
             using (var db = new DBTHSNEntities())
             {
-                var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-                var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
-                var targetWhIds = new List<int>();
-                if (productionWH != null) targetWhIds.Add(productionWH.ID);
-                if (salesWH != null && !targetWhIds.Contains(salesWH.ID)) targetWhIds.Add(salesWH.ID);
-                if (!targetWhIds.Any()) return RedirectToAction("Index");
-
                 var pendingExpenses = await db.EXPENSES
                     .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IsDeleted != true && e.ReceiverWhID.HasValue && e.SendStatus != true
-                        && targetWhIds.Contains(e.ReceiverWhID.Value))
+                    .Where(e => e.IsDeleted != true
+                        && e.ReceiverWhID.HasValue
+                        && e.ReceiverWhID.Value != e.SenderWHID)
                     .ToListAsync();
 
                 foreach (var exp in pendingExpenses)
                 {
-                    var hasLinked = await db.INCOMES
-                        .AnyAsync(i => i.IsDeleted != true && i.Description != null
-                            && i.Description.Contains("Chiqimdan avtomatik bog'langan:")
-                            && i.Description.Contains(exp.DocNo ?? ""));
-                    if (hasLinked) continue;
-                    var products = exp.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
+                    try
                     {
-                        ProductID = ep.ProductID,
-                        Amount = ep.Amount,
-                        PiecePrice = ep.PiecePrice,
-                        TotalPrice = ep.TotalPrice,
-                        UnitID = ep.UnitID
-                    }).ToList();
-                    if (products.Any())
-                    {
+                        var products = exp.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
+                        {
+                            ProductID = ep.ProductID,
+                            Amount = ep.Amount,
+                            PiecePrice = ep.PiecePrice,
+                            TotalPrice = ep.TotalPrice,
+                            UnitID = ep.UnitID
+                        }).ToList();
+
+                        if (!products.Any())
+                        {
+                            skipped++;
+                            continue;
+                        }
+
+                        var marker = LinkedExpenseIdMarker + exp.ID;
+                        var existedBefore = await db.INCOMES.AnyAsync(i =>
+                            i.IsDeleted != true
+                            && i.Description != null
+                            && i.Description.Contains(marker));
+
                         await CreateLinkedIncomeDocumentForExpenseAsync(exp, products, db);
-                        created++;
+                        if (existedBefore) updated++;
+                        else created++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"{exp.DocNo}: {ex.Message}");
                     }
                 }
             }
-            TempData["Success"] = $"{created} ta yetishmayotgan kirim hujjati yaratildi.";
+
+            if (errors.Any())
+            {
+                TempData["Error"] =
+                    $"Tuzatish qisman bajarildi. Yaratildi: {created}, yangilandi: {updated}, o'tkazib yuborildi: {skipped}, xatolar: {errors.Count}. " +
+                    string.Join(" | ", errors.Take(3));
+            }
+            else
+            {
+                TempData["Success"] =
+                    $"Tuzatish tugadi. Yaratildi: {created}, yangilandi: {updated}, o'tkazib yuborildi: {skipped}.";
+            }
             return RedirectToAction("Index");
         }
 
@@ -1098,63 +1120,83 @@ namespace tahsinERP.Controllers.SRM
             if (!expense.ReceiverWhID.HasValue || products == null || !products.Any())
                 return;
 
-            // Ishlab chiqarish yoki Sotuv omboriga bo'lgan o'tkazmalar uchun kirim yaratish
-            // WarehouseFlowService orqali omborlarni aniq aniqlash (nomda reglament bo'lmasin)
-            var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
+            // Har qanday ichki o'tkazma (sender != receiver) uchun pending kirim yaratiladi.
+            // Bu ombor nomlari/lookup o'zgarib ketganda ham barqaror ishlaydi.
+            if (expense.ReceiverWhID.Value == expense.SenderWHID)
+                return;
 
-            bool isProductionWarehouse = productionWH != null && productionWH.ID == expense.ReceiverWhID.Value;
-            bool isSalesWarehouse = salesWH != null && salesWH.ID == expense.ReceiverWhID.Value;
+            var marker = LinkedExpenseIdMarker + expense.ID;
+            var linkedIncome = await db.INCOMES
+                .Include(i => i.INCOME_PRODUCTS)
+                .FirstOrDefaultAsync(i =>
+                    i.IsDeleted != true
+                    && i.Description != null
+                    && i.Description.Contains(marker));
 
-            if (!isProductionWarehouse && !isSalesWarehouse)
-                return; // faqat Production yoki Sales omborga o'tkazmalar uchun avtomatik kirim
-
-            // Yaratish Income DocNo
-            var incomeDocNo = await GenerateIncomeDocNo(db);
-
-            // Calculate totals
-            double totalAmount = products.Sum(p => p.Amount);
-            double totalPrice = products.Sum(p => p.TotalPrice);
-
-            // Yaratish Income hujjat
-            var income = new INCOME
+            if (linkedIncome == null)
             {
-                DocNo = incomeDocNo,
-                IssueDateTime = expense.IssueDateTime,
-                ReceivingWHID = expense.ReceiverWhID.Value,
-                SenderWHID = expense.SenderWHID,
-                CurrencyID = expense.CurrencyID,
-                Amount = totalAmount,
-                TotalPrice = totalPrice,
-                Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - {expense.Description}",
-                RecieveStatus = false, // Pending receive uchun MRP confirmation
-                IsDeleted = false
-            };
+                var incomeDocNo = await GenerateIncomeDocNo(db);
+                linkedIncome = new INCOME
+                {
+                    DocNo = incomeDocNo,
+                    IssueDateTime = expense.IssueDateTime,
+                    ReceivingWHID = expense.ReceiverWhID.Value,
+                    SenderWHID = expense.SenderWHID,
+                    CurrencyID = expense.CurrencyID,
+                    Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - {expense.Description} | {marker}",
+                    RecieveStatus = false, // MRP qabul qilishi uchun pending
+                    IsDeleted = false
+                };
+                db.INCOMES.Add(linkedIncome);
+                await db.SaveChangesAsync();
+            }
+            else
+            {
+                linkedIncome.IssueDateTime = expense.IssueDateTime;
+                linkedIncome.ReceivingWHID = expense.ReceiverWhID.Value;
+                linkedIncome.SenderWHID = expense.SenderWHID;
+                linkedIncome.CurrencyID = expense.CurrencyID;
+                linkedIncome.Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - {expense.Description} | {marker}";
+                if (linkedIncome.RecieveStatus != true)
+                {
+                    linkedIncome.RecieveStatus = false;
+                }
 
-            db.INCOMES.Add(income);
-            await db.SaveChangesAsync();
+                if (linkedIncome.INCOME_PRODUCTS != null && linkedIncome.INCOME_PRODUCTS.Any())
+                {
+                    db.INCOME_PRODUCTS.RemoveRange(linkedIncome.INCOME_PRODUCTS.ToList());
+                }
+            }
 
-            // Yaratish Income Products uchun barcha products in the Expense
+            double totalAmount = 0;
+            double totalPrice = 0;
             foreach (var product in products)
             {
+                var lineTotal = product.TotalPrice != 0
+                    ? product.TotalPrice
+                    : (product.Amount * product.PiecePrice);
                 var incomeProduct = new INCOME_PRODUCTS
                 {
-                    IncomeID = income.ID,
+                    IncomeID = linkedIncome.ID,
                     ProductID = product.ProductID,
                     Amount = product.Amount,
                     PiecePrice = product.PiecePrice,
-                    TotalPrice = product.TotalPrice,
+                    TotalPrice = lineTotal,
                     UnitID = product.UnitID,
                     Comment = $"Chiqimdan bog'langan: {expense.DocNo}"
                 };
 
                 db.INCOME_PRODUCTS.Add(incomeProduct);
+                totalAmount += product.Amount;
+                totalPrice += lineTotal;
             }
 
+            linkedIncome.Amount = totalAmount;
+            linkedIncome.TotalPrice = totalPrice;
             await db.SaveChangesAsync();
 
             LogHelper.LogToDatabase(User.Identity.Name, "Expenses",
-                $"Chiqimdan avtomatik kirim yaratildi: {income.DocNo}. Chiqim: {expense.DocNo}, Mahsulotlar: {products.Count} ta");
+                $"Chiqimdan avtomatik kirim upsert qilindi: {linkedIncome.DocNo}. Chiqim: {expense.DocNo}, Mahsulotlar: {products.Count} ta");
         }
 
         /// <summary>

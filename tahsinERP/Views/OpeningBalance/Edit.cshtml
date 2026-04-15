@@ -67,6 +67,10 @@
                                         </div>
                                     </div>
 
+                                    <p class="text-muted small mb-2">
+                                        <strong>Bo'sh qoldirish:</strong> belgilangan bo'lsa, summada <strong>0</strong> kiritilsa bu kategoriya uchun opening yozuvi saqlanmaydi (balansda faqat tranzaksiyalar hisoblanadi).
+                                        Belgilanmagan bo'lsa, <strong>0</strong> ham bazaga yoziladi (boshlang'ich qoldiq aniq nol).
+                                    </p>
                                     <div class="table-responsive">
                                         <table class="table table-striped table-bordered">
                                             <thead>
@@ -75,6 +79,7 @@
                                                     <th>Turi</th>
                                                     <th class="text-right">Summasi</th>
                                                     <th>Valyuta</th>
+                                                    <th class="text-center" style="white-space: nowrap;">Bo'sh qoldirish</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -97,6 +102,9 @@
                                                             @Html.DropDownListFor(m => m.Items[i].CurrencyID,
                                                                 Model.CurrencyList,
                                                                 new { @class = "form-control" })
+                                                        </td>
+                                                        <td class="text-center align-middle">
+                                                            @Html.CheckBoxFor(m => m.Items[i].LeaveEmpty, new { @class = "form-check-input", title = "0 bo'lsa snapshot yozilmasin" })
                                                         </td>
                                                     </tr>
                                                 }
@@ -126,6 +134,7 @@
                                                 <th>Turi</th>
                                                 <th class="text-right">Summasi</th>
                                                 <th>Valyuta</th>
+                                                <th class="text-center">Bo'sh qoldirish</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -136,6 +145,7 @@
                                                     <td>@item.TypeName</td>
                                                     <td class="text-right">@item.Amount.ToString("N2")</td>
                                                     <td>@item.CurrencyShortname</td>
+                                                    <td class="text-center">@(item.LeaveEmpty ? "Ha" : "Yo'q")</td>
                                                 </tr>
                                             }
                                         </tbody>

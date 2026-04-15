@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace tahsinERP.Controllers.MES
                 var query = db.QUALITY_INSPECTION
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .Where(q => q.IsDeleted == false)
+                    .Where(q => !q.IsDeleted)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -108,7 +109,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION
-                    .Where(q => q.ID == id && q.IsDeleted == false)
+                    .Where(q => q.ID == id && !q.IsDeleted)
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
                     .Include(q => q.S_ORDERS)
@@ -136,12 +137,32 @@ namespace tahsinERP.Controllers.MES
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var inspectionDate = (date ?? DateTime.Now).Date;
+                var inspectionDate = ResolveInspectionCalendarDate(date);
                 var viewModel = BuildDailyInspectionViewModel(inspectionDate, db);
 
                 ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
                 return View(viewModel);
             }
+        }
+
+        /// <summary>
+        /// Yuklash: ?date=yyyy-MM-dd — avvalo query string (brauzer date input ISO), keyin model binder.
+        /// </summary>
+        private DateTime ResolveInspectionCalendarDate(DateTime? date)
+        {
+            var raw = Request["date"];
+            if (!string.IsNullOrWhiteSpace(raw)
+                && DateTime.TryParseExact(raw.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedExact))
+            {
+                return parsedExact.Date;
+            }
+
+            if (date.HasValue)
+            {
+                return date.Value.Date;
+            }
+
+            return DateTime.Now.Date;
         }
 
         // POST so'rovi: QualityInspection/yaratish
@@ -179,10 +200,11 @@ namespace tahsinERP.Controllers.MES
                                 continue;
                             }
 
+                            // GET ro'yxat bilan bir xil: IsDeleted == null ham faol yozuv
                             var production = db.PRODUCT_PRODUCTION
                                 .Include(p => p.PRODUCT)
                                 .FirstOrDefault(p => p.ID == item.ProductionID
-                                    && p.IsDeleted == false);
+                                    && (p.IsDeleted == false || p.IsDeleted == null));
 
                             if (production == null)
                             {
@@ -191,7 +213,8 @@ namespace tahsinERP.Controllers.MES
                             }
 
                             var alreadyAccepted = db.QUALITY_INSPECTION
-                                .Where(q => q.ProductionID == item.ProductionID && q.IsDeleted == false)
+                                .Where(q => q.ProductionID == item.ProductionID
+                                    && !q.IsDeleted)
                                 .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
 
                             // Re-inspection support: rejected qty qayta sifatga kirishi mumkin.
@@ -287,23 +310,31 @@ namespace tahsinERP.Controllers.MES
         private QualityInspectionDailyViewModel BuildDailyInspectionViewModel(DateTime inspectionDate, DBTHSNEntities db)
         {
             var dateOnly = inspectionDate.Date;
-            var nextDay = dateOnly.AddDays(1);
+            var y = dateOnly.Year;
+            var m = dateOnly.Month;
+            var d = dateOnly.Day;
 
-            var productions = db.PRODUCT_PRODUCTION
+            // Faqat fakt: tanlangan KALENDAR kuni — yil/oy/kun SQL DATEPART bilan (vaqt/zona format farqlari uchun barqaror)
+            // IsDeleted: null ham faol deb hisoblanadi
+            var productionsQuery = db.PRODUCT_PRODUCTION
                 .Include(p => p.PRODUCT)
-                .Where(p => p.IsDeleted == false
-                    && p.Date >= dateOnly
-                    && p.Date < nextDay
+                .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
+                    && p.Date.Year == y
+                    && p.Date.Month == m
+                    && p.Date.Day == d
                     && p.PRODUCT.IsFinishedGood == true
-                    && p.PRODUCT.IsDeleted == false)
-                .ToList();
+                    && p.PRODUCT.IsDeleted == false);
+
+            var productions = productionsQuery.ToList();
+            var productionRowCount = productions.Count;
 
             var items = new List<QualityInspectionDailyItemViewModel>();
 
             foreach (var production in productions)
             {
                 var alreadyAccepted = db.QUALITY_INSPECTION
-                    .Where(q => q.ProductionID == production.ID && q.IsDeleted == false)
+                    .Where(q => q.ProductionID == production.ID
+                        && !q.IsDeleted)
                     .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
 
                 var producedQty = (decimal)production.Total;
@@ -332,7 +363,8 @@ namespace tahsinERP.Controllers.MES
             return new QualityInspectionDailyViewModel
             {
                 InspectionDate = dateOnly,
-                Items = items
+                Items = items,
+                ProductionRowCountForDay = productionRowCount
             };
         }
 
@@ -351,7 +383,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION
-                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
+                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
                 if (inspection == null)
                 {
                     return HttpNotFound();
@@ -401,7 +433,7 @@ namespace tahsinERP.Controllers.MES
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     var inspection = db.QUALITY_INSPECTION
-                        .FirstOrDefault(q => q.ID == viewModel.ID && q.IsDeleted == false);
+                        .FirstOrDefault(q => q.ID == viewModel.ID && !q.IsDeleted);
                     if (inspection == null)
                     {
                         return HttpNotFound();
@@ -467,7 +499,7 @@ namespace tahsinERP.Controllers.MES
                 var inspection = db.QUALITY_INSPECTION
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
+                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
 
                 if (inspection == null)
                 {
@@ -496,7 +528,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION
-                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
+                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
                 if (inspection == null)
                 {
                     return HttpNotFound();
@@ -564,7 +596,7 @@ namespace tahsinERP.Controllers.MES
                 var inspection = db.QUALITY_INSPECTION
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
+                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
 
                 if (inspection == null)
                 {
@@ -594,7 +626,7 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var inspection = db.QUALITY_INSPECTION
-                    .FirstOrDefault(q => q.ID == id && q.IsDeleted == false);
+                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
                 if (inspection == null)
                 {
                     return HttpNotFound();
@@ -640,9 +672,9 @@ namespace tahsinERP.Controllers.MES
             {
                 // Olish total accepted qty dan approved inspections
                 var totalAccepted = db.QUALITY_INSPECTION
-                    .Where(q => q.ProductID == productID 
-                        && q.StatusCode == "APPROVED" 
-                        && q.IsDeleted == false)
+                    .Where(q => q.ProductID == productID
+                        && q.StatusCode == "APPROVED"
+                        && !q.IsDeleted)
                     .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
 
                 // Olish total already invoiced

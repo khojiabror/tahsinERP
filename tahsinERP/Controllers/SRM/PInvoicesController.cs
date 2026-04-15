@@ -14,7 +14,12 @@ namespace tahsinERP.Controllers
     public class PInvoicesController : Controller
     {
         // Olish so'rovi: PInvoices
-        public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
+        public async Task<ActionResult> Index(
+            string purchaseTypeFilter = "",
+            int? supplierID = null,
+            int? contractID = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Index"))
             {
@@ -51,6 +56,32 @@ namespace tahsinERP.Controllers
                     query = query.Where(i => i.PurchaseType == purchaseType);
                 }
 
+                // Filtrlash bo'yicha sana oralig'i
+                if (fromDate.HasValue)
+                {
+                    var from = fromDate.Value.Date;
+                    query = query.Where(i => i.InvoiceDate >= from);
+                }
+                if (toDate.HasValue)
+                {
+                    var to = toDate.Value.Date;
+                    query = query.Where(i => DbFunctions.TruncateTime(i.InvoiceDate) <= to);
+                }
+
+                var suppliers = await db.SUPPLIERS
+                    .Where(s => s.IsDeleted != true)
+                    .OrderBy(s => s.Name)
+                    .ToListAsync();
+                ViewBag.Suppliers = new SelectList(suppliers, "ID", "Name", supplierID);
+
+                var contractsForFilter = await db.P_CONTRACTS
+                    .Where(c => c.IsDeleted != true)
+                    .OrderByDescending(c => c.IssuedDate)
+                    .ThenByDescending(c => c.ID)
+                    .Select(c => new { c.ID, c.ContractNo })
+                    .ToListAsync();
+                ViewBag.Contracts = new SelectList(contractsForFilter, "ID", "ContractNo", contractID);
+
                 var invoices = await query
                     .OrderByDescending(i => i.InvoiceDate)
                     .ToListAsync();
@@ -58,6 +89,8 @@ namespace tahsinERP.Controllers
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.SupplierID = supplierID;
                 ViewBag.ContractID = contractID;
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
                 ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices");
 
                 return View(invoices);

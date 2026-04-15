@@ -98,19 +98,41 @@
                                                 <div class="modal-body">
                                                     <div id="movementLoading" class="text-muted">Yuklanmoqda...</div>
                                                     <div id="movementBody" style="display:none;">
-                                                        <h6>Qo'shilgan (Top 20)</h6>
-                                                        <div class="table-responsive mb-2">
-                                                            <table class="table table-sm table-bordered" id="tblAdded">
-                                                                <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
-                                                                <tbody></tbody>
-                                                            </table>
+                                                        <div id="movementBreakdownWrap" style="display:none;" class="mb-3">
+                                                            <h6>Hisob-kitob (ombor × narx)</h6>
+                                                            <p class="small text-muted mb-1" id="movementWarehouseNote"></p>
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-bordered" id="tblBreakdown">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Kod</th>
+                                                                            <th>Mahsulot</th>
+                                                                            <th class="text-right">Miqdor</th>
+                                                                            <th>Birlik</th>
+                                                                            <th class="text-right">Birlik narxi</th>
+                                                                            <th class="text-right">Summa</th>
+                                                                            <th>Izoh</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
-                                                        <h6>Ayrilgan (Top 20)</h6>
-                                                        <div class="table-responsive">
-                                                            <table class="table table-sm table-bordered" id="tblSubtracted">
-                                                                <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
-                                                                <tbody></tbody>
-                                                            </table>
+                                                        <div id="movementTxnWrap">
+                                                            <h6>Qo'shilgan (Top 20)</h6>
+                                                            <div class="table-responsive mb-2">
+                                                                <table class="table table-sm table-bordered" id="tblAdded">
+                                                                    <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                            <h6>Ayrilgan (Top 20)</h6>
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-bordered" id="tblSubtracted">
+                                                                    <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -136,9 +158,16 @@ else
     <script type="text/javascript">
         (function () {
             function fmtDate(v) {
-                if (!v) return '';
+                if (v == null || v === '') return '';
+                if (typeof v === 'string' && v.indexOf('/Date(') === 0) {
+                    var m = /^\/Date\((-?\d+)(?:[+-]\d+)?\)\//.exec(v);
+                    if (m) {
+                        var d0 = new Date(parseInt(m[1], 10));
+                        if (!isNaN(d0.getTime())) return d0.toLocaleDateString('en-GB');
+                    }
+                }
                 var d = new Date(v);
-                if (isNaN(d)) return v;
+                if (isNaN(d.getTime())) return typeof v === 'string' ? v : '';
                 return d.toLocaleDateString('en-GB');
             }
             function fmtNum(v) {
@@ -153,7 +182,32 @@ else
                 }
                 rows.forEach(function (r) {
                     var tr = document.createElement('tr');
-                    tr.innerHTML = '<td>' + fmtDate(r.date) + '</td><td>' + (r.doc || '') + '</td><td>' + (r.note || '') + '</td><td class="text-right">' + fmtNum(r.amount) + '</td>';
+                    var rowDate = r.date !== undefined && r.date !== null ? r.date : r.Date;
+                    tr.innerHTML = '<td>' + fmtDate(rowDate) + '</td><td>' + (r.doc || r.Doc || '') + '</td><td>' + (r.note || r.Note || '') + '</td><td class="text-right">' + fmtNum(r.amount !== undefined ? r.amount : r.Amount) + '</td>';
+                    tbody.appendChild(tr);
+                });
+            }
+            function fillBreakdown(tbody, rows) {
+                tbody.innerHTML = '';
+                if (!rows || !rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Ma\'lumot yo\'q</td></tr>';
+                    return;
+                }
+                rows.forEach(function (r) {
+                    var code = r.ProductCode != null && r.ProductCode !== undefined ? r.ProductCode : (r.productCode || '');
+                    var name = r.ProductName != null && r.ProductName !== undefined ? r.ProductName : (r.productName || '');
+                    var qty = r.Qty !== undefined && r.Qty !== null ? r.Qty : (r.qty !== undefined ? r.qty : 0);
+                    var unit = r.Unit != null && r.Unit !== undefined ? r.Unit : (r.unit || '');
+                    var unitPrice = r.UnitPrice !== undefined ? r.UnitPrice : r.unitPrice;
+                    var lineTotal = r.LineTotal !== undefined ? r.LineTotal : r.lineTotal;
+                    var note = r.Note != null && r.Note !== undefined ? r.Note : (r.note || '');
+                    var tr = document.createElement('tr');
+                    var up = unitPrice != null && unitPrice !== undefined ? fmtNum(unitPrice) : '—';
+                    if (!code && !name && note) {
+                        tr.innerHTML = '<td colspan="7" class="text-muted">' + note + '</td>';
+                    } else {
+                        tr.innerHTML = '<td>' + code + '</td><td>' + name + '</td><td class="text-right">' + fmtNum(qty) + '</td><td>' + unit + '</td><td class="text-right">' + up + '</td><td class="text-right">' + fmtNum(lineTotal) + '</td><td><small>' + note + '</small></td>';
+                    }
                     tbody.appendChild(tr);
                 });
             }
@@ -170,17 +224,36 @@ else
                         .then(function (data) {
                             document.getElementById('movementLoading').style.display = 'none';
                             document.getElementById('movementBody').style.display = 'block';
+                            var br = document.getElementById('movementBreakdownWrap');
+                            var tx = document.getElementById('movementTxnWrap');
+                            var whNote = document.getElementById('movementWarehouseNote');
                             if (!data || !data.success) {
+                                br.style.display = 'none';
+                                tx.style.display = 'block';
+                                whNote.textContent = '';
                                 document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
                                 document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
                                 return;
                             }
-                            fillRows(document.querySelector('#tblAdded tbody'), data.added);
-                            fillRows(document.querySelector('#tblSubtracted tbody'), data.subtracted);
+                            if (data.breakdownMode) {
+                                br.style.display = 'block';
+                                tx.style.display = 'none';
+                                whNote.textContent = data.warehouseName ? ('Ombor: ' + data.warehouseName) : '';
+                                fillBreakdown(document.querySelector('#tblBreakdown tbody'), data.breakdown || []);
+                            } else {
+                                br.style.display = 'none';
+                                tx.style.display = 'block';
+                                whNote.textContent = '';
+                                fillRows(document.querySelector('#tblAdded tbody'), data.added);
+                                fillRows(document.querySelector('#tblSubtracted tbody'), data.subtracted);
+                            }
                         })
                         .catch(function () {
                             document.getElementById('movementLoading').style.display = 'none';
                             document.getElementById('movementBody').style.display = 'block';
+                            document.getElementById('movementBreakdownWrap').style.display = 'none';
+                            document.getElementById('movementTxnWrap').style.display = 'block';
+                            document.getElementById('movementWarehouseNote').textContent = '';
                             document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
                             document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
                         });

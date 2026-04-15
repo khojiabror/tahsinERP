@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
+using tahsinERP.Helpers;
 using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.MES
@@ -98,22 +99,13 @@ namespace tahsinERP.Controllers.MES
                 // Olish actual production ma'lumot uchun comparison
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
                 // Yuklash production ma'lumot birinchi, so'ng filtrlash in memory
+                // Reja kuni: fakt sanasi yoki Comment dagi [RejaSana:yyyy-MM-dd] (ProductProductionPlanDateMeta)
                 var allProductions = db.PRODUCT_PRODUCTION
                     .Where(p => p.ProductID == plan.ProductID
-                        && p.IsDeleted == false)
+                        && (p.IsDeleted == false || p.IsDeleted == null))
                     .ToList();
 
-                var actualProductions = allProductions
-                    .Where(p => planDates.Contains(p.Date.Date))
-                    .GroupBy(p => p.Date.Date)
-                    .Select(g => new
-                    {
-                        Date = g.Key,
-                        DayShift = g.Sum(p => p.DayShift),
-                        NightShift = g.Sum(p => p.NightShift),
-                        Total = g.Sum(p => p.Total)
-                    })
-                    .ToDictionary(x => x.Date, x => x);
+                var actualProductions = AggregateActualProductionByPlanCalendarDay(planDates, allProductions);
 
                 // Yaratish daily plan view models bilan actual ma'lumot
                 var dailyPlanViewModels = dailyPlans.Select(d => new ProductPlanDailyViewModel
@@ -504,23 +496,12 @@ namespace tahsinERP.Controllers.MES
 
                 // Olish actual production ma'lumot
                 var planDates = dailyPlans.Select(d => d.Day.Date).ToList();
-                // Yuklash production ma'lumot birinchi, so'ng filtrlash in memory
                 var allProductions = db.PRODUCT_PRODUCTION
                     .Where(p => p.ProductID == plan.ProductID
-                        && p.IsDeleted == false)
+                        && (p.IsDeleted == false || p.IsDeleted == null))
                     .ToList();
 
-                var actualProductions = allProductions
-                    .Where(p => planDates.Contains(p.Date.Date))
-                    .GroupBy(p => p.Date.Date)
-                    .Select(g => new
-                    {
-                        Date = g.Key,
-                        DayShift = g.Sum(p => p.DayShift),
-                        NightShift = g.Sum(p => p.NightShift),
-                        Total = g.Sum(p => p.Total)
-                    })
-                    .ToDictionary(x => x.Date, x => x);
+                var actualProductions = AggregateActualProductionByPlanCalendarDay(planDates, allProductions);
 
                 var dailyPlanViewModels = dailyPlans.Select(d => new ProductPlanDailyViewModel
                 {
@@ -683,6 +664,32 @@ namespace tahsinERP.Controllers.MES
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Har bir reja kalendar kuni uchun: shu kunda fakt sanasi bo'lgan yoki [RejaSana:...] shu kunga teng bo'lgan
+        /// PRODUCT_PRODUCTION qatorlarini yig'adi (kunlik ishlab chiqarish ekrani bilan bir xil bog'lanish).
+        /// </summary>
+        private static Dictionary<DateTime, (double DayShift, double NightShift, double Total)> AggregateActualProductionByPlanCalendarDay(
+            List<DateTime> planDates,
+            List<PRODUCT_PRODUCTION> productions)
+        {
+            var result = new Dictionary<DateTime, (double DayShift, double NightShift, double Total)>();
+            foreach (var day in planDates.Select(d => d.Date).Distinct())
+            {
+                var rows = productions.Where(p => ProductProductionPlanDateMeta.MatchesCalendarDay(p, day)).ToList();
+                if (rows.Count == 0)
+                {
+                    continue;
+                }
+
+                result[day] = (
+                    rows.Sum(p => p.DayShift),
+                    rows.Sum(p => p.NightShift),
+                    rows.Sum(p => p.Total));
+            }
+
+            return result;
         }
     }
 }

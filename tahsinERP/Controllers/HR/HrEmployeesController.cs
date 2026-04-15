@@ -26,10 +26,12 @@ namespace tahsinERP.Controllers.HR
     {
         private DBTHSNEntities db = new DBTHSNEntities();
         private IUserActionLogger logger;
+        private readonly HrEmployeeAllowanceService allowanceService;
 
         public HrEmployeesController()
         {
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
+            allowanceService = new HrEmployeeAllowanceService(db);
         }
 
         // Olish so'rovi: HR/Employees
@@ -102,6 +104,8 @@ namespace tahsinERP.Controllers.HR
                     PositionID = currentPositionID,
                     PositionName = currentPosition?.Name,
                     BaseSalary = e.BaseSalary,
+                    MaterialResponsibilityPercent = 0,
+                    SpecialAllowancePercent = 0,
                     SalaryGradeID = e.SalaryGradeID,
                     SalaryGradeName = e.HR_SALARY_GRADES?.Name,
                     EmploymentDate = e.EmploymentDate,
@@ -156,12 +160,21 @@ namespace tahsinERP.Controllers.HR
                 PositionID = employee.PositionID,
                 PositionName = employee.HR_POSITIONS?.Name,
                 BaseSalary = employee.BaseSalary,
+                MaterialResponsibilityPercent = 0,
+                SpecialAllowancePercent = 0,
                 SalaryGradeID = employee.SalaryGradeID,
                 SalaryGradeName = employee.HR_SALARY_GRADES?.Name,
                 EmploymentDate = employee.EmploymentDate,
                 DismissalDate = employee.DismissalDate,
                 IsActive = employee.IsActive
             };
+
+            var allowances = allowanceService.GetByEmployeeId(employee.ID);
+            if (allowances != null)
+            {
+                viewModel.MaterialResponsibilityPercent = allowances.MaterialResponsibilityPercent;
+                viewModel.SpecialAllowancePercent = allowances.SpecialAllowancePercent;
+            }
 
             // History ni faqat history jadvalidan chiqaramiz.
             var historyList = new List<HrEmployeeHistoryViewModel>();
@@ -295,7 +308,12 @@ namespace tahsinERP.Controllers.HR
 
             ViewBag.NextTabNo = nextTabNo;
 
-            return View();
+            return View(new HrEmployeeViewModel
+            {
+                MaterialResponsibilityPercent = 0,
+                SpecialAllowancePercent = 0,
+                IsActive = true
+            });
         }
 
         // POST so'rovi: HR/Employees/yaratish
@@ -344,6 +362,11 @@ namespace tahsinERP.Controllers.HR
 
                 db.HR_EMPLOYEES.Add(employee);
                 await db.SaveChangesAsync();
+
+                allowanceService.Upsert(
+                    employee.ID,
+                    viewModel.MaterialResponsibilityPercent ?? 0,
+                    viewModel.SpecialAllowancePercent ?? 0);
 
                 // Yaratish HrEmployeeHistory record uchun the new employee
                 if (employee.OrgUnitID.HasValue && employee.PositionID.HasValue && employee.EmploymentDate.HasValue)
@@ -413,11 +436,20 @@ namespace tahsinERP.Controllers.HR
                 OrgUnitID = employee.OrgUnitID,
                 PositionID = employee.PositionID,
                 BaseSalary = employee.BaseSalary,
+                MaterialResponsibilityPercent = 0,
+                SpecialAllowancePercent = 0,
                 SalaryGradeID = employee.SalaryGradeID,
                 EmploymentDate = employee.EmploymentDate,
                 DismissalDate = employee.DismissalDate,
                 IsActive = employee.IsActive
             };
+
+            var allowances = allowanceService.GetByEmployeeId(employee.ID);
+            if (allowances != null)
+            {
+                viewModel.MaterialResponsibilityPercent = allowances.MaterialResponsibilityPercent;
+                viewModel.SpecialAllowancePercent = allowances.SpecialAllowancePercent;
+            }
 
             await PopulateViewBags(viewModel);
             return View(viewModel);
@@ -464,6 +496,11 @@ namespace tahsinERP.Controllers.HR
 
                 db.Entry(employee).State = EntityState.Modified;
                 await db.SaveChangesAsync();
+
+                allowanceService.Upsert(
+                    employee.ID,
+                    viewModel.MaterialResponsibilityPercent ?? 0,
+                    viewModel.SpecialAllowancePercent ?? 0);
 
                 var orgUnitName = employee.OrgUnitID.HasValue
                     ? (await db.HR_ORG_UNITS.FindAsync(employee.OrgUnitID.Value))?.Name ?? "-"

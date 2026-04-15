@@ -155,9 +155,11 @@ namespace tahsinERP.Controllers
                     .ToList()
                     .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
 
+            // Balansdagi CalculateSupplierOutstanding bilan mos: ta'minotchi ko'rsatilgan barcha chiqimlar.
             var payments = db.FIN_TRANSACTIONS
                 .Where(t => t.TxnDate <= asOfDate && t.Direction == 2 && t.CounterpartyType == 2 &&
-                    t.CounterpartyID.HasValue && (t.IsDeleted == null || t.IsDeleted == false))
+                    t.CounterpartyID.HasValue && (t.IsDeleted == null || t.IsDeleted == false) &&
+                    (t.SourceDocType == null || (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")))
                 .Select(t => new { t.ID, SupplierID = t.CounterpartyID.Value, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .ToList();
 

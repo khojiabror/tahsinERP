@@ -55,7 +55,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.AccountID, "Hisob *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountID as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required", onchange = "loadAccountCurrency()" })
+                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountsSelectList as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required", onchange = "loadAccountCurrency()" })
                                                     @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
@@ -65,7 +65,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.CategoryID, "Kategoriya *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoryID as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
+                                                    @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoriesSelectList as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
                                                     @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
@@ -89,7 +89,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.CurrencyID, "Valyuta *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
+                                                    @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrenciesSelectList as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
                                                     @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>

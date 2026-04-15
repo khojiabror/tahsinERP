@@ -25,6 +25,14 @@ namespace tahsinERP.ViewModels.HR
         
         [Display(Name = "Базовая зарплата")]
         public decimal? BaseSalary { get; set; }
+
+        [Display(Name = "Моддий жавобгарлик, %")]
+        [Range(0, 100, ErrorMessage = "Qiymat 0 dan 100 gacha bo'lishi kerak")]
+        public decimal? MaterialResponsibilityPercent { get; set; }
+
+        [Display(Name = "Махсус устама, %")]
+        [Range(0, 100, ErrorMessage = "Qiymat 0 dan 100 gacha bo'lishi kerak")]
+        public decimal? SpecialAllowancePercent { get; set; }
         
         [Display(Name = "Тарифная сетка")]
         public int? SalaryGradeID { get; set; }

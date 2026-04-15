@@ -945,6 +945,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
+    <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
     <Compile Include="Models\RoleHelper.cs" />
     <Compile Include="Models\USER_ENTRIES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
@@ -992,6 +993,7 @@
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
+    <Compile Include="Services\HrEmployeeAllowanceService.cs" />
     <Compile Include="Services\ReconciliationService.cs" />
     <Compile Include="Services\ReconciliationAdjustmentService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />

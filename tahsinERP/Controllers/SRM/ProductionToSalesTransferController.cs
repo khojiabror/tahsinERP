@@ -110,12 +110,12 @@ namespace tahsinERP.Controllers.SRM
                 {
                     try
                     {
-                        // Tekshirish: lot tanlanishi (yoki "lotsiz o'tkazish"), quality, va stock
+                        // Tekshirish: lot tanlanishi majburiy, quality, va stock
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
-                            var isLotsiz = string.Equals(line.LotAllocations?.Trim(), "LOTSIZ", StringComparison.OrdinalIgnoreCase)
-                                || string.IsNullOrWhiteSpace(line.LotAllocations);
-                            var allocations = isLotsiz ? new List<LotAllocation>() : ProductionLotService.ParseLotAllocations(line.LotAllocations);
+                            var allocations = string.IsNullOrWhiteSpace(line.LotAllocations)
+                                ? new List<LotAllocation>()
+                                : ProductionLotService.ParseLotAllocations(line.LotAllocations);
 
                             var availableStock = WarehouseFlowService.GetProductionStock(line.ProductID, db);
                             if (availableStock < line.Quantity)
@@ -128,11 +128,11 @@ namespace tahsinERP.Controllers.SRM
                                 return View(viewModel);
                             }
 
-                            if (!isLotsiz && !allocations.Any())
+                            if (!allocations.Any())
                             {
                                 var product = db.PRODUCTS.Find(line.ProductID);
                                 ModelState.AddModelError("", 
-                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun lot (ishlab chiqarish) tanlang yoki \"Lotsiz o'tkazish\" ni tanlang.");
+                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun sifat nazoratidan o'tgan lot tanlash majburiy.");
                                 ReloadViewBag(db, viewModel);
                                 return View(viewModel);
                             }
@@ -173,10 +173,13 @@ namespace tahsinERP.Controllers.SRM
                         // Process har bir transfer line
                         foreach (var line in lines.Where(l => l.Quantity > 0))
                         {
-                            var isLotsiz = string.Equals(line.LotAllocations?.Trim(), "LOTSIZ", StringComparison.OrdinalIgnoreCase)
-                                || string.IsNullOrWhiteSpace(line.LotAllocations);
-                            var allocations = isLotsiz ? null : ProductionLotService.ParseLotAllocations(line.LotAllocations);
-                            if (allocations != null && !allocations.Any()) allocations = null;
+                            var allocations = string.IsNullOrWhiteSpace(line.LotAllocations)
+                                ? null
+                                : ProductionLotService.ParseLotAllocations(line.LotAllocations);
+                            if (allocations == null || !allocations.Any())
+                            {
+                                throw new Exception("Lot tanlanmagan. Sifat nazoratisiz o'tkazishga ruxsat yo'q.");
+                            }
                             WarehouseFlowService.TransferProductionToSales(
                                 line.ProductID,
                                 line.Quantity,

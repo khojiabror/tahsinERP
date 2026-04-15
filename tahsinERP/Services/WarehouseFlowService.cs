@@ -168,19 +168,28 @@ namespace tahsinERP.Services
                         CurrencyID = currencyId,
                         IsDeleted = false,
                         RecieveStatus = true,
-                        Description = $"Ishlab chiqarishdan tayyor mahsulot: {product.PNo} - {product.Name}"
+                        Description = productionID.HasValue && productionID.Value > 0
+                            ? $"Ishlab chiqarishdan tayyor mahsulot: {product.PNo} - {product.Name}. ProductionID:{productionID.Value}"
+                            : $"Ishlab chiqarishdan tayyor mahsulot: {product.PNo} - {product.Name}"
                     };
 
                     db.INCOMES.Add(income);
                     db.SaveChanges(); // Save to get ID
 
                     // Create INCOME_PRODUCTS
+                    var unitId = product.UnitID > 0
+                        ? product.UnitID
+                        : (db.UNITS.OrderBy(u => u.ID).Select(u => u.ID).FirstOrDefault());
+                    if (unitId <= 0)
+                        unitId = 1;
+
                     var incomeProduct = new INCOME_PRODUCTS
                     {
                         IncomeID = income.ID,
                         ProductID = productID,
                         Amount = quantity,
-                        PiecePrice = 0 // Production cost calculated separately
+                        PiecePrice = 0, // Production cost calculated separately
+                        UnitID = unitId
                     };
 
                     db.INCOME_PRODUCTS.Add(incomeProduct);
@@ -202,6 +211,48 @@ namespace tahsinERP.Services
                     throw;
                 }
             }
+        }
+
+        /// <summary>
+        /// Kunlik ishlab chiqarish kiritish/tahrir: tayyor mahsulot qoldig'i o'zgarishi.
+        /// Musbat delta: <see cref="IncreaseProductionStock"/> (kirim hujjati + qoldiq).
+        /// Manfiy delta: faqat ishlab chiqarish omboridagi qoldiq kamaytiriladi (kirim hujjati yo'q).
+        /// </summary>
+        public static void ApplyProductionWarehouseStockDelta(int productID, double delta, int shopID,
+            DBTHSNEntities db, string userEmail, int? productionID = null)
+        {
+            if (Math.Abs(delta) < 1e-9)
+            {
+                return;
+            }
+
+            if (delta > 0)
+            {
+                IncreaseProductionStock(productID, delta, shopID, db, userEmail, productionID);
+                return;
+            }
+
+            var product = db.PRODUCTS.Find(productID);
+            if (product == null || product.IsFinishedGood != true)
+            {
+                return;
+            }
+
+            var productionWH = GetProductionWarehouse(db, shopID);
+            if (productionWH == null)
+            {
+                throw new Exception("Ishlab chiqarish ombori topilmadi");
+            }
+
+            var stock = GetOrCreateStockRow(db, productionWH.ID, productID, product.UnitID);
+            stock.Amount += delta;
+            if (stock.Amount < 0)
+            {
+                stock.Amount = 0;
+            }
+
+            LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "ApplyProductionWarehouseStockDelta",
+                $"Tayyor mahsulot {product.PNo} qoldig'i {delta:0.###} ga tuzatildi (ishlab chiqarish ombori). ProductionID: {productionID}");
         }
 
         /// <summary>
@@ -625,10 +676,12 @@ namespace tahsinERP.Services
             if (productionWH == null)
                 return 0;
 
-            var stock = db.PRODUCT_STOCKS
-                .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == productID);
+            var sum = db.PRODUCT_STOCKS
+                .Where(s => s.WHID == productionWH.ID && s.ProductID == productID)
+                .Select(s => (double?)s.Amount)
+                .Sum();
 
-            return stock?.Amount ?? 0;
+            return sum ?? 0;
         }
     }
 }

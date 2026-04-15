@@ -43,11 +43,11 @@
 
                                                     <div class="row mb-1">
                                                         <div class="col-md-6">
-                                                            <h6 class="invoice-to">Tekshiruv sanasi</h6>
+                                                            <h6 class="invoice-to">Fakt ishlab chiqarish sanasi</h6>
                                                             @Html.TextBoxFor(model => model.InspectionDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @readonly = "readonly" })
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <h6 class="invoice-to">Sana bo'yicha yuklash</h6>
+                                                            <h6 class="invoice-to">Sanani tanlang va yuklash</h6>
                                                             <div class="d-flex">
                                                                 <input type="date" id="inspection-date-picker" class="form-control" value="@Model.InspectionDate.ToString("yyyy-MM-dd")" />
                                                                 <button type="button" id="inspection-date-load" class="btn btn-outline-primary ml-1">
@@ -60,7 +60,14 @@
                                                     @if (Model.Items == null || !Model.Items.Any())
                                                     {
                                                         <div class="alert alert-warning">
-                                                            Tanlangan sana uchun ishlab chiqarilgan mahsulotlar topilmadi.
+                                                            @if (Model.ProductionRowCountForDay > 0)
+                                                            {
+                                                                <span>Bu kunda ishlab chiqarish yozuvlari bor, lekin barchasi allaqachon to'liq qabul qilingan (tekshiruv uchun qoldiq yo'q).</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>Tanlangan kalendar kuni uchun fakt ishlab chiqarish (ProductProduction) yozuvlari topilmadi yoki tugallangan mahsulot (IsFinishedGood) emas.</span>
+                                                            }
                                                         </div>
                                                     }
                                                     else

@@ -1285,6 +1285,20 @@ namespace tahsinERP.Controllers.SRM
                 return null;
             }
 
+            // New marker: ... | EXPENSE_ID:123
+            var markerMatch = Regex.Match(description, @"EXPENSE_ID\s*:\s*(\d+)", RegexOptions.IgnoreCase);
+            if (markerMatch.Success && int.TryParse(markerMatch.Groups[1].Value, out var expenseIdByMarker))
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var exp = db.EXPENSES.FirstOrDefault(e => e.ID == expenseIdByMarker && e.IsDeleted != true);
+                    if (exp != null && !string.IsNullOrWhiteSpace(exp.DocNo))
+                    {
+                        return exp.DocNo;
+                    }
+                }
+            }
+
             const string marker = "Chiqimdan avtomatik bog'langan: ";
             var index = description.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
             if (index >= 0)

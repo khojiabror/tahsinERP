@@ -98,7 +98,7 @@ namespace tahsinERP.Services
                 var totalAcceptedForLot = (double)(db.QUALITY_INSPECTION
                     .Where(q => q.ProductionID == a.ProductionID
                         && q.ProductID == productID
-                        && q.IsDeleted == false
+                        && !q.IsDeleted
                         && q.StatusCode == "APPROVED")
                     .Sum(q => (decimal?)q.QtyAccepted) ?? 0m);
 

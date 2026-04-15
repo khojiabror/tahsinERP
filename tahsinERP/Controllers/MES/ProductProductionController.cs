@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using tahsinERP.Services;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -94,8 +95,9 @@ namespace tahsinERP.Controllers.MES
                 {
                     try
                     {
-                        var dateOnly = viewModel.ProductionDate.Date;
-                        var allProductionsForDate = db.PRODUCT_PRODUCTION
+                        var planDay = viewModel.Date.Date;
+                        var factDay = viewModel.ProductionDate.Date;
+                        var allProductionsForShop = db.PRODUCT_PRODUCTION
                             .Where(p => p.ShopID == viewModel.ShopID)
                             .ToList();
                         var itemsToProcess = viewModel.ProductionItems.Where(i => i.Total > 0).ToList();
@@ -104,8 +106,10 @@ namespace tahsinERP.Controllers.MES
                         // reja yaratishda emas. Avval tekshirib olamiz, keyin yozishlarni boshlaymiz.
                         foreach (var item in itemsToProcess)
                         {
-                            var existingForCheck = allProductionsForDate
-                                .FirstOrDefault(p => p.Date.Date == dateOnly && p.ProductID == item.ProductID);
+                            var existingForCheck = allProductionsForShop.FirstOrDefault(p =>
+                                p.ProductID == item.ProductID &&
+                                (p.Date.Date == factDay ||
+                                 ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment)?.Date == planDay));
 
                             var stockError = await ValidateRawMaterialStockForProductionAsync(
                                 item.ProductID,
@@ -127,18 +131,22 @@ namespace tahsinERP.Controllers.MES
                         foreach (var item in itemsToProcess)
                         {
                             var productForLog = db.PRODUCTS.Find(item.ProductID);
-                            // Tekshirish agar production already mavjud uchun this date/product/shop
-                            var existing = allProductionsForDate
-                                .FirstOrDefault(p => p.Date.Date == dateOnly 
-                                    && p.ProductID == item.ProductID);
+                            // Bir xil reja kuni + mahsulot bo'yicha yangilash (fakt sanasi boshqacha bo'lishi mumkin)
+                            var existing = allProductionsForShop.FirstOrDefault(p =>
+                                p.ProductID == item.ProductID &&
+                                (p.Date.Date == factDay ||
+                                 ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment)?.Date == planDay));
 
+                            double? previousTotalForDelta = null;
                             if (existing != null)
                             {
+                                previousTotalForDelta = existing.Total;
                                 // Yangilash existing
+                                existing.Date = viewModel.ProductionDate;
                                 existing.DayShift = item.DayShift;
                                 existing.NightShift = item.NightShift;
                                 existing.Total = item.Total;
-                                existing.Comment = item.Comment;
+                                existing.Comment = ProductProductionPlanDateMeta.MergeIntoComment(item.Comment, viewModel.Date);
                                 db.Entry(existing).State = EntityState.Modified;
                             }
                             else
@@ -152,7 +160,7 @@ namespace tahsinERP.Controllers.MES
                                     DayShift = item.DayShift,
                                     NightShift = item.NightShift,
                                     Total = item.Total,
-                                    Comment = item.Comment
+                                    Comment = ProductProductionPlanDateMeta.MergeIntoComment(item.Comment, viewModel.Date)
                                 };
                                 db.PRODUCT_PRODUCTION.Add(production);
                                 // ID olish uchun saqlash (xomashyo chiqimni ProductionID bilan bog'lash uchun)
@@ -160,21 +168,42 @@ namespace tahsinERP.Controllers.MES
                                 existing = production;
                             }
 
-                            // Yangilash warehouse uchun finished goods (Production WH) without Income doc
+                            // Tayyor mahsulot: kirim hujjati (INCOME) + qoldiq — Edit bilan bir xil mantiq; tahrirda faqat delta
                             var product = db.PRODUCTS.Find(item.ProductID);
                             if (product != null && product.IsFinishedGood == true)
                             {
-                                WarehouseFlowService.IncreaseProductionStockWithoutIncome(
-                                    item.ProductID, 
-                                    item.Total, 
-                                    viewModel.ShopID, 
-                                    db, 
-                                    User.Identity.Name,
-                                    existing?.ID
-                                );
+                                if (previousTotalForDelta.HasValue)
+                                {
+                                    var delta = item.Total - previousTotalForDelta.Value;
+                                    WarehouseFlowService.ApplyProductionWarehouseStockDelta(
+                                        item.ProductID,
+                                        delta,
+                                        viewModel.ShopID,
+                                        db,
+                                        User.Identity.Name,
+                                        existing?.ID);
 
-                                // Consume raw materials dan Supply warehouse bilan BOM/NORM calculation
-                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, db, existing?.ID, existing?.Date);
+                                    if (delta > 0.0001)
+                                    {
+                                        await ConsumeMaterialsForProduction(item.ProductID, delta, db, existing?.ID, existing?.Date);
+                                    }
+                                    else if (delta < -0.0001)
+                                    {
+                                        await RevertMaterialConsumption(item.ProductID, -delta, db);
+                                    }
+                                }
+                                else
+                                {
+                                    WarehouseFlowService.IncreaseProductionStock(
+                                        item.ProductID,
+                                        item.Total,
+                                        viewModel.ShopID,
+                                        db,
+                                        User.Identity.Name,
+                                        existing?.ID);
+
+                                    await ConsumeMaterialsForProduction(item.ProductID, item.Total, db, existing?.ID, existing?.Date);
+                                }
                             }
 
                             if (productForLog != null)
@@ -790,7 +819,7 @@ namespace tahsinERP.Controllers.MES
                         .ToList();
 
                     var existingProductions = allProductions
-                        .Where(p => p.Date.Date == dateOnly)
+                        .Where(p => ProductProductionPlanDateMeta.MatchesCalendarDay(p, dateOnly))
                         .ToList();
 
                     foreach (var existing in existingProductions)
@@ -866,7 +895,7 @@ namespace tahsinERP.Controllers.MES
                 .ToList();
 
             var existingProductions = allProductions
-                .Where(p => p.Date.Date == dateOnly)
+                .Where(p => ProductProductionPlanDateMeta.MatchesCalendarDay(p, dateOnly))
                 .ToList();
 
             foreach (var existing in existingProductions)

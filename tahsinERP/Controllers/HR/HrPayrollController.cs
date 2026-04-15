@@ -17,10 +17,12 @@ namespace tahsinERP.Controllers.HR
     {
         private DBTHSNEntities db = new DBTHSNEntities();
         private IUserActionLogger logger;
+        private readonly HrEmployeeAllowanceService allowanceService;
 
         public HrPayrollController()
         {
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
+            allowanceService = new HrEmployeeAllowanceService(db);
         }
 
         /// <summary>O'chirilgan (IsDeleted == true) sarlavha yoki qator hisobga olinmaydi.</summary>
@@ -844,6 +846,18 @@ namespace tahsinERP.Controllers.HR
             return 0m;
         }
 
+        private static decimal ResolveAllowancePercent(HrEmployeeAllowanceService.EmployeeAllowanceRow allowanceRow)
+        {
+            if (allowanceRow == null)
+            {
+                return 0m;
+            }
+
+            var material = allowanceRow.MaterialResponsibilityPercent < 0 ? 0 : allowanceRow.MaterialResponsibilityPercent;
+            var special = allowanceRow.SpecialAllowancePercent < 0 ? 0 : allowanceRow.SpecialAllowancePercent;
+            return material + special;
+        }
+
         private async Task GenerateHourlyPayrollLines(int payrollId, HR_TIMESHEET_HEADERS timesheet)
         {
             var payroll = await db.HR_PAYROLL_HEADERS
@@ -865,6 +879,9 @@ namespace tahsinERP.Controllers.HR
                 .Include(l => l.HR_EMPLOYEES.HR_SALARY_GRADES)
                 .Where(l => l.TimesheetID == timesheet.ID && (l.TotalWorkedHours ?? 0) > 0)
                 .ToListAsync();
+
+            var allowanceByEmployeeId = allowanceService.GetByEmployeeIds(
+                timesheetLines.Where(x => x.HR_EMPLOYEES != null).Select(x => x.HR_EMPLOYEES.ID));
 
             var defaultCurrency = await db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
             int? defaultCurrencyID = defaultCurrency?.ID;
@@ -895,16 +912,20 @@ namespace tahsinERP.Controllers.HR
                 decimal hoursWorked = timesheetLine.TotalWorkedHours ?? 0;
                 decimal hourlyRate = 0;
                 decimal grossSalary = 0;
+                var allowancePercent = allowanceByEmployeeId.TryGetValue(employee.ID, out var allowanceRow)
+                    ? ResolveAllowancePercent(allowanceRow)
+                    : 0m;
+                var allowanceAmount = monthlyBase * allowancePercent / 100m;
 
                 if (staffingPlan != null && staffingPlan.IsFixedSalary)
                 {
                     int daysInMonth = DateTime.DaysInMonth(payroll.Year, payroll.Month);
                     decimal workedDays = timesheetLine.TotalWorkedDays ?? 0;
-                    grossSalary = monthlyBase * (workedDays / daysInMonth);
+                    grossSalary = (monthlyBase + allowanceAmount) * (workedDays / daysInMonth);
                 }
                 else
                 {
-                    hourlyRate = standardMonthHours > 0 ? monthlyBase / standardMonthHours : 0;
+                    hourlyRate = standardMonthHours > 0 ? (monthlyBase + allowanceAmount) / standardMonthHours : 0;
                     grossSalary = hourlyRate * hoursWorked;
 
                     decimal overtimeHours = timesheetLine.OvertimeHours ?? 0;
@@ -924,7 +945,8 @@ namespace tahsinERP.Controllers.HR
                     Bonuses = 0,
                     Penalties = 0,
                     NetSalary = grossSalary,
-                    CurrencyID = defaultCurrencyID.Value
+                    CurrencyID = defaultCurrencyID.Value,
+                    Notes = allowancePercent > 0 ? $"Ustama: {allowancePercent:0.##}% (moddiy+maxsus)" : null
                 };
 
                 db.HR_PAYROLL_LINES.Add(payrollLine);

@@ -14,7 +14,12 @@ namespace tahsinERP.Controllers
     public class PContractsController : Controller
     {
         // Olish so'rovi: PContracts
-        public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null)
+        public async Task<ActionResult> Index(
+            string purchaseTypeFilter = "",
+            int? supplierID = null,
+            int? contractID = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts", "Index"))
             {
@@ -36,6 +41,12 @@ namespace tahsinERP.Controllers
                     query = query.Where(c => c.SupplierID == supplierID.Value);
                 }
 
+                // Filtrlash bo'yicha contract
+                if (contractID.HasValue && contractID.Value > 0)
+                {
+                    query = query.Where(c => c.ID == contractID.Value);
+                }
+
                 // Filtrlash bo'yicha purchase type
                 if (!string.IsNullOrEmpty(purchaseTypeFilter))
                 {
@@ -43,12 +54,41 @@ namespace tahsinERP.Controllers
                     query = query.Where(c => c.PurchaseType == purchaseType);
                 }
 
+                // Filtrlash bo'yicha sana oralig'i
+                if (fromDate.HasValue)
+                {
+                    var from = fromDate.Value.Date;
+                    query = query.Where(c => c.IssuedDate >= from);
+                }
+                if (toDate.HasValue)
+                {
+                    var to = toDate.Value.Date;
+                    query = query.Where(c => DbFunctions.TruncateTime(c.IssuedDate) <= to);
+                }
+
+                var suppliers = await db.SUPPLIERS
+                    .Where(s => s.IsDeleted != true)
+                    .OrderBy(s => s.Name)
+                    .ToListAsync();
+                ViewBag.Suppliers = new SelectList(suppliers, "ID", "Name", supplierID);
+
+                var contractsForFilter = await db.P_CONTRACTS
+                    .Where(c => c.IsDeleted != true)
+                    .OrderByDescending(c => c.IssuedDate)
+                    .ThenByDescending(c => c.ID)
+                    .Select(c => new { c.ID, c.ContractNo })
+                    .ToListAsync();
+                ViewBag.Contracts = new SelectList(contractsForFilter, "ID", "ContractNo", contractID);
+
                 var contracts = await query
                     .OrderByDescending(c => c.IssuedDate)
                     .ToListAsync();
 
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.SupplierID = supplierID;
+                ViewBag.ContractID = contractID;
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
                 ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts");
 
                 return View(contracts);

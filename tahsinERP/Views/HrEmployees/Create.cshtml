@@ -75,6 +75,18 @@
                                         </div>
 
                                         <div class="form-group">
+                                            @Html.LabelFor(model => model.MaterialResponsibilityPercent, new { @class = "control-label" })
+                                            @Html.TextBoxFor(model => model.MaterialResponsibilityPercent, new { @class = "form-control", @type = "number", @step = "0.01", @min = "0", @max = "100" })
+                                            @Html.ValidationMessageFor(model => model.MaterialResponsibilityPercent, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.SpecialAllowancePercent, new { @class = "control-label" })
+                                            @Html.TextBoxFor(model => model.SpecialAllowancePercent, new { @class = "form-control", @type = "number", @step = "0.01", @min = "0", @max = "100" })
+                                            @Html.ValidationMessageFor(model => model.SpecialAllowancePercent, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="form-group">
                                             @Html.LabelFor(model => model.SalaryGradeID, new { @class = "control-label" })
                                             @Html.DropDownListFor(model => model.SalaryGradeID, ViewBag.SalaryGradeID as SelectList, "Tarif tarmog'ini tanlang", new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.SalaryGradeID, "", new { @class = "text-danger" })

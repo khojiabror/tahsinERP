@@ -99,7 +99,8 @@ namespace tahsinERP.Controllers.Finance
                             continue;
                         }
 
-                        if (item.Amount == 0)
+                        // 0: "Bo'sh qoldirish" belgilangan bo'lsa — qator yozilmaydi; belgilanmagan bo'lsa — aniq 0 saqlanadi.
+                        if (item.Amount == 0 && item.LeaveEmpty)
                         {
                             continue;
                         }
@@ -242,7 +243,9 @@ namespace tahsinERP.Controllers.Finance
                     CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 1),
                     CurrencyShortname = snap != null
                         ? currencies.FirstOrDefault(c => c.ID == snap.CurrencyID)?.Shortname ?? defaultCurrency?.Shortname
-                        : defaultCurrency?.Shortname
+                        : defaultCurrency?.Shortname,
+                    // DBda snapshot yo'q = bo'sh; yozuv bor (0 ham) = aniq qiymat
+                    LeaveEmpty = snap == null
                 };
 
                 model.Items.Add(item);

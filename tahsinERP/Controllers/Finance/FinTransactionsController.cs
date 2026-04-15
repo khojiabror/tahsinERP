@@ -231,15 +231,15 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.AccountID = new SelectList(
+                ViewBag.AccountsSelectList = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", accountID);
 
-                ViewBag.CategoryID = new SelectList(
+                ViewBag.CategoriesSelectList = new SelectList(
                     db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", categoryID);
 
-                ViewBag.CurrencyID = new SelectList(
+                ViewBag.CurrenciesSelectList = new SelectList(
                     db.CURRENCIES.ToList(),
                     "ID", "Shortname");
 
@@ -339,15 +339,15 @@ namespace tahsinERP.Controllers.Finance
                     return RedirectToAction("Index");
                 }
 
-                ViewBag.AccountID = new SelectList(
+                ViewBag.AccountsSelectList = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name),
                     "ID", "Name", transaction.AccountID);
 
-                ViewBag.CategoryID = new SelectList(
+                ViewBag.CategoriesSelectList = new SelectList(
                     db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name),
                     "ID", "Name", transaction.CategoryID);
 
-                ViewBag.CurrencyID = new SelectList(
+                ViewBag.CurrenciesSelectList = new SelectList(
                     db.CURRENCIES,
                     "ID", "Shortname", transaction.CurrencyID);
 
@@ -487,7 +487,7 @@ namespace tahsinERP.Controllers.Finance
                         return Json(new { success = true, data = purchaseContracts }, JsonRequestBehavior.AllowGet);
                     case 4: // Forwarder
                         var forwarderContracts = db.F_CONTRACTS
-                            .Where(c => c.ForwarderID == counterpartyId.Value && (c.IsDeleted == false || c.IsDeleted == null))
+                            .Where(c => c.ForwarderID == counterpartyId.Value && !c.IsDeleted)
                             .OrderByDescending(c => c.IssueDate)
                             .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
                             .ToList();
@@ -528,15 +528,15 @@ namespace tahsinERP.Controllers.Finance
                 {
                     return HttpNotFound();
                 }
-                ViewBag.AccountID = new SelectList(
+                ViewBag.AccountsSelectList = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", transaction.AccountID);
 
-                ViewBag.CategoryID = new SelectList(
+                ViewBag.CategoriesSelectList = new SelectList(
                     db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", transaction.CategoryID);
 
-                ViewBag.CurrencyID = new SelectList(
+                ViewBag.CurrenciesSelectList = new SelectList(
                     db.CURRENCIES.ToList(),
                     "ID", "Shortname", transaction.CurrencyID);
 
@@ -613,15 +613,15 @@ namespace tahsinERP.Controllers.Finance
                     return RedirectToAction("Index");
                 }
 
-                ViewBag.AccountID = new SelectList(
+                ViewBag.AccountsSelectList = new SelectList(
                     db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", transaction.AccountID);
 
-                ViewBag.CategoryID = new SelectList(
+                ViewBag.CategoriesSelectList = new SelectList(
                     db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", transaction.CategoryID);
 
-                ViewBag.CurrencyID = new SelectList(
+                ViewBag.CurrenciesSelectList = new SelectList(
                     db.CURRENCIES.ToList(),
                     "ID", "Shortname", transaction.CurrencyID);
 

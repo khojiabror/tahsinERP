@@ -39,19 +39,42 @@
                         </div>
                     }
 
-                    <!-- Purchase Type Filter -->
-                    <div class="row mb-2">
-                        <div class="col-md-3">
-                            @using (Html.BeginForm("Index", "PInvoices", FormMethod.Get))
+                    <div class="card mb-2">
+                        <div class="card-body py-1">
+                            @using (Html.BeginForm("Index", "PInvoices", FormMethod.Get, new { @class = "form" }))
                             {
-                                <div class="form-group">
-                                    <label for="purchaseTypeFilter">Xarid turi</label>
-                                    @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
-                                    {
-                                        new { Value = "", Text = "Barchasi" },
-                                        new { Value = "Direct", Text = "Direct Purchase" },
-                                        new { Value = "Indirect", Text = "Indirect Purchase" }
-                                    }, "Value", "Text", Request.QueryString["purchaseTypeFilter"]), new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                <div class="row">
+                                    <div class="col-md-2 form-group mb-1">
+                                        <label for="purchaseTypeFilter">Xarid turi</label>
+                                        @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
+                                        {
+                                            new { Value = "", Text = "Barchasi" },
+                                            new { Value = "Direct", Text = "Direct Purchase" },
+                                            new { Value = "Indirect", Text = "Indirect Purchase" }
+                                        }, "Value", "Text", ViewBag.PurchaseTypeFilter), new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-3 form-group mb-1">
+                                        <label for="supplierID">Ta'minotchi</label>
+                                        @Html.DropDownList("supplierID", ViewBag.Suppliers as SelectList, "Barchasi", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-3 form-group mb-1">
+                                        <label for="contractID">Shartnoma</label>
+                                        @Html.DropDownList("contractID", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2 form-group mb-1">
+                                        <label for="fromDate">Dan</label>
+                                        <input type="date" id="fromDate" name="fromDate" class="form-control" value="@(ViewBag.FromDate != null ? ((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd") : "")" />
+                                    </div>
+                                    <div class="col-md-2 form-group mb-1">
+                                        <label for="toDate">Gacha</label>
+                                        <input type="date" id="toDate" name="toDate" class="form-control" value="@(ViewBag.ToDate != null ? ((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd") : "")" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <button type="submit" class="btn btn-primary btn-sm mr-1"><i class="bx bx-filter"></i> Filtrlash</button>
+                                        <a href="@Url.Action("Index", "PInvoices")" class="btn btn-outline-secondary btn-sm">Tozalash</a>
+                                    </div>
                                 </div>
                             }
                         </div>

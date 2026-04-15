@@ -83,6 +83,11 @@ namespace tahsinERP.ViewModels
         public DateTime InspectionDate { get; set; }
 
         public List<QualityInspectionDailyItemViewModel> Items { get; set; }
+
+        /// <summary>
+        /// Tanlangan kalendar kunida (filtrdan keyin) nechta ProductProduction borligini bildiradi.
+        /// </summary>
+        public int ProductionRowCountForDay { get; set; }
     }
 
     public class QualityInspectionDailyItemViewModel

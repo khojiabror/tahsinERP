@@ -60,6 +60,7 @@ namespace tahsinERP.Controllers.HR
         public async Task<ActionResult> Result(int employeeId, DateTime from, DateTime to)
         {
             if (to < from) return RedirectToAction("Index");
+            var toExclusive = to.Date.AddDays(1);
 
             var employee = await db.HR_EMPLOYEES.FirstOrDefaultAsync(e => e.ID == employeeId && (e.IsDeleted == null || e.IsDeleted == false));
             if (employee == null) return HttpNotFound();
@@ -149,10 +150,10 @@ namespace tahsinERP.Controllers.HR
             // To'langan summa (xodimga bog'langan moliyaviy chiqimlardan)
             var paidTotal = await db.FIN_TRANSACTIONS
                 .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
-                            t.Direction == 2 &&
-                            t.CounterpartyType == 6 &&
-                            t.CounterpartyID == employeeId &&
-                            t.TxnDate >= from.Date && t.TxnDate <= to.Date)
+                            t.Direction != 1 && // real bazada ba'zi chiqimlar 2 dan boshqa qiymatlarda ham uchrashi mumkin
+                            ((t.CounterpartyID.HasValue && t.CounterpartyID == employeeId) ||
+                             (!t.CounterpartyID.HasValue && t.CounterpartyName != null && t.CounterpartyName.Contains(employee.FullName))) &&
+                            t.TxnDate >= from.Date && t.TxnDate < toExclusive)
                 .SumAsync(t => (decimal?)t.Amount) ?? 0m;
 
             if (result.TotalCalculated > 0)
@@ -160,6 +161,12 @@ namespace tahsinERP.Controllers.HR
                 var hourlyShare = result.HourlyCalculated / result.TotalCalculated;
                 result.HourlyPaid = Math.Round(paidTotal * hourlyShare, 2);
                 result.PiecePaid = paidTotal - result.HourlyPaid;
+            }
+            else
+            {
+                // Hisoblangan summa topilmasa ham xodimga to'langan real chiqim ko'rinib turishi kerak.
+                result.HourlyPaid = paidTotal;
+                result.PiecePaid = 0m;
             }
 
             result.HourlyBalance = result.HourlyCalculated - result.HourlyPaid;

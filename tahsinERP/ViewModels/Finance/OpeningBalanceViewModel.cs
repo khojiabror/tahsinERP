@@ -26,6 +26,12 @@ namespace tahsinERP.ViewModels.Finance
         public decimal Amount { get; set; }
         public int CurrencyID { get; set; }
         public string CurrencyShortname { get; set; }
+
+        /// <summary>
+        /// true: summasi 0 bo'lsa snapshot yozilmaydi (balansda "yo'q" — faqat tranzaksiyalar).
+        /// false: 0 ham aniq opening sifatida FIN_BALANCE_SNAPSHOTS ga yoziladi.
+        /// </summary>
+        public bool LeaveEmpty { get; set; } = true;
     }
 
     public class OpeningBalanceViewModel

@@ -29,7 +29,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var grades = await db.HR_SALARY_GRADES
-                .Where(sg => sg.IsDeleted == false)
+                .Where(sg => sg.IsDeleted == false || sg.IsDeleted == null)
                 .OrderBy(sg => sg.GradeCode)
                 .ToListAsync();
 
@@ -63,7 +63,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var grade = await db.HR_SALARY_GRADES
-                .Where(sg => sg.ID == id && sg.IsDeleted == false)
+                .Where(sg => sg.ID == id && (sg.IsDeleted == false || sg.IsDeleted == null))
                 .FirstOrDefaultAsync();
             if (grade == null)
             {
@@ -126,6 +126,7 @@ namespace tahsinERP.Controllers.HR
                 // Tekshirish uchun overlapping date ranges
                 var overlapping = await db.HR_SALARY_GRADES
                     .Where(sg => sg.GradeCode == viewModel.GradeCode &&
+                        (sg.IsDeleted == false || sg.IsDeleted == null) &&
                         ((sg.EffectiveFrom <= viewModel.EffectiveFrom && (!sg.EffectiveTo.HasValue || sg.EffectiveTo >= viewModel.EffectiveFrom)) ||
                          (viewModel.EffectiveFrom <= sg.EffectiveFrom && (!viewModel.EffectiveTo.HasValue || viewModel.EffectiveTo >= sg.EffectiveFrom))))
                     .FirstOrDefaultAsync();
@@ -147,7 +148,8 @@ namespace tahsinERP.Controllers.HR
                     MaxSalary = viewModel.MaxSalary,
                     CurrencyCode = viewModel.CurrencyCode,
                     EffectiveFrom = viewModel.EffectiveFrom,
-                    EffectiveTo = viewModel.EffectiveTo
+                    EffectiveTo = viewModel.EffectiveTo,
+                    IsDeleted = false
                 };
 
                 db.HR_SALARY_GRADES.Add(grade);
@@ -226,6 +228,7 @@ namespace tahsinERP.Controllers.HR
                 var overlapping = await db.HR_SALARY_GRADES
                     .Where(sg => sg.ID != viewModel.ID &&
                         sg.GradeCode == viewModel.GradeCode &&
+                        (sg.IsDeleted == false || sg.IsDeleted == null) &&
                         ((sg.EffectiveFrom <= viewModel.EffectiveFrom && (!sg.EffectiveTo.HasValue || sg.EffectiveTo >= viewModel.EffectiveFrom)) ||
                          (viewModel.EffectiveFrom <= sg.EffectiveFrom && (!viewModel.EffectiveTo.HasValue || viewModel.EffectiveTo >= sg.EffectiveFrom))))
                     .FirstOrDefaultAsync();
