@@ -22,7 +22,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        public async Task<ActionResult> Create()
+        public ActionResult Create()
         {
             return  View();
         }

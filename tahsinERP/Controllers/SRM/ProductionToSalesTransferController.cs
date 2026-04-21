@@ -64,7 +64,7 @@ namespace tahsinERP.Controllers.SRM
         }
 
         // Olish so'rovi: ProductionToSalesTransfer/yaratish
-        public async Task<ActionResult> Create()
+        public ActionResult Create()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {

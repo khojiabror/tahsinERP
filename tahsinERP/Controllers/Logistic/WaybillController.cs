@@ -156,7 +156,7 @@ namespace tahsinERP.Controllers
             }
         }
 
-        public async Task<ActionResult> Create()
+        public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {

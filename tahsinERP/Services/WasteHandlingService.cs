@@ -84,7 +84,7 @@ namespace tahsinERP.Services
         /// <summary>
         /// Option B: Records waste as consumption loss (only for reporting)
         /// </summary>
-        private async Task RecordWasteAsLossAsync(int productId, int materialId, double wasteQty, int productionProcessId, string comment)
+        private Task RecordWasteAsLossAsync(int productId, int materialId, double wasteQty, int productionProcessId, string comment)
         {
             // In Option B, waste is only reflected in reports
             // You could create a WASTE_RECORDS table or log to a separate table for reporting
@@ -92,6 +92,7 @@ namespace tahsinERP.Services
 
             // TODO: Create WASTE_RECORDS table if needed for reporting
             // This would track: ProductID, MaterialID, WasteQty, ProductionProcessID, Date, Comment
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -189,7 +189,7 @@ namespace tahsinERP.Controllers
         }
 
         // Olish so'rovi: PModule/yaratish
-        public async Task<ActionResult> Create()
+        public ActionResult Create()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {

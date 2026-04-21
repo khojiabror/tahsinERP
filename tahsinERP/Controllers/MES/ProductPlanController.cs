@@ -164,7 +164,7 @@ namespace tahsinERP.Controllers.MES
         // POST so'rovi: ProductPlan/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(ProductPlanViewModel viewModel)
+        public ActionResult Create(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -311,7 +311,7 @@ namespace tahsinERP.Controllers.MES
         // POST so'rovi: ProductPlan/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(ProductPlanViewModel viewModel)
+        public ActionResult Edit(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {

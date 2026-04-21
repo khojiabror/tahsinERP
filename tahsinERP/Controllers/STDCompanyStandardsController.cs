@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: STDCompanyStandards/SaveDocument (OnlyOffice callback)
         [HttpPost]
-        public async Task<ActionResult> SaveDocument(string key, string url, int status)
+        public ActionResult SaveDocument(string key, string url, int status)
         {
             // OnlyOffice hujjat Server callback
             // hujjat saqlangan bo'lsa, uni yuklab olish
@@ -107,7 +107,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: STDCompanyStandards/UploadImage (OnlyOffice image upload)
         [HttpPost]
-        public async Task<ActionResult> UploadImage()
+        public ActionResult UploadImage()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
