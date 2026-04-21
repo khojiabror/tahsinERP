@@ -277,11 +277,47 @@ namespace tahsinERP.Controllers.Engineering
         // POST so'rovi: Tannarx/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(TannarxEditViewModel viewModel)
+        public async Task<ActionResult> Edit(TannarxEditViewModel viewModel, string refreshMaterial)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Edit sahifasidan "Normadan yangilash" tugmasi.
+            // Material narxi tahrirlanmaydi, shu oy normasi bo'yicha qayta hisoblanadi.
+            if (string.Equals(refreshMaterial, "1", StringComparison.Ordinal))
+            {
+                var tannarxForRefresh = await db.TANNARXes
+                    .FirstOrDefaultAsync(t => t.ID == viewModel.ID && t.IsDeleted == false);
+
+                if (tannarxForRefresh == null)
+                {
+                    TempData["Error"] = "Tannarx topilmadi.";
+                    return RedirectToAction("Index");
+                }
+
+                var monthString = $"{tannarxForRefresh.Year}-{tannarxForRefresh.Month:D2}";
+                var materialPrice = await _tannarxService.CalculateMaterialPriceAsync(tannarxForRefresh.ProductID, monthString);
+                tannarxForRefresh.MaterialPrice = materialPrice;
+                tannarxForRefresh.MaterialTransportCost = _tannarxService.CalculateMaterialTransportCost(materialPrice);
+                tannarxForRefresh.ModifiedDT = DateTime.Now;
+
+                var currentUserForRefresh = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
+                tannarxForRefresh.ModifiedByUserID = currentUserForRefresh?.ID;
+
+                if (tannarxForRefresh.SetPriceEXWWithVAT.HasValue)
+                {
+                    _tannarxService.RecalculatePricesFromSetPriceEXW(tannarxForRefresh);
+                }
+                if (tannarxForRefresh.FinishedProductTransportCost.HasValue)
+                {
+                    _tannarxService.RecalculateCIPPrices(tannarxForRefresh);
+                }
+
+                await db.SaveChangesAsync();
+                TempData["Success"] = "Material narxi normadan yangilandi.";
+                return RedirectToAction("Edit", new { id = viewModel.ID });
             }
 
             if (!ModelState.IsValid)

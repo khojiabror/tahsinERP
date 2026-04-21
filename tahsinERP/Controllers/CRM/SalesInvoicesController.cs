@@ -21,6 +21,8 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.SALES_INVOICES.AsQueryable();
+                query = query.Where(i => i.StatusCode == null
+                    || (i.StatusCode != "CANCELED" && i.StatusCode != "CANCELLED"));
 
                 // Filters
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -451,7 +453,11 @@ namespace tahsinERP.Controllers
 
         private string GetNextInvoiceNo(DBTHSNEntities db)
         {
-            var last = db.SALES_INVOICES.OrderByDescending(i => i.ID).Select(i => i.InvoiceNo).FirstOrDefault();
+            var last = db.SALES_INVOICES
+                .Where(i => i.StatusCode == null || (i.StatusCode != "CANCELED" && i.StatusCode != "CANCELLED"))
+                .OrderByDescending(i => i.ID)
+                .Select(i => i.InvoiceNo)
+                .FirstOrDefault();
             if (string.IsNullOrWhiteSpace(last)) return "INV_0001";
             var m = System.Text.RegularExpressions.Regex.Match(last, @"^(.*?)(\d+)$");
             if (!m.Success) return "INV_0001";
@@ -1136,6 +1142,9 @@ namespace tahsinERP.Controllers
 
                 invoice.StatusCode = "CANCELED";
                 invoice.UpdatedDT = DateTime.Now;
+
+                // Invoysga bog'langan auto-expense larni fizik o'chirish + stock rollback
+                WarehouseFlowService.RollbackSalesInvoiceStockAndDeleteAutoExpenses(id, db, User.Identity.Name);
 
                 // Auto-post qilingan finance yozuvini ham bekor qilamiz
                 FinancePostingService.RemoveSalesInvoicePosting((int)id, db);

@@ -572,6 +572,7 @@ namespace tahsinERP.Controllers
             {
                 // Olish barcha letter numbers va find the maksimal numeric value
                 var allLetters = db.COM_OFFICIAL_LETTERS
+                    .Where(l => l.IsDeleted != true)
                     .Select(l => l.LetterNo)
                     .ToList();
 

@@ -23,38 +23,56 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<decimal> CalculateMaterialPriceAsync(int productID, string month)
         {
-            var normLines = await _db.NORM_INPUT_LINES
-                .Where(n => n.ProductID == productID && n.Month == month)
-                .ToListAsync();
-
-            // If no lines for exact month, try NORMVERSION: norm applies to a date range (EffectiveFrom–EffectiveTo)
-            // NORM_INPUT_LINES are stored with Month = EffectiveFrom.ToString("yyyy-MM")
-            if (!normLines.Any())
+            // Tannarxdagi A (material narxi) Norm/ViewDetails "Umumiy summa" mantig'idan olinadi.
+            // Avvalo requested oyga aktiv NORMVERSION topamiz va uning periodidagi input lines ni olamiz.
+            List<NORM_INPUT_LINES> normLines = null;
+            DateTime requestedDate;
+            if (TryParseMonthString(month, out requestedDate))
             {
-                DateTime requestedDate;
-                if (TryParseMonthString(month, out requestedDate))
-                {
-                    var version = await _db.NORMVERSIONS
-                        .Where(nv => nv.ProductID == productID
-                            && nv.IsDeleted != true
-                            && nv.EffectiveFrom.HasValue
-                            && nv.EffectiveFrom.Value <= requestedDate
-                            && (nv.EffectiveTo == null || nv.EffectiveTo.Value >= requestedDate))
-                        .OrderByDescending(nv => nv.EffectiveFrom)
-                        .FirstOrDefaultAsync();
+                var version = await _db.NORMVERSIONS
+                    .Where(nv => nv.ProductID == productID
+                        && nv.IsDeleted != true
+                        && nv.EffectiveFrom.HasValue
+                        && nv.EffectiveFrom.Value <= requestedDate
+                        && (nv.EffectiveTo == null || nv.EffectiveTo.Value >= requestedDate))
+                    .OrderByDescending(nv => nv.EffectiveFrom)
+                    .ThenByDescending(nv => nv.ID)
+                    .FirstOrDefaultAsync();
 
-                    if (version != null && version.EffectiveFrom.HasValue)
-                    {
-                        var period = version.EffectiveFrom.Value.ToString("yyyy-MM");
-                        normLines = await _db.NORM_INPUT_LINES
-                            .Where(n => n.ProductID == productID && n.Month == period)
-                            .ToListAsync();
-                    }
+                if (version != null && version.EffectiveFrom.HasValue)
+                {
+                    var period = version.EffectiveFrom.Value.ToString("yyyy-MM");
+                    normLines = await _db.NORM_INPUT_LINES
+                        .Where(n => n.ProductID == productID && n.Month == period)
+                        .OrderByDescending(n => n.CreatedDT)
+                        .ToListAsync();
                 }
+            }
+
+            // Fallback: to'g'ridan-to'g'ri selected month
+            if (normLines == null || !normLines.Any())
+            {
+                normLines = await _db.NORM_INPUT_LINES
+                    .Where(n => n.ProductID == productID && n.Month == month)
+                    .OrderByDescending(n => n.CreatedDT)
+                    .ToListAsync();
             }
 
             if (!normLines.Any())
                 return 0;
+
+            // Bir oyda qayta saqlangan eski satrlar qolib ketgan bo'lsa, narx oshib ketmasin:
+            // bir xil variant (material + uzunlik + son + birlik) bo'yicha oxirgi satrni olamiz.
+            normLines = normLines
+                .GroupBy(n => new
+                {
+                    n.MaterialID,
+                    n.CutLengthMm,
+                    n.PiecesPerProduct,
+                    UnitID = n.UnitID ?? 0
+                })
+                .Select(g => g.OrderByDescending(x => x.CreatedDT).ThenByDescending(x => x.ID).First())
+                .ToList();
 
             var materialIds = normLines
                 .Select(n => n.MaterialID)
@@ -130,13 +148,7 @@ namespace tahsinERP.Services
                     consumptionMeters = line.PiecesPerProduct;
                 }
 
-                decimal wasteMeters = 0;
-                if (line.WasteAmount.HasValue && line.WasteAmount.Value > 0)
-                {
-                    wasteMeters = (requiresCutting && line.CutLengthMm > 0)
-                        ? (decimal)(line.WasteAmount.Value / 1000.0)
-                        : (decimal)line.WasteAmount.Value;
-                }
+                decimal wasteMeters = NormInputLineWasteToDisplay(line.WasteAmount);
 
                 total += (consumptionMeters + wasteMeters) * line.Price;
             }
@@ -154,6 +166,16 @@ namespace tahsinERP.Services
             if (requiresCutting && cutLengthMm > 0)
                 return (decimal)(consumptionDb.Value / 1000.0);
             return (decimal)consumptionDb.Value;
+        }
+
+        /// <summary>
+        /// Norm/ViewDetails "Summa hisoblar" bilan bir xil bo'lishi uchun WasteAmount har doim mm -> m.
+        /// </summary>
+        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
+        {
+            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
+                return 0;
+            return (decimal)(wasteAmountDb.Value / 1000.0);
         }
 
         /// <summary>
@@ -449,13 +471,16 @@ namespace tahsinERP.Services
             if (!tannarx.SetPriceEXWWithVAT.HasValue)
                 return;
 
-            var setPriceEXW = tannarx.SetPriceEXWWithVAT.Value;
+            // Belgilangan EXW narxi UI da QQS bilan saqlanadi.
+            // Foizli xarajatlar (A/B/C/D/E) QQS siz EXW bazasidan olinishi kerak.
+            var setPriceEXWWithVat = tannarx.SetPriceEXWWithVAT.Value;
+            var setPriceEXWWithoutVat = setPriceEXWWithVat / 1.12m;
 
-            // Recalculate B, C, D, E based on SetPriceEXWWithVAT (as percentages)
-            tannarx.TaxAndBank = CalculateExpenseByPercent(setPriceEXW, tannarx.TaxAndBankPercent ?? 5m);
-            tannarx.AdministrativeExpenses = CalculateExpenseByPercent(setPriceEXW, tannarx.AdministrativeExpensesPercent ?? 5m);
-            tannarx.OtherExpenses = CalculateExpenseByPercent(setPriceEXW, tannarx.OtherExpensesPercent ?? 5m);
-            tannarx.Profit = CalculateExpenseByPercent(setPriceEXW, tannarx.ProfitPercent ?? 10m);
+            // Recalculate B, C, D, E based on belgilangan EXW (QQS siz) foizlari
+            tannarx.TaxAndBank = CalculateExpenseByPercent(setPriceEXWWithoutVat, tannarx.TaxAndBankPercent ?? 5m);
+            tannarx.AdministrativeExpenses = CalculateExpenseByPercent(setPriceEXWWithoutVat, tannarx.AdministrativeExpensesPercent ?? 5m);
+            tannarx.OtherExpenses = CalculateExpenseByPercent(setPriceEXWWithoutVat, tannarx.OtherExpensesPercent ?? 5m);
+            tannarx.Profit = CalculateExpenseByPercent(setPriceEXWWithoutVat, tannarx.ProfitPercent ?? 10m);
 
             // Recalculate EXW without VAT: SUM(a to e + material tashuvi narx + material narxi)
             var exwWithoutVAT = CalculateEXWWithoutVAT(
@@ -469,10 +494,10 @@ namespace tahsinERP.Services
             
             tannarx.SalesPriceEXWWithoutVAT = exwWithoutVAT;
             
-            // Recalculate EXW with VAT
+            // Recalculate EXW with VAT (12%)
             tannarx.SalesPriceEXWWithVAT = CalculateEXWWithVAT(exwWithoutVAT);
 
-            // Recalculate CIP prices
+            // Recalculate CIP prices: CIP(qqssiz)=EXW(qqssiz)+tashuv, CIP(qqsli)=*1.12
             var cipWithoutVAT = CalculateCIPWithoutVAT(exwWithoutVAT, tannarx.FinishedProductTransportCost);
             tannarx.SalesPriceCIPWithoutVAT = cipWithoutVAT;
             tannarx.SalesPriceCIPWithVAT = CalculateCIPWithVAT(cipWithoutVAT);

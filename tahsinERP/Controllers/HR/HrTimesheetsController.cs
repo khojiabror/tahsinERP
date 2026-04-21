@@ -62,10 +62,12 @@ namespace tahsinERP.Controllers.HR
 
         private readonly DBTHSNEntities db = new DBTHSNEntities();
         private readonly IUserActionLogger logger;
+        private readonly HrTimesheetSettingsService timesheetSettingsService;
 
         public HrTimesheetsController()
         {
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
+            timesheetSettingsService = new HrTimesheetSettingsService(db);
         }
 
         public async Task<ActionResult> Index(int? year, int? month, int? orgUnitId, string status)
@@ -121,7 +123,13 @@ namespace tahsinERP.Controllers.HR
             ViewBag.Month = month;
             await PopulateOrgUnits(orgUnitId);
             await PopulateCreateEmployees();
-            return View();
+            return View(new HrTimesheetHeaderViewModel
+            {
+                Year = year.Value,
+                Month = month.Value,
+                OrgUnitID = orgUnitId,
+                FundHours = 160m
+            });
         }
 
         [HttpPost]
@@ -169,6 +177,7 @@ namespace tahsinERP.Controllers.HR
                 };
                 db.HR_TIMESHEET_HEADERS.Add(header);
                 await db.SaveChangesAsync();
+                timesheetSettingsService.UpsertFundHours(header.ID, model.FundHours);
 
             await CreateTimesheetLines(header.ID, header.OrgUnitID);
             var addResult = await AddEmployeesToTimesheet(header.ID, selectedEmployeeIds);
@@ -212,6 +221,7 @@ namespace tahsinERP.Controllers.HR
                 CreatedDT = header.CreatedDT,
                 ApprovedByUserID = header.ApprovedByUserID,
                 ApprovedDT = header.ApprovedDT,
+                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
                 Lines = header.HR_TIMESHEET_LINES
                     .Where(l => l.IsDeleted == null || l.IsDeleted == false)
                     .Where(l => l.HR_EMPLOYEES != null)
@@ -267,7 +277,7 @@ namespace tahsinERP.Controllers.HR
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveTimesheet(int timesheetId, string gridJson)
+        public async Task<ActionResult> SaveTimesheet(int timesheetId, string gridJson, decimal? fundHours)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
             {
@@ -345,6 +355,11 @@ namespace tahsinERP.Controllers.HR
                 {
                     await RecalculateLineTotals(line);
                 }
+            }
+
+            if (fundHours.HasValue)
+            {
+                timesheetSettingsService.UpsertFundHours(timesheetId, fundHours.Value);
             }
 
             await db.SaveChangesAsync();
@@ -569,6 +584,7 @@ namespace tahsinERP.Controllers.HR
                 OrgUnitID = header.OrgUnitID,
                 OrgUnitName = header.HR_ORG_UNITS?.Name,
                 Status = header.Status,
+                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
                 Lines = header.HR_TIMESHEET_LINES
                     .Where(l => l.IsDeleted == null || l.IsDeleted == false)
                     .OrderBy(l => l.HR_EMPLOYEES.TabNo)
@@ -598,6 +614,7 @@ namespace tahsinERP.Controllers.HR
                 OrgUnitID = header.OrgUnitID,
                 OrgUnitName = header.HR_ORG_UNITS?.Name,
                 Status = header.Status,
+                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
                 Lines = header.HR_TIMESHEET_LINES
                     .Where(l => l.IsDeleted == null || l.IsDeleted == false)
                     .OrderBy(l => l.HR_EMPLOYEES.TabNo)
@@ -622,6 +639,7 @@ namespace tahsinERP.Controllers.HR
             using (var package = new ExcelPackage())
             {
                 var ws = package.Workbook.Worksheets.Add($"Tabel {header.Year}-{header.Month:D2}");
+                var fundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID);
                 ws.Cells[1, 1].Value = "№";
                 ws.Cells[1, 2].Value = "Tab.№";
                 ws.Cells[1, 3].Value = "F.I.Sh.";
@@ -654,6 +672,13 @@ namespace tahsinERP.Controllers.HR
                     ws.Cells[row, col++].Value = line.AbsentDays ?? 0;
                     row++;
                 }
+
+                ws.Cells[row + 1, 1].Value = "Oylik fond soati";
+                ws.Cells[row + 1, 2].Value = fundHours;
+                ws.Cells[row + 2, 1].Value = "Jami qo'shimcha soat";
+                ws.Cells[row + 2, 2].Value = header.HR_TIMESHEET_LINES
+                    .Where(l => l.IsDeleted == null || l.IsDeleted == false)
+                    .Sum(l => l.OvertimeHours ?? 0);
 
                 ws.Cells[ws.Dimension.Address].AutoFitColumns();
                 return File(package.GetAsByteArray(),

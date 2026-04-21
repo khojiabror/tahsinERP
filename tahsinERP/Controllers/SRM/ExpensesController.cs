@@ -528,7 +528,7 @@ namespace tahsinERP.Controllers.SRM
             var prefix = $"{month}_";
 
             var lastExpense = await db.EXPENSES
-                .Where(e => e.DocNo.StartsWith(prefix))
+                .Where(e => e.IsDeleted == false && e.DocNo != null && e.DocNo.StartsWith(prefix))
                 .OrderByDescending(e => e.DocNo)
                 .FirstOrDefaultAsync();
 
@@ -598,8 +598,8 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(expense.SenderWHID))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
                 }
@@ -692,8 +692,8 @@ namespace tahsinERP.Controllers.SRM
                                 return HttpNotFound();
                             }
 
-                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                            if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                            if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(expense.SenderWHID))
                             {
                                 return RedirectToAction("Index", "ViewNotAuthorized");
                             }
@@ -1208,7 +1208,7 @@ namespace tahsinERP.Controllers.SRM
             var prefix = $"INC-{month}_";
 
             var numbers = await db.INCOMES
-                .Where(i => i.DocNo != null && i.DocNo.StartsWith(prefix))
+                .Where(i => i.IsDeleted != true && i.DocNo != null && i.DocNo.StartsWith(prefix))
                 .Select(i => i.DocNo.Substring(prefix.Length))
                 .ToListAsync();
 

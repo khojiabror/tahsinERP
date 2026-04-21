@@ -622,7 +622,7 @@ namespace tahsinERP.Controllers
             var prefix = $"PO-{year}-{month:D2}-";
 
             var lastOrder = await db.P_ORDERS
-                .Where(o => o.OrderNo.StartsWith(prefix))
+                .Where(o => o.IsDeleted != true && o.OrderNo != null && o.OrderNo.StartsWith(prefix))
                 .OrderByDescending(o => o.OrderNo)
                 .FirstOrDefaultAsync();
 

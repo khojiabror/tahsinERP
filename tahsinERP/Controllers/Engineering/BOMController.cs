@@ -229,7 +229,8 @@ namespace tahsinERP.Controllers.Engineering
                 ProductName = product.Name,
                 NormVersion = bomHeader.VersionNo ?? "N/A",
                 ImageUrl = imageUrl,
-                RootNode = rootNode
+                RootNode = rootNode,
+                MaterialSummaries = BuildMaterialSummaries(rootNode, product.ID, bomHeader.VersionNo)
             };
 
             return View(viewModel);
@@ -416,6 +417,180 @@ namespace tahsinERP.Controllers.Engineering
             }
 
             return children;
+        }
+
+        /// <summary>
+        /// BOM daraxtidan leaf materiallarni unikal qilib jamlaydi (rootga nisbatan ko'paytirilgan miqdor bilan),
+        /// so'ng norma oyidagi narx bilan summa hisoblaydi.
+        /// </summary>
+        private List<BomMaterialSummaryViewModel> BuildMaterialSummaries(BomTreeNodeViewModel rootNode, int rootProductId, string normVersion)
+        {
+            if (rootNode == null)
+            {
+                return new List<BomMaterialSummaryViewModel>();
+            }
+
+            // Asosiy manba: norma detali (NORM_INPUT_LINES). BOM tree qaysi birlikda yozilganidan qat'i nazar,
+            // bu jadval Norm/ViewDetails bilan bir xil sarf mantiqini ko'rsatadi.
+            var summariesFromNorm = BuildMaterialSummariesFromNormLines(rootProductId, normVersion);
+            if (summariesFromNorm.Any())
+            {
+                return summariesFromNorm;
+            }
+
+            // Fallback: agar norma satri topilmasa, tree bo'yicha hisoblash.
+            var flattenedLeaves = new List<(int ProductId, string Pno, string Name, string Unit, decimal Qty)>();
+            FlattenLeafMaterials(rootNode, 1m, true, flattenedLeaves);
+
+            var materialIds = flattenedLeaves.Select(x => x.ProductId).Distinct().ToList();
+            var priceByMaterial = LoadNormPricesByMaterial(rootProductId, normVersion, materialIds);
+
+            return flattenedLeaves
+                .GroupBy(x => x.ProductId)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    var totalQty = g.Sum(x => x.Qty);
+                    var unitPrice = priceByMaterial.ContainsKey(g.Key) ? priceByMaterial[g.Key] : 0m;
+                    return new BomMaterialSummaryViewModel
+                    {
+                        MaterialId = g.Key,
+                        MaterialPno = first.Pno,
+                        MaterialName = first.Name,
+                        UnitShortname = first.Unit,
+                        TotalQuantity = totalQty,
+                        UnitPrice = unitPrice,
+                        TotalAmount = totalQty * unitPrice
+                    };
+                })
+                .OrderBy(x => x.MaterialPno)
+                .ToList();
+        }
+
+        private void FlattenLeafMaterials(
+            BomTreeNodeViewModel node,
+            decimal multiplier,
+            bool isRoot,
+            List<(int ProductId, string Pno, string Name, string Unit, decimal Qty)> sink)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            var nodeMultiplier = isRoot ? multiplier : multiplier * node.Quantity;
+            var hasChildren = node.Children != null && node.Children.Any();
+            if (!isRoot && !hasChildren && nodeMultiplier > 0)
+            {
+                sink.Add((node.ProductId, node.ProductPno, node.ProductName, node.UnitShortname, nodeMultiplier));
+            }
+
+            if (!hasChildren)
+            {
+                return;
+            }
+
+            foreach (var child in node.Children)
+            {
+                FlattenLeafMaterials(child, nodeMultiplier, false, sink);
+            }
+        }
+
+        /// <summary>
+        /// Norma oyidagi (yyyy-MM) NORM_INPUT_LINES narxini material kesimida oladi.
+        /// Bir material uchun bir nechta satr bo'lsa, oxirgi kiritilgan narx olinadi.
+        /// </summary>
+        private Dictionary<int, decimal> LoadNormPricesByMaterial(int rootProductId, string normVersion, List<int> materialIds)
+        {
+            if (materialIds == null || !materialIds.Any() || string.IsNullOrWhiteSpace(normVersion))
+            {
+                return new Dictionary<int, decimal>();
+            }
+
+            return db.NORM_INPUT_LINES
+                .Where(n => n.ProductID == rootProductId
+                    && n.Month == normVersion
+                    && materialIds.Contains(n.MaterialID))
+                .OrderByDescending(n => n.CreatedDT)
+                .AsEnumerable()
+                .GroupBy(n => n.MaterialID)
+                .ToDictionary(g => g.Key, g => g.First().Price);
+        }
+
+        private List<BomMaterialSummaryViewModel> BuildMaterialSummariesFromNormLines(int rootProductId, string normVersion)
+        {
+            if (string.IsNullOrWhiteSpace(normVersion))
+            {
+                return new List<BomMaterialSummaryViewModel>();
+            }
+
+            var lines = db.NORM_INPUT_LINES
+                .Include(n => n.PRODUCT)
+                .Include(n => n.UNIT)
+                .Where(n => n.ProductID == rootProductId && n.Month == normVersion)
+                .ToList();
+
+            if (!lines.Any())
+            {
+                return new List<BomMaterialSummaryViewModel>();
+            }
+
+            var rows = lines.Select(n =>
+            {
+                var requiresCutting = n.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                var consumption = NormInputLineConsumptionToDisplay(requiresCutting, n.CutLengthMm, n.Consumption);
+                var waste = NormInputLineWasteToDisplay(n.WasteAmount);
+                var qty = consumption + waste;
+                var amount = qty * n.Price;
+                return new
+                {
+                    n.MaterialID,
+                    Pno = n.PRODUCT?.PNo ?? "",
+                    Name = n.PRODUCT?.Name ?? "",
+                    Unit = n.UNIT != null ? (!string.IsNullOrWhiteSpace(n.UNIT.ShortName) ? n.UNIT.ShortName : n.UNIT.UnitName) : "",
+                    Qty = qty,
+                    Price = n.Price,
+                    Amount = amount
+                };
+            });
+
+            return rows
+                .GroupBy(r => r.MaterialID)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    var totalQty = g.Sum(x => x.Qty);
+                    var totalAmount = g.Sum(x => x.Amount);
+                    var unitPrice = totalQty > 0 ? totalAmount / totalQty : first.Price;
+                    return new BomMaterialSummaryViewModel
+                    {
+                        MaterialId = g.Key,
+                        MaterialPno = first.Pno,
+                        MaterialName = first.Name,
+                        UnitShortname = first.Unit,
+                        TotalQuantity = totalQty,
+                        UnitPrice = unitPrice,
+                        TotalAmount = totalAmount
+                    };
+                })
+                .OrderBy(x => x.MaterialPno)
+                .ToList();
+        }
+
+        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
+        {
+            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
+                return 0;
+            if (requiresCutting && cutLengthMm > 0)
+                return (decimal)(consumptionDb.Value / 1000.0);
+            return (decimal)consumptionDb.Value;
+        }
+
+        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
+        {
+            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
+                return 0;
+            return (decimal)(wasteAmountDb.Value / 1000.0);
         }
 
         protected override void Dispose(bool disposing)

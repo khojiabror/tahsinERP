@@ -303,7 +303,7 @@ namespace tahsinERP.Services
             var prefix = "TRNSF_" + datePart + "_";
 
             var maxN = db.EXPENSES
-                .Where(e => e.DocNo.StartsWith(prefix))
+                .Where(e => e.IsDeleted == false && e.DocNo != null && e.DocNo.StartsWith(prefix))
                 .ToList()
                 .Select(e =>
                 {
@@ -647,6 +647,92 @@ namespace tahsinERP.Services
                 {
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "DecreaseSalesStock",
                         $"Xatolik: {ex.Message}, Hisob-faktura ID: {invoiceID}");
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sales invoice bekor qilinganda:
+        /// 1) avtomatik yaratilgan EXPENS hujjatlarini topadi (invoice URL marker orqali),
+        /// 2) sotuv ombori qoldig'ini qayta tiklaydi,
+        /// 3) EXPENSES/EXPENSE_PRODUCTS/WRHS_EXPENSE_DOCS yozuvlarini fizik o'chiradi.
+        /// </summary>
+        public static void RollbackSalesInvoiceStockAndDeleteAutoExpenses(long invoiceID, DBTHSNEntities db, string userEmail)
+        {
+            using (var transaction = new TransactionScope(TransactionScopeOption.Required))
+            {
+                try
+                {
+                    var invoiceUrlMarker = $"/SalesInvoices/Details/{invoiceID}";
+                    var salesWH = GetSalesWarehouse(db);
+                    if (salesWH == null)
+                    {
+                        throw new Exception("Sotuv ombori topilmadi");
+                    }
+
+                    var expenseIdsFromHeader = db.EXPENSES
+                        .Where(e => e.Description != null && e.Description.Contains(invoiceUrlMarker))
+                        .Select(e => e.ID)
+                        .ToList();
+
+                    var expenseIdsFromLines = db.EXPENSE_PRODUCTS
+                        .Where(ep => ep.Comment != null && ep.Comment.Contains(invoiceUrlMarker))
+                        .Select(ep => ep.ExpenseID)
+                        .ToList();
+
+                    var expenseIds = expenseIdsFromHeader
+                        .Union(expenseIdsFromLines)
+                        .Distinct()
+                        .ToList();
+
+                    if (!expenseIds.Any())
+                    {
+                        LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "RollbackSalesInvoiceStockAndDeleteAutoExpenses",
+                            $"Invoice {invoiceID} uchun auto-expense topilmadi.");
+                        transaction.Complete();
+                        return;
+                    }
+
+                    var expenseLines = db.EXPENSE_PRODUCTS
+                        .Where(ep => expenseIds.Contains(ep.ExpenseID))
+                        .ToList();
+
+                    foreach (var line in expenseLines)
+                    {
+                        var product = db.PRODUCTS.Find(line.ProductID);
+                        var stock = GetOrCreateStockRow(db, salesWH.ID, line.ProductID, product?.UnitID ?? line.UnitID);
+                        stock.Amount += line.Amount;
+                    }
+
+                    var expenseDocs = db.WRHS_EXPENSE_DOCS
+                        .Where(d => expenseIds.Contains(d.ExpenseID))
+                        .ToList();
+                    if (expenseDocs.Any())
+                    {
+                        db.WRHS_EXPENSE_DOCS.RemoveRange(expenseDocs);
+                    }
+
+                    db.EXPENSE_PRODUCTS.RemoveRange(expenseLines);
+
+                    var expenses = db.EXPENSES
+                        .Where(e => expenseIds.Contains(e.ID))
+                        .ToList();
+                    if (expenses.Any())
+                    {
+                        db.EXPENSES.RemoveRange(expenses);
+                    }
+
+                    db.SaveChanges();
+                    transaction.Complete();
+
+                    LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "RollbackSalesInvoiceStockAndDeleteAutoExpenses",
+                        $"Invoice {invoiceID} uchun {expenseIds.Count} ta auto-expense fizik o'chirildi va stock qaytarildi.");
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "RollbackSalesInvoiceStockAndDeleteAutoExpenses",
+                        $"Xatolik: {ex.Message}, InvoiceID: {invoiceID}");
                     throw;
                 }
             }

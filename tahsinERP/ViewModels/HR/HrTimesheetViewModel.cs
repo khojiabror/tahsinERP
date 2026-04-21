@@ -19,6 +19,10 @@ namespace tahsinERP.ViewModels.HR
         [Display(Name = "Bo'lim")]
         public int? OrgUnitID { get; set; }
         public string OrgUnitName { get; set; }
+
+        [Display(Name = "Oylik fond soati")]
+        [Range(1, 744, ErrorMessage = "Fond soati 1 dan 744 gacha bo'lishi kerak")]
+        public decimal FundHours { get; set; } = 160m;
         
         [Display(Name = "Holat")]
         public string Status { get; set; }

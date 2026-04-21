@@ -506,7 +506,7 @@ namespace tahsinERP.Controllers.Finance
                                         }
                                     }
                                 }
-                                else if (category.Name == "Oyliklardan qarzimiz")
+                                else if (IsSalaryLiabilityCategory(category.Name))
                                 {
                                     // Approved payroll total minus salary expense transactions (category "Oylik")
                                     var payrollTotal = db.HR_PAYROLL_LINES
@@ -520,20 +520,19 @@ namespace tahsinERP.Controllers.Finance
                                         .Sum(l => (decimal?)l.NetSalary) ?? 0m;
 
                                     var salaryCategoryIds = db.FIN_CATEGORIES
-                                        .Where(c => c.IsActive && c.Name == "Oylik")
+                                        .Where(c => c.IsActive &&
+                                                   (c.IsDeleted == null || c.IsDeleted == false) &&
+                                                   c.Name != null &&
+                                                   c.Name.ToLower().Contains("oylik"))
                                         .Select(c => c.ID)
                                         .ToList();
 
-                                    var salaryExpenses = 0m;
-                                    if (salaryCategoryIds.Count > 0)
-                                    {
-                                        salaryExpenses = ActiveFinTransactions(db)
-                                            .Where(t => salaryCategoryIds.Contains(t.CategoryID) &&
-                                                       t.Direction == 2 &&
-                                                       t.TxnDate <= asOfDate.Value &&
-                                                       (!openingDate.HasValue || t.TxnDate > openingDate.Value))
-                                            .Sum(t => (decimal?)t.Amount) ?? 0m;
-                                    }
+                                    var salaryExpenses = GetPayrollPaymentQuery(
+                                            db,
+                                            salaryCategoryIds,
+                                            openingDate.HasValue ? openingDate.Value.AddDays(1) : DateTime.MinValue,
+                                            asOfDate.Value)
+                                        .Sum(t => (decimal?)t.Amount) ?? 0m;
 
                                     var payrollNet = payrollTotal - salaryExpenses;
                                     if (payrollNet < 0)
@@ -806,6 +805,57 @@ namespace tahsinERP.Controllers.Finance
                                     t.SourceDocType != "SalesInvoice" &&
                                     ((t.CounterpartyType == 1 && t.CounterpartyID.HasValue) ||
                                      salesCategoryIds.Contains(t.CategoryID)))
+                        .OrderByDescending(t => t.TxnDate)
+                        .Take(top)
+                        .Select(t => new
+                        {
+                            date = t.TxnDate,
+                            doc = t.SourceDocType ?? "FinTransaction",
+                            amount = t.Amount,
+                            note = t.Purpose ?? t.Comment
+                        })
+                        .ToList();
+
+                    return Json(new { success = true, added, subtracted }, JsonRequestBehavior.AllowGet);
+                }
+
+                if (IsSalaryLiabilityCategory(category.Name))
+                {
+                    var salaryCategoryIds = db.FIN_CATEGORIES
+                        .Where(c => c.IsActive &&
+                                   (c.IsDeleted == null || c.IsDeleted == false) &&
+                                   c.Name != null &&
+                                   c.Name.ToLower().Contains("oylik"))
+                        .Select(c => c.ID)
+                        .ToList();
+
+                    var added = db.HR_PAYROLL_HEADERS
+                        .Where(p => (p.IsDeleted == null || p.IsDeleted == false) &&
+                                    (p.Status == "Approved" || p.Status == "Posted") &&
+                                    p.ApprovedDT.HasValue &&
+                                    p.ApprovedDT.Value <= asOfDate &&
+                                    (!fromExclusive.HasValue || p.ApprovedDT.Value > fromExclusive.Value))
+                        .OrderByDescending(p => p.ApprovedDT)
+                        .Take(top)
+                        .ToList()
+                        .Select(p => new
+                        {
+                            date = p.ApprovedDT.Value,
+                            doc = "HR_PAYROLL",
+                            amount = p.HR_PAYROLL_LINES
+                                .Where(l => l.IsDeleted == null || l.IsDeleted == false)
+                                .Sum(l => l.NetSalary ?? 0),
+                            note = (p.PayrollType ?? "Hourly") + " " + p.Year + "-" + (p.Month < 10 ? "0" + p.Month : p.Month.ToString())
+                        })
+                        .ToList();
+
+                    var salaryTxnQuery = GetPayrollPaymentQuery(
+                        db,
+                        salaryCategoryIds,
+                        fromExclusive.HasValue ? fromExclusive.Value.AddDays(1) : DateTime.MinValue,
+                        asOfDate);
+
+                    var subtracted = salaryTxnQuery
                         .OrderByDescending(t => t.TxnDate)
                         .Take(top)
                         .Select(t => new
@@ -1181,7 +1231,7 @@ namespace tahsinERP.Controllers.Finance
                             detail.SubtractedAmount = supplierSummary.Sum(s => s.PaymentTotal);
                             detail.Explanation = "Xarid invoyslari va to'lovlar: SUM(invoys) − SUM(to'lov). To'lovlar faqat PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.";
                         }
-                        else if (category.Name == "Oyliklardan qarzimiz")
+                        else if (IsSalaryLiabilityCategory(category.Name))
                         {
                             var payrollTotal = db.HR_PAYROLL_LINES
                                 .Where(l => (l.IsDeleted == null || l.IsDeleted == false) &&
@@ -1194,7 +1244,10 @@ namespace tahsinERP.Controllers.Finance
                                 .Sum(l => (decimal?)l.NetSalary) ?? 0m;
 
                             var salaryCategoryIds = db.FIN_CATEGORIES
-                                .Where(c => c.IsActive && c.Name == "Oylik")
+                                .Where(c => c.IsActive &&
+                                           (c.IsDeleted == null || c.IsDeleted == false) &&
+                                           c.Name != null &&
+                                           c.Name.ToLower().Contains("oylik"))
                                 .Select(c => c.ID)
                                 .ToList();
 
@@ -1274,10 +1327,12 @@ namespace tahsinERP.Controllers.Finance
 
             if (salaryCategoryIds == null || salaryCategoryIds.Count == 0)
             {
-                return query.Where(t => t.CounterpartyType == 6);
+                return query.Where(t => t.CounterpartyType == 6 || t.SourceDocType == "HR_PAYROLL");
             }
 
-            return query.Where(t => salaryCategoryIds.Contains(t.CategoryID) || t.CounterpartyType == 6);
+            return query.Where(t => salaryCategoryIds.Contains(t.CategoryID) ||
+                                    t.CounterpartyType == 6 ||
+                                    t.SourceDocType == "HR_PAYROLL");
         }
 
         private class SupplierOutstandingData
@@ -2244,7 +2299,10 @@ namespace tahsinERP.Controllers.Finance
 
                 // Payroll liability (approved payrolls minus salary expenses)
                 var salaryCategoryIds = db.FIN_CATEGORIES
-                    .Where(c => c.IsActive && c.Name == "Oylik")
+                    .Where(c => c.IsActive &&
+                               (c.IsDeleted == null || c.IsDeleted == false) &&
+                               c.Name != null &&
+                               c.Name.ToLower().Contains("oylik"))
                     .Select(c => c.ID)
                     .ToList();
 
@@ -2495,6 +2553,17 @@ namespace tahsinERP.Controllers.Finance
         private static IQueryable<FIN_TRANSACTIONS> ActiveFinTransactions(DBTHSNEntities db)
         {
             return db.FIN_TRANSACTIONS.Where(t => t.IsDeleted != true);
+        }
+
+        private static bool IsSalaryLiabilityCategory(string categoryName)
+        {
+            if (string.IsNullOrWhiteSpace(categoryName))
+            {
+                return false;
+            }
+
+            var normalized = categoryName.Trim().ToLower();
+            return normalized.Contains("oylik");
         }
 
         /// <summary>

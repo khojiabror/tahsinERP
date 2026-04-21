@@ -10,6 +10,12 @@ namespace tahsinERP.ViewModels.HR
         public int PlannedHeadcount { get; set; }
         public decimal TotalMonthlyPayroll { get; set; }
         public decimal TotalOvertimeHours { get; set; }
+        public decimal TotalWorkedHours { get; set; }
+        public decimal TotalPieceQuantity { get; set; }
+        public decimal TotalHourlyCalculated { get; set; }
+        public decimal TotalPieceCalculated { get; set; }
+        public decimal TotalSalaryPaidFromFin { get; set; }
+        public decimal TotalSalaryBalance { get; set; }
         
         public List<HrHeadcountByOrgUnitViewModel> HeadcountByOrgUnit { get; set; }
         public List<HrPayrollTrendViewModel> PayrollTrend { get; set; }

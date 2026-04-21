@@ -31,6 +31,8 @@ namespace tahsinERP.Controllers.HR
 
             year = year ?? DateTime.Now.Year;
             month = month ?? DateTime.Now.Month;
+            var periodStart = new DateTime(year.Value, month.Value, 1);
+            var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
             var viewModel = new HrDashboardViewModel();
 
@@ -44,26 +46,68 @@ namespace tahsinERP.Controllers.HR
                 .SumAsync(sp => (decimal?)sp.PlannedHeadcount) ?? 0);
 
             // Total monthly payroll
-            var payroll = await db.HR_PAYROLL_HEADERS
+            var payrollHeaders = await db.HR_PAYROLL_HEADERS
                 .Include(p => p.HR_PAYROLL_LINES)
-                .FirstOrDefaultAsync(p => p.Year == year.Value && p.Month == month.Value &&
-                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value));
+                .Where(p => p.Year == year.Value && p.Month == month.Value &&
+                    (p.IsDeleted == null || p.IsDeleted == false) &&
+                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value))
+                .ToListAsync();
+            var activePayrollLines = payrollHeaders
+                .SelectMany(p => p.HR_PAYROLL_LINES)
+                .Where(l => l.IsDeleted == null || l.IsDeleted == false)
+                .ToList();
 
-            if (payroll != null)
-            {
-                viewModel.TotalMonthlyPayroll = payroll.HR_PAYROLL_LINES.Sum(l => l.NetSalary ?? 0);
-            }
+            viewModel.TotalMonthlyPayroll = activePayrollLines.Sum(l => l.NetSalary ?? 0);
+            viewModel.TotalHourlyCalculated = payrollHeaders
+                .Where(p => p.PayrollType == "Hourly")
+                .SelectMany(p => p.HR_PAYROLL_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false))
+                .Sum(l => l.NetSalary ?? 0);
+            viewModel.TotalPieceCalculated = payrollHeaders
+                .Where(p => p.PayrollType == "PieceRate")
+                .SelectMany(p => p.HR_PAYROLL_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false))
+                .Sum(l => l.NetSalary ?? 0);
 
             // Total overtime hours
             var timesheet = await db.HR_TIMESHEET_HEADERS
                 .Include(t => t.HR_TIMESHEET_LINES)
                 .FirstOrDefaultAsync(t => t.Year == year.Value && t.Month == month.Value &&
+                    (t.IsDeleted == null || t.IsDeleted == false) &&
                     (orgUnitId == null ? t.OrgUnitID == null : t.OrgUnitID == orgUnitId.Value));
 
             if (timesheet != null)
             {
-                viewModel.TotalOvertimeHours = timesheet.HR_TIMESHEET_LINES.Sum(l => l.OvertimeHours ?? 0);
+                var activeTimesheetLines = timesheet.HR_TIMESHEET_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false).ToList();
+                viewModel.TotalOvertimeHours = activeTimesheetLines.Sum(l => l.OvertimeHours ?? 0);
+                viewModel.TotalWorkedHours = activeTimesheetLines.Sum(l => l.TotalWorkedHours ?? 0);
             }
+
+            viewModel.TotalPieceQuantity = await db.HR_PIECE_RATE_WORK_ENTRIES
+                .Where(e => (e.IsDeleted == null || e.IsDeleted == false) &&
+                            e.WorkDate >= periodStart &&
+                            e.WorkDate <= periodEnd &&
+                            (orgUnitId == null || e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value))
+                .SumAsync(e => (decimal?)e.Quantity) ?? 0m;
+
+            // To'langan oylik: FinTransactions (xodimga bog'langan) + HR_PAYROLL postlari
+            var salaryCategoryIds = await db.FIN_CATEGORIES
+                .Where(c => c.IsActive &&
+                            (c.IsDeleted == null || c.IsDeleted == false) &&
+                            c.Name != null &&
+                            c.Name.ToLower().Contains("oylik"))
+                .Select(c => c.ID)
+                .ToListAsync();
+
+            var directSalaryPaid = await db.FIN_TRANSACTIONS
+                .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
+                            t.Direction == 2 &&
+                            t.TxnDate >= periodStart && t.TxnDate <= periodEnd &&
+                            ((salaryCategoryIds.Contains(t.CategoryID)) ||
+                             (t.CounterpartyType.HasValue && t.CounterpartyType.Value == 6) ||
+                             t.SourceDocType == "HR_PAYROLL"))
+                .SumAsync(t => (decimal?)t.Amount) ?? 0m;
+
+            viewModel.TotalSalaryPaidFromFin = directSalaryPaid;
+            viewModel.TotalSalaryBalance = viewModel.TotalMonthlyPayroll - viewModel.TotalSalaryPaidFromFin;
 
             // Headcount by OrgUnit
             var orgUnits = await db.HR_ORG_UNITS

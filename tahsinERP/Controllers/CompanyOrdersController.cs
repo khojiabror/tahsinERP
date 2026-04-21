@@ -616,6 +616,7 @@ namespace tahsinERP.Controllers
         {
             // Olish barcha order numbers va find the maksimal numeric value
             var allOrders = db.ADM_COMPANY_ORDERS
+                .Where(o => o.IsDeleted != true)
                 .Select(o => o.OrderNo)
                 .ToList();
 

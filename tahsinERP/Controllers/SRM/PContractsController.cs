@@ -442,7 +442,7 @@ namespace tahsinERP.Controllers
             var prefix = $"PC-{year}-";
 
             var lastContract = await db.P_CONTRACTS
-                .Where(c => c.ContractNo.StartsWith(prefix))
+                .Where(c => c.IsDeleted != true && c.ContractNo != null && c.ContractNo.StartsWith(prefix))
                 .OrderByDescending(c => c.ContractNo)
                 .FirstOrDefaultAsync();
 

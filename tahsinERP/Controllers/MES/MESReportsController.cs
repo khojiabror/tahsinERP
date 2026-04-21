@@ -46,12 +46,39 @@ namespace tahsinERP.Controllers.MES
                     .Select(g => new { ProductID = g.Key, Reja = g.Sum(d => d.Total) })
                     .ToListAsync();
 
-                // Fakt: PRODUCT_PRODUCTION (oy ichidagi ishlab chiqarish)
-                var actualByProduct = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate && p.IsDeleted == false)
+                var prodFrom = startDate.AddMonths(-6);
+                var prodTo = endDate.AddMonths(6);
+                var linkedProductionIds = await (
+                    from qi in db.QUALITY_INSPECTION
+                    join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                    where qi.IsDeleted == false
+                          && qi.ProductionID.HasValue
+                          && pd.Day >= startDate
+                          && pd.Day <= endDate
+                    select qi.ProductionID.Value
+                ).Distinct().ToListAsync();
+
+                var productionCandidates = await db.PRODUCT_PRODUCTION
+                    .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
+                        && ((p.Date >= prodFrom && p.Date <= prodTo)
+                            || linkedProductionIds.Contains(p.ID)))
+                    .ToListAsync();
+
+                var candidateIds = productionCandidates.Select(p => p.ID).ToList();
+                var attributionDateByProductionId = await BuildAttributionDateMapAsync(db, candidateIds);
+                var actualByProduct = productionCandidates
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate.Year == selectedYear && attributedDate.Month == selectedMonth;
+                    })
                     .GroupBy(p => p.ProductID)
                     .Select(g => new { ProductID = g.Key, Fakt = g.Sum(p => p.Total) })
-                    .ToListAsync();
+                    .ToList();
 
                 var productIds = planByProduct.Select(x => x.ProductID)
                     .Union(actualByProduct.Select(x => x.ProductID))
@@ -129,12 +156,39 @@ namespace tahsinERP.Controllers.MES
 
             using (var db = new DBTHSNEntities())
             {
-                // Ishlab chiqarilgan (oy davomida) — mahsulot bo'yicha
-                var producedByProduct = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate && p.IsDeleted == false)
+                var prodFromQ = startDate.AddMonths(-6);
+                var prodToQ = endDate.AddMonths(6);
+                var linkedProductionIdsQ = await (
+                    from qi in db.QUALITY_INSPECTION
+                    join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                    where qi.IsDeleted == false
+                          && qi.ProductionID.HasValue
+                          && pd.Day >= startDate
+                          && pd.Day <= endDate
+                    select qi.ProductionID.Value
+                ).Distinct().ToListAsync();
+
+                var productionCandidatesQ = await db.PRODUCT_PRODUCTION
+                    .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
+                        && ((p.Date >= prodFromQ && p.Date <= prodToQ)
+                            || linkedProductionIdsQ.Contains(p.ID)))
+                    .ToListAsync();
+
+                var candidateIdsQ = productionCandidatesQ.Select(p => p.ID).ToList();
+                var attributionDateByProductionIdQ = await BuildAttributionDateMapAsync(db, candidateIdsQ);
+                var producedByProduct = productionCandidatesQ
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionIdQ.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate.Year == selectedYear && attributedDate.Month == selectedMonth;
+                    })
                     .GroupBy(p => p.ProductID)
                     .Select(g => new { ProductID = g.Key, Produced = g.Sum(x => x.Total) })
-                    .ToListAsync();
+                    .ToList();
 
                 // Sifat tekshiruvi — mahsulot bo'yicha
                 var inspections = await db.QUALITY_INSPECTION
@@ -204,6 +258,39 @@ namespace tahsinERP.Controllers.MES
                 ViewBag.Months = Enumerable.Range(1, 12).ToList();
                 return View(viewModel);
             }
+        }
+
+        private static async Task<Dictionary<int, DateTime>> BuildAttributionDateMapAsync(DBTHSNEntities db, List<int> productionIds)
+        {
+            if (productionIds == null || productionIds.Count == 0)
+            {
+                return new Dictionary<int, DateTime>();
+            }
+
+            var links = await (
+                from qi in db.QUALITY_INSPECTION
+                join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                where qi.IsDeleted == false
+                      && qi.ProductionID.HasValue
+                      && productionIds.Contains(qi.ProductionID.Value)
+                select new
+                {
+                    ProductionID = qi.ProductionID.Value,
+                    PlanDay = DbFunctions.TruncateTime(pd.Day),
+                    Qty = (double?)qi.QtyInspected ?? 0
+                }
+            ).ToListAsync();
+
+            return links
+                .Where(x => x.PlanDay.HasValue)
+                .GroupBy(x => x.ProductionID)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.GroupBy(x => x.PlanDay.Value)
+                          .OrderByDescending(dayGroup => dayGroup.Sum(v => v.Qty))
+                          .ThenByDescending(dayGroup => dayGroup.Key)
+                          .Select(dayGroup => dayGroup.Key)
+                          .FirstOrDefault());
         }
     }
 }

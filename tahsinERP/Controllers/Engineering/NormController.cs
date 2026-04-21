@@ -131,14 +131,7 @@ namespace tahsinERP.Controllers.Engineering
                             consumptionMeters = il.PiecesPerProduct;
                         }
 
-                        decimal wasteMeters = 0;
-                        if (il.WasteAmount.HasValue && il.WasteAmount.Value > 0)
-                        {
-                            // Moslik: kesish materialida mm -> m, boshqada as-is
-                            wasteMeters = (requiresCutting && il.CutLengthMm > 0)
-                                ? (decimal)(il.WasteAmount.Value / 1000.0)
-                                : (decimal)il.WasteAmount.Value;
-                        }
+                        decimal wasteMeters = NormInputLineWasteToDisplay(il.WasteAmount);
 
                         totalSarfSumma += consumptionMeters * il.Price;
                         totalChiqindiSumma += wasteMeters * il.Price;
@@ -262,8 +255,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Use WasteAmount dan NORM_INPUT_LINES agar available
                     if (inputLine.WasteAmount.HasValue)
                     {
-                        // WasteAmount is stored in mm, convert ga m
-                        waste = (decimal)(inputLine.WasteAmount.Value / 1000.0);
+                        waste = NormInputLineWasteToDisplay(inputLine.WasteAmount);
                     }
                     else if (requiresCutting && standardLengthMm > 0 && inputLine.CutLengthMm > 0)
                     {
@@ -658,8 +650,7 @@ namespace tahsinERP.Controllers.Engineering
                     // Use WasteAmount dan NORM_INPUT_LINES agar available
                     if (inputLine.WasteAmount.HasValue)
                     {
-                        // WasteAmount is stored in mm, convert ga m
-                        waste = (decimal)(inputLine.WasteAmount.Value / 1000.0);
+                        waste = NormInputLineWasteToDisplay(inputLine.WasteAmount);
                     }
                     else if (requiresCutting && standardLengthMm > 0 && inputLine.CutLengthMm > 0)
                     {
@@ -1526,10 +1517,12 @@ namespace tahsinERP.Controllers.Engineering
                         int? bomUnitId = NormalizeUnitFk(firstLineUnit)
                             ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null);
 
-                        bool requiresCuttingBom = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                        // Jami metr (sarf + chiqindi) — kesish materiallarida BOM dona: metr / (taxta uzunligi m)
+                        var requiresCuttingBom = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                        var isWoodMaterial = IsWoodProductCategory(material.PRODUCT_CATEGORIES);
+                        // Jami metr (sarf + chiqindi):
+                        // faqat yog'och + kesish bo'lsa BOM dona ga o'tkaziladi; qolganlarda (masalan selofan) metr bo'lib qoladi.
                         var totalMetersPerFg = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct);
-                        var bomQty = BomQtyFromNormAggregatedMeters(material, requiresCuttingBom, totalMetersPerFg);
+                        var bomQty = BomQtyFromNormAggregatedMeters(material, requiresCuttingBom && isWoodMaterial, totalMetersPerFg);
 
                         var bomLine = new BOM_LINES
                         {
@@ -1603,6 +1596,17 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         /// <summary>
+        /// NORM_INPUT_LINES.WasteAmount DBda mm sifatida saqlanadi (manual/non-manual farqidan qat'i nazar),
+        /// ViewDetailsdagi "Summa hisoblar" bilan bir xil ko'rinish uchun har doim m ga o'tkaziladi.
+        /// </summary>
+        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
+        {
+            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
+                return 0;
+            return (decimal)(wasteAmountDb.Value / 1000.0);
+        }
+
+        /// <summary>
         /// BOM qatori: kesish bo'lgan yog'och/plastik uchun normadagi jami metr (sarf + chiqindi) → taxta uzunligi bo'yicha dona.
         /// UnitConversionService.ConvertMeterToPieceAsync bilan mos: piece = ceil(m / (LengthMm/1000)).
         /// </summary>
@@ -1620,6 +1624,19 @@ namespace tahsinERP.Controllers.Engineering
                 return totalMeters;
 
             return Math.Ceiling(totalMeters / lengthM);
+        }
+
+        private static bool IsWoodProductCategory(PRODUCT_CATEGORIES category)
+        {
+            if (category == null)
+                return false;
+
+            var rawGroup = category.RawMaterialGroup ?? "";
+            var catName = category.Name ?? "";
+            return rawGroup.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
+                || rawGroup.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0
+                || catName.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
+                || catName.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>

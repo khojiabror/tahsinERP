@@ -74,5 +74,37 @@ namespace tahsinERP.Helpers
             var plan = TryParsePlanDate(p.Comment);
             return plan.HasValue && plan.Value.Date == d;
         }
+
+        /// <summary>
+        /// Hisobot/reja oyi uchun: [RejaSana:...] bo'lsa shu kun, bo'lmasa fakt sanasi.
+        /// </summary>
+        public static DateTime GetAttributionCalendarDate(PRODUCT_PRODUCTION p)
+        {
+            if (p == null)
+            {
+                return default;
+            }
+
+            var plan = TryParsePlanDate(p.Comment);
+            return plan ?? p.Date.Date;
+        }
+
+        /// <summary>
+        /// Tanlangan yil/oydagi reja yoki fakt (attribution) bo'yicha ishlab chiqarish qatorini o'z ichiga oladi.
+        /// </summary>
+        public static bool BelongsToCalendarMonth(PRODUCT_PRODUCTION p, int year, int month)
+        {
+            var d = GetAttributionCalendarDate(p);
+            return d.Year == year && d.Month == month;
+        }
+
+        /// <summary>
+        /// Kun oralig'i (inclusive, faqat sana qismi).
+        /// </summary>
+        public static bool BelongsToInclusiveCalendarDateRange(PRODUCT_PRODUCTION p, DateTime rangeStart, DateTime rangeEnd)
+        {
+            var d = GetAttributionCalendarDate(p);
+            return d >= rangeStart.Date && d <= rangeEnd.Date;
+        }
     }
 }

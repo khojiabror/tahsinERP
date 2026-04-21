@@ -171,17 +171,26 @@ namespace tahsinERP.Controllers.Engineering
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
-
-            var report = await _analyticsService.GetAnalyticsReportAsync(year, month, productID);
-            var productReport = report.Reports.FirstOrDefault();
-
-            if (productReport == null)
+            try
             {
-                TempData["Error"] = "Ma'lumot topilmadi.";
-                return RedirectToAction("Report");
-            }
+                var report = await _analyticsService.GetAnalyticsReportAsync(year, month, productID);
+                var productReport = report.Reports.FirstOrDefault();
 
-            return View(productReport);
+                if (productReport == null)
+                {
+                    TempData["Error"] = "Ma'lumot topilmadi.";
+                    return RedirectToAction("Report");
+                }
+
+                return View(productReport);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics",
+                    $"ProductDetails xatolik: ProductID={productID}, Year={year}, Month={month}, Error={ex.Message}");
+                TempData["Error"] = $"ProductDetails ochishda xatolik: {ex.Message}";
+                return RedirectToAction("Report", new { year, month, productID });
+            }
         }
 
         protected override void Dispose(bool disposing)

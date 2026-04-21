@@ -1170,6 +1170,7 @@ namespace tahsinERP.Controllers
                 .FirstOrDefault(n => n.HasValue);
 
             var lastId = db.F_WAYBILLS
+                .Where(w => w.IsDeleted == false)
                 .OrderByDescending(w => w.ID)
                 .Select(w => (int?)w.ID)
                 .FirstOrDefault() ?? 0;

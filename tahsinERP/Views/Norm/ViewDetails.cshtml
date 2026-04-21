@@ -249,6 +249,19 @@
 
     <style>
         .norm-details-table th, .norm-details-table td { white-space: nowrap; font-size: 12px; }
+        /* Excel-like freeze: first column (Material) stays visible on horizontal scroll */
+        .norm-details-table th:first-child,
+        .norm-details-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background: #ffffff;
+        }
+        .norm-details-table thead th:first-child {
+            z-index: 4;
+            background: #f8f9fa;
+        }
+
         @@media print {
             body * { visibility: hidden; }
             #normContent, #normContent * { visibility: visible !important; }

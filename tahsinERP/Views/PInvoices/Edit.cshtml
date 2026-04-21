@@ -1,8 +1,30 @@
 @model tahsinERP.Controllers.PInvoiceEditViewModel
 @using System.Collections.Generic
+@using System.Web.Mvc
 @{
     ViewBag.Title = "Invoysni tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var purchasableProductsData = new List<object>();
+    var unitsData = new List<object>();
+
+    if (ViewBag.PurchasableProductsList != null)
+    {
+        var pSl = new SelectList(ViewBag.PurchasableProductsList, "Value", "Text");
+        foreach (SelectListItem item in pSl)
+        {
+            purchasableProductsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+
+    if (ViewBag.UnitsList != null)
+    {
+        var uSl = new SelectList(ViewBag.UnitsList, "ID", "ShortName");
+        foreach (SelectListItem item in uSl)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
@@ -106,14 +128,14 @@
                                                                 var product = Model.InvoiceProducts[i];
                                                                 <tr data-row-index="@i">
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].ProductID, new SelectList(ViewBag.PurchasableProductsList, "Value", "Text", product.ProductID), "---Tanlang---", new { @class = "form-control select2 product-select", @required = "required" })
                                                                         @Html.HiddenFor(m => m.InvoiceProducts[i].ID)
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.InvoiceProducts[i].Quantity, new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "ShortName", product.UnitID), "---Tanlang---", new { @class = "form-control select2 unit-select", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.InvoiceProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
@@ -185,40 +207,8 @@
 
                     var productRowIndex = @(Model.InvoiceProducts?.Count ?? 0);
 
-            @{
-                var purchasableProductsList = new List<object>();
-                if (ViewBag.PurchasableProducts != null)
-                {
-                    var purchasableProductsSelectList = ViewBag.PurchasableProducts as System.Web.Mvc.SelectList;
-                    if (purchasableProductsSelectList != null)
-                    {
-                        foreach (System.Web.Mvc.SelectListItem item in purchasableProductsSelectList.Items)
-                        {
-                            purchasableProductsList.Add(new { Value = item.Value, Text = item.Text });
-                        }
-                    }
-                }
-
-                var unitsList = new List<object>();
-                if (ViewBag.Units != null)
-                {
-                    var unitsSelectList = ViewBag.Units as System.Web.Mvc.SelectList;
-                    if (unitsSelectList != null)
-                    {
-                        foreach (var unit in unitsSelectList.Items)
-                        {
-                            var unitEntity = unit as tahsinERP.Models.UNIT;
-                            if (unitEntity != null)
-                            {
-                                unitsList.Add(new { Value = unitEntity.ID.ToString(), Text = unitEntity.ShortName ?? "" });
-                            }
-                        }
-                    }
-                }
-            }
-
-                    var purchasableProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(purchasableProductsList));
-                    var units = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(unitsList));
+                    var purchasableProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(purchasableProductsData));
+                    var units = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(unitsData));
 
                     // Load contracts when supplier changes
                     $('#supplierSelect').on('change', function () {
@@ -319,8 +309,8 @@
 
                         $('#invoiceProductsTable tbody').append(row);
 
-                        $('select.product-select').last().select2();
-                        $('select.unit-select').last().select2();
+                        $('select[name="InvoiceProducts[' + productRowIndex + '].ProductID"]').select2();
+                        $('select[name="InvoiceProducts[' + productRowIndex + '].UnitID"]').select2();
 
                         productRowIndex++;
                     }

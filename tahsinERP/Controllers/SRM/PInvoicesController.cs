@@ -235,10 +235,13 @@ namespace tahsinERP.Controllers
                     Text = $"{p.PNo} - {p.Name ?? ""}"
                 }).ToList();
 
+                ViewBag.PurchasableProductsList = productSelectList;
                 ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
+                var units = await db.UNITS.ToListAsync();
+                ViewBag.UnitsList = units;
                 ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
+                    units,
                     "ID", "ShortName"
                 );
 
@@ -499,10 +502,13 @@ namespace tahsinERP.Controllers
                     Text = $"{p.PNo} - {p.Name ?? ""}"
                 }).ToList();
 
+                ViewBag.PurchasableProductsList = productSelectList;
                 ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
+                var units = await db.UNITS.ToListAsync();
+                ViewBag.UnitsList = units;
                 ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
+                    units,
                     "ID", "ShortName"
                 );
             }
@@ -517,7 +523,7 @@ namespace tahsinERP.Controllers
             var prefix = $"PI-{year}-";
 
             var lastInvoice = await db.P_INVOICES
-                .Where(i => i.InvoiceNo.StartsWith(prefix))
+                .Where(i => i.IsDeleted != true && i.InvoiceNo != null && i.InvoiceNo.StartsWith(prefix))
                 .OrderByDescending(i => i.InvoiceNo)
                 .FirstOrDefaultAsync();
 

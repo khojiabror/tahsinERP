@@ -487,7 +487,7 @@ namespace tahsinERP.Controllers.SRM
             var prefix = $"{month}_";
 
             var lastIncome = await db.INCOMES
-                .Where(i => i.DocNo.StartsWith(prefix))
+                .Where(i => i.IsDeleted != true && i.DocNo != null && i.DocNo.StartsWith(prefix))
                 .OrderByDescending(i => i.DocNo)
                 .FirstOrDefaultAsync();
 
@@ -1118,8 +1118,8 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(income.ReceivingWHID))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
                 }
@@ -1144,19 +1144,22 @@ namespace tahsinERP.Controllers.SRM
                 {
                     try
                     {
-                        var income = await db.INCOMES.FindAsync(id);
+                        var income = await db.INCOMES
+                            .Include(i => i.INCOME_PRODUCTS)
+                            .Include(i => i.WRHS_INCOME_DOCS)
+                            .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
                         if (income != null)
                         {
-                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                            if (assignedWarehouseId.HasValue && income.ReceivingWHID != assignedWarehouseId.Value)
+                            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                            if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(income.ReceivingWHID))
                             {
                                 return RedirectToAction("Index", "ViewNotAuthorized");
                             }
 
-                            // Revert stock changes
-                            var incomeProducts = await db.INCOME_PRODUCTS
-                                .Where(ip => ip.IncomeID == income.ID)
-                                .ToListAsync();
+                            // Revert income stock changes (receiver warehouse)
+                            var incomeProducts = income.INCOME_PRODUCTS != null
+                                ? income.INCOME_PRODUCTS.ToList()
+                                : await db.INCOME_PRODUCTS.Where(ip => ip.IncomeID == income.ID).ToListAsync();
 
                             foreach (var product in incomeProducts)
                             {
@@ -1168,6 +1171,57 @@ namespace tahsinERP.Controllers.SRM
                                     stock.Amount -= product.Amount;
                                     if (stock.Amount < 0) stock.Amount = 0;
                                 }
+                            }
+
+                            // Agar bu kirim chiqimdan bog'langan bo'lsa, bog'langan chiqimni ham soft-delete qilamiz
+                            // va sender ombor qoldig'ini qaytaramiz.
+                            var expenseDocNo = ExtractLinkedExpenseDocNo(income.Description);
+                            if (!string.IsNullOrWhiteSpace(expenseDocNo))
+                            {
+                                var linkedExpense = await db.EXPENSES
+                                    .Include(e => e.EXPENSE_PRODUCTS)
+                                    .Include(e => e.WRHS_EXPENSE_DOCS)
+                                    .FirstOrDefaultAsync(e =>
+                                        e.DocNo == expenseDocNo
+                                        && e.ReceiverWhID == income.ReceivingWHID
+                                        && e.IsDeleted != true);
+
+                                if (linkedExpense != null)
+                                {
+                                    // Revert linked expense stock changes (sender warehouse)
+                                    if (linkedExpense.EXPENSE_PRODUCTS != null)
+                                    {
+                                        foreach (var ep in linkedExpense.EXPENSE_PRODUCTS)
+                                        {
+                                            var senderStock = await db.PRODUCT_STOCKS
+                                                .FirstOrDefaultAsync(s => s.WHID == linkedExpense.SenderWHID && s.ProductID == ep.ProductID);
+
+                                            if (senderStock != null)
+                                            {
+                                                senderStock.Amount += ep.Amount;
+                                            }
+                                            else
+                                            {
+                                                var ensuredSenderStock = WarehouseFlowService.GetOrCreateStockRow(db, linkedExpense.SenderWHID, ep.ProductID, ep.UnitID);
+                                                ensuredSenderStock.Amount += ep.Amount;
+                                            }
+                                        }
+                                    }
+
+                                    // Linked expense docs: fizik o'chirish (IsDeleted maydoni yo'q)
+                                    if (linkedExpense.WRHS_EXPENSE_DOCS != null && linkedExpense.WRHS_EXPENSE_DOCS.Any())
+                                    {
+                                        db.WRHS_EXPENSE_DOCS.RemoveRange(linkedExpense.WRHS_EXPENSE_DOCS.ToList());
+                                    }
+
+                                    linkedExpense.IsDeleted = true;
+                                }
+                            }
+
+                            // Income docs: fizik o'chirish (IsDeleted maydoni yo'q)
+                            if (income.WRHS_INCOME_DOCS != null && income.WRHS_INCOME_DOCS.Any())
+                            {
+                                db.WRHS_INCOME_DOCS.RemoveRange(income.WRHS_INCOME_DOCS.ToList());
                             }
 
                             income.IsDeleted = true;

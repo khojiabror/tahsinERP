@@ -110,6 +110,64 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Material Summary Table -->
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Materiallar bo'yicha sarf va summa</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-sm" id="materialSummaryTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Material kodi</th>
+                                                    <th>Material nomi</th>
+                                                    <th class="text-right">Xomashyo sarfi</th>
+                                                    <th>O'lchov birligi</th>
+                                                    <th class="text-right">Narxi</th>
+                                                    <th class="text-right">Xomashyo summasi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.MaterialSummaries != null && Model.MaterialSummaries.Any())
+                                                {
+                                                    foreach (var item in Model.MaterialSummaries)
+                                                    {
+                                                        <tr>
+                                                            <td>@item.MaterialPno</td>
+                                                            <td>@item.MaterialName</td>
+                                                            <td class="text-right">@item.TotalQuantity.ToString("F4")</td>
+                                                            <td>@(string.IsNullOrWhiteSpace(item.UnitShortname) ? "-" : item.UnitShortname)</td>
+                                                            <td class="text-right">@item.UnitPrice.ToString("F2")</td>
+                                                            <td class="text-right">@item.TotalAmount.ToString("F2")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="6" class="text-center text-muted">Materiallar topilmadi.</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            @if (Model.MaterialSummaries != null && Model.MaterialSummaries.Any())
+                                            {
+                                                <tfoot>
+                                                    <tr>
+                                                        <th colspan="5" class="text-right">Jami:</th>
+                                                        <th class="text-right">@Model.MaterialSummaries.Sum(x => x.TotalAmount).ToString("F2")</th>
+                                                    </tr>
+                                                </tfoot>
+                                            }
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     </div> <!-- End bomContent -->
                 }
                 else
@@ -198,6 +256,43 @@
         .bom-image-box {
             flex-shrink: 0;
         }
+
+        #materialSummaryTable th, #materialSummaryTable td {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        #materialSummaryTable tfoot th {
+            font-weight: 700;
+            background: #fff7d6;
+        }
+
+        @@media print {
+            #bomContent {
+                font-size: 11px;
+            }
+
+            .bom-tree-container {
+                padding: 8px;
+            }
+
+            #materialSummaryTable {
+                width: 100% !important;
+                table-layout: fixed;
+            }
+
+            #materialSummaryTable th,
+            #materialSummaryTable td {
+                font-size: 10px !important;
+                padding: 4px !important;
+                white-space: normal !important;
+                word-break: break-word;
+            }
+
+            .card {
+                page-break-inside: avoid;
+            }
+        }
     </style>
 
     <!-- html2pdf.js library -->
@@ -216,6 +311,16 @@
                 var $ = jQuery;
                 
                 $(document).ready(function () {
+                    if ($.fn.DataTable && $('#materialSummaryTable').length) {
+                        $('#materialSummaryTable').DataTable({
+                            pageLength: 25,
+                            ordering: true,
+                            order: [[0, 'asc']],
+                            dom: 't',
+                            searching: false
+                        });
+                    }
+
                     // Wait for html2pdf to be fully loaded
                     function waitForHtml2Pdf(callback, maxAttempts) {
                         var attempts = 0;

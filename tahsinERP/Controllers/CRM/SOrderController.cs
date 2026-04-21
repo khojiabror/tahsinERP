@@ -801,19 +801,29 @@ namespace tahsinERP.Controllers
         // POST so'rovi: o'chirish
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var order = db.S_ORDERS.Find(id);
-                if (order != null)
+                var order = await db.S_ORDERS.FirstOrDefaultAsync(o => o.ID == id && (o.IsDeleted == false || o.IsDeleted == null));
+                if (order == null)
+                {
+                    return HttpNotFound();
+                }
+
+                try
                 {
                     order.IsDeleted = true;
-                    SoftDeleteReferenceService.AfterSOrderSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
-                    db.SaveChanges();
+                    await SoftDeleteReferenceService.AfterSOrderSoftDeletedAsync(db, id);
+                    await db.SaveChangesAsync();
                     LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani o'chirdi");
+                    return RedirectToAction("Index");
                 }
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = $"Buyurtmani o'chirishda xatolik: {ex.Message}";
+                    return RedirectToAction("Details", new { id });
+                }
             }
         }
 

@@ -18,11 +18,13 @@ namespace tahsinERP.Controllers.HR
         private DBTHSNEntities db = new DBTHSNEntities();
         private IUserActionLogger logger;
         private readonly HrEmployeeAllowanceService allowanceService;
+        private readonly HrTimesheetSettingsService timesheetSettingsService;
 
         public HrPayrollController()
         {
             logger = new UserActionLogger(User?.Identity?.Name ?? "System");
             allowanceService = new HrEmployeeAllowanceService(db);
+            timesheetSettingsService = new HrTimesheetSettingsService(db);
         }
 
         /// <summary>O'chirilgan (IsDeleted == true) sarlavha yoki qator hisobga olinmaydi.</summary>
@@ -891,7 +893,7 @@ namespace tahsinERP.Controllers.HR
                 throw new Exception("Valyuta jadvalida hech qanday valyuta topilmadi. Iltimos, avval valyuta qo'shing.");
             }
 
-            const decimal standardMonthHours = 160m;
+            var monthFundHours = timesheetSettingsService.GetFundHoursOrDefault(timesheet.ID);
 
             foreach (var timesheetLine in timesheetLines)
             {
@@ -916,22 +918,16 @@ namespace tahsinERP.Controllers.HR
                     ? ResolveAllowancePercent(allowanceRow)
                     : 0m;
                 var allowanceAmount = monthlyBase * allowancePercent / 100m;
-
-                if (staffingPlan != null && staffingPlan.IsFixedSalary)
+                var monthlyCompensation = monthlyBase + allowanceAmount;
+                var overtimeHours = timesheetLine.OvertimeHours ?? 0;
+                if (overtimeHours < 0)
                 {
-                    int daysInMonth = DateTime.DaysInMonth(payroll.Year, payroll.Month);
-                    decimal workedDays = timesheetLine.TotalWorkedDays ?? 0;
-                    grossSalary = (monthlyBase + allowanceAmount) * (workedDays / daysInMonth);
+                    overtimeHours = 0;
                 }
-                else
-                {
-                    hourlyRate = standardMonthHours > 0 ? (monthlyBase + allowanceAmount) / standardMonthHours : 0;
-                    grossSalary = hourlyRate * hoursWorked;
+                var normalHours = Math.Max(0m, hoursWorked - overtimeHours);
 
-                    decimal overtimeHours = timesheetLine.OvertimeHours ?? 0;
-                    if (overtimeHours > 0 && hourlyRate > 0)
-                        grossSalary += overtimeHours * hourlyRate * 1.5m;
-                }
+                hourlyRate = monthFundHours > 0 ? monthlyCompensation / monthFundHours : 0;
+                grossSalary = (normalHours * hourlyRate) + (overtimeHours * hourlyRate * 1.5m);
 
                 var payrollLine = new HR_PAYROLL_LINES
                 {

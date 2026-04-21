@@ -60,6 +60,7 @@ namespace tahsinERP.ViewModels.Tannarx
         // Additional info
         public int? ActualProductionQuantity { get; set; }
         public DateTime? LastUpdated { get; set; }
+        public string ActualMaterialCalculationNote { get; set; }
     }
     
     public class TannarxAnalyticsReportListViewModel

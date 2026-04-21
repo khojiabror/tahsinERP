@@ -68,121 +68,111 @@ namespace tahsinERP.Services
 
             if (normId.HasValue)
             {
-                // Use NORMLINES for waste calculation
-                var normLines = await _db.NORMLINES
-                    .Where(nl => nl.NormID == normId.Value)
+                // Asosiy yo'l: NORM_INPUT_LINES dagi sarf/chiqindini 1:1 ishlatish.
+                // Bunda normadagi birlik saqlanadi, keyin faqat ombor kirim birligiga konvert qilinadi.
+                var linkedNorm = await _db.NORMVERSIONS.FirstOrDefaultAsync(n => n.ID == normId.Value);
+                var normMonth = linkedNorm?.EffectiveFrom.HasValue == true
+                    ? linkedNorm.EffectiveFrom.Value.ToString("yyyy-MM")
+                    : null;
+
+                var normInputQuery = _db.NORM_INPUT_LINES
+                    .Include(n => n.PRODUCT1)
+                    .Include(n => n.PRODUCT1.PRODUCT_CATEGORIES)
+                    .Where(n => n.ProductID == productId);
+                if (!string.IsNullOrWhiteSpace(normMonth))
+                {
+                    normInputQuery = normInputQuery.Where(n => n.Month == normMonth);
+                }
+
+                var normInputLines = await normInputQuery
+                    .OrderByDescending(n => n.CreatedDT)
+                    .ThenByDescending(n => n.ID)
                     .ToListAsync();
 
-                foreach (var normLine in normLines)
-                {
-                    if (!normLine.MaterialID.HasValue || !normLine.QtyPerUnit.HasValue)
-                        continue;
+                // Bir xil variantlar bo'yicha eng oxirgi satrni olish (eski dublikatlarni hisobga qo'shmaslik uchun)
+                var dedupedNormInputLines = normInputLines
+                    .GroupBy(n => new { n.MaterialID, n.CutLengthMm, n.PiecesPerProduct, UnitID = n.UnitID ?? 0 })
+                    .Select(g => g.OrderByDescending(x => x.CreatedDT).ThenByDescending(x => x.ID).First())
+                    .ToList();
 
-                    var material = await _db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .FirstOrDefaultAsync(p => p.ID == normLine.MaterialID.Value);
+                foreach (var line in dedupedNormInputLines)
+                {
+                    var material = line.PRODUCT1;
                     if (material == null)
                         continue;
 
-                    // Calculate required quantity
-                    var qtyPerUnit = (double)normLine.QtyPerUnit.Value;
-                    var requiredQty = qtyPerUnit * producedQty;
+                    bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
 
-                    var requiredQtyPieces = requiredQty;
-                    var requiredQtyMeters = 0.0;
-                    var wasteQty = 0.0;
-                    var totalConsumption = requiredQty;
+                    var consumptionPerProduct = (double)NormInputLineConsumptionToDisplay(
+                        requiresCutting,
+                        line.CutLengthMm,
+                        line.Consumption);
+                    var wastePerProduct = (double)NormInputLineWasteToDisplay(line.WasteAmount);
+                    var totalPerProduct = consumptionPerProduct + wastePerProduct;
+                    if (totalPerProduct <= 0)
+                        continue;
 
-                    bool requiresCutting = material.CategoryID.HasValue &&
-                                           material.PRODUCT_CATEGORIES != null &&
-                                           material.PRODUCT_CATEGORIES.RequiresCutting;
-
-                    bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(material.ID);
-
-                    // NORMLINE QtyPerUnit yog'och uchun mm da yig'ilgan; ConvertMeterToPiece esa metr kutadi
-                    var requiredQtyMetersValue = requiresCutting ? requiredQty / 1000.0 : requiredQty;
-
-                    if (calculateByWeight)
-                    {
-                        decimal pieceQuantity = (decimal)requiredQty;
-
-                        if (requiresCutting)
-                        {
-                            requiredQtyMeters = requiredQtyMetersValue;
-                            pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(
-                                material.ID, (decimal)requiredQtyMetersValue);
-                            requiredQtyPieces = (double)pieceQuantity;
-                        }
-                        else
-                        {
-                            requiredQtyPieces = requiredQty;
-                        }
-
-                        if (normLine.WastePercent.HasValue)
-                        {
-                            var wastePercent = (double)normLine.WastePercent.Value;
-                            var wastePieces = requiredQtyPieces * (wastePercent / 100.0);
-                            wasteQty = wastePieces;
-                            totalConsumption = requiredQtyPieces + wasteQty;
-                        }
-                        else
-                        {
-                            totalConsumption = requiredQtyPieces;
-                        }
-
-                        try
-                        {
-                            decimal totalConsumptionKg = await _conversionService.ConvertPieceToKgAsync(
-                                material.ID, (decimal)totalConsumption);
-                            totalConsumption = (double)totalConsumptionKg;
-                            requiredQtyPieces = (double)pieceQuantity;
-                            if (wasteQty > 0)
-                                wasteQty = (double)await _conversionService.ConvertPieceToKgAsync(
-                                    material.ID, (decimal)wasteQty);
-                        }
-                        catch
-                        {
-                            // Konversiya bo'lmasa, dona/qoldiqda qoladi
-                        }
-                    }
-                    else if (requiresCutting)
-                    {
-                        requiredQtyMeters = requiredQtyMetersValue;
-                        requiredQtyPieces = (double)await _conversionService.ConvertMeterToPieceAsync(
-                            material.ID, (decimal)requiredQtyMetersValue);
-
-                        if (normLine.WastePercent.HasValue)
-                        {
-                            var wastePercent = (double)normLine.WastePercent.Value;
-                            wasteQty = requiredQtyPieces * (wastePercent / 100.0);
-                            totalConsumption = requiredQtyPieces + wasteQty;
-                        }
-                    }
-                    else
-                    {
-                        if (normLine.WastePercent.HasValue)
-                        {
-                            var wastePercent = (double)normLine.WastePercent.Value;
-                            wasteQty = requiredQty * (wastePercent / 100.0);
-                            totalConsumption = requiredQty + wasteQty;
-                        }
-                    }
-
-                    int unitId = normLine.UnitID ?? material.UnitID;
+                    var totalConsumption = totalPerProduct * producedQty;
+                    var wasteQty = wastePerProduct * producedQty;
+                    var baseUnitId = (line.UnitID.HasValue && line.UnitID.Value > 0)
+                        ? line.UnitID.Value
+                        : (material.UnitID > 0 ? material.UnitID : 1);
 
                     requirements.Add(new ProductionRawMaterialRequirement
                     {
                         MaterialID = material.ID,
                         MaterialPNo = material.PNo,
                         MaterialName = material.Name,
-                        RequiredQtyPieces = requiredQtyPieces,
-                        RequiredQtyMeters = requiredQtyMeters,
+                        RequiredQtyPieces = consumptionPerProduct * producedQty,
+                        RequiredQtyMeters = requiresCutting ? consumptionPerProduct * producedQty : 0,
                         WasteQty = wasteQty,
                         TotalConsumption = totalConsumption,
-                        UnitID = unitId > 0 ? unitId : material.UnitID,
+                        UnitID = baseUnitId,
                         RequiresCutting = requiresCutting,
-                        TotalConsumptionIsInKg = calculateByWeight
+                        TotalConsumptionIsInKg = false
                     });
+                }
+
+                // Agar NORM_INPUT_LINES topilmasa, eski NORMLINES fallback ishlasin.
+                if (!requirements.Any())
+                {
+                    var normLines = await _db.NORMLINES
+                        .Where(nl => nl.NormID == normId.Value)
+                        .ToListAsync();
+
+                    foreach (var normLine in normLines)
+                    {
+                        if (!normLine.MaterialID.HasValue || !normLine.QtyPerUnit.HasValue)
+                            continue;
+
+                        var material = await _db.PRODUCTS
+                            .Include(p => p.PRODUCT_CATEGORIES)
+                            .FirstOrDefaultAsync(p => p.ID == normLine.MaterialID.Value);
+                        if (material == null)
+                            continue;
+
+                        var qtyPerUnit = (double)normLine.QtyPerUnit.Value;
+                        var requiredQty = qtyPerUnit * producedQty;
+                        var wasteQty = normLine.WastePercent.HasValue
+                            ? requiredQty * ((double)normLine.WastePercent.Value / 100.0)
+                            : 0.0;
+                        var totalConsumption = requiredQty + wasteQty;
+                        int unitId = normLine.UnitID ?? material.UnitID;
+
+                        requirements.Add(new ProductionRawMaterialRequirement
+                        {
+                            MaterialID = material.ID,
+                            MaterialPNo = material.PNo,
+                            MaterialName = material.Name,
+                            RequiredQtyPieces = requiredQty,
+                            RequiredQtyMeters = 0,
+                            WasteQty = wasteQty,
+                            TotalConsumption = totalConsumption,
+                            UnitID = unitId > 0 ? unitId : material.UnitID,
+                            RequiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false,
+                            TotalConsumptionIsInKg = false
+                        });
+                    }
                 }
             }
             else
@@ -323,6 +313,11 @@ namespace tahsinERP.Services
                 return kgId;
             }
 
+            if (req.UnitID > 0)
+            {
+                return req.UnitID;
+            }
+
             return (await _conversionService.FindDonaUnitIdAsync()) ?? 1;
         }
 
@@ -340,6 +335,22 @@ namespace tahsinERP.Services
                 .FirstOrDefault();
 
             return firstIp != null ? (int?)firstIp.UnitID : null;
+        }
+
+        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
+        {
+            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
+                return 0;
+            if (requiresCutting && cutLengthMm > 0)
+                return (decimal)(consumptionDb.Value / 1000.0);
+            return (decimal)consumptionDb.Value;
+        }
+
+        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
+        {
+            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
+                return 0;
+            return (decimal)(wasteAmountDb.Value / 1000.0);
         }
 
         /// <summary>

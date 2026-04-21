@@ -198,7 +198,7 @@
                                                                 }
                                                             </td>
                                                             <td>@report.PlannedSetPriceEXWWithVAT.ToString("N0")</td>
-                                                            <td class="@(report.EXWVariance >= 0 ? "text-success" : "text-danger")">
+                                                            <td class="@(report.ActualEXWWithVAT < report.PlannedSetPriceEXWWithVAT ? "text-success" : (report.ActualEXWWithVAT > report.PlannedSetPriceEXWWithVAT ? "text-danger" : ""))">
                                                                 @report.ActualEXWWithVAT.ToString("N0")
                                                                 @if (report.EXWVariancePercent != 0)
                                                                 {
@@ -206,7 +206,7 @@
                                                                 }
                                                             </td>
                                                             <td>@report.PlannedSetPriceCIPWithVAT.ToString("N0")</td>
-                                                            <td class="@(report.CIPVariance >= 0 ? "text-success" : "text-danger")">
+                                                            <td class="@(report.ActualCIPWithVAT < report.PlannedSetPriceCIPWithVAT ? "text-success" : (report.ActualCIPWithVAT > report.PlannedSetPriceCIPWithVAT ? "text-danger" : ""))">
                                                                 @report.ActualCIPWithVAT.ToString("N0")
                                                                 @if (report.CIPVariancePercent != 0)
                                                                 {

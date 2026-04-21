@@ -53,34 +53,43 @@
                         <div class="card-content">
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.Year, new { @class = "control-label" })
                                             <span class="text-danger">*</span>
-                                            @Html.TextBoxFor(model => model.Year, new { @class = "form-control", @type = "number", @min = "2000", @max = "2100", @required = "required", @value = DateTime.Now.Year })
+                                            @Html.TextBoxFor(model => model.Year, new { @class = "form-control", @type = "number", @min = "2000", @max = "2100", @required = "required" })
                                             @Html.ValidationMessageFor(model => model.Year, "", new { @class = "text-danger" })
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.Month, new { @class = "control-label" })
                                             <span class="text-danger">*</span>
                                             <select name="Month" class="form-control" required>
                                                 @for (int i = 1; i <= 12; i++)
                                                 {
-                                                    <option value="@i" @(i == DateTime.Now.Month ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                                    <option value="@i" @(i == Model.Month ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
                                                 }
                                             </select>
                                             @Html.ValidationMessageFor(model => model.Month, "", new { @class = "text-danger" })
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.OrgUnitID, new { @class = "control-label" })
                                             @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.OrgUnitID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.FundHours, new { @class = "control-label" })
+                                            <span class="text-danger">*</span>
+                                            @Html.TextBoxFor(model => model.FundHours, new { @class = "form-control", @type = "number", @step = "0.01", @min = "1", @max = "744", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.FundHours, "", new { @class = "text-danger" })
                                         </div>
                                     </div>
                                 </div>

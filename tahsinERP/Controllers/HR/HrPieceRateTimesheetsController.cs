@@ -42,7 +42,8 @@ namespace tahsinERP.Controllers.HR
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Include(e => e.HR_EMPLOYEES)
                 .Include(e => e.PRODUCT)
-                .Include(e => e.HR_PIECE_RATE_OPERATIONS);
+                .Include(e => e.HR_PIECE_RATE_OPERATIONS)
+                .Where(e => e.IsDeleted != true);
 
             // Apply filters faqat agar provided
             if (year.HasValue)
@@ -63,7 +64,9 @@ namespace tahsinERP.Controllers.HR
             var workEntries = await query.OrderByDescending(e => e.WorkDate).ToListAsync();
 
             // Olish tasdiqlash statuses
-            var approvals = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS.ToListAsync();
+            var approvals = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
+                .Where(a => a.IsDeleted != true)
+                .ToListAsync();
 
             // Group by year, month, va org unit
             var groupedData = workEntries
@@ -114,7 +117,7 @@ namespace tahsinERP.Controllers.HR
 
             // Olish barcha work entries uchun this month
             var workEntries = db.HR_PIECE_RATE_WORK_ENTRIES
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate)
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true)
                 .ToList();
 
             return CalculatePieceRateAmountForEntries(workEntries);
@@ -133,6 +136,7 @@ namespace tahsinERP.Controllers.HR
                     .Where(t => t.ProductID == entry.ProductID &&
                                t.OperationID == entry.OperationID &&
                                t.IsActive &&
+                               t.IsDeleted != true &&
                                t.EffectiveFrom <= entry.WorkDate &&
                                (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
                                (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
@@ -147,6 +151,7 @@ namespace tahsinERP.Controllers.HR
                                    t.OperationID == entry.OperationID &&
                                    t.PositionID == null &&
                                    t.IsActive &&
+                                   t.IsDeleted != true &&
                                    t.EffectiveFrom <= entry.WorkDate &&
                                    (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
                         .FirstOrDefault();
@@ -185,7 +190,7 @@ namespace tahsinERP.Controllers.HR
                 .Include(e => e.HR_EMPLOYEES.HR_POSITIONS)
                 .Include(e => e.PRODUCT)
                 .Include(e => e.HR_PIECE_RATE_OPERATIONS)
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
 
             if (orgUnitId.HasValue)
             {
@@ -205,6 +210,7 @@ namespace tahsinERP.Controllers.HR
                     .Where(t => t.ProductID == entry.ProductID &&
                                t.OperationID == entry.OperationID &&
                                t.IsActive &&
+                               t.IsDeleted != true &&
                                t.EffectiveFrom <= entry.WorkDate &&
                                (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
                                (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
@@ -220,6 +226,7 @@ namespace tahsinERP.Controllers.HR
                                    t.OperationID == entry.OperationID &&
                                    t.PositionID == null &&
                                    t.IsActive &&
+                                   t.IsDeleted != true &&
                                    t.EffectiveFrom <= entry.WorkDate &&
                                    (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
                         .FirstOrDefault();
@@ -264,7 +271,7 @@ namespace tahsinERP.Controllers.HR
             var header = await db.HR_TIMESHEET_HEADERS
                 .Include(t => t.HR_ORG_UNITS)
                 .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
-                .FirstOrDefaultAsync(t => t.ID == id);
+                .FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted != true);
 
             if (header == null)
             {
@@ -295,7 +302,7 @@ namespace tahsinERP.Controllers.HR
             var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
 
             viewModel.Lines = header.HR_TIMESHEET_LINES
-                .Where(l => pieceRatePositionIds.Contains(l.HR_EMPLOYEES.PositionID ?? 0))
+                .Where(l => l.IsDeleted != true && pieceRatePositionIds.Contains(l.HR_EMPLOYEES.PositionID ?? 0))
                 .Select(l =>
                 {
                     var employee = l.HR_EMPLOYEES;
@@ -403,7 +410,8 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
-                var line = await db.HR_TIMESHEET_LINES.FindAsync(lineId);
+                var line = await db.HR_TIMESHEET_LINES
+                    .FirstOrDefaultAsync(l => l.ID == lineId && l.IsDeleted != true);
                 if (line == null)
                 {
                     return Json(new { success = false, message = "Qator topilmadi" });
@@ -451,7 +459,7 @@ namespace tahsinERP.Controllers.HR
             try
             {
                 var line = await db.HR_TIMESHEET_LINES
-                    .FirstOrDefaultAsync(l => l.TimesheetID == timesheetId && l.EmployeeID == employeeId);
+                    .FirstOrDefaultAsync(l => l.TimesheetID == timesheetId && l.EmployeeID == employeeId && l.IsDeleted != true);
 
                 if (line == null)
                 {
@@ -489,7 +497,7 @@ namespace tahsinERP.Controllers.HR
 
                 var header = await db.HR_TIMESHEET_HEADERS
                     .Include(t => t.HR_ORG_UNITS)
-                    .FirstOrDefaultAsync(t => t.ID == timesheetId);
+                    .FirstOrDefaultAsync(t => t.ID == timesheetId && t.IsDeleted != true);
                 var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
                 var orgUnitName = header?.HR_ORG_UNITS?.Name ?? "Butun kompaniya";
                 var employeeLabel = employee == null
@@ -528,7 +536,7 @@ namespace tahsinERP.Controllers.HR
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
 
             if (orgUnitId.HasValue)
             {
@@ -544,7 +552,7 @@ namespace tahsinERP.Controllers.HR
 
             // Olish yoki yaratish tasdiqlash record
             var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
-                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month.Value && a.OrgUnitID == orgUnitId);
+                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month.Value && a.OrgUnitID == orgUnitId && a.IsDeleted != true);
 
             if (approval == null)
             {
@@ -621,7 +629,8 @@ namespace tahsinERP.Controllers.HR
 
         private async Task RecalculateLineTotals(HR_TIMESHEET_LINES line)
         {
-            var header = await db.HR_TIMESHEET_HEADERS.FindAsync(line.TimesheetID);
+            var header = await db.HR_TIMESHEET_HEADERS
+                .FirstOrDefaultAsync(t => t.ID == line.TimesheetID && t.IsDeleted != true);
             if (header == null) return;
 
             int daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
@@ -744,7 +753,7 @@ namespace tahsinERP.Controllers.HR
                     e.ProductID == row.ProductID.Value &&
                     e.OperationID == row.OperationID.Value &&
                     e.WorkDate == row.WorkDate.Value &&
-                    (e.IsDeleted == null || e.IsDeleted == false));
+                    e.IsDeleted != true);
                 if (exists)
                 {
                     errors.Add($"Qator o'tkazildi: xodim/mahsulot/operatsiya/sana bo'yicha dublikat mavjud");
@@ -783,7 +792,7 @@ namespace tahsinERP.Controllers.HR
 
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
-                .Where(e => e.IsDeleted == false);
+                .Where(e => e.IsDeleted != true);
             if (year.HasValue) query = query.Where(e => e.WorkDate.Year == year.Value);
             if (month.HasValue) query = query.Where(e => e.WorkDate.Month == month.Value);
             if (orgUnitId.HasValue) query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
@@ -823,8 +832,7 @@ namespace tahsinERP.Controllers.HR
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate &&
-                            (e.IsDeleted == null || e.IsDeleted == false));
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
             if (orgUnitId.HasValue) query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
 
             var rows = await query.ToListAsync();
@@ -861,10 +869,8 @@ namespace tahsinERP.Controllers.HR
             var startDate = new DateTime(y, m, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            // Details bilan bir xil: IsDeleted null bo'lsa ham (eski yozuvlar) chiqsin
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate &&
-                            (e.IsDeleted == null || e.IsDeleted == false));
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
 
             var entries = await query.OrderBy(e => e.WorkDate).ToListAsync();
             var vm = new HrPieceRateGridEntryViewModel
@@ -927,7 +933,8 @@ namespace tahsinERP.Controllers.HR
 
                 if (row.EntryID.HasValue)
                 {
-                    var entry = await db.HR_PIECE_RATE_WORK_ENTRIES.FirstOrDefaultAsync(e => e.ID == row.EntryID.Value);
+                    var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
+                        .FirstOrDefaultAsync(e => e.ID == row.EntryID.Value && e.IsDeleted != true);
                     if (entry == null) continue;
 
                     entry.EmployeeID = row.EmployeeID.Value;
@@ -975,7 +982,7 @@ namespace tahsinERP.Controllers.HR
 
             var companyWideApproved = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
                 .AnyAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == null &&
-                    (a.IsDeleted == null || a.IsDeleted == false) && a.Status == "Approved");
+                    a.IsDeleted != true && a.Status == "Approved");
             if (companyWideApproved)
                 return "Bu oy uchun tabel (butun kompaniya) allaqachon tasdiqlangan. O'zgartirish mumkin emas.";
 
@@ -984,7 +991,7 @@ namespace tahsinERP.Controllers.HR
             {
                 var orgApproved = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
                     .AnyAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == ou &&
-                        (a.IsDeleted == null || a.IsDeleted == false) && a.Status == "Approved");
+                        a.IsDeleted != true && a.Status == "Approved");
                 if (orgApproved)
                     return "Bu oy uchun tegishli bo'lim tabeli allaqachon tasdiqlangan. O'zgartirish mumkin emas.";
             }
@@ -1007,7 +1014,7 @@ namespace tahsinERP.Controllers.HR
             {
                 var existing = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
                     .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == ou &&
-                        (a.IsDeleted == null || a.IsDeleted == false));
+                        a.IsDeleted != true);
                 if (existing == null)
                 {
                     db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Add(new HR_PIECE_RATE_TIMESHEET_APPROVALS
@@ -1101,7 +1108,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
-                .FirstOrDefaultAsync(e => e.ID == id.Value && (e.IsDeleted == null || e.IsDeleted == false));
+                .FirstOrDefaultAsync(e => e.ID == id.Value && e.IsDeleted != true);
             if (entry == null)
             {
                 return HttpNotFound();
@@ -1138,7 +1145,7 @@ namespace tahsinERP.Controllers.HR
                 if (entryId.HasValue)
                 {
                     var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
-                        .FirstOrDefaultAsync(e => e.ID == entryId.Value && (e.IsDeleted == null || e.IsDeleted == false));
+                        .FirstOrDefaultAsync(e => e.ID == entryId.Value && e.IsDeleted != true);
                     if (entry == null)
                     {
                         TempData["Error"] = "Yozuv topilmadi";
@@ -1216,7 +1223,7 @@ namespace tahsinERP.Controllers.HR
                                              e.ProductID == ProductID &&
                                              e.OperationID == OperationID &&
                                              e.WorkDate == WorkDate &&
-                                             (e.IsDeleted == null || e.IsDeleted == false));
+                                             e.IsDeleted != true);
 
                 if (existing != null)
                 {
@@ -1236,7 +1243,8 @@ namespace tahsinERP.Controllers.HR
                         WorkDate = WorkDate,
                         Quantity = Quantity,
                         CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                        CreatedDT = DateTime.Now
+                        CreatedDT = DateTime.Now,
+                        IsDeleted = false
                     };
 
                     db.HR_PIECE_RATE_WORK_ENTRIES.Add(workEntry);
@@ -1278,7 +1286,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var entry = await db.HR_PIECE_RATE_WORK_ENTRIES.FirstOrDefaultAsync(e => e.ID == id && (e.IsDeleted == null || e.IsDeleted == false));
+            var entry = await db.HR_PIECE_RATE_WORK_ENTRIES.FirstOrDefaultAsync(e => e.ID == id && e.IsDeleted != true);
             if (entry == null)
             {
                 TempData["Error"] = "Yozuv topilmadi";
@@ -1321,6 +1329,7 @@ namespace tahsinERP.Controllers.HR
                     .Where(t => t.ProductID == productId && 
                                t.OperationID == operationId && 
                                t.IsActive &&
+                               t.IsDeleted != true &&
                                t.EffectiveFrom <= tariffDate &&
                                (t.EffectiveTo == null || t.EffectiveTo >= tariffDate) &&
                                (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
@@ -1336,6 +1345,7 @@ namespace tahsinERP.Controllers.HR
                                    t.OperationID == operationId && 
                                    t.PositionID == null &&
                                    t.IsActive &&
+                                   t.IsDeleted != true &&
                                    t.EffectiveFrom <= tariffDate &&
                                    (t.EffectiveTo == null || t.EffectiveTo >= tariffDate))
                         .FirstOrDefaultAsync();
@@ -1413,7 +1423,7 @@ namespace tahsinERP.Controllers.HR
 
             var timesheet = await db.HR_TIMESHEET_HEADERS
                 .Include(t => t.HR_ORG_UNITS)
-                .FirstOrDefaultAsync(t => t.ID == id);
+                .FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted != true);
 
             if (timesheet == null)
             {
@@ -1433,7 +1443,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var timesheet = await db.HR_TIMESHEET_HEADERS.FindAsync(id);
+            var timesheet = await db.HR_TIMESHEET_HEADERS
+                .FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted != true);
             if (timesheet == null)
             {
                 return HttpNotFound();
@@ -1455,7 +1466,9 @@ namespace tahsinERP.Controllers.HR
             }
 
             // O'chirish timesheet lines birinchi
-            var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == id).ToListAsync();
+            var lines = await db.HR_TIMESHEET_LINES
+                .Where(l => l.TimesheetID == id && l.IsDeleted != true)
+                .ToListAsync();
             foreach (var line in lines)
             {
                 line.IsDeleted = true;
@@ -1493,7 +1506,7 @@ namespace tahsinERP.Controllers.HR
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Include(e => e.HR_EMPLOYEES)
                 .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
 
             if (orgUnitId.HasValue)
             {
@@ -1529,7 +1542,7 @@ namespace tahsinERP.Controllers.HR
 
             // Olish work entries uchun this period
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
 
             if (orgUnitId.HasValue)
             {
@@ -1552,7 +1565,7 @@ namespace tahsinERP.Controllers.HR
 
             // Tekshirish agar timesheet is approved
             var approval = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
-                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == orgUnitId);
+                .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == orgUnitId && a.IsDeleted != true);
 
             if (approval != null && approval.Status == "Approved")
             {

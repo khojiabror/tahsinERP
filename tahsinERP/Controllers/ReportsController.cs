@@ -640,13 +640,76 @@ namespace tahsinERP.Controllers
                                   gg => gg.Key,
                                   gg => gg.Sum(x => x.Total)));
 
-                // 5. Fakt ishlab chiqarish - PRODUCT_PRODUCTION
+                // 5. Fakt ishlab chiqarish - PRODUCT_PRODUCTION (object join orqali reja kuniga attributsiya)
+                var rangeStart = from;
+                var rangeEnd = to;
+                var prodFrom = from.AddMonths(-6);
+                var prodTo = to.AddMonths(6);
+                var linkedProductionIds = await (
+                    from qi in db.QUALITY_INSPECTION
+                    join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                    where qi.IsDeleted == false
+                          && qi.ProductionID.HasValue
+                          && pd.Day >= rangeStart
+                          && pd.Day <= rangeEnd
+                    select qi.ProductionID.Value
+                ).Distinct().ToListAsync();
+
                 var productions = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= from && p.Date <= to && (p.IsDeleted == null || p.IsDeleted == false))
+                    .Where(p => (p.IsDeleted == null || p.IsDeleted == false)
+                        && ((p.Date >= prodFrom && p.Date <= prodTo)
+                            || linkedProductionIds.Contains(p.ID)))
                     .ToListAsync();
 
+                var productionIds = productions.Select(p => p.ID).ToList();
+                var attributionDateByProductionId = new Dictionary<int, DateTime>();
+                if (productionIds.Any())
+                {
+                    var links = await (
+                        from qi in db.QUALITY_INSPECTION
+                        join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                        where qi.IsDeleted == false
+                              && qi.ProductionID.HasValue
+                              && productionIds.Contains(qi.ProductionID.Value)
+                        select new
+                        {
+                            ProductionID = qi.ProductionID.Value,
+                            PlanDay = DbFunctions.TruncateTime(pd.Day),
+                            Qty = (double?)qi.QtyInspected ?? 0
+                        }
+                    ).ToListAsync();
+
+                    attributionDateByProductionId = links
+                        .Where(x => x.PlanDay.HasValue)
+                        .GroupBy(x => x.ProductionID)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.GroupBy(x => x.PlanDay.Value)
+                                  .OrderByDescending(dayGroup => dayGroup.Sum(v => v.Qty))
+                                  .ThenByDescending(dayGroup => dayGroup.Key)
+                                  .Select(dayGroup => dayGroup.Key)
+                                  .FirstOrDefault());
+                }
+
                 var factByDateAndFg = productions
-                    .GroupBy(p => p.Date.Date)
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate >= from.Date && attributedDate <= to.Date;
+                    })
+                    .GroupBy(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate;
+                    })
                     .ToDictionary(
                         g => g.Key,
                         g => g.GroupBy(x => x.ProductID)

@@ -100,6 +100,10 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-muted mb-1">Fakt material narxi hisob izohi</label>
+                                        <textarea class="form-control tannarx-material-note" rows="8" readonly>@(string.IsNullOrWhiteSpace(Model.ActualMaterialCalculationNote) ? "Hisob izohi mavjud emas." : Model.ActualMaterialCalculationNote)</textarea>
+                                    </div>
 
                                     <h6 class="tannarx-section-title mb-2">Ish haqi va xarajatlar</h6>
                                     <div class="table-responsive mb-3">
@@ -176,6 +180,49 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @{
+                                        var exwTips = new System.Collections.Generic.List<string>();
+                                        if (Model.ActualMaterialPrice > Model.PlannedMaterialPrice)
+                                        {
+                                            exwTips.Add("material sarf harajati rejadagi normadan oshib ketdi, kamaytirish ustida bosh qotiring");
+                                        }
+                                        if (Model.ActualMaterialTransportCost > Model.PlannedMaterialTransportCost)
+                                        {
+                                            exwTips.Add("material tashuvi harajati rejadan oshib ketdi, logistika xarajatini optimallashtiring");
+                                        }
+                                        if (Model.ActualLaborCost > Model.PlannedLaborCost)
+                                        {
+                                            exwTips.Add("ish haqi harajati rejadan oshib ketdi, mehnat samaradorligini oshiring");
+                                        }
+                                        if (Model.ActualTaxAndBank > Model.PlannedTaxAndBank)
+                                        {
+                                            exwTips.Add("soliq yoki bank xizmati harajati rejadan oshib ketdi, stavka va to'lovlarni qayta ko'rib chiqing");
+                                        }
+                                        if (Model.ActualAdministrativeExpenses > Model.PlannedAdministrativeExpenses)
+                                        {
+                                            exwTips.Add("administrativ harajat rejadan oshib ketdi, ichki xarajatlarni qisqartiring");
+                                        }
+                                        if (Model.ActualOtherExpenses > Model.PlannedOtherExpenses)
+                                        {
+                                            exwTips.Add("boshqa harajatlar rejadan oshib ketdi, sababini aniqlab cheklang");
+                                        }
+                                        if (Model.ActualEXWWithoutVAT > Model.PlannedEXWWithoutVAT || Model.ActualEXWWithVAT > Model.PlannedSetPriceEXWWithVAT)
+                                        {
+                                            exwTips.Add("EXW narxi rejadan baland chiqdi, yuqoridagi oshgan bandlarni kamaytirish ustida ishlang");
+                                        }
+                                    }
+                                    @if (exwTips.Any())
+                                    {
+                                        <div class="alert alert-warning py-1 px-2 mb-3">
+                                            <i class="bx bx-info-circle"></i> Tip:
+                                            <ul class="mb-0 mt-1 pl-2">
+                                                @foreach (var msg in exwTips.Distinct())
+                                                {
+                                                    <li>@msg</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
 
                                     <h6 class="tannarx-section-title mb-2">Tayyor mahsulot tashuvi</h6>
                                     <div class="table-responsive mb-3">
@@ -231,6 +278,29 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @{
+                                        var cipTips = new System.Collections.Generic.List<string>();
+                                        if (Model.ActualFinishedProductTransportCost > Model.PlannedFinishedProductTransportCost)
+                                        {
+                                            cipTips.Add("tayyor mahsulot tashuvi rejadan oshib ketdi, yetkazib berish xarajatini optimallashtiring");
+                                        }
+                                        if (Model.ActualCIPWithoutVAT > Model.PlannedCIPWithoutVAT || Model.ActualCIPWithVAT > Model.PlannedSetPriceCIPWithVAT)
+                                        {
+                                            cipTips.Add("CIP narxi rejadan baland chiqdi, EXW va tashuv harajatlarini kamaytirish ustida ishlang");
+                                        }
+                                    }
+                                    @if (cipTips.Any())
+                                    {
+                                        <div class="alert alert-warning py-1 px-2 mb-3">
+                                            <i class="bx bx-info-circle"></i> Tip:
+                                            <ul class="mb-0 mt-1 pl-2">
+                                                @foreach (var msg in cipTips.Distinct())
+                                                {
+                                                    <li>@msg</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
 
                                     <h6 class="tannarx-section-title mb-2 mt-1">E — Foyda</h6>
                                     <div class="table-responsive">
@@ -280,8 +350,26 @@
         }
         .tannarx-metric-table tbody td { border-color: #e8ecf4; }
         .tannarx-profit-table tbody tr { background: linear-gradient(180deg, #fafbff 0%, #fff 100%); }
+        .tannarx-material-note { font-size: 12px; line-height: 1.35; background: #f8fafc; }
         /* Tema content-overlay ba'zan tugmani bosishni bloklaydi */
         .tannarx-no-pointer.content-overlay { pointer-events: none !important; }
+
+        /* Chop etishda blank page bo'lmasligi uchun: faqat print area ko'rsatiladi */
+        @@media print {
+            body * { visibility: hidden !important; }
+            #printArea, #printArea * { visibility: visible !important; }
+            #printArea {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .no-print { display: none !important; }
+        }
     </style>
 
     @* Chop etish: ~/Content/tannarx-print-tables.css — tema margin + jadval andozasi *@
@@ -291,8 +379,45 @@
         (function () {
             function printTannarxProductDetails() {
                 try {
-                    window.focus();
-                    window.print();
+                    var content = document.getElementById('printArea');
+                    if (!content) {
+                        alert('Chop etish kontenti topilmadi (#printArea).');
+                        return;
+                    }
+
+                    var printWindow = window.open('', '_blank', 'width=1200,height=900');
+                    if (!printWindow) {
+                        alert('Chop etish oynasi ochilmadi. Brauzer popup bloklagan bo\'lishi mumkin.');
+                        return;
+                    }
+
+                    var html = '<!doctype html><html><head><meta charset="utf-8">' +
+                        '<title>Tannarx chop etish</title>' +
+                        '<style>' +
+                        'body{font-family:Arial,sans-serif;margin:12px;color:#000;}' +
+                        'h4,h6{margin:8px 0;}' +
+                        'table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;}' +
+                        'th,td{border:1px solid #444;padding:6px;vertical-align:middle;}' +
+                        'th{background:#eef2f7;}' +
+                        '.text-right{text-align:right;}' +
+                        '.text-success{color:#0d6e3f;font-weight:700;}' +
+                        '.text-danger{color:#b02a37;font-weight:700;}' +
+                        '.text-muted{color:#555;}' +
+                        '.tannarx-section-title{font-weight:700;border-left:3px solid #333;padding-left:6px;}' +
+                        '.no-print{display:none !important;}' +
+                        '</style></head><body>' +
+                        content.outerHTML +
+                        '</body></html>';
+
+                    printWindow.document.open();
+                    printWindow.document.write(html);
+                    printWindow.document.close();
+
+                    printWindow.onload = function () {
+                        printWindow.focus();
+                        printWindow.print();
+                        printWindow.close();
+                    };
                 } catch (ex) {
                     console.warn('Chop etish:', ex);
                 }
@@ -325,11 +450,11 @@ else
         return "";
     }
 
-    // Sotuv narxi / foyda: fakt yuqori — yaxshi.
+    // Bir xil qoida: fakt < reja => yashil, fakt > reja => qizil.
     string PdPriceAct(decimal actual, decimal planned)
     {
-        if (actual > planned) return "text-success font-weight-bold";
-        if (actual < planned) return "text-danger font-weight-bold";
+        if (actual < planned) return "text-success font-weight-bold";
+        if (actual > planned) return "text-danger font-weight-bold";
         return "";
     }
 

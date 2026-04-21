@@ -477,7 +477,6 @@
     <Content Include="assets\manual\style.css" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\AdminSetting\DeletedRecordsController.cs" />
-    <Compile Include="Controllers\AdminSetting\DiagnosisSettingsController.cs" />
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
@@ -487,7 +486,6 @@
     <Compile Include="Controllers\CRM\SalesReportsController.cs" />
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
-    <Compile Include="Controllers\DiagnosisController.cs" />
     <Compile Include="Controllers\Engineering\NormController.cs" />
     <Compile Include="Controllers\Engineering\ProductCategoryController.cs" />
     <Compile Include="Controllers\Engineering\TannarxAnalyticsController.cs" />
@@ -994,6 +992,7 @@
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
+    <Compile Include="Services\HrTimesheetSettingsService.cs" />
     <Compile Include="Services\ReconciliationService.cs" />
     <Compile Include="Services\ReconciliationAdjustmentService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
@@ -1024,6 +1023,7 @@
     <Compile Include="Services\WordDocumentImageService.cs" />
     <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomIndexViewModel.cs" />
+    <Compile Include="ViewModels\BOM\BomMaterialSummaryViewModel.cs" />
     <Compile Include="ViewModels\BOM\BomTreeNodeViewModel.cs" />
     <Compile Include="ViewModels\CompanyOrderCreateVm.cs" />
     <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
@@ -1031,7 +1031,6 @@
     <Compile Include="ViewModels\CRMDashboardViewModel.cs" />
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
-    <Compile Include="ViewModels\DiagnosisViewModels.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\Finance\OpeningBalanceViewModel.cs" />
     <Compile Include="ViewModels\HR\HrPieceRateGridEntryViewModel.cs" />
@@ -3329,8 +3328,6 @@
     <Content Include="Views\SalesReports\SalesByCustomer.cshtml" />
     <Content Include="Views\SalesReports\SalesByProduct.cshtml" />
     <Content Include="Views\InventoryReports\MonthlyReport.cshtml" />
-    <Content Include="Views\Diagnosis\Index.cshtml" />
-    <Content Include="Views\DiagnosisSettings\Index.cshtml" />
     <Content Include="Views\OpeningBalance\Delete.cshtml" />
     <Content Include="Views\OpeningBalance\Edit.cshtml" />
     <Content Include="Views\OpeningBalance\Index.cshtml" />

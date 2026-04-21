@@ -62,6 +62,7 @@
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="timesheetId" value="@Model.ID" />
                         <input type="hidden" name="gridJson" id="timesheetGridJson" />
+                        <input type="hidden" name="fundHours" id="timesheetFundHoursHidden" />
                     }
                 }
 
@@ -94,6 +95,19 @@
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
+                            <div class="row mb-1">
+                                <div class="col-md-3">
+                                    <label>Oylik fond soati</label>
+                                    <input type="number"
+                                           id="timesheetFundHours"
+                                           class="form-control form-control-sm"
+                                           value="@Model.FundHours.ToString("0.##")"
+                                           min="1"
+                                           max="744"
+                                           step="0.01"
+                                           @(Model.Status != "Draft" ? "readonly" : "") />
+                                </div>
+                            </div>
                             <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                                 <table class="table table-bordered table-striped" id="timesheetGrid">
                                     <thead class="thead-light" style="position: sticky; top: 0; z-index: 10; background: white;">
@@ -215,6 +229,24 @@
                                             rowNum++;
                                         }
                                     </tbody>
+                                    <tfoot>
+                                        <tr class="font-weight-bold table-light">
+                                            <td colspan="@(5 + daysInMonth)" class="text-right">Jami qo'shimcha soat:</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td id="totalOvertimeHours">@Model.Lines.Sum(l => l.OvertimeHours).ToString("F2")</td>
+                                            <td></td>
+                                            @if (Model.Lines.Any(l => l.IsPieceRate))
+                                            {
+                                                <td></td>
+                                                <td></td>
+                                            }
+                                            @if (Model.Status == "Draft")
+                                            {
+                                                <td></td>
+                                            }
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
@@ -333,6 +365,7 @@ else
             });
             var payload = { Hours: hours, Quantities: quantities, Products: products };
             $('#timesheetGridJson').val(JSON.stringify(payload));
+            $('#timesheetFundHoursHidden').val($('#timesheetFundHours').val());
             $('#timesheetSaveForm').submit();
         }
 
@@ -473,6 +506,15 @@ else
             $row.find('.overtime-hours').text(overtimeHours.toFixed(2));
             $row.find('.absent-days').text(absentDays.toFixed(1));
             $row.find('.total-quantity').text(totalQuantity.toFixed(2));
+            refreshOvertimeTotal();
+        }
+
+        function refreshOvertimeTotal() {
+            var total = 0;
+            $('.overtime-hours').each(function() {
+                total += parseFloat($(this).text()) || 0;
+            });
+            $('#totalOvertimeHours').text(total.toFixed(2));
         }
 
         function importFromProduction() {

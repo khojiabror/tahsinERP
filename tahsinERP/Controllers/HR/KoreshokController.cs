@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
@@ -12,6 +13,14 @@ namespace tahsinERP.Controllers.HR
     public class KoreshokController : Controller
     {
         private readonly DBTHSNEntities db = new DBTHSNEntities();
+        private readonly HrEmployeeAllowanceService allowanceService;
+        private readonly HrTimesheetSettingsService timesheetSettingsService;
+
+        public KoreshokController()
+        {
+            allowanceService = new HrEmployeeAllowanceService(db);
+            timesheetSettingsService = new HrTimesheetSettingsService(db);
+        }
 
         [AllowAnonymous]
         public async Task<ActionResult> Index()
@@ -148,13 +157,37 @@ namespace tahsinERP.Controllers.HR
             }
 
             // To'langan summa (xodimga bog'langan moliyaviy chiqimlardan)
-            var paidTotal = await db.FIN_TRANSACTIONS
+            var directPaidTotal = await db.FIN_TRANSACTIONS
                 .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
                             t.Direction != 1 && // real bazada ba'zi chiqimlar 2 dan boshqa qiymatlarda ham uchrashi mumkin
                             ((t.CounterpartyID.HasValue && t.CounterpartyID == employeeId) ||
                              (!t.CounterpartyID.HasValue && t.CounterpartyName != null && t.CounterpartyName.Contains(employee.FullName))) &&
                             t.TxnDate >= from.Date && t.TxnDate < toExclusive)
                 .SumAsync(t => (decimal?)t.Amount) ?? 0m;
+
+            // Payroll postlari ko'pincha "Xodimlar" kontragenti bilan umumiy o'tadi.
+            // Bunday holatda FinTransactions orqali payroll ID ni topib, xodim kesimidagi net summani olamiz.
+            var payrollTxnIds = await db.FIN_TRANSACTIONS
+                .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
+                            t.Direction != 1 &&
+                            t.SourceDocType == "HR_PAYROLL" &&
+                            t.SourceDocID.HasValue &&
+                            t.TxnDate >= from.Date && t.TxnDate < toExclusive)
+                .Select(t => t.SourceDocID.Value)
+                .Distinct()
+                .ToListAsync();
+
+            decimal postedPayrollPaid = 0m;
+            if (payrollTxnIds.Any())
+            {
+                postedPayrollPaid = await db.HR_PAYROLL_LINES
+                    .Where(l => payrollTxnIds.Contains(l.PayrollID) &&
+                                l.EmployeeID == employeeId &&
+                                (l.IsDeleted == null || l.IsDeleted == false))
+                    .SumAsync(l => (decimal?)l.NetSalary) ?? 0m;
+            }
+
+            var paidTotal = directPaidTotal + postedPayrollPaid;
 
             if (result.TotalCalculated > 0)
             {
@@ -173,7 +206,7 @@ namespace tahsinERP.Controllers.HR
             result.PieceBalance = result.PieceCalculated - result.PiecePaid;
 
             result.Notes.Add("Hisoblangan: avvalo ish haqi (payroll) bo'yicha; payroll bo'lmasa soatbay tabel + shtat rejasi (HrPayroll bilan bir xil formula), ishbay esa ishbay yozuvlar va tariflar bo'yicha.");
-            result.Notes.Add("Eslatma: to'langan summa xodimga bog'langan moliyaviy chiqimlardan olinadi.");
+            result.Notes.Add("Eslatma: to'langan summa FinTransactions'dagi xodimga bog'langan chiqimlar + HR_PAYROLL postlari bo'yicha xodim net summasidan olinadi.");
             result.Notes.Add("Agar oyliklar umumiy provodka bilan (xodim IDsiz) o'tkazilgan bo'lsa, to'lovlar to'liq chiqmasligi mumkin.");
 
             return View(result);
@@ -190,6 +223,13 @@ namespace tahsinERP.Controllers.HR
                 .ToListAsync();
 
             decimal totalGross = 0;
+            var allowanceRow = allowanceService.GetByEmployeeId(employee.ID);
+            var allowancePercent = 0m;
+            if (allowanceRow != null)
+            {
+                allowancePercent = Math.Max(0, allowanceRow.MaterialResponsibilityPercent) +
+                                   Math.Max(0, allowanceRow.SpecialAllowancePercent);
+            }
 
             foreach (var line in lines)
             {
@@ -223,21 +263,14 @@ namespace tahsinERP.Controllers.HR
                         sp.EffectiveFrom <= refDate && (sp.EffectiveTo == null || sp.EffectiveTo >= refDate));
 
                 decimal baseSalary = employee.BaseSalary ?? 0;
-                decimal gross = 0;
-                decimal hourlyRate = 0;
-
-                if (staffingPlan != null)
-                {
-                    if (staffingPlan.IsFixedSalary)
-                        gross = baseSalary * (workedDaysInRange / daysInMonth);
-                    else if (staffingPlan.IsHourly)
-                    {
-                        hourlyRate = baseSalary / 160m;
-                        gross = hourlyRate * hoursInRange;
-                    }
-                }
-                else
-                    gross = baseSalary * (workedDaysInRange / daysInMonth);
+                decimal monthlyCompensation = baseSalary + (baseSalary * allowancePercent / 100m);
+                decimal monthFundHours = timesheetSettingsService.GetFundHoursOrDefault(h.ID);
+                decimal hourlyRate = monthFundHours > 0 ? monthlyCompensation / monthFundHours : 0;
+                decimal overtimeHours = line.OvertimeHours ?? 0;
+                if (overtimeHours < 0) overtimeHours = 0;
+                if (overtimeHours > hoursInRange) overtimeHours = hoursInRange;
+                decimal normalHours = Math.Max(0m, hoursInRange - overtimeHours);
+                decimal gross = (normalHours * hourlyRate) + (overtimeHours * hourlyRate * 1.5m);
 
                 totalGross += gross;
             }

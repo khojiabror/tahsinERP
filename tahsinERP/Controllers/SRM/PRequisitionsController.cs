@@ -333,7 +333,7 @@ namespace tahsinERP.Controllers.SRM
             var prefix = $"PR-{year}-";
 
             var lastRequisition = await db.P_REQUISITIONS
-                .Where(r => r.RequisitionNo.StartsWith(prefix))
+                .Where(r => r.IsDeleted != true && r.RequisitionNo != null && r.RequisitionNo.StartsWith(prefix))
                 .OrderByDescending(r => r.RequisitionNo)
                 .FirstOrDefaultAsync();
 

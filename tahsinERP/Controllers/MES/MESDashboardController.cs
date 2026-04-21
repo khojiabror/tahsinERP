@@ -62,16 +62,6 @@ namespace tahsinERP.Controllers.MES
                     .Where(d => d.Day >= startDate && d.Day <= endDate && d.PRODUCTPLAN.IsDeleted == false)
                     .SumAsync(d => (double?)d.Total) ?? 0;
 
-                var periodActual = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate
-                        && (p.IsDeleted == false || p.IsDeleted == null))
-                    .SumAsync(p => (double?)p.Total) ?? 0;
-
-                viewModel.TodayPlanned = periodPlanned;
-                viewModel.TodayActual = periodActual;
-                viewModel.TodayPlanVsActualPercent = periodPlanned > 0 ? (periodActual / periodPlanned) * 100 : 0;
-
-                // Secondary period KPIs (month yoki year summary)
                 DateTime secondaryStart;
                 DateTime secondaryEnd;
                 if (selectedMonth.HasValue && selectedDay.HasValue)
@@ -85,30 +75,88 @@ namespace tahsinERP.Controllers.MES
                     secondaryEnd = new DateTime(selectedYear, 12, 31);
                 }
 
+                var chartStartDate = startDate;
+                var chartEndDate = endDate;
+
+                var effectiveStart = new[] { startDate, secondaryStart, chartStartDate }.Min();
+                var effectiveEnd = new[] { endDate, secondaryEnd, chartEndDate }.Max();
+                var loadStart = effectiveStart.AddMonths(-6);
+                var loadEnd = effectiveEnd.AddMonths(6);
+
+                var linkedProductionIds = await (
+                    from qi in db.QUALITY_INSPECTION
+                    join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                    where qi.IsDeleted == false
+                          && qi.ProductionID.HasValue
+                          && pd.Day >= effectiveStart
+                          && pd.Day <= effectiveEnd
+                    select qi.ProductionID.Value
+                ).Distinct().ToListAsync();
+
+                var productionCandidates = await db.PRODUCT_PRODUCTION
+                    .Include(p => p.SHOP)
+                    .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
+                        && ((p.Date >= loadStart && p.Date <= loadEnd)
+                            || linkedProductionIds.Contains(p.ID)))
+                    .ToListAsync();
+
+                var attributionDateByProductionId = await BuildAttributionDateMapAsync(
+                    db,
+                    productionCandidates.Select(p => p.ID).ToList());
+
+                var periodActual = productionCandidates
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate >= startDate.Date && attributedDate <= endDate.Date;
+                    })
+                    .Sum(p => (double?)p.Total) ?? 0;
+
+                viewModel.TodayPlanned = periodPlanned;
+                viewModel.TodayActual = periodActual;
+                viewModel.TodayPlanVsActualPercent = periodPlanned > 0 ? (periodActual / periodPlanned) * 100 : 0;
+
+                // Secondary period KPIs (month yoki year summary)
                 var secondaryPlanned = await db.PRODUCTPLANS_DAILY
                     .Where(d => d.Day >= secondaryStart && d.Day <= secondaryEnd && d.PRODUCTPLAN.IsDeleted == false)
                     .SumAsync(d => (double?)d.Total) ?? 0;
 
-                var secondaryActual = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= secondaryStart && p.Date <= secondaryEnd
-                        && (p.IsDeleted == false || p.IsDeleted == null))
-                    .SumAsync(p => (double?)p.Total) ?? 0;
+                var secondaryActual = productionCandidates
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate >= secondaryStart.Date && attributedDate <= secondaryEnd.Date;
+                    })
+                    .Sum(p => (double?)p.Total) ?? 0;
 
                 viewModel.MonthPlanned = secondaryPlanned;
                 viewModel.MonthActual = secondaryActual;
                 viewModel.MonthPlanVsActualPercent = secondaryPlanned > 0 ? (secondaryActual / secondaryPlanned) * 100 : 0;
 
                 // Daily Plan vs Actual Chart (selected period)
-                var chartStartDate = startDate;
-                var chartEndDate = endDate;
                 var dailyPlans = await db.PRODUCTPLANS_DAILY
                     .Where(d => d.Day >= chartStartDate && d.Day <= chartEndDate && d.PRODUCTPLAN.IsDeleted == false)
                     .ToListAsync();
 
-                var dailyActuals = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= chartStartDate && p.Date <= chartEndDate
-                        && (p.IsDeleted == false || p.IsDeleted == null))
-                    .ToListAsync();
+                var dailyActuals = productionCandidates
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate >= chartStartDate.Date && attributedDate <= chartEndDate.Date;
+                    })
+                    .ToList();
 
                 // Group by date in memory (after ToListAsync)
                 var dailyPlansGrouped = dailyPlans
@@ -117,7 +165,15 @@ namespace tahsinERP.Controllers.MES
                     .ToList();
 
                 var dailyActualsGrouped = dailyActuals
-                    .GroupBy(p => p.Date.Date)
+                    .GroupBy(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate;
+                    })
                     .Select(g => new { Date = g.Key, Actual = g.Sum(p => p.Total) })
                     .ToList();
 
@@ -134,13 +190,20 @@ namespace tahsinERP.Controllers.MES
                     Actual = dailyActualsGrouped.FirstOrDefault(a => a.Date == date)?.Actual ?? 0
                 }).ToList();
 
-                // Production by Shop
-                var productionByShop = await db.PRODUCT_PRODUCTION
-                    .Where(p => p.Date >= startDate && p.Date <= endDate
-                        && (p.IsDeleted == false || p.IsDeleted == null))
-                    .GroupBy(p => new { p.ShopID, p.SHOP.ShopName })
+                // Production by Shop (attribution sanasi — reja kuni bilan mos)
+                var productionByShop = productionCandidates
+                    .Where(p =>
+                    {
+                        DateTime attributedDate;
+                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
+                        {
+                            attributedDate = p.Date.Date;
+                        }
+                        return attributedDate >= startDate.Date && attributedDate <= endDate.Date;
+                    })
+                    .GroupBy(p => new { p.ShopID, ShopName = p.SHOP != null ? p.SHOP.ShopName : null })
                     .Select(g => new { g.Key.ShopID, g.Key.ShopName, Total = g.Sum(p => p.Total) })
-                    .ToListAsync();
+                    .ToList();
 
                 viewModel.ProductionByShop = productionByShop.Select(s => new ProductionByShopData
                 {
@@ -267,6 +330,39 @@ namespace tahsinERP.Controllers.MES
 
                 return View(viewModel);
             }
+        }
+
+        private static async Task<Dictionary<int, DateTime>> BuildAttributionDateMapAsync(DBTHSNEntities db, List<int> productionIds)
+        {
+            if (productionIds == null || productionIds.Count == 0)
+            {
+                return new Dictionary<int, DateTime>();
+            }
+
+            var links = await (
+                from qi in db.QUALITY_INSPECTION
+                join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
+                where qi.IsDeleted == false
+                      && qi.ProductionID.HasValue
+                      && productionIds.Contains(qi.ProductionID.Value)
+                select new
+                {
+                    ProductionID = qi.ProductionID.Value,
+                    PlanDay = DbFunctions.TruncateTime(pd.Day),
+                    Qty = (double?)qi.QtyInspected ?? 0
+                }
+            ).ToListAsync();
+
+            return links
+                .Where(x => x.PlanDay.HasValue)
+                .GroupBy(x => x.ProductionID)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.GroupBy(x => x.PlanDay.Value)
+                          .OrderByDescending(dayGroup => dayGroup.Sum(v => v.Qty))
+                          .ThenByDescending(dayGroup => dayGroup.Key)
+                          .Select(dayGroup => dayGroup.Key)
+                          .FirstOrDefault());
         }
     }
 }

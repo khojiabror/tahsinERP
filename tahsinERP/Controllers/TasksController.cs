@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -313,21 +314,26 @@ namespace tahsinERP.Controllers
                             var projectCode = viewModel.ProjectID.HasValue 
                                 ? (await db.APP_TASK_PROJECTS.FindAsync(viewModel.ProjectID.Value))?.Code ?? "TASK"
                                 : "TASK";
-                            var maxKey = await db.APP_TASKS
-                                .Where(t => t.KeyCode != null && t.KeyCode.StartsWith(projectCode))
+
+                            // String sort o'rniga raqam suffixni ajratib, maksimalini olamiz.
+                            // Masalan: TASK-9, TASK-10, TASK-11 -> keyingisi TASK-12 bo'ladi.
+                            var codePrefix = (projectCode ?? "TASK").Trim();
+                            var keyPattern = new Regex("^" + Regex.Escape(codePrefix) + "-(\\d+)$", RegexOptions.IgnoreCase);
+                            var existingKeys = await db.APP_TASKS
+                                .Where(t => t.KeyCode != null && t.KeyCode.StartsWith(codePrefix + "-"))
                                 .Select(t => t.KeyCode)
-                                .OrderByDescending(k => k)
-                                .FirstOrDefaultAsync();
-                            
-                            int nextNumber = 1;
-                            if (maxKey != null)
-                            {
-                                var parts = maxKey.Split('-');
-                                if (parts.Length > 1 && int.TryParse(parts[parts.Length - 1], out int lastNum))
+                                .ToListAsync();
+
+                            var maxNumber = existingKeys
+                                .Select(k =>
                                 {
-                                    nextNumber = lastNum + 1;
-                                }
-                            }
+                                    var m = keyPattern.Match(k ?? "");
+                                    return m.Success ? int.Parse(m.Groups[1].Value) : 0;
+                                })
+                                .DefaultIfEmpty(0)
+                                .Max();
+
+                            int nextNumber = maxNumber + 1;
                             task.KeyCode = $"{projectCode}-{nextNumber}";
                         }
                         else
