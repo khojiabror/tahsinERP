@@ -136,14 +136,76 @@ namespace tahsinERP.Controllers
 
     public static class SRMDashboardHelper
     {
+        private class OpeningContractPayableRow
+        {
+            public int CounterpartyID { get; set; }
+            public string ContractNo { get; set; }
+            public decimal Amount { get; set; }
+        }
+
         public static List<SupplierOutstandingItem> GetSupplierOutstanding(DBTHSNEntities db, DateTime asOfDate)
         {
             Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
-            var invoices = db.P_INVOICES
-                .Where(i => i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
+            DateTime? effectiveFrom = null;
+            try
+            {
+                effectiveFrom = db.Database.SqlQuery<DateTime?>(
+                    "SELECT MAX(SnapshotDate) FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate <= @p0 AND BalanceType = 2",
+                    new System.Data.SqlClient.SqlParameter("@p0", asOfDate.Date)).FirstOrDefault();
+            }
+            catch { }
+            if (!effectiveFrom.HasValue)
+            {
+                effectiveFrom = db.FIN_BALANCE_SNAPSHOTS
+                    .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= asOfDate)
+                    .OrderByDescending(s => s.SnapshotDate)
+                    .Select(s => (DateTime?)s.SnapshotDate)
+                    .FirstOrDefault();
+            }
+
+            var invoicesQuery = db.P_INVOICES
+                .Where(i => i.InvoiceDate <= asOfDate &&
+                            (i.IsDeleted == null || i.IsDeleted == false));
+            if (effectiveFrom.HasValue)
+            {
+                var fromDate = effectiveFrom.Value;
+                invoicesQuery = invoicesQuery.Where(i =>
+                    i.InvoiceDate > fromDate ||
+                    db.INCOMES.Any(inc => inc.InvoiceID == i.ID &&
+                                          inc.IssueDateTime > fromDate &&
+                                          inc.IssueDateTime <= asOfDate &&
+                                          (inc.IsDeleted == null || inc.IsDeleted == false)));
+            }
+
+            var invoices = invoicesQuery
                 .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.InvoiceDate, i.Amount })
                 .ToList()
                 .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.InvoiceDate, Amount = Convert.ToDecimal(i.Amount) })
+                .ToList();
+
+            var invoiceIds = invoices.Select(i => i.ID).ToList();
+            var incomeTotalsByInvoice = invoiceIds.Count == 0
+                ? new Dictionary<int, decimal>()
+                : db.INCOMES
+                    .Where(inc => inc.InvoiceID.HasValue &&
+                                  invoiceIds.Contains(inc.InvoiceID.Value) &&
+                                  inc.IsDeleted != true &&
+                                  inc.TotalPrice.HasValue &&
+                                  inc.IssueDateTime <= asOfDate)
+                    .GroupBy(inc => inc.InvoiceID.Value)
+                    .Select(g => new { InvoiceID = g.Key, Total = g.Sum(x => x.TotalPrice.Value) })
+                    .ToList()
+                    .ToDictionary(x => x.InvoiceID, x => Convert.ToDecimal(x.Total));
+
+            invoices = invoices
+                .Select(i => new
+                {
+                    i.ID,
+                    i.SupplierID,
+                    i.ContractID,
+                    i.InvoiceDate,
+                    Amount = incomeTotalsByInvoice.ContainsKey(i.ID) ? incomeTotalsByInvoice[i.ID] : i.Amount
+                })
                 .ToList();
 
             var contractIds = invoices.Select(i => i.ContractID).Distinct().ToList();
@@ -155,64 +217,127 @@ namespace tahsinERP.Controllers
                     .ToList()
                     .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
 
-            // Balansdagi CalculateSupplierOutstanding bilan mos: ta'minotchi ko'rsatilgan barcha chiqimlar.
-            var payments = db.FIN_TRANSACTIONS
-                .Where(t => t.TxnDate <= asOfDate && t.Direction == 2 && t.CounterpartyType == 2 &&
-                    t.CounterpartyID.HasValue && (t.IsDeleted == null || t.IsDeleted == false) &&
-                    (t.SourceDocType == null || (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")))
-                .Select(t => new { t.ID, SupplierID = t.CounterpartyID.Value, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
-                .ToList();
-
-            var invoiceRemaining = invoices.ToDictionary(i => i.ID, i => i.Amount);
-            var invoiceBySupplier = invoices
-                .GroupBy(i => new { i.SupplierID, ContractNo = contractNoById.ContainsKey(i.ContractID) ? contractNoById[i.ContractID] : "" })
-                .ToDictionary(g => Tuple.Create(g.Key.SupplierID, g.Key.ContractNo), g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
-
-            var paymentRemainders = new List<(int SupplierID, string ContractNo, DateTime TxnDate, decimal Amount)>();
-            foreach (var payment in payments)
+            var invoiceWork = invoices.Select(i => new
             {
-                var remaining = payment.Amount;
-                if (payment.SourceDocType == "PurchaseInvoicePayment" && payment.SourceDocID.HasValue &&
-                    invoiceRemaining.ContainsKey(payment.SourceDocID.Value))
-                {
-                    var invBal = invoiceRemaining[payment.SourceDocID.Value];
-                    var applied = Math.Min(invBal, remaining);
-                    invoiceRemaining[payment.SourceDocID.Value] = invBal - applied;
-                    remaining -= applied;
-                }
-                if (remaining > 0)
-                    paymentRemainders.Add((payment.SupplierID, normalize(payment.ContractNo), payment.TxnDate, remaining));
-            }
+                i.ID,
+                i.SupplierID,
+                i.InvoiceDate,
+                i.Amount,
+                ContractNo = contractNoById.ContainsKey(i.ContractID) ? contractNoById[i.ContractID] : ""
+            }).ToList();
 
-            foreach (var g in paymentRemainders.GroupBy(p => Tuple.Create(p.SupplierID, p.ContractNo)))
+            if (effectiveFrom.HasValue)
             {
-                if (!invoiceBySupplier.ContainsKey(g.Key)) continue;
-                var queue = new Queue<int>(invoiceBySupplier[g.Key]);
-                foreach (var pay in g.OrderBy(p => p.TxnDate))
+                try
                 {
-                    var remaining = pay.Amount;
-                    while (remaining > 0 && queue.Count > 0)
+                    var openingRows = db.Database.SqlQuery<OpeningContractPayableRow>(
+                        "SELECT CounterpartyID, ContractNo, Amount FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate = @p0 AND BalanceType = 2",
+                        new System.Data.SqlClient.SqlParameter("@p0", effectiveFrom.Value.Date))
+                        .ToList();
+
+                    var nextOpeningId = -1;
+                    foreach (var row in openingRows.Where(x => x.CounterpartyID > 0 && x.Amount > 0))
                     {
-                        var invId = queue.Peek();
-                        var invBal = invoiceRemaining[invId];
-                        if (invBal <= 0) { queue.Dequeue(); continue; }
-                        var applied = Math.Min(invBal, remaining);
-                        invoiceRemaining[invId] -= applied;
-                        remaining -= applied;
-                        if (invoiceRemaining[invId] <= 0) queue.Dequeue();
+                        invoiceWork.Add(new
+                        {
+                            ID = nextOpeningId--,
+                            SupplierID = row.CounterpartyID,
+                            InvoiceDate = effectiveFrom.Value,
+                            Amount = row.Amount,
+                            ContractNo = normalize(row.ContractNo)
+                        });
                     }
                 }
+                catch { }
             }
 
-            return invoices
-                .GroupBy(i => i.SupplierID)
-                .Select(g => new SupplierOutstandingItem
-                {
-                    SupplierID = g.Key,
-                    Outstanding = g.Sum(i => invoiceRemaining[i.ID])
-                })
-                .Where(x => x.Outstanding > 0)
+            var payments = db.FIN_TRANSACTIONS
+                .Where(t => t.TxnDate <= asOfDate &&
+                    (!effectiveFrom.HasValue || t.TxnDate > effectiveFrom.Value) &&
+                    (t.IsDeleted == null || t.IsDeleted == false) &&
+                    (t.SourceDocType == null || (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")) &&
+                    (
+                        // Standard supplier payments
+                        (t.Direction == 2 && t.CounterpartyType == 2 && t.CounterpartyID.HasValue)
+                        // Linked invoice payments should be considered even if counterparty fields are partially empty
+                        || (t.SourceDocType == "PurchaseInvoicePayment" && t.SourceDocID.HasValue)
+                    ))
+                .Select(t => new { t.ID, t.CounterpartyID, t.TxnDate, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .ToList();
+
+            var linkedInvoiceIds = payments
+                .Where(p => p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue)
+                .Select(p => p.SourceDocID.Value)
+                .Distinct()
+                .ToList();
+
+            var invoiceMetaById = linkedInvoiceIds.Count == 0
+                ? new Dictionary<int, Tuple<int, string>>()
+                : db.P_INVOICES
+                    .Where(i => linkedInvoiceIds.Contains(i.ID))
+                    .Select(i => new { i.ID, i.SupplierID, i.ContractID })
+                    .ToList()
+                    .ToDictionary(
+                        x => x.ID,
+                        x => Tuple.Create(
+                            x.SupplierID,
+                            contractNoById.ContainsKey(x.ContractID) ? contractNoById[x.ContractID] : ""));
+
+            var invoiceTotalsByKey = invoiceWork
+                .GroupBy(i => Tuple.Create(i.SupplierID, i.ContractNo))
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+            var paymentTotalsByKey = payments
+                .Select(p =>
+                {
+                    if (!p.CounterpartyID.HasValue) return null;
+
+                    var supplierId = p.CounterpartyID.Value;
+                    var contractNo = normalize(p.ContractNo);
+                    var valid = false;
+
+                    if (p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue && invoiceMetaById.ContainsKey(p.SourceDocID.Value))
+                    {
+                        var meta = invoiceMetaById[p.SourceDocID.Value];
+                        supplierId = meta.Item1;
+                        contractNo = meta.Item2;
+                        valid = true;
+                    }
+                    else if (!string.IsNullOrEmpty(contractNo))
+                    {
+                        valid = true;
+                    }
+
+                    if (!valid) return null;
+                    return new { SupplierID = supplierId, ContractNo = contractNo, Amount = Math.Abs(p.Amount) };
+                })
+                .Where(x => x != null)
+                .GroupBy(x => Tuple.Create(x.SupplierID, x.ContractNo))
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+            var allKeys = invoiceTotalsByKey.Keys.Union(paymentTotalsByKey.Keys).ToList();
+            var supplierIds = allKeys.Select(k => k.Item1).Distinct().ToList();
+            var result = new List<SupplierOutstandingItem>();
+
+            foreach (var supplierId in supplierIds)
+            {
+                var invoiceTotal = allKeys
+                    .Where(k => k.Item1 == supplierId && invoiceTotalsByKey.ContainsKey(k))
+                    .Sum(k => invoiceTotalsByKey[k]);
+                var paymentTotal = allKeys
+                    .Where(k => k.Item1 == supplierId && paymentTotalsByKey.ContainsKey(k))
+                    .Sum(k => paymentTotalsByKey[k]);
+
+                var outstanding = invoiceTotal - paymentTotal;
+                if (outstanding <= 0) continue;
+                result.Add(new SupplierOutstandingItem
+                {
+                    SupplierID = supplierId,
+                    Outstanding = outstanding
+                });
+            }
+
+            return result;
         }
     }
 

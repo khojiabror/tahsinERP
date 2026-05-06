@@ -154,15 +154,23 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            var changePermit = @(changePermit ? "true" : "false");
+        (function () {
+            function initSContractTable() {
+                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initSContractTable, 100);
+                    return;
+                }
+                var $ = window.jQuery;
+                if (!$('#contractDataTable').length) return;
+
+                var changePermit = @(changePermit ? "true" : "false");
             
-            var columnDefs = [];
-            if (changePermit) {
-                columnDefs.push({ "orderable": false, "targets": -1 });
-            }
+                var columnDefs = [];
+                if (changePermit) {
+                    columnDefs.push({ "orderable": false, "targets": -1 });
+                }
             
-            $('#contractDataTable').DataTable({
+                $('#contractDataTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -240,7 +248,14 @@
                 ],
                 "scrollX": true
             });
-        });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSContractTable);
+            } else {
+                initSContractTable();
+            }
+        })();
     </script>
 }
 else

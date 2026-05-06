@@ -93,9 +93,38 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                ViewBag.ContractVatRate = await CalculateContractVatRateAsync(db, order.ContractID);
                 ViewBag.BomVersionNotes = BuildBomVersionNotes(order);
                 return View(order);
             }
+        }
+
+        private static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
+        {
+            if (!contractId.HasValue || contractId.Value <= 0)
+            {
+                return 12d;
+            }
+
+            var contractProducts = await db.P_CONTRACT_PRODUCTS
+                .Where(p => p.ContractID == contractId.Value)
+                .Select(p => new { p.Price, p.Quantity, p.Amount })
+                .ToListAsync();
+
+            var baseAmount = contractProducts.Sum(x => x.Price * x.Quantity);
+            if (baseAmount <= 0)
+            {
+                return 12d;
+            }
+
+            var totalAmount = contractProducts.Sum(x => x.Amount);
+            var rate = ((totalAmount - baseAmount) / baseAmount) * 100d;
+            if (double.IsNaN(rate) || double.IsInfinity(rate) || rate < 0)
+            {
+                return 12d;
+            }
+
+            return Math.Round(rate, 2);
         }
 
         private static List<string> BuildBomVersionNotes(P_ORDERS order)
@@ -208,6 +237,7 @@ namespace tahsinERP.Controllers
                     await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
                     "ID", "Name"
                 );
+                ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
 
                 // Standart kompaniyani olish (birinchi faol kompaniya)
                 var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
@@ -259,7 +289,10 @@ namespace tahsinERP.Controllers
                     ViewBag.Employees = new SelectList(employees, "ID", "FullName", requisition.RequesterID);
                 }
 
-                return View();
+                return View(new POrderCreateViewModel
+                {
+                    RequisitionID = requisition?.ID
+                });
             }
         }
 
@@ -398,12 +431,6 @@ namespace tahsinERP.Controllers
                             var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                             var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
 
-                            int? supplierId = model.SupplierID;
-                            if (!supplierId.HasValue || supplierId.Value <= 0)
-                            {
-                                supplierId = null;
-                            }
-
                             // Xarid turini aniqlash
                             byte purchaseType = 0; // Standart: Bevosita
                             int? requisitionId = null;
@@ -413,18 +440,30 @@ namespace tahsinERP.Controllers
                             string purpose = null;
 
                             // Buyurtma talabnoma asosida yaratilganini tekshirish
-                            if (Request.Form["RequisitionID"] != null && int.TryParse(Request.Form["RequisitionID"], out int reqId))
+                            if (model.RequisitionID.HasValue)
                             {
-                                var requisition = await db.P_REQUISITIONS.FindAsync(reqId);
+                                var requisition = await db.P_REQUISITIONS.FindAsync(model.RequisitionID.Value);
                                 if (requisition != null)
                                 {
                                     purchaseType = 1; // Bilvosita
-                                    requisitionId = reqId;
+                                    requisitionId = requisition.ID;
                                     departmentId = requisition.DepartmentID;
                                     requesterId = requisition.RequesterID;
                                     contactPhone = requisition.ContactPhone;
                                     purpose = requisition.Purpose;
                                 }
+                            }
+
+                            var supplierId = model.SupplierID;
+                            if (purchaseType == 0 || !supplierId.HasValue || supplierId.Value <= 0)
+                            {
+                                supplierId = null;
+                            }
+
+                            int? contractId = model.ContractID;
+                            if (purchaseType == 0 || !contractId.HasValue || contractId.Value <= 0)
+                            {
+                                contractId = null;
                             }
 
                             // Buyurtma sarlavhasini yaratish
@@ -434,7 +473,7 @@ namespace tahsinERP.Controllers
                                 IssuedDate = model.IssuedDate,
                                 CompanyID = companyId,
                                 SupplierID = supplierId,
-                                ContractID = model.ContractID,
+                                ContractID = contractId,
                                 CurrencyID = model.CurrencyID ?? 0,
                                 Description = model.Description,
                                 IsDeleted = false,
@@ -568,6 +607,9 @@ namespace tahsinERP.Controllers
             // Xatolikda ViewBag qiymatlarini qayta ga'ldirish
             using (var db = new DBTHSNEntities())
             {
+                bool isIndirect = model.RequisitionID.HasValue;
+                ViewBag.PurchaseType = isIndirect ? 1 : 0;
+
                 var salesOrders = await db.S_ORDERS
                     .Include(o => o.CUSTOMER)
                     .Where(o => o.IsDeleted != true)
@@ -577,13 +619,29 @@ namespace tahsinERP.Controllers
 
                 ViewBag.SalesOrders = new MultiSelectList(
                     salesOrders.Select(so => new { ID = so.ID, DisplayText = $"{so.OrderNo} - {so.CustomerName}" }),
-                    "ID", "DisplayText"
+                    "ID", "DisplayText",
+                    model.SelectedSalesOrderIds
                 );
 
                 ViewBag.Suppliers = new SelectList(
                     await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name", model.SupplierID
+                    "ID", "Name", isIndirect ? model.SupplierID : null
                 );
+                if (isIndirect && model.SupplierID.HasValue)
+                {
+                    var createContracts = await db.P_CONTRACTS
+                        .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
+                        .OrderByDescending(c => c.IssuedDate)
+                        .Select(c => new { c.ID, c.ContractNo })
+                        .ToListAsync();
+                    ViewBag.Contracts = new SelectList(createContracts, "ID", "ContractNo", model.ContractID);
+                }
+                else
+                {
+                    ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
+                    model.SupplierID = null;
+                    model.ContractID = null;
+                }
 
                 ViewBag.Companies = new SelectList(
                     await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
@@ -670,7 +728,7 @@ namespace tahsinERP.Controllers
                     IssuedDate = order.IssuedDate,
                     CompanyID = order.CompanyID ?? 0,
                     SupplierID = order.SupplierID,
-                    ContractID = order.ContractID ?? 0,
+                    ContractID = order.ContractID,
                     CurrencyID = order.CurrencyID ?? 0,
                     Description = order.Description,
                     OrderProducts = order.P_ORDER_PRODUCTS.Select(op => new POrderProductViewModel
@@ -689,10 +747,27 @@ namespace tahsinERP.Controllers
                     }).ToList()
                 };
 
+                bool isDirectOrder = order.PurchaseType == 0;
+                ViewBag.IsDirectOrder = isDirectOrder;
                 ViewBag.Suppliers = new SelectList(
                     await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name", model.SupplierID
+                    "ID", "Name", isDirectOrder ? null : model.SupplierID
                 );
+                if (!isDirectOrder && model.SupplierID.HasValue)
+                {
+                    var editContracts = await db.P_CONTRACTS
+                        .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
+                        .OrderByDescending(c => c.IssuedDate)
+                        .Select(c => new { c.ID, c.ContractNo })
+                        .ToListAsync();
+                    ViewBag.Contracts = new SelectList(editContracts, "ID", "ContractNo", model.ContractID);
+                }
+                else
+                {
+                    ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
+                    model.SupplierID = null;
+                    model.ContractID = null;
+                }
 
                 ViewBag.Companies = new SelectList(
                     await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
@@ -753,14 +828,21 @@ namespace tahsinERP.Controllers
 
                         order.IssuedDate = model.IssuedDate;
                         order.CompanyID = companyId;
+                        bool isDirectOrder = order.PurchaseType == 0;
                         int? supplierId = model.SupplierID;
-                        if (!supplierId.HasValue || supplierId.Value <= 0)
+                        if (isDirectOrder || !supplierId.HasValue || supplierId.Value <= 0)
                         {
                             supplierId = null;
                         }
 
+                        int? contractId = model.ContractID;
+                        if (isDirectOrder || !contractId.HasValue || contractId.Value <= 0)
+                        {
+                            contractId = null;
+                        }
+
                         order.SupplierID = supplierId;
-                        order.ContractID = model.ContractID;
+                        order.ContractID = contractId;
                         order.CurrencyID = model.CurrencyID;
                         order.Description = model.Description;
 
@@ -821,10 +903,28 @@ namespace tahsinERP.Controllers
             // Xatolikda ViewBag qiymatlarini qayta ga'ldirish
             using (var db = new DBTHSNEntities())
             {
+                var currentOrder = await db.P_ORDERS.AsNoTracking().FirstOrDefaultAsync(o => o.ID == model.ID);
+                bool isDirectOrder = currentOrder != null && currentOrder.PurchaseType == 0;
+                ViewBag.IsDirectOrder = isDirectOrder;
                 ViewBag.Suppliers = new SelectList(
                     await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name", model.SupplierID
+                    "ID", "Name", isDirectOrder ? null : model.SupplierID
                 );
+                if (!isDirectOrder && model.SupplierID.HasValue)
+                {
+                    var failContracts = await db.P_CONTRACTS
+                        .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
+                        .OrderByDescending(c => c.IssuedDate)
+                        .Select(c => new { c.ID, c.ContractNo })
+                        .ToListAsync();
+                    ViewBag.Contracts = new SelectList(failContracts, "ID", "ContractNo", model.ContractID);
+                }
+                else
+                {
+                    ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
+                    model.SupplierID = null;
+                    model.ContractID = null;
+                }
 
                 ViewBag.Companies = new SelectList(
                     await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
@@ -911,6 +1011,63 @@ namespace tahsinERP.Controllers
                 }
 
                 return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetContractsBySupplier(int supplierId)
+        {
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var contracts = await db.P_CONTRACTS
+                        .Where(c => c.SupplierID == supplierId && c.IsDeleted != true)
+                        .OrderByDescending(c => c.IssuedDate)
+                        .Select(c => new { c.ID, c.ContractNo })
+                        .ToListAsync();
+
+                    var contractIds = contracts.Select(c => c.ID).ToList();
+                    var contractProducts = await db.P_CONTRACT_PRODUCTS
+                        .Where(p => contractIds.Contains(p.ContractID))
+                        .Select(p => new { p.ContractID, p.Price, p.Quantity, p.Amount })
+                        .ToListAsync();
+
+                    var vatByContract = contractProducts
+                        .GroupBy(p => p.ContractID)
+                        .ToDictionary(
+                            g => g.Key,
+                            g =>
+                            {
+                                var baseAmount = g.Sum(x => x.Price * x.Quantity);
+                                if (baseAmount <= 0)
+                                {
+                                    return 12d;
+                                }
+
+                                var totalAmount = g.Sum(x => x.Amount);
+                                var rate = ((totalAmount - baseAmount) / baseAmount) * 100d;
+                                if (double.IsNaN(rate) || double.IsInfinity(rate) || rate < 0)
+                                {
+                                    return 12d;
+                                }
+
+                                return Math.Round(rate, 2);
+                            });
+
+                    var data = contracts.Select(c => new
+                    {
+                        c.ID,
+                        c.ContractNo,
+                        VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 12d
+                    }).ToList();
+
+                    return Json(new { success = true, data }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 

@@ -150,6 +150,7 @@ namespace tahsinERP.Controllers.HR
             {
                 tariff.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
                 tariff.CreatedDT = DateTime.Now;
+                tariff.IsDeleted = false;
 
                 db.HR_PIECE_RATE_TARIFFS.Add(tariff);
                 await db.SaveChangesAsync();

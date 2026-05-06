@@ -34,6 +34,21 @@ namespace tahsinERP.Controllers.HR
         private static bool IsPayrollLineActive(HR_PAYROLL_LINES l) =>
             l != null && (l.IsDeleted == null || l.IsDeleted == false);
 
+        private async Task SoftDeleteActivePayrollLinesAsync(int payrollId)
+        {
+            var activeLines = await db.HR_PAYROLL_LINES
+                .Where(l => l.PayrollID == payrollId && (l.IsDeleted == null || l.IsDeleted == false))
+                .ToListAsync();
+
+            foreach (var line in activeLines)
+            {
+                line.IsDeleted = true;
+                db.Entry(line).State = EntityState.Modified;
+            }
+
+            await db.SaveChangesAsync();
+        }
+
         // Olish so'rovi: HR/Payroll
         public async Task<ActionResult> Index(int? year, int? month, int? orgUnitId, string status, string payrollType)
         {
@@ -159,6 +174,44 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Edit", new { id = existing.ID });
             }
 
+            var deletedExisting = await db.HR_PAYROLL_HEADERS
+                .FirstOrDefaultAsync(p => p.Year == year && p.Month == month &&
+                    p.PayrollType == "Hourly" &&
+                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value) &&
+                    p.IsDeleted == true);
+
+            HR_PAYROLL_HEADERS payroll;
+            if (deletedExisting != null)
+            {
+                deletedExisting.IsDeleted = false;
+                deletedExisting.Status = "Draft";
+                deletedExisting.TimesheetID = timesheetId;
+                deletedExisting.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
+                deletedExisting.CreatedDT = DateTime.Now;
+                db.Entry(deletedExisting).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+                await SoftDeleteActivePayrollLinesAsync(deletedExisting.ID);
+                payroll = deletedExisting;
+            }
+            else
+            {
+                payroll = new HR_PAYROLL_HEADERS
+                {
+                    Year = year,
+                    Month = month,
+                    OrgUnitID = orgUnitId,
+                    Status = "Draft",
+                    TimesheetID = timesheetId,
+                    PayrollType = "Hourly",
+                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                    CreatedDT = DateTime.Now,
+                    IsDeleted = false
+                };
+
+                db.HR_PAYROLL_HEADERS.Add(payroll);
+                await db.SaveChangesAsync();
+            }
+
             var timesheet = await db.HR_TIMESHEET_HEADERS
                 .Include(t => t.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES))
                 .FirstOrDefaultAsync(t => t.ID == timesheetId);
@@ -168,23 +221,6 @@ namespace tahsinERP.Controllers.HR
                 TempData["Error"] = "Tabel topilmadi yoki tasdiqlanmagan";
                 return RedirectToAction("GenerateHourly");
             }
-
-            // Yaratish payroll header
-            var payroll = new HR_PAYROLL_HEADERS
-            {
-                Year = year,
-                Month = month,
-                OrgUnitID = orgUnitId,
-                Status = "Draft",
-                TimesheetID = timesheetId,
-                PayrollType = "Hourly",
-                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                CreatedDT = DateTime.Now,
-                IsDeleted = false
-            };
-
-            db.HR_PAYROLL_HEADERS.Add(payroll);
-            await db.SaveChangesAsync();
 
             // Yaratish payroll lines uchun hourly employees faqat
             await GenerateHourlyPayrollLines(payroll.ID, timesheet);
@@ -305,27 +341,58 @@ namespace tahsinERP.Controllers.HR
                         (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value) &&
                         (p.IsDeleted == null || p.IsDeleted == false));
 
-                if (existing != null)
+                HR_PAYROLL_HEADERS payroll = existing;
+                if (payroll != null)
                 {
-                    return RedirectToAction("Edit", new { id = existing.ID });
+                    if (payroll.Status != "Draft")
+                    {
+                        TempData["Error"] = "Mavjud ishbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.";
+                        return RedirectToAction("Edit", new { id = payroll.ID });
+                    }
+
+                    // Qoralama mavjud bo'lsa, tasdiqlangan tabel holatini to'liq qayta tortish uchun satrlarni yangidan quramiz.
+                    await SoftDeleteActivePayrollLinesAsync(payroll.ID);
                 }
-
-                // Yaratish payroll header uchun barcha timesheets
-                var payroll = new HR_PAYROLL_HEADERS
+                else
                 {
-                    Year = year,
-                    Month = month,
-                    OrgUnitID = orgUnitId,
-                    Status = "Draft",
-                    TimesheetID = null, // Piece-rate doesn't use HR_TIMESHEET_HEADERS
-                    PayrollType = "PieceRate",
-                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                    CreatedDT = DateTime.Now,
-                    IsDeleted = false
-                };
+                    var deletedExisting = await db.HR_PAYROLL_HEADERS
+                        .FirstOrDefaultAsync(p => p.Year == year && p.Month == month &&
+                            p.PayrollType == "PieceRate" &&
+                            (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value) &&
+                            p.IsDeleted == true);
 
-                db.HR_PAYROLL_HEADERS.Add(payroll);
-                await db.SaveChangesAsync();
+                    // Yaratish payroll header uchun barcha timesheets
+                    if (deletedExisting != null)
+                    {
+                        deletedExisting.IsDeleted = false;
+                        deletedExisting.Status = "Draft";
+                        deletedExisting.TimesheetID = null;
+                        deletedExisting.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
+                        deletedExisting.CreatedDT = DateTime.Now;
+                        db.Entry(deletedExisting).State = EntityState.Modified;
+                        await db.SaveChangesAsync();
+                        await SoftDeleteActivePayrollLinesAsync(deletedExisting.ID);
+                        payroll = deletedExisting;
+                    }
+                    else
+                    {
+                        payroll = new HR_PAYROLL_HEADERS
+                        {
+                            Year = year,
+                            Month = month,
+                            OrgUnitID = orgUnitId,
+                            Status = "Draft",
+                            TimesheetID = null, // Piece-rate doesn't use HR_TIMESHEET_HEADERS
+                            PayrollType = "PieceRate",
+                            CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                            CreatedDT = DateTime.Now,
+                            IsDeleted = false
+                        };
+
+                        db.HR_PAYROLL_HEADERS.Add(payroll);
+                        await db.SaveChangesAsync();
+                    }
+                }
 
                 // Yaratish payroll lines uchun barcha approved timesheets (barcha org units combined)
                 await GeneratePieceRatePayrollLinesFromWorkEntries(payroll.ID, year, month, orgUnitId);
@@ -371,26 +438,57 @@ namespace tahsinERP.Controllers.HR
                     (payrollOrgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == payrollOrgUnitId) &&
                     (p.IsDeleted == null || p.IsDeleted == false));
 
-            if (existingSingle != null)
+            HR_PAYROLL_HEADERS payrollSingle = existingSingle;
+            if (payrollSingle != null)
             {
-                return RedirectToAction("Edit", new { id = existingSingle.ID });
+                if (payrollSingle.Status != "Draft")
+                {
+                    TempData["Error"] = "Mavjud ishbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.";
+                    return RedirectToAction("Edit", new { id = payrollSingle.ID });
+                }
+
+                await SoftDeleteActivePayrollLinesAsync(payrollSingle.ID);
             }
-
-            // Yaratish payroll header (no TimesheetID uchun piece-rate, as it's based on work entries)
-            var payrollSingle = new HR_PAYROLL_HEADERS
+            else
             {
-                Year = year,
-                Month = month,
-                OrgUnitID = payrollOrgUnitId,
-                Status = "Draft",
-                TimesheetID = null, // Piece-rate doesn't use HR_TIMESHEET_HEADERS
-                PayrollType = "PieceRate",
-                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                CreatedDT = DateTime.Now
-            };
+                var deletedExistingSingle = await db.HR_PAYROLL_HEADERS
+                    .FirstOrDefaultAsync(p => p.Year == year && p.Month == month &&
+                        p.PayrollType == "PieceRate" &&
+                        (payrollOrgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == payrollOrgUnitId) &&
+                        p.IsDeleted == true);
 
-            db.HR_PAYROLL_HEADERS.Add(payrollSingle);
-            await db.SaveChangesAsync();
+                // Yaratish payroll header (no TimesheetID uchun piece-rate, as it's based on work entries)
+                if (deletedExistingSingle != null)
+                {
+                    deletedExistingSingle.IsDeleted = false;
+                    deletedExistingSingle.Status = "Draft";
+                    deletedExistingSingle.TimesheetID = null;
+                    deletedExistingSingle.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
+                    deletedExistingSingle.CreatedDT = DateTime.Now;
+                    db.Entry(deletedExistingSingle).State = EntityState.Modified;
+                    await db.SaveChangesAsync();
+                    await SoftDeleteActivePayrollLinesAsync(deletedExistingSingle.ID);
+                    payrollSingle = deletedExistingSingle;
+                }
+                else
+                {
+                    payrollSingle = new HR_PAYROLL_HEADERS
+                    {
+                        Year = year,
+                        Month = month,
+                        OrgUnitID = payrollOrgUnitId,
+                        Status = "Draft",
+                        TimesheetID = null, // Piece-rate doesn't use HR_TIMESHEET_HEADERS
+                        PayrollType = "PieceRate",
+                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                        CreatedDT = DateTime.Now,
+                        IsDeleted = false
+                    };
+
+                    db.HR_PAYROLL_HEADERS.Add(payrollSingle);
+                    await db.SaveChangesAsync();
+                }
+            }
 
             // Yaratish payroll lines uchun piece-rate employees based on work entries
             await GeneratePieceRatePayrollLinesFromWorkEntries(payrollSingle.ID, year, month, payrollOrgUnitId);
@@ -1010,7 +1108,7 @@ namespace tahsinERP.Controllers.HR
                             .Where(t => t.ProductID == timesheetLine.ProductID.Value &&
                                        (t.PositionID == employee.PositionID || t.PositionID == null) &&
                                        t.IsActive &&
-                                       t.IsDeleted == false &&
+                                       t.IsDeleted != true &&
                                        t.EffectiveFrom <= payroll.CreatedDT &&
                                        (t.EffectiveTo == null || t.EffectiveTo >= payroll.CreatedDT))
                             .OrderByDescending(t => t.PositionID) // Prefer position-specific over general
@@ -1075,7 +1173,9 @@ namespace tahsinERP.Controllers.HR
                 .Include(e => e.HR_EMPLOYEES)
                 .Include(e => e.PRODUCT)
                 .Include(e => e.HR_PIECE_RATE_OPERATIONS)
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+                .Where(e => e.WorkDate >= startDate &&
+                            e.WorkDate <= endDate &&
+                            (e.IsDeleted == null || e.IsDeleted == false));
 
             if (orgUnitId.HasValue)
             {
@@ -1102,35 +1202,21 @@ namespace tahsinERP.Controllers.HR
             {
                 var firstEntry = employeeGroup.First();
                 var employee = firstEntry.HR_EMPLOYEES;
-                
-                if (employee == null) continue;
 
-                // Olish staffing plan uchun employee
-                var staffingPlan = await db.HR_STAFFING_PLAN
-                    .Where(sp => sp.OrgUnitID == employee.OrgUnitID &&
-                                sp.PositionID == employee.PositionID &&
-                                sp.IsActive &&
-                                sp.IsDeleted == false &&
-                                sp.IsPieceRate == true &&
-                                sp.EffectiveFrom <= payroll.CreatedDT &&
-                                (sp.EffectiveTo == null || sp.EffectiveTo >= payroll.CreatedDT))
-                    .FirstOrDefaultAsync();
-
-                decimal baseSalary = employee.BaseSalary ?? 0;
+                int? positionId = employee?.PositionID;
                 decimal grossSalary = 0;
                 decimal totalPieceQty = 0;
 
-                // Calculate total piece-rate amount uchun this employee
+                // HrPieceRateTimesheets dagi hisoblash bilan bir xil usul: har bir entry uchun tarif topib summalash.
                 foreach (var entry in employeeGroup)
                 {
-                    int? positionId = employee.PositionID;
-                    
-                    // Olish tariff uchun this product va operation
+                    totalPieceQty += entry.Quantity;
+
                     var tariff = await db.HR_PIECE_RATE_TARIFFS
                         .Where(t => t.ProductID == entry.ProductID &&
                                    t.OperationID == entry.OperationID &&
                                    t.IsActive &&
-                                   t.IsDeleted == false &&
+                                   t.IsDeleted != true &&
                                    t.EffectiveFrom <= entry.WorkDate &&
                                    (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
                                    (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
@@ -1145,7 +1231,7 @@ namespace tahsinERP.Controllers.HR
                                        t.OperationID == entry.OperationID &&
                                        t.PositionID == null &&
                                        t.IsActive &&
-                                       t.IsDeleted == false &&
+                                       t.IsDeleted != true &&
                                        t.EffectiveFrom <= entry.WorkDate &&
                                        (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
                             .FirstOrDefaultAsync();
@@ -1155,27 +1241,21 @@ namespace tahsinERP.Controllers.HR
                     {
                         decimal entryAmount = entry.Quantity * tariff.RatePerUnit;
                         grossSalary += entryAmount;
-                        totalPieceQty += entry.Quantity;
                     }
                 }
 
-                // agar no tariff found uchun any entry, use base salary
-                if (grossSalary == 0)
-                {
-                    grossSalary = baseSalary;
-                }
-
                 // Tekshirish agar payroll line already mavjud (o'chirilgan qatorlar hisobga olinmaydi)
+                var employeeId = firstEntry.EmployeeID;
                 var existingLine = await db.HR_PAYROLL_LINES
-                    .FirstOrDefaultAsync(l => l.PayrollID == payrollId && l.EmployeeID == employee.ID && (l.IsDeleted == null || l.IsDeleted == false));
+                    .FirstOrDefaultAsync(l => l.PayrollID == payrollId && l.EmployeeID == employeeId && (l.IsDeleted == null || l.IsDeleted == false));
 
                 if (existingLine == null)
                 {
                     var payrollLine = new HR_PAYROLL_LINES
                     {
                         PayrollID = payrollId,
-                        EmployeeID = employee.ID,
-                        BaseSalary = baseSalary,
+                        EmployeeID = employeeId,
+                        BaseSalary = employee?.BaseSalary ?? 0,
                         HoursWorked = 0,
                         PieceQty = totalPieceQty,
                         HourlyRate = 0,
@@ -1306,7 +1386,9 @@ namespace tahsinERP.Controllers.HR
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Include(e => e.HR_EMPLOYEES)
                 .Include(e => e.HR_EMPLOYEES.HR_ORG_UNITS)
-                .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate);
+                .Where(e => e.WorkDate >= startDate &&
+                            e.WorkDate <= endDate &&
+                            (e.IsDeleted == null || e.IsDeleted == false));
 
             if (orgUnitIdFilter.HasValue)
             {
@@ -1327,7 +1409,7 @@ namespace tahsinERP.Controllers.HR
                     Year = g.Key.Year,
                     Month = g.Key.Month,
                     OrgUnitID = g.Key.OrgUnitID,
-                    OrgUnitName = g.First().HR_EMPLOYEES.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
+                    OrgUnitName = g.First().HR_EMPLOYEES?.HR_ORG_UNITS?.Name ?? "Butun kompaniya",
                     EntryCount = g.Count()
                 })
                 .Where(g => approvedTimesheets.Any(a => a.Year == g.Year && a.Month == g.Month && PieceApprovalMatchesWorkGroup(a, g.OrgUnitID)))

@@ -40,6 +40,37 @@ namespace tahsinERP.ViewModels.Finance
         public IEnumerable<SelectListItem> CurrencyList { get; set; }
         public int DefaultCurrencyID { get; set; }
         public List<OpeningBalanceCategoryItem> Items { get; set; } = new List<OpeningBalanceCategoryItem>();
+        public List<OpeningBalanceContractLineItem> CustomerReceivableLines { get; set; } = new List<OpeningBalanceContractLineItem>();
+        public List<OpeningBalanceContractLineItem> SupplierPayableLines { get; set; } = new List<OpeningBalanceContractLineItem>();
+        public List<OpeningBalancePayrollLineItem> EmployeePayrollLines { get; set; } = new List<OpeningBalancePayrollLineItem>();
+        public IEnumerable<SelectListItem> CustomerList { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> SupplierList { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> EmployeeList { get; set; } = new List<SelectListItem>();
+        public bool LeaveCustomerReceivableEmpty { get; set; }
+        public bool LeaveSupplierPayableEmpty { get; set; }
+        public bool LeavePayrollEmpty { get; set; }
+    }
+
+    public class OpeningBalanceContractLineItem
+    {
+        public int CounterpartyID { get; set; }
+        public string CounterpartyName { get; set; }
+        public int? ContractID { get; set; }
+        public string ContractNo { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal Amount { get; set; }
+        public int CurrencyID { get; set; }
+    }
+
+    public class OpeningBalancePayrollLineItem
+    {
+        public int EmployeeID { get; set; }
+        public string EmployeeName { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal Amount { get; set; }
+        public int CurrencyID { get; set; }
     }
 }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -82,6 +83,32 @@ namespace tahsinERP.Controllers.HR
                 DateFrom = from.Date,
                 DateTo = to.Date
             };
+
+            var latestOpeningDate = await db.FIN_BALANCE_SNAPSHOTS
+                .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= to.Date)
+                .OrderByDescending(s => s.SnapshotDate)
+                .Select(s => (DateTime?)s.SnapshotDate)
+                .FirstOrDefaultAsync();
+            decimal openingCalculated = 0m;
+            decimal openingPaid = 0m;
+            if (latestOpeningDate.HasValue)
+            {
+                try
+                {
+                    var openingRow = db.Database.SqlQuery<OpeningPayrollEmployeeRow>(
+                        "SELECT TOP 1 TotalAmount, PaidAmount FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate = @p0 AND BalanceType = 3 AND CounterpartyID = @p1",
+                        new SqlParameter("@p0", latestOpeningDate.Value.Date),
+                        new SqlParameter("@p1", employeeId)).FirstOrDefault();
+                    if (openingRow != null)
+                    {
+                        openingCalculated = openingRow.TotalAmount;
+                        openingPaid = openingRow.PaidAmount;
+                    }
+                }
+                catch
+                {
+                }
+            }
 
             // Soatbay / ishbay "Hisoblangan": avval ish haqi (HR_PAYROLL_LINES), bo'lmasa tabel + tarif bo'yicha baholash
             int fromMonthKey = from.Year * 100 + from.Month;
@@ -188,6 +215,8 @@ namespace tahsinERP.Controllers.HR
             }
 
             var paidTotal = directPaidTotal + postedPayrollPaid;
+            paidTotal += openingPaid;
+            result.HourlyCalculated += openingCalculated;
 
             if (result.TotalCalculated > 0)
             {
@@ -320,5 +349,11 @@ namespace tahsinERP.Controllers.HR
             if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
+    }
+
+    internal class OpeningPayrollEmployeeRow
+    {
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
     }
 }

@@ -181,8 +181,16 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            $('#pInvoicesTable').DataTable({
+        (function () {
+            function initPInvoicesTable() {
+                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initPInvoicesTable, 100);
+                    return;
+                }
+                var $ = window.jQuery;
+                if (!$('#pInvoicesTable').length) return;
+
+                $('#pInvoicesTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -205,5 +213,12 @@
                     { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
                 ]
             });
-        });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPInvoicesTable);
+            } else {
+                initPInvoicesTable();
+            }
+        })();
     </script>

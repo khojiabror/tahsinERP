@@ -14,6 +14,13 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class CRMDashboardController : Controller
     {
+        private class OpeningContractReceivableRow
+        {
+            public int CounterpartyID { get; set; }
+            public string ContractNo { get; set; }
+            public decimal Amount { get; set; }
+        }
+
         public ActionResult Index(DateTime? fromDate, DateTime? toDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") &&
@@ -201,6 +208,293 @@ namespace tahsinERP.Controllers
                     })
                     .OrderByDescending(x => x.TotalAmount)
                     .Take(10)
+                    .ToList();
+
+                // ——— Mijozlar bo'yicha haqqimiz (shartnoma kesimida, expand/collapse uchun) ———
+                Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
+                var asOfDate = to;
+                DateTime? latestOpeningDate = null;
+                try
+                {
+                    latestOpeningDate = db.Database.SqlQuery<DateTime?>(
+                        "SELECT MAX(SnapshotDate) FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate <= @p0 AND BalanceType = 1",
+                        new System.Data.SqlClient.SqlParameter("@p0", asOfDate.Date)).FirstOrDefault();
+                }
+                catch { }
+                if (!latestOpeningDate.HasValue)
+                {
+                    latestOpeningDate = db.FIN_BALANCE_SNAPSHOTS
+                        .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= asOfDate)
+                        .OrderByDescending(s => s.SnapshotDate)
+                        .Select(s => (DateTime?)s.SnapshotDate)
+                        .FirstOrDefault();
+                }
+
+                var receivableInvoices = db.SALES_INVOICES
+                    .Where(i => i.InvoiceDate <= asOfDate
+                        && (!latestOpeningDate.HasValue || i.InvoiceDate > latestOpeningDate.Value)
+                        && (i.StatusCode == null || (i.StatusCode != "CANCELED" && i.StatusCode != "CANCELLED")))
+                    .Select(i => new
+                    {
+                        ID = (int)i.ID,
+                        i.CustomerID,
+                        i.ContractID,
+                        i.InvoiceDate,
+                        Amount = (i.TotalWithVAT ?? i.TotalAmount)
+                    })
+                    .ToList();
+                var openingContractByInvoiceId = new Dictionary<int, string>();
+                if (latestOpeningDate.HasValue)
+                {
+                    try
+                    {
+                        var openingRows = db.Database.SqlQuery<OpeningContractReceivableRow>(
+                            "SELECT CounterpartyID, ContractNo, Amount FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate = @p0 AND BalanceType = 1",
+                            new System.Data.SqlClient.SqlParameter("@p0", latestOpeningDate.Value.Date))
+                            .ToList();
+                        var nextOpeningId = -1;
+                        foreach (var row in openingRows.Where(x => x.CounterpartyID > 0 && x.Amount > 0))
+                        {
+                            receivableInvoices.Add(new
+                            {
+                                ID = nextOpeningId,
+                                CustomerID = row.CounterpartyID,
+                                ContractID = (int?)null,
+                                InvoiceDate = latestOpeningDate.Value,
+                                Amount = row.Amount
+                            });
+                            openingContractByInvoiceId[nextOpeningId] = normalize(row.ContractNo);
+                            nextOpeningId--;
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                var contractIds = receivableInvoices
+                    .Where(i => i.ContractID.HasValue)
+                    .Select(i => i.ContractID.Value)
+                    .Distinct()
+                    .ToList();
+
+                var contractMetaById = contractIds.Count == 0
+                    ? new Dictionary<int, Tuple<string, int?>>()
+                    : db.S_CONTRACTS
+                        .Where(c => contractIds.Contains(c.ID))
+                        .Select(c => new { c.ID, c.ContractNo })
+                        .ToList()
+                        .ToDictionary(x => x.ID, x => Tuple.Create(normalize(x.ContractNo), (int?)x.ID));
+
+                var receiptCandidates = db.FIN_TRANSACTIONS
+                    .Where(t => t.TxnDate <= asOfDate
+                        && (!latestOpeningDate.HasValue || t.TxnDate > latestOpeningDate.Value)
+                        && (t.IsDeleted == null || t.IsDeleted == false)
+                        && t.SourceDocType != "SalesInvoice"
+                        && (
+                            // Standard customer receipts
+                            (t.Direction == 1 && t.CounterpartyType == 1 && t.CounterpartyID.HasValue)
+                            // Linked payment documents should also be considered even if counterparty fields are partially empty
+                            || (t.SourceDocType == "SalesInvoicePayment" && t.SourceDocID.HasValue)
+                        ))
+                    .Select(t => new { t.CounterpartyID, t.TxnDate, t.Amount, t.Direction, t.SourceDocType, t.SourceDocID, t.ContractNo })
+                    .ToList();
+
+                var linkedInvoiceIds = receiptCandidates
+                    .Where(r => r.SourceDocType == "SalesInvoicePayment" && r.SourceDocID.HasValue)
+                    .Select(r => (long)r.SourceDocID.Value)
+                    .Distinct()
+                    .ToList();
+
+                var invoiceMetaById = linkedInvoiceIds.Count == 0
+                    ? new Dictionary<long, Tuple<int, string, int?>>()
+                    : db.SALES_INVOICES
+                        .Where(i => linkedInvoiceIds.Contains(i.ID))
+                        .Select(i => new { i.ID, i.CustomerID, i.ContractID })
+                        .ToList()
+                        .ToDictionary(
+                            x => x.ID,
+                            x =>
+                            {
+                                var contractNo = x.ContractID.HasValue && contractMetaById.ContainsKey(x.ContractID.Value)
+                                    ? contractMetaById[x.ContractID.Value].Item1
+                                    : "";
+                                return Tuple.Create(x.CustomerID, contractNo, x.ContractID);
+                            });
+
+                var receipts = receiptCandidates
+                    .Select(r =>
+                    {
+                        var customerId = r.CounterpartyID ?? 0;
+                        var contractNo = normalize(r.ContractNo);
+                        int? contractId = null;
+                        if (r.SourceDocType == "SalesInvoicePayment" && r.SourceDocID.HasValue && invoiceMetaById.ContainsKey((long)r.SourceDocID.Value))
+                        {
+                            var meta = invoiceMetaById[(long)r.SourceDocID.Value];
+                            customerId = meta.Item1;
+                            if (string.IsNullOrEmpty(contractNo))
+                            {
+                                contractNo = meta.Item2;
+                                contractId = meta.Item3;
+                            }
+                        }
+                        return new
+                        {
+                            CustomerID = customerId,
+                            ContractNo = contractNo,
+                            ContractID = contractId,
+                            r.TxnDate,
+                            Amount = Math.Abs(r.Amount),
+                            InvoiceID = (r.SourceDocType == "SalesInvoicePayment") ? r.SourceDocID : null
+                        };
+                    })
+                    .Where(r => r.CustomerID > 0)
+                    .ToList();
+
+                var invoiceRemaining = receivableInvoices.ToDictionary(i => i.ID, i => i.Amount);
+                var invoiceByKey = receivableInvoices
+                    .GroupBy(i =>
+                    {
+                        var contractNo = "";
+                        if (openingContractByInvoiceId.ContainsKey(i.ID))
+                        {
+                            contractNo = openingContractByInvoiceId[i.ID];
+                        }
+                        else if (i.ContractID.HasValue && contractMetaById.ContainsKey(i.ContractID.Value))
+                        {
+                            contractNo = contractMetaById[i.ContractID.Value].Item1;
+                        }
+                        return Tuple.Create(i.CustomerID, contractNo);
+                    })
+                    .ToDictionary(g => g.Key, g => g.OrderBy(i => i.InvoiceDate).Select(i => i.ID).ToList());
+
+                var receiptRemainders = new List<(int CustomerID, string ContractNo, DateTime TxnDate, decimal Amount)>();
+                var unappliedByKey = new Dictionary<Tuple<int, string>, decimal>();
+                foreach (var receipt in receipts)
+                {
+                    var remaining = receipt.Amount;
+                    if (receipt.InvoiceID.HasValue && invoiceRemaining.ContainsKey(receipt.InvoiceID.Value))
+                    {
+                        var invoiceBalance = invoiceRemaining[receipt.InvoiceID.Value];
+                        var applied = Math.Min(invoiceBalance, remaining);
+                        invoiceRemaining[receipt.InvoiceID.Value] = invoiceBalance - applied;
+                        remaining -= applied;
+                    }
+                    if (remaining > 0)
+                    {
+                        receiptRemainders.Add((receipt.CustomerID, receipt.ContractNo, receipt.TxnDate, remaining));
+                    }
+                }
+
+                foreach (var group in receiptRemainders.GroupBy(p => Tuple.Create(p.CustomerID, p.ContractNo)))
+                {
+                    if (!invoiceByKey.ContainsKey(group.Key))
+                    {
+                        unappliedByKey[group.Key] = (unappliedByKey.ContainsKey(group.Key) ? unappliedByKey[group.Key] : 0m) + group.Sum(x => x.Amount);
+                        continue;
+                    }
+
+                    var queue = new Queue<int>(invoiceByKey[group.Key]);
+                    foreach (var r in group.OrderBy(x => x.TxnDate))
+                    {
+                        var remaining = r.Amount;
+                        while (remaining > 0 && queue.Count > 0)
+                        {
+                            var invId = queue.Peek();
+                            var invBal = invoiceRemaining[invId];
+                            if (invBal <= 0) { queue.Dequeue(); continue; }
+                            var applied = Math.Min(invBal, remaining);
+                            invoiceRemaining[invId] = invBal - applied;
+                            remaining -= applied;
+                            if (invoiceRemaining[invId] <= 0) queue.Dequeue();
+                        }
+                        if (remaining > 0)
+                        {
+                            unappliedByKey[group.Key] = (unappliedByKey.ContainsKey(group.Key) ? unappliedByKey[group.Key] : 0m) + remaining;
+                        }
+                    }
+                }
+
+                var customerNames = db.CUSTOMERS
+                    .Where(c => c.IsDeleted != true)
+                    .ToDictionary(c => c.ID, c => c.Name ?? "Noma'lum");
+                var contractNosById = contractMetaById.ToDictionary(x => x.Key, x => x.Value.Item1);
+
+                var invoiceAggByCustomerContract = receivableInvoices
+                    .GroupBy(i =>
+                    {
+                        var contractNo = "";
+                        if (openingContractByInvoiceId.ContainsKey(i.ID))
+                        {
+                            contractNo = openingContractByInvoiceId[i.ID];
+                        }
+                        else if (i.ContractID.HasValue && contractNosById.ContainsKey(i.ContractID.Value))
+                        {
+                            contractNo = contractNosById[i.ContractID.Value];
+                        }
+                        return Tuple.Create(i.CustomerID, contractNo);
+                    })
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+                var receiptAggByCustomerContract = receipts
+                    .GroupBy(r => Tuple.Create(r.CustomerID, r.ContractNo))
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+                var contractIdByKey = receivableInvoices
+                    .Where(i => i.ContractID.HasValue && i.ContractID.Value > 0)
+                    .GroupBy(i =>
+                    {
+                        var contractNo = contractNosById.ContainsKey(i.ContractID.Value) ? contractNosById[i.ContractID.Value] : "";
+                        return Tuple.Create(i.CustomerID, contractNo);
+                    })
+                    .ToDictionary(g => g.Key, g => (int?)g.Select(x => x.ContractID).FirstOrDefault());
+
+                var customerIdsForTable = invoiceAggByCustomerContract.Keys.Select(k => k.Item1)
+                    .Union(receiptAggByCustomerContract.Keys.Select(k => k.Item1))
+                    .Distinct()
+                    .ToList();
+
+                model.CustomerReceivables = customerIdsForTable
+                    .Select(customerId =>
+                    {
+                        var contractKeys = invoiceAggByCustomerContract.Keys.Where(k => k.Item1 == customerId)
+                            .Union(receiptAggByCustomerContract.Keys.Where(k => k.Item1 == customerId))
+                            .Distinct()
+                            .ToList();
+
+                        var contractsForCustomer = contractKeys
+                            .Select(key =>
+                            {
+                                var invoiced = invoiceAggByCustomerContract.ContainsKey(key) ? invoiceAggByCustomerContract[key] : 0m;
+                                var paid = receiptAggByCustomerContract.ContainsKey(key) ? receiptAggByCustomerContract[key] : 0m;
+                                var unapplied = unappliedByKey.ContainsKey(key) ? unappliedByKey[key] : 0m;
+                                var receivable = invoiced - (paid - unapplied);
+                                return new CRMCustomerReceivableContractItem
+                                {
+                                    ContractId = contractIdByKey.ContainsKey(key) ? contractIdByKey[key] : null,
+                                    ContractNo = string.IsNullOrWhiteSpace(key.Item2) ? "(Shartnoma ko'rsatilmagan)" : key.Item2,
+                                    InvoicedAmount = invoiced,
+                                    PaidAmount = paid - unapplied,
+                                    ReceivableAmount = receivable
+                                };
+                            })
+                            .Where(c => c.ReceivableAmount > 0)
+                            .OrderByDescending(c => c.ReceivableAmount)
+                            .ToList();
+
+                        return new CRMCustomerReceivableItem
+                        {
+                            CustomerId = customerId,
+                            CustomerName = customerNames.ContainsKey(customerId) ? customerNames[customerId] : $"Customer #{customerId}",
+                            InvoicedAmount = contractsForCustomer.Sum(c => c.InvoicedAmount),
+                            PaidAmount = contractsForCustomer.Sum(c => c.PaidAmount),
+                            ReceivableAmount = contractsForCustomer.Sum(c => c.ReceivableAmount),
+                            Contracts = contractsForCustomer
+                        };
+                    })
+                    .Where(x => x.ReceivableAmount > 0 && x.Contracts.Any())
+                    .OrderByDescending(x => x.ReceivableAmount)
+                    .Take(20)
                     .ToList();
 
                 ViewBag.FromDate = from;

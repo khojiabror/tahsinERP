@@ -44,6 +44,8 @@ namespace tahsinERP.ViewModels
         public List<CRMInvoiceOverdueItem> InvoicesOverdueList { get; set; } = new List<CRMInvoiceOverdueItem>();
         /// <summary>Mijoz bo'yicha buyurtma summasi (top N)</summary>
         public List<CRMCustomerOrderSum> TopCustomersByOrderAmount { get; set; } = new List<CRMCustomerOrderSum>();
+        /// <summary>Mijozlar bo'yicha haqqimiz (invoys - to'lov), TOP ro'yxat</summary>
+        public List<CRMCustomerReceivableItem> CustomerReceivables { get; set; } = new List<CRMCustomerReceivableItem>();
         /// <summary>Shartnoma bajarilishi: bajarilgan / davom etayotgan / muddati o'tgan</summary>
         public List<CRMChartPoint> ContractCompletionStatus { get; set; } = new List<CRMChartPoint>();
     }
@@ -104,5 +106,24 @@ namespace tahsinERP.ViewModels
         public string CustomerName { get; set; }
         public int OrderCount { get; set; }
         public decimal TotalAmount { get; set; }
+    }
+
+    public class CRMCustomerReceivableItem
+    {
+        public int CustomerId { get; set; }
+        public string CustomerName { get; set; }
+        public decimal InvoicedAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal ReceivableAmount { get; set; }
+        public List<CRMCustomerReceivableContractItem> Contracts { get; set; } = new List<CRMCustomerReceivableContractItem>();
+    }
+
+    public class CRMCustomerReceivableContractItem
+    {
+        public int? ContractId { get; set; }
+        public string ContractNo { get; set; }
+        public decimal InvoicedAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal ReceivableAmount { get; set; }
     }
 }

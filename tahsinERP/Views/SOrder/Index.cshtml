@@ -175,15 +175,23 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            var changePermit = @(changePermit ? "true" : "false");
+        (function () {
+            function initSOrderTable() {
+                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initSOrderTable, 100);
+                    return;
+                }
+                var $ = window.jQuery;
+                if (!$('#orderDataTable').length) return;
+
+                var changePermit = @(changePermit ? "true" : "false");
             
-            var columnDefs = [];
-            if (changePermit) {
-                columnDefs.push({ "orderable": false, "targets": -1 });
-            }
+                var columnDefs = [];
+                if (changePermit) {
+                    columnDefs.push({ "orderable": false, "targets": -1 });
+                }
             
-            $('#orderDataTable').DataTable({
+                $('#orderDataTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -265,7 +273,14 @@
                 ],
                 "scrollX": true
             });
-        });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSOrderTable);
+            } else {
+                initSOrderTable();
+            }
+        })();
     </script>
 }
 else

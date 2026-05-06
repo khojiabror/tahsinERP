@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -35,6 +36,27 @@ namespace tahsinERP.Controllers.HR
             var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
             var viewModel = new HrDashboardViewModel();
+            var latestOpeningDate = db.FIN_BALANCE_SNAPSHOTS
+                .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= periodEnd)
+                .OrderByDescending(s => s.SnapshotDate)
+                .Select(s => (DateTime?)s.SnapshotDate)
+                .FirstOrDefault();
+            var openingPayrollTotal = 0m;
+            var openingPayrollPaid = 0m;
+            if (latestOpeningDate.HasValue)
+            {
+                try
+                {
+                    var openingPayrollRows = db.Database.SqlQuery<OpeningPayrollRow>(
+                        "SELECT TotalAmount, PaidAmount FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate = @p0 AND BalanceType = 3",
+                        new SqlParameter("@p0", latestOpeningDate.Value.Date)).ToList();
+                    openingPayrollTotal = openingPayrollRows.Sum(x => x.TotalAmount);
+                    openingPayrollPaid = openingPayrollRows.Sum(x => x.PaidAmount);
+                }
+                catch
+                {
+                }
+            }
 
             // Total headcount
             viewModel.TotalHeadcount = await db.HR_EMPLOYEES.CountAsync(e => e.IsActive);
@@ -57,7 +79,7 @@ namespace tahsinERP.Controllers.HR
                 .Where(l => l.IsDeleted == null || l.IsDeleted == false)
                 .ToList();
 
-            viewModel.TotalMonthlyPayroll = activePayrollLines.Sum(l => l.NetSalary ?? 0);
+            viewModel.TotalMonthlyPayroll = openingPayrollTotal + activePayrollLines.Sum(l => l.NetSalary ?? 0);
             viewModel.TotalHourlyCalculated = payrollHeaders
                 .Where(p => p.PayrollType == "Hourly")
                 .SelectMany(p => p.HR_PAYROLL_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false))
@@ -106,7 +128,7 @@ namespace tahsinERP.Controllers.HR
                              t.SourceDocType == "HR_PAYROLL"))
                 .SumAsync(t => (decimal?)t.Amount) ?? 0m;
 
-            viewModel.TotalSalaryPaidFromFin = directSalaryPaid;
+            viewModel.TotalSalaryPaidFromFin = openingPayrollPaid + directSalaryPaid;
             viewModel.TotalSalaryBalance = viewModel.TotalMonthlyPayroll - viewModel.TotalSalaryPaidFromFin;
 
             // Headcount by OrgUnit
@@ -185,6 +207,12 @@ namespace tahsinERP.Controllers.HR
             }
             base.Dispose(disposing);
         }
+    }
+
+    internal class OpeningPayrollRow
+    {
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
     }
 }
 

@@ -1032,6 +1032,7 @@
     <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
+    <Compile Include="ViewModels\FinanceReportsHubViewModel.cs" />
     <Compile Include="ViewModels\Finance\OpeningBalanceViewModel.cs" />
     <Compile Include="ViewModels\HR\HrPieceRateGridEntryViewModel.cs" />
     <Compile Include="ViewModels\HR\KoreshokViewModel.cs" />
@@ -1063,6 +1064,7 @@
     <Compile Include="ViewModels\PContractSViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
+    <Compile Include="ViewModels\POrder\PurchaseOrderTrackingIndexItemViewModel.cs" />
     <Compile Include="ViewModels\PRequisition\PRequisitionViewModel.cs" />
     <Compile Include="ViewModels\ProductNormViewModel.cs" />
     <Compile Include="ViewModels\ProductPlanDailyViewModel.cs" />
@@ -3340,6 +3342,7 @@
     <Content Include="Views\Koreshok\Index.cshtml" />
     <Content Include="Views\Koreshok\Result.cshtml" />
     <Content Include="Views\HrPayroll\Details.cshtml" />
+    <Content Include="Views\FinDashboard\FinanceReportsHub.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

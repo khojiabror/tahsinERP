@@ -168,9 +168,38 @@ namespace tahsinERP.Controllers
 
                 ViewBag.ContractBalances = contractBalances;
                 ViewBag.ProductCBMInfo = productCBMInfo;
+                ViewBag.ContractVatRate = await CalculateContractVatRateAsync(db, invoice.ContractID > 0 ? (int?)invoice.ContractID : invoice.P_ORDERS?.ContractID);
 
                 return View(invoice);
             }
+        }
+
+        private static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
+        {
+            if (!contractId.HasValue || contractId.Value <= 0)
+            {
+                return 12d;
+            }
+
+            var contractProducts = await db.P_CONTRACT_PRODUCTS
+                .Where(p => p.ContractID == contractId.Value)
+                .Select(p => new { p.Price, p.Quantity, p.Amount })
+                .ToListAsync();
+
+            var baseAmount = contractProducts.Sum(x => x.Price * x.Quantity);
+            if (baseAmount <= 0)
+            {
+                return 12d;
+            }
+
+            var totalAmount = contractProducts.Sum(x => x.Amount);
+            var rate = ((totalAmount - baseAmount) / baseAmount) * 100d;
+            if (double.IsNaN(rate) || double.IsInfinity(rate) || rate < 0)
+            {
+                return 12d;
+            }
+
+            return Math.Round(rate, 2);
         }
 
         // Olish so'rovi: PInvoices/yaratish
@@ -235,11 +264,9 @@ namespace tahsinERP.Controllers
                     Text = $"{p.PNo} - {p.Name ?? ""}"
                 }).ToList();
 
-                ViewBag.PurchasableProductsList = productSelectList;
                 ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 var units = await db.UNITS.ToListAsync();
-                ViewBag.UnitsList = units;
                 ViewBag.Units = new SelectList(
                     units,
                     "ID", "ShortName"
@@ -302,9 +329,10 @@ namespace tahsinERP.Controllers
 
                         // Aniqlash purchase type dan order agar available
                         byte purchaseType = 0; // standart: Direct
+                        P_ORDERS order = null;
                         if (model.OrderID.HasValue)
                         {
-                            var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                            order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
                             if (order != null)
                             {
                                 purchaseType = order.PurchaseType;
@@ -315,20 +343,62 @@ namespace tahsinERP.Controllers
                             purchaseType = 1;
                         }
 
-                        // Yaratish invoice header
-                        var invoice = new P_INVOICES
+                        if (order != null)
                         {
-                            InvoiceNo = model.InvoiceNo,
-                            InvoiceDate = model.InvoiceDate,
-                            OrderID = model.OrderID,
-                            SupplierID = model.SupplierID,
-                            ContractID = model.ContractID ?? 0,
-                            CompanyID = model.CompanyID ?? (defaultCompany?.ID ?? 0),
-                            CurrencyID = model.CurrencyID,
-                            Amount = 0,
-                            IsDeleted = false,
-                            PurchaseType = purchaseType
-                        };
+                            var orderSupplierId = order.SupplierID;
+                            var orderContractId = order.ContractID;
+
+                            if (order.PurchaseType == 0)
+                            {
+                                if (!orderSupplierId.HasValue && model.SupplierID <= 0)
+                                {
+                                    ModelState.AddModelError("SupplierID", "Direct buyurtmadan invoice yaratilganda ta'minotchi tanlanishi shart.");
+                                }
+                                if (!orderContractId.HasValue && (!model.ContractID.HasValue || model.ContractID.Value <= 0))
+                                {
+                                    ModelState.AddModelError("ContractID", "Direct buyurtmadan invoice yaratilganda shartnoma tanlanishi shart.");
+                                }
+                            }
+
+                            if (orderSupplierId.HasValue && orderSupplierId.Value > 0 && model.SupplierID != orderSupplierId.Value)
+                            {
+                                ModelState.AddModelError("SupplierID", "Tanlangan ta'minotchi buyurtmadagi ta'minotchi bilan mos emas.");
+                            }
+                            if (orderContractId.HasValue && orderContractId.Value > 0 && model.ContractID != orderContractId.Value)
+                            {
+                                ModelState.AddModelError("ContractID", "Tanlangan shartnoma buyurtmadagi shartnoma bilan mos emas.");
+                            }
+                        }
+
+                        if (model.ContractID.HasValue && model.ContractID.Value > 0)
+                        {
+                            var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
+                            if (contract == null || contract.IsDeleted == true)
+                            {
+                                ModelState.AddModelError("ContractID", "Tanlangan shartnoma topilmadi.");
+                            }
+                            else if (model.SupplierID > 0 && contract.SupplierID != model.SupplierID)
+                            {
+                                ModelState.AddModelError("ContractID", "Tanlangan shartnoma tanlangan ta'minotchiga tegishli emas.");
+                            }
+                        }
+
+                        if (ModelState.IsValid)
+                        {
+                            // Yaratish invoice header
+                            var invoice = new P_INVOICES
+                            {
+                                InvoiceNo = model.InvoiceNo,
+                                InvoiceDate = model.InvoiceDate,
+                                OrderID = model.OrderID,
+                                SupplierID = model.SupplierID,
+                                ContractID = model.ContractID ?? 0,
+                                CompanyID = model.CompanyID ?? (defaultCompany?.ID ?? 0),
+                                CurrencyID = model.CurrencyID,
+                                Amount = 0,
+                                IsDeleted = false,
+                                PurchaseType = purchaseType
+                            };
 
                         db.P_INVOICES.Add(invoice);
                         await db.SaveChangesAsync();
@@ -408,10 +478,11 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
                         }
 
-                        // Log the action
-                        LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Create - {invoice.InvoiceNo} invoysi yaratildi");
+                            // Log the action
+                            LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Create - {invoice.InvoiceNo} invoysi yaratildi");
 
-                        return RedirectToAction("Index");
+                            return RedirectToAction("Index");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -502,11 +573,9 @@ namespace tahsinERP.Controllers
                     Text = $"{p.PNo} - {p.Name ?? ""}"
                 }).ToList();
 
-                ViewBag.PurchasableProductsList = productSelectList;
                 ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
                 var units = await db.UNITS.ToListAsync();
-                ViewBag.UnitsList = units;
                 ViewBag.Units = new SelectList(
                     units,
                     "ID", "ShortName"
@@ -662,8 +731,9 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
+                var units = await db.UNITS.ToListAsync();
                 ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
+                    units,
                     "ID", "ShortName"
                 );
 
@@ -695,6 +765,11 @@ namespace tahsinERP.Controllers
 
                         // Aniqlash purchase type dan contract agar available, otherwise dan order
                         byte purchaseType = 0;
+                        P_ORDERS order = null;
+                        if (model.OrderID.HasValue && model.OrderID.Value > 0)
+                        {
+                            order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
+                        }
                         if (model.ContractID.HasValue && model.ContractID.Value > 0)
                         {
                             var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
@@ -703,24 +778,59 @@ namespace tahsinERP.Controllers
                                 purchaseType = contract.PurchaseType;
                             }
                         }
-                        else if (model.OrderID.HasValue && model.OrderID.Value > 0)
+                        else if (order != null)
                         {
-                            var order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
-                            if (order != null)
+                            purchaseType = order.PurchaseType;
+                        }
+
+                        if (order != null)
+                        {
+                            if (order.PurchaseType == 0)
                             {
-                                purchaseType = order.PurchaseType;
+                                if (!order.SupplierID.HasValue && model.SupplierID <= 0)
+                                {
+                                    ModelState.AddModelError("SupplierID", "Direct buyurtmadan invoice tahrirlashda ta'minotchi tanlanishi shart.");
+                                }
+                                if (!order.ContractID.HasValue && (!model.ContractID.HasValue || model.ContractID.Value <= 0))
+                                {
+                                    ModelState.AddModelError("ContractID", "Direct buyurtmadan invoice tahrirlashda shartnoma tanlanishi shart.");
+                                }
+                            }
+
+                            if (order.SupplierID.HasValue && order.SupplierID.Value > 0 && model.SupplierID != order.SupplierID.Value)
+                            {
+                                ModelState.AddModelError("SupplierID", "Tanlangan ta'minotchi buyurtmadagi ta'minotchi bilan mos emas.");
+                            }
+                            if (order.ContractID.HasValue && order.ContractID.Value > 0 && model.ContractID != order.ContractID.Value)
+                            {
+                                ModelState.AddModelError("ContractID", "Tanlangan shartnoma buyurtmadagi shartnoma bilan mos emas.");
                             }
                         }
 
-                        // Yangilash invoice header
-                        invoice.InvoiceNo = model.InvoiceNo;
-                        invoice.InvoiceDate = model.InvoiceDate;
-                        invoice.OrderID = model.OrderID; // Optional
-                        invoice.SupplierID = model.SupplierID;
-                        invoice.ContractID = model.ContractID ?? 0; // majburiy uchun contract-based calculations
-                        invoice.CompanyID = model.CompanyID ?? (await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync())?.ID ?? 0;
-                        invoice.CurrencyID = model.CurrencyID;
-                        invoice.PurchaseType = purchaseType;
+                        if (model.ContractID.HasValue && model.ContractID.Value > 0)
+                        {
+                            var contract = await db.P_CONTRACTS.FindAsync(model.ContractID.Value);
+                            if (contract == null || contract.IsDeleted == true)
+                            {
+                                ModelState.AddModelError("ContractID", "Tanlangan shartnoma topilmadi.");
+                            }
+                            else if (model.SupplierID > 0 && contract.SupplierID != model.SupplierID)
+                            {
+                                ModelState.AddModelError("ContractID", "Tanlangan shartnoma tanlangan ta'minotchiga tegishli emas.");
+                            }
+                        }
+
+                        if (ModelState.IsValid)
+                        {
+                            // Yangilash invoice header
+                            invoice.InvoiceNo = model.InvoiceNo;
+                            invoice.InvoiceDate = model.InvoiceDate;
+                            invoice.OrderID = model.OrderID; // Optional
+                            invoice.SupplierID = model.SupplierID;
+                            invoice.ContractID = model.ContractID ?? 0; // majburiy uchun contract-based calculations
+                            invoice.CompanyID = model.CompanyID ?? (await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync())?.ID ?? 0;
+                            invoice.CurrencyID = model.CurrencyID;
+                            invoice.PurchaseType = purchaseType;
 
                         // O'chirish existing invoice products
                         var existingProducts = db.P_INVOICE_PRODUCTS.Where(ip => ip.InvoiceID == invoice.ID).ToList();
@@ -807,10 +917,11 @@ namespace tahsinERP.Controllers
                                 $"Finance posting update error for invoice {invoice.ID}: {ex.Message}");
                         }
 
-                        // Log the action
-                        LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Edit - {invoice.InvoiceNo} invoysi tahrirlandi");
+                            // Log the action
+                            LogHelper.LogToDatabase(User.Identity.Name, "PInvoices", $"Edit - {invoice.InvoiceNo} invoysi tahrirlandi");
 
-                        return RedirectToAction("Index");
+                            return RedirectToAction("Index");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -903,8 +1014,9 @@ namespace tahsinERP.Controllers
 
                 ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
 
+                var units = await db.UNITS.ToListAsync();
                 ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
+                    units,
                     "ID", "ShortName"
                 );
             }
@@ -1010,8 +1122,41 @@ namespace tahsinERP.Controllers
                             ContractNo = c.ContractNo
                         })
                         .ToListAsync();
+                    var contractIds = contracts.Select(c => c.ID).ToList();
+                    var contractProducts = await db.P_CONTRACT_PRODUCTS
+                        .Where(p => contractIds.Contains(p.ContractID))
+                        .Select(p => new { p.ContractID, p.Price, p.Quantity, p.Amount })
+                        .ToListAsync();
+                    var vatByContract = contractProducts
+                        .GroupBy(p => p.ContractID)
+                        .ToDictionary(
+                            g => g.Key,
+                            g =>
+                            {
+                                var baseAmount = g.Sum(x => x.Price * x.Quantity);
+                                if (baseAmount <= 0)
+                                {
+                                    return 12d;
+                                }
 
-                    return Json(new { success = true, data = contracts }, JsonRequestBehavior.AllowGet);
+                                var totalAmount = g.Sum(x => x.Amount);
+                                var rate = ((totalAmount - baseAmount) / baseAmount) * 100d;
+                                if (double.IsNaN(rate) || double.IsInfinity(rate) || rate < 0)
+                                {
+                                    return 12d;
+                                }
+
+                                return Math.Round(rate, 2);
+                            });
+
+                    var data = contracts.Select(c => new
+                    {
+                        c.ID,
+                        c.ContractNo,
+                        VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 12d
+                    }).ToList();
+
+                    return Json(new { success = true, data }, JsonRequestBehavior.AllowGet);
                 }
             }
             catch (Exception ex)

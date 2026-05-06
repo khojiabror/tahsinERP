@@ -4,6 +4,7 @@
 @{
     ViewBag.Title = "Buyurtmani tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var isDirectOrder = ViewBag.IsDirectOrder as bool? ?? false;
 
     var purchasableProductsData = new List<object>();
     var unitsData = new List<object>();
@@ -83,17 +84,34 @@
                                                     @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
                                                 </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
-                                                </div>
+                                                @if (!isDirectOrder)
+                                                {
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="SupplierID">Ta'minotchi</label>
+                                                        @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect" })
+                                                        @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="ContractID">Shartnoma</label>
+                                                        @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
+                                                        @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    @Html.HiddenFor(model => model.SupplierID)
+                                                    @Html.HiddenFor(model => model.ContractID)
+                                                }
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="CurrencyID">Valyuta</label>
                                                     @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                 </div>
-                                                <div class="col-md-9 col-12 form-group">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="vatRateInput">QQS % (ko'rinish uchun)</label>
+                                                    <input type="number" id="vatRateInput" class="form-control" value="12" step="0.01" min="0" max="100" />
+                                                </div>
+                                                <div class="col-md-12 col-12 form-group">
                                                     <label for="Description">Izoh</label>
                                                     @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2", @placeholder = "Qisqacha izoh" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
@@ -142,9 +160,11 @@
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                        <small class="text-muted d-block mt-1">QQS bilan: <span class="price-with-vat">0.00</span></small>
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                        <small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small>
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
@@ -165,6 +185,11 @@
                                                         <tr>
                                                             <td colspan="5" class="text-right"><strong>Jami:</strong></td>
                                                             <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                            <td colspan="3"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="5" class="text-right"><strong>Jami (QQS bilan):</strong></td>
+                                                            <td id="totalAmountWithVat" class="text-right"><strong>0.00</strong></td>
                                                             <td colspan="3"></td>
                                                         </tr>
                                                     </tfoot>
@@ -207,6 +232,60 @@
             var productRowIndex = @(Model.OrderProducts?.Count ?? 0);
             var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData ?? new List<object>()));
             var units = @Html.Raw(Json.Encode(unitsData ?? new List<object>()));
+            var $vatRateInput = $('#vatRateInput');
+            var selectedContractId = '@(Model.ContractID.HasValue ? Model.ContractID.Value.ToString() : "")';
+            var isDirectOrder = @(isDirectOrder ? "true" : "false");
+
+            function getVatRate() {
+                var vatRate = parseFloat($vatRateInput.val());
+                return isNaN(vatRate) || vatRate < 0 ? 0 : vatRate;
+            }
+
+            function toVatAmount(baseAmount) {
+                return baseAmount * (1 + (getVatRate() / 100));
+            }
+
+            function updateRowDisplayWithVat($row, amount, price) {
+                $row.find('.price-with-vat').text(toVatAmount(price).toFixed(2));
+                $row.find('.line-total-with-vat').text(toVatAmount(amount * price).toFixed(2));
+            }
+
+            function loadContractsBySupplier(supplierId, selectedId) {
+                var $contractSelect = $('#contractSelect');
+                $contractSelect.empty().append('<option value="">---Tanlang---</option>');
+
+                if (!supplierId) {
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $contractSelect.select2();
+                    }
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GetContractsBySupplier", "POrders")',
+                    type: 'POST',
+                    data: { supplierId: supplierId },
+                    success: function (response) {
+                        if (response && response.success && response.data && Array.isArray(response.data)) {
+                            response.data.forEach(function (contract) {
+                                var $option = $('<option>')
+                                    .attr('value', contract.ID)
+                                    .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 12)
+                                    .text(contract.ContractNo);
+                                if (selectedId && String(contract.ID) === String(selectedId)) {
+                                    $option.attr('selected', 'selected');
+                                }
+                                $contractSelect.append($option);
+                            });
+                        }
+
+                        if (typeof $.fn.select2 !== 'undefined') {
+                            $contractSelect.select2();
+                        }
+                        $contractSelect.trigger('change');
+                    }
+                });
+            }
 
             // Calculate totals for existing rows
             $('.amount-input, .price-input').each(function () {
@@ -215,12 +294,39 @@
                 var price = parseFloat($row.find('.price-input').val()) || 0;
                 var total = amount * price;
                 $row.find('.total-price').val(total.toFixed(2));
+                updateRowDisplayWithVat($row, amount, price);
             });
             updateTotal();
+            if (!isDirectOrder && $('#supplierSelect').length > 0) {
+                loadContractsBySupplier($('#supplierSelect').val(), selectedContractId);
+            }
 
             // Add new row manually
             $('#addRowBtn').click(function () {
                 addProductRow(null, '', '', 0, null, null, null, '', '');
+            });
+
+            if (!isDirectOrder && $('#supplierSelect').length > 0) {
+                $('#supplierSelect').on('change', function () {
+                    loadContractsBySupplier($(this).val(), null);
+                });
+            }
+
+            if (!isDirectOrder && $('#contractSelect').length > 0) {
+                $('#contractSelect').on('change', function () {
+                    var selected = $(this).find('option:selected');
+                    var vatRate = parseFloat(selected.attr('data-vat-rate'));
+                    if (!isNaN(vatRate)) {
+                        $vatRateInput.val(vatRate.toFixed(2));
+                    }
+                    updateTotal();
+                    $('.amount-input, .price-input').trigger('input');
+                });
+            }
+
+            $vatRateInput.on('input', function () {
+                updateTotal();
+                $('.amount-input, .price-input').trigger('input');
             });
 
             function escapeHtmlEdit(text) {
@@ -269,7 +375,7 @@
                 
                 row += '</select></td>' +
                     '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
-                    '<td><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /></td>' +
+                    '<td><small class="text-muted d-block">QQS bilan: <span class="price-with-vat">0.00</span></small><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /><small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small></td>' +
                     '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
                     '<td class="align-top small">' + escapeHtmlEdit(calc || '—') +
                     '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + escapeAttrEdit(calc) + '" />' +
@@ -299,6 +405,7 @@
                 var price = parseFloat($row.find('.price-input').val()) || 0;
                 var total = amount * price;
                 $row.find('.total-price').val(total.toFixed(2));
+                updateRowDisplayWithVat($row, amount, price);
                 updateTotal();
             });
 
@@ -308,6 +415,7 @@
                     total += parseFloat($(this).val()) || 0;
                 });
                 $('#totalAmount').text(total.toFixed(2));
+                $('#totalAmountWithVat').text(toVatAmount(total).toFixed(2));
             }
 
             // Form submission validation

@@ -234,7 +234,102 @@
                                 return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
                             },
                             exportOptions: { columns: ':visible' },
-                            title: 'Akt-sverki'
+                            title: null,
+                            customize: function (doc) {
+                                var asOf = '@Model.AsOfDate.ToString("dd.MM.yyyy")';
+                                var reportDate = '@Model.ReportDate';
+                                var party1 = '@Html.Raw((Model.Party1Name ?? "").Replace("'", "\\'"))';
+                                var party2 = '@Html.Raw((Model.Party2Name ?? "").Replace("'", "\\'"))';
+                                var contractNo = '@Html.Raw((Model.ContractNo ?? "").Replace("'", "\\'"))';
+                                var agreement = '@Html.Raw((Model.AgreementInfo ?? "").Replace("'", "\\'"))';
+                                var reconciliationType = '@Model.ReconciliationType';
+                                var finalBalance = @Model.FinalBalance.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                var finalAbsText = '@Math.Abs(Model.FinalBalance).ToString("N2")';
+                                var finalStatement = '';
+
+                                if (reconciliationType === 'Customer') {
+                                    if (finalBalance > 0) {
+                                        finalStatement = "Yakuniy qoldiq: " + party2 + " " + finalAbsText + " summa miqdorida qarzdor.";
+                                    } else if (finalBalance < 0) {
+                                        finalStatement = "Yakuniy qoldiq: " + party1 + " " + finalAbsText + " summa miqdorida qarzdor.";
+                                    } else {
+                                        finalStatement = "Yakuniy qoldiq: O'zaro hisob-kitoblar tenglashtirilgan (0).";
+                                    }
+                                } else {
+                                    if (finalBalance > 0) {
+                                        finalStatement = "Yakuniy qoldiq: " + party1 + " " + party2 + " ga " + finalAbsText + " summa miqdorida qarzdor; " + party2 + " haqdor.";
+                                    } else if (finalBalance < 0) {
+                                        finalStatement = "Yakuniy qoldiq: " + party2 + " " + party1 + " ga " + finalAbsText + " summa miqdorida qarzdor; " + party1 + " haqdor.";
+                                    } else {
+                                        finalStatement = "Yakuniy qoldiq: O'zaro hisob-kitoblar tenglashtirilgan (0).";
+                                    }
+                                }
+
+                                doc.pageMargins = [18, 22, 18, 36];
+                                doc.defaultStyle = { fontSize: 8.5, color: '#2f2f2f' };
+                                doc.styles = doc.styles || {};
+                                doc.styles.tableHeader = {
+                                    fillColor: '#cfe0f8',
+                                    color: '#22303f',
+                                    bold: true,
+                                    alignment: 'center',
+                                    fontSize: 8.5
+                                };
+                                doc.styles.smallMuted = { fontSize: 8, color: '#6c757d' };
+                                doc.styles.mainTitle = { bold: true, fontSize: 15, color: '#1f8b4c' };
+
+                                // Auto-generated default title matnini olib tashlab, boshiga "ekrandagidek" sarlavha qo'shamiz.
+                                if (doc.content && doc.content.length && typeof doc.content[0].text !== 'undefined') {
+                                    doc.content.splice(0, 1);
+                                }
+
+                                doc.content.unshift(
+                                    { text: 'AKT-SVERKI', style: 'mainTitle', alignment: 'center', margin: [0, 0, 0, 3] },
+                                    { text: "O'zaro hisob-kitoblar sanasi: " + asOf, alignment: 'center', margin: [0, 0, 0, 1] },
+                                    { text: 'Hujjat sanasi: ' + reportDate, alignment: 'center', margin: [0, 0, 0, 1] },
+                                    agreement ? { text: agreement, style: 'smallMuted', alignment: 'center', margin: [0, 0, 0, 6] } : { text: '' },
+                                    contractNo
+                                        ? { text: party1 + ' va ' + party2 + " o'rtasida shartnoma № " + contractNo + " bo'yicha hisob-kitoblar.", margin: [0, 0, 0, 8] }
+                                        : { text: '' }
+                                );
+
+                                var tableNode = doc.content.find(function (c) { return c.table; });
+                                if (tableNode) {
+                                    // Ekrandagi nisbatga yaqin ustun kengliklari
+                                    tableNode.table.widths = ['44%', '14%', '14%', '14%', '14%'];
+                                    tableNode.layout = {
+                                        hLineWidth: function () { return 0.7; },
+                                        vLineWidth: function () { return 0.7; },
+                                        hLineColor: function () { return '#c6cfdb'; },
+                                        vLineColor: function () { return '#c6cfdb'; },
+                                        paddingLeft: function () { return 4; },
+                                        paddingRight: function () { return 4; },
+                                        paddingTop: function () { return 3; },
+                                        paddingBottom: function () { return 3; }
+                                    };
+                                }
+
+                                doc.content.push(
+                                    { text: ' ', margin: [0, 4, 0, 0] },
+                                    { text: finalStatement, bold: true, margin: [0, 2, 0, 0] }
+                                );
+
+                                doc.footer = function () {
+                                    return {
+                                        margin: [20, 0, 20, 10],
+                                        columns: [
+                                            { text: ' ', width: '*' },
+                                            {
+                                                text: 'www.schain.uz',
+                                                link: 'https://www.schain.uz',
+                                                color: '#2a6edb',
+                                                alignment: 'right',
+                                                decoration: 'underline'
+                                            }
+                                        ]
+                                    };
+                                };
+                            }
                         }
                     ]
                 });

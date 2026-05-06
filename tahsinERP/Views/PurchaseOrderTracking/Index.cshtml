@@ -1,4 +1,4 @@
-@model dynamic
+@model IEnumerable<tahsinERP.ViewModels.PurchaseOrderTrackingIndexItemViewModel>
 @{
     ViewBag.Title = "Xarid buyurtmalari kuzatuv";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -82,8 +82,8 @@
                                                 {
                                                     foreach (var item in Model)
                                                     {
-                                                        var order = item.Order as tahsinERP.Models.P_ORDERS;
-                                                        var tracking = item.TrackingStatus as tahsinERP.Controllers.SRM.OrderTrackingStatus;
+                                                        var order = item.POrder;
+                                                        var tracking = item.TrackingStatus;
                                                         
                                                         <tr>
                                                             <td>

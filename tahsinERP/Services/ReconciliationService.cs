@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.SqlClient;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
@@ -18,6 +19,37 @@ namespace tahsinERP.Services
             if (string.IsNullOrEmpty(sourceDocType)) return false;
             return sourceDocType.Equals("PurchaseInvoice", StringComparison.OrdinalIgnoreCase)
                 || sourceDocType.Equals("SalesInvoice", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static DateTime? GetLatestOpeningDate(DBTHSNEntities db, DateTime asOfDate)
+        {
+            return db.FIN_BALANCE_SNAPSHOTS
+                .Where(s => (s.SourceType == "OpeningBalance" || s.SourceType == null) && s.SnapshotDate <= asOfDate)
+                .Select(s => (DateTime?)s.SnapshotDate)
+                .OrderByDescending(x => x)
+                .FirstOrDefault();
+        }
+
+        private static OpeningContractBalanceLite GetOpeningContractBalance(DBTHSNEntities db, DateTime asOfDate, byte balanceType, int counterpartyId, int contractId, string contractNo)
+        {
+            var latestDate = GetLatestOpeningDate(db, asOfDate);
+            if (!latestDate.HasValue) return null;
+
+            var contractNoNorm = (contractNo ?? "").Trim().ToUpperInvariant();
+            var rows = db.Database.SqlQuery<OpeningContractBalanceLite>(
+                "SELECT TOP 1 TotalAmount, PaidAmount, Amount FROM FIN_OPENING_CONTRACT_BALANCES " +
+                "WHERE SnapshotDate = @p0 AND BalanceType = @p1 AND CounterpartyID = @p2 " +
+                "AND ((ContractID IS NOT NULL AND ContractID = @p3) " +
+                "OR (@p4 <> '' AND UPPER(LTRIM(RTRIM(ISNULL(ContractNo,'')))) = @p4) " +
+                "OR (@p3 IS NULL AND ContractID IS NULL AND ISNULL(ContractNo,'') = ''))",
+                new SqlParameter("@p0", latestDate.Value.Date),
+                new SqlParameter("@p1", balanceType),
+                new SqlParameter("@p2", counterpartyId),
+                new SqlParameter("@p3", contractId),
+                new SqlParameter("@p4", contractNoNorm)
+            ).ToList();
+
+            return rows.FirstOrDefault();
         }
 
         public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, int contractId, DateTime asOfDate, string companyName, string supplierName, string contractNo)
@@ -42,6 +74,21 @@ namespace tahsinERP.Services
                 .Select(i => new { i.ID, i.InvoiceNo, i.InvoiceDate, i.Amount })
                 .ToList();
 
+            // Xarid uchun QQS bilan summa: avvalo invoysga bog'langan kirimlar TotalPrice (odatda QQS bilan),
+            // bo'lmasa P_INVOICES.Amount fallback.
+            var invoiceIds = invoices.Select(i => i.ID).ToList();
+            var incomeTotalsByInvoice = invoiceIds.Count == 0
+                ? new Dictionary<int, decimal>()
+                : db.INCOMES
+                    .Where(inc => inc.InvoiceID.HasValue
+                        && invoiceIds.Contains(inc.InvoiceID.Value)
+                        && inc.IsDeleted != true
+                        && inc.TotalPrice.HasValue)
+                    .GroupBy(inc => inc.InvoiceID.Value)
+                    .Select(g => new { InvoiceID = g.Key, Total = g.Sum(x => x.TotalPrice.Value) })
+                    .ToList()
+                    .ToDictionary(x => x.InvoiceID, x => Convert.ToDecimal(x.Total));
+
             var invIdSet = new HashSet<int>(invoices.Select(i => i.ID));
             var payCandidates = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 2 && t.CounterpartyID == supplierId && t.TxnDate <= asOfDate
@@ -65,10 +112,20 @@ namespace tahsinERP.Services
             }).OrderBy(t => t.TxnDate).ToList();
 
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
+            var opening = GetOpeningContractBalance(db, asOfDate, 2, supplierId, contractId, contractNo);
+
+            if (opening != null && opening.Amount != 0)
+            {
+                allItems.Add((asOfDate.Date, "open",
+                    "Opening balansdan boshlangan qarzdorlik",
+                    0, opening.Amount, opening.Amount, 0));
+            }
 
             foreach (var inv in invoices)
             {
-                var amt = Convert.ToDecimal(inv.Amount);
+                var amt = incomeTotalsByInvoice.ContainsKey(inv.ID)
+                    ? incomeTotalsByInvoice[inv.ID]
+                    : Convert.ToDecimal(inv.Amount ?? 0);
                 allItems.Add((inv.InvoiceDate, "inv",
                     $"Hisob-faktura №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}",
                     0, amt, amt, 0));
@@ -90,7 +147,7 @@ namespace tahsinERP.Services
                     a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
             }
 
-            var ordered = allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "inv" ? 0 : x.type == "pay" ? 1 : 2).ToList();
+            var ordered = allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "open" ? 0 : x.type == "inv" ? 1 : x.type == "pay" ? 2 : 3).ToList();
 
             foreach (var item in ordered)
             {
@@ -106,7 +163,11 @@ namespace tahsinERP.Services
                 });
             }
 
-            var totalInv = invoices.Sum(i => Convert.ToDecimal(i.Amount));
+            var totalInv = invoices.Sum(i =>
+                incomeTotalsByInvoice.ContainsKey(i.ID)
+                    ? incomeTotalsByInvoice[i.ID]
+                    : Convert.ToDecimal(i.Amount ?? 0));
+            if (opening != null) totalInv += opening.Amount;
             var totalPay = payments.Sum(p => p.Amount);
             var adjDr = adjustments.Sum(a => a.Party1Debit);
             var adjCr = adjustments.Sum(a => a.Party1Credit);
@@ -153,7 +214,14 @@ namespace tahsinERP.Services
             var invoices = db.SALES_INVOICES
                 .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= asOfDate)
                 .OrderBy(i => i.InvoiceDate)
-                .Select(i => new { i.ID, i.InvoiceNo, i.InvoiceDate, Amount = i.TotalAmount })
+                .Select(i => new
+                {
+                    i.ID,
+                    i.InvoiceNo,
+                    i.InvoiceDate,
+                    Amount = i.TotalAmount,
+                    TotalWithVAT = i.TotalWithVAT
+                })
                 .ToList();
 
             var invIdSet = new HashSet<long>(invoices.Select(i => i.ID));
@@ -178,12 +246,21 @@ namespace tahsinERP.Services
             }).OrderBy(t => t.TxnDate).ToList();
 
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
+            var opening = GetOpeningContractBalance(db, asOfDate, 1, customerId, contractId, contractNo);
+
+            if (opening != null && opening.Amount != 0)
+            {
+                allItems.Add((asOfDate.Date, "open",
+                    "Opening balansdan boshlangan haqqimiz",
+                    opening.Amount, 0, 0, opening.Amount));
+            }
 
             foreach (var inv in invoices)
             {
+                var invoiceAmountWithVat = inv.TotalWithVAT ?? inv.Amount;
                 allItems.Add((inv.InvoiceDate, "inv",
                     $"Sotuv invoysi №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}",
-                    inv.Amount, 0, 0, inv.Amount));
+                    invoiceAmountWithVat, 0, 0, invoiceAmountWithVat));
             }
             foreach (var pay in payments)
             {
@@ -202,7 +279,7 @@ namespace tahsinERP.Services
                     a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
             }
 
-            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "inv" ? 0 : x.type == "pay" ? 1 : 2))
+            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "open" ? 0 : x.type == "inv" ? 1 : x.type == "pay" ? 2 : 3))
             {
                 vm.Rows.Add(new ReconciliationRowViewModel
                 {
@@ -216,7 +293,8 @@ namespace tahsinERP.Services
                 });
             }
 
-            var totalInv = invoices.Sum(i => i.Amount);
+            var totalInv = invoices.Sum(i => i.TotalWithVAT ?? i.Amount);
+            if (opening != null) totalInv += opening.Amount;
             var totalPay = payments.Sum(p => p.Amount);
             var adjDr = adjList.Sum(a => a.Party1Debit);
             var adjCr = adjList.Sum(a => a.Party1Credit);
@@ -242,6 +320,13 @@ namespace tahsinERP.Services
             }
 
             return vm;
+        }
+
+        private class OpeningContractBalanceLite
+        {
+            public decimal TotalAmount { get; set; }
+            public decimal PaidAmount { get; set; }
+            public decimal Amount { get; set; }
         }
 
         public static ReconciliationViewModel BuildForwarderReconciliation(DBTHSNEntities db, int forwarderId, int contractId, DateTime asOfDate, string companyName, string forwarderName, string contractNo)

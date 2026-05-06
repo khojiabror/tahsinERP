@@ -72,6 +72,28 @@
                                             </div>
 
                                             <div class="row">
+                                                <div class="col-md-9">
+                                                    <div class="form-group">
+                                                        <label>Oldingi oylardagi normadan yuklash</label>
+                                                        @{
+                                                            var previousNorms = ViewBag.PreviousNorms as IEnumerable<SelectListItem> ?? new List<SelectListItem>();
+                                                            var selectedTemplateNormVersionId = ViewBag.SelectedTemplateNormVersionId != null ? (int?)Convert.ToInt32(ViewBag.SelectedTemplateNormVersionId) : null;
+                                                        }
+                                                        @Html.DropDownList(
+                                                            "TemplateNormVersionId",
+                                                            new SelectList(previousNorms, "Value", "Text", selectedTemplateNormVersionId),
+                                                            "Tanlang",
+                                                            new { @class = "form-control", id = "templateNormVersionId" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-info mb-1 w-100" id="loadTemplateNormBtn">
+                                                        <i class="bx bx-download"></i> Yuklash
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>Samarali shu sanadan</label>
@@ -428,6 +450,16 @@ else
             console.log('Document ready, materials:', materials);
             console.log('Line index:', lineIndex);
             console.log('Add button exists:', $('#addLineBtn').length > 0);
+
+            $('#loadTemplateNormBtn').on('click', function () {
+                var templateId = $('#templateNormVersionId').val();
+                if (!templateId) {
+                    alert('Iltimos, oldingi normani tanlang.');
+                    return;
+                }
+                var baseUrl = '@Url.Action("Edit", "Norm", new { normVersionId = Model.NormVersionID })';
+                window.location.href = baseUrl + '&templateNormVersionId=' + encodeURIComponent(templateId);
+            });
 
             function isAutoPriceEnabled() {
                 return $('#autoPriceFromWarehouse').is(':checked');

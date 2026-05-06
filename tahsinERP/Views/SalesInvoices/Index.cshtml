@@ -180,15 +180,23 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            var changePermit = @(changePermit ? "true" : "false");
+        (function () {
+            function initSalesInvoicesTable() {
+                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initSalesInvoicesTable, 100);
+                    return;
+                }
+                var $ = window.jQuery;
+                if (!$('#invoiceDataTable').length) return;
+
+                var changePermit = @(changePermit ? "true" : "false");
             
-            var columnDefs = [];
-            if (changePermit) {
-                columnDefs.push({ "orderable": false, "targets": -1 });
-            }
+                var columnDefs = [];
+                if (changePermit) {
+                    columnDefs.push({ "orderable": false, "targets": -1 });
+                }
             
-            $('#invoiceDataTable').DataTable({
+                $('#invoiceDataTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -266,7 +274,14 @@
                 ],
                 "scrollX": true
             });
-        });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSalesInvoicesTable);
+            } else {
+                initSalesInvoicesTable();
+            }
+        })();
     </script>
 }
 else

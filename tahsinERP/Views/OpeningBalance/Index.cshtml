@@ -76,6 +76,9 @@
                                                     <td>@row.SnapshotDate.ToString("yyyy-MM-dd")</td>
                                                     <td class="text-right">@row.LineCount</td>
                                                     <td class="text-nowrap">
+                                                        <a href="@Url.Action("Details", "OpeningBalance", new { snapshotDate = d })" class="btn btn-sm btn-outline-info">
+                                                            Batafsil
+                                                        </a>
                                                         <a href="@Url.Action("Edit", "OpeningBalance", new { snapshotDate = d })" class="btn btn-sm btn-outline-primary">
                                                             @(canChange ? "Tahrir" : "Ko'rish")
                                                         </a>

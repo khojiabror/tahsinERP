@@ -6,7 +6,7 @@
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking", "Details"))
 {
-    var trackingStatus = ViewBag.TrackingStatus as tahsinERP.Controllers.SRM.OrderTrackingStatus;
+    var trackingStatus = ViewBag.TrackingStatus as tahsinERP.ViewModels.OrderTrackingStatusViewModel;
     var contracts = ViewBag.Contracts as List<tahsinERP.Models.P_CONTRACTS>;
     var invoices = ViewBag.Invoices as List<tahsinERP.Models.P_INVOICES>;
     var incomes = ViewBag.Incomes as List<tahsinERP.Models.INCOME>;

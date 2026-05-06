@@ -4,6 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var spendBySupplier = ViewBag.SpendBySupplier as IEnumerable<SRMSpendBySupplierItem>;
     var payablesBySupplier = ViewBag.PayablesBySupplier as IEnumerable<SRMPayablesBySupplierItem>;
+    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
+    var totalPayablesBySupplier = payablesBySupplier != null ? payablesBySupplier.Sum(x => x.Outstanding) : 0m;
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
 {
@@ -138,17 +140,20 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Qarzdorlik ta'minotchi bo'yicha (top 15)</h5>
+                                <h5>Ta'minotchilar bo'yicha qarzimiz (top 15)</h5>
                                 <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Ta'minotchi</th>
-                                                <th class="text-right">Qoldiq</th>
-                                                <th></th>
+                                                <th class="font-weight-bold">Tashkilot</th>
+                                                <th class="text-right text-danger font-weight-bold">Qarzimiz</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="font-weight-bold">Jami</th>
+                                                <th class="text-right text-danger font-weight-bold">@fmtSom(totalPayablesBySupplier)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -158,14 +163,13 @@
                                                 {
                                                     <tr>
                                                         <td><a href="~/Supplier/Details/@p.SupplierID">@p.SupplierName</a></td>
-                                                        <td class="text-right">@p.Outstanding.ToString("N2")</td>
-                                                        <td><a href="~/PContracts/Index?supplierID=@p.SupplierID" class="btn btn-xs btn-outline-primary">Shartnomalar</a></td>
+                                                        <td class="text-right text-danger">@fmtSom(p.Outstanding)</td>
                                                     </tr>
                                                 }
                                             }
                                             @if (payablesBySupplier == null || !payablesBySupplier.Any())
                                             {
-                                                <tr><td colspan="3" class="text-center">Ma'lumot yo'q</td></tr>
+                                                <tr><td colspan="2" class="text-center">Ma'lumot yo'q</td></tr>
                                             }
                                         </tbody>
                                     </table>

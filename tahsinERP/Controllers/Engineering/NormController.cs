@@ -454,7 +454,7 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         // Olish so'rovi: Norm/yaratish
-        public async Task<ActionResult> Create(int? productId, string period)
+        public async Task<ActionResult> Create(int? productId, string period, int? templateNormVersionId)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -506,6 +506,15 @@ namespace tahsinERP.Controllers.Engineering
                 viewModel.ProductCode = product.PNo;
                 viewModel.ProductName = product.Name;
                 viewModel.Period = selectedPeriod;
+
+                if (templateNormVersionId.HasValue)
+                {
+                    var loaded = await ApplyTemplateFromNormVersionAsync(viewModel, templateNormVersionId.Value, overrideHeaderFields: true);
+                    if (!loaded)
+                    {
+                        TempData["Error"] = "Tanlangan oldingi norma topilmadi yoki ushbu mahsulotga tegishli emas.";
+                    }
+                }
             }
             else
             {
@@ -554,12 +563,14 @@ namespace tahsinERP.Controllers.Engineering
                 .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
                 .ToList();
 
+            ViewBag.PreviousNorms = await GetPreviousNormOptionsAsync(viewModel.ProductID, null);
+            ViewBag.SelectedTemplateNormVersionId = templateNormVersionId;
             await SetUnitsViewBagAsync();
             return View("Create", viewModel);
         }
 
         // Olish so'rovi: Norm/Edit
-        public async Task<ActionResult> Edit(int? normVersionId)
+        public async Task<ActionResult> Edit(int? normVersionId, int? templateNormVersionId)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
@@ -595,137 +606,23 @@ namespace tahsinERP.Controllers.Engineering
                 Comment = normVersion.Comment
             };
 
-            // Yuklash NORM_INPUT_LINES (detailed cutting variants) instead of aggregated NORMLINES
-            var period = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? "";
-            var inputLines = await db.NORM_INPUT_LINES
-                .Include("PRODUCT.PRODUCT_CATEGORIES")
-                .Include("UNIT")
-                .Where(il => il.ProductID == viewModel.ProductID && il.Month == period)
-                .OrderByDescending(il => il.PRODUCT.Name)
-                .ThenBy(il => il.MaterialID)
-                .ThenBy(il => il.CutLengthMm)
-                .ToListAsync();
-
-            foreach (var inputLine in inputLines)
+            if (templateNormVersionId.HasValue)
             {
-                // MaterialID — PRODUCTS (xomashyo); EDMX: PRODUCT (MaterialID). PRODUCT1 — ProductID (tayyor mahsulot).
-                var material = inputLine.PRODUCT;
-                if (material == null)
+                var loaded = await ApplyTemplateFromNormVersionAsync(viewModel, templateNormVersionId.Value, overrideHeaderFields: true);
+                if (!loaded)
                 {
-                    material = await db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .FirstOrDefaultAsync(p => p.ID == inputLine.MaterialID);
-                }
-
-                if (material != null)
-                {
-                    // Use Price dan NORM_INPUT_LINES (saved price per product)
-                    decimal unitPrice = inputLine.Price;
-                    
-                    decimal totalAmount = 0;
-
-                    // Use Consumption va WasteAmount dan NORM_INPUT_LINES agar available, otherwise calculate
-                    bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                    var standardLengthMm = material.StandardLengthMm ?? material.Length ?? 0;
-                    
-                    decimal consumption = 0;
-                    decimal waste = 0;
-                    
-                    // Avval, try ga use saved values dan NORM_INPUT_LINES
-                    if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
-                    {
-                        consumption = NormInputLineConsumptionToDisplay(requiresCutting, inputLine.CutLengthMm, inputLine.Consumption);
-                    }
-                    else if (requiresCutting && inputLine.CutLengthMm > 0)
-                    {
-                        // uchun cutting materials: convert mm ga m
-                        consumption = (decimal)(inputLine.CutLengthMm / 1000.0) * inputLine.PiecesPerProduct;
-                    }
-                    else
-                    {
-                        // uchun non-cutting materials: use pieces as-is
-                        consumption = inputLine.PiecesPerProduct;
-                    }
-                    
-                    // Use WasteAmount dan NORM_INPUT_LINES agar available
-                    if (inputLine.WasteAmount.HasValue)
-                    {
-                        waste = NormInputLineWasteToDisplay(inputLine.WasteAmount);
-                    }
-                    else if (requiresCutting && standardLengthMm > 0 && inputLine.CutLengthMm > 0)
-                    {
-                        // Calculate waste agar not saved
-                        var wastePerBar = Math.Max(0, standardLengthMm - inputLine.CutLengthMm);
-                        var barsNeeded = inputLine.PiecesPerProduct; // 1 piece per bar
-                        waste = (decimal)(wastePerBar / 1000.0) * barsNeeded;
-                    }
-
-                    if (unitPrice > 0)
-                    {
-                        var cleanCost = consumption * unitPrice;
-                        var wasteCost = waste * unitPrice;
-                        totalAmount = cleanCost + wasteCost;
-                    }
-
-                    viewModel.CuttingLines.Add(new NormLineViewModel
-                    {
-                        ID = inputLine.ID,
-                        MaterialID = inputLine.MaterialID,
-                        MaterialCode = material.PNo ?? "",
-                        MaterialName = material.Name ?? "",
-                        StandardLengthMm = standardLengthMm > 0 ? (double?)standardLengthMm : null,
-                        CalculatedLengthMm = inputLine.CutLengthMm,
-                        Quantity = inputLine.PiecesPerProduct,
-                        PiecesPerBar = 1, // Always 1 (removed dan UI, PiecesPerProduct is stored as Quantity)
-                        ConsumptionPerProduct = consumption,
-                        WastePerProduct = waste,
-                        IsWasteManual = inputLine.WasteAmount.HasValue,
-                        UnitPrice = unitPrice > 0 ? (decimal?)unitPrice : null,
-                        TotalCostPerProduct = totalAmount > 0 ? totalAmount : (consumption * unitPrice),
-                        Norma = consumption,
-                        Chiqindi = waste,
-                        IsSelected = true,
-                        UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
-                    });
+                    TempData["Error"] = "Tanlangan oldingi norma topilmadi yoki ushbu mahsulotga tegishli emas.";
+                    var currentPeriod = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? "";
+                    await PopulateCuttingLinesFromPeriodAsync(viewModel, viewModel.ProductID, currentPeriod);
+                    await RecalculateTotalsForViewModelAsync(viewModel);
                 }
             }
-
-            // Calculate totals - Umumiy norma faqat yog'och kategoriyasidagi materiallar uchun
-            // Olish material categories ga tekshirish agar it's wood (yog'och)
-            var materialIdsEdit = viewModel.CuttingLines.Select(l => l.MaterialID).Distinct().ToList();
-            var materialCategoriesEdit = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => materialIdsEdit.Contains(p.ID))
-                .Select(p => new { 
-                    p.ID, 
-                    RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting,
-                    IsWood = p.PRODUCT_CATEGORIES != null && (
-                        (p.PRODUCT_CATEGORIES.RawMaterialGroup != null && 
-                         (p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yo'goch") || 
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yog'och") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yog'och") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yo'goch"))) ||
-                        (p.PRODUCT_CATEGORIES.Name != null && 
-                         (p.PRODUCT_CATEGORIES.Name.Contains("Yo'goch") || 
-                          p.PRODUCT_CATEGORIES.Name.Contains("Yog'och") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("yog'och") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("yo'goch")))
-                    )
-                })
-                .ToDictionaryAsync(p => p.ID, p => new { p.RequiresCutting, p.IsWood });
-            
-            // TotalNorm: faqat yog'och kategoriyasidagi materiallar uchun
-            viewModel.TotalNorm = viewModel.CuttingLines
-                .Where(l => materialCategoriesEdit.ContainsKey(l.MaterialID) && materialCategoriesEdit[l.MaterialID].IsWood)
-                .Sum(l => l.ConsumptionPerProduct);
-            
-            // TotalWaste: faqat yog'och kategoriyasidagi materiallar uchun
-            viewModel.TotalWaste = viewModel.CuttingLines
-                .Where(l => materialCategoriesEdit.ContainsKey(l.MaterialID) && materialCategoriesEdit[l.MaterialID].IsWood)
-                .Sum(l => l.WastePerProduct);
-            
-            // TotalCost: barcha materiallar uchun
-            viewModel.TotalCost = viewModel.CuttingLines.Sum(l => l.TotalCostPerProduct);
+            else
+            {
+                var period = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? "";
+                await PopulateCuttingLinesFromPeriodAsync(viewModel, viewModel.ProductID, period);
+                await RecalculateTotalsForViewModelAsync(viewModel);
+            }
 
             // Yuklash materials (raw materials, components, va other materials - selofan, karton, dona ketadigan maxsulotlar)
             var materials = await db.PRODUCTS
@@ -768,6 +665,8 @@ namespace tahsinERP.Controllers.Engineering
                 .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
                 .ToList();
 
+            ViewBag.PreviousNorms = await GetPreviousNormOptionsAsync(viewModel.ProductID, null);
+            ViewBag.SelectedTemplateNormVersionId = templateNormVersionId;
             await SetUnitsViewBagAsync();
             return View("Edit", viewModel);
         }
@@ -824,6 +723,8 @@ namespace tahsinERP.Controllers.Engineering
                 .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
                 .ToList();
 
+            ViewBag.PreviousNorms = await GetPreviousNormOptionsAsync(viewModel.ProductID, viewModel.NormVersionID);
+            ViewBag.SelectedTemplateNormVersionId = null;
             await SetUnitsViewBagAsync();
             return View(viewModel);
         }
@@ -1696,6 +1597,215 @@ namespace tahsinERP.Controllers.Engineering
                     "Norm",
                     $"BOMS_AND_NORMS bog'lash xatosi. Product: {productPNo}, BOMID: {bomId}, NormID: {normId}. Tafsilot: {BuildDetailedErrorMessage(ex)}");
             }
+        }
+
+        private async Task<List<SelectListItem>> GetPreviousNormOptionsAsync(int productId, int? excludeNormVersionId)
+        {
+            var versions = await db.NORMVERSIONS
+                .Where(n => n.ProductID == productId
+                            && n.IsDeleted != true
+                            && (!excludeNormVersionId.HasValue || n.ID != excludeNormVersionId.Value))
+                .OrderByDescending(n => n.EffectiveFrom)
+                .ThenByDescending(n => n.ID)
+                .Select(n => new
+                {
+                    n.ID,
+                    n.EffectiveFrom,
+                    n.Comment
+                })
+                .ToListAsync();
+
+            // Aynan shu mahsulot uchun NORM oylarini NORM_INPUT_LINES dan olamiz.
+            var productMonths = await db.NORM_INPUT_LINES
+                .Where(x => x.ProductID == productId && x.Month != null && x.Month != "")
+                .Select(x => x.Month)
+                .Distinct()
+                .ToListAsync();
+
+            return versions
+                .Select(n => new SelectListItem
+                {
+                    Value = n.ID.ToString(),
+                    Text = BuildNormMonthDisplayText(n.EffectiveFrom, n.Comment, productMonths)
+                })
+                .ToList();
+        }
+
+        private static string BuildNormMonthDisplayText(DateTime? effectiveFrom, string comment, List<string> productMonths)
+        {
+            var month = effectiveFrom.HasValue ? effectiveFrom.Value.ToString("yyyy-MM") : null;
+            if (string.IsNullOrWhiteSpace(month) && productMonths != null && productMonths.Count > 0)
+            {
+                month = productMonths.OrderByDescending(x => x).FirstOrDefault();
+            }
+
+            var text = string.IsNullOrWhiteSpace(month) ? "Oy yo'q" : month;
+            if (!string.IsNullOrWhiteSpace(comment))
+            {
+                text += " | " + comment;
+            }
+            return text;
+        }
+
+        private async Task<bool> ApplyTemplateFromNormVersionAsync(ProductNormViewModel viewModel, int templateNormVersionId, bool overrideHeaderFields)
+        {
+            var sourceNormVersion = await db.NORMVERSIONS
+                .Include(n => n.PRODUCT)
+                .FirstOrDefaultAsync(n => n.ID == templateNormVersionId && n.IsDeleted != true);
+
+            if (sourceNormVersion == null || sourceNormVersion.ProductID != viewModel.ProductID)
+            {
+                return false;
+            }
+
+            if (overrideHeaderFields)
+            {
+                viewModel.Period = sourceNormVersion.EffectiveFrom?.ToString("yyyy-MM") ?? viewModel.Period;
+                viewModel.EffectiveFrom = sourceNormVersion.EffectiveFrom;
+                viewModel.EffectiveTo = sourceNormVersion.EffectiveTo;
+                viewModel.Comment = sourceNormVersion.Comment;
+            }
+
+            var sourcePeriod = sourceNormVersion.EffectiveFrom?.ToString("yyyy-MM") ?? "";
+            await PopulateCuttingLinesFromPeriodAsync(viewModel, viewModel.ProductID, sourcePeriod);
+            await RecalculateTotalsForViewModelAsync(viewModel);
+            return true;
+        }
+
+        private async Task PopulateCuttingLinesFromPeriodAsync(ProductNormViewModel viewModel, int productId, string period)
+        {
+            viewModel.CuttingLines = new List<NormLineViewModel>();
+            if (string.IsNullOrWhiteSpace(period))
+            {
+                return;
+            }
+
+            var inputLines = await db.NORM_INPUT_LINES
+                .Include("PRODUCT.PRODUCT_CATEGORIES")
+                .Include("UNIT")
+                .Where(il => il.ProductID == productId && il.Month == period)
+                .OrderByDescending(il => il.PRODUCT.Name)
+                .ThenBy(il => il.MaterialID)
+                .ThenBy(il => il.CutLengthMm)
+                .ToListAsync();
+
+            foreach (var inputLine in inputLines)
+            {
+                var material = inputLine.PRODUCT;
+                if (material == null)
+                {
+                    material = await db.PRODUCTS
+                        .Include(p => p.PRODUCT_CATEGORIES)
+                        .FirstOrDefaultAsync(p => p.ID == inputLine.MaterialID);
+                }
+
+                if (material == null)
+                {
+                    continue;
+                }
+
+                var unitPrice = inputLine.Price;
+                var requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                var standardLengthMm = material.StandardLengthMm ?? material.Length ?? 0;
+
+                decimal consumption;
+                if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
+                {
+                    consumption = NormInputLineConsumptionToDisplay(requiresCutting, inputLine.CutLengthMm, inputLine.Consumption);
+                }
+                else if (requiresCutting && inputLine.CutLengthMm > 0)
+                {
+                    consumption = (decimal)(inputLine.CutLengthMm / 1000.0) * inputLine.PiecesPerProduct;
+                }
+                else
+                {
+                    consumption = inputLine.PiecesPerProduct;
+                }
+
+                decimal waste = 0;
+                if (inputLine.WasteAmount.HasValue)
+                {
+                    waste = NormInputLineWasteToDisplay(inputLine.WasteAmount);
+                }
+                else if (requiresCutting && standardLengthMm > 0 && inputLine.CutLengthMm > 0)
+                {
+                    var wastePerBar = Math.Max(0, standardLengthMm - inputLine.CutLengthMm);
+                    var barsNeeded = inputLine.PiecesPerProduct;
+                    waste = (decimal)(wastePerBar / 1000.0) * barsNeeded;
+                }
+
+                var cleanCost = consumption * unitPrice;
+                var wasteCost = waste * unitPrice;
+                var totalAmount = cleanCost + wasteCost;
+
+                viewModel.CuttingLines.Add(new NormLineViewModel
+                {
+                    ID = inputLine.ID,
+                    MaterialID = inputLine.MaterialID,
+                    MaterialCode = material.PNo ?? "",
+                    MaterialName = material.Name ?? "",
+                    StandardLengthMm = standardLengthMm > 0 ? (double?)standardLengthMm : null,
+                    CalculatedLengthMm = inputLine.CutLengthMm,
+                    Quantity = inputLine.PiecesPerProduct,
+                    PiecesPerBar = 1,
+                    ConsumptionPerProduct = consumption,
+                    WastePerProduct = waste,
+                    IsWasteManual = inputLine.WasteAmount.HasValue,
+                    UnitPrice = unitPrice > 0 ? (decimal?)unitPrice : null,
+                    TotalCostPerProduct = totalAmount > 0 ? totalAmount : (consumption * unitPrice),
+                    Norma = consumption,
+                    Chiqindi = waste,
+                    IsSelected = true,
+                    UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
+                });
+            }
+        }
+
+        private async Task RecalculateTotalsForViewModelAsync(ProductNormViewModel viewModel)
+        {
+            var materialIds = (viewModel.CuttingLines ?? new List<NormLineViewModel>())
+                .Select(l => l.MaterialID)
+                .Distinct()
+                .ToList();
+
+            if (!materialIds.Any())
+            {
+                viewModel.TotalNorm = 0;
+                viewModel.TotalWaste = 0;
+                viewModel.TotalCost = 0;
+                return;
+            }
+
+            var materialCategories = await db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Where(p => materialIds.Contains(p.ID))
+                .Select(p => new
+                {
+                    p.ID,
+                    IsWood = p.PRODUCT_CATEGORIES != null && (
+                        (p.PRODUCT_CATEGORIES.RawMaterialGroup != null &&
+                         (p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yo'goch") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yog'och") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yog'och") ||
+                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yo'goch"))) ||
+                        (p.PRODUCT_CATEGORIES.Name != null &&
+                         (p.PRODUCT_CATEGORIES.Name.Contains("Yo'goch") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("Yog'och") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("yog'och") ||
+                          p.PRODUCT_CATEGORIES.Name.Contains("yo'goch")))
+                    )
+                })
+                .ToDictionaryAsync(p => p.ID, p => p.IsWood);
+
+            viewModel.TotalNorm = viewModel.CuttingLines
+                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID])
+                .Sum(l => l.ConsumptionPerProduct);
+
+            viewModel.TotalWaste = viewModel.CuttingLines
+                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID])
+                .Sum(l => l.WastePerProduct);
+
+            viewModel.TotalCost = viewModel.CuttingLines.Sum(l => l.TotalCostPerProduct);
         }
 
         private async Task SetUnitsViewBagAsync()

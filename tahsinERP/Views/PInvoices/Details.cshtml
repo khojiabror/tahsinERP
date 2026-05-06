@@ -2,6 +2,10 @@
 @{
     ViewBag.Title = "Invoys tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var vatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 12d;
+    var totalBase = Model.Amount ?? 0d;
+    var totalVat = totalBase * vatRate / 100d;
+    var totalWithVat = totalBase + totalVat;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Details"))
@@ -104,6 +108,18 @@
                                                     <td><strong>@(Model.Amount.HasValue ? Model.Amount.Value.ToString("N2") : "-")</strong></td>
                                                 </tr>
                                                 <tr>
+                                                    <th>QQS (%):</th>
+                                                    <td>@vatRate.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami QQS:</th>
+                                                    <td>@totalVat.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami (QQS bilan):</th>
+                                                    <td><strong>@totalWithVat.ToString("N2")</strong></td>
+                                                </tr>
+                                                <tr>
                                                     <th>Shartnoma:</th>
                                                     <td>
                                                         @if (Model.P_ORDERS != null && Model.P_ORDERS.P_CONTRACTS != null)
@@ -133,7 +149,10 @@
                                                     <th>Birlik</th>
                                                     <th>CBM (ekvivalent)</th>
                                                     <th>Narx</th>
+                                                    <th>Narx (QQS bilan)</th>
+                                                    <th>QQS summa</th>
                                                     <th>Jami</th>
+                                                    <th>Jami (QQS bilan)</th>
                                                     @if (Model.P_ORDERS?.ContractID.HasValue == true)
                                                     {
                                                         <th>Shartnoma balansi</th>
@@ -153,6 +172,11 @@
                                                         var requiresCutting = product.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
                                                         var cbm = productCBMInfo != null && productCBMInfo.ContainsKey(productId) ? productCBMInfo[productId] : (decimal?)null;
                                                         var balance = contractBalances != null && contractBalances.ContainsKey(productId) ? contractBalances[productId] : null;
+                                                        var lineBase = product.TotalPrice;
+                                                        var unitVat = product.Price * vatRate / 100d;
+                                                        var lineVat = lineBase * vatRate / 100d;
+                                                        var lineWithVat = lineBase + lineVat;
+                                                        var unitWithVat = product.Price + unitVat;
                                                         
                                                         <tr>
                                                             <td>@(product.PRODUCT?.PNo ?? "-")</td>
@@ -170,7 +194,10 @@
                                                                 }
                                                             </td>
                                                             <td>@product.Price.ToString("N2")</td>
-                                                            <td>@product.TotalPrice.ToString("N2")</td>
+                                                            <td>@unitWithVat.ToString("N2")</td>
+                                                            <td>@lineVat.ToString("N2")</td>
+                                                            <td>@lineBase.ToString("N2")</td>
+                                                            <td>@lineWithVat.ToString("N2")</td>
                                                             @if (Model.P_ORDERS?.ContractID.HasValue == true)
                                                             {
                                                                 <td>
@@ -214,7 +241,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="@(Model.P_ORDERS?.ContractID.HasValue == true ? "9" : "7")" class="text-center">Mahsulotlar topilmadi</td>
+                                                        <td colspan="@(Model.P_ORDERS?.ContractID.HasValue == true ? "11" : "9")" class="text-center">Mahsulotlar topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>

@@ -72,6 +72,28 @@
                                             </div>
 
                                             <div class="row">
+                                                <div class="col-md-9">
+                                                    <div class="form-group">
+                                                        <label>Oldingi oylardagi normadan yuklash</label>
+                                                        @{
+                                                            var previousNorms = ViewBag.PreviousNorms as IEnumerable<SelectListItem> ?? new List<SelectListItem>();
+                                                            var selectedTemplateNormVersionId = ViewBag.SelectedTemplateNormVersionId != null ? (int?)Convert.ToInt32(ViewBag.SelectedTemplateNormVersionId) : null;
+                                                        }
+                                                        @Html.DropDownList(
+                                                            "TemplateNormVersionId",
+                                                            new SelectList(previousNorms, "Value", "Text", selectedTemplateNormVersionId),
+                                                            "Tanlang",
+                                                            new { @class = "form-control", id = "templateNormVersionId" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-info mb-1 w-100" id="loadTemplateNormBtn">
+                                                        <i class="bx bx-download"></i> Yuklash
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>Samarali shu sanadan</label>
@@ -123,7 +145,72 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody id="linesBody">
-                                                        <!-- Lines will be added dynamically -->
+                                                        @for (int i = 0; i < Model.CuttingLines.Count; i++)
+                                                        {
+                                                            var line = Model.CuttingLines[i];
+                                                            <tr class="line-row" data-line-index="@i">
+                                                                <td>
+                                                                    @Html.CheckBoxFor(m => m.CuttingLines[i].IsSelected, new { @class = "line-select" })
+                                                                </td>
+                                                                <td>
+                                                                    @Html.DropDownListFor(
+                                                                        m => m.CuttingLines[i].MaterialID,
+                                                                        new SelectList((IEnumerable<SelectListItem>)ViewBag.Materials, "Value", "Text", line.MaterialID),
+                                                                        "Tanlang",
+                                                                        new { @class = "form-control material-select select2", @required = "required" })
+                                                                    @Html.ValidationMessageFor(m => m.CuttingLines[i].MaterialID, "", new { @class = "text-danger" })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="material-code">@(line.MaterialName ?? line.MaterialCode ?? "-")</span>
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].CalculatedLengthMm, new { @class = "form-control length-input", type = "number", step = "0.01" })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="standard-length">@(line.StandardLengthMm?.ToString("F2") ?? "-")</span>
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].Quantity, new { @class = "form-control quantity-input", type = "number", min = "1", @required = "required" })
+                                                                </td>
+                                                                <td>
+                                                                    @{
+                                                                        var unitsList = ViewBag.UnitsList as IEnumerable<SelectListItem> ?? new List<SelectListItem>();
+                                                                    }
+                                                                    @Html.DropDownListFor(m => m.CuttingLines[i].UnitID, new SelectList(unitsList, "Value", "Text", line.UnitID), "Tanlang", new { @class = "form-control form-control-sm unit-select unit-select2", id = "normLineUnit_" + i })
+                                                                </td>
+                                                                <td>
+                                                                    <span class="consumption">@line.ConsumptionPerProduct.ToString("F4")</span>
+                                                                    @Html.HiddenFor(m => m.CuttingLines[i].ConsumptionPerProduct)
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].WastePerProduct, new { @class = "form-control waste-input", type = "number", step = "0.0001" })
+                                                                    @Html.HiddenFor(m => m.CuttingLines[i].IsWasteManual, new { @class = "waste-manual-flag" })
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].UnitPrice, new { @class = "form-control price-input", type = "number", step = "0.01" })
+                                                                </td>
+                                                                <td>
+                                                                    @{
+                                                                        var unitPriceValue = line.UnitPrice ?? 0;
+                                                                        var cleanCostValue = line.ConsumptionPerProduct * unitPriceValue;
+                                                                        var wasteCostValue = line.WastePerProduct * unitPriceValue;
+                                                                        var totalCostValue = cleanCostValue + wasteCostValue;
+                                                                    }
+                                                                    <span class="clean-cost">@cleanCostValue.ToString("F2")</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="waste-cost">@wasteCostValue.ToString("F2")</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="total-cost">@totalCostValue.ToString("F2")</span>
+                                                                    @Html.HiddenFor(m => m.CuttingLines[i].TotalCostPerProduct, new { @Value = totalCostValue.ToString("F2") })
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button>
+                                                                </td>
+                                                            </tr>
+                                                            @Html.HiddenFor(m => m.CuttingLines[i].ID)
+                                                        }
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -335,7 +422,7 @@ else
     @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
     {
         <script>
-            var lineIndex = 0;
+            var lineIndex = @Model.CuttingLines.Count;
             var materials = @Html.Raw(Json.Encode(ViewBag.MaterialsJson ?? new List<object>()));
             var unitsJson = @Html.Raw(Json.Encode(ViewBag.UnitsJson ?? new List<object>()));
             var isOptimized = false; // Flag to track if optimization was performed
@@ -377,6 +464,17 @@ else
                     allowClear: true
                 });
 
+                $('#loadTemplateNormBtn').on('click', function () {
+                    var templateId = $('#templateNormVersionId').val();
+                    if (!templateId) {
+                        alert('Iltimos, oldingi normani tanlang.');
+                        return;
+                    }
+                    var period = $('#Period').val() || '';
+                    var baseUrl = '@Url.Action("Create", "Norm", new { productId = Model.ProductID })';
+                    window.location.href = baseUrl + '&period=' + encodeURIComponent(period) + '&templateNormVersionId=' + encodeURIComponent(templateId);
+                });
+
                 function initNormUnitSelect2($ctx) {
                     ($ctx || $(document)).find('select.unit-select2').each(function () {
                         var $s = $(this);
@@ -390,6 +488,28 @@ else
                     });
                 }
                 initNormUnitSelect2($('#cuttingLinesTable'));
+                $('.line-row').each(function () {
+                    var row = $(this);
+                    var materialId = row.find('.material-select').val();
+                    var existingWaste = parseFloat(row.find('.waste-input').val());
+                    var isManualWaste = (row.find('.waste-manual-flag').val() || '').toLowerCase() === 'true';
+                    if (isManualWaste || (!isNaN(existingWaste) && existingWaste > 0)) {
+                        setWasteManual(row, true);
+                    }
+                    var existingStandardLength = row.find('.standard-length').text();
+                    if (existingStandardLength && existingStandardLength !== '-') {
+                        var standardLengthValue = parseFloat(existingStandardLength) || 0;
+                        if (standardLengthValue > 0) {
+                            row.data('standard-length-mm', standardLengthValue);
+                        }
+                    }
+                    if (materialId) {
+                        loadMaterialData(materialId, row, { setPrice: isAutoPriceEnabled() });
+                    } else {
+                        recalculateRow(row);
+                    }
+                });
+                recalculateTotals();
 
                 updatePriceInputsState();
 

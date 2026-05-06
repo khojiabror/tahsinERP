@@ -31,6 +31,9 @@ namespace tahsinERP.ViewModels.POrder
         
         [Display(Name = "Sotuv buyurtmalari")]
         public int[] SelectedSalesOrderIds { get; set; }
+
+        [Display(Name = "Talabnoma")]
+        public int? RequisitionID { get; set; }
         
         public List<POrderProductViewModel> OrderProducts { get; set; }
         

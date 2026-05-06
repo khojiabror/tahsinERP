@@ -302,7 +302,7 @@ namespace tahsinERP.Controllers
                 var orderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
                 var invoicedTotal = db.SALES_INVOICES
                     .Where(i => i.ContractID == id)
-                    .Sum(i => (decimal?)i.TotalAmount) ?? 0;
+                    .Sum(i => (decimal?)(i.TotalWithVAT ?? i.TotalAmount)) ?? 0;
 
                 ViewBag.ContractedTotal = contractedTotal;
                 ViewBag.OrderedTotal = orderedTotal;

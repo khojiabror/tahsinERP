@@ -4,6 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var fromDate = ViewBag.FromDate as DateTime?;
     var toDate = ViewBag.ToDate as DateTime?;
+    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
+    var totalReceivable = Model.CustomerReceivables != null ? Model.CustomerReceivables.Sum(x => x.ReceivableAmount) : 0m;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") ||
@@ -232,6 +234,65 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0">Korxonalar bo'yicha haqqimiz (Debitorlik)</h4>
+                                <div class="text-danger font-weight-bold">Jami: @fmtSom(totalReceivable)</div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table id="tblCustomerReceivables" class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:70%">Korxona / Shartnoma</th>
+                                                <th class="text-right">Haqqimiz</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.CustomerReceivables != null && Model.CustomerReceivables.Any())
+                                            {
+                                                foreach (var r in Model.CustomerReceivables)
+                                                {
+                                                    <tr class="receivable-customer-row" data-customer="@r.CustomerId" style="cursor:pointer;">
+                                                        <td class="font-weight-bold text-primary">
+                                                            <i class="bx bx-chevron-right mr-25 receivable-toggle-icon"></i>
+                                                            @r.CustomerName
+                                                        </td>
+                                                        <td class="text-right text-danger font-weight-bold">@fmtSom(r.ReceivableAmount)</td>
+                                                    </tr>
+                                                    foreach (var c in r.Contracts)
+                                                    {
+                                                        <tr class="receivable-contract-row d-none" data-parent="@r.CustomerId">
+                                                            <td class="pl-3 text-muted">
+                                                                <i class="bx bx-subdirectory-right mr-25"></i>
+                                                                @if (c.ContractId.HasValue)
+                                                                {
+                                                                    <a href="@Url.Action("Details", "SContract", new { id = c.ContractId.Value })">@c.ContractNo</a>
+                                                                }
+                                                                else
+                                                                {
+                                                                    @c.ContractNo
+                                                                }
+                                                            </td>
+                                                            <td class="text-right text-danger">@fmtSom(c.ReceivableAmount)</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="2" class="text-center text-muted">Haqqimiz qolmagan (yoki ma'lumot yo'q)</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Hisobot jadvallari -->
                 <div class="row">
                     <div class="col-12">
@@ -411,6 +472,17 @@
         </div>
     </div>
 
+    <style>
+        #tblCustomerReceivables td:first-child {
+            white-space: normal;
+            word-break: break-word;
+        }
+        #tblCustomerReceivables td:last-child,
+        #tblCustomerReceivables th:last-child {
+            white-space: nowrap;
+        }
+    </style>
+
     @section scripts
     {
         <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
@@ -528,6 +600,20 @@
                         if (hasDataRows) $t.DataTable(crmDtOptions);
                     });
                 }
+
+                $('#tblCustomerReceivables').on('click', '.receivable-customer-row', function () {
+                    var customerId = $(this).data('customer');
+                    var $icon = $(this).find('.receivable-toggle-icon');
+                    var $children = $('#tblCustomerReceivables').find('.receivable-contract-row[data-parent="' + customerId + '"]');
+                    var isHidden = $children.first().hasClass('d-none');
+                    if (isHidden) {
+                        $children.removeClass('d-none');
+                        $icon.removeClass('bx-chevron-right').addClass('bx-chevron-down');
+                    } else {
+                        $children.addClass('d-none');
+                        $icon.removeClass('bx-chevron-down').addClass('bx-chevron-right');
+                    }
+                });
             });
         </script>
     }

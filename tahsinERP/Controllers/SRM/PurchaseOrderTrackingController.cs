@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -47,9 +48,9 @@ namespace tahsinERP.Controllers.SRM
                     .ToListAsync();
 
                 // Calculate tracking holat uchun har bir order
-                var trackingData = orders.Select(o => new
+                var trackingData = orders.Select(o => new PurchaseOrderTrackingIndexItemViewModel
                 {
-                    Order = o,
+                    POrder = o,
                     TrackingStatus = CalculateTrackingStatus(o)
                 }).ToList();
 
@@ -148,9 +149,9 @@ namespace tahsinERP.Controllers.SRM
         }
 
         // yordamchi: Calculate tracking holat uchun an order
-        private OrderTrackingStatus CalculateTrackingStatus(P_ORDERS order)
+        private OrderTrackingStatusViewModel CalculateTrackingStatus(P_ORDERS order)
         {
-            var status = new OrderTrackingStatus
+            var status = new OrderTrackingStatusViewModel
             {
                 OrderID = order.ID,
                 OrderNo = order.OrderNo,
@@ -233,30 +234,6 @@ namespace tahsinERP.Controllers.SRM
 
             return status;
         }
-    }
-
-    // ViewModel uchun order tracking holat
-    public class OrderTrackingStatus
-    {
-        public int OrderID { get; set; }
-        public string OrderNo { get; set; }
-        public bool OrderCreated { get; set; }
-        public DateTime? OrderCreatedDate { get; set; }
-        public string OrderStatus { get; set; } // green/red
-
-        public bool ContractCreated { get; set; }
-        public string ContractNo { get; set; }
-        public DateTime? ContractDate { get; set; }
-        public string ContractStatus { get; set; } // green/red
-
-        public bool InvoiceCreated { get; set; }
-        public string InvoiceNo { get; set; }
-        public DateTime? InvoiceDate { get; set; }
-        public string InvoiceStatus { get; set; } // green/red
-
-        public bool WarehouseReceived { get; set; }
-        public DateTime? WarehouseReceiptDate { get; set; }
-        public string WarehouseStatus { get; set; } // green/red
     }
 }
 
