@@ -15,8 +15,8 @@ namespace tahsinERP.Models
     public partial class V_TANNARX_ACTUAL_LABOR_COSTS
     {
         public int ProductID { get; set; }
-        public Nullable<int> Year { get; set; }
-        public Nullable<int> Month { get; set; }
+        public int Year { get; set; }
+        public int Month { get; set; }
         public Nullable<decimal> ActualLaborCost { get; set; }
     }
 }

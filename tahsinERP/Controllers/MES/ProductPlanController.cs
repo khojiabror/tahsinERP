@@ -22,6 +22,7 @@ namespace tahsinERP.Controllers.MES
             {
                 var query = db.PRODUCTPLANS
                     .Include(p => p.PRODUCT)
+                    .Include(p => p.S_ORDERS)
                     .Where(p => p.IsDeleted == false)
                     .AsQueryable();
 
@@ -55,7 +56,9 @@ namespace tahsinERP.Controllers.MES
                         StartDate = p.StartDate,
                         EndDate = p.DueDate,
                         IsDeleted = p.IsDeleted,
-                        Product = p.PRODUCT
+                        Product = p.PRODUCT,
+                        SalesOrderID = p.SalesOrderID,
+                        SalesOrderNo = p.S_ORDERS?.OrderNo
                     }).ToList(),
                     ProductID = productID,
                     FromDate = fromDate ?? DateTime.Now.AddMonths(-3),
@@ -71,7 +74,7 @@ namespace tahsinERP.Controllers.MES
         }
 
         // Olish so'rovi: ProductPlan/Details/5
-        public ActionResult Details(int? id)
+        public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -83,6 +86,7 @@ namespace tahsinERP.Controllers.MES
                 var plan = db.PRODUCTPLANS
                     .Where(p => p.ID == id && p.IsDeleted == false)
                     .Include(p => p.PRODUCT)
+                    .Include(p => p.S_ORDERS)
                     .FirstOrDefault();
 
                 if (plan == null)
@@ -143,6 +147,8 @@ namespace tahsinERP.Controllers.MES
                     DailyPlans = dailyPlanViewModels,
                     LinkedDeliverySchedules = linkedSchedules
                 };
+                viewModel.SalesOrderID = plan.SalesOrderID;
+                viewModel.SalesOrderNo = plan.S_ORDERS?.OrderNo;
 
                 return View(viewModel);
             }
@@ -154,17 +160,270 @@ namespace tahsinERP.Controllers.MES
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var viewModel = new ProductPlanViewModel();
-                ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                    "ID", "PNo");
+                LoadProductDropDown(db, viewModel.ProductID);
+                LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                 return View(viewModel);
+            }
+        }
+
+        // Olish so'rovi: ProductPlan/GridCreate
+        public ActionResult GridCreate(int? year, int? month)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var y = year ?? DateTime.Now.Year;
+                var m = month ?? DateTime.Now.Month;
+                var vm = new ProductPlanGridEntryViewModel
+                {
+                    Year = y,
+                    Month = m
+                };
+                vm.Rows.Add(new ProductPlanGridRowViewModel
+                {
+                    StartDate = new DateTime(y, m, 1),
+                    EndDate = new DateTime(y, m, DateTime.DaysInMonth(y, m))
+                });
+                LoadProductDropDown(db, null);
+                LoadSalesOrderDropDown(db, null);
+                return View(vm);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> GridCreate(ProductPlanGridEntryViewModel model)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                if (model.Rows == null || !model.Rows.Any())
+                {
+                    TempData["Error"] = "Saqlash uchun qator yo'q";
+                    LoadProductDropDown(db, null);
+                    LoadSalesOrderDropDown(db, null);
+                    return View(model);
+                }
+
+                var created = 0;
+                var errors = new List<string>();
+                foreach (var row in model.Rows)
+                {
+                    if (!row.ProductID.HasValue || !row.TotalQty.HasValue || !row.StartDate.HasValue || !row.EndDate.HasValue)
+                    {
+                        continue;
+                    }
+
+                    if (row.TotalQty.Value <= 0)
+                    {
+                        errors.Add("Miqdor 0 dan katta bo'lishi kerak.");
+                        continue;
+                    }
+
+                    if (row.EndDate.Value < row.StartDate.Value)
+                    {
+                        errors.Add("Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.");
+                        continue;
+                    }
+
+                    var soValidation = await ValidateSalesOrderContainsProductAsync(db, row.SalesOrderID, row.ProductID.Value, row.TotalQty);
+                    if (soValidation != null)
+                    {
+                        errors.Add(soValidation);
+                        continue;
+                    }
+
+                    var overlappingPlan = await db.PRODUCTPLANS.FirstOrDefaultAsync(p => p.ProductID == row.ProductID.Value
+                        && p.IsDeleted == false
+                        && ((p.StartDate <= row.StartDate.Value && p.DueDate >= row.StartDate.Value)
+                            || (p.StartDate <= row.EndDate.Value && p.DueDate >= row.EndDate.Value)
+                            || (p.StartDate >= row.StartDate.Value && p.DueDate <= row.EndDate.Value)));
+                    if (overlappingPlan != null)
+                    {
+                        errors.Add("Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud.");
+                        continue;
+                    }
+
+                    var plan = new PRODUCTPLAN
+                    {
+                        ProductID = row.ProductID.Value,
+                        Amount = row.TotalQty.Value,
+                        StartDate = row.StartDate.Value,
+                        DueDate = row.EndDate.Value,
+                        IsDeleted = false,
+                        SalesOrderID = row.SalesOrderID
+                    };
+                    db.PRODUCTPLANS.Add(plan);
+                    await db.SaveChangesAsync();
+                    await CreateDailyPlansAsync(db, plan.ID, row.StartDate.Value, row.EndDate.Value, row.TotalQty.Value);
+                    created++;
+                }
+
+                if (created > 0)
+                {
+                    TempData["Success"] = $"{created} ta reja saqlandi.";
+                }
+                if (errors.Any())
+                {
+                    TempData["Error"] = string.Join("<br/>", errors.Distinct());
+                }
+                return RedirectToAction("GridCreate", new { year = model.Year, month = model.Month });
+            }
+        }
+
+        // Olish so'rovi: ProductPlan/GridEdit
+        public async Task<ActionResult> GridEdit(int? year, int? month)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var y = year ?? DateTime.Now.Year;
+                var m = month ?? DateTime.Now.Month;
+                var plans = await db.PRODUCTPLANS
+                    .Where(p => p.IsDeleted == false && p.StartDate.Year == y && p.StartDate.Month == m)
+                    .OrderBy(p => p.StartDate)
+                    .ThenBy(p => p.ProductID)
+                    .ToListAsync();
+
+                var vm = new ProductPlanGridEntryViewModel
+                {
+                    Year = y,
+                    Month = m,
+                    Rows = plans.Select(p => new ProductPlanGridRowViewModel
+                    {
+                        PlanID = p.ID,
+                        ProductID = p.ProductID,
+                        TotalQty = p.Amount,
+                        StartDate = p.StartDate,
+                        EndDate = p.DueDate,
+                        SalesOrderID = p.SalesOrderID
+                    }).ToList()
+                };
+
+                if (!vm.Rows.Any())
+                {
+                    vm.Rows.Add(new ProductPlanGridRowViewModel
+                    {
+                        StartDate = new DateTime(y, m, 1),
+                        EndDate = new DateTime(y, m, DateTime.DaysInMonth(y, m))
+                    });
+                }
+
+                LoadProductDropDown(db, null);
+                LoadSalesOrderDropDown(db, null);
+                return View(vm);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> GridEdit(ProductPlanGridEntryViewModel model)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                if (model.Rows == null || !model.Rows.Any())
+                {
+                    TempData["Error"] = "Saqlash uchun qator yo'q";
+                    return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month });
+                }
+
+                var inserted = 0;
+                var updated = 0;
+                var errors = new List<string>();
+
+                foreach (var row in model.Rows)
+                {
+                    if (!row.ProductID.HasValue || !row.TotalQty.HasValue || !row.StartDate.HasValue || !row.EndDate.HasValue)
+                    {
+                        continue;
+                    }
+                    if (row.TotalQty.Value <= 0)
+                    {
+                        errors.Add("Miqdor 0 dan katta bo'lishi kerak.");
+                        continue;
+                    }
+                    if (row.EndDate.Value < row.StartDate.Value)
+                    {
+                        errors.Add("Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.");
+                        continue;
+                    }
+
+                    var soValidation = await ValidateSalesOrderContainsProductAsync(db, row.SalesOrderID, row.ProductID.Value, row.TotalQty);
+                    if (soValidation != null)
+                    {
+                        errors.Add(soValidation);
+                        continue;
+                    }
+
+                    if (row.PlanID.HasValue)
+                    {
+                        var plan = await db.PRODUCTPLANS.FirstOrDefaultAsync(p => p.ID == row.PlanID.Value && p.IsDeleted == false);
+                        if (plan == null)
+                            continue;
+
+                        var overlappingPlan = await db.PRODUCTPLANS.FirstOrDefaultAsync(p => p.ID != row.PlanID.Value
+                            && p.ProductID == row.ProductID.Value
+                            && p.IsDeleted == false
+                            && ((p.StartDate <= row.StartDate.Value && p.DueDate >= row.StartDate.Value)
+                                || (p.StartDate <= row.EndDate.Value && p.DueDate >= row.EndDate.Value)
+                                || (p.StartDate >= row.StartDate.Value && p.DueDate <= row.EndDate.Value)));
+                        if (overlappingPlan != null)
+                        {
+                            errors.Add("Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud.");
+                            continue;
+                        }
+
+                        plan.ProductID = row.ProductID.Value;
+                        plan.Amount = row.TotalQty.Value;
+                        plan.StartDate = row.StartDate.Value;
+                        plan.DueDate = row.EndDate.Value;
+                        plan.SalesOrderID = row.SalesOrderID;
+                        db.Entry(plan).State = EntityState.Modified;
+                        updated++;
+                    }
+                    else
+                    {
+                        var overlappingPlan = await db.PRODUCTPLANS.FirstOrDefaultAsync(p => p.ProductID == row.ProductID.Value
+                            && p.IsDeleted == false
+                            && ((p.StartDate <= row.StartDate.Value && p.DueDate >= row.StartDate.Value)
+                                || (p.StartDate <= row.EndDate.Value && p.DueDate >= row.EndDate.Value)
+                                || (p.StartDate >= row.StartDate.Value && p.DueDate <= row.EndDate.Value)));
+                        if (overlappingPlan != null)
+                        {
+                            errors.Add("Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud.");
+                            continue;
+                        }
+
+                        var plan = new PRODUCTPLAN
+                        {
+                            ProductID = row.ProductID.Value,
+                            Amount = row.TotalQty.Value,
+                            StartDate = row.StartDate.Value,
+                            DueDate = row.EndDate.Value,
+                            IsDeleted = false,
+                            SalesOrderID = row.SalesOrderID
+                        };
+                        db.PRODUCTPLANS.Add(plan);
+                        await db.SaveChangesAsync();
+                        await CreateDailyPlansAsync(db, plan.ID, row.StartDate.Value, row.EndDate.Value, row.TotalQty.Value);
+                        inserted++;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+                if (updated > 0 || inserted > 0)
+                {
+                    TempData["Success"] = $"Yangilandi: {updated}, qo'shildi: {inserted}";
+                }
+                if (errors.Any())
+                {
+                    TempData["Error"] = string.Join("<br/>", errors.Distinct());
+                }
+                return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month });
             }
         }
 
         // POST so'rovi: ProductPlan/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ProductPlanViewModel viewModel)
+        public async Task<ActionResult> Create(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -176,9 +435,17 @@ namespace tahsinERP.Controllers.MES
                         if (viewModel.EndDate < viewModel.StartDate)
                         {
                             ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
-                            ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                                "ID", "PNo", viewModel.ProductID);
+                            LoadProductDropDown(db, viewModel.ProductID);
+                            LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
+                            return View(viewModel);
+                        }
+
+                        var salesOrderValidation = await ValidateSalesOrderContainsProductAsync(db, viewModel.SalesOrderID, viewModel.ProductID, viewModel.TotalQty);
+                        if (salesOrderValidation != null)
+                        {
+                            ModelState.AddModelError(nameof(viewModel.SalesOrderID), salesOrderValidation);
+                            LoadProductDropDown(db, viewModel.ProductID);
+                            LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                             return View(viewModel);
                         }
 
@@ -193,9 +460,8 @@ namespace tahsinERP.Controllers.MES
                         if (overlappingPlan != null)
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud");
-                            ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                                "ID", "PNo", viewModel.ProductID);
+                            LoadProductDropDown(db, viewModel.ProductID);
+                            LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                             return View(viewModel);
                         }
 
@@ -206,11 +472,12 @@ namespace tahsinERP.Controllers.MES
                             Amount = viewModel.TotalQty,
                             StartDate = viewModel.StartDate,
                             DueDate = viewModel.EndDate,
-                            IsDeleted = false
+                            IsDeleted = false,
+                            SalesOrderID = viewModel.SalesOrderID
                         };
 
                         db.PRODUCTPLANS.Add(plan);
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan yaratildi: ID {plan.ID}, ProductID {plan.ProductID}");
 
@@ -234,7 +501,7 @@ namespace tahsinERP.Controllers.MES
                             currentDate = currentDate.AddDays(1);
                         }
 
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlanDaily yaratildi: Plan ID {plan.ID}, {dayCount} kunlik reja");
 
@@ -266,16 +533,15 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                    "ID", "PNo", viewModel.ProductID);
+                LoadProductDropDown(db, viewModel.ProductID);
+                LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
             }
 
             return View(viewModel);
         }
 
         // Olish so'rovi: ProductPlan/Edit/5
-        public ActionResult Edit(int? id)
+        public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
             {
@@ -297,12 +563,20 @@ namespace tahsinERP.Controllers.MES
                     TotalQty = plan.Amount,
                     StartDate = plan.StartDate,
                     EndDate = plan.DueDate,
-                    IsDeleted = plan.IsDeleted
+                    IsDeleted = plan.IsDeleted,
+                    SalesOrderID = plan.SalesOrderID
                 };
+                if (plan.SalesOrderID.HasValue)
+                {
+                    var orderNo = await db.S_ORDERS
+                        .Where(o => o.ID == plan.SalesOrderID.Value)
+                        .Select(o => o.OrderNo)
+                        .FirstOrDefaultAsync();
+                    viewModel.SalesOrderNo = orderNo;
+                }
 
-                ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                    "ID", "PNo", viewModel.ProductID);
+                LoadProductDropDown(db, viewModel.ProductID);
+                LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
 
                 return View(viewModel);
             }
@@ -311,7 +585,7 @@ namespace tahsinERP.Controllers.MES
         // POST so'rovi: ProductPlan/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(ProductPlanViewModel viewModel)
+        public async Task<ActionResult> Edit(ProductPlanViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -329,9 +603,17 @@ namespace tahsinERP.Controllers.MES
                         if (viewModel.EndDate < viewModel.StartDate)
                         {
                             ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
-                            ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                                "ID", "PNo", viewModel.ProductID);
+                            LoadProductDropDown(db, viewModel.ProductID);
+                            LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
+                            return View(viewModel);
+                        }
+
+                        var salesOrderValidation = await ValidateSalesOrderContainsProductAsync(db, viewModel.SalesOrderID, viewModel.ProductID, viewModel.TotalQty);
+                        if (salesOrderValidation != null)
+                        {
+                            ModelState.AddModelError(nameof(viewModel.SalesOrderID), salesOrderValidation);
+                            LoadProductDropDown(db, viewModel.ProductID);
+                            LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                             return View(viewModel);
                         }
 
@@ -347,9 +629,8 @@ namespace tahsinERP.Controllers.MES
                         if (overlappingPlan != null)
                         {
                             ModelState.AddModelError("", "Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud");
-                            ViewBag.Products = new SelectList(
-                                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                                "ID", "PNo", viewModel.ProductID);
+                            LoadProductDropDown(db, viewModel.ProductID);
+                            LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                             return View(viewModel);
                         }
 
@@ -358,9 +639,10 @@ namespace tahsinERP.Controllers.MES
                         plan.Amount = viewModel.TotalQty;
                         plan.StartDate = viewModel.StartDate;
                         plan.DueDate = viewModel.EndDate;
+                        plan.SalesOrderID = viewModel.SalesOrderID;
 
                         db.Entry(plan).State = EntityState.Modified;
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan tahrirlandi: ID {viewModel.ID}");
 
@@ -383,9 +665,8 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.Products = new SelectList(
-                    db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
-                    "ID", "PNo", viewModel.ProductID);
+                LoadProductDropDown(db, viewModel.ProductID);
+                LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
             }
 
             return View(viewModel);
@@ -403,6 +684,7 @@ namespace tahsinERP.Controllers.MES
             {
                 var plan = db.PRODUCTPLANS
                     .Include(p => p.PRODUCT)
+                    .Include(p => p.S_ORDERS)
                     .FirstOrDefault(p => p.ID == id);
 
                 if (plan == null)
@@ -440,6 +722,29 @@ namespace tahsinERP.Controllers.MES
         }
 
         // POST so'rovi: ProductPlan/UpdateDailyPlan - Inline editable daily grid
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteGridRow(int id, int year, int month)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var plan = await db.PRODUCTPLANS.FirstOrDefaultAsync(p => p.ID == id && p.IsDeleted == false);
+                if (plan == null)
+                {
+                    TempData["Error"] = "Reja topilmadi";
+                    return RedirectToAction("GridEdit", new { year, month });
+                }
+
+                plan.IsDeleted = true;
+                db.Entry(plan).State = EntityState.Modified;
+                await SoftDeleteReferenceService.AfterProductPlanSoftDeletedAsync(db, id);
+                await db.SaveChangesAsync();
+
+                TempData["Success"] = "Reja o'chirildi";
+                return RedirectToAction("GridEdit", new { year, month });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UpdateDailyPlan(int planID, List<ProductPlanDailyViewModel> dailyPlans)
@@ -690,6 +995,78 @@ namespace tahsinERP.Controllers.MES
             }
 
             return result;
+        }
+
+        private void LoadProductDropDown(DBTHSNEntities db, int? selectedProductId)
+        {
+            ViewBag.Products = new SelectList(
+                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToList(),
+                "ID",
+                "PNo",
+                selectedProductId);
+        }
+
+        private void LoadSalesOrderDropDown(DBTHSNEntities db, int? selectedSalesOrderId)
+        {
+            var salesOrders = db.S_ORDERS
+                .Where(o => o.IsDeleted != true)
+                .OrderByDescending(o => o.IssuedDate)
+                .Take(500)
+                .ToList()
+                .Select(o => new
+                {
+                    o.ID,
+                    Name = $"{o.OrderNo} ({o.IssuedDate:dd.MM.yyyy})"
+                })
+                .ToList();
+
+            ViewBag.SalesOrders = new SelectList(salesOrders, "ID", "Name", selectedSalesOrderId);
+        }
+
+        private async Task CreateDailyPlansAsync(DBTHSNEntities db, int planId, DateTime startDate, DateTime endDate, double totalQty)
+        {
+            var dayCount = (endDate - startDate).Days + 1;
+            if (dayCount <= 0)
+                return;
+            var dailyQty = Math.Ceiling(totalQty / dayCount);
+            var currentDate = startDate;
+            for (int i = 0; i < dayCount; i++)
+            {
+                db.PRODUCTPLANS_DAILY.Add(new PRODUCTPLANS_DAILY
+                {
+                    PlanID = planId,
+                    Day = currentDate,
+                    DayShift = dailyQty,
+                    NightShift = 0,
+                    Total = dailyQty
+                });
+                currentDate = currentDate.AddDays(1);
+            }
+            await db.SaveChangesAsync();
+        }
+
+        private async Task<string> ValidateSalesOrderContainsProductAsync(DBTHSNEntities db, int? salesOrderId, int productId, double? planQty = null)
+        {
+            if (!salesOrderId.HasValue)
+                return null;
+
+            var lines = await db.S_ORDER_PRODUCTS
+                .Where(x => x.OrderID == salesOrderId.Value && x.ProductID == productId)
+                .ToListAsync();
+            var exists = lines.Any();
+            if (!exists)
+                return "Xatolik: ushbu savdo buyurtmasida tanlangan mahsulot yo'q.";
+
+            if (planQty.HasValue)
+            {
+                var orderedQty = lines.Sum(x => x.Amount);
+                if (planQty.Value > orderedQty)
+                {
+                    return $"Xatolik: reja miqdori ({planQty.Value:N2}) savdo buyurtmasi miqdoridan ({orderedQty:N2}) oshib ketdi.";
+                }
+            }
+
+            return null;
         }
     }
 }

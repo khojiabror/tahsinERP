@@ -77,9 +77,28 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
+                            @if (Model.PayrollType == "Hourly")
+                            {
+                                <div class="col-md-3 mb-1">
+                                    <label class="mb-0"><strong>Daromad solig'i (%)</strong></label>
+                                    <input type="number"
+                                           id="incomeTaxPercent"
+                                           class="form-control form-control-sm"
+                                           value="@Model.IncomeTaxPercent.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+                                           min="0"
+                                           max="100"
+                                           step="0.01" />
+                                </div>
+                            }
                             <div class="col-md-3">
                                 <strong>Jami hisoblangan:</strong> @Model.TotalGrossSalary.ToString("N2")
                             </div>
+                            @if (Model.PayrollType == "Hourly")
+                            {
+                                <div class="col-md-3">
+                                    <strong>Jami daromad solig'i:</strong> <span id="summaryIncomeTax">@Model.TotalIncomeTax.ToString("N2")</span>
+                                </div>
+                            }
                             <div class="col-md-3">
                                 <strong>Mukofotlar:</strong> @Model.Lines.Sum(l => l.Bonuses).ToString("N2")
                             </div>
@@ -107,6 +126,10 @@
                                             <th>Asosiy maosh</th>
                                             <th>Ishlangan soatlar</th>
                                             <th>Hisoblangan</th>
+                                            @if (Model.PayrollType == "Hourly")
+                                            {
+                                                <th>Daromad solig'i</th>
+                                            }
                                             <th>Mukofotlar</th>
                                             <th>Jarimalar</th>
                                             <th>To'lovga</th>
@@ -125,6 +148,10 @@
                                                 <td>@line.BaseSalary.ToString("N2")</td>
                                                 <td>@line.HoursWorked.ToString("F2")</td>
                                                 <td>@line.GrossSalary.ToString("N2")</td>
+                                                @if (Model.PayrollType == "Hourly")
+                                                {
+                                                    <td class="income-tax">@line.IncomeTaxAmount.ToString("N2")</td>
+                                                }
                                                 <td>
                                                     <input type="number"
                                                            class="form-control form-control-sm bonuses-input"
@@ -171,6 +198,10 @@
                                         <tr class="font-weight-bold">
                                             <td colspan="6" class="text-right">JAMI:</td>
                                             <td>@Model.TotalGrossSalary.ToString("N2")</td>
+                                            @if (Model.PayrollType == "Hourly")
+                                            {
+                                                <td id="totalIncomeTax">@Model.TotalIncomeTax.ToString("N2")</td>
+                                            }
                                             <td>@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
                                             <td>@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
                                             <td class="text-success">@Model.TotalNetSalary.ToString("N2")</td>
@@ -191,6 +222,14 @@
             (function ($) {
                 if (!$) return;
                 $(document).ready(function () {
+                    var isHourlyPayroll = '@Model.PayrollType' === 'Hourly';
+                    function getIncomeTaxPercent() {
+                        if (!isHourlyPayroll) return 0;
+                        var taxPercent = parseFloat($('#incomeTaxPercent').val());
+                        if (isNaN(taxPercent) || taxPercent < 0) taxPercent = 0;
+                        if (taxPercent > 100) taxPercent = 100;
+                        return taxPercent;
+                    }
                     var dtUz = {
                         decimal: "",
                         emptyTable: "Jadvalda ma'lumot yo'q",
@@ -211,7 +250,7 @@
                             order: [[1, "asc"]],
                             autoWidth: false,
                             columnDefs: [
-                                { orderable: false, targets: [7, 8, 10] }
+                                { orderable: false, targets: isHourlyPayroll ? [8, 9, 11] : [7, 8, 10] }
                             ]
                         });
                     }
@@ -225,15 +264,25 @@
                         $.post('@Url.Action("UpdateLine")', {
                             lineId: lineId,
                             bonuses: bonuses,
-                            penalties: penalties
+                            penalties: penalties,
+                            incomeTaxPercent: getIncomeTaxPercent()
                         }, function (result) {
                             if (result.success) {
                                 $('tr[data-line-id="' + lineId + '"] .net-salary').text(parseFloat(result.netSalary).toFixed(2));
+                                if (isHourlyPayroll) {
+                                    $('tr[data-line-id="' + lineId + '"] .income-tax').text(parseFloat(result.incomeTaxAmount || 0).toFixed(2));
+                                }
                                 location.reload();
                             } else {
                                 alert('Xatolik: ' + result.message);
                             }
                         });
+                    });
+
+                    $('#incomeTaxPercent').on('change blur', function () {
+                        if (!isHourlyPayroll) return;
+                        var taxPercent = getIncomeTaxPercent();
+                        $('.bonuses-input').first().trigger('change');
                     });
 
                     $('.currency-select').on('change', function () {

@@ -30,6 +30,10 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "O'chirilgan")]
         public bool IsDeleted { get; set; }
+
+        [Display(Name = "Savdo buyurtmasi")]
+        public int? SalesOrderID { get; set; }
+        public string SalesOrderNo { get; set; }
         
         // Navigation properties
         public PRODUCT Product { get; set; }
@@ -83,6 +87,30 @@ namespace tahsinERP.ViewModels
         {
             Plans = new List<ProductPlanViewModel>();
         }
+    }
+
+    public class ProductPlanGridEntryViewModel
+    {
+        public int Year { get; set; }
+        public int Month { get; set; }
+        public List<ProductPlanGridRowViewModel> Rows { get; set; }
+
+        public ProductPlanGridEntryViewModel()
+        {
+            Rows = new List<ProductPlanGridRowViewModel>();
+            Year = DateTime.Now.Year;
+            Month = DateTime.Now.Month;
+        }
+    }
+
+    public class ProductPlanGridRowViewModel
+    {
+        public int? PlanID { get; set; }
+        public int? ProductID { get; set; }
+        public double? TotalQty { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public int? SalesOrderID { get; set; }
     }
 }
 

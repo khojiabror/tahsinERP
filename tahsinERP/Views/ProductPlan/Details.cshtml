@@ -49,6 +49,17 @@
                                                         <p><strong>Boshlanish sanasi:</strong> @Model.StartDate.ToString("dd.MM.yyyy")</p>
                                                         <p><strong>Tugash sanasi:</strong> @Model.EndDate.ToString("dd.MM.yyyy")</p>
                                                         <p><strong>Kunlar soni:</strong> @((Model.EndDate - Model.StartDate).Days + 1)</p>
+                                                        <p>
+                                                            <strong>Savdo buyurtmasi:</strong>
+                                                            @if (Model.SalesOrderID.HasValue && !string.IsNullOrWhiteSpace(Model.SalesOrderNo))
+                                                            {
+                                                                <a href="@Url.Action("Details", "SOrder", new { id = Model.SalesOrderID.Value })">@Model.SalesOrderNo</a>
+                                                            }
+                                                            else
+                                                            {
+                                                                @:-
+                                                            }
+                                                        </p>
                                                     </div>
                                                     <div class="col-md-6">
                                                         @if (Model.LinkedDeliverySchedules != null && Model.LinkedDeliverySchedules.Any())

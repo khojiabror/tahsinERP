@@ -38,6 +38,8 @@ namespace tahsinERP.ViewModels.HR
         
         public decimal TotalGrossSalary { get; set; }
         public decimal TotalNetSalary { get; set; }
+        public decimal IncomeTaxPercent { get; set; }
+        public decimal TotalIncomeTax { get; set; }
         
         public HrPayrollHeaderViewModel()
         {
@@ -60,6 +62,7 @@ namespace tahsinERP.ViewModels.HR
         public decimal PieceQty { get; set; }
         public decimal HourlyRate { get; set; }
         public decimal GrossSalary { get; set; }
+        public decimal IncomeTaxAmount { get; set; }
         public decimal Bonuses { get; set; }
         public decimal Penalties { get; set; }
         public decimal NetSalary { get; set; }

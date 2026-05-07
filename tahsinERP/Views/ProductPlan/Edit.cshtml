@@ -69,6 +69,12 @@
                                                         @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
                                                     </fieldset>
 
+                                                    <h6 class="invoice-to">Savdo buyurtmasi (ixtiyoriy)</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.SalesOrderID, ViewBag.SalesOrders as SelectList, "-- ixtiyoriy bog'lash --", new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.SalesOrderID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
                                                     <div class="alert alert-warning mt-2">
                                                         <i class="bx bx-info-circle"></i> 
                                                         Sanalar o'zgarganda, kunlik rejalar qayta yaratilmaydi. 

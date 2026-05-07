@@ -18,6 +18,7 @@ namespace tahsinERP.Models
         public S_ORDERS()
         {
             this.F_WAYBILLS = new HashSet<F_WAYBILLS>();
+            this.PRODUCTPLANS = new HashSet<PRODUCTPLAN>();
             this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
             this.S_ORDER_PRODUCTS = new HashSet<S_ORDER_PRODUCTS>();
             this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
@@ -42,6 +43,8 @@ namespace tahsinERP.Models
         public virtual CUSTOMER CUSTOMER { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILLS> F_WAYBILLS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PRODUCTPLAN> PRODUCTPLANS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
         public virtual S_CONTRACTS S_CONTRACTS { get; set; }

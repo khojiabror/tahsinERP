@@ -62,10 +62,12 @@ namespace tahsinERP.Models
         public virtual DbSet<FIN_BALANCE_CATEGORIES> FIN_BALANCE_CATEGORIES { get; set; }
         public virtual DbSet<FIN_BALANCE_SNAPSHOTS> FIN_BALANCE_SNAPSHOTS { get; set; }
         public virtual DbSet<FIN_CATEGORIES> FIN_CATEGORIES { get; set; }
+        public virtual DbSet<FIN_OPENING_CONTRACT_BALANCES> FIN_OPENING_CONTRACT_BALANCES { get; set; }
         public virtual DbSet<FIN_PL_ITEMS> FIN_PL_ITEMS { get; set; }
         public virtual DbSet<FIN_PL_PLANS> FIN_PL_PLANS { get; set; }
         public virtual DbSet<FIN_TRANSACTIONS> FIN_TRANSACTIONS { get; set; }
         public virtual DbSet<FORWARDER> FORWARDERS { get; set; }
+        public virtual DbSet<HR_EMPLOYEE_ALLOWANCES> HR_EMPLOYEE_ALLOWANCES { get; set; }
         public virtual DbSet<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
         public virtual DbSet<HR_EMPLOYEES> HR_EMPLOYEES { get; set; }
         public virtual DbSet<HR_JOB_DESCRIPTIONS> HR_JOB_DESCRIPTIONS { get; set; }
@@ -81,6 +83,7 @@ namespace tahsinERP.Models
         public virtual DbSet<HR_STAFFING_PLAN> HR_STAFFING_PLAN { get; set; }
         public virtual DbSet<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS { get; set; }
         public virtual DbSet<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
+        public virtual DbSet<HR_TIMESHEET_SETTINGS> HR_TIMESHEET_SETTINGS { get; set; }
         public virtual DbSet<HSCODE> HSCODES { get; set; }
         public virtual DbSet<INCOME_PRODUCTS> INCOME_PRODUCTS { get; set; }
         public virtual DbSet<INCOME> INCOMES { get; set; }
@@ -110,6 +113,7 @@ namespace tahsinERP.Models
         public virtual DbSet<PRODUCTPLANS_DAILY> PRODUCTPLANS_DAILY { get; set; }
         public virtual DbSet<PRODUCT> PRODUCTS { get; set; }
         public virtual DbSet<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
+        public virtual DbSet<RECONCILIATION_ADJUSTMENTS> RECONCILIATION_ADJUSTMENTS { get; set; }
         public virtual DbSet<ROLE> ROLES { get; set; }
         public virtual DbSet<S_CONTRACT_PRODUCTS> S_CONTRACT_PRODUCTS { get; set; }
         public virtual DbSet<S_CONTRACTS> S_CONTRACTS { get; set; }
@@ -133,6 +137,7 @@ namespace tahsinERP.Models
         public virtual DbSet<SUPPLIER_BASE> SUPPLIER_BASE { get; set; }
         public virtual DbSet<SUPPLIER> SUPPLIERS { get; set; }
         public virtual DbSet<TANNARX> TANNARXes { get; set; }
+        public virtual DbSet<TANNARX_ACTUAL_AUDIT> TANNARX_ACTUAL_AUDIT { get; set; }
         public virtual DbSet<UNIT> UNITS { get; set; }
         public virtual DbSet<USER_ENTRIES> USER_ENTRIES { get; set; }
         public virtual DbSet<USER_LICENSES> USER_LICENSES { get; set; }

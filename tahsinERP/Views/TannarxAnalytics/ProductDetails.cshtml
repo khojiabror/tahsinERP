@@ -104,6 +104,10 @@
                                         <label class="small font-weight-bold text-muted mb-1">Fakt material narxi hisob izohi</label>
                                         <textarea class="form-control tannarx-material-note" rows="8" readonly>@(string.IsNullOrWhiteSpace(Model.ActualMaterialCalculationNote) ? "Hisob izohi mavjud emas." : Model.ActualMaterialCalculationNote)</textarea>
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-muted mb-1">Material tashuvi hisob izohi</label>
+                                        <textarea class="form-control tannarx-material-note" rows="7" readonly>@(string.IsNullOrWhiteSpace(Model.ActualMaterialTransportCalculationNote) ? "Hisob izohi mavjud emas." : Model.ActualMaterialTransportCalculationNote)</textarea>
+                                    </div>
 
                                     <h6 class="tannarx-section-title mb-2">Ish haqi va xarajatlar</h6>
                                     <div class="table-responsive mb-3">
@@ -246,6 +250,10 @@
                                                 </tr>
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-muted mb-1">Tayyor mahsulot tashuvi hisob izohi</label>
+                                        <textarea class="form-control tannarx-material-note" rows="7" readonly>@(string.IsNullOrWhiteSpace(Model.ActualFinishedTransportCalculationNote) ? "Hisob izohi mavjud emas." : Model.ActualFinishedTransportCalculationNote)</textarea>
                                     </div>
 
                                     <h6 class="tannarx-section-title mb-2">CIP narxlari</h6>
@@ -391,6 +399,16 @@
                         return;
                     }
 
+                    // Print uchun izoh textarea larni oddiy text blokka aylantiramiz
+                    var printRoot = content.cloneNode(true);
+                    var noteAreas = printRoot.querySelectorAll('textarea');
+                    noteAreas.forEach(function (ta) {
+                        var textBlock = document.createElement('div');
+                        textBlock.className = 'print-note-text';
+                        textBlock.textContent = ta.value || ta.textContent || '';
+                        ta.parentNode.replaceChild(textBlock, ta);
+                    });
+
                     var html = '<!doctype html><html><head><meta charset="utf-8">' +
                         '<title>Tannarx chop etish</title>' +
                         '<style>' +
@@ -404,9 +422,10 @@
                         '.text-danger{color:#b02a37;font-weight:700;}' +
                         '.text-muted{color:#555;}' +
                         '.tannarx-section-title{font-weight:700;border-left:3px solid #333;padding-left:6px;}' +
+                        '.print-note-text{white-space:pre-wrap;word-break:break-word;width:100%;border:1px solid #444;padding:8px;font-size:12px;line-height:1.4;margin:0;}' +
                         '.no-print{display:none !important;}' +
                         '</style></head><body>' +
-                        content.outerHTML +
+                        printRoot.outerHTML +
                         '</body></html>';
 
                     printWindow.document.open();

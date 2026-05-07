@@ -21,8 +21,8 @@ namespace tahsinERP.Models
         public Nullable<decimal> WastePercent { get; set; }
         public Nullable<int> UnitID { get; set; }
     
-        public virtual UNIT UNIT { get; set; }
-        public virtual NORMVERSION NORMVERSION { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
+        public virtual NORMVERSION NORMVERSION { get; set; }
+        public virtual UNIT UNIT { get; set; }
     }
 }

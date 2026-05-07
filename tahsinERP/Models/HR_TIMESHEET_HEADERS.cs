@@ -39,5 +39,6 @@ namespace tahsinERP.Models
         public virtual USER USER1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_TIMESHEET_LINES> HR_TIMESHEET_LINES { get; set; }
+        public virtual HR_TIMESHEET_SETTINGS HR_TIMESHEET_SETTINGS { get; set; }
     }
 }

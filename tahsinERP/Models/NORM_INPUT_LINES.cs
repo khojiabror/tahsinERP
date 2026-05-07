@@ -28,9 +28,9 @@ namespace tahsinERP.Models
         public Nullable<double> WasteAmount { get; set; }
         public Nullable<int> UnitID { get; set; }
     
-        public virtual UNIT UNIT { get; set; }
+        public virtual USER USER { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual PRODUCT PRODUCT1 { get; set; }
-        public virtual USER USER { get; set; }
+        public virtual UNIT UNIT { get; set; }
     }
 }

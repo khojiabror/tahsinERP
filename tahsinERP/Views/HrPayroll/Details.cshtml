@@ -65,6 +65,12 @@
                             <div class="col-md-3">
                                 <strong>Jami hisoblangan:</strong> @Model.TotalGrossSalary.ToString("N2")
                             </div>
+                            @if (Model.PayrollType == "Hourly")
+                            {
+                                <div class="col-md-3">
+                                    <strong>Jami daromad solig'i:</strong> @Model.TotalIncomeTax.ToString("N2")
+                                </div>
+                            }
                             <div class="col-md-3">
                                 <strong>Mukofotlar:</strong> @Model.Lines.Sum(l => l.Bonuses).ToString("N2")
                             </div>
@@ -92,6 +98,10 @@
                                             <th>Asosiy maosh</th>
                                             <th>Ishlangan soatlar</th>
                                             <th>Hisoblangan</th>
+                                            @if (Model.PayrollType == "Hourly")
+                                            {
+                                                <th>Daromad solig'i</th>
+                                            }
                                             <th>Mukofotlar</th>
                                             <th>Jarimalar</th>
                                             <th>To'lovga</th>
@@ -110,6 +120,10 @@
                                                 <td>@line.BaseSalary.ToString("N2")</td>
                                                 <td>@line.HoursWorked.ToString("F2")</td>
                                                 <td>@line.GrossSalary.ToString("N2")</td>
+                                                @if (Model.PayrollType == "Hourly")
+                                                {
+                                                    <td>@line.IncomeTaxAmount.ToString("N2")</td>
+                                                }
                                                 <td>@line.Bonuses.ToString("N2")</td>
                                                 <td>@line.Penalties.ToString("N2")</td>
                                                 <td>@line.NetSalary.ToString("N2")</td>
@@ -122,6 +136,10 @@
                                         <tr class="font-weight-bold">
                                             <td colspan="6" class="text-right">JAMI:</td>
                                             <td>@Model.TotalGrossSalary.ToString("N2")</td>
+                                            @if (Model.PayrollType == "Hourly")
+                                            {
+                                                <td>@Model.TotalIncomeTax.ToString("N2")</td>
+                                            }
                                             <td>@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
                                             <td>@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
                                             <td class="text-success">@Model.TotalNetSalary.ToString("N2")</td>

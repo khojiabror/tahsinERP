@@ -35,6 +35,12 @@
                             <a href="@Url.Action("Create", "ProductPlan")" class="btn btn-success bg-light invoice-create" role="button">
                                 <i class="bx bx-plus"></i> Yangi Reja
                             </a>
+                            <a href="@Url.Action("GridCreate", "ProductPlan")" class="btn btn-primary bg-light invoice-create ml-1" role="button">
+                                <i class="bx bx-table"></i> Jadvalda kiritish
+                            </a>
+                            <a href="@Url.Action("GridEdit", "ProductPlan")" class="btn btn-warning bg-light invoice-create ml-1" role="button">
+                                <i class="bx bx-edit-alt"></i> Jadvalda tahrirlash
+                            </a>
                         </div>
                     }
 
@@ -81,6 +87,7 @@
                                                 <tr>
                                                     <th>Mahsulot</th>
                                                     <th>Reja miqdori</th>
+                                                    <th>Savdo buyurtmasi</th>
                                                     <th>Boshlanish sanasi</th>
                                                     <th>Tugash sanasi</th>
                                                     <th>Kunlar soni</th>
@@ -100,6 +107,7 @@
                                                                 </a>
                                                             </td>
                                                             <td>@item.TotalQty.ToString("N2")</td>
+                                                            <td>@(string.IsNullOrWhiteSpace(item.SalesOrderNo) ? "-" : item.SalesOrderNo)</td>
                                                             <td>@item.StartDate.ToString("dd.MM.yyyy")</td>
                                                             <td>@item.EndDate.ToString("dd.MM.yyyy")</td>
                                                             <td>@daysCount</td>

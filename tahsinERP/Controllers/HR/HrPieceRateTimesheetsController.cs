@@ -391,7 +391,7 @@ namespace tahsinERP.Controllers.HR
 
             // Olish finished goods uchun piece-rate selection
             ViewBag.FinishedGoods = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted != true)
                     .OrderBy(p => p.PNo).ToListAsync(),
                 "ID", "PNo");
 
@@ -714,73 +714,101 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            if (model.Rows == null || !model.Rows.Any())
+            try
             {
-                TempData["Error"] = "Saqlash uchun qator yo'q";
-                await PopulatePieceRateGridViewBags(model.OrgUnitID);
+                if (model.Rows == null || !model.Rows.Any())
+                {
+                    TempData["Error"] = "Saqlash uchun qator yo'q";
+                    await PopulatePieceRateGridViewBags(model.OrgUnitID);
+                    return View(model);
+                }
+
+                var candidateEmpIds = model.Rows
+                    .Where(r => r.EmployeeID.HasValue && r.ProductID.HasValue && r.OperationID.HasValue && r.WorkDate.HasValue && r.Quantity.HasValue && r.Quantity.Value > 0)
+                    .Select(r => r.EmployeeID.Value).Distinct().ToList();
+                var blockMsg = await GetPieceRateEditBlockedMessageAsync(model.Year, model.Month, candidateEmpIds);
+                if (blockMsg != null)
+                {
+                    TempData["Error"] = blockMsg;
+                    await PopulatePieceRateGridViewBags(model.OrgUnitID);
+                    return View(model);
+                }
+
+                int created = 0;
+                var errors = new List<string>();
+                var userId = UserHelper.GetUserId(User.Identity.Name);
+                var touchedEmployeeIds = new List<int>();
+
+                foreach (var row in model.Rows)
+                {
+                    if (!row.EmployeeID.HasValue || !row.ProductID.HasValue || !row.OperationID.HasValue || !row.WorkDate.HasValue || !row.Quantity.HasValue)
+                    {
+                        continue;
+                    }
+                    if (row.Quantity.Value <= 0)
+                    {
+                        continue;
+                    }
+
+                    var exists = await db.HR_PIECE_RATE_WORK_ENTRIES.AnyAsync(e =>
+                        e.EmployeeID == row.EmployeeID.Value &&
+                        e.ProductID == row.ProductID.Value &&
+                        e.OperationID == row.OperationID.Value &&
+                        e.WorkDate == row.WorkDate.Value &&
+                        e.IsDeleted != true);
+                    if (exists)
+                    {
+                        errors.Add($"Qator o'tkazildi: xodim/mahsulot/operatsiya/sana bo'yicha dublikat mavjud");
+                        continue;
+                    }
+
+                    var deletedDuplicate = await db.HR_PIECE_RATE_WORK_ENTRIES
+                        .FirstOrDefaultAsync(e =>
+                            e.EmployeeID == row.EmployeeID.Value &&
+                            e.ProductID == row.ProductID.Value &&
+                            e.OperationID == row.OperationID.Value &&
+                            e.WorkDate == row.WorkDate.Value &&
+                            e.IsDeleted == true);
+
+                    if (deletedDuplicate != null)
+                    {
+                        deletedDuplicate.Quantity = row.Quantity.Value;
+                        deletedDuplicate.IsDeleted = false;
+                        deletedDuplicate.ModifiedByUserID = userId;
+                        deletedDuplicate.ModifiedDT = DateTime.Now;
+                        db.Entry(deletedDuplicate).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        db.HR_PIECE_RATE_WORK_ENTRIES.Add(new HR_PIECE_RATE_WORK_ENTRIES
+                        {
+                            EmployeeID = row.EmployeeID.Value,
+                            ProductID = row.ProductID.Value,
+                            OperationID = row.OperationID.Value,
+                            WorkDate = row.WorkDate.Value,
+                            Quantity = row.Quantity.Value,
+                            CreatedByUserID = userId,
+                            CreatedDT = DateTime.Now,
+                            IsDeleted = false
+                        });
+                    }
+                    touchedEmployeeIds.Add(row.EmployeeID.Value);
+                    created++;
+                }
+
+                await db.SaveChangesAsync();
+                if (created > 0)
+                    await EnsurePieceRateDraftApprovalsForEmployeesAsync(model.Year, model.Month, touchedEmployeeIds);
+                TempData["Success"] = $"{created} ta yozuv saqlandi";
+                if (errors.Any()) TempData["Error"] = string.Join("<br/>", errors);
+                return RedirectToAction("GridCreate", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Saqlashda xatolik: " + ex.Message;
+                await PopulatePieceRateGridViewBags(model.OrgUnitID, model.Rows);
                 return View(model);
             }
-
-            var candidateEmpIds = model.Rows
-                .Where(r => r.EmployeeID.HasValue && r.ProductID.HasValue && r.OperationID.HasValue && r.WorkDate.HasValue && r.Quantity.HasValue && r.Quantity.Value > 0)
-                .Select(r => r.EmployeeID.Value).Distinct().ToList();
-            var blockMsg = await GetPieceRateEditBlockedMessageAsync(model.Year, model.Month, candidateEmpIds);
-            if (blockMsg != null)
-            {
-                TempData["Error"] = blockMsg;
-                await PopulatePieceRateGridViewBags(model.OrgUnitID);
-                return View(model);
-            }
-
-            int created = 0;
-            var errors = new List<string>();
-            var userId = UserHelper.GetUserId(User.Identity.Name);
-            var touchedEmployeeIds = new List<int>();
-
-            foreach (var row in model.Rows)
-            {
-                if (!row.EmployeeID.HasValue || !row.ProductID.HasValue || !row.OperationID.HasValue || !row.WorkDate.HasValue || !row.Quantity.HasValue)
-                {
-                    continue;
-                }
-                if (row.Quantity.Value <= 0)
-                {
-                    continue;
-                }
-
-                var exists = await db.HR_PIECE_RATE_WORK_ENTRIES.AnyAsync(e =>
-                    e.EmployeeID == row.EmployeeID.Value &&
-                    e.ProductID == row.ProductID.Value &&
-                    e.OperationID == row.OperationID.Value &&
-                    e.WorkDate == row.WorkDate.Value &&
-                    e.IsDeleted != true);
-                if (exists)
-                {
-                    errors.Add($"Qator o'tkazildi: xodim/mahsulot/operatsiya/sana bo'yicha dublikat mavjud");
-                    continue;
-                }
-
-                db.HR_PIECE_RATE_WORK_ENTRIES.Add(new HR_PIECE_RATE_WORK_ENTRIES
-                {
-                    EmployeeID = row.EmployeeID.Value,
-                    ProductID = row.ProductID.Value,
-                    OperationID = row.OperationID.Value,
-                    WorkDate = row.WorkDate.Value,
-                    Quantity = row.Quantity.Value,
-                    CreatedByUserID = userId,
-                    CreatedDT = DateTime.Now,
-                    IsDeleted = false
-                });
-                touchedEmployeeIds.Add(row.EmployeeID.Value);
-                created++;
-            }
-
-            await db.SaveChangesAsync();
-            if (created > 0)
-                await EnsurePieceRateDraftApprovalsForEmployeesAsync(model.Year, model.Month, touchedEmployeeIds);
-            TempData["Success"] = $"{created} ta yozuv saqlandi";
-            if (errors.Any()) TempData["Error"] = string.Join("<br/>", errors);
-            return RedirectToAction("GridCreate", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
         }
 
         public async Task<ActionResult> Grids(int? year, int? month, int? orgUnitId)
@@ -871,6 +899,10 @@ namespace tahsinERP.Controllers.HR
 
             IQueryable<HR_PIECE_RATE_WORK_ENTRIES> query = db.HR_PIECE_RATE_WORK_ENTRIES
                 .Where(e => e.WorkDate >= startDate && e.WorkDate <= endDate && e.IsDeleted != true);
+            if (orgUnitId.HasValue)
+            {
+                query = query.Where(e => e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value);
+            }
 
             var entries = await query.OrderBy(e => e.WorkDate).ToListAsync();
             var vm = new HrPieceRateGridEntryViewModel
@@ -902,74 +934,102 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            if (model.Rows == null)
+            try
             {
-                TempData["Error"] = "Saqlash uchun ma'lumot yo'q";
-                return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
-            }
-
-            var editCandidates = model.Rows
-                .Where(r => r.EmployeeID.HasValue && r.ProductID.HasValue && r.OperationID.HasValue && r.WorkDate.HasValue && r.Quantity.HasValue && r.Quantity.Value > 0)
-                .Select(r => r.EmployeeID.Value).Distinct().ToList();
-            var blockEdit = await GetPieceRateEditBlockedMessageAsync(model.Year, model.Month, editCandidates);
-            if (blockEdit != null)
-            {
-                TempData["Error"] = blockEdit;
-                return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
-            }
-
-            int updated = 0;
-            int inserted = 0;
-            var userId = UserHelper.GetUserId(User.Identity.Name);
-            var touchedEmployeeIds = new List<int>();
-
-            foreach (var row in model.Rows)
-            {
-                if (!row.EmployeeID.HasValue || !row.ProductID.HasValue || !row.OperationID.HasValue || !row.WorkDate.HasValue || !row.Quantity.HasValue)
+                if (model.Rows == null)
                 {
-                    continue;
+                    TempData["Error"] = "Saqlash uchun ma'lumot yo'q";
+                    return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
                 }
-                if (row.Quantity.Value <= 0) continue;
 
-                if (row.EntryID.HasValue)
+                var editCandidates = model.Rows
+                    .Where(r => r.EmployeeID.HasValue && r.ProductID.HasValue && r.OperationID.HasValue && r.WorkDate.HasValue && r.Quantity.HasValue && r.Quantity.Value > 0)
+                    .Select(r => r.EmployeeID.Value).Distinct().ToList();
+                var blockEdit = await GetPieceRateEditBlockedMessageAsync(model.Year, model.Month, editCandidates);
+                if (blockEdit != null)
                 {
-                    var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
-                        .FirstOrDefaultAsync(e => e.ID == row.EntryID.Value && e.IsDeleted != true);
-                    if (entry == null) continue;
-
-                    entry.EmployeeID = row.EmployeeID.Value;
-                    entry.ProductID = row.ProductID.Value;
-                    entry.OperationID = row.OperationID.Value;
-                    entry.WorkDate = row.WorkDate.Value;
-                    entry.Quantity = row.Quantity.Value;
-                    entry.CreatedByUserID = userId;
-                    entry.CreatedDT = DateTime.Now;
-                    touchedEmployeeIds.Add(row.EmployeeID.Value);
-                    updated++;
+                    TempData["Error"] = blockEdit;
+                    return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
                 }
-                else
+
+                int updated = 0;
+                int inserted = 0;
+                var userId = UserHelper.GetUserId(User.Identity.Name);
+                var touchedEmployeeIds = new List<int>();
+
+                foreach (var row in model.Rows)
                 {
-                    db.HR_PIECE_RATE_WORK_ENTRIES.Add(new HR_PIECE_RATE_WORK_ENTRIES
+                    if (!row.EmployeeID.HasValue || !row.ProductID.HasValue || !row.OperationID.HasValue || !row.WorkDate.HasValue || !row.Quantity.HasValue)
                     {
-                        EmployeeID = row.EmployeeID.Value,
-                        ProductID = row.ProductID.Value,
-                        OperationID = row.OperationID.Value,
-                        WorkDate = row.WorkDate.Value,
-                        Quantity = row.Quantity.Value,
-                        CreatedByUserID = userId,
-                        CreatedDT = DateTime.Now,
-                        IsDeleted = false
-                    });
-                    touchedEmployeeIds.Add(row.EmployeeID.Value);
-                    inserted++;
-                }
-            }
+                        continue;
+                    }
+                    if (row.Quantity.Value <= 0) continue;
 
-            await db.SaveChangesAsync();
-            if (updated + inserted > 0)
-                await EnsurePieceRateDraftApprovalsForEmployeesAsync(model.Year, model.Month, touchedEmployeeIds);
-            TempData["Success"] = $"Yangilandi: {updated}, qo'shildi: {inserted}";
-            return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+                    if (row.EntryID.HasValue)
+                    {
+                        var entry = await db.HR_PIECE_RATE_WORK_ENTRIES
+                            .FirstOrDefaultAsync(e => e.ID == row.EntryID.Value && e.IsDeleted != true);
+                        if (entry == null) continue;
+
+                        entry.EmployeeID = row.EmployeeID.Value;
+                        entry.ProductID = row.ProductID.Value;
+                        entry.OperationID = row.OperationID.Value;
+                        entry.WorkDate = row.WorkDate.Value;
+                        entry.Quantity = row.Quantity.Value;
+                        entry.CreatedByUserID = userId;
+                        entry.CreatedDT = DateTime.Now;
+                        touchedEmployeeIds.Add(row.EmployeeID.Value);
+                        updated++;
+                    }
+                    else
+                    {
+                        var deletedDuplicate = await db.HR_PIECE_RATE_WORK_ENTRIES
+                            .FirstOrDefaultAsync(e =>
+                                e.EmployeeID == row.EmployeeID.Value &&
+                                e.ProductID == row.ProductID.Value &&
+                                e.OperationID == row.OperationID.Value &&
+                                e.WorkDate == row.WorkDate.Value &&
+                                e.IsDeleted == true);
+
+                        if (deletedDuplicate != null)
+                        {
+                            deletedDuplicate.Quantity = row.Quantity.Value;
+                            deletedDuplicate.IsDeleted = false;
+                            deletedDuplicate.ModifiedByUserID = userId;
+                            deletedDuplicate.ModifiedDT = DateTime.Now;
+                            db.Entry(deletedDuplicate).State = EntityState.Modified;
+                        }
+                        else
+                        {
+                            db.HR_PIECE_RATE_WORK_ENTRIES.Add(new HR_PIECE_RATE_WORK_ENTRIES
+                            {
+                                EmployeeID = row.EmployeeID.Value,
+                                ProductID = row.ProductID.Value,
+                                OperationID = row.OperationID.Value,
+                                WorkDate = row.WorkDate.Value,
+                                Quantity = row.Quantity.Value,
+                                CreatedByUserID = userId,
+                                CreatedDT = DateTime.Now,
+                                IsDeleted = false
+                            });
+                        }
+                        touchedEmployeeIds.Add(row.EmployeeID.Value);
+                        inserted++;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+                if (updated + inserted > 0)
+                    await EnsurePieceRateDraftApprovalsForEmployeesAsync(model.Year, model.Month, touchedEmployeeIds);
+                TempData["Success"] = $"Yangilandi: {updated}, qo'shildi: {inserted}";
+                return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Saqlashda xatolik: " + ex.Message;
+                await PopulatePieceRateGridViewBags(model.OrgUnitID, model.Rows);
+                return View(model);
+            }
         }
 
         /// <summary>
@@ -1013,8 +1073,7 @@ namespace tahsinERP.Controllers.HR
             foreach (var ou in orgIds)
             {
                 var existing = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS
-                    .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == ou &&
-                        a.IsDeleted != true);
+                    .FirstOrDefaultAsync(a => a.Year == year && a.Month == month && a.OrgUnitID == ou);
                 if (existing == null)
                 {
                     db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Add(new HR_PIECE_RATE_TIMESHEET_APPROVALS
@@ -1027,6 +1086,14 @@ namespace tahsinERP.Controllers.HR
                         CreatedDT = now
                     });
                 }
+                else if (existing.IsDeleted == true)
+                {
+                    existing.IsDeleted = false;
+                    existing.Status = "Draft";
+                    existing.ModifiedByUserID = uid;
+                    existing.ModifiedDT = now;
+                    db.Entry(existing).State = EntityState.Modified;
+                }
             }
             await db.SaveChangesAsync();
         }
@@ -1036,7 +1103,7 @@ namespace tahsinERP.Controllers.HR
             IQueryable<HR_EMPLOYEES> employeeQuery = db.HR_EMPLOYEES.Where(e => e.IsDeleted != true);
             if (orgUnitId.HasValue) employeeQuery = employeeQuery.Where(e => e.OrgUnitID == orgUnitId.Value);
             var employees = await employeeQuery.OrderBy(e => e.FullName).ToListAsync();
-            var products = await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false).OrderBy(p => p.PNo).ToListAsync();
+            var products = await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted != true).OrderBy(p => p.PNo).ToListAsync();
             var operations = await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync();
 
             if (existingRows != null && existingRows.Any())
@@ -1399,7 +1466,7 @@ namespace tahsinERP.Controllers.HR
                     .ToListAsync();
             }
 
-            var products = await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+            var products = await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted != true)
                 .OrderBy(p => p.PNo).ToListAsync();
             var operations = await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync();
 

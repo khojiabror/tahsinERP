@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class TANNARX
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public TANNARX()
+        {
+            this.TANNARX_ACTUAL_AUDIT = new HashSet<TANNARX_ACTUAL_AUDIT>();
+        }
+    
         public int ID { get; set; }
         public int ProductID { get; set; }
         public int Year { get; set; }
@@ -56,6 +62,8 @@ namespace tahsinERP.Models
         public Nullable<decimal> ActualSalesPriceCIPWithVAT { get; set; }
     
         public virtual PRODUCT PRODUCT { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TANNARX_ACTUAL_AUDIT> TANNARX_ACTUAL_AUDIT { get; set; }
         public virtual USER USER { get; set; }
         public virtual USER USER1 { get; set; }
     }

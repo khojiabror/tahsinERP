@@ -21,271 +21,82 @@
             </div>
         </div>
         <div class="content-body">
-            <!-- Dashboard Analytics Start -->
             <section id="dashboard-ecommerce">
-                <!-- Statistics Cards -->
+                <div class="row mb-1">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-50">Rahbariyat nazorat paneli</h4>
+                                    <small class="text-muted">Konversiya, bajarilish, zaxira riski va vazifalar ijrosi bir ekranda</small>
+                                </div>
+                                <div class="d-flex align-items-center mt-1 mt-md-0">
+                                    <select id="warehouseFilter" class="form-control mr-1" style="min-width: 220px;">
+                                        <option value="">Barcha omborlar (xomashyo)</option>
+                                    </select>
+                                    <input type="date" id="fromDate" class="form-control mr-1" style="min-width: 150px;" />
+                                    <input type="date" id="toDate" class="form-control mr-1" style="min-width: 150px;" />
+                                    <button class="btn btn-primary" id="applyFilters">
+                                        <i class="bx bx-refresh mr-25"></i> Yangilash
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
-                    <!-- Finance Statistics -->
-                    <div class="col-lg-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-end">
-                                        <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">Moliya (Jami)</p>
-                                            <h2 class="font-weight-bolder mb-0" style="color: #198754;" id="finance-total">0</h2>
-                                        </div>
-                                        <div class="dashboard-content-right">
-                                            <div class="avatar p-50 m-0" style="background: rgba(25, 135, 84, 0.15);">
-                                                <div class="avatar-content">
-                                                    <i class="bx bx-dollar font-medium-5" style="color: #198754;"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- CRM Statistics -->
-                    <div class="col-lg-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-end">
-                                        <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">CRM (Buyurtmalar)</p>
-                                            <h2 class="font-weight-bolder mb-0 text-success" id="crm-orders">0</h2>
-                                        </div>
-                                        <div class="dashboard-content-right">
-                                            <div class="avatar bg-rgba-success p-50 m-0">
-                                                <div class="avatar-content">
-                                                    <i class="bx bx-cart font-medium-5 text-success"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- SRM Statistics -->
-                    <div class="col-lg-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-end">
-                                        <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">SRM (Materiallar)</p>
-                                            <h2 class="font-weight-bolder mb-0 text-warning" id="srm-materials">0</h2>
-                                        </div>
-                                        <div class="dashboard-content-right">
-                                            <div class="avatar bg-rgba-warning p-50 m-0">
-                                                <div class="avatar-content">
-                                                    <i class="bx bx-package font-medium-5 text-warning"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- MES Statistics -->
-                    <div class="col-lg-3 col-sm-6 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-end">
-                                        <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">MES (Rejalar)</p>
-                                            <h2 class="font-weight-bolder mb-0 text-danger" id="mes-plans">0</h2>
-                                        </div>
-                                        <div class="dashboard-content-right">
-                                            <div class="avatar bg-rgba-danger p-50 m-0">
-                                                <div class="avatar-content">
-                                                    <i class="bx bx-cog font-medium-5 text-danger"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Oylik savdo konversiyasi</p><h2 class="mb-50" id="kpi-conversion">0%</h2><small class="text-muted">Shartnoma -> Buyurtma</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Savdo buyurtmasi bajarilishi</p><h2 class="mb-50" id="kpi-fulfillment">0%</h2><small class="text-muted">Buyurtma -> Hisob-faktura</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Ishlab chiqarish bajarilishi</p><h2 class="mb-50" id="kpi-production">0%</h2><small class="text-muted">Reja -> Amalda</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Vazifalar bajarilishi</p><h2 class="mb-50" id="kpi-tasks">0%</h2><small class="text-muted"><span id="task-done">0</span>/<span id="task-total">0</span> bajarildi</small></div></div></div>
                 </div>
 
-                <!-- Finance Module Charts -->
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">DOH (zaxira kunlari)</p><h3 id="kpi-doh">0 kun</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Qamrov (kun)</p><h3 id="kpi-coverage">0 kun</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Savdo buyurtmalari</p><h3 id="kpi-orders-amount">0</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Hisob-faktura hajmi</p><h3 id="kpi-invoice-amount">0</h3></div></div></div>
+                </div>
+
                 <div class="row match-height">
-                    <!-- Finance Plan vs Fact Chart -->
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-line-chart font-medium-3 mr-1" style="color: #198754;"></i>
-                                    <h4 class="card-title mb-0">Moliya - Reja vs Haqiqat</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="finance-plan-vs-fact-chart"></div>
-                                </div>
-                            </div>
+                            <div class="card-header"><h4 class="card-title mb-0">Savdo konversiyasi trendi</h4></div>
+                            <div class="card-body"><div id="sales-funnel-chart"></div></div>
                         </div>
                     </div>
-                    <!-- Finance Cash Summary Chart -->
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-bar-chart-alt-2 font-medium-3 text-info mr-1"></i>
-                                    <h4 class="card-title mb-0">Moliya - Naqd pul hisoboti</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="finance-cash-summary-chart"></div>
-                                </div>
-                            </div>
+                            <div class="card-header"><h4 class="card-title mb-0">Ishlab chiqarish: reja va fakt trendi</h4></div>
+                            <div class="card-body"><div id="production-trend-chart"></div></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CRM Module Charts -->
                 <div class="row match-height">
-                    <!-- CRM Sales Orders Chart -->
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-cart font-medium-3 text-success mr-1"></i>
-                                    <h4 class="card-title mb-0">CRM - Sotuv buyurtmalari</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="crm-sales-orders-chart"></div>
-                                </div>
-                            </div>
+                            <div class="card-header"><h4 class="card-title mb-0">DOH / qamrov riski (SKU bo'yicha)</h4></div>
+                            <div class="card-body"><div id="coverage-heat-chart"></div></div>
                         </div>
                     </div>
-                    <!-- CRM Customers Statistics -->
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-user-circle font-medium-3 mr-1" style="color: #198754;"></i>
-                                    <h4 class="card-title mb-0">CRM - Mijozlar statistikasi</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="crm-customers-chart"></div>
-                                </div>
-                            </div>
+                            <div class="card-header"><h4 class="card-title mb-0">Buyurtma va ishlab chiqarish bajarilishi KPI</h4></div>
+                            <div class="card-body"><div id="execution-gauge-chart"></div></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- SRM Module Charts -->
-                <div class="row match-height">
-                    <!-- SRM Product Stocks Chart -->
-                    <div class="col-lg-12 col-12">
+                <div class="row">
+                    <div class="col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-package font-medium-3 text-warning mr-1"></i>
-                                    <h4 class="card-title mb-0">SRM - Maxsulot qoldiqlari</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="srm-material-requirements-chart"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MES Module Charts -->
-                <div class="row match-height">
-                    <!-- MES Production Plans Chart -->
-                    <div class="col-lg-12 col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-cog font-medium-3 text-danger mr-1"></i>
-                                    <h4 class="card-title mb-0">MES - Ishlab chiqarish rejalari</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="mes-production-chart"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- HR, Tasks, Documents Statistics -->
-                <div class="row match-height">
-                    <div class="col-lg-4 col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-group font-medium-3 mr-1" style="color: #198754;"></i>
-                                    <h4 class="card-title mb-0">HR Moduli</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="hr-stats-chart"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-task font-medium-3 text-info mr-1"></i>
-                                    <h4 class="card-title mb-0">Vazifalar Moduli</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="tasks-stats-chart"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-file font-medium-3 text-secondary mr-1"></i>
-                                    <h4 class="card-title mb-0">Hujjatlar Moduli</h4>
-                                </div>
-                                <i class="bx bx-dots-vertical-rounded font-medium-3 cursor-pointer"></i>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div id="documents-stats-chart"></div>
-                                </div>
-                            </div>
+                            <div class="card-header"><h4 class="card-title mb-0">Boshqaruv signal paneli</h4></div>
+                            <div class="card-body"><div id="insight-list"></div></div>
                         </div>
                     </div>
                 </div>
             </section>
-            <!-- Dashboard Analytics end -->
 
             @if (ViewBag.ShowCookieConsent)
             {
@@ -322,850 +133,236 @@
 <!-- END: Page JS-->
 
 <script>
-    // jQuery yuklanguncha kutish
-    (function() {
-        function initCharts() {
-            if (typeof jQuery === 'undefined' || typeof ApexCharts === 'undefined') {
-                setTimeout(initCharts, 100);
-                return;
-            }
-            
-            var $ = jQuery;
-            
-            // AJAX so'rovlar uchun umumiy sozlamalar
-            $.ajaxSetup({
-                timeout: 30000, // 30 soniya timeout
-                error: function(xhr, status, error) {
-                    console.error('AJAX xatosi:', status, error);
+    (function () {
+        var charts = {};
+        var currencyShortname = '@(ViewBag.CurrencyShortname ?? "")';
+        var warehouseInitialized = false;
+
+        function formatSpaceNumber(value, decimals) {
+            var d = typeof decimals === 'number' ? decimals : 0;
+            var n = Number(value || 0);
+            var fixed = n.toFixed(d);
+            var parts = fixed.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return d > 0 ? parts.join('.') : parts[0];
+        }
+
+        function formatAmount(value, decimals) {
+            return formatSpaceNumber(value, typeof decimals === 'number' ? decimals : 0) + (currencyShortname ? (' ' + currencyShortname) : '');
+        }
+
+        function formatPercent(value) {
+            return Number(value || 0).toFixed(1) + '%';
+        }
+
+        function destroyCharts() {
+            Object.keys(charts).forEach(function (k) {
+                if (charts[k] && typeof charts[k].destroy === 'function') charts[k].destroy();
+            });
+            charts = {};
+        }
+
+        function renderInsights(insights) {
+            var html = '';
+            (insights || []).forEach(function (x) {
+                var color = x.level === 'high' ? 'danger' : (x.level === 'medium' ? 'warning' : 'success');
+                html += '<div class="alert alert-light-' + color + ' mb-1"><i class="bx bx-bell mr-50"></i>' + x.text + '</div>';
+            });
+            document.getElementById('insight-list').innerHTML = html || '<p class="text-muted mb-0">Signal topilmadi</p>';
+        }
+
+        function renderSalesFunnelChart(data) {
+            var trend = data.trend || [];
+            var periods = trend.map(function (x) { return x.period; });
+            charts.sales = new ApexCharts(document.querySelector("#sales-funnel-chart"), {
+                chart: { type: 'line', height: 330, stacked: false, toolbar: { show: true } },
+                series: [
+                    { name: 'Buyurtma', type: 'column', data: trend.map(function (x) { return x.orderAmount; }) },
+                    { name: 'Hisob-faktura', type: 'column', data: trend.map(function (x) { return x.invoiceAmount; }) }
+                ],
+                stroke: { width: [0, 0], curve: 'smooth' },
+                colors: ['#39DA8A', '#00CFDD'],
+                xaxis: { categories: periods },
+                yaxis: [{ title: { text: 'Summa' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    y: { formatter: function (val) { return formatAmount(val, 2); } }
+                },
+                legend: { position: 'top' }
+            });
+            charts.sales.render();
+        }
+
+        function renderProductionTrendChart(data) {
+            var trend = data.trend || [];
+            var periods = trend.map(function (x) { return x.period; });
+            charts.production = new ApexCharts(document.querySelector("#production-trend-chart"), {
+                chart: { type: 'line', height: 330, stacked: false, toolbar: { show: true } },
+                series: [
+                    { name: 'Reja miqdori', type: 'line', data: trend.map(function (x) { return x.plannedQty; }) },
+                    { name: 'Amaldagi miqdor', type: 'line', data: trend.map(function (x) { return x.producedQty; }) }
+                ],
+                stroke: { width: [3, 3], curve: 'smooth' },
+                colors: ['#FDAC41', '#198754'],
+                xaxis: { categories: periods },
+                yaxis: [{ title: { text: 'Miqdor' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    y: { formatter: function (val) { return formatSpaceNumber(val, 2); } }
+                },
+                legend: { position: 'top' }
+            });
+            charts.production.render();
+        }
+
+        function renderCoverageChart(data) {
+            var stock = (data.stockCoverage || []).slice(0, 12);
+            charts.coverage = new ApexCharts(document.querySelector("#coverage-heat-chart"), {
+                chart: { type: 'bar', height: 340, toolbar: { show: false } },
+                series: [{ name: 'Qamrov (kun)', data: stock.map(function (x) { return x.coverageDays; }) }],
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        distributed: true,
+                        borderRadius: 4,
+                        colors: {
+                            ranges: [
+                                { from: 0, to: 20, color: '#FF5B5C' },
+                                { from: 20, to: 45, color: '#FDAC41' },
+                                { from: 45, to: 90, color: '#39DA8A' },
+                                { from: 90, to: 9999, color: '#6c757d' }
+                            ]
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (v) { return formatSpaceNumber(v, 1) + ' kun'; }
+                },
+                xaxis: { categories: stock.map(function (x) { return x.product; }) },
+                tooltip: {
+                    y: {
+                        formatter: function (val, opts) {
+                            var i = opts.dataPointIndex;
+                            var item = stock[i] || {};
+                            return formatSpaceNumber(val, 1) + ' kun | Zaxira: ' + formatSpaceNumber(item.stockQty || 0, 2) + ' | Kunlik talab: ' + formatSpaceNumber(item.avgDailyDemand || 0, 2);
+                        }
+                    }
                 }
             });
-            
-            $(window).on("load", function () {
-                // Loading overlay'ni majburiy ravishda yashirish (agar xato bo'lsa ham)
-                setTimeout(function() {
-                    $('html').removeClass('loading').addClass('loaded');
-                    $('.content-overlay').hide();
-                }, 1500);
-                
-                // iPack korxonasi yashil ranglari
-                var $primary = '#198754'; // To'q yashil
-                var $primary_light = '#20c997'; // Yengil yashil
-                var $danger = '#FF5B5C';
-                var $warning = '#FDAC41';
-                var $info = '#00CFDD';
-                var $success = '#39DA8A';
-                var $secondary = '#828D99';
-                var $gray_light = '#828D99';
-
-        // Finance Plan vs Fact Chart
-        $.ajax({
-            url: '/Home/GetFinancePlanVsFact',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data && data.length > 0) {
-                var periods = data.map(x => x.period);
-                var planData = data.map(x => x.plan);
-                var factData = data.map(x => x.fact);
-
-                var financePlanVsFactOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'line',
-                        zoom: { enabled: false },
-                        toolbar: { show: false },
-                        sparkline: { enabled: false }
-                    },
-                    colors: [$primary, $primary_light],
-                    dataLabels: { enabled: false },
-                    stroke: { 
-                        curve: 'smooth', 
-                        width: 3,
-                        lineCap: 'round'
-                    },
-                    series: [
-                        { name: 'Reja', data: planData },
-                        { name: 'Haqiqat', data: factData }
-                    ],
-                    title: { 
-                        text: 'Moliya - Reja vs Haqiqat', 
-                        align: 'left',
-                        style: { fontSize: '16px', fontWeight: 600 }
-                    },
-                    grid: { 
-                        row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 },
-                        borderColor: '#e7e7e7',
-                        strokeDashArray: 3
-                    },
-                    xaxis: { 
-                        categories: periods,
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    yaxis: { 
-                        title: { text: 'Summa', style: { color: '#828D99' } },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    legend: { 
-                        position: 'top', 
-                        horizontalAlign: 'right',
-                        markers: { radius: 50, height: 8, width: 8 }
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function(val) {
-                                return val.toLocaleString() + " so'm";
-                            }
-                        }
-                    }
-                };
-
-                var financePlanVsFactChart = new ApexCharts(
-                    document.querySelector("#finance-plan-vs-fact-chart"),
-                    financePlanVsFactOptions
-                );
-                financePlanVsFactChart.render();
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('Finance Plan vs Fact xatosi:', error);
-                $('#finance-plan-vs-fact-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // Finance Cash Summary Chart
-        $.ajax({
-            url: '/Home/GetFinanceCashSummary',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data && data.length > 0) {
-                var accountNames = data.map(x => x.accountName);
-                var closingBalances = data.map(x => x.closingBalance);
-
-                var financeCashSummaryOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'bar',
-                        toolbar: { show: false }
-                    },
-                    colors: [$info],
-                    plotOptions: {
-                        bar: {
-                            horizontal: false,
-                            columnWidth: '50%',
-                            endingShape: 'rounded',
-                            borderRadius: 4
-                        }
-                    },
-                    dataLabels: { enabled: false },
-                    stroke: { 
-                        show: true, 
-                        width: 2, 
-                        colors: ['transparent'],
-                        curve: 'smooth'
-                    },
-                    series: [{ name: 'Yopilish balansi', data: closingBalances }],
-                    xaxis: { 
-                        categories: accountNames,
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        labels: { 
-                            style: { colors: '#828D99' },
-                            rotate: -45,
-                            rotateAlways: false
-                        }
-                    },
-                    yaxis: { 
-                        title: { text: 'Summa', style: { color: '#828D99' } },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    fill: { 
-                        type: 'gradient',
-                        gradient: {
-                            shade: 'light',
-                            type: 'vertical',
-                            shadeIntensity: 0.3,
-                            gradientToColors: [$info],
-                            inverseColors: false,
-                            opacityFrom: 1,
-                            opacityTo: 0.8,
-                            stops: [0, 50, 100]
-                        }
-                    },
-                    grid: {
-                        borderColor: '#e7e7e7',
-                        strokeDashArray: 3
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function (val) {
-                                return val.toLocaleString() + " so'm"
-                            }
-                        }
-                    }
-                };
-
-                var financeCashSummaryChart = new ApexCharts(
-                    document.querySelector("#finance-cash-summary-chart"),
-                    financeCashSummaryOptions
-                );
-                financeCashSummaryChart.render();
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('Finance Cash Summary xatosi:', error);
-                $('#finance-cash-summary-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // CRM Sales Orders Chart
-        $.ajax({
-            url: '/Home/GetCRMSalesOrdersStats',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data && data.length > 0) {
-                var periods = data.map(x => x.period);
-                var orderCounts = data.map(x => x.orderCount);
-                var totalAmounts = data.map(x => x.totalAmount);
-
-                var crmSalesOrdersOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'bar',
-                        toolbar: { show: false }
-                    },
-                    colors: [$success, $primary],
-                    plotOptions: {
-                        bar: {
-                            horizontal: false,
-                            columnWidth: '50%',
-                            endingShape: 'rounded',
-                            borderRadius: 4
-                        }
-                    },
-                    dataLabels: { enabled: false },
-                    stroke: { 
-                        show: true, 
-                        width: 2, 
-                        colors: ['transparent'],
-                        curve: 'smooth'
-                    },
-                    series: [
-                        { name: 'Buyurtmalar soni', data: orderCounts },
-                        { name: 'Jami summa', data: totalAmounts }
-                    ],
-                    xaxis: { 
-                        categories: periods,
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    yaxis: { 
-                        title: { text: 'Qiymat', style: { color: '#828D99' } },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    fill: { 
-                        type: 'gradient',
-                        gradient: {
-                            shade: 'light',
-                            type: 'vertical',
-                            shadeIntensity: 0.3,
-                            gradientToColors: [$success, $primary],
-                            inverseColors: false,
-                            opacityFrom: 1,
-                            opacityTo: 0.8,
-                            stops: [0, 50, 100]
-                        }
-                    },
-                    grid: {
-                        borderColor: '#e7e7e7',
-                        strokeDashArray: 3
-                    },
-                    legend: { 
-                        position: 'top', 
-                        horizontalAlign: 'right',
-                        markers: { radius: 50, height: 8, width: 8 }
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function(val) {
-                                return val.toLocaleString();
-                            }
-                        }
-                    }
-                };
-
-                var crmSalesOrdersChart = new ApexCharts(
-                    document.querySelector("#crm-sales-orders-chart"),
-                    crmSalesOrdersOptions
-                );
-                crmSalesOrdersChart.render();
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('CRM Sales Orders xatosi:', error);
-                $('#crm-sales-orders-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // CRM Customers Statistics
-        $.ajax({
-            url: '/Home/GetCRMCustomersStats',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data) {
-                var crmCustomersOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'radialBar',
-                        toolbar: { show: false }
-                    },
-                    colors: [$success, $primary, $warning],
-                    series: [data.totalCustomers, data.activeCustomers, data.totalOrders],
-                    plotOptions: {
-                        radialBar: {
-                            offsetY: -10,
-                            hollow: { 
-                                size: '40%',
-                                background: '#fff'
-                            },
-                            track: { 
-                                margin: 10, 
-                                background: '#e7edf3',
-                                strokeWidth: '97%'
-                            },
-                            dataLabels: {
-                                name: { 
-                                    fontSize: '15px', 
-                                    offsetY: 25,
-                                    color: '#828D99',
-                                    fontWeight: 500
-                                },
-                                value: { 
-                                    fontSize: '30px', 
-                                    offsetY: -15,
-                                    fontWeight: 600,
-                                    color: '#475F7B'
-                                },
-                                total: {
-                                    show: true,
-                                    label: 'Jami',
-                                    fontSize: '16px',
-                                    fontWeight: 600,
-                                    color: '#475F7B',
-                                    formatter: function() {
-                                        return data.totalCustomers + data.activeCustomers + data.totalOrders;
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    stroke: { 
-                        lineCap: 'round',
-                        curve: 'smooth'
-                    },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shade: 'light',
-                            type: 'horizontal',
-                            shadeIntensity: 0.5,
-                            gradientToColors: [$success, $primary, $warning],
-                            inverseColors: false,
-                            opacityFrom: 1,
-                            opacityTo: 0.8,
-                            stops: [0, 50, 100]
-                        }
-                    },
-                    labels: ['Jami mijozlar', 'Faol mijozlar', 'Buyurtmalar'],
-                    legend: {
-                        show: true,
-                        position: 'bottom',
-                        fontSize: '14px',
-                        markers: { radius: 50, height: 8, width: 8 }
-                    }
-                };
-
-                var crmCustomersChart = new ApexCharts(
-                    document.querySelector("#crm-customers-chart"),
-                    crmCustomersOptions
-                );
-                crmCustomersChart.render();
-
-                $('#crm-orders').text(data.totalOrders);
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('CRM Customers Stats xatosi:', error);
-                $('#crm-customers-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // SRM Product Stocks Chart
-        $.ajax({
-            url: '/Home/GetSRMMaterialRequirements',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data && data.length > 0) {
-                var productNos = data.map(x => x.productNo);
-                var stocks = data.map(x => x.totalStock);
-
-                var srmMaterialRequirementsOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'bar',
-                        horizontal: true,
-                        toolbar: { show: false }
-                    },
-                    colors: [$warning],
-                    plotOptions: {
-                        bar: { 
-                            horizontal: true,
-                            borderRadius: 4,
-                            columnWidth: '60%'
-                        }
-                    },
-                    dataLabels: { enabled: false },
-                    series: [{ name: 'Qoldiq', data: stocks }],
-                    xaxis: { 
-                        categories: productNos, 
-                        tickAmount: 5,
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    yaxis: { 
-                        title: { text: 'Miqdor', style: { color: '#828D99' } },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shade: 'light',
-                            type: 'horizontal',
-                            shadeIntensity: 0.3,
-                            gradientToColors: [$warning],
-                            inverseColors: false,
-                            opacityFrom: 1,
-                            opacityTo: 0.8,
-                            stops: [0, 50, 100]
-                        }
-                    },
-                    grid: {
-                        borderColor: '#e7e7e7',
-                        strokeDashArray: 3
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function(val) {
-                                return val.toLocaleString();
-                            }
-                        }
-                    }
-                };
-
-                var srmMaterialRequirementsChart = new ApexCharts(
-                    document.querySelector("#srm-material-requirements-chart"),
-                    srmMaterialRequirementsOptions
-                );
-                srmMaterialRequirementsChart.render();
-
-                $('#srm-materials').text(data.length);
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('SRM Material Requirements xatosi:', error);
-                $('#srm-material-requirements-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // MES Production Plans Chart
-        $.ajax({
-            url: '/Home/GetMESProductionStats',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data && data.length > 0) {
-                var periods = data.map(x => x.period);
-                var planCounts = data.map(x => x.planCount);
-                var totalQuantities = data.map(x => x.totalQuantity);
-
-                var mesProductionOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'area',
-                        zoom: { enabled: false },
-                        toolbar: { show: false }
-                    },
-                    colors: [$danger, $primary],
-                    dataLabels: { enabled: false },
-                    stroke: { 
-                        curve: 'smooth', 
-                        width: 3,
-                        lineCap: 'round'
-                    },
-                    series: [
-                        { name: 'Rejalar soni', data: planCounts },
-                        { name: 'Jami miqdor', data: totalQuantities }
-                    ],
-                    xaxis: { 
-                        categories: periods,
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    yaxis: { 
-                        title: { text: 'Qiymat', style: { color: '#828D99' } },
-                        labels: { style: { colors: '#828D99' } }
-                    },
-                    fill: { 
-                        type: 'gradient', 
-                        gradient: { 
-                            shade: 'light',
-                            type: 'vertical',
-                            shadeIntensity: 1, 
-                            opacityFrom: 0.7, 
-                            opacityTo: 0.3,
-                            gradientToColors: [$danger, $primary],
-                            inverseColors: false,
-                            stops: [0, 50, 100]
-                        } 
-                    },
-                    grid: {
-                        borderColor: '#e7e7e7',
-                        strokeDashArray: 3
-                    },
-                    legend: { 
-                        position: 'top', 
-                        horizontalAlign: 'right',
-                        markers: { radius: 50, height: 8, width: 8 }
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function(val) {
-                                return val.toLocaleString();
-                            }
-                        }
-                    }
-                };
-
-                var mesProductionChart = new ApexCharts(
-                    document.querySelector("#mes-production-chart"),
-                    mesProductionOptions
-                );
-                mesProductionChart.render();
-
-                $('#mes-plans').text(data.reduce((sum, x) => sum + x.planCount, 0));
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('MES Production Stats xatosi:', error);
-                $('#mes-production-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // HR Statistics
-        $.ajax({
-            url: '/Home/GetHRStats',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data) {
-                var hrStatsOptions = {
-                    chart: {
-                        height: 250,
-                        type: 'donut',
-                        toolbar: { show: false }
-                    },
-                    colors: [$primary, $primary_light, $success],
-                    series: [data.totalEmployees, data.activeEmployees, data.totalDepartments],
-                    labels: ['Jami xodimlar', 'Faol xodimlar', 'Bo\'limlar'],
-                    plotOptions: {
-                        pie: {
-                            donut: {
-                                size: '65%',
-                                labels: {
-                                    show: true,
-                                    name: {
-                                        show: true,
-                                        fontSize: '14px',
-                                        fontWeight: 500,
-                                        color: '#828D99'
-                                    },
-                                    value: {
-                                        show: true,
-                                        fontSize: '20px',
-                                        fontWeight: 600,
-                                        color: '#475F7B',
-                                        formatter: function(val) {
-                                            return val;
-                                        }
-                                    },
-                                    total: {
-                                        show: true,
-                                        label: 'Jami',
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        color: '#475F7B',
-                                        formatter: function() {
-                                            return data.totalEmployees + data.activeEmployees + data.totalDepartments;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    stroke: {
-                        show: true,
-                        width: 2,
-                        colors: ['#fff']
-                    },
-                    legend: { 
-                        position: 'bottom',
-                        fontSize: '14px',
-                        markers: { radius: 50, height: 8, width: 8 }
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function(val) {
-                                return val;
-                            }
-                        }
-                    }
-                };
-
-                var hrStatsChart = new ApexCharts(
-                    document.querySelector("#hr-stats-chart"),
-                    hrStatsOptions
-                );
-                hrStatsChart.render();
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('HR Stats xatosi:', error);
-                $('#hr-stats-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // Tasks Statistics
-        $.ajax({
-            url: '/Home/GetTasksStats',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data) {
-                var tasksStatsOptions = {
-                    chart: {
-                        height: 250,
-                        type: 'donut',
-                        toolbar: { show: false }
-                    },
-                    colors: [$info, $success, $warning],
-                    series: [data.totalTasks, data.completedTasks, data.pendingTasks],
-                    labels: ['Jami vazifalar', 'Bajarilgan', 'Kutilayotgan'],
-                    plotOptions: {
-                        pie: {
-                            donut: {
-                                size: '65%',
-                                labels: {
-                                    show: true,
-                                    name: {
-                                        show: true,
-                                        fontSize: '14px',
-                                        fontWeight: 500,
-                                        color: '#828D99'
-                                    },
-                                    value: {
-                                        show: true,
-                                        fontSize: '20px',
-                                        fontWeight: 600,
-                                        color: '#475F7B',
-                                        formatter: function(val) {
-                                            return val;
-                                        }
-                                    },
-                                    total: {
-                                        show: true,
-                                        label: 'Jami',
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        color: '#475F7B',
-                                        formatter: function() {
-                                            return data.totalTasks + data.completedTasks + data.pendingTasks;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    stroke: {
-                        show: true,
-                        width: 2,
-                        colors: ['#fff']
-                    },
-                    legend: { 
-                        position: 'bottom',
-                        fontSize: '14px',
-                        markers: { radius: 50, height: 8, width: 8 }
-                    },
-                    tooltip: {
-                        theme: 'light',
-                        y: {
-                            formatter: function(val) {
-                                return val;
-                            }
-                        }
-                    }
-                };
-
-                var tasksStatsChart = new ApexCharts(
-                    document.querySelector("#tasks-stats-chart"),
-                    tasksStatsOptions
-                );
-                tasksStatsChart.render();
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('Tasks Stats xatosi:', error);
-                $('#tasks-stats-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        // Documents Statistics
-        $.ajax({
-            url: '/Home/GetDocumentsStats',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-            if (data) {
-                var documentsStatsOptions = {
-                    chart: {
-                        height: 250,
-                        type: 'radialBar',
-                        toolbar: { show: false }
-                    },
-                    colors: [$secondary],
-                    series: [data.totalDocuments],
-                    plotOptions: {
-                        radialBar: {
-                            hollow: { 
-                                size: '70%',
-                                background: '#fff'
-                            },
-                            track: {
-                                background: '#e7edf3',
-                                strokeWidth: '97%'
-                            },
-                            dataLabels: {
-                                name: { 
-                                    fontSize: '16px', 
-                                    offsetY: -10,
-                                    color: '#828D99',
-                                    fontWeight: 500
-                                },
-                                value: { 
-                                    fontSize: '24px', 
-                                    offsetY: 10,
-                                    fontWeight: 600,
-                                    color: '#475F7B'
-                                }
-                            }
-                        }
-                    },
-                    stroke: {
-                        lineCap: 'round',
-                        curve: 'smooth'
-                    },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shade: 'light',
-                            type: 'horizontal',
-                            shadeIntensity: 0.5,
-                            gradientToColors: [$secondary],
-                            inverseColors: false,
-                            opacityFrom: 1,
-                            opacityTo: 0.8,
-                            stops: [0, 50, 100]
-                        }
-                    },
-                    labels: ['Jami hujjatlar']
-                };
-
-                var documentsStatsChart = new ApexCharts(
-                    document.querySelector("#documents-stats-chart"),
-                    documentsStatsOptions
-                );
-                documentsStatsChart.render();
-            }
-            },
-            error: function(xhr, status, error) {
-                console.error('Documents Stats xatosi:', error);
-                $('#documents-stats-chart').html('<p class="text-center text-muted">Ma\'lumot yuklanmadi</p>');
-            }
-        });
-
-        var currencyShortname = '@(ViewBag.CurrencyShortname ?? "")';
-
-        function formatCompactNumber(value) {
-            var abs = Math.abs(value);
-            var sign = value < 0 ? '-' : '';
-
-            if (abs >= 1e9) {
-                return sign + (abs / 1e9).toFixed(2) + 'B';
-            }
-            if (abs >= 1e6) {
-                return sign + (abs / 1e6).toFixed(2) + 'M';
-            }
-            if (abs >= 1e3) {
-                return sign + (abs / 1e3).toFixed(2) + 'K';
-            }
-            return sign + abs.toLocaleString();
+            charts.coverage.render();
         }
 
-        function formatFinanceTotal(value) {
-            var formatted = formatCompactNumber(value);
-            if (currencyShortname) {
-                return formatted + ' ' + currencyShortname;
-            }
-            return formatted;
-        }
-
-        // Update Finance Total
-        $.ajax({
-            url: '/Home/GetFinancePlanVsFact',
-            method: 'GET',
-            timeout: 30000,
-            success: function (data) {
-                if (data && data.length > 0) {
-                    var total = data.reduce((sum, x) => sum + x.fact, 0);
-                    $('#finance-total').text(formatFinanceTotal(total));
+        function renderExecutionGauge(data) {
+            var k = data.kpis || {};
+            charts.gauge = new ApexCharts(document.querySelector("#execution-gauge-chart"), {
+                chart: { type: 'radialBar', height: 340 },
+                series: [k.orderFulfillmentRate || 0, k.productionExecutionRate || 0, k.taskCompletionRate || 0],
+                labels: ['Buyurtma bajarilishi', 'Ishlab chiqarish bajarilishi', 'Vazifa bajarilishi'],
+                colors: ['#1f8ef1', '#198754', '#FDAC41'],
+                plotOptions: {
+                    radialBar: {
+                        offsetY: 0,
+                        startAngle: -130,
+                        endAngle: 130,
+                        hollow: { size: '30%' },
+                        dataLabels: {
+                            name: { fontSize: '13px' },
+                            value: {
+                                fontSize: '22px',
+                                formatter: function (v) { return Number(v).toFixed(1) + '%'; }
+                            },
+                            total: {
+                                show: true,
+                                label: 'O‘rtacha nazorat',
+                                formatter: function (w) {
+                                    var s = w.globals.seriesTotals;
+                                    var avg = s.reduce(function (a, b) { return a + b; }, 0) / s.length;
+                                    return avg.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('Finance Total xatosi:', error);
-                $('#finance-total').text(formatFinanceTotal(0));
+            });
+            charts.gauge.render();
+        }
+
+        function bindKpis(k) {
+            $('#kpi-conversion').text(formatPercent(k.salesConversionRate));
+            $('#kpi-fulfillment').text(formatPercent(k.orderFulfillmentRate));
+            $('#kpi-production').text(formatPercent(k.productionExecutionRate));
+            $('#kpi-tasks').text(formatPercent(k.taskCompletionRate));
+            $('#task-done').text(formatSpaceNumber(k.completedTasks || 0, 0));
+            $('#task-total').text(formatSpaceNumber(k.totalTasks || 0, 0));
+            $('#kpi-doh').text(formatSpaceNumber(k.dohDays || 0, 1) + ' kun');
+            $('#kpi-coverage').text(formatSpaceNumber(k.coverageDays || 0, 1) + ' kun');
+            $('#kpi-orders-amount').text(formatAmount(k.orderAmount, 2));
+            $('#kpi-invoice-amount').text(formatAmount(k.invoiceAmount, 2));
+        }
+
+        function bindWarehouseOptions(data) {
+            if (warehouseInitialized) return;
+            var list = data.warehouses || [];
+            var current = data.selectedWarehouseId;
+            var html = '<option value="">Barcha omborlar (xomashyo)</option>';
+            list.forEach(function (w) {
+                var selected = current && Number(current) === Number(w.id) ? ' selected' : '';
+                html += '<option value="' + w.id + '"' + selected + '>' + (w.name || ('Ombor #' + w.id)) + '</option>';
+            });
+            $('#warehouseFilter').html(html);
+            warehouseInitialized = true;
+        }
+
+        function loadExecutiveDashboard() {
+            var fromDate = $('#fromDate').val();
+            var toDate = $('#toDate').val();
+            var warehouseId = $('#warehouseFilter').val();
+            $.ajax({
+                url: '/Home/GetExecutiveDashboard',
+                method: 'GET',
+                data: { fromDate: fromDate, toDate: toDate, warehouseId: warehouseId },
+                success: function (data) {
+                    if (!data || data.error) {
+                        $('#insight-list').html('<p class="text-danger mb-0">' + (data && data.error ? data.error : 'Ma\'lumot yuklanmadi') + '</p>');
+                        return;
+                    }
+                    bindWarehouseOptions(data);
+                    destroyCharts();
+                    bindKpis(data.kpis || {});
+                    renderInsights(data.insights || []);
+                    renderSalesFunnelChart(data);
+                    renderProductionTrendChart(data);
+                    renderCoverageChart(data);
+                    renderExecutionGauge(data);
+                },
+                error: function () {
+                    $('#insight-list').html('<p class="text-danger mb-0">Rahbariyat paneli yuklanmadi</p>');
+                }
+            });
+        }
+
+        function init() {
+            if (typeof jQuery === 'undefined' || typeof ApexCharts === 'undefined') {
+                return setTimeout(init, 100);
             }
-        });
-            }); // Close $(window).on("load")
-        } // Close initCharts function
-        
-        // DOM yuklangandan keyin ishga tushirish
+            var now = new Date();
+            var to = now.toISOString().split('T')[0];
+            var fromObj = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            var from = fromObj.toISOString().split('T')[0];
+            $('#fromDate').val(from);
+            $('#toDate').val(to);
+            $('#applyFilters').on('click', loadExecutiveDashboard);
+            $('#warehouseFilter').on('change', loadExecutiveDashboard);
+            loadExecutiveDashboard();
+        }
+
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initCharts);
+            document.addEventListener('DOMContentLoaded', init);
         } else {
-            initCharts();
+            init();
         }
     })();
 </script>

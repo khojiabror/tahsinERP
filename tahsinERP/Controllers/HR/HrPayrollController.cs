@@ -15,6 +15,7 @@ namespace tahsinERP.Controllers.HR
     [Authorize]
     public class HrPayrollController : Controller
     {
+        private const decimal DefaultIncomeTaxPercent = 12m;
         private DBTHSNEntities db = new DBTHSNEntities();
         private IUserActionLogger logger;
         private readonly HrEmployeeAllowanceService allowanceService;
@@ -33,6 +34,22 @@ namespace tahsinERP.Controllers.HR
 
         private static bool IsPayrollLineActive(HR_PAYROLL_LINES l) =>
             l != null && (l.IsDeleted == null || l.IsDeleted == false);
+
+        private static decimal CalculateIncomeTaxAmount(decimal grossSalary, decimal taxPercent)
+        {
+            if (grossSalary <= 0 || taxPercent <= 0)
+            {
+                return 0m;
+            }
+
+            return Math.Round(grossSalary * taxPercent / 100m, 2, MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal CalculateNetSalary(decimal grossSalary, decimal bonuses, decimal penalties, decimal taxPercent, bool applyIncomeTax)
+        {
+            var incomeTaxAmount = applyIncomeTax ? CalculateIncomeTaxAmount(grossSalary, taxPercent) : 0m;
+            return grossSalary + bonuses - penalties - incomeTaxAmount;
+        }
 
         private async Task SoftDeleteActivePayrollLinesAsync(int payrollId)
         {
@@ -581,6 +598,7 @@ namespace tahsinERP.Controllers.HR
                     PieceQty = l.PieceQty ?? 0,
                     HourlyRate = l.HourlyRate ?? 0,
                     GrossSalary = l.GrossSalary ?? 0,
+                    IncomeTaxAmount = 0,
                     Bonuses = l.Bonuses ?? 0,
                     Penalties = l.Penalties ?? 0,
                     NetSalary = l.NetSalary ?? 0,
@@ -606,7 +624,35 @@ namespace tahsinERP.Controllers.HR
                 Lines = lines
             };
 
+            if (viewModel.PayrollType == "Hourly")
+            {
+                var firstTaxableLine = viewModel.Lines.FirstOrDefault(l => l.GrossSalary > 0);
+                if (firstTaxableLine != null)
+                {
+                    var taxablePart = firstTaxableLine.GrossSalary + firstTaxableLine.Bonuses - firstTaxableLine.Penalties - firstTaxableLine.NetSalary;
+                    viewModel.IncomeTaxPercent = taxablePart > 0
+                        ? Math.Round((taxablePart / firstTaxableLine.GrossSalary) * 100m, 2, MidpointRounding.AwayFromZero)
+                        : DefaultIncomeTaxPercent;
+                }
+                else
+                {
+                    viewModel.IncomeTaxPercent = DefaultIncomeTaxPercent;
+                }
+            }
+            else
+            {
+                viewModel.IncomeTaxPercent = 0m;
+            }
+
+            foreach (var line in viewModel.Lines)
+            {
+                line.IncomeTaxAmount = viewModel.PayrollType == "Hourly"
+                    ? CalculateIncomeTaxAmount(line.GrossSalary, viewModel.IncomeTaxPercent)
+                    : 0m;
+            }
+
             viewModel.TotalGrossSalary = viewModel.Lines.Sum(l => l.GrossSalary);
+            viewModel.TotalIncomeTax = viewModel.Lines.Sum(l => l.IncomeTaxAmount);
             viewModel.TotalNetSalary = viewModel.Lines.Sum(l => l.NetSalary);
 
             return viewModel;
@@ -614,7 +660,7 @@ namespace tahsinERP.Controllers.HR
 
         // POST so'rovi: HR/Payroll/UpdateLine
         [HttpPost]
-        public async Task<JsonResult> UpdateLine(int lineId, decimal? bonuses, decimal? penalties, string notes, int? currencyId)
+        public async Task<JsonResult> UpdateLine(int lineId, decimal? bonuses, decimal? penalties, decimal? incomeTaxPercent, string notes, int? currencyId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
@@ -662,8 +708,31 @@ namespace tahsinERP.Controllers.HR
                     line.CurrencyID = currencyId.Value;
                 }
 
-                // Recalculate net salary
-                line.NetSalary = (line.GrossSalary ?? 0) + (line.Bonuses ?? 0) - (line.Penalties ?? 0);
+                var payrollType = line.HR_PAYROLL_HEADERS?.PayrollType ?? "Hourly";
+                var applyIncomeTax = payrollType == "Hourly";
+                var existingGross = line.GrossSalary ?? 0;
+                var existingBonuses = line.Bonuses ?? 0;
+                var existingPenalties = line.Penalties ?? 0;
+                var existingNet = line.NetSalary ?? 0;
+                var existingTaxPercent = 0m;
+                if (applyIncomeTax && existingGross > 0)
+                {
+                    var existingTaxAmount = existingGross + existingBonuses - existingPenalties - existingNet;
+                    if (existingTaxAmount > 0)
+                    {
+                        existingTaxPercent = (existingTaxAmount / existingGross) * 100m;
+                    }
+                }
+
+                var taxPercent = applyIncomeTax ? (incomeTaxPercent ?? existingTaxPercent) : 0m;
+                if (taxPercent < 0) taxPercent = 0m;
+                if (taxPercent > 100) taxPercent = 100m;
+
+                var grossSalary = line.GrossSalary ?? 0;
+                var lineBonuses = line.Bonuses ?? 0;
+                var linePenalties = line.Penalties ?? 0;
+                var incomeTaxAmount = applyIncomeTax ? CalculateIncomeTaxAmount(grossSalary, taxPercent) : 0m;
+                line.NetSalary = CalculateNetSalary(grossSalary, lineBonuses, linePenalties, taxPercent, applyIncomeTax);
 
                 db.Entry(line).State = EntityState.Modified;
                 await db.SaveChangesAsync();
@@ -674,7 +743,7 @@ namespace tahsinERP.Controllers.HR
                     ? "-"
                     : $"{line.HR_EMPLOYEES.FullName} ({line.HR_EMPLOYEES.TabNo ?? "-"})";
                 logger.Log("HrPayroll", "UpdateLine", $"Xodim: {employeeLabel}");
-                return Json(new { success = true, netSalary = line.NetSalary, currencyCode = line.CURRENCy?.Shortname });
+                return Json(new { success = true, netSalary = line.NetSalary, incomeTaxAmount, currencyCode = line.CURRENCy?.Shortname });
             }
             catch (Exception ex)
             {
@@ -936,7 +1005,7 @@ namespace tahsinERP.Controllers.HR
             if (grade == null && employee.SalaryGradeID != null)
                 grade = employee.HR_SALARY_GRADES;
 
-            if (grade != null && (grade.IsDeleted == null || grade.IsDeleted == false) &&
+            if (grade != null && grade.IsDeleted != true &&
                 grade.EffectiveFrom.Date <= refDate.Date &&
                 (grade.EffectiveTo == null || grade.EffectiveTo.Value.Date >= refDate.Date))
             {
@@ -977,7 +1046,10 @@ namespace tahsinERP.Controllers.HR
             var timesheetLines = await db.HR_TIMESHEET_LINES
                 .Include(l => l.HR_EMPLOYEES)
                 .Include(l => l.HR_EMPLOYEES.HR_SALARY_GRADES)
-                .Where(l => l.TimesheetID == timesheet.ID && (l.TotalWorkedHours ?? 0) > 0)
+                .Where(l => l.TimesheetID == timesheet.ID &&
+                            l.IsDeleted != true &&
+                            l.HR_EMPLOYEES.IsDeleted != true &&
+                            (l.TotalWorkedHours ?? 0) > 0)
                 .ToListAsync();
 
             var allowanceByEmployeeId = allowanceService.GetByEmployeeIds(
@@ -1003,7 +1075,7 @@ namespace tahsinERP.Controllers.HR
                         sp.OrgUnitID == employee.OrgUnitID &&
                         sp.PositionID == employee.PositionID &&
                         sp.IsActive &&
-                        (sp.IsDeleted == null || sp.IsDeleted == false) &&
+                        sp.IsDeleted != true &&
                         sp.EffectiveFrom <= monthEnd &&
                         (sp.EffectiveTo == null || sp.EffectiveTo >= monthStart));
 
@@ -1038,7 +1110,7 @@ namespace tahsinERP.Controllers.HR
                     GrossSalary = grossSalary,
                     Bonuses = 0,
                     Penalties = 0,
-                    NetSalary = grossSalary,
+                    NetSalary = CalculateNetSalary(grossSalary, 0, 0, DefaultIncomeTaxPercent, true),
                     CurrencyID = defaultCurrencyID.Value,
                     Notes = allowancePercent > 0 ? $"Ustama: {allowancePercent:0.##}% (moddiy+maxsus)" : null
                 };
@@ -1071,6 +1143,9 @@ namespace tahsinERP.Controllers.HR
                            l.HR_EMPLOYEES.PositionID != null &&
                            pieceRatePositionIds.Contains(l.HR_EMPLOYEES.PositionID ?? 0))
                 .ToListAsync();
+
+            var allowanceByEmployeeId = allowanceService.GetByEmployeeIds(
+                timesheetLines.Where(x => x.HR_EMPLOYEES != null).Select(x => x.HR_EMPLOYEES.ID));
 
             // Olish standart currency
             var defaultCurrency = await db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
@@ -1135,6 +1210,12 @@ namespace tahsinERP.Controllers.HR
                     grossSalary = baseSalary;
                 }
 
+                var allowancePercent = allowanceByEmployeeId.TryGetValue(employee.ID, out var allowanceRow)
+                    ? ResolveAllowancePercent(allowanceRow)
+                    : 0m;
+                var allowanceAmount = grossSalary * allowancePercent / 100m;
+                grossSalary += allowanceAmount;
+
                 var payrollLine = new HR_PAYROLL_LINES
                 {
                     PayrollID = payrollId,
@@ -1147,7 +1228,8 @@ namespace tahsinERP.Controllers.HR
                     Bonuses = 0,
                     Penalties = 0,
                     NetSalary = grossSalary,
-                    CurrencyID = defaultCurrencyID.Value
+                    CurrencyID = defaultCurrencyID.Value,
+                    Notes = allowancePercent > 0 ? $"Ustama: {allowancePercent:0.##}% (moddiy+maxsus)" : null
                 };
 
                 db.HR_PAYROLL_LINES.Add(payrollLine);
@@ -1198,6 +1280,8 @@ namespace tahsinERP.Controllers.HR
                 .GroupBy(e => e.EmployeeID)
                 .ToList();
 
+            var allowanceByEmployeeId = allowanceService.GetByEmployeeIds(employeeGroups.Select(g => g.Key));
+
             foreach (var employeeGroup in employeeGroups)
             {
                 var firstEntry = employeeGroup.First();
@@ -1206,6 +1290,7 @@ namespace tahsinERP.Controllers.HR
                 int? positionId = employee?.PositionID;
                 decimal grossSalary = 0;
                 decimal totalPieceQty = 0;
+                var employeeId = firstEntry.EmployeeID;
 
                 // HrPieceRateTimesheets dagi hisoblash bilan bir xil usul: har bir entry uchun tarif topib summalash.
                 foreach (var entry in employeeGroup)
@@ -1244,8 +1329,13 @@ namespace tahsinERP.Controllers.HR
                     }
                 }
 
+                var allowancePercent = allowanceByEmployeeId.TryGetValue(employeeId, out var allowanceRow)
+                    ? ResolveAllowancePercent(allowanceRow)
+                    : 0m;
+                var allowanceAmount = grossSalary * allowancePercent / 100m;
+                grossSalary += allowanceAmount;
+
                 // Tekshirish agar payroll line already mavjud (o'chirilgan qatorlar hisobga olinmaydi)
-                var employeeId = firstEntry.EmployeeID;
                 var existingLine = await db.HR_PAYROLL_LINES
                     .FirstOrDefaultAsync(l => l.PayrollID == payrollId && l.EmployeeID == employeeId && (l.IsDeleted == null || l.IsDeleted == false));
 
@@ -1263,7 +1353,8 @@ namespace tahsinERP.Controllers.HR
                         Bonuses = 0,
                         Penalties = 0,
                         NetSalary = grossSalary,
-                        CurrencyID = defaultCurrencyID.Value
+                        CurrencyID = defaultCurrencyID.Value,
+                        Notes = allowancePercent > 0 ? $"Ustama: {allowancePercent:0.##}% (moddiy+maxsus)" : null
                     };
 
                     db.HR_PAYROLL_LINES.Add(payrollLine);

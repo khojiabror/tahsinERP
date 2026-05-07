@@ -502,6 +502,226 @@ namespace tahsinERP.Controllers
                 return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        // Executive dashboard - cross-module leadership insights
+        [HttpGet]
+        public JsonResult GetExecutiveDashboard(DateTime? fromDate, DateTime? toDate, int? warehouseId)
+        {
+            try
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    var to = toDate ?? DateTime.Today;
+                    var from = fromDate ?? to.AddMonths(-1);
+                    var trendFrom = new DateTime(to.Year, to.Month, 1).AddMonths(-11);
+                    var sales60From = from.AddDays(-60);
+                    var sales30From = to.AddDays(-30);
+                    var selectedWarehouseId = warehouseId;
+
+                    var warehouses = db.WAREHOUSES
+                        .Where(w => w.IsDeleted != true)
+                        .OrderBy(w => w.WHName)
+                        .Select(w => new { id = w.ID, name = w.WHName })
+                        .ToList();
+
+                    var rawProductIds = db.PRODUCTS
+                        .Where(p => p.IsDeleted == false &&
+                                   (p.IsRawMaterial == true ||
+                                   (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsRawMaterial)))
+                        .Select(p => p.ID)
+                        .ToList();
+
+                    var contracts = db.S_CONTRACTS
+                        .Where(x => x.IsDeleted != true && x.IssuedDate >= from && x.IssuedDate <= to)
+                        .Select(x => new { x.ID, x.IssuedDate, Amount = (double?)x.Amount ?? 0d })
+                        .ToList();
+
+                    var orders = db.S_ORDERS
+                        .Where(x => x.IsDeleted != true && x.IssuedDate >= from && x.IssuedDate <= to)
+                        .Select(x => new { x.ID, x.ContractID, x.IssuedDate, Amount = (double?)x.Amount ?? 0d })
+                        .ToList();
+
+                    var invoices = db.SALES_INVOICES
+                        .Where(x => x.InvoiceDate >= from && x.InvoiceDate <= to)
+                        .Select(x => new { x.ID, x.OrderID, x.InvoiceDate, Amount = (double?)x.TotalAmount ?? 0d })
+                        .ToList();
+
+                    var plans = db.PRODUCTPLANS
+                        .Where(x => x.IsDeleted == false && x.StartDate >= from && x.StartDate <= to)
+                        .Select(x => new { x.ProductID, x.StartDate, PlannedQty = (double?)x.Amount ?? 0d })
+                        .ToList();
+
+                    var productions = db.PRODUCT_PRODUCTION
+                        .Where(x => x.IsDeleted != true && x.Date >= from && x.Date <= to)
+                        .Select(x => new { x.ProductID, x.Date, ProducedQty = (double?)x.Total ?? 0d })
+                        .ToList();
+
+                    var tasks = db.APP_TASKS
+                        .Where(t => t.IsDeleted == false)
+                        .Select(t => new
+                        {
+                            t.ID,
+                            t.DueDate,
+                            StatusCode = t.APP_TASK_STATUS_REF != null ? t.APP_TASK_STATUS_REF.Code : null
+                        })
+                        .ToList();
+
+                    var stockQuery = db.PRODUCT_STOCKS
+                        .Where(x => rawProductIds.Contains(x.ProductID));
+                    if (selectedWarehouseId.HasValue)
+                    {
+                        stockQuery = stockQuery.Where(x => x.WHID == selectedWarehouseId.Value);
+                    }
+
+                    var stockByProduct = stockQuery
+                        .GroupBy(x => x.ProductID)
+                        .Select(g => new
+                        {
+                            ProductID = g.Key,
+                            StockQty = g.Sum(x => (double?)x.Amount) ?? 0d
+                        })
+                        .ToList();
+
+                    var consumptionQuery = db.EXPENSE_PRODUCTS
+                        .Where(x => x.EXPENS.IsDeleted != true &&
+                                    x.EXPENS.IssueDateTime >= sales60From &&
+                                    x.EXPENS.IssueDateTime <= to &&
+                                    rawProductIds.Contains(x.ProductID));
+                    if (selectedWarehouseId.HasValue)
+                    {
+                        consumptionQuery = consumptionQuery.Where(x => x.EXPENS.SenderWHID == selectedWarehouseId.Value);
+                    }
+
+                    var consumptionLines = consumptionQuery
+                        .Select(x => new
+                        {
+                            x.ProductID,
+                            Amount = (double?)x.Amount ?? 0d,
+                            Date = x.EXPENS.IssueDateTime
+                        })
+                        .ToList();
+
+                    var contractAmount = contracts.Sum(x => x.Amount);
+                    var orderAmount = orders.Sum(x => x.Amount);
+                    var invoiceAmount = invoices.Sum(x => x.Amount);
+                    var plannedQty = plans.Sum(x => x.PlannedQty);
+                    var producedQty = productions.Sum(x => x.ProducedQty);
+
+                    var salesConversionRate = contractAmount > 0 ? (orderAmount / contractAmount) * 100d : 0d;
+                    var orderFulfillmentRate = orderAmount > 0 ? (invoiceAmount / orderAmount) * 100d : 0d;
+                    var productionExecutionRate = plannedQty > 0 ? (producedQty / plannedQty) * 100d : 0d;
+
+                    var totalTasks = tasks.Count;
+                    var completedTasks = tasks.Count(t => string.Equals(t.StatusCode, "DONE", StringComparison.OrdinalIgnoreCase));
+                    var overdueTasks = tasks.Count(t =>
+                        t.DueDate.HasValue &&
+                        t.DueDate.Value.Date < to.Date &&
+                        !string.Equals(t.StatusCode, "DONE", StringComparison.OrdinalIgnoreCase));
+                    var taskCompletionRate = totalTasks > 0 ? (completedTasks * 100d / totalTasks) : 0d;
+
+                    var avgDailyConsumptionQty = consumptionLines
+                        .Where(x => x.Date >= sales30From)
+                        .Sum(x => (double?)x.Amount) ?? 0d;
+                    avgDailyConsumptionQty = avgDailyConsumptionQty / 30d;
+
+                    var totalStockQty = stockByProduct.Sum(x => x.StockQty);
+                    var inventoryCoverageDays = avgDailyConsumptionQty > 0 ? totalStockQty / avgDailyConsumptionQty : 0d;
+                    var dohDays = inventoryCoverageDays;
+
+                    var productNames = db.PRODUCTS
+                        .Where(p => p.IsDeleted == false)
+                        .Select(p => new { p.ID, Name = (p.Name ?? p.PNo) })
+                        .ToDictionary(p => p.ID, p => p.Name);
+
+                    var sold60ByProduct = consumptionLines
+                        .GroupBy(x => x.ProductID)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => (g.Sum(x => (double?)x.Amount) ?? 0d) / 60d
+                        );
+
+                    var stockCoverage = stockByProduct
+                        .Select(s =>
+                        {
+                            var avgDemand = sold60ByProduct.ContainsKey(s.ProductID) ? sold60ByProduct[s.ProductID] : 0d;
+                            var days = avgDemand > 0 ? s.StockQty / avgDemand : 0d;
+                            return new
+                            {
+                                productId = s.ProductID,
+                                product = productNames.ContainsKey(s.ProductID) ? productNames[s.ProductID] : ("#" + s.ProductID),
+                                stockQty = Math.Round(s.StockQty, 2),
+                                avgDailyDemand = Math.Round(avgDemand, 2),
+                                coverageDays = Math.Round(days, 1)
+                            };
+                        })
+                        .OrderBy(x => x.coverageDays == 0 ? double.MaxValue : x.coverageDays)
+                        .Take(12)
+                        .ToList();
+
+                    var trendMonths = Enumerable.Range(0, 12)
+                        .Select(i => trendFrom.AddMonths(i))
+                        .Select(d => d.ToString("yyyy-MM"))
+                        .ToList();
+
+                    var trend = trendMonths.Select(m =>
+                    {
+                        var contractM = contracts.Where(x => x.IssuedDate.ToString("yyyy-MM") == m).Sum(x => x.Amount);
+                        var orderM = orders.Where(x => x.IssuedDate.ToString("yyyy-MM") == m).Sum(x => x.Amount);
+                        var invoiceM = invoices.Where(x => x.InvoiceDate.ToString("yyyy-MM") == m).Sum(x => x.Amount);
+                        var planM = plans.Where(x => x.StartDate.ToString("yyyy-MM") == m).Sum(x => x.PlannedQty);
+                        var productionM = productions.Where(x => x.Date.ToString("yyyy-MM") == m).Sum(x => x.ProducedQty);
+                        return new
+                        {
+                            period = m,
+                            contractAmount = Math.Round(contractM, 2),
+                            orderAmount = Math.Round(orderM, 2),
+                            invoiceAmount = Math.Round(invoiceM, 2),
+                            plannedQty = Math.Round(planM, 2),
+                            producedQty = Math.Round(productionM, 2)
+                        };
+                    }).ToList();
+
+                    var insights = new List<object>();
+                    if (salesConversionRate < 65) insights.Add(new { level = "high", text = "Savdo konversiyasi past. Shartnoma -> buyurtma jarayonini kuchaytirish kerak." });
+                    if (orderFulfillmentRate < 75) insights.Add(new { level = "high", text = "Buyurtma bajarilishi sekin. Invoicing va logistika bottleneck bor." });
+                    if (productionExecutionRate < 80) insights.Add(new { level = "medium", text = "Ishlab chiqarish reja bajarilishi me'yordan past." });
+                    if (inventoryCoverageDays < 20) insights.Add(new { level = "high", text = "DOH juda past. Stockout riski bor." });
+                    if (inventoryCoverageDays > 90) insights.Add(new { level = "medium", text = "DOH yuqori. Zaxira aylanishi sust." });
+                    if (overdueTasks > 0) insights.Add(new { level = "medium", text = "Muddati o'tgan vazifalar mavjud, ijro nazoratini kuchaytiring." });
+                    if (!insights.Any()) insights.Add(new { level = "good", text = "Asosiy KPIlar nazorat ostida. Hozirgi trend barqaror." });
+
+                    return Json(new
+                    {
+                        kpis = new
+                        {
+                            contractAmount = Math.Round(contractAmount, 2),
+                            orderAmount = Math.Round(orderAmount, 2),
+                            invoiceAmount = Math.Round(invoiceAmount, 2),
+                            salesConversionRate = Math.Round(salesConversionRate, 1),
+                            orderFulfillmentRate = Math.Round(orderFulfillmentRate, 1),
+                            productionExecutionRate = Math.Round(productionExecutionRate, 1),
+                            taskCompletionRate = Math.Round(taskCompletionRate, 1),
+                            totalTasks,
+                            completedTasks,
+                            overdueTasks,
+                            dohDays = Math.Round(dohDays, 1),
+                            coverageDays = Math.Round(inventoryCoverageDays, 1),
+                            plannedQty = Math.Round(plannedQty, 2),
+                            producedQty = Math.Round(producedQty, 2)
+                        },
+                        trend,
+                        stockCoverage,
+                        insights,
+                        warehouses,
+                        selectedWarehouseId
+                    }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
         public JsonResult CookieConfirm()
         {
             try

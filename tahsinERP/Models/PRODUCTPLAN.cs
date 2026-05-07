@@ -26,7 +26,9 @@ namespace tahsinERP.Models
         public bool IsDeleted { get; set; }
         public System.DateTime StartDate { get; set; }
         public System.DateTime DueDate { get; set; }
+        public Nullable<int> SalesOrderID { get; set; }
     
+        public virtual S_ORDERS S_ORDERS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PRODUCTPLANS_DAILY> PRODUCTPLANS_DAILY { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }

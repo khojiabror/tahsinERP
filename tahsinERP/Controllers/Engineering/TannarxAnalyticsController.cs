@@ -142,6 +142,14 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            if (!year.HasValue || !month.HasValue)
+            {
+                TempData["Error"] = "Fakt xarajatlarni yangilash uchun yil va oy tanlanishi shart.";
+                if (string.Equals(returnTo, "Report", System.StringComparison.OrdinalIgnoreCase))
+                    return RedirectToAction("Report", new { year = year, month = month, productID = productID });
+                return RedirectToAction("Dashboard", new { year = year, month = month, productID = productID });
+            }
+
             try
             {
                 var recordsUpdated = await _analyticsService.UpdateActualCostsAsync(year, month);

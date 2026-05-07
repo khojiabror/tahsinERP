@@ -38,6 +38,7 @@ namespace tahsinERP.Models
         public Nullable<System.DateTime> UpdatedDT { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
     
+        public virtual HR_EMPLOYEE_ALLOWANCES HR_EMPLOYEE_ALLOWANCES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_EMPLOYEE_HISTORY> HR_EMPLOYEE_HISTORY { get; set; }
         public virtual HR_ORG_UNITS HR_ORG_UNITS { get; set; }

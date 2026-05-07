@@ -37,6 +37,7 @@ namespace tahsinERP.Models
             this.HR_PIECE_RATE_WORK_ENTRIES1 = new HashSet<HR_PIECE_RATE_WORK_ENTRIES>();
             this.HR_TIMESHEET_HEADERS = new HashSet<HR_TIMESHEET_HEADERS>();
             this.HR_TIMESHEET_HEADERS1 = new HashSet<HR_TIMESHEET_HEADERS>();
+            this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
             this.QUALITY_INSPECTION = new HashSet<QUALITY_INSPECTION>();
             this.QUALITY_INSPECTION1 = new HashSet<QUALITY_INSPECTION>();
             this.SALES_INVOICES = new HashSet<SALES_INVOICES>();
@@ -49,7 +50,6 @@ namespace tahsinERP.Models
             this.USERLOGS = new HashSet<USERLOG>();
             this.WAREHOUSES = new HashSet<Warehouse>();
             this.ROLES = new HashSet<ROLE>();
-            this.NORM_INPUT_LINES = new HashSet<NORM_INPUT_LINES>();
         }
     
         public int ID { get; set; }
@@ -104,6 +104,8 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<HR_TIMESHEET_HEADERS> HR_TIMESHEET_HEADERS1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<QUALITY_INSPECTION> QUALITY_INSPECTION1 { get; set; }
@@ -127,7 +129,5 @@ namespace tahsinERP.Models
         public virtual ICollection<Warehouse> WAREHOUSES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ROLE> ROLES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<NORM_INPUT_LINES> NORM_INPUT_LINES { get; set; }
     }
 }
