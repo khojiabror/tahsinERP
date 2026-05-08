@@ -69,7 +69,6 @@
                                             <thead>
                                                 <tr>
                                                     <th>Buyurtma raqami</th>
-                                                    <th>Ta'minotchi</th>
                                                     <th>Turi</th>
                                                     <th>Sana</th>
                                                     <th>Summa</th>
@@ -88,16 +87,6 @@
                                                         <tr>
                                                             <td>
                                                                 <a href="@Url.Action("Details", "POrders", new { id = item.ID })">@item.OrderNo</a>
-                                                            </td>
-                                                            <td>
-                                                                @if (item.SUPPLIER != null)
-                                                                {
-                                                                    <a href="@Url.Action("Details", "Supplier", new { id = item.SupplierID })">@item.SUPPLIER.Name</a>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">@(item.PurchaseType == 0 ? "- (Direct)" : "-")</span>
-                                                                }
                                                             </td>
                                                             <td>
                                                                 @{

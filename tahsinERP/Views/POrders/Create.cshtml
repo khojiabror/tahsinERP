@@ -99,9 +99,8 @@
                                                     @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                 </div>
                                                 @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
-                                                @if (isIndirect)
-                                                {
-                                                    <div class="col-md-3 col-12 form-group">
+                                                                                                
+                                                    @*<div class="col-md-3 col-12 form-group">
                                                         <label for="SupplierID">Ta'minotchi</label>
                                                         @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect" })
                                                         @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
@@ -110,8 +109,8 @@
                                                         <label for="ContractID">Shartnoma</label>
                                                         @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
                                                         @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                    </div>
-                                                }
+                                                    </div>*@
+                                                
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="CurrencyID">Valyuta</label>
                                                     @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
