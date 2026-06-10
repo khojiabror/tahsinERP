@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.DlocFifo;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -166,9 +167,31 @@ namespace tahsinERP.Controllers.SRM
                         l.DocNo,
                         l.IssueDateTime,
                         l.RemainingAmount,
-                        l.DisplayText
+                        l.DisplayText,
+                        IsLegacy = false
                     }).ToList();
-                    return Json(new { success = true, data });
+
+                    var legacyInfo = await ExpenseStockIssueHelper.GetLegacyIssueInfoAsync(db, warehouseId, productId);
+                    if (legacyInfo.CanUseLegacy)
+                    {
+                        data.Insert(0, new
+                        {
+                            IncomeID = ExpenseStockIssueHelper.LegacyIssueIncomeId,
+                            DocNo = "",
+                            IssueDateTime = DateTime.Now,
+                            RemainingAmount = legacyInfo.UnassignedQty,
+                            DisplayText = legacyInfo.Label,
+                            IsLegacy = true
+                        });
+                    }
+
+                    return Json(new
+                    {
+                        success = true,
+                        data,
+                        allowLegacy = legacyInfo.CanUseLegacy,
+                        legacyUnassignedQty = legacyInfo.UnassignedQty
+                    });
                 }
             }
             catch (Exception ex)
@@ -389,7 +412,7 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var product in model.ExpenseProducts)
                                 {
-                                    var comment = product.IncomeID.HasValue
+                                    var comment = product.IncomeID.HasValue && product.IncomeID.Value > 0
                                         ? LotTrackingService.FormatIncomeIdComment(product.IncomeID.Value)
                                         : (product.Comment ?? "");
                                     var expenseProduct = new EXPENSE_PRODUCTS
@@ -404,40 +427,27 @@ namespace tahsinERP.Controllers.SRM
                                     };
 
                                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                                    await db.SaveChangesAsync();
+
+                                    try
+                                    {
+                                        await ExpenseStockIssueHelper.ApplyIssueForExpenseProductAsync(
+                                            db, expense.SenderWHID, product.ProductID, product.Amount,
+                                            product.UnitID, expenseProduct.ID, product.IncomeID);
+                                    }
+                                    catch (WarehouseDlocException wex)
+                                    {
+                                        throw new Exception(wex.Message);
+                                    }
+
                                     totalAmount += product.Amount;
                                     totalPrice += expenseProduct.TotalPrice;
-
-                                    // Decrease PRODUCT_STOCKS
-                                    var stock = await db.PRODUCT_STOCKS
-                                        .FirstOrDefaultAsync(s => s.WHID == expense.SenderWHID && s.ProductID == product.ProductID);
-
-                                    if (stock != null)
-                                    {
-                                        stock.Amount -= product.Amount;
-                                        if (stock.Amount < 0) stock.Amount = 0;
-                                    }
 
                                     // agar receiver warehouse specified va immediate receive is allowed, increase stock there
                                     if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                     {
-                                        var receiverStock = await db.PRODUCT_STOCKS
-                                            .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
-
-                                        if (receiverStock != null)
-                                        {
-                                            receiverStock.Amount += product.Amount;
-                                        }
-                                        else
-                                        {
-                                            var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
-                                            if (productEntity != null)
-                                            {
-                                                var ensuredReceiverStock = WarehouseFlowService.GetOrCreateStockRow(db, expense.ReceiverWhID.Value, product.ProductID, product.UnitID);
-                                                ensuredReceiverStock.Amount += product.Amount;
-                                            }
-                                        }
-
-                                        // Income will be created after barcha products are processed (see below)
+                                        WarehouseFlowService.ApplyIncomeReceiveToStock(
+                                            db, expense.ReceiverWhID.Value, product.ProductID, product.Amount, product.UnitID);
                                     }
                                 }
 
@@ -711,26 +721,13 @@ namespace tahsinERP.Controllers.SRM
 
                             foreach (var oldProduct in oldProducts)
                             {
-                                // Revert sender warehouse stock
-                                var senderStock = await db.PRODUCT_STOCKS
-                                    .FirstOrDefaultAsync(s => s.WHID == expense.SenderWHID && s.ProductID == oldProduct.ProductID);
+                                WarehouseFlowService.ApplyIncomeReceiveToStock(
+                                    db, expense.SenderWHID, oldProduct.ProductID, oldProduct.Amount, oldProduct.UnitID);
 
-                                if (senderStock != null)
-                                {
-                                    senderStock.Amount += oldProduct.Amount;
-                                }
-
-                                // Revert receiver warehouse stock agar mavjud
                                 if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                 {
-                                    var receiverStock = await db.PRODUCT_STOCKS
-                                        .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == oldProduct.ProductID);
-
-                                    if (receiverStock != null)
-                                    {
-                                        receiverStock.Amount -= oldProduct.Amount;
-                                        if (receiverStock.Amount < 0) receiverStock.Amount = 0;
-                                    }
+                                    WarehouseFlowService.ApplyIncomeIssueFromStock(
+                                        db, expense.ReceiverWhID.Value, oldProduct.ProductID, oldProduct.Amount, oldProduct.UnitID);
                                 }
                             }
 
@@ -775,7 +772,7 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var product in model.ExpenseProducts)
                                 {
-                                    var comment = product.IncomeID.HasValue
+                                    var comment = product.IncomeID.HasValue && product.IncomeID.Value > 0
                                         ? LotTrackingService.FormatIncomeIdComment(product.IncomeID.Value)
                                         : (product.Comment ?? "");
                                     var expenseProduct = new EXPENSE_PRODUCTS
@@ -790,38 +787,26 @@ namespace tahsinERP.Controllers.SRM
                                     };
 
                                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                                    await db.SaveChangesAsync();
+
+                                    try
+                                    {
+                                        await ExpenseStockIssueHelper.ApplyIssueForExpenseProductAsync(
+                                            db, expense.SenderWHID, product.ProductID, product.Amount,
+                                            product.UnitID, expenseProduct.ID, product.IncomeID);
+                                    }
+                                    catch (WarehouseDlocException wex)
+                                    {
+                                        throw new Exception(wex.Message);
+                                    }
+
                                     totalAmount += product.Amount;
                                     totalPrice += expenseProduct.TotalPrice;
 
-                                    // Decrease sender warehouse stock
-                                    var senderStock = await db.PRODUCT_STOCKS
-                                        .FirstOrDefaultAsync(s => s.WHID == expense.SenderWHID && s.ProductID == product.ProductID);
-
-                                    if (senderStock != null)
-                                    {
-                                        senderStock.Amount -= product.Amount;
-                                        if (senderStock.Amount < 0) senderStock.Amount = 0;
-                                    }
-
-                                    // Increase receiver warehouse stock agar specified
                                     if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                     {
-                                        var receiverStock = await db.PRODUCT_STOCKS
-                                            .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
-
-                                        if (receiverStock != null)
-                                        {
-                                            receiverStock.Amount += product.Amount;
-                                        }
-                                        else
-                                        {
-                                            var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
-                                            if (productEntity != null)
-                                            {
-                                                var ensuredReceiverStock = WarehouseFlowService.GetOrCreateStockRow(db, expense.ReceiverWhID.Value, product.ProductID, product.UnitID);
-                                                ensuredReceiverStock.Amount += product.Amount;
-                                            }
-                                        }
+                                        WarehouseFlowService.ApplyIncomeReceiveToStock(
+                                            db, expense.ReceiverWhID.Value, product.ProductID, product.Amount, product.UnitID);
                                     }
                                 }
                             }
@@ -977,26 +962,13 @@ namespace tahsinERP.Controllers.SRM
 
                             foreach (var product in expenseProducts)
                             {
-                                // Revert sender warehouse stock
-                                var senderStock = await db.PRODUCT_STOCKS
-                                    .FirstOrDefaultAsync(s => s.WHID == expense.SenderWHID && s.ProductID == product.ProductID);
+                                WarehouseFlowService.ApplyIncomeReceiveToStock(
+                                    db, expense.SenderWHID, product.ProductID, product.Amount, product.UnitID);
 
-                                if (senderStock != null)
-                                {
-                                    senderStock.Amount += product.Amount;
-                                }
-
-                                // Revert receiver warehouse stock agar mavjud
                                 if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
                                 {
-                                    var receiverStock = await db.PRODUCT_STOCKS
-                                        .FirstOrDefaultAsync(s => s.WHID == expense.ReceiverWhID.Value && s.ProductID == product.ProductID);
-
-                                    if (receiverStock != null)
-                                    {
-                                        receiverStock.Amount -= product.Amount;
-                                        if (receiverStock.Amount < 0) receiverStock.Amount = 0;
-                                    }
+                                    WarehouseFlowService.ApplyIncomeIssueFromStock(
+                                        db, expense.ReceiverWhID.Value, product.ProductID, product.Amount, product.UnitID);
                                 }
                             }
 

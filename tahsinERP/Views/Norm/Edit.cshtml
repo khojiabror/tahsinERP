@@ -3,6 +3,7 @@
 @{
     ViewBag.Title = "Norma kiritish Tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var loadedFromTemplateNorm = ViewBag.SelectedTemplateNormVersionId != null;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -432,6 +433,7 @@ else
             var materials = @Html.Raw(Json.Encode(ViewBag.MaterialsJson ?? new List<object>()));
             var unitsJson = @Html.Raw(Json.Encode(ViewBag.UnitsJson ?? new List<object>()));
             var isOptimized = false; // Flag to track if optimization was performed
+            var loadedFromTemplateNorm = @(loadedFromTemplateNorm ? "true" : "false");
 
             function getUnitDropdownHtml(lineIndex, selectedId) {
                 var html = '<select name="CuttingLines[' + lineIndex + '].UnitID" id="normLineUnit_' + lineIndex + '" class="form-control form-control-sm unit-select unit-select2" style="min-width:90px" data-norm-unit="1">';
@@ -531,7 +533,7 @@ else
                     }
                 }
                 if (materialId) {
-                    loadMaterialData(materialId, row, { setPrice: isAutoPriceEnabled() });
+                    loadMaterialData(materialId, row, { setPrice: !loadedFromTemplateNorm && isAutoPriceEnabled() });
                 } else {
                     // If no material selected, still try to recalculate with existing data
                     recalculateRow(row);

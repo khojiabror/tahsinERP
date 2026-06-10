@@ -1,8 +1,16 @@
 @model tahsinERP.Models.INCOME
-@using System.Linq
+@using tahsinERP.Services.DlocFifo
 @{
     ViewBag.Title = "Kirim hujjati tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var dlocEnabled = ViewBag.DlocEnabled == true;
+    var hasDlocLocations = ViewBag.HasDlocLocations == true;
+    var putawayByLine = ViewBag.PutawayByLine as System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>
+        ?? new System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>();
+    var dlocList = ViewBag.DlocLocations as SelectList;
+    var hasProducts = Model.INCOME_PRODUCTS != null && Model.INCOME_PRODUCTS.Count > 0;
+    var hasIncomeDocs = Model.WRHS_INCOME_DOCS != null && Model.WRHS_INCOME_DOCS.Count > 0;
+    var productColSpan = dlocEnabled ? 9 : 7;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Details"))
@@ -22,9 +30,7 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Incomes/Index">Ombor kirimlari</a>
                                     </li>
-                                    <li class="breadcrumb-item active">
-                                        Tafsilotlar
-                                    </li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
                                 </ol>
                             </div>
                         </div>
@@ -51,6 +57,14 @@
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
+                                    @if (TempData["Success"] != null)
+                                    {
+                                        <div class="alert alert-success">@TempData["Success"]</div>
+                                    }
+                                    @if (TempData["Error"] != null)
+                                    {
+                                        <div class="alert alert-danger">@TempData["Error"]</div>
+                                    }
                                     <div class="row">
                                         <div class="col-md-6">
                                             <table class="table table-borderless">
@@ -162,28 +176,13 @@
                                                     </td>
                                                 </tr>
                                             </table>
-                                            @if (ViewBag.CanMrpReceive == true)
+                                            @if (ViewBag.IncomePolicyMessage != null)
                                             {
-                                                <div class="mt-2">
-                                                    @using (Html.BeginForm("Receive", "Incomes", FormMethod.Post, new { @class = "d-inline" }))
-                                                    {
-                                                        @Html.AntiForgeryToken()
-                                                        @Html.Hidden("id", Model.ID)
-                                                        <button type="submit" class="btn btn-sm btn-success">
-                                                            <i class="bx bx-check"></i> Qabul qilish
-                                                        </button>
-                                                    }
-                                                    @using (Html.BeginForm("Reject", "Incomes", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Rad qilish kirim va chiqim hujjatlarini o\\'chiradi. Davom etasizmi?');" }))
-                                                    {
-                                                        @Html.AntiForgeryToken()
-                                                        @Html.Hidden("id", Model.ID)
-                                                        <button type="submit" class="btn btn-sm btn-danger">
-                                                            <i class="bx bx-x"></i> Rad qilish
-                                                        </button>
-                                                    }
+                                                <div class="alert alert-warning mt-2 mb-0 py-1 px-2 small">
+                                                    @ViewBag.IncomePolicyMessage
                                                 </div>
                                             }
-                                            else if (ViewBag.CanRepairTransferStock == true)
+                                            @if (ViewBag.CanRepairTransferStock == true)
                                             {
                                                 <div class="mt-2">
                                                     @using (Html.BeginForm("RepairTransferStock", "Incomes", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Transfer qoldig\\'ini qayta tiklashni tasdiqlaysizmi?');" }))
@@ -200,58 +199,167 @@
                                     </div>
 
                                     <hr />
-
                                     <h5>Kirim mahsulotlari</h5>
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Mahsulot kodi</th>
-                                                    <th>Mahsulot nomi</th>
-                                                    <th>Miqdor</th>
-                                                    <th>Birlik</th>
-                                                    <th>Dona narxi</th>
-                                                    <th>Jami</th>
-                                                    <th>Izoh</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @if (Model.INCOME_PRODUCTS != null && Model.INCOME_PRODUCTS.Any())
-                                                {
-                                                    foreach (var product in Model.INCOME_PRODUCTS)
+
+                                    @if (ViewBag.CanMrpReceive == true)
+                                    {
+                                        if (dlocEnabled && hasDlocLocations)
+                                        {
+                                            <p class="text-muted small mb-2">Har bir qator uchun DLOC tanlang, keyin qabul qiling.</p>
+                                        }
+                                        using (Html.BeginForm("Receive", "Incomes", FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("id", Model.ID)
+
+                                            <div class="table-responsive">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot kodi</th>
+                                                            <th>Mahsulot nomi</th>
+                                                            @if (dlocEnabled)
+                                                            {
+                                                                <th>DLOC</th>
+                                                                <th>Lot</th>
+                                                            }
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Dona narxi</th>
+                                                            <th>Jami</th>
+                                                            <th>Izoh</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (hasProducts)
+                                                        {
+                                                            foreach (var product in Model.INCOME_PRODUCTS)
+                                                            {
+                                                                putawayByLine.TryGetValue(product.ID, out var putaway);
+                                                                <tr>
+                                                                    <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                                    <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                                    @if (dlocEnabled)
+                                                                    {
+                                                                        <td>
+                                                                            @if (hasDlocLocations)
+                                                                            {
+                                                                                @Html.DropDownList("locationId_" + product.ID, dlocList, "Tanlang...", new { @class = "form-control form-control-sm", required = "required", style = "min-width:120px" })
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <span class="text-muted">@(putaway?.LocationCode ?? "")</span>
+                                                                            }
+                                                                        </td>
+                                                                        <td>@(putaway?.LotNo ?? "")</td>
+                                                                    }
+                                                                    <td>@product.Amount.ToString("N2")</td>
+                                                                    <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                                    <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
+                                                                    <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
+                                                                    <td>
+                                                                        @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
+                                                                        {
+                                                                            <span>Chiqimdan bog'langan: </span>
+                                                                            <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            @(product.Comment ?? "-")
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <tr>
+                                                                <td colspan="@productColSpan" class="text-center">Mahsulotlar topilmadi</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="mt-2">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bx bx-check"></i> Qabul qilish
+                                                </button>
+                                            </div>
+                                        }
+                                        using (Html.BeginForm("Reject", "Incomes", FormMethod.Post, new { @class = "d-inline ml-1", onsubmit = "return confirm('Rad qilish kirim va chiqim hujjatlarini o\\'chiradi. Davom etasizmi?');" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("id", Model.ID)
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bx bx-x"></i> Rad qilish
+                                            </button>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot kodi</th>
+                                                        <th>Mahsulot nomi</th>
+                                                        @if (dlocEnabled)
+                                                        {
+                                                            <th>DLOC</th>
+                                                            <th>Lot</th>
+                                                        }
+                                                        <th>Miqdor</th>
+                                                        <th>Birlik</th>
+                                                        <th>Dona narxi</th>
+                                                        <th>Jami</th>
+                                                        <th>Izoh</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (hasProducts)
+                                                    {
+                                                        foreach (var product in Model.INCOME_PRODUCTS)
+                                                        {
+                                                            putawayByLine.TryGetValue(product.ID, out var putaway);
+                                                            <tr>
+                                                                <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                                <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                                @if (dlocEnabled)
+                                                                {
+                                                                    <td>@(putaway?.LocationCode ?? "")</td>
+                                                                    <td>@(putaway?.LotNo ?? "")</td>
+                                                                }
+                                                                <td>@product.Amount.ToString("N2")</td>
+                                                                <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                                <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
+                                                                <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
+                                                                <td>
+                                                                    @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
+                                                                    {
+                                                                        <span>Chiqimdan bog'langan: </span>
+                                                                        <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        @(product.Comment ?? "-")
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
                                                     {
                                                         <tr>
-                                                            <td>@(product.PRODUCT?.PNo ?? "-")</td>
-                                                            <td>@(product.PRODUCT?.Name ?? "-")</td>
-                                                            <td>@product.Amount.ToString("N2")</td>
-                                                            <td>@(product.UNIT?.ShortName ?? "-")</td>
-                                                            <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
-                                                            <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
-                                                            <td>
-                                                                @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
-                                                                {
-                                                                    <span>Chiqimdan bog'langan: </span>
-                                                                    <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
-                                                                }
-                                                                else
-                                                                {
-                                                                    @(product.Comment ?? "-")
-                                                                }
-                                                            </td>
+                                                            <td colspan="@productColSpan" class="text-center">Mahsulotlar topilmadi</td>
                                                         </tr>
                                                     }
-                                                }
-                                                else
-                                                {
-                                                    <tr>
-                                                        <td colspan="7" class="text-center">Mahsulotlar topilmadi</td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
 
-                                    @if (Model.WRHS_INCOME_DOCS != null && Model.WRHS_INCOME_DOCS.Any())
+                                    @if (hasIncomeDocs)
                                     {
                                         <hr />
                                         <h5>Kirim hujjatlari</h5>

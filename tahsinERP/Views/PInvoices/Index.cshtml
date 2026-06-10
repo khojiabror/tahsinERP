@@ -147,8 +147,10 @@
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-                                                            <td>@(item.Amount.HasValue ? item.Amount.Value.ToString("N2") : "-")</td>
-                                                            <td>@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                                            <td class="text-right" data-export="@(item.Amount.HasValue ? item.Amount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")">
+                                                                @(item.Amount.HasValue ? item.Amount.Value.ToString("N2") : "-")
+                                                            </td>
+                                                            <td data-order="@item.InvoiceDate.ToString("yyyyMMdd")">@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)
                                                             {
                                                                 <td>
@@ -190,6 +192,25 @@
                 var $ = window.jQuery;
                 if (!$('#pInvoicesTable').length) return;
 
+                var exportColumns = [0, 1, 2, 3, 4, 5, 6];
+                var columnDefs = [
+                    { type: 'num', targets: 5 },
+                    { type: 'date', targets: 6 }
+                ];
+                @if (changePermit)
+                {
+                    <text>columnDefs.push({ orderable: false, targets: 7 });</text>
+                }
+                var stripHtml = function (data, row, column, node) {
+                    if (node && node.getAttribute) {
+                        var exportVal = node.getAttribute('data-export');
+                        if (exportVal !== null && exportVal !== '') {
+                            return exportVal;
+                        }
+                    }
+                    return (data || '').toString().replace(/<[^>]*>/g, '').trim();
+                };
+
                 $('#pInvoicesTable').DataTable({
                 "language": {
                     "search": "Qidirish:",
@@ -206,11 +227,38 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[5, "desc"]],
+                "order": [[6, "desc"]],
+                "columnDefs": columnDefs,
+                "scrollX": true,
                 dom: 'lBfrtip',
                 buttons: [
-                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
-                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success btn-sm mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            return 'Xarid_invoyslari_' + now.getFullYear() +
+                                String(now.getMonth() + 1).padStart(2, '0') +
+                                String(now.getDate()).padStart(2, '0');
+                        },
+                        exportOptions: {
+                            columns: exportColumns,
+                            format: { body: stripHtml }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger btn-sm',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: exportColumns,
+                            format: { body: stripHtml }
+                        }
+                    }
                 ]
             });
             }

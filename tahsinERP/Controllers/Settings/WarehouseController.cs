@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.DlocFifo;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Settings
@@ -34,6 +35,7 @@ namespace tahsinERP.Controllers.Settings
                 }
 
                 ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "Warehouse", "Index");
+                ViewBag.DlocEnabled = DlocFifoSchema.IsEnabled(db);
                 return View(list);
             }
         }

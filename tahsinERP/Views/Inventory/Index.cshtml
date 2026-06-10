@@ -35,9 +35,18 @@
                             <a href="@Url.Action("Create", "Expenses")" class="btn btn-danger mr-1 mb-1">
                                 <i class="bx bx-log-out-circle"></i> Chiqimga o'tish
                             </a>
-                            <a href="@Url.Action("Adjust", "Inventory")" class="btn btn-warning mb-1">
+                            <a href="@Url.Action("Adjust", "Inventory")" class="btn btn-warning mr-1 mb-1">
                                 <i class="bx bx-edit"></i> Inventarizatsiya
                             </a>
+                            @if (ViewBag.DlocStockEnabled == true)
+                            {
+                                <a href="@Url.Action("IndexDloc", "Inventory")" class="btn btn-info mr-1 mb-1">
+                                    <i class="bx bx-grid-alt"></i> Joylar bo'yicha qoldiq
+                                </a>
+                                <a href="@Url.Action("AssignDloc", "Inventory")" class="btn btn-warning mb-1">
+                                    <i class="bx bx-map-pin"></i> DLOC ga joylashtirish
+                                </a>
+                            }
                         </div>
                     </div>
                     <!-- Filters -->

@@ -280,6 +280,12 @@ namespace tahsinERP.Services
                 row.OrderID = null;
             foreach (var row in await db.F_WAYBILLS.Where(x => x.PurchaseOrderID == orderId).ToListAsync())
                 row.PurchaseOrderID = null;
+
+            foreach (var req in await db.P_REQUISITIONS.Where(x => x.ConvertedToOrderID == orderId).ToListAsync())
+            {
+                req.ConvertedToOrderID = null;
+                req.Status = "Approved";
+            }
         }
 
         public static async Task AfterSOrderSoftDeletedAsync(DBTHSNEntities db, int orderId)

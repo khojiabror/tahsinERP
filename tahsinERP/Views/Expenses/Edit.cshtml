@@ -317,18 +317,34 @@
                         $.post('@Url.Action("GetAvailableIncomeLots", "Expenses")', { warehouseId: warehouseId, productId: productId })
                             .done(function(res) {
                                 var opts = '<option value="">---Tanlanmagan---</option>';
+                                var hasRealLots = false;
                                 if (res.success && res.data && res.data.length) {
                                     res.data.forEach(function(lot) {
-                                        opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
+                                        if (lot.IsLegacy || lot.IncomeID === 0) {
+                                            opts += '<option value="0" data-max="' + (lot.RemainingAmount || res.legacyUnassignedQty || '') + '">' +
+                                                escapeHtml(lot.DisplayText) + '</option>';
+                                        } else {
+                                            hasRealLots = true;
+                                            opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
+                                        }
                                     });
-                                    $lotSelect.html(opts);
-                                    if (currentVal && res.data.some(function(l) { return l.IncomeID == currentVal; })) {
-                                        $lotSelect.val(currentVal);
-                                    } else if (res.data.length) {
-                                        $lotSelect.val(res.data[0].IncomeID);
+                                }
+                                $lotSelect.html(opts);
+                                if (currentVal !== '' && currentVal !== null && res.data && res.data.some(function(l) { return String(l.IncomeID) === String(currentVal); })) {
+                                    $lotSelect.val(currentVal);
+                                } else if (res.allowLegacy && !hasRealLots) {
+                                    $lotSelect.val('0');
+                                } else if (hasRealLots) {
+                                    var first = res.data.filter(function(l) { return l.IncomeID > 0; })[0];
+                                    if (first) $lotSelect.val(first.IncomeID);
+                                }
+                                var $row = $lotSelect.closest('tr');
+                                if ($lotSelect.val() === '0') {
+                                    var maxLegacy = $lotSelect.find('option:selected').data('max');
+                                    if (maxLegacy) {
+                                        var stock = parseFloat($row.find('.available-stock').val()) || 0;
+                                        $row.find('.amount-input').attr('max', Math.min(stock, parseFloat(maxLegacy)));
                                     }
-                                } else {
-                                    $lotSelect.html(opts);
                                 }
                             })
                             .fail(function() { $lotSelect.html('<option value="">---Xatolik---</option>'); });

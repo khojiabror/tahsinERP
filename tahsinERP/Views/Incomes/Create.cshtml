@@ -16,6 +16,12 @@
     }
 
     var productsData = ViewBag.ProductsData as IEnumerable<tahsinERP.ViewModels.ProductLookupItem> ?? new List<tahsinERP.ViewModels.ProductLookupItem>();
+    var requireDloc = ViewBag.RequireDloc == true;
+    var dlocEnabled = ViewBag.DlocEnabled == true;
+    var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
+    var defaultWhId = ViewBag.DefaultWarehouseId as int?;
+    var dlocManageUrl = Url.Action("Index", "WarehouseLocations", new { warehouseId = defaultWhId });
+    var dlocCreateUrl = Url.Action("Create", "WarehouseLocations", new { warehouseId = defaultWhId });
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
@@ -91,6 +97,24 @@
                                                         @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ReceivingWHID, "", new { @class = "text-danger" })
                                                     </div>
+                                                    @if (dlocEnabled && requireDloc)
+                                                    {
+                                                        <div class="col-12">
+                                                            <div class="alert alert-info py-1 px-2 mb-2 small">
+                                                                Har bir mahsulot qatori uchun <strong>DLOC</strong> tanlang. Joriy qoldiq va MAX jadvalda ko‘rinadi.
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else if (dlocEnabled)
+                                                    {
+                                                        <div class="col-12">
+                                                            <div class="alert alert-warning py-1 px-2 mb-2 small">
+                                                                Bu omborda hali DLOC yo‘q. Avval
+                                                                <a href="@dlocCreateUrl" target="_blank">joylashuv yarating</a>
+                                                                (yoki <a href="@dlocManageUrl" target="_blank">ro‘yxat</a>), keyin sahifani <strong>Ctrl+F5</strong> bilan yangilang.
+                                                            </div>
+                                                        </div>
+                                                    }
                                                     <div class="col-md-3 col-12 form-group">
                                                         <label for="CurrencyID">Valyuta</label>
                                                         @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
@@ -110,13 +134,22 @@
                                                 <br />
                                                 <h5>Kirim mahsulotlari</h5>
                                                 <p class="text-muted small mb-2">QQS % kiritiladi (0–100). Jami = miqdor × dona narx × (1 + QQS/100). Izohga avtomatik <code>QQS %: …%</code> qo‘shiladi.</p>
+                                                if (dlocEnabled && requireDloc)
+                                                {
+                                                    <p class="text-muted small mb-2">DLOC tanlangach joriy qoldiq va MAX ko‘rinadi; miqdor o‘zgarganda kirimdan keyingi holat tekshiriladi.</p>
+                                                }
                                                 
-                                                <div class="table-responsive">
+                                                 <div class="table-responsive">
                                                     <table id="incomeProductsTable" class="table table-bordered">
                                                         <thead>
                                                             <tr>
                                                                 <th>Mahsulot</th>
                                                                 <th>Mahsulot nomi</th>
+                                                                @if (dlocEnabled)
+                                                                {
+                                                                    <th>DLOC @if (requireDloc) { <span class="text-danger">*</span> }</th>
+                                                                    <th>Joy sig'imi</th>
+                                                                }
                                                                 <th>Miqdor</th>
                                                                 <th>Birlik</th>
                                                                 <th>Dona narxi</th>
@@ -129,7 +162,7 @@
                                                         <tbody></tbody>
                                                         <tfoot>
                                                             <tr>
-                                                                <td colspan="6" class="text-right"><strong>Jami:</strong></td>
+                                                                <td colspan="@(dlocEnabled ? 8 : 6)" class="text-right"><strong>Jami:</strong></td>
                                                                 <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
                                                                 <td colspan="2"></td>
                                                             </tr>
@@ -176,6 +209,11 @@
                     var productRowIndex = 0;
                     var products = @Html.Raw(Json.Encode(productsData));
                     var units = @Html.Raw(Json.Encode(unitsData));
+                    var requireDloc = @(requireDloc ? "true" : "false");
+                    var dlocEnabled = @(dlocEnabled ? "true" : "false");
+                    var dlocLocations = @Html.Raw(dlocLocationsJson);
+                    var dlocPutawayUrl = '@Url.Action("GetDlocPutawayInfo", "Incomes")';
+                    var dlocCreateUrl = '@dlocCreateUrl';
 
                     $('#invoiceSelect').on('change', function () {
                         if ($(this).val()) {
@@ -253,6 +291,56 @@
                         return options;
                     }
 
+                    function buildDlocOptions(selectedId) {
+                        var options = '<option value="">---DLOC---</option>';
+                        (dlocLocations || []).forEach(function (loc) {
+                            var id = loc.ID || loc.id;
+                            var code = loc.LocationCode || loc.locationCode || '';
+                            var selected = selectedId && String(selectedId) === String(id) ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(String(id)) + '" ' + selected + '>' + escapeHtml(code) + '</option>';
+                        });
+                        return options;
+                    }
+
+                    function refreshDlocCapacity($row) {
+                        if (!requireDloc) return;
+                        var locId = $row.find('.dloc-select').val();
+                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                        var $hint = $row.find('.dloc-capacity-hint');
+                        if (!locId) {
+                            $hint.removeClass('text-danger text-success').addClass('text-muted')
+                                .text('DLOC tanlang');
+                            $row.data('dlocOk', false);
+                            return;
+                        }
+                        $.get(dlocPutawayUrl, { locationId: locId, incomingQty: amount }, function (res) {
+                            if (!res || !res.success) {
+                                $hint.removeClass('text-success').addClass('text-danger')
+                                    .text(res && res.message ? res.message : 'Ma\'lumot olinmadi');
+                                $row.data('dlocOk', false);
+                                return;
+                            }
+                            var txt = 'Joriy: ' + Number(res.currentQty).toFixed(2) +
+                                ' | Min: ' + Number(res.minCapacity).toFixed(2) +
+                                ' | Max: ' + Number(res.maxCapacity).toFixed(2) +
+                                ' | Bo\'sh: ' + Number(res.availableQty).toFixed(2);
+                            if (amount > 0) {
+                                txt += ' | Kirimdan keyin: ' + Number(res.afterQty).toFixed(2);
+                            }
+                            $hint.removeClass('text-muted text-danger text-success');
+                            if (res.isOk) {
+                                $hint.addClass('text-success').text(txt);
+                                $row.data('dlocOk', true);
+                            } else {
+                                $hint.addClass('text-danger').text((res.message || txt) + ' — kirim mumkin emas');
+                                $row.data('dlocOk', false);
+                            }
+                        }).fail(function () {
+                            $hint.removeClass('text-success').addClass('text-danger').text('Server xatoligi');
+                            $row.data('dlocOk', false);
+                        });
+                    }
+
                     function syncProductFields($row) {
                         var $selected = $row.find('.product-select option:selected');
                         var name = $selected.data('name');
@@ -303,10 +391,27 @@
                         $comm.data('userComment', user);
                     }
 
-                    function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment, vatRate) {
+                    function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment, vatRate, locationId) {
                         var vr = typeof vatRate === 'number' && !isNaN(vatRate) ? vatRate : 12;
                         var userComment = stripQqsFromComment(comment || '');
                         var merged = mergeIncomeComment(userComment, vr);
+                        var dlocCols = '';
+                        if (dlocEnabled) {
+                            if (requireDloc) {
+                                dlocCols =
+                                    '<td><select name="IncomeProducts[' + productRowIndex + '].LocationID" class="form-control dloc-select select2" required>' +
+                                        buildDlocOptions(locationId) +
+                                    '</select></td>' +
+                                    '<td class="small"><span class="dloc-capacity-hint text-muted">DLOC tanlang</span></td>';
+                            } else {
+                                dlocCols =
+                                    '<td class="small">' +
+                                        '<select class="form-control" disabled><option>Joylashuv yo‘q</option></select>' +
+                                        '<a href="' + dlocCreateUrl + '" target="_blank" class="d-block mt-1">+ Joy yaratish</a>' +
+                                    '</td>' +
+                                    '<td class="small text-warning">Avval DLOC yarating</td>';
+                            }
+                        }
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
                                 '<select name="IncomeProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
@@ -318,6 +423,7 @@
                                 '<input type="text" class="form-control product-name-display" value="' + escapeHtml(productName || '') + '" disabled />' +
                                 '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductName" class="product-name" value="' + escapeHtml(productName || '') + '" />' +
                             '</td>' +
+                            dlocCols +
                             '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + (amount || 0) + '" step="0.01" min="0" required /></td>' +
                             '<td>' +
                                 '<select name="IncomeProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
@@ -338,10 +444,16 @@
                         if (typeof $.fn.select2 !== 'undefined') {
                             $row.find('select.product-select').select2();
                             $row.find('select.unit-select').select2();
+                            if (dlocEnabled && requireDloc) {
+                                $row.find('select.dloc-select').select2();
+                            }
                         }
 
                         syncProductFields($row);
                         recalcRow($row);
+                        if (requireDloc && locationId) {
+                            refreshDlocCapacity($row);
+                        }
                         productRowIndex++;
                     }
 
@@ -356,8 +468,16 @@
                     });
 
                     $(document).on('input', '.amount-input, .price-input, .vat-input', function () {
-                        recalcRow($(this).closest('tr'));
+                        var $row = $(this).closest('tr');
+                        recalcRow($row);
                         updateTotal();
+                        if (requireDloc && $(this).hasClass('amount-input')) {
+                            refreshDlocCapacity($row);
+                        }
+                    });
+
+                    $(document).on('change', '.dloc-select', function () {
+                        refreshDlocCapacity($(this).closest('tr'));
                     });
 
                     $(document).on('input', '.comment-input', function () {
@@ -378,6 +498,27 @@
                             e.preventDefault();
                             alert('Kamida bitta mahsulot qo\'shilishi kerak');
                             return false;
+                        }
+                        if (requireDloc) {
+                            var invalid = false;
+                            $('#incomeProductsTable tbody tr').each(function () {
+                                var $row = $(this);
+                                var locId = $row.find('.dloc-select').val();
+                                if (!locId) {
+                                    invalid = true;
+                                    alert('Har bir mahsulot uchun DLOC tanlang');
+                                    return false;
+                                }
+                                if ($row.data('dlocOk') === false) {
+                                    invalid = true;
+                                    alert('Ba\'zi qatorlarda DLOC sig\'imi oshib ketgan. Miqdorni kamaytiring yoki boshqa joy tanlang.');
+                                    return false;
+                                }
+                            });
+                            if (invalid) {
+                                e.preventDefault();
+                                return false;
+                            }
                         }
                     });
                 });

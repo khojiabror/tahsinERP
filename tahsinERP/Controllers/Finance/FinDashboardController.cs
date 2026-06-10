@@ -9,6 +9,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Controllers;
 using tahsinERP.ViewModels;
 using System.Linq.Expressions;
+using tahsinERP.Services.DlocFifo;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -2985,17 +2986,7 @@ namespace tahsinERP.Controllers.Finance
                 return rows;
             }
 
-            var stocks = db.PRODUCT_STOCKS
-                .AsNoTracking()
-                .Include(s => s.PRODUCT)
-                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(s => s.UNIT)
-                .Where(s => s.WHID == wh.ID && s.Amount > 0)
-                .ToList();
-
-            var fgStocks = stocks
-                .Where(s => s.PRODUCT != null && !s.PRODUCT.IsDeleted && IsProductFinishedGoodForBalance(s.PRODUCT))
-                .ToList();
+            var fgStocks = GetBalanceStockLines(db, wh.ID, IsProductFinishedGoodForBalance);
 
             if (fgStocks.Count == 0)
             {
@@ -3006,7 +2997,7 @@ namespace tahsinERP.Controllers.Finance
                 return rows;
             }
 
-            var fgProductIds = fgStocks.Select(s => s.ProductID).Distinct().ToList();
+            var fgProductIds = fgStocks.Select(s => s.ProductId).Distinct().ToList();
             var tannarxRows = db.TANNARXes
                 .AsNoTracking()
                 .Where(t => fgProductIds.Contains(t.ProductID) && !t.IsDeleted)
@@ -3019,15 +3010,15 @@ namespace tahsinERP.Controllers.Finance
 
             foreach (var s in fgStocks)
             {
-                var p = s.PRODUCT;
-                if (!tannarxRows.TryGetValue(s.ProductID, out var tx))
+                var p = s.Product;
+                if (!tannarxRows.TryGetValue(s.ProductId, out var tx))
                 {
                     rows.Add(new BalanceSheetInventoryBreakdownRow
                     {
                         ProductCode = p.PNo,
                         ProductName = p.Name,
-                        Qty = s.Amount,
-                        Unit = s.UNIT != null ? s.UNIT.ShortName : "",
+                        Qty = s.Qty,
+                        Unit = s.UnitShortName ?? "",
                         UnitPrice = null,
                         LineTotal = 0m,
                         Note = "Sanagacha mos Tannarx topilmadi"
@@ -3035,13 +3026,13 @@ namespace tahsinERP.Controllers.Finance
                     continue;
                 }
 
-                var lineTotal = (decimal)s.Amount * tx.SalesPriceCIPWithVAT;
+                var lineTotal = (decimal)s.Qty * tx.SalesPriceCIPWithVAT;
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
                     ProductCode = p.PNo,
                     ProductName = p.Name,
-                    Qty = s.Amount,
-                    Unit = s.UNIT != null ? s.UNIT.ShortName : "",
+                    Qty = s.Qty,
+                    Unit = s.UnitShortName ?? "",
                     UnitPrice = tx.SalesPriceCIPWithVAT,
                     LineTotal = lineTotal,
                     Note = $"Tannarx: {tx.Month:00}/{tx.Year}, SalesPriceCIPWithVAT"
@@ -3065,36 +3056,22 @@ namespace tahsinERP.Controllers.Finance
                 return rows;
             }
 
-            var stocks = db.PRODUCT_STOCKS
-                .AsNoTracking()
-                .Include(s => s.PRODUCT)
-                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(s => s.UNIT)
-                .Where(s => s.WHID == wh.ID && s.Amount > 0)
-                .ToList();
-
-            // Xomashyo uchun faqat real raw-material qoldig'ini olamiz:
-            // qoldiq (PRODUCT_STOCKS.Amount) × shu omborga oxirgi kirim birlik narxi.
-            var eligible = stocks
-                .Where(s => s.PRODUCT != null
-                    && !s.PRODUCT.IsDeleted
-                    && s.PRODUCT.IsRawMaterial == true
-                    && s.PRODUCT.IsFinishedGood != true
-                    && !IsJihozProductCategory(s.PRODUCT))
-                .ToList();
+            var eligible = GetBalanceStockLines(db, wh.ID, p =>
+                !p.IsDeleted
+                && p.IsRawMaterial == true
+                && p.IsFinishedGood != true
+                && !IsJihozProductCategory(p));
 
             if (eligible.Count == 0)
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = stocks.Any(s => s.PRODUCT != null && IsJihozProductCategory(s.PRODUCT))
-                        ? "Qoldiq faqat «Jihoz» kategoriyasida — balansga kiritilmaydi."
-                        : "Bu omborda qoldiq yo'q."
+                    Note = "Bu omborda xomashyo qoldig'i yo'q."
                 });
                 return rows;
             }
 
-            var productIds = eligible.Select(s => s.ProductID).Distinct().ToList();
+            var productIds = eligible.Select(s => s.ProductId).Distinct().ToList();
             var latestIncomeByProduct = db.INCOME_PRODUCTS
                 .AsNoTracking()
                 .Include(ip => ip.INCOME)
@@ -3111,15 +3088,15 @@ namespace tahsinERP.Controllers.Finance
 
             foreach (var s in eligible)
             {
-                var p = s.PRODUCT;
-                if (!latestIncomeByProduct.TryGetValue(s.ProductID, out var ip))
+                var p = s.Product;
+                if (!latestIncomeByProduct.TryGetValue(s.ProductId, out var ip))
                 {
                     rows.Add(new BalanceSheetInventoryBreakdownRow
                     {
                         ProductCode = p.PNo,
                         ProductName = p.Name,
-                        Qty = s.Amount,
-                        Unit = s.UNIT != null ? s.UNIT.ShortName : "",
+                        Qty = s.Qty,
+                        Unit = s.UnitShortName ?? "",
                         UnitPrice = null,
                         LineTotal = 0m,
                         Note = "Oxirgi kirim (shu ombor, sanagacha) topilmadi"
@@ -3134,8 +3111,8 @@ namespace tahsinERP.Controllers.Finance
                     {
                         ProductCode = p.PNo,
                         ProductName = p.Name,
-                        Qty = s.Amount,
-                        Unit = s.UNIT != null ? s.UNIT.ShortName : "",
+                        Qty = s.Qty,
+                        Unit = s.UnitShortName ?? "",
                         UnitPrice = null,
                         LineTotal = 0m,
                         Note = "Kirim qatorida narx (PiecePrice / TotalPrice) yo'q"
@@ -3143,13 +3120,13 @@ namespace tahsinERP.Controllers.Finance
                     continue;
                 }
 
-                var lineTotal = (decimal)s.Amount * unitPrice;
+                var lineTotal = (decimal)s.Qty * unitPrice;
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
                     ProductCode = p.PNo,
                     ProductName = p.Name,
-                    Qty = s.Amount,
-                    Unit = s.UNIT != null ? s.UNIT.ShortName : "",
+                    Qty = s.Qty,
+                    Unit = s.UnitShortName ?? "",
                     UnitPrice = unitPrice,
                     LineTotal = lineTotal,
                     Note = $"Qoldiq × oxirgi kirim narxi: {ip.INCOME.IssueDateTime:dd.MM.yyyy} {ip.INCOME.DocNo}"
@@ -3157,6 +3134,37 @@ namespace tahsinERP.Controllers.Finance
             }
 
             return rows;
+        }
+
+        private sealed class BalanceStockLine
+        {
+            public int ProductId { get; set; }
+            public PRODUCT Product { get; set; }
+            public double Qty { get; set; }
+            public string UnitShortName { get; set; }
+        }
+
+        private static List<BalanceStockLine> GetBalanceStockLines(DBTHSNEntities db, int warehouseId, Func<PRODUCT, bool> productFilter)
+        {
+            var qtyRows = InventoryValuationService.GetPositiveStocks(db, warehouseId);
+            var lines = new List<BalanceStockLine>();
+            foreach (var q in qtyRows)
+            {
+                var p = db.PRODUCTS.AsNoTracking()
+                    .Include(x => x.PRODUCT_CATEGORIES)
+                    .Include(x => x.UNIT)
+                    .FirstOrDefault(x => x.ID == q.ProductID);
+                if (p == null || p.IsDeleted || !productFilter(p))
+                    continue;
+                lines.Add(new BalanceStockLine
+                {
+                    ProductId = p.ID,
+                    Product = p,
+                    Qty = q.Qty,
+                    UnitShortName = p.UNIT != null ? p.UNIT.ShortName : ""
+                });
+            }
+            return lines;
         }
 
         /// <summary>Popup va eksport uchun ombor hisob-kitob qatori.</summary>

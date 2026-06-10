@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -179,11 +180,6 @@ namespace tahsinERP.Controllers.MES
                 ModelState.AddModelError("", "Ma'lumotlar topilmadi");
             }
 
-            if (viewModel?.Items == null || !viewModel.Items.Any())
-            {
-                ModelState.AddModelError("", "Tekshiruv uchun mahsulotlar topilmadi");
-            }
-
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -212,18 +208,10 @@ namespace tahsinERP.Controllers.MES
                                 continue;
                             }
 
-                            var alreadyAccepted = db.QUALITY_INSPECTION
-                                .Where(q => q.ProductionID == item.ProductionID
-                                    && !q.IsDeleted)
-                                .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
-
-                            // Re-inspection support: rejected qty qayta sifatga kirishi mumkin.
-                            // Shuning uchun limit accepted bo'yicha yuradi, inspected bo'yicha emas.
-                            var remaining = (decimal)production.Total - alreadyAccepted;
-                            if (inspectedQty > remaining)
+                            if (!QualityInspectionBalanceHelper.TryValidateInspectionQty(
+                                    production, item.QtyAccepted, item.QtyRejected, db, out var qtyError))
                             {
-                                ModelState.AddModelError("",
-                                    $"Tekshirilgan miqdor ishlab chiqarilgan qoldiqdan oshib ketdi. Mahsulot: {production.PRODUCT?.PNo}, Qoldiq: {remaining}");
+                                ModelState.AddModelError("", qtyError);
                                 continue;
                             }
 
@@ -234,6 +222,7 @@ namespace tahsinERP.Controllers.MES
                             var inspection = new QUALITY_INSPECTION
                             {
                                 ProductionID = item.ProductionID,
+                                ProductPlanDailyID = null,
                                 ProductID = production.ProductID,
                                 QtyInspected = inspectedQty,
                                 QtyAccepted = item.QtyAccepted,
@@ -266,6 +255,7 @@ namespace tahsinERP.Controllers.MES
 
                         if (!ModelState.IsValid)
                         {
+                            viewModel = BuildDailyInspectionViewModel(viewModel.InspectionDate, db);
                             ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
                             return View(viewModel);
                         }
@@ -301,6 +291,10 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                if (viewModel != null)
+                {
+                    viewModel = BuildDailyInspectionViewModel(viewModel.InspectionDate, db);
+                }
                 ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
             }
 
@@ -332,14 +326,9 @@ namespace tahsinERP.Controllers.MES
 
             foreach (var production in productions)
             {
-                var alreadyAccepted = db.QUALITY_INSPECTION
-                    .Where(q => q.ProductionID == production.ID
-                        && !q.IsDeleted)
-                    .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
-
                 var producedQty = (decimal)production.Total;
-                // Re-inspection support: rejected miqdor qayta tekshiruvga chiqadi.
-                var remaining = producedQty - alreadyAccepted;
+                var alreadyAccepted = QualityInspectionBalanceHelper.GetAcceptedQtyForProduction(production, db);
+                var remaining = QualityInspectionBalanceHelper.GetRemainingQty(production, db);
 
                 if (remaining <= 0)
                 {
@@ -355,7 +344,7 @@ namespace tahsinERP.Controllers.MES
                     ProducedQty = producedQty,
                     AlreadyInspectedQty = alreadyAccepted,
                     RemainingQty = remaining,
-                    QtyAccepted = remaining,
+                    QtyAccepted = 0,
                     QtyRejected = 0
                 });
             }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -42,7 +43,9 @@ namespace tahsinERP.Controllers
                     StockItems = new List<InventoryDashboardItem>(),
                     HighRunnerItems = new List<InventoryDashboardItem>(),
                     LowRunnerItems = new List<InventoryDashboardItem>(),
-                    FifoViolations = new List<InventoryFifoViolationItem>(),
+                    FifoJournal = new List<InventoryFifoViolationItem>(),
+                    FifoHeuristicAlerts = new List<InventoryFifoViolationItem>(),
+                    DlocAlerts = new List<DlocCapacityAlertRow>(),
                     StockByCategory = new List<CategoryStockSummary>(),
                     InboundTrends = new List<TrendData>(),
                     OutboundTrends = new List<TrendData>()
@@ -65,7 +68,9 @@ namespace tahsinERP.Controllers
                         StockItems = new List<InventoryDashboardItem>(),
                         HighRunnerItems = new List<InventoryDashboardItem>(),
                         LowRunnerItems = new List<InventoryDashboardItem>(),
-                        FifoViolations = new List<InventoryFifoViolationItem>(),
+                        FifoJournal = new List<InventoryFifoViolationItem>(),
+                        FifoHeuristicAlerts = new List<InventoryFifoViolationItem>(),
+                        DlocAlerts = new List<DlocCapacityAlertRow>(),
                         StockByCategory = new List<CategoryStockSummary>(),
                         InboundTrends = new List<TrendData>(),
                         OutboundTrends = new List<TrendData>()
@@ -226,7 +231,7 @@ namespace tahsinERP.Controllers
                 model.HighRunnerItems = runnerItems.Take(runnerTopNValue).ToList();
                 model.LowRunnerItems = runnerItems.OrderBy(i => i.AverageDailyConsumption).Take(runnerTopNValue).ToList();
 
-                // Simplified FIFO violation report
+                // FIFO violations: ledger jadvali yoki soddalashtirilgan fallback
                 var fifoWarehouseIds = fifoScopeValue == "selected"
                     ? (warehouseId.HasValue ? new List<int> { warehouseId.Value } : new List<int>())
                     : warehouseIds;
@@ -262,50 +267,67 @@ namespace tahsinERP.Controllers
                     .Where(x => fifoWarehouseIds.Contains(x.WarehouseId))
                     .ToListAsync();
 
-                var fifoViolations = new List<InventoryFifoViolationItem>();
-                var fifoGroups = incomeLines
-                    .GroupBy(x => new { x.ProductID, x.WarehouseId })
-                    .ToList();
+                model.FifoJournal = new List<InventoryFifoViolationItem>();
+                model.FifoHeuristicAlerts = new List<InventoryFifoViolationItem>();
 
-                foreach (var group in fifoGroups)
+                if (DlocFifoSchema.IsEnabled(db))
                 {
-                    var incomes = group.OrderBy(x => x.Date).ToList();
-                    if (incomes.Count < 2) continue;
+                    var logged = DlocFifoReporting.GetFifoViolations(db, fromDateValue, toDateValue, fifoWarehouseIds);
+                    model.FifoJournal = logged.Select(InventoryReportsFifoMapper.MapFifoJournalRow).ToList();
 
-                    var expensesForGroup = expenseLines
-                        .Where(e => e.ProductID == group.Key.ProductID && e.WarehouseId == group.Key.WarehouseId)
-                        .OrderBy(e => e.Date)
-                        .ToList();
-
-                    if (!expensesForGroup.Any()) continue;
-
-                    var firstIncome = incomes.First();
-                    var secondIncome = incomes.Skip(1).First();
-
-                    var totalExpensesSinceFirst = expensesForGroup
-                        .Where(e => e.Date >= firstIncome.Date)
-                        .Sum(e => e.Amount);
-
-                    var expensesAfterSecond = expensesForGroup.Any(e => e.Date >= secondIncome.Date);
-
-                    if (totalExpensesSinceFirst < firstIncome.Amount && expensesAfterSecond)
-                    {
-                        var product = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.PRODUCT;
-                        var warehouse = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.Warehouse;
-
-                        fifoViolations.Add(new InventoryFifoViolationItem
-                        {
-                            ProductPNo = product?.PNo ?? "N/A",
-                            ProductName = product?.Name ?? "N/A",
-                            WarehouseName = warehouse?.WHName ?? "N/A",
-                            OldestIncomeDate = firstIncome.Date,
-                            LatestExpenseDate = expensesForGroup.Last().Date,
-                            RemainingFromOldest = firstIncome.Amount - totalExpensesSinceFirst
-                        });
-                    }
+                    var dlocAlerts = DlocFifoReporting.GetDlocCapacityAlerts(db, fifoWarehouseIds);
+                    model.DlocAlerts = dlocAlerts;
+                    model.DlocBelowMinCount = dlocAlerts.Count(a => a.AlertType == "BELOW_MIN");
+                    model.DlocNearMaxCount = dlocAlerts.Count(a => a.AlertType == "NEAR_MAX");
                 }
 
-                model.FifoViolations = fifoViolations;
+                {
+                    var fifoViolations = new List<InventoryFifoViolationItem>();
+                    var fifoGroups = incomeLines
+                        .GroupBy(x => new { x.ProductID, x.WarehouseId })
+                        .ToList();
+
+                    foreach (var group in fifoGroups)
+                    {
+                        var incomes = group.OrderBy(x => x.Date).ToList();
+                        if (incomes.Count < 2) continue;
+
+                        var expensesForGroup = expenseLines
+                            .Where(e => e.ProductID == group.Key.ProductID && e.WarehouseId == group.Key.WarehouseId)
+                            .OrderBy(e => e.Date)
+                            .ToList();
+
+                        if (!expensesForGroup.Any()) continue;
+
+                        var firstIncome = incomes.First();
+                        var secondIncome = incomes.Skip(1).First();
+
+                        var totalExpensesSinceFirst = expensesForGroup
+                            .Where(e => e.Date >= firstIncome.Date)
+                            .Sum(e => e.Amount);
+
+                        var expensesAfterSecond = expensesForGroup.Any(e => e.Date >= secondIncome.Date);
+
+                        if (totalExpensesSinceFirst < firstIncome.Amount && expensesAfterSecond)
+                        {
+                            var product = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.PRODUCT;
+                            var warehouse = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.Warehouse;
+
+                            fifoViolations.Add(new InventoryFifoViolationItem
+                            {
+                                ProductPNo = product?.PNo ?? "N/A",
+                                ProductName = product?.Name ?? "N/A",
+                                WarehouseName = warehouse?.WHName ?? "N/A",
+                                OldestIncomeDate = firstIncome.Date,
+                                LatestExpenseDate = expensesForGroup.Last().Date,
+                                RemainingFromOldest = firstIncome.Amount - totalExpensesSinceFirst,
+                                ReasonCode = "HEURISTIC"
+                            });
+                        }
+                    }
+
+                    model.FifoHeuristicAlerts = fifoViolations;
+                }
 
                 // Calculate stock by category
                 model.StockByCategory = stocks
@@ -601,7 +623,11 @@ namespace tahsinERP.Controllers
         public List<InventoryDashboardItem> StockItems { get; set; }
         public List<InventoryDashboardItem> HighRunnerItems { get; set; }
         public List<InventoryDashboardItem> LowRunnerItems { get; set; }
-        public List<InventoryFifoViolationItem> FifoViolations { get; set; }
+        public List<InventoryFifoViolationItem> FifoJournal { get; set; }
+        public List<InventoryFifoViolationItem> FifoHeuristicAlerts { get; set; }
+        public int DlocBelowMinCount { get; set; }
+        public int DlocNearMaxCount { get; set; }
+        public List<DlocCapacityAlertRow> DlocAlerts { get; set; }
         public List<CategoryStockSummary> StockByCategory { get; set; }
         public List<TrendData> InboundTrends { get; set; }
         public List<TrendData> OutboundTrends { get; set; }
@@ -627,9 +653,37 @@ namespace tahsinERP.Controllers
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
         public string WarehouseName { get; set; }
+        public DateTime CreatedAt { get; set; }
         public DateTime OldestIncomeDate { get; set; }
         public DateTime LatestExpenseDate { get; set; }
         public double RemainingFromOldest { get; set; }
+        public string ReasonCode { get; set; }
+        public string ExpenseDocNo { get; set; }
+        public string ExpectedLotNo { get; set; }
+        public string SelectedLotNo { get; set; }
+        public string CreatedBy { get; set; }
+    }
+
+    internal static class InventoryReportsFifoMapper
+    {
+        public static InventoryFifoViolationItem MapFifoJournalRow(FifoViolationReportRow v)
+        {
+            return new InventoryFifoViolationItem
+            {
+                ProductPNo = v.ProductPNo ?? "N/A",
+                ProductName = v.ProductName ?? "N/A",
+                WarehouseName = v.WarehouseName ?? "N/A",
+                CreatedAt = v.CreatedAt,
+                OldestIncomeDate = v.ExpectedReceivedAt ?? v.CreatedAt,
+                LatestExpenseDate = v.SelectedReceivedAt ?? v.CreatedAt,
+                RemainingFromOldest = 0,
+                ReasonCode = v.ReasonCode,
+                ExpenseDocNo = v.ExpenseDocNo,
+                ExpectedLotNo = v.ExpectedLotNo,
+                SelectedLotNo = v.SelectedLotNo,
+                CreatedBy = v.CreatedBy
+            };
+        }
     }
 
     public class CategoryStockSummary

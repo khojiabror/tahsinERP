@@ -1,0 +1,157 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using tahsinERP.Models;
+
+namespace tahsinERP.Services.DlocFifo
+{
+    public class FifoViolationReportRow
+    {
+        public string ProductPNo { get; set; }
+        public string ProductName { get; set; }
+        public string WarehouseName { get; set; }
+        public string ReasonCode { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ExpectedReceivedAt { get; set; }
+        public DateTime? SelectedReceivedAt { get; set; }
+        public string ExpectedLotNo { get; set; }
+        public string SelectedLotNo { get; set; }
+        public string ExpenseDocNo { get; set; }
+        public string CreatedBy { get; set; }
+    }
+
+    public class DlocCapacityAlertRow
+    {
+        public string WarehouseName { get; set; }
+        public string LocationCode { get; set; }
+        public decimal CurrentQty { get; set; }
+        public decimal MinCapacity { get; set; }
+        public decimal MaxCapacity { get; set; }
+        public string AlertType { get; set; }
+    }
+
+    public static class DlocFifoReporting
+    {
+        public static List<FifoViolationReportRow> GetFifoViolations(
+            DBTHSNEntities db, DateTime fromDate, DateTime toDate, IEnumerable<int> warehouseIds)
+        {
+            if (!DlocFifoSchema.IsEnabled(db) || !DlocFifoDataAccess.TableExists(db, "FIFO_VIOLATIONS"))
+                return new List<FifoViolationReportRow>();
+
+            var ids = warehouseIds?.Distinct().ToList() ?? new List<int>();
+            var sql = @"
+SELECT p.PNo AS ProductPNo, p.Name AS ProductName, w.WHName AS WarehouseName,
+       v.ReasonCode, v.CreatedAt, v.ExpectedReceivedAt, v.SelectedReceivedAt,
+       ilE.LotNo AS ExpectedLotNo, ilS.LotNo AS SelectedLotNo,
+       e.DocNo AS ExpenseDocNo, v.CreatedBy
+FROM dbo.FIFO_VIOLATIONS v
+INNER JOIN dbo.PRODUCTS p ON p.ID = v.ProductID
+INNER JOIN dbo.WAREHOUSES w ON w.ID = v.WarehouseID
+LEFT JOIN dbo.INCOME_LOTS ilE ON ilE.ID = v.ExpectedLotID
+LEFT JOIN dbo.INCOME_LOTS ilS ON ilS.ID = v.SelectedLotID
+LEFT JOIN dbo.EXPENSE_PRODUCTS ep ON ep.ID = v.ExpenseProductID
+LEFT JOIN dbo.EXPENSES e ON e.ID = ep.ExpenseID
+WHERE v.CreatedAt >= @p0 AND v.CreatedAt <= @p1";
+
+            var parms = new List<object> { fromDate, toDate };
+            if (ids.Any())
+            {
+                var inList = string.Join(",", ids);
+                sql += $" AND v.WarehouseID IN ({inList})";
+            }
+
+            sql += " ORDER BY v.CreatedAt DESC";
+            return db.Database.SqlQuery<FifoViolationReportRow>(sql, parms.ToArray()).ToList();
+        }
+
+        public static List<DlocCapacityAlertRow> GetDlocCapacityAlerts(DBTHSNEntities db, IEnumerable<int> warehouseIds)
+        {
+            if (!DlocFifoSchema.IsEnabled(db))
+                return new List<DlocCapacityAlertRow>();
+
+            var ids = warehouseIds?.Distinct().ToList() ?? new List<int>();
+            var sql = @"
+SELECT w.WHName AS WarehouseName, loc.LocationCode,
+       ISNULL(SUM(ll.QtyAvailable), 0) AS CurrentQty,
+       loc.MinCapacity, loc.MaxCapacity,
+       CASE
+         WHEN ISNULL(SUM(ll.QtyAvailable), 0) < loc.MinCapacity AND loc.MinCapacity > 0 THEN 'BELOW_MIN'
+         WHEN loc.MaxCapacity > 0 AND ISNULL(SUM(ll.QtyAvailable), 0) >= loc.MaxCapacity * 0.9 THEN 'NEAR_MAX'
+         ELSE NULL
+       END AS AlertType
+FROM dbo.WAREHOUSE_LOCATIONS loc
+INNER JOIN dbo.WAREHOUSES w ON w.ID = loc.WarehouseID
+LEFT JOIN dbo.LOT_LOCATIONS ll ON ll.LocationID = loc.ID
+WHERE loc.IsDeleted = 0 AND loc.IsActive = 1";
+
+            if (ids.Any())
+                sql += $" AND loc.WarehouseID IN ({string.Join(",", ids)})";
+
+            sql += @"
+GROUP BY w.WHName, loc.LocationCode, loc.MinCapacity, loc.MaxCapacity, loc.ID
+HAVING CASE
+         WHEN ISNULL(SUM(ll.QtyAvailable), 0) < loc.MinCapacity AND loc.MinCapacity > 0 THEN 'BELOW_MIN'
+         WHEN loc.MaxCapacity > 0 AND ISNULL(SUM(ll.QtyAvailable), 0) >= loc.MaxCapacity * 0.9 THEN 'NEAR_MAX'
+         ELSE NULL
+       END IS NOT NULL
+ORDER BY w.WHName, loc.LocationCode";
+
+            return db.Database.SqlQuery<DlocCapacityAlertRow>(sql).ToList();
+        }
+
+        /// <summary>FIFO buzilishini jurnalga yozadi (FIFO_VIOLATIONS).</summary>
+        public static void LogFifoViolation(
+            DBTHSNEntities db,
+            int expenseProductId,
+            int productId,
+            int warehouseId,
+            int? expectedLotId,
+            int? selectedLotId,
+            DateTime? expectedReceivedAt,
+            DateTime? selectedReceivedAt,
+            string reasonCode,
+            string createdBy)
+        {
+            if (!DlocFifoSchema.IsEnabled(db) || !DlocFifoDataAccess.TableExists(db, "FIFO_VIOLATIONS"))
+                return;
+
+            const string sql = @"
+INSERT INTO dbo.FIFO_VIOLATIONS
+    (ExpenseProductID, ProductID, WarehouseID, ExpectedLotID, SelectedLotID,
+     ExpectedReceivedAt, SelectedReceivedAt, ReasonCode, CreatedBy, CreatedAt)
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, GETDATE())";
+
+            db.Database.ExecuteSqlCommand(sql,
+                expenseProductId, productId, warehouseId,
+                expectedLotId, selectedLotId, expectedReceivedAt, selectedReceivedAt,
+                reasonCode, createdBy);
+        }
+
+        public class IncomePutawayRow
+        {
+            public int IncomeProductID { get; set; }
+            public string LocationCode { get; set; }
+            public string LotNo { get; set; }
+            public decimal Qty { get; set; }
+        }
+
+        public static Dictionary<int, IncomePutawayRow> GetIncomePutawayByProductLine(DBTHSNEntities db, int incomeId)
+        {
+            if (!DlocFifoSchema.IsEnabled(db))
+                return new Dictionary<int, IncomePutawayRow>();
+
+            const string sql = @"
+SELECT il.IncomeProductID, loc.LocationCode, il.LotNo, il.QtyReceived AS Qty
+FROM dbo.INCOME_LOTS il
+LEFT JOIN dbo.LOT_LOCATIONS ll ON ll.LotID = il.ID
+LEFT JOIN dbo.WAREHOUSE_LOCATIONS loc ON loc.ID = ll.LocationID AND loc.IsDeleted = 0
+WHERE il.IncomeID = @p0 AND il.IsDeleted = 0";
+
+            var rows = db.Database.SqlQuery<IncomePutawayRow>(sql, incomeId).ToList();
+            return rows
+                .Where(r => r.IncomeProductID > 0)
+                .GroupBy(r => r.IncomeProductID)
+                .ToDictionary(g => g.Key, g => g.First());
+        }
+    }
+}

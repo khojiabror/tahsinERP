@@ -4,6 +4,7 @@ using System.Linq;
 using System.Transactions;
 using tahsinERP.Models;
 using tahsinERP.Controllers;
+using tahsinERP.Services.DlocFifo;
 
 namespace tahsinERP.Services
 {
@@ -131,85 +132,236 @@ namespace tahsinERP.Services
             return supplyWH;
         }
 
+        public const string AutoTransferIncomeMarker = "Chiqimdan avtomatik bog'langan:";
+        public const string ProductionIncomeMarker = "ProductionID:";
+
+        /// <summary>Ushbu ishlab chiqarish uchun avtomatik kirim yaratilganmi.</summary>
+        public static bool HasProductionIncome(DBTHSNEntities db, int productionId)
+        {
+            if (productionId <= 0)
+                return false;
+            var marker = ProductionIncomeMarker + productionId;
+            return db.INCOMES.Any(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker));
+        }
+
+        public static bool IsProductionWarehouse(Warehouse warehouse)
+        {
+            return IsWarehouseNameMatch(warehouse, PRODUCTION_WH_KEYWORDS);
+        }
+
+        public static bool IsSalesWarehouse(Warehouse warehouse)
+        {
+            return IsWarehouseNameMatch(warehouse, SALES_WH_KEYWORDS);
+        }
+
+        public static bool IsSupplyWarehouse(Warehouse warehouse)
+        {
+            return IsWarehouseNameMatch(warehouse, SUPPLY_WH_KEYWORDS);
+        }
+
+        private static bool IsWarehouseNameMatch(Warehouse warehouse, string keywordsCsv)
+        {
+            if (warehouse == null)
+            {
+                return false;
+            }
+
+            return NameMatchesKeywords(warehouse.WHName, SplitKeywords(keywordsCsv));
+        }
+
         /// <summary>
-        /// Increase stock in Production Warehouse for finished goods
-        /// Called when production is completed
+        /// Chiqim (EXPENSE) dan avtomatik yaratilgan ichki o'tkazma kirimi.
         /// </summary>
-        public static void IncreaseProductionStock(int productID, double quantity, int shopID, 
+        public static bool IsAutoLinkedTransferIncome(INCOME income)
+        {
+            if (income == null)
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(income.Description))
+            {
+                if (income.Description.Contains(AutoTransferIncomeMarker))
+                {
+                    return true;
+                }
+
+                if (income.Description.IndexOf("EXPENSE_ID:", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return (income.DocNo ?? "").StartsWith("TRNSF_", StringComparison.OrdinalIgnoreCase)
+                && income.SenderWHID.HasValue;
+        }
+
+        /// <summary>
+        /// Qo'lda yangi kirim yaratish mumkinligi (faqat xomashyo ombori — invoys bilan).
+        /// </summary>
+        public static bool CanCreateManualIncome(DBTHSNEntities db, int receivingWhId)
+        {
+            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == receivingWhId && w.IsDeleted != true);
+            if (warehouse == null)
+            {
+                return false;
+            }
+
+            return IsSupplyWarehouse(warehouse);
+        }
+
+        /// <summary>
+        /// Qo'lda kirim yaratish validatsiyasi. null — ruxsat.
+        /// </summary>
+        public static string ValidateManualIncomeCreate(DBTHSNEntities db, int receivingWhId, int? invoiceId)
+        {
+            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == receivingWhId && w.IsDeleted != true);
+            if (warehouse == null)
+            {
+                return "Ombor topilmadi.";
+            }
+
+            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            {
+                return "Ishlab chiqarish va Savdo omborlariga qo'lda kirim yaratish mumkin emas. Faqat chiqim hujjatidan avtomatik yaratilgan kirimni qabul qiling.";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Kirimni qabul qilish validatsiyasi. null — ruxsat.
+        /// </summary>
+        public static string ValidateIncomeReceive(DBTHSNEntities db, INCOME income)
+        {
+            if (income == null)
+            {
+                return "Kirim hujjati topilmadi.";
+            }
+
+            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == income.ReceivingWHID && w.IsDeleted != true);
+            if (warehouse == null)
+            {
+                return "Ombor topilmadi.";
+            }
+
+            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            {
+                if (!IsAutoLinkedTransferIncome(income))
+                {
+                    return "Ushbu omborga faqat chiqimdan avtomatik yaratilgan kirimni qabul qilish mumkin.";
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Kirim hujjatini tahrirlash mumkinligi.
+        /// </summary>
+        public static string ValidateIncomeEdit(DBTHSNEntities db, INCOME income)
+        {
+            if (income == null)
+            {
+                return "Kirim hujjati topilmadi.";
+            }
+
+            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == income.ReceivingWHID && w.IsDeleted != true);
+            if (warehouse == null)
+            {
+                return "Ombor topilmadi.";
+            }
+
+            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            {
+                return "Ishlab chiqarish va Savdo omborlaridagi kirimlarni qo'lda tahrirlash mumkin emas.";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Ishlab chiqarish kiritilganda: avtomatik kirim + ombor qoldig'i.
+        /// Sifat nazorati qoldiqni bloklamaydi (transfer alohida tekshiriladi).
+        /// Faqat DLOC orqali qabul; DLOC yo'q bo'lsa kirim yaratilmaydi va xato qaytariladi.
+        /// </summary>
+        public static void IncreaseProductionStock(int productID, double quantity, int shopID,
             DBTHSNEntities db, string userEmail, int? productionID = null)
         {
-            using (var transaction = new TransactionScope(TransactionScopeOption.Required))
+            if (quantity <= 0)
+                return;
+
+            try
             {
-                try
+                var product = db.PRODUCTS.Find(productID);
+                if (product == null)
+                    throw new Exception($"Mahsulot topilmadi: {productID}");
+
+                var productionWH = GetProductionWarehouse(db, shopID);
+                if (productionWH == null)
+                    throw new Exception("Ishlab chiqarish ombori topilmadi");
+
+                ProductionDlocGuard.RequireForProductionWarehouse(db, productionWH.ID, productionWH.WHName);
+
+                var unitId = product.UnitID > 0
+                    ? product.UnitID
+                    : (db.UNITS.OrderBy(u => u.ID).Select(u => u.ID).FirstOrDefault());
+                if (unitId <= 0)
+                    unitId = 1;
+
+                var income = new INCOME
                 {
-                    var product = db.PRODUCTS.Find(productID);
-                    if (product == null)
-                        throw new Exception($"Mahsulot topilmadi: {productID}");
+                    DocNo = $"PROD-{DateTime.Now:yyyyMMddHHmmss}-{productID}",
+                    ReceivingWHID = productionWH.ID,
+                    IssueDateTime = DateTime.Now,
+                    CurrencyID = GetDefaultCurrencyId(db),
+                    IsDeleted = false,
+                    RecieveStatus = true,
+                    Description = productionID.HasValue && productionID.Value > 0
+                        ? $"Ishlab chiqarishdan kirim: {product.PNo} - {product.Name}. ProductionID:{productionID.Value}"
+                        : $"Ishlab chiqarishdan kirim: {product.PNo} - {product.Name}"
+                };
 
-                    // Only process if it's a finished good
-                    if (product.IsFinishedGood != true)
-                    {
-                        LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
-                            $"Mahsulot {product.PNo} tayyor mahsulot emas, o'tkazib yuborildi");
-                        return;
-                    }
+                db.INCOMES.Add(income);
+                db.SaveChanges();
 
-                    var productionWH = GetProductionWarehouse(db, shopID);
-                    if (productionWH == null)
-                        throw new Exception("Ishlab chiqarish ombori topilmadi");
-
-                    int currencyId = GetDefaultCurrencyId(db);
-                    // Create INCOME document
-                    var income = new INCOME
-                    {
-                        DocNo = $"PROD-{DateTime.Now:yyyyMMddHHmmss}-{productID}",
-                        ReceivingWHID = productionWH.ID,
-                        IssueDateTime = DateTime.Now,
-                        CurrencyID = currencyId,
-                        IsDeleted = false,
-                        RecieveStatus = true,
-                        Description = productionID.HasValue && productionID.Value > 0
-                            ? $"Ishlab chiqarishdan tayyor mahsulot: {product.PNo} - {product.Name}. ProductionID:{productionID.Value}"
-                            : $"Ishlab chiqarishdan tayyor mahsulot: {product.PNo} - {product.Name}"
-                    };
-
-                    db.INCOMES.Add(income);
-                    db.SaveChanges(); // Save to get ID
-
-                    // Create INCOME_PRODUCTS
-                    var unitId = product.UnitID > 0
-                        ? product.UnitID
-                        : (db.UNITS.OrderBy(u => u.ID).Select(u => u.ID).FirstOrDefault());
-                    if (unitId <= 0)
-                        unitId = 1;
-
-                    var incomeProduct = new INCOME_PRODUCTS
-                    {
-                        IncomeID = income.ID,
-                        ProductID = productID,
-                        Amount = quantity,
-                        PiecePrice = 0, // Production cost calculated separately
-                        UnitID = unitId
-                    };
-
-                    db.INCOME_PRODUCTS.Add(incomeProduct);
-
-                    // Update or create PRODUCT_STOCKS (single row per WHID+ProductID)
-                    var stock = GetOrCreateStockRow(db, productionWH.ID, productID, product.UnitID);
-                    stock.Amount += quantity;
-
-                    db.SaveChanges();
-                    transaction.Complete();
-
-                    LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
-                        $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Kirim ID: {income.ID}, Ishlab chiqarish ID: {productionID}");
-                }
-                catch (Exception ex)
+                var incomeProduct = new INCOME_PRODUCTS
                 {
-                    LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
-                        $"Xatolik: {ex.Message}");
-                    throw;
-                }
+                    IncomeID = income.ID,
+                    ProductID = productID,
+                    Amount = quantity,
+                    PiecePrice = 0,
+                    UnitID = unitId
+                };
+                db.INCOME_PRODUCTS.Add(incomeProduct);
+                db.SaveChanges();
+
+                ApplyProductionIncomeToStock(db, productionWH.ID, income, incomeProduct, productID, quantity, unitId);
+
+                LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
+                    $"Mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Kirim ID: {income.ID}, Ishlab chiqarish ID: {productionID}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
+                    $"Xatolik: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>Kirim qatorini faqat DLOC orqali qabul qiladi.</summary>
+        private static void ApplyProductionIncomeToStock(DBTHSNEntities db, int warehouseId, INCOME income,
+            INCOME_PRODUCTS incomeProduct, int productId, double quantity, int unitId)
+        {
+            var locations = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: true);
+            var locationId = locations.First().ID;
+            if (!LocationLotStockLedger.TryReceive(
+                db, warehouseId, income.ID, incomeProduct.ID, productId,
+                (decimal)quantity, locationId, income.IssueDateTime, unitId,
+                $"PROD-{income.ID}"))
+            {
+                throw new InvalidOperationException(
+                    "DLOC ga qabul qilib bo'lmadi. Joylashuv, sig'im yoki lot sozlamalarini tekshiring.");
             }
         }
 
@@ -233,7 +385,7 @@ namespace tahsinERP.Services
             }
 
             var product = db.PRODUCTS.Find(productID);
-            if (product == null || product.IsFinishedGood != true)
+            if (product == null)
             {
                 return;
             }
@@ -244,12 +396,7 @@ namespace tahsinERP.Services
                 throw new Exception("Ishlab chiqarish ombori topilmadi");
             }
 
-            var stock = GetOrCreateStockRow(db, productionWH.ID, productID, product.UnitID);
-            stock.Amount += delta;
-            if (stock.Amount < 0)
-            {
-                stock.Amount = 0;
-            }
+            AdjustProductStock(db, productionWH.ID, productID, delta, product.UnitID > 0 ? product.UnitID : 1);
 
             LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "ApplyProductionWarehouseStockDelta",
                 $"Tayyor mahsulot {product.PNo} qoldig'i {delta:0.###} ga tuzatildi (ishlab chiqarish ombori). ProductionID: {productionID}");
@@ -267,19 +414,11 @@ namespace tahsinERP.Services
                 if (product == null)
                     throw new Exception($"Mahsulot topilmadi: {productID}");
 
-                if (product.IsFinishedGood != true)
-                {
-                    LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
-                        $"Mahsulot {product.PNo} tayyor mahsulot emas, o'tkazib yuborildi");
-                    return;
-                }
-
                 var productionWH = GetProductionWarehouse(db, shopID);
                 if (productionWH == null)
                     throw new Exception("Ishlab chiqarish ombori topilmadi");
 
-                var stock = GetOrCreateStockRow(db, productionWH.ID, productID, product.UnitID);
-                stock.Amount += quantity;
+                AdjustProductStock(db, productionWH.ID, productID, quantity, product.UnitID > 0 ? product.UnitID : 1);
 
                 LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStockWithoutIncome",
                     $"Tayyor mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Ishlab chiqarish ID: {productionID}");
@@ -343,15 +482,12 @@ namespace tahsinERP.Services
                     if (salesWH == null)
                         throw new Exception("Sotuv ombori topilmadi");
 
-                    // Check stock availability in Production WH
-                    var productionStock = db.PRODUCT_STOCKS
-                        .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == productID);
-
-                    if (productionStock == null || productionStock.Amount < quantity)
+                    var availableQty = InventoryValuationService.GetQty(db, productionWH.ID, productID);
+                    if (availableQty + 1e-9 < quantity)
                     {
                         throw new Exception(
                             $"Ishlab chiqarish omborida yetarli mahsulot yo'q. " +
-                            $"Mavjud: {productionStock?.Amount ?? 0}, Talab qilinmoqda: {quantity}");
+                            $"Mavjud: {availableQty}, Talab qilinmoqda: {quantity}");
                     }
 
                     // Generate transfer document number if not provided (TRNSF_ddmmyy_N format)
@@ -404,6 +540,9 @@ namespace tahsinERP.Services
                     };
 
                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                    db.SaveChanges();
+
+                    var unitIdForLedger = product.UnitID > 0 ? product.UnitID : 1;
 
                     // Attach document if provided
                     if (transferDocument != null)
@@ -416,11 +555,8 @@ namespace tahsinERP.Services
                         db.WRHS_EXPENSE_DOCS.Add(expenseDoc);
                     }
 
-                    // Decrease Production WH stock
-                    productionStock.Amount -= quantity;
-                    if (productionStock.Amount < 0)
-                        productionStock.Amount = 0; // Safety check
-                    db.Entry(productionStock).State = EntityState.Modified;
+                    ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProduct(
+                        db, productionWH.ID, productID, quantity, unitIdForLedger, expenseProduct.ID);
 
                     // Create INCOME to Sales WH (RecieveStatus = false - MRP accepts manually)
                     var income = new INCOME
@@ -486,6 +622,38 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
+        /// PRODUCT_STOCKS umumiy qoldiq (barcha DLOC yig'indisi). Har operatsiyada +/-.
+        /// </summary>
+        public static void AdjustProductStock(DBTHSNEntities db, int warehouseId, int productId, double delta, int unitId = 1)
+        {
+            if (Math.Abs(delta) < 1e-12)
+                return;
+
+            var row = GetOrCreateStockRow(db, warehouseId, productId, unitId > 0 ? unitId : 1);
+            row.Amount += delta;
+            if (row.Amount < 0)
+                row.Amount = 0;
+            if (row.UnitID <= 0 && unitId > 0)
+                row.UnitID = unitId;
+        }
+
+        /// <summary>Kirim / ishlab chiqarish qabul — umumiy qoldiq oshadi.</summary>
+        public static void ApplyIncomeReceiveToStock(DBTHSNEntities db, int warehouseId, int productId, double amount, int unitId)
+        {
+            if (amount <= 0)
+                return;
+            AdjustProductStock(db, warehouseId, productId, amount, unitId);
+        }
+
+        /// <summary>Chiqim — umumiy qoldiq kamayadi.</summary>
+        public static void ApplyIncomeIssueFromStock(DBTHSNEntities db, int warehouseId, int productId, double amount, int unitId)
+        {
+            if (amount <= 0)
+                return;
+            AdjustProductStock(db, warehouseId, productId, -amount, unitId);
+        }
+
+        /// <summary>
         /// Returns a single stock row for (warehouse, product). If duplicates exist, merges them.
         /// If none exists, creates one.
         /// </summary>
@@ -546,19 +714,14 @@ namespace tahsinERP.Services
                     if (salesWH == null)
                         throw new Exception("Sotuv ombori topilmadi");
 
-                    // Get current stock
-                    var salesStock = db.PRODUCT_STOCKS
-                        .FirstOrDefault(s => s.WHID == salesWH.ID && s.ProductID == productID);
-
-                    double currentStock = salesStock?.Amount ?? 0;
                     double qtyToDeduct = (double)quantity;
+                    var availableQty = InventoryValuationService.GetQty(db, salesWH.ID, productID);
 
-                    // Prevent negative stock
-                    if (currentStock < qtyToDeduct)
+                    if (availableQty + 1e-9 < qtyToDeduct)
                     {
                         throw new Exception(
                             $"Sotuv omborida yetarli mahsulot yo'q. " +
-                            $"Mahsulot: {product.PNo}, Mavjud: {currentStock}, Talab qilinmoqda: {qtyToDeduct}, " +
+                            $"Mahsulot: {product.PNo}, Mavjud: {availableQty}, Talab qilinmoqda: {qtyToDeduct}, " +
                             $"Invoys: {invoiceNo}");
                     }
 
@@ -622,19 +785,11 @@ namespace tahsinERP.Services
                     };
 
                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                    db.SaveChanges();
 
-                    // Decrease stock
-                    if (salesStock != null)
-                    {
-                        salesStock.Amount -= qtyToDeduct;
-                        if (salesStock.Amount < 0)
-                            salesStock.Amount = 0; // Safety check
-                        db.Entry(salesStock).State = EntityState.Modified;
-                    }
-                    else
-                    {
-                        throw new Exception($"Sotuv omborida mahsulot qoldig'i topilmadi: {product.PNo}");
-                    }
+                    var unitIdForIssue = product.UnitID > 0 ? product.UnitID : 1;
+                    ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProduct(
+                        db, salesWH.ID, productID, qtyToDeduct, unitIdForIssue, expenseProduct.ID);
 
                     db.SaveChanges();
                     transaction.Complete();
@@ -701,8 +856,9 @@ namespace tahsinERP.Services
                     foreach (var line in expenseLines)
                     {
                         var product = db.PRODUCTS.Find(line.ProductID);
-                        var stock = GetOrCreateStockRow(db, salesWH.ID, line.ProductID, product?.UnitID ?? line.UnitID);
-                        stock.Amount += line.Amount;
+                        var unitId = product?.UnitID > 0 ? product.UnitID : line.UnitID;
+                        ExpenseStockIssueHelper.ReverseExpenseProductIssue(
+                            db, salesWH.ID, line.ProductID, line.Amount, unitId, line.ID);
                     }
 
                     var expenseDocs = db.WRHS_EXPENSE_DOCS
@@ -747,10 +903,7 @@ namespace tahsinERP.Services
             if (salesWH == null)
                 return 0;
 
-            var stock = db.PRODUCT_STOCKS
-                .FirstOrDefault(s => s.WHID == salesWH.ID && s.ProductID == productID);
-
-            return stock?.Amount ?? 0;
+            return InventoryValuationService.GetQty(db, salesWH.ID, productID);
         }
 
         /// <summary>
@@ -762,12 +915,7 @@ namespace tahsinERP.Services
             if (productionWH == null)
                 return 0;
 
-            var sum = db.PRODUCT_STOCKS
-                .Where(s => s.WHID == productionWH.ID && s.ProductID == productID)
-                .Select(s => (double?)s.Amount)
-                .Sum();
-
-            return sum ?? 0;
+            return InventoryValuationService.GetQty(db, productionWH.ID, productID);
         }
     }
 }

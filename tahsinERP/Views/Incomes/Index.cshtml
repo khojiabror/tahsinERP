@@ -8,7 +8,7 @@
 @{
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
     var assignedWarehouseIds = ViewBag.AssignedWarehouseIds as List<int> ?? new List<int>();
-    bool canCreate = changePermit && assignedWarehouseIds.Any();
+    bool canCreate = changePermit && (ViewBag.CanCreateManualIncome as bool? ?? false);
 }
 <div class="app-content content">
     <div class="content-overlay"></div>

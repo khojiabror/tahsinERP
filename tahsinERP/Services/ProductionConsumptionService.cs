@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Controllers;
 using tahsinERP.Models;
+using tahsinERP.Services.DlocFifo;
 
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Service for calculating production consumption including waste from NORMLINES
+    /// Ishlab chiqarish vaqtida xomashyo sarfini hisoblash va EXPENSE ga yozish.
+    /// Miqdor manbai: BOM Details jadvalidagi 1 FG sarf (BomMaterialSummaryService) × ishlab chiqarilgan soni.
     /// </summary>
     public class ProductionConsumptionService
     {
@@ -23,236 +25,59 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Calculates required raw materials for a production plan including waste
+        /// BOM Details jadvalidagi 1 FG sarfini BomMaterialSummaryService orqali oladi va producedQty ga ko'paytiradi.
         /// </summary>
         public async Task<List<ProductionRawMaterialRequirement>> CalculateRequiredRawMaterialsAsync(int productId, double producedQty)
         {
             var requirements = new List<ProductionRawMaterialRequirement>();
-
-            // Get active BOM for the product
-            var bomHeader = await _db.BOM_HEADERS
-                .Where(bh => bh.ProductID == productId && bh.IsActive == true)
-                .OrderByDescending(bh => bh.CreatedAt)
-                .FirstOrDefaultAsync();
-
-            if (bomHeader == null)
+            if (producedQty <= 0)
             {
-                return requirements; // No BOM found
+                return requirements;
             }
 
-            // Get BOM lines (materials)
-            var bomLines = await _db.BOM_LINES
-                .Include(bl => bl.PRODUCT)
-                .Include(bl => bl.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(bl => bl.UNIT)
-                .Where(bl => bl.BOMID == bomHeader.ID)
-                .ToListAsync();
-
-            // Get linked NORMVERSION via BOMS_AND_NORMS table
-            // Note: BOMS_AND_NORMS table exists but may not have a DbSet in DBTHSNEntities
-            // Using direct SQL query to access it
-            int? normId = null;
-            try
+            var summaryService = new BomMaterialSummaryService(_db);
+            var summaries = await summaryService.GetMaterialSummariesPerUnitAsync(productId);
+            if (!summaries.Any())
             {
-                // Try to access via direct SQL query using Entity Framework parameter syntax
-                var result = await _db.Database.SqlQuery<int?>(
-                    "SELECT NormID FROM BOMS_AND_NORMS WHERE BOMID = {0} AND IsActive = 1",
-                    bomHeader.ID).FirstOrDefaultAsync();
-                normId = result;
-            }
-            catch
-            {
-                // If table doesn't exist or query fails, continue without NORMLINES
-                normId = null;
+                return requirements;
             }
 
-            if (normId.HasValue)
+            var materialIds = summaries.Select(s => s.MaterialId).Distinct().ToList();
+            var materials = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Where(p => materialIds.Contains(p.ID))
+                .ToDictionaryAsync(p => p.ID);
+
+            foreach (var summary in summaries)
             {
-                // Asosiy yo'l: NORM_INPUT_LINES dagi sarf/chiqindini 1:1 ishlatish.
-                // Bunda normadagi birlik saqlanadi, keyin faqat ombor kirim birligiga konvert qilinadi.
-                var linkedNorm = await _db.NORMVERSIONS.FirstOrDefaultAsync(n => n.ID == normId.Value);
-                var normMonth = linkedNorm?.EffectiveFrom.HasValue == true
-                    ? linkedNorm.EffectiveFrom.Value.ToString("yyyy-MM")
-                    : null;
-
-                var normInputQuery = _db.NORM_INPUT_LINES
-                    .Include(n => n.PRODUCT1)
-                    .Include(n => n.PRODUCT1.PRODUCT_CATEGORIES)
-                    .Where(n => n.ProductID == productId);
-                if (!string.IsNullOrWhiteSpace(normMonth))
+                if (summary.TotalQuantity <= 0)
                 {
-                    normInputQuery = normInputQuery.Where(n => n.Month == normMonth);
+                    continue;
                 }
 
-                var normInputLines = await normInputQuery
-                    .OrderByDescending(n => n.CreatedDT)
-                    .ThenByDescending(n => n.ID)
-                    .ToListAsync();
-
-                // Bir xil variantlar bo'yicha eng oxirgi satrni olish (eski dublikatlarni hisobga qo'shmaslik uchun)
-                var dedupedNormInputLines = normInputLines
-                    .GroupBy(n => new { n.MaterialID, n.CutLengthMm, n.PiecesPerProduct, UnitID = n.UnitID ?? 0 })
-                    .Select(g => g.OrderByDescending(x => x.CreatedDT).ThenByDescending(x => x.ID).First())
-                    .ToList();
-
-                foreach (var line in dedupedNormInputLines)
+                if (!materials.TryGetValue(summary.MaterialId, out var material))
                 {
-                    var material = line.PRODUCT1;
-                    if (material == null)
-                        continue;
-
-                    bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-
-                    var consumptionPerProduct = (double)NormInputLineConsumptionToDisplay(
-                        requiresCutting,
-                        line.CutLengthMm,
-                        line.Consumption);
-                    var wastePerProduct = (double)NormInputLineWasteToDisplay(line.WasteAmount);
-                    var totalPerProduct = consumptionPerProduct + wastePerProduct;
-                    if (totalPerProduct <= 0)
-                        continue;
-
-                    var totalConsumption = totalPerProduct * producedQty;
-                    var wasteQty = wastePerProduct * producedQty;
-                    var baseUnitId = (line.UnitID.HasValue && line.UnitID.Value > 0)
-                        ? line.UnitID.Value
-                        : (material.UnitID > 0 ? material.UnitID : 1);
-
-                    requirements.Add(new ProductionRawMaterialRequirement
-                    {
-                        MaterialID = material.ID,
-                        MaterialPNo = material.PNo,
-                        MaterialName = material.Name,
-                        RequiredQtyPieces = consumptionPerProduct * producedQty,
-                        RequiredQtyMeters = requiresCutting ? consumptionPerProduct * producedQty : 0,
-                        WasteQty = wasteQty,
-                        TotalConsumption = totalConsumption,
-                        UnitID = baseUnitId,
-                        RequiresCutting = requiresCutting,
-                        TotalConsumptionIsInKg = false
-                    });
+                    continue;
                 }
 
-                // Agar NORM_INPUT_LINES topilmasa, eski NORMLINES fallback ishlasin.
-                if (!requirements.Any())
+                var totalConsumption = (double)(summary.TotalQuantity * (decimal)producedQty);
+                var unitId = summary.UnitId > 0
+                    ? summary.UnitId
+                    : (material.UnitID > 0 ? material.UnitID : 1);
+
+                requirements.Add(new ProductionRawMaterialRequirement
                 {
-                    var normLines = await _db.NORMLINES
-                        .Where(nl => nl.NormID == normId.Value)
-                        .ToListAsync();
-
-                    foreach (var normLine in normLines)
-                    {
-                        if (!normLine.MaterialID.HasValue || !normLine.QtyPerUnit.HasValue)
-                            continue;
-
-                        var material = await _db.PRODUCTS
-                            .Include(p => p.PRODUCT_CATEGORIES)
-                            .FirstOrDefaultAsync(p => p.ID == normLine.MaterialID.Value);
-                        if (material == null)
-                            continue;
-
-                        var qtyPerUnit = (double)normLine.QtyPerUnit.Value;
-                        var requiredQty = qtyPerUnit * producedQty;
-                        var wasteQty = normLine.WastePercent.HasValue
-                            ? requiredQty * ((double)normLine.WastePercent.Value / 100.0)
-                            : 0.0;
-                        var totalConsumption = requiredQty + wasteQty;
-                        int unitId = normLine.UnitID ?? material.UnitID;
-
-                        requirements.Add(new ProductionRawMaterialRequirement
-                        {
-                            MaterialID = material.ID,
-                            MaterialPNo = material.PNo,
-                            MaterialName = material.Name,
-                            RequiredQtyPieces = requiredQty,
-                            RequiredQtyMeters = 0,
-                            WasteQty = wasteQty,
-                            TotalConsumption = totalConsumption,
-                            UnitID = unitId > 0 ? unitId : material.UnitID,
-                            RequiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false,
-                            TotalConsumptionIsInKg = false
-                        });
-                    }
-                }
-            }
-            else
-            {
-                // No NORMLINES linked, use BOM_LINES directly (no waste calculation)
-                foreach (var bomLine in bomLines)
-                {
-                    if (bomLine.ComponentID.HasValue && bomLine.Qty.HasValue)
-                    {
-                        var material = await _db.PRODUCTS
-                            .Include(p => p.PRODUCT_CATEGORIES)
-                            .FirstOrDefaultAsync(p => p.ID == bomLine.ComponentID.Value);
-
-                        if (material != null)
-                        {
-                            var requiredQty = (double)(bomLine.Qty.Value * (decimal)producedQty);
-                            var requiredQtyPieces = requiredQty;
-                            var requiredQtyMeters = 0.0;
-                            var wasteQty = 0.0;
-                            var totalConsumption = requiredQty;
-
-                            bool requiresCutting = material.CategoryID.HasValue &&
-                                                   material.PRODUCT_CATEGORIES != null &&
-                                                   material.PRODUCT_CATEGORIES.RequiresCutting;
-
-                            bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(material.ID);
-
-                            if (calculateByWeight)
-                            {
-                                decimal pieceQuantity = (decimal)requiredQty;
-
-                                if (requiresCutting)
-                                {
-                                    requiredQtyMeters = requiredQty;
-                                    pieceQuantity = await _conversionService.ConvertMeterToPieceAsync(
-                                        material.ID, (decimal)requiredQty);
-                                    requiredQtyPieces = (double)pieceQuantity;
-                                }
-                                else
-                                {
-                                    requiredQtyPieces = requiredQty;
-                                }
-
-                                try
-                                {
-                                    decimal totalConsumptionKg = await _conversionService.ConvertPieceToKgAsync(
-                                        material.ID, pieceQuantity);
-                                    totalConsumption = (double)totalConsumptionKg;
-                                }
-                                catch
-                                {
-                                    totalConsumption = requiredQtyPieces;
-                                }
-                            }
-                            else if (requiresCutting)
-                            {
-                                requiredQtyMeters = requiredQty;
-                                requiredQtyPieces = (double)await _conversionService.ConvertMeterToPieceAsync(
-                                    material.ID, (decimal)requiredQty);
-                                totalConsumption = requiredQtyPieces;
-                            }
-
-                            int unitId = bomLine.UnitID ?? material.UnitID;
-
-                            requirements.Add(new ProductionRawMaterialRequirement
-                            {
-                                MaterialID = material.ID,
-                                MaterialPNo = material.PNo,
-                                MaterialName = material.Name,
-                                RequiredQtyPieces = requiredQtyPieces,
-                                RequiredQtyMeters = requiredQtyMeters,
-                                WasteQty = wasteQty,
-                                TotalConsumption = totalConsumption,
-                                UnitID = unitId > 0 ? unitId : material.UnitID,
-                                RequiresCutting = requiresCutting,
-                                TotalConsumptionIsInKg = calculateByWeight
-                            });
-                        }
-                    }
-                }
+                    MaterialID = summary.MaterialId,
+                    MaterialPNo = summary.MaterialPno ?? material.PNo,
+                    MaterialName = summary.MaterialName ?? material.Name,
+                    RequiredQtyPieces = totalConsumption,
+                    RequiredQtyMeters = 0,
+                    WasteQty = 0,
+                    TotalConsumption = totalConsumption,
+                    UnitID = unitId,
+                    RequiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false,
+                    TotalConsumptionIsInKg = false
+                });
             }
 
             await NormalizeRequirementsToInventoryUnitsAsync(requirements);
@@ -337,22 +162,6 @@ namespace tahsinERP.Services
             return firstIp != null ? (int?)firstIp.UnitID : null;
         }
 
-        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
-        {
-            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
-                return 0;
-            if (requiresCutting && cutLengthMm > 0)
-                return (decimal)(consumptionDb.Value / 1000.0);
-            return (decimal)consumptionDb.Value;
-        }
-
-        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
-        {
-            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
-                return 0;
-            return (decimal)(wasteAmountDb.Value / 1000.0);
-        }
-
         /// <summary>
         /// FIFO: Gets piece price and total price for consuming given qty from oldest income batches first.
         /// </summary>
@@ -417,16 +226,14 @@ namespace tahsinERP.Services
                 return;
             }
 
-            // Validate stock before creating expense
+            // Validate stock before creating expense (DLOC + umumiy qoldiq)
             foreach (var req in requirements)
             {
-                var stock = await _db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == warehouseId && s.ProductID == req.MaterialID);
-
-                if (stock == null || stock.Amount < req.TotalConsumption)
+                var availableQty = InventoryValuationService.GetQty(_db, warehouseId, req.MaterialID);
+                if (availableQty + 1e-9 < req.TotalConsumption)
                 {
                     throw new InvalidOperationException(
-                        $"Omborda yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo}, Talab: {req.TotalConsumption}, Mavjud: {stock?.Amount ?? 0}");
+                        $"Omborda yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo}, Talab: {req.TotalConsumption}, Mavjud: {availableQty}");
                 }
             }
 
@@ -471,10 +278,10 @@ namespace tahsinERP.Services
             {
                 var (piecePrice, totalPrice) = await GetFifoPricesAsync(req.MaterialID, warehouseId, req.TotalConsumption);
                 var displayUnitId = GetDisplayUnitFromIncome(req.MaterialID);
-                if (!displayUnitId.HasValue)
+                if (!displayUnitId.HasValue || displayUnitId.Value <= 0)
                 {
-                    throw new InvalidOperationException(
-                        $"Mahsulot {req.MaterialPNo ?? req.MaterialID.ToString()} uchun kirim topilmadi. Birlik aniqlanishi uchun avval xomashyoni kirim qilishingiz kerak.");
+                    var material = await _db.PRODUCTS.FindAsync(req.MaterialID);
+                    displayUnitId = material?.UnitID > 0 ? material.UnitID : (req.UnitID > 0 ? req.UnitID : 1);
                 }
 
                 var expenseProduct = new EXPENSE_PRODUCTS
@@ -489,31 +296,14 @@ namespace tahsinERP.Services
                 };
 
                 _db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                await _db.SaveChangesAsync();
+
                 totalAmount += req.TotalConsumption;
                 totalExpensePrice += totalPrice;
 
-                // Get stock in warehouse
-                var stock = await _db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == warehouseId && s.ProductID == req.MaterialID);
-
-                if (stock == null)
-                {
-                    throw new Exception($"Omborda mahsulot qoldig'i topilmadi: {req.MaterialPNo ?? req.MaterialID.ToString()}");
-                }
-
-                if (stock.Amount < req.TotalConsumption)
-                {
-                    throw new Exception(
-                        $"Omborda yetarli qoldiq yo'q. " +
-                        $"Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
-                        $"Mavjud: {stock.Amount}, Talab: {req.TotalConsumption}");
-                }
-
-                // Subtract total consumption (including waste)
-                stock.Amount -= req.TotalConsumption;
-                if (stock.Amount < 0) stock.Amount = 0;
-
-                _db.Entry(stock).State = EntityState.Modified;
+                await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
+                    _db, warehouseId, req.MaterialID, req.TotalConsumption,
+                    displayUnitId.Value, expenseProduct.ID);
 
                 // Record waste if applicable
                 if (req.WasteQty > 0 && productionProcessId.HasValue)

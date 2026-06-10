@@ -7,6 +7,7 @@
 
 @{
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+    bool dlocEnabled = ViewBag.DlocEnabled as bool? ?? false;
 }
 <div class="app-content content">
         <div class="content-overlay"></div>
@@ -75,6 +76,10 @@
                                                     <th>Tavsif</th>
                                                     <th>Sex</th>
                                                     <th>MRP (Mas'ul shaxs)</th>
+                                                    @if (dlocEnabled)
+                                                    {
+                                                        <th>DLOC</th>
+                                                    }
                                                     @if (changePermit)
                                                     {
                                                         <th>Amallar</th>
@@ -93,17 +98,37 @@
                                                         <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
                                                         <td>@(item.SHOP?.ShopName ?? "-")</td>
                                                         <td>@(item.USER?.FullName ?? "-")</td>
+                                                        @if (dlocEnabled)
+                                                        {
+                                                            <td>
+                                                                <div class="d-inline-flex">
+                                                                    <a href="@Url.Action("Index", "WarehouseLocations", new { warehouseId = item.ID })"
+                                                                       class="btn btn-sm btn-icon btn-info mr-1"
+                                                                       title="DLOC ro'yxati">
+                                                                        <i class="bx bx-grid-alt"></i>
+                                                                    </a>
+                                                                    @if (changePermit)
+                                                                    {
+                                                                        <a href="@Url.Action("Create", "WarehouseLocations", new { warehouseId = item.ID })"
+                                                                           class="btn btn-sm btn-icon btn-success"
+                                                                           title="DLOC qo'shish">
+                                                                            <i class="bx bx-plus"></i>
+                                                                        </a>
+                                                                    }
+                                                                </div>
+                                                            </td>
+                                                        }
                                                         @if (changePermit)
                                                         {
                                                             <td>
                                                                 <div class="d-inline-flex">
-                                                                    <a href="@Url.Action("Edit", "Warehouse", new { id = item.ID })" 
-                                                                       class="btn btn-sm btn-icon btn-primary mr-1" 
+                                                                    <a href="@Url.Action("Edit", "Warehouse", new { id = item.ID })"
+                                                                       class="btn btn-sm btn-icon btn-primary mr-1"
                                                                        title="Tahrirlash">
                                                                         <i class="bx bx-edit-alt"></i>
                                                                     </a>
-                                                                    <a href="@Url.Action("Delete", "Warehouse", new { id = item.ID })" 
-                                                                       class="btn btn-sm btn-icon btn-danger" 
+                                                                    <a href="@Url.Action("Delete", "Warehouse", new { id = item.ID })"
+                                                                       class="btn btn-sm btn-icon btn-danger"
                                                                        title="O'chirish">
                                                                         <i class="bx bx-trash"></i>
                                                                     </a>

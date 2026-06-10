@@ -9,6 +9,8 @@ using System.Web.Mvc;
 using OfficeOpenXml;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.DlocFifo;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
@@ -25,6 +27,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+
                 var query = db.PRODUCT_STOCKS
                     .Include(s => s.Warehouse)
                     .Include(s => s.PRODUCT)
@@ -118,8 +121,209 @@ namespace tahsinERP.Controllers
                 ViewBag.IsFinishedGood = isFinishedGood;
                 ViewBag.IsRawMaterial = isRawMaterial;
                 ViewBag.HasMrpWarehouses = assignedWarehouseIds.Any();
+                ViewBag.DlocStockEnabled = DlocFifoSchema.IsEnabled(db);
 
                 return View(stocks);
+            }
+        }
+
+        /// <summary>Qoldiq joy (DLOC) bo'yicha — alohida sahifa.</summary>
+        public async Task<ActionResult> IndexDloc(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            using (var db = new DBTHSNEntities())
+            {
+                if (!DlocFifoSchema.IsEnabled(db))
+                {
+                    TempData["Error"] = "DLOC moduli yoqilmagan. Avval migration scriptni ishga tushiring.";
+                    return RedirectToAction("Index");
+                }
+
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (assignedWarehouseIds.Any() && warehouseId.HasValue && !assignedWarehouseIds.Contains(warehouseId.Value))
+                    warehouseId = null;
+
+                List<InventoryDlocStockRow> dlocRows;
+                try
+                {
+                    dlocRows = DlocFifoDataAccess.GetInventoryByDloc(
+                        db, warehouseId, null,
+                        assignedWarehouseIds.Any() ? assignedWarehouseIds : null);
+                }
+                catch (Exception ex)
+                {
+                    dlocRows = new List<InventoryDlocStockRow>();
+                    TempData["Error"] = "DLOC qoldiq yuklanmadi: " + ex.Message;
+                }
+
+                if (categoryId.HasValue)
+                {
+                    var catProductIds = await db.PRODUCTS
+                        .Where(p => p.CategoryID == categoryId.Value && p.IsDeleted != true)
+                        .Select(p => p.ID)
+                        .ToListAsync();
+                    dlocRows = dlocRows.Where(r => catProductIds.Contains(r.ProductID)).ToList();
+                }
+
+                if (isFinishedGood.HasValue)
+                {
+                    var fgIds = await db.PRODUCTS
+                        .Include(p => p.PRODUCT_CATEGORIES)
+                        .Where(p => p.IsDeleted != true)
+                        .Where(p => isFinishedGood.Value
+                            ? p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true
+                            : p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood != true)
+                        .Select(p => p.ID)
+                        .ToListAsync();
+                    dlocRows = dlocRows.Where(r => fgIds.Contains(r.ProductID)).ToList();
+                }
+
+                if (isRawMaterial.HasValue && isRawMaterial.Value)
+                {
+                    var rmIds = await db.PRODUCTS
+                        .Include(p => p.PRODUCT_CATEGORIES)
+                        .Where(p => p.IsDeleted != true)
+                        .Where(p => p.IsRawMaterial == true ||
+                                    (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsRawMaterial == true))
+                        .Select(p => p.ID)
+                        .ToListAsync();
+                    dlocRows = dlocRows.Where(r => rmIds.Contains(r.ProductID)).ToList();
+                }
+
+                ViewBag.Warehouses = new SelectList(
+                    await db.WAREHOUSES.Where(w => w.IsDeleted != true &&
+                        (!assignedWarehouseIds.Any() || assignedWarehouseIds.Contains(w.ID)))
+                        .OrderBy(w => w.WHName).ToListAsync(),
+                    "ID", "WHName", warehouseId);
+                ViewBag.Categories = new SelectList(
+                    await db.PRODUCT_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync(),
+                    "ID", "Name", categoryId);
+                ViewBag.WarehouseId = warehouseId;
+                ViewBag.CategoryId = categoryId;
+                ViewBag.IsFinishedGood = isFinishedGood;
+                ViewBag.IsRawMaterial = isRawMaterial;
+                ViewBag.HasMrpWarehouses = assignedWarehouseIds.Any();
+                ViewBag.TotalRows = dlocRows.Count;
+
+                return View(dlocRows);
+            }
+        }
+
+        /// <summary>DLOC belgilanmagan umumiy qoldiqlarni joylashtirish.</summary>
+        public async Task<ActionResult> AssignDloc(int? warehouseId)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            using (var db = new DBTHSNEntities())
+            {
+                if (!DlocFifoSchema.IsEnabled(db))
+                {
+                    TempData["Error"] = "DLOC moduli yoqilmagan. Avval migration scriptni ishga tushiring.";
+                    return RedirectToAction("Index");
+                }
+
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (assignedWarehouseIds.Any() && warehouseId.HasValue && !assignedWarehouseIds.Contains(warehouseId.Value))
+                    warehouseId = null;
+
+                var dlocWarehouses = await db.WAREHOUSES
+                    .Where(w => w.IsDeleted != true &&
+                                (!assignedWarehouseIds.Any() || assignedWarehouseIds.Contains(w.ID)))
+                    .OrderBy(w => w.WHName)
+                    .ToListAsync();
+
+                dlocWarehouses = dlocWarehouses
+                    .Where(w => DlocFifoDataAccess.WarehouseHasLocations(db, w.ID))
+                    .ToList();
+
+                ViewBag.Warehouses = new SelectList(dlocWarehouses, "ID", "WHName", warehouseId);
+                ViewBag.WarehouseId = warehouseId;
+
+                var rows = warehouseId.HasValue
+                    ? LegacyDlocAssignmentService.GetUnassignedRows(db, warehouseId, assignedWarehouseIds.Any() ? assignedWarehouseIds : null)
+                    : new List<UnassignedDlocStockRow>();
+
+                if (warehouseId.HasValue)
+                {
+                    var locations = DlocFifoDataAccess.GetLocations(db, warehouseId.Value, activeOnly: true);
+                    ViewBag.DlocLocations = locations;
+                    ViewBag.DlocLocationsJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+                        locations.Select(l => new
+                        {
+                            l.ID,
+                            l.LocationCode,
+                            l.LocationName,
+                            l.MaxCapacity,
+                            CurrentQty = DlocFifoDataAccess.GetLocationCurrentQty(db, l.ID)
+                        }));
+                }
+
+                var model = new AssignDlocPageViewModel
+                {
+                    WarehouseId = warehouseId,
+                    Rows = rows
+                };
+
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AssignDloc(AssignDlocPostViewModel model)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            using (var db = new DBTHSNEntities())
+            {
+                if (!DlocFifoSchema.IsEnabled(db))
+                {
+                    TempData["Error"] = "DLOC moduli yoqilmagan.";
+                    return RedirectToAction("Index");
+                }
+
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(model.WarehouseId))
+                {
+                    TempData["Error"] = "Ushbu ombor uchun ruxsat yo'q.";
+                    return RedirectToAction("AssignDloc");
+                }
+
+                try
+                {
+                    var requests = (model.Lines ?? new List<AssignDlocPostLine>())
+                        .Where(l => l.Selected && l.LocationID > 0 && l.AssignQty > 0)
+                        .Select(l => new AssignDlocLineRequest
+                        {
+                            ProductID = l.ProductID,
+                            LocationID = l.LocationID,
+                            AssignQty = l.AssignQty
+                        })
+                        .ToList();
+
+                    var count = LegacyDlocAssignmentService.AssignToLocations(
+                        db, model.WarehouseId, requests, User.Identity.Name);
+
+                    TempData["Success"] = $"{count} ta mahsulot DLOC ga joylashtirildi.";
+                    return RedirectToAction("AssignDloc", new { warehouseId = model.WarehouseId });
+                }
+                catch (WarehouseDlocException wex)
+                {
+                    TempData["Error"] = wex.Message;
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = ex.Message;
+                }
+
+                return RedirectToAction("AssignDloc", new { warehouseId = model.WarehouseId });
             }
         }
 

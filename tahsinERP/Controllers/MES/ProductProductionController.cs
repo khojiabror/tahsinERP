@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using tahsinERP.Services;
+using tahsinERP.Services.DlocFifo;
 using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.MES
@@ -93,6 +94,8 @@ namespace tahsinERP.Controllers.MES
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
+                    using (var transaction = db.Database.BeginTransaction())
+                    {
                     try
                     {
                         var planDay = viewModel.Date.Date;
@@ -100,7 +103,16 @@ namespace tahsinERP.Controllers.MES
                         var allProductionsForShop = db.PRODUCT_PRODUCTION
                             .Where(p => p.ShopID == viewModel.ShopID)
                             .ToList();
-                        var itemsToProcess = viewModel.ProductionItems.Where(i => i.Total > 0).ToList();
+                        var itemsToProcess = (viewModel.ProductionItems ?? new List<ProductionEntryItem>())
+                            .Where(i => i.Total > 0)
+                            .ToList();
+
+                        if (!itemsToProcess.Any())
+                        {
+                            ModelState.AddModelError("", "Kamida bitta mahsulot uchun jami miqdor (kunduzgi + tungi) 0 dan katta bo'lishi kerak.");
+                            transaction.Rollback();
+                            goto RepopulateAfterCreateError;
+                        }
 
                         // Xomashyo yetarliligini oldindan tekshirish: production kiritishda bloklansin,
                         // reja yaratishda emas. Avval tekshirib olamiz, keyin yozishlarni boshlaymiz.
@@ -114,6 +126,7 @@ namespace tahsinERP.Controllers.MES
                             var stockError = await ValidateRawMaterialStockForProductionAsync(
                                 item.ProductID,
                                 item.Total,
+                                viewModel.ShopID,
                                 db,
                                 existingForCheck?.ProductID,
                                 existingForCheck?.Total);
@@ -121,10 +134,8 @@ namespace tahsinERP.Controllers.MES
                             if (!string.IsNullOrEmpty(stockError))
                             {
                                 ModelState.AddModelError("", stockError);
-                                LoadPlannedProducts(viewModel, db);
-                                ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
-                                return View(viewModel);
+                                transaction.Rollback();
+                                goto RepopulateAfterCreateError;
                             }
                         }
 
@@ -168,42 +179,46 @@ namespace tahsinERP.Controllers.MES
                                 existing = production;
                             }
 
-                            // Tayyor mahsulot: kirim hujjati (INCOME) + qoldiq — Edit bilan bir xil mantiq; tahrirda faqat delta
-                            var product = db.PRODUCTS.Find(item.ProductID);
-                            if (product != null && product.IsFinishedGood == true)
+                            // Ishlab chiqarish → avtomatik kirim + ombor qoldig'i (sifat nazorati transferni bloklaydi, qoldiqni emas)
+                            if (previousTotalForDelta.HasValue)
                             {
-                                if (previousTotalForDelta.HasValue)
+                                var delta = item.Total - previousTotalForDelta.Value;
+                                var prodId = existing?.ID ?? 0;
+                                if (Math.Abs(delta) < 1e-9 && prodId > 0
+                                    && !WarehouseFlowService.HasProductionIncome(db, prodId)
+                                    && item.Total > 0)
                                 {
-                                    var delta = item.Total - previousTotalForDelta.Value;
-                                    WarehouseFlowService.ApplyProductionWarehouseStockDelta(
-                                        item.ProductID,
-                                        delta,
-                                        viewModel.ShopID,
-                                        db,
-                                        User.Identity.Name,
-                                        existing?.ID);
-
-                                    if (delta > 0.0001)
-                                    {
-                                        await ConsumeMaterialsForProduction(item.ProductID, delta, db, existing?.ID, existing?.Date);
-                                    }
-                                    else if (delta < -0.0001)
-                                    {
-                                        await RevertMaterialConsumption(item.ProductID, -delta, db);
-                                    }
+                                    WarehouseFlowService.IncreaseProductionStock(
+                                        item.ProductID, item.Total, viewModel.ShopID, db,
+                                        User.Identity.Name, prodId);
                                 }
                                 else
                                 {
-                                    WarehouseFlowService.IncreaseProductionStock(
-                                        item.ProductID,
-                                        item.Total,
-                                        viewModel.ShopID,
-                                        db,
-                                        User.Identity.Name,
-                                        existing?.ID);
-
-                                    await ConsumeMaterialsForProduction(item.ProductID, item.Total, db, existing?.ID, existing?.Date);
+                                    WarehouseFlowService.ApplyProductionWarehouseStockDelta(
+                                        item.ProductID, delta, viewModel.ShopID, db,
+                                        User.Identity.Name, existing?.ID);
                                 }
+
+                                if (delta > 0.0001)
+                                {
+                                    await ConsumeMaterialsForProduction(item.ProductID, delta, viewModel.ShopID, db, existing?.ID, existing?.Date);
+                                }
+                                else if (delta < -0.0001)
+                                {
+                                    await RevertMaterialConsumption(item.ProductID, -delta, viewModel.ShopID, db);
+                                }
+                            }
+                            else
+                            {
+                                WarehouseFlowService.IncreaseProductionStock(
+                                    item.ProductID,
+                                    item.Total,
+                                    viewModel.ShopID,
+                                    db,
+                                    User.Identity.Name,
+                                    existing?.ID);
+
+                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, viewModel.ShopID, db, existing?.ID, existing?.Date);
                             }
 
                             if (productForLog != null)
@@ -212,13 +227,17 @@ namespace tahsinERP.Controllers.MES
                         }
 
                         db.SaveChanges();
+                        transaction.Commit();
 
                         TempData["Success"] = "Ishlab chiqarish muvaffaqiyatli saqlandi";
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
+                        transaction.Rollback();
+                        var errorMessage = ex is WarehouseDlocException dlocEx
+                            ? dlocEx.Message
+                            : $"Xatolik: {ex.Message}";
                         var innerEx = ex.InnerException;
                         while (innerEx != null)
                         {
@@ -226,6 +245,17 @@ namespace tahsinERP.Controllers.MES
                             innerEx = innerEx.InnerException;
                         }
                         ModelState.AddModelError("", errorMessage);
+                        TempData["Error"] = errorMessage;
+                    }
+                    }
+
+                    RepopulateAfterCreateError:
+                    if (!ModelState.IsValid || ModelState.Values.SelectMany(v => v.Errors).Any())
+                    {
+                        LoadPlannedProducts(viewModel, db);
+                        ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
+                        ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                        return View(viewModel);
                     }
                 }
             }
@@ -329,6 +359,7 @@ namespace tahsinERP.Controllers.MES
                     var stockError = await ValidateRawMaterialStockForProductionAsync(
                         viewModel.ProductID,
                         viewModel.Total,
+                        viewModel.ShopID,
                         db,
                         production.ProductID,
                         production.Total);
@@ -340,27 +371,16 @@ namespace tahsinERP.Controllers.MES
                         return View(viewModel);
                     }
 
-                    // Revert old warehouse entry (uchun finished goods faqat)
-                    var oldProduct = db.PRODUCTS.Find(production.ProductID);
-                    if (oldProduct != null && oldProduct.IsFinishedGood == true)
+                    var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                    if (productionWH != null)
                     {
-                        // Decrease old stock
-                        var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
-                        if (productionWH != null)
-                        {
-                            var oldStock = db.PRODUCT_STOCKS
-                                .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
-                            if (oldStock != null)
-                            {
-                                oldStock.Amount -= production.Total;
-                                if (oldStock.Amount < 0) oldStock.Amount = 0;
-                                db.Entry(oldStock).State = EntityState.Modified;
-                            }
-                        }
-
-                        // Revert old material consumption
-                        await RevertMaterialConsumption(production.ProductID, production.Total, db);
+                        var oldStock = db.PRODUCT_STOCKS
+                            .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
+                        WarehouseFlowService.ApplyIncomeIssueFromStock(
+                            db, productionWH.ID, production.ProductID, production.Total,
+                            oldStock?.UnitID > 0 ? oldStock.UnitID : 1);
                     }
+                    await RevertMaterialConsumption(production.ProductID, production.Total, production.ShopID, db);
 
                     // Yangilash production
                     production.ProductID = viewModel.ProductID;
@@ -371,22 +391,15 @@ namespace tahsinERP.Controllers.MES
                     production.Total = viewModel.Total;
                     production.Comment = viewModel.Comment;
 
-                    // Yangilash warehouse bilan new values (uchun finished goods faqat)
-                    var newProduct = db.PRODUCTS.Find(viewModel.ProductID);
-                    if (newProduct != null && newProduct.IsFinishedGood == true)
-                    {
-                        WarehouseFlowService.IncreaseProductionStock(
-                            viewModel.ProductID, 
-                            viewModel.Total, 
-                            viewModel.ShopID, 
-                            db, 
-                            User.Identity.Name,
-                            viewModel.ID
-                        );
+                    WarehouseFlowService.IncreaseProductionStock(
+                        viewModel.ProductID,
+                        viewModel.Total,
+                        viewModel.ShopID,
+                        db,
+                        User.Identity.Name,
+                        viewModel.ID);
 
-                        // Consume materials uchun new production
-                        await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, db, viewModel.ID, viewModel.Date);
-                    }
+                    await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, viewModel.ShopID, db, viewModel.ID, viewModel.Date);
 
                     db.Entry(production).State = EntityState.Modified;
                     db.SaveChanges();
@@ -621,26 +634,16 @@ namespace tahsinERP.Controllers.MES
                     return RedirectToAction("Index");
                 }
 
-                // Revert warehouse entry (uchun finished goods faqat)
-                var product = db.PRODUCTS.Find(production.ProductID);
-                if (product != null && product.IsFinishedGood == true)
+                var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                if (productionWH != null)
                 {
-                    var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
-                    if (productionWH != null)
-                    {
-                        var stock = db.PRODUCT_STOCKS
-                            .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
-                        if (stock != null)
-                        {
-                            stock.Amount -= production.Total;
-                            if (stock.Amount < 0) stock.Amount = 0;
-                            db.Entry(stock).State = EntityState.Modified;
-                    }
-                    }
-
-                    // Revert material consumption
-                    await RevertMaterialConsumption(production.ProductID, production.Total, db);
+                    var stock = db.PRODUCT_STOCKS
+                        .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
+                    WarehouseFlowService.ApplyIncomeIssueFromStock(
+                        db, productionWH.ID, production.ProductID, production.Total,
+                        stock?.UnitID > 0 ? stock.UnitID : 1);
                 }
+                await RevertMaterialConsumption(production.ProductID, production.Total, production.ShopID, db);
 
                 production.IsDeleted = true;
                 db.Entry(production).State = System.Data.Entity.EntityState.Modified;
@@ -661,11 +664,12 @@ namespace tahsinERP.Controllers.MES
         private async Task<string> ValidateRawMaterialStockForProductionAsync(
             int productId,
             double producedQty,
+            int shopId,
             DBTHSNEntities db,
             int? oldProductId = null,
             double? oldProducedQty = null)
         {
-            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
             if (productionWarehouse == null)
             {
                 return "Ishlab chiqarish ombori topilmadi";
@@ -697,11 +701,7 @@ namespace tahsinERP.Controllers.MES
 
             foreach (var req in newRequirements)
             {
-                var stock = await db.PRODUCT_STOCKS
-                    .Include(s => s.UNIT)
-                    .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
-
-                var availableQty = stock?.Amount ?? 0d;
+                var availableQty = InventoryValuationService.GetQty(db, productionWarehouse.ID, req.MaterialID);
                 if (oldConsumptionByMaterial.ContainsKey(req.MaterialID))
                 {
                     availableQty += oldConsumptionByMaterial[req.MaterialID];
@@ -709,6 +709,9 @@ namespace tahsinERP.Controllers.MES
 
                 if (availableQty + 1e-9 < req.TotalConsumption)
                 {
+                    var stock = await db.PRODUCT_STOCKS
+                        .Include(s => s.UNIT)
+                        .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
                     var unitName = (stock?.UNIT != null)
                         ? (stock.UNIT.ShortName ?? stock.UNIT.UnitName ?? "").Trim()
                         : "";
@@ -730,9 +733,9 @@ namespace tahsinERP.Controllers.MES
         /// Consumes materials dan Production warehouse when production is confirmed.
         /// uchun weight-based materials (e.g. shurup) BOM dona is converted ga kg va deducted dan stock.
         /// </summary>
-        private async Task ConsumeMaterialsForProduction(int productId, double producedQty, DBTHSNEntities db, int? productionId = null, DateTime? productionDate = null)
+        private async Task ConsumeMaterialsForProduction(int productId, double producedQty, int shopId, DBTHSNEntities db, int? productionId = null, DateTime? productionDate = null)
         {
-            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
             if (productionWarehouse == null)
             {
                 throw new Exception("Ishlab chiqarish ombori topilmadi");
@@ -746,9 +749,9 @@ namespace tahsinERP.Controllers.MES
         /// <summary>
         /// Reverts material consumption (uchun edit/o'chirish operations). Adds back ga production warehouse in same unit (kg uchun weight-based).
         /// </summary>
-        private async Task RevertMaterialConsumption(int productId, double producedQty, DBTHSNEntities db)
+        private async Task RevertMaterialConsumption(int productId, double producedQty, int shopId, DBTHSNEntities db)
         {
-            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db);
+            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
 
             if (productionWarehouse == null)
             {
@@ -764,11 +767,9 @@ namespace tahsinERP.Controllers.MES
                 var stock = await db.PRODUCT_STOCKS
                     .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
 
-                if (stock != null)
-                {
-                    stock.Amount += req.TotalConsumption;
-                    db.Entry(stock).State = EntityState.Modified;
-                }
+                WarehouseFlowService.ApplyIncomeReceiveToStock(
+                    db, productionWarehouse.ID, req.MaterialID, req.TotalConsumption,
+                    stock?.UnitID > 0 ? stock.UnitID : 1);
             }
 
             await db.SaveChangesAsync();

@@ -16,6 +16,9 @@
     }
 
     var productsData = ViewBag.ProductsData as IEnumerable<tahsinERP.ViewModels.ProductLookupItem> ?? new List<tahsinERP.ViewModels.ProductLookupItem>();
+    var requireDloc = ViewBag.RequireDloc == true;
+    var dlocEnabled = ViewBag.DlocEnabled == true;
+    var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
@@ -106,6 +109,10 @@
                                                         <tr>
                                                             <th>Mahsulot</th>
                                                             <th>Mahsulot nomi</th>
+                                                            @if (dlocEnabled)
+                                                            {
+                                                                <th>DLOC @(requireDloc ? Html.Raw("<span class=\"text-danger\">*</span>") : null)</th>
+                                                            }
                                                             <th>Miqdor</th>
                                                             <th>Birlik</th>
                                                             <th>Dona narxi</th>
@@ -138,6 +145,19 @@
                                                                         <input type="text" class="form-control product-name-display" value="@product.ProductName" disabled />
                                                                         @Html.HiddenFor(m => m.IncomeProducts[i].ProductName, new { @class = "product-name" })
                                                                     </td>
+                                                                    @if (dlocEnabled)
+                                                                    {
+                                                                        <td>
+                                                                            @if (requireDloc)
+                                                                            {
+                                                                                @Html.DropDownListFor(m => m.IncomeProducts[i].LocationID, ViewBag.DlocLocations as SelectList, "Tanlang...", new { @class = "form-control dloc-select select2", required = "required" })
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <span class="text-muted small">DLOC yo‘q</span>
+                                                                            }
+                                                                        </td>
+                                                                    }
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.IncomeProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
@@ -165,7 +185,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td colspan="6" class="text-right"><strong>Jami:</strong></td>
+                                                            <td colspan="@(dlocEnabled ? 8 : 6)" class="text-right"><strong>Jami:</strong></td>
                                                             <td id="totalAmount" class="text-right"><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
                                                             <td colspan="2"></td>
                                                         </tr>
@@ -211,6 +231,9 @@
                     var productRowIndex = @(Model.IncomeProducts?.Count ?? 0);
                     var products = @Html.Raw(Json.Encode(ViewBag.ProductsData ?? new List<object>()));
                     var units = @Html.Raw(Json.Encode(unitsData));
+                    var requireDloc = @(requireDloc ? "true" : "false");
+                    var dlocEnabled = @(dlocEnabled ? "true" : "false");
+                    var dlocLocations = @Html.Raw(dlocLocationsJson);
 
                     function escapeHtml(text) {
                         return String(text == null ? '' : text)
@@ -238,6 +261,17 @@
                         units.forEach(function (unit) {
                             var selected = unit.Value == selectedId ? 'selected' : '';
                             options += '<option value="' + escapeHtml(unit.Value) + '" ' + selected + '>' + escapeHtml(unit.Text) + '</option>';
+                        });
+                        return options;
+                    }
+
+                    function buildDlocOptions(selectedId) {
+                        var options = '<option value="">---DLOC---</option>';
+                        (dlocLocations || []).forEach(function (loc) {
+                            var id = loc.ID || loc.id;
+                            var code = loc.LocationCode || loc.locationCode || '';
+                            var selected = selectedId && String(selectedId) === String(id) ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(String(id)) + '" ' + selected + '>' + escapeHtml(code) + '</option>';
                         });
                         return options;
                     }
@@ -305,6 +339,13 @@
                     updateTotal();
 
                     $('#addRowBtn').click(function () {
+                        var dlocTd = '';
+                        if (dlocEnabled && requireDloc) {
+                            dlocTd = '<td><select name="IncomeProducts[' + productRowIndex + '].LocationID" class="form-control dloc-select select2" required>' +
+                                buildDlocOptions(null) + '</select></td>';
+                        } else if (dlocEnabled) {
+                            dlocTd = '<td class="small text-muted">DLOC yo‘q</td>';
+                        }
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
                                 '<select name="IncomeProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
@@ -317,6 +358,7 @@
                                 '<input type="text" class="form-control product-name-display" value="" disabled />' +
                                 '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductName" class="product-name" value="" />' +
                             '</td>' +
+                            dlocTd +
                             '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].Amount" class="form-control amount-input" step="0.01" min="0" required /></td>' +
                             '<td>' +
                                 '<select name="IncomeProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
@@ -336,6 +378,9 @@
                         if (typeof $.fn.select2 !== 'undefined') {
                             $row.find('select.product-select').select2();
                             $row.find('select.unit-select').select2();
+                            if (dlocEnabled && requireDloc) {
+                                $row.find('select.dloc-select').select2();
+                            }
                         }
 
                         $row.find('.comment-input').data('userComment', '');

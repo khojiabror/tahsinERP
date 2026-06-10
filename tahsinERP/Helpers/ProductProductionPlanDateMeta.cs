@@ -6,7 +6,8 @@ namespace tahsinERP.Helpers
 {
     /// <summary>
     /// Kunlik ishlab chiqarishda reja sanasi va fakt sanasi ajralganda, reja kunini saqlash uchun Comment maydonidagi meta.
-    /// Sifat tekshiruvi va reja yuklash shu kun bo'yicha ishlaydi.
+    /// Ishlab chiqarish kiritish/reja yuklash: reja kuni va fakt sanasi ajratilganda Comment orqali bog'lanadi.
+    /// Sifat nazorati esa faqat PRODUCT_PRODUCTION fakt sanasi va Total bo'yicha ishlaydi (reja limiti yo'q).
     /// </summary>
     public static class ProductProductionPlanDateMeta
     {

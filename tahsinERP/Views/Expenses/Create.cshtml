@@ -358,14 +358,28 @@
                         $.post('@Url.Action("GetAvailableIncomeLots", "Expenses")', { warehouseId: warehouseId, productId: productId })
                             .done(function(res) {
                                 var opts = '<option value="">---Tanlanmagan---</option>';
+                                var hasRealLots = false;
                                 if (res.success && res.data && res.data.length) {
-                                    res.data.forEach(function(lot, i) {
-                                        opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
+                                    res.data.forEach(function(lot) {
+                                        if (lot.IsLegacy || lot.IncomeID === 0) {
+                                            opts += '<option value="0" data-max="' + (lot.RemainingAmount || res.legacyUnassignedQty || '') + '">' +
+                                                escapeHtml(lot.DisplayText) + '</option>';
+                                        } else {
+                                            hasRealLots = true;
+                                            opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
+                                        }
                                     });
-                                    $lotSelect.html(opts);
-                                    if (res.data.length) $lotSelect.val(res.data[0].IncomeID);
-                                } else {
-                                    $lotSelect.html(opts);
+                                }
+                                $lotSelect.html(opts);
+                                if (res.allowLegacy && !hasRealLots) {
+                                    $lotSelect.val('0');
+                                    var maxLegacy = res.legacyUnassignedQty;
+                                    if (maxLegacy) {
+                                        $row.find('.amount-input').attr('max', maxLegacy);
+                                    }
+                                } else if (hasRealLots) {
+                                    var first = res.data.filter(function(l) { return l.IncomeID > 0; })[0];
+                                    if (first) $lotSelect.val(first.IncomeID);
                                 }
                                 if (typeof $lotSelect.data('select2')) $lotSelect.trigger('change.select2');
                             })
@@ -376,6 +390,18 @@
                         var $row = $(this).closest('tr');
                         syncProductFields($row);
                         loadLotOptions($row);
+                    });
+
+                    $(document).on('change', '.lot-select', function () {
+                        var $row = $(this).closest('tr');
+                        var $opt = $(this).find('option:selected');
+                        var maxLegacy = $opt.data('max');
+                        var stock = parseFloat($row.find('.available-stock').val()) || 0;
+                        if ($(this).val() === '0' && maxLegacy) {
+                            $row.find('.amount-input').attr('max', Math.min(stock, parseFloat(maxLegacy)));
+                        } else {
+                            $row.find('.amount-input').attr('max', stock);
+                        }
                     });
 
                     $(document).on('input', '.amount-input, .price-input', function () {

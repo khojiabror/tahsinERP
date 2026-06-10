@@ -34,6 +34,9 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "Izoh")]
         public string Description { get; set; }
+
+        [Display(Name = "Joylashuv (DLOC)")]
+        public int? LocationID { get; set; }
         
         [DataType(DataType.Upload)]
         [Display(Name = "Hujjat fayli")]
@@ -139,6 +142,9 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "Izoh")]
         public string Comment { get; set; }
+
+        [Display(Name = "Joylashuv (DLOC)")]
+        public int? LocationID { get; set; }
         
         // For cutting materials
         public bool RequiresCutting { get; set; }

@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Controllers;
 using tahsinERP.Services;
+using tahsinERP.Services.DlocFifo;
 
 namespace tahsinERP.Controllers
 {
@@ -716,11 +717,8 @@ namespace tahsinERP.Controllers
 
                         foreach (var line in lines)
                         {
-                            var stock = db.PRODUCT_STOCKS
-                                .FirstOrDefault(s => s.WHID == salesWH.ID && s.ProductID == line.ProductID);
-
-                            var availableQty = stock?.Amount ?? 0;
-                            if (line.Qty > (decimal)availableQty)
+                            var availableQty = InventoryValuationService.GetQty(db, salesWH.ID, line.ProductID);
+                            if (line.Qty > (decimal)availableQty + 1e-9m)
                             {
                                 var product = db.PRODUCTS.Find(line.ProductID);
                                 ModelState.AddModelError("",
@@ -901,24 +899,30 @@ namespace tahsinERP.Controllers
             // 2) O'chirilmagan
             // 3) IsFinishedGood == true (PRODUCT yoki CATEGORY)
             // 4) IsRawMaterial == true bo'lsa ko'rsatilmaydi (PRODUCT yoki CATEGORY)
-            var products = db.PRODUCT_STOCKS
-                .Include(s => s.PRODUCT)
-                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                .Where(s => s.WHID == salesWH.ID
-                    && s.Amount > 0
-                    && s.PRODUCT.IsDeleted == false
-                    && (s.PRODUCT.IsFinishedGood == true
-                        || (s.PRODUCT.PRODUCT_CATEGORIES != null && s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true))
-                    && (s.PRODUCT.IsRawMaterial != true)
-                    && (s.PRODUCT.PRODUCT_CATEGORIES == null || s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial != true))
-                .OrderBy(s => s.PRODUCT.PNo)
+            var productIds = db.PRODUCTS
+                .Where(p => p.IsDeleted == false
+                    && (p.IsFinishedGood == true
+                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true))
+                    && (p.IsRawMaterial != true)
+                    && (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsRawMaterial != true))
+                .Select(p => p.ID)
                 .ToList();
 
-            var selectItems = products.Select(p => new SelectListItem
-            {
-                Value = p.ProductID.ToString(),
-                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} (Mavjud: {p.Amount})"
-            }).ToList();
+            var selectItems = productIds
+                .Select(pid =>
+                {
+                    var p = db.PRODUCTS.Find(pid);
+                    var qty = InventoryValuationService.GetQty(db, salesWH.ID, pid);
+                    return new { Product = p, Qty = qty };
+                })
+                .Where(x => x.Qty > 0 && x.Product != null)
+                .OrderBy(x => x.Product.PNo)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Product.ID.ToString(),
+                    Text = $"{x.Product.PNo} - {x.Product.Name} (Mavjud: {x.Qty:N2})"
+                })
+                .ToList();
 
             return new SelectList(selectItems, "Value", "Text", selectedProductId);
         }

@@ -1,0 +1,221 @@
+@model List<tahsinERP.Services.DlocFifo.WarehouseLocationDto>
+@{
+    ViewBag.Title = "Ombor joylashuvlari (DLOC)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var changePermit = ViewBag.ChangePermit as bool? ?? false;
+    var warehouseId = ViewBag.WarehouseId as int?;
+    var selectedWhName = ViewBag.SelectedWarehouseName as string;
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="@Url.Action("Index", "Warehouse")">Korxona omborlari</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @(string.IsNullOrEmpty(selectedWhName) ? "DLOC (joylashuvlar)" : selectedWhName + " — DLOC")
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <section class="invoice-list-wrapper">
+                @if (ViewBag.SchemaMissing == true)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="bx bx-error"></i>
+                        DLOC jadvallari topilmadi. <code>Scripts/20260519_DLOC_FIFO_Core_Migration.sql</code> ni ishga tushiring.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bx bx-check-circle"></i> @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bx bx-error-circle"></i> @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                <div class="users-list-filter px-1 mb-2">
+                    @using (Html.BeginForm("Index", "WarehouseLocations", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row border rounded py-2 mb-2">
+                            <div class="col-12 col-sm-6 col-lg-4">
+                                <label>Ombor</label>
+                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barcha omborlar", new { @class = "form-control" })
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bx bx-search"></i> Qidirish
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (changePermit && ViewBag.SchemaMissing != true)
+                {
+                    <div class="invoice-create-btn mb-1">
+                        <a href="@Url.Action("Create", "WarehouseLocations", new { warehouseId = warehouseId })" class="btn btn-outline-success mr-1 mb-1">
+                            <i class="bx bx-plus"></i>
+                            <span class="align-middle ml-25">
+                                @(warehouseId.HasValue ? "Ushbu omborga DLOC qo'shish" : "Yangi DLOC qo'shish")
+                            </span>
+                        </a>
+                        <a href="@Url.Action("Index", "Warehouse")" class="btn btn-outline-secondary mb-1">
+                            <i class="bx bx-arrow-back"></i>
+                            <span class="align-middle ml-25">Omborlar ro'yxati</span>
+                        </a>
+                    </div>
+                }
+
+                <div class="col-md-12 col-sm-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="dlocDataTable" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Ombor</th>
+                                                <th>Joy kodi</th>
+                                                <th>Nomi</th>
+                                                <th>Min sig'im</th>
+                                                <th>Max sig'im</th>
+                                                <th>Lot aralash</th>
+                                                <th>Mahsulot aralash</th>
+                                                <th>Faol</th>
+                                                @if (changePermit)
+                                                {
+                                                    <th>Amallar</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null)
+                                            {
+                                                foreach (var x in Model)
+                                                {
+                                                    <tr class="@(x.IsActive ? "" : "text-muted")">
+                                                        <td>@x.WarehouseName</td>
+                                                        <td><strong>@x.LocationCode</strong></td>
+                                                        <td>@(string.IsNullOrEmpty(x.LocationName) ? "—" : x.LocationName)</td>
+                                                        <td>@x.MinCapacity.ToString("N2")</td>
+                                                        <td>@x.MaxCapacity.ToString("N2")</td>
+                                                        <td>@(x.AllowMixedLots ? "Ha" : "Yo'q")</td>
+                                                        <td>@(x.AllowMixedProducts ? "Ha" : "Yo'q")</td>
+                                                        <td>
+                                                            @if (x.IsActive)
+                                                            {
+                                                                <span class="badge badge-success">Faol</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-secondary">Nofaol</span>
+                                                            }
+                                                        </td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <td>
+                                                                <div class="d-inline-flex">
+                                                                    <a href="@Url.Action("Edit", "WarehouseLocations", new { id = x.ID })"
+                                                                       class="btn btn-sm btn-icon btn-primary mr-1"
+                                                                       title="Tahrirlash">
+                                                                        <i class="bx bx-edit-alt"></i>
+                                                                    </a>
+                                                                    @using (Html.BeginForm("Delete", "WarehouseLocations", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('DLOC o\\'chirilsinmi?');" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        @Html.Hidden("id", x.ID)
+                                                                        <button type="submit" class="btn btn-sm btn-icon btn-danger" title="O'chirish">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    }
+                                                                </div>
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#dlocDataTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+            },
+            "order": [[0, "asc"], [1, "asc"]],
+            "pageLength": 25,
+            "responsive": true,
+            dom: 'lBfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="bx bxs-file-excel"></i> Excel',
+                    titleAttr: 'Excelga yuklash',
+                    className: 'btn btn-success btn-sm mr-1',
+                    exportOptions: {
+                        columns: ':visible',
+                        format: {
+                            body: function (d) {
+                                return (d || '').toString().replace(/<[^>]*>/g, '').trim();
+                            }
+                        }
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="bx bxs-file-pdf"></i> PDF',
+                    titleAttr: 'PDFga yuklash',
+                    className: 'btn btn-danger btn-sm',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: ':visible',
+                        format: {
+                            body: function (d) {
+                                return (d || '').toString().replace(/<[^>]*>/g, '').trim();
+                            }
+                        }
+                    }
+                }
+            ]
+        });
+    });
+</script>

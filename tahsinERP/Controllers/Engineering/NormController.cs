@@ -1423,7 +1423,9 @@ namespace tahsinERP.Controllers.Engineering
                         // Jami metr (sarf + chiqindi):
                         // faqat yog'och + kesish bo'lsa BOM dona ga o'tkaziladi; qolganlarda (masalan selofan) metr bo'lib qoladi.
                         var totalMetersPerFg = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct);
-                        var bomQty = BomQtyFromNormAggregatedMeters(material, requiresCuttingBom && isWoodMaterial, totalMetersPerFg);
+                        var bomQty = requiresCuttingBom && isWoodMaterial
+                            ? lines.Sum(l => l.Quantity)
+                            : BomQtyFromNormAggregatedMeters(material, requiresCuttingBom && isWoodMaterial, totalMetersPerFg);
 
                         var bomLine = new BOM_LINES
                         {

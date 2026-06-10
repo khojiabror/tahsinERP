@@ -426,7 +426,29 @@ namespace tahsinERP.Controllers
                             {
                                 model.OrderNo = await GenerateOrderNo(db);
                             }
+                            else
+                            {
+                                model.OrderNo = model.OrderNo.Trim();
+                            }
 
+                            if (!string.IsNullOrEmpty(model.OrderNo))
+                            {
+                                if (await ActiveOrderNoExistsAsync(db, model.OrderNo, excludeOrderId: null))
+                                {
+                                    ModelState.AddModelError("OrderNo", "Bu buyurtma raqami allaqachon mavjud (faol buyurtma).");
+                                }
+                                else
+                                {
+                                    await ReleaseOrderNoFromSoftDeletedRowsAsync(db, model.OrderNo, excludeOrderId: null);
+                                }
+                            }
+
+                            if (!ModelState.IsValid)
+                            {
+                                transaction.Rollback();
+                            }
+                            else
+                            {
                             // Kompaniya berilmagan bo'lsa, standart kompaniyani olish
                             var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                             var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
@@ -579,6 +601,7 @@ namespace tahsinERP.Controllers
                             LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Create - {order.OrderNo} buyurtmasi yaratildi (Xarid turi: {(purchaseType == 1 ? "Bilvosita" : "Bevosita")})");
 
                             return RedirectToAction("Index");
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -820,8 +843,27 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
+                        var editOrderNo = string.IsNullOrWhiteSpace(model.OrderNo) ? null : model.OrderNo.Trim();
+                        if (!string.IsNullOrEmpty(editOrderNo))
+                        {
+                            if (await ActiveOrderNoExistsAsync(db, editOrderNo, excludeOrderId: model.ID))
+                            {
+                                ModelState.AddModelError("OrderNo", "Bu buyurtma raqami allaqachon mavjud (faol buyurtma).");
+                            }
+                            else
+                            {
+                                await ReleaseOrderNoFromSoftDeletedRowsAsync(db, editOrderNo, excludeOrderId: model.ID);
+                            }
+                        }
+
+                        if (!ModelState.IsValid)
+                        {
+                            // ViewBag qayta to'ldirish blokiga o'tiladi
+                        }
+                        else
+                        {
                         // Buyurtma sarlavhasini yangilash
-                        order.OrderNo = model.OrderNo;
+                        order.OrderNo = editOrderNo ?? model.OrderNo;
                         // Kompaniya berilmagan bo'lsa, standart kompaniyani olish
                         var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
                         var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
@@ -892,6 +934,7 @@ namespace tahsinERP.Controllers
                         LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Edit - {order.OrderNo} buyurtmasi tahrirlandi");
 
                         return RedirectToAction("Index");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -1069,6 +1112,85 @@ namespace tahsinERP.Controllers
             {
                 return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        private const int POrderNoMaxLength = 50;
+        private const string ArchivedOrderNoSuffixDeleted = "_deleted";
+        private const string ArchivedOrderNoSuffixDl = "_dl";
+
+        private static string BuildArchivedOrderNo(string orderNo)
+        {
+            if (string.IsNullOrWhiteSpace(orderNo))
+            {
+                return orderNo;
+            }
+
+            var trimmed = orderNo.Trim();
+            if (trimmed.EndsWith(ArchivedOrderNoSuffixDeleted, StringComparison.OrdinalIgnoreCase)
+                || trimmed.EndsWith(ArchivedOrderNoSuffixDl, StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmed;
+            }
+
+            var withDeleted = trimmed + ArchivedOrderNoSuffixDeleted;
+            if (withDeleted.Length <= POrderNoMaxLength)
+            {
+                return withDeleted;
+            }
+
+            var withDl = trimmed + ArchivedOrderNoSuffixDl;
+            if (withDl.Length <= POrderNoMaxLength)
+            {
+                return withDl;
+            }
+
+            var keepBase = POrderNoMaxLength - ArchivedOrderNoSuffixDl.Length;
+            return trimmed.Substring(0, keepBase) + ArchivedOrderNoSuffixDl;
+        }
+
+        private static async Task<bool> ActiveOrderNoExistsAsync(DBTHSNEntities db, string orderNo, int? excludeOrderId)
+        {
+            if (string.IsNullOrWhiteSpace(orderNo))
+            {
+                return false;
+            }
+
+            var normalized = orderNo.Trim();
+            return await db.P_ORDERS.AnyAsync(o =>
+                o.OrderNo == normalized
+                && o.IsDeleted != true
+                && (!excludeOrderId.HasValue || o.ID != excludeOrderId.Value));
+        }
+
+        /// <summary>
+        /// O'chirilgan buyurtmalarning OrderNo sini arxivlaydi — yangi yozuv uchun UNIQUE constraint bo'shatiladi.
+        /// </summary>
+        private static async Task ReleaseOrderNoFromSoftDeletedRowsAsync(
+            DBTHSNEntities db, string orderNo, int? excludeOrderId)
+        {
+            if (string.IsNullOrWhiteSpace(orderNo))
+            {
+                return;
+            }
+
+            var normalized = orderNo.Trim();
+            var rows = await db.P_ORDERS
+                .Where(o => o.IsDeleted == true
+                    && o.OrderNo == normalized
+                    && (!excludeOrderId.HasValue || o.ID != excludeOrderId.Value))
+                .ToListAsync();
+
+            if (!rows.Any())
+            {
+                return;
+            }
+
+            foreach (var row in rows)
+            {
+                row.OrderNo = BuildArchivedOrderNo(row.OrderNo);
+            }
+
+            await db.SaveChangesAsync();
         }
 
         /// <summary>

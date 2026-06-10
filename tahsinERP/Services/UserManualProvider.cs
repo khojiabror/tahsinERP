@@ -182,14 +182,13 @@ namespace tahsinERP.Services
             content.AppendLine("</ul>");
 
             content.AppendLine("<h3>5. Lot va DLOC (ombor ichidagi joylar)</h3>");
-            content.AppendLine("<p>Tizimda kelgusida omborlar uchun <strong>lot tracking</strong> va <strong>Direct Location (DLOC)</strong> joriy etish bo'yicha alohida taklif mavjud (<code>DB_SCHEMA_LOT_DLOC_PROPOSAL.md</code>):</p>");
+            content.AppendLine("<p>SRM modulida <strong>DLOC</strong> (ombor joylashuvi), <strong>lot</strong> va <strong>FIFO</strong> chiqim qoidalari joriy qilingan. Batafsil qo'llanma:</p>");
             content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>INCOME_LOTS</strong> – har bir partiya/lot uchun alohida yozuv.</li>");
-            content.AppendLine("<li><strong>EXPENSE_PRODUCTS.LotID</strong> – chiqim qaysi lotdan qilinganini ko'rsatadi.</li>");
-            content.AppendLine("<li><strong>PRODUCT_STOCK_LOTS</strong> yoki <strong>PRODUCT_STOCKS.LotID</strong> – lot darajasida qoldiq.</li>");
-            content.AppendLine("<li><strong>WAREHOUSE_LOCATIONS</strong> va <strong>LOT_LOCATIONS</strong> – ombor yacheykalari va lotlarni joylashuvi.</li>");
+            content.AppendLine("<li><a href=\"/HelpDocs/Download?file=DLOC_FIFO_User_Guide.pdf\" target=\"_blank\"><strong>DLOC va FIFO qo'llanmasi (PDF)</strong></a></li>");
+            content.AppendLine("<li><a href=\"/HelpDocs/Download?file=DLOC_FIFO_User_Guide.docx\" target=\"_blank\">Word (.docx)</a> — tahrirlash uchun</li>");
+            content.AppendLine("<li>Manba: <code>Docs/DLOC_FIFO_User_Guide.md</code> (versiya 1.0)</li>");
             content.AppendLine("</ul>");
-            content.AppendLine("<p>Bu struktura ombor kirim/chiqim CRUD lariga <strong>Lot</strong> va <strong>Location</strong> maydonlarini qo'shish orqali bosqichma-bosqich joriy etiladi.</p>");
+            content.AppendLine("<p><strong>Asosiy ekranlar:</strong> Sozlamalar → Ombor joylashuvlari; Kirimlar (har qator DLOC); Chiqimlar (FIFO); Ombor qoldig'i → Joylar bo'yicha qoldiq.</p>");
 
             content.AppendLine("<h3>6. Amaliy ishlash tartibi (administrator va power user uchun)</h3>");
             content.AppendLine("<ol>");

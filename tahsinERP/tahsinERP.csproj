@@ -559,6 +559,7 @@
     <Compile Include="Controllers\AdminSetting\ErrorController.cs" />
     <Compile Include="Controllers\AdminSetting\Helper.cs" />
     <Compile Include="Controllers\AdminSetting\HomeController.cs" />
+    <Compile Include="Controllers\HelpDocsController.cs" />
     <Compile Include="Controllers\AdminSetting\PermissionController.cs" />
     <Compile Include="Controllers\AdminSetting\PModuleController.cs" />
     <Compile Include="Controllers\Engineering\ProductController.cs" />
@@ -959,6 +960,7 @@
     </Compile>
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
+    <Compile Include="Helpers\QualityInspectionBalanceHelper.cs" />
     <Compile Include="Models\RoleHelper.cs" />
     <Compile Include="Models\USER_ENTRIES.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
@@ -1004,6 +1006,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
+    <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
@@ -1030,6 +1033,28 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
+    <Compile Include="Services\ExpenseStockIssueHelper.cs" />
+    <Compile Include="Services\DlocFifo\DlocFifoSchema.cs" />
+    <Compile Include="Services\DlocFifo\DlocFifoDataAccess.cs" />
+    <Compile Include="Services\DlocFifo\DlocFifoModels.cs" />
+    <Compile Include="Services\DlocFifo\DlocCapacityGuard.cs" />
+    <Compile Include="Services\DlocFifo\FifoAllocatorService.cs" />
+    <Compile Include="Services\DlocFifo\LocationLotStockLedger.cs" />
+    <Compile Include="Services\DlocFifo\StockLedgerRollupService.cs" />
+    <Compile Include="Services\DlocFifo\InventoryValuationService.cs" />
+    <Compile Include="Services\DlocFifo\DlocFifoReporting.cs" />
+    <Compile Include="Services\DlocFifo\WarehouseDlocException.cs" />
+    <Compile Include="Services\DlocFifo\ProductionDlocGuard.cs" />
+    <Compile Include="Services\DlocFifo\LegacyDlocAssignmentService.cs" />
+    <Compile Include="Controllers\Settings\WarehouseLocationsController.cs" />
+    <Compile Include="ViewModels\WarehouseLocationEditViewModel.cs" />
+    <Compile Include="Models\DlocFifo\WAREHOUSE_LOCATIONS.cs" />
+    <Compile Include="Models\DlocFifo\INCOME_LOTS.cs" />
+    <Compile Include="Models\DlocFifo\LOT_LOCATIONS.cs" />
+    <Compile Include="Models\DlocFifo\FIFO_POLICY.cs" />
+    <Compile Include="Models\DlocFifo\FIFO_VIOLATIONS.cs" />
+    <Compile Include="Models\DlocFifo\EXPENSE_PRODUCT_ALLOCATIONS.cs" />
+    <Compile Include="Models\EXPENSE_PRODUCTS.DlocFifo.partial.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
     <Compile Include="Services\WarehouseMonthlyReportService.cs" />
@@ -1052,6 +1077,7 @@
     <Compile Include="ViewModels\HR\HrPieceRateGridEntryViewModel.cs" />
     <Compile Include="ViewModels\HR\KoreshokViewModel.cs" />
     <Compile Include="ViewModels\InventoryAdjustmentViewModel.cs" />
+    <Compile Include="ViewModels\AssignDlocViewModel.cs" />
     <Compile Include="ViewModels\ForwarderStatisticsViewModel.cs" />
     <Compile Include="ViewModels\Home\StatisticsVM.cs" />
     <Compile Include="ViewModels\HR\HrDashboardViewModel.cs" />
@@ -3205,6 +3231,11 @@
     <Content Include="Views\Incomes\Edit.cshtml" />
     <Content Include="Views\Incomes\Index.cshtml" />
     <Content Include="Views\Inventory\Index.cshtml" />
+    <Content Include="Views\Inventory\IndexDloc.cshtml" />
+    <Content Include="Views\Inventory\AssignDloc.cshtml" />
+    <Content Include="Views\WarehouseLocations\Index.cshtml" />
+    <Content Include="Views\WarehouseLocations\Create.cshtml" />
+    <Content Include="Views\WarehouseLocations\Edit.cshtml" />
     <Content Include="Views\Inventory\Adjust.cshtml" />
     <Content Include="Views\Inventory\AdjustResult.cshtml" />
     <Content Include="Views\InventoryReports\Dashboard.cshtml" />
@@ -3379,6 +3410,16 @@
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
     <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
   </Target>
+  <ItemGroup>
+    <Content Include="Docs\DLOC_FIFO_User_Guide.md" />
+    <Content Include="Docs\DLOC_FIFO_User_Guide.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Docs\DLOC_FIFO_User_Guide.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="Scripts\generate_dloc_fifo_guide.py" />
+  </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
