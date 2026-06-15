@@ -58,6 +58,7 @@ namespace tahsinERP.ViewModels
         public int UnitID { get; set; }
         public string UnitName { get; set; }
         public double OrderQuantity { get; set; } // User enters this
+        public double VatRate { get; set; }
     }
 
     public class DeliveryScheduleViewModel

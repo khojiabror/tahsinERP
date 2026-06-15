@@ -671,6 +671,15 @@
     <Compile Include="Models\EXPENSE_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\EXPENSE_PRODUCT_ALLOCATIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FIFO_POLICY.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FIFO_VIOLATIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\FIN_ACCOUNTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -779,10 +788,16 @@
     <Compile Include="Models\INCOME.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\INCOME_LOTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\INCOME_PRODUCTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\JOB_DESC.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LOT_LOCATIONS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\NORMLINE.cs">
@@ -992,6 +1007,9 @@
     <Compile Include="Models\Warehouse.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\WAREHOUSE_LOCATIONS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\WASTE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -1005,6 +1023,8 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\SContractVatHelper.cs" />
+    <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
@@ -1048,13 +1068,6 @@
     <Compile Include="Services\DlocFifo\LegacyDlocAssignmentService.cs" />
     <Compile Include="Controllers\Settings\WarehouseLocationsController.cs" />
     <Compile Include="ViewModels\WarehouseLocationEditViewModel.cs" />
-    <Compile Include="Models\DlocFifo\WAREHOUSE_LOCATIONS.cs" />
-    <Compile Include="Models\DlocFifo\INCOME_LOTS.cs" />
-    <Compile Include="Models\DlocFifo\LOT_LOCATIONS.cs" />
-    <Compile Include="Models\DlocFifo\FIFO_POLICY.cs" />
-    <Compile Include="Models\DlocFifo\FIFO_VIOLATIONS.cs" />
-    <Compile Include="Models\DlocFifo\EXPENSE_PRODUCT_ALLOCATIONS.cs" />
-    <Compile Include="Models\EXPENSE_PRODUCTS.DlocFifo.partial.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
     <Compile Include="Services\WarehouseMonthlyReportService.cs" />

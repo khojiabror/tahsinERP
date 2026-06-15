@@ -1,4 +1,5 @@
 @model tahsinERP.Models.P_CONTRACTS
+@using tahsinERP.Services
 @{
     ViewBag.Title = "Shartnoma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -97,17 +98,23 @@
                                                     <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
                                                 </tr>
                                                 @{
-                                                    var totalAmount = Model.Amount ?? 0d;
-                                                    var baseAmount = totalAmount / 1.12d;
-                                                    var vatAmount = totalAmount - baseAmount;
+                                                    var contractProducts = Model.P_CONTRACT_PRODUCTS;
+                                                    var baseAmount = contractProducts != null ? contractProducts.Sum(p => p.Amount) : 0d;
+                                                    var vatAmount = contractProducts != null ? contractProducts.Sum(p => p.VATAmount ?? 0) : 0d;
+                                                    var totalAmount = contractProducts != null ? contractProducts.Sum(p => p.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat(p.Amount, p.VATAmount)) : 0d;
+                                                    var vatPercent = PContractVatHelper.GetVatPercentFromLine(baseAmount, vatAmount);
                                                 }
                                                 <tr>
-                                                    <th>QQS (12%):</th>
+                                                    <th>QQS (@vatPercent.ToString("N2")%):</th>
                                                     <td>@vatAmount.ToString("N2")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>QQSsiz summa (88%):</th>
+                                                    <th>QQSsiz summa:</th>
                                                     <td>@baseAmount.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami (QQS bilan):</th>
+                                                    <td><strong>@totalAmount.ToString("N2")</strong></td>
                                                 </tr>
                                                 <tr>
                                                     <th>Incoterms:</th>
@@ -161,9 +168,9 @@
                                                                             {
                                                                                 <tr>
                                                                                     @{
-                                                                                        var baseTotal = product.Quantity * product.Price;
-                                                                                        var vatPercent = 12d;
-                                                                                        var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                                                                        var baseTotal = product.Amount;
+                                                                                        vatPercent = PContractVatHelper.GetVatPercentFromLine(product.Amount, product.VATAmount);
+                                                                                        var totalWithVat = product.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat(product.Amount, product.VATAmount);
                                                                                     }
                                                                                     <td>
                                                                                         @if (product.PRODUCT != null && product.PRODUCT.ID > 0)

@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class EXPENSE_PRODUCTS
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public EXPENSE_PRODUCTS()
+        {
+            this.EXPENSE_PRODUCT_ALLOCATIONS = new HashSet<EXPENSE_PRODUCT_ALLOCATIONS>();
+        }
+    
         public int ID { get; set; }
         public int ExpenseID { get; set; }
         public int ProductID { get; set; }
@@ -22,9 +28,17 @@ namespace tahsinERP.Models
         public double TotalPrice { get; set; }
         public string Comment { get; set; }
         public int UnitID { get; set; }
+        public Nullable<int> LotID { get; set; }
+        public Nullable<int> FromLocationID { get; set; }
+        public string AllocationPolicy { get; set; }
+        public string ViolationReasonCode { get; set; }
     
         public virtual EXPENS EXPENS { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual UNIT UNIT { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<EXPENSE_PRODUCT_ALLOCATIONS> EXPENSE_PRODUCT_ALLOCATIONS { get; set; }
+        public virtual INCOME_LOTS INCOME_LOTS { get; set; }
+        public virtual WAREHOUSE_LOCATIONS WAREHOUSE_LOCATIONS { get; set; }
     }
 }

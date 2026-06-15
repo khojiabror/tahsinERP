@@ -78,6 +78,9 @@
                                             <hr />
                                             @{
                                                 var totalAmount = ViewBag.ContractedTotal as double? ?? 0d;
+                                                var baseAmount = ViewBag.ContractedBase as double? ?? 0d;
+                                                var vatAmount = ViewBag.ContractedVat as double? ?? 0d;
+                                                var vatRate = ViewBag.ContractedVatRate as double? ?? 0d;
                                             }
                                             <span>
                                                 <b>Umumiy summasi</b>:
@@ -86,16 +89,12 @@
                                                 </span>
                                             </span>
                                             <hr />
-                                            @{
-                                                var baseAmount = totalAmount / 1.12d;
-                                                var vatAmount = totalAmount - baseAmount;
-                                            }
                                             <span>
-                                                <b>QQS (12%)</b>: @vatAmount.ToString("N2")
+                                                <b>QQS (@vatRate.ToString("N2")%)</b>: @vatAmount.ToString("N2")
                                             </span>
                                             <hr />
                                             <span>
-                                                <b>QQSsiz summa (88%)</b>: @baseAmount.ToString("N2")
+                                                <b>QQSsiz summa</b>: @baseAmount.ToString("N2")
                                             </span>
                                             <hr />
                                             <span>
@@ -141,8 +140,11 @@
                                                                             <tr>
                                                                                 @{
                                                                                     var baseTotal = item.PiecePrice * item.Amount;
-                                                                                    var vatPercent = 12d;
-                                                                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                                                                                    var lineVat = item.vatamount ?? 0d;
+                                                                                    var vatPercent = baseTotal > 0 && lineVat > 0
+                                                                                        ? Math.Round(lineVat / baseTotal * 100d, 2)
+                                                                                        : 0d;
+                                                                                    var totalWithVat = item.totalamount ?? (baseTotal + lineVat);
                                                                                 }
                                                                                 <td>
                                                                                     <a href="~/Product/Details/@item.PRODUCT.ID">@item.PRODUCT.PNo</a>
@@ -236,8 +238,11 @@
                                     <!-- Totals Comparison -->
                                     @{
                                         var contractedTotal = ViewBag.ContractedTotal as double? ?? 0;
+                                        var contractedQty = ViewBag.ContractedQty as double? ?? 0;
                                         var orderedTotal = ViewBag.OrderedTotal as double? ?? 0;
+                                        var orderedQty = ViewBag.OrderedQty as double? ?? 0;
                                         var invoicedTotal = ViewBag.InvoicedTotal as decimal? ?? 0;
+                                        var invoicedQty = ViewBag.InvoicedQty as decimal? ?? 0;
                                     }
                                     <div class="row mt-3">
                                         <div class="col-12">
@@ -250,6 +255,7 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>Ko'rsatkich</th>
+                                                                <th>Miqdor</th>
                                                                 <th>Summa</th>
                                                                 <th>Holati</th>
                                                             </tr>
@@ -257,11 +263,13 @@
                                                         <tbody>
                                                             <tr>
                                                                 <td>Shartnoma bo'yicha</td>
+                                                                <td>@contractedQty.ToString("N2")</td>
                                                                 <td>@contractedTotal.ToString("N2")</td>
                                                                 <td><span class="badge badge-info">Shartnoma</span></td>
                                                             </tr>
                                                             <tr>
                                                                 <td>Buyurtma bo'yicha</td>
+                                                                <td>@orderedQty.ToString("N2")</td>
                                                                 <td>@orderedTotal.ToString("N2")</td>
                                                                 <td>
                                                                     @if (orderedTotal <= 0)
@@ -280,6 +288,7 @@
                                                             </tr>
                                                             <tr>
                                                                 <td>Invoys bo'yicha</td>
+                                                                <td>@invoicedQty.ToString("N2")</td>
                                                                 <td>@invoicedTotal.ToString("N2")</td>
                                                                 <td>
                                                                     @if (invoicedTotal <= 0)

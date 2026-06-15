@@ -266,12 +266,13 @@
                         });
                 }
 
-                function loadPriceForProduct(contractId, productId, priceInput) {
+                function loadPriceForProduct(contractId, productId, priceInput, vatInput) {
                     if (!contractId || !productId || !priceInput) return;
                     fetch(urls.price + '?contractId=' + contractId + '&productId=' + productId)
                         .then(function(r) { return r.json(); })
                         .then(function(d) {
                             if (d && d.PiecePrice != null) priceInput.value = parseFloat(d.PiecePrice).toFixed(2);
+                            if (vatInput && d && d.VatRate != null) vatInput.value = parseFloat(d.VatRate).toFixed(2);
                             calculateTotals();
                         });
                 }
@@ -307,7 +308,8 @@
                             var contractId = contractEl ? contractEl.value : '';
                             var productId = e.target.value;
                             var priceInp = tr.querySelector('.price-input');
-                            if (contractId && productId && priceInp) loadPriceForProduct(contractId, productId, priceInp);
+                            var vatInp = tr.querySelector('.vat-input');
+                            if (contractId && productId && priceInp) loadPriceForProduct(contractId, productId, priceInp, vatInp);
                         }
                     }
                 });
@@ -361,7 +363,7 @@
                             inp.type = idx === 0 ? 'text' : 'number';
                             inp.name = 'lines[' + lineIndex + '].' + name;
                             if (idx >= 1) { inp.step = '0.01'; inp.min = '0'; inp.required = true; if (idx === 2) inp.readOnly = true; }
-                            if (idx === 3) { inp.max = '100'; inp.value = '12'; }
+                            if (idx === 3) { inp.max = '100'; inp.value = '0'; }
                             var td = document.createElement('td');
                             td.appendChild(inp);
                             newRow.appendChild(td);

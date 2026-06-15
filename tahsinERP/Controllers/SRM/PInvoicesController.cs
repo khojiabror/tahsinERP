@@ -168,38 +168,10 @@ namespace tahsinERP.Controllers
 
                 ViewBag.ContractBalances = contractBalances;
                 ViewBag.ProductCBMInfo = productCBMInfo;
-                ViewBag.ContractVatRate = await CalculateContractVatRateAsync(db, invoice.ContractID > 0 ? (int?)invoice.ContractID : invoice.P_ORDERS?.ContractID);
+                ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, invoice.ContractID > 0 ? (int?)invoice.ContractID : invoice.P_ORDERS?.ContractID);
 
                 return View(invoice);
             }
-        }
-
-        private static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
-        {
-            if (!contractId.HasValue || contractId.Value <= 0)
-            {
-                return 12d;
-            }
-
-            var contractProducts = await db.P_CONTRACT_PRODUCTS
-                .Where(p => p.ContractID == contractId.Value)
-                .Select(p => new { p.Price, p.Quantity, p.Amount })
-                .ToListAsync();
-
-            var baseAmount = contractProducts.Sum(x => x.Price * x.Quantity);
-            if (baseAmount <= 0)
-            {
-                return 12d;
-            }
-
-            var totalAmount = contractProducts.Sum(x => x.Amount);
-            var rate = ((totalAmount - baseAmount) / baseAmount) * 100d;
-            if (double.IsNaN(rate) || double.IsInfinity(rate) || rate < 0)
-            {
-                return 12d;
-            }
-
-            return Math.Round(rate, 2);
         }
 
         // Olish so'rovi: PInvoices/yaratish
@@ -687,6 +659,9 @@ namespace tahsinERP.Controllers
                     .OrderByDescending(c => c.IssuedDate)
                     .ToListAsync();
                 ViewBag.Contracts = new SelectList(contracts, "ID", "ContractNo", model.ContractID);
+                ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(
+                    db,
+                    model.ContractID > 0 ? model.ContractID : null);
 
                 // Aniqlash purchase type dan contract agar available, otherwise dan order
                 byte purchaseType = 0;
@@ -1125,35 +1100,21 @@ namespace tahsinERP.Controllers
                     var contractIds = contracts.Select(c => c.ID).ToList();
                     var contractProducts = await db.P_CONTRACT_PRODUCTS
                         .Where(p => contractIds.Contains(p.ContractID))
-                        .Select(p => new { p.ContractID, p.Price, p.Quantity, p.Amount })
+                        .Select(p => new PContractVatHelper.ContractProductVatLine
+                        {
+                            ContractID = p.ContractID,
+                            Amount = p.Amount,
+                            VATAmount = p.VATAmount
+                        })
                         .ToListAsync();
-                    var vatByContract = contractProducts
-                        .GroupBy(p => p.ContractID)
-                        .ToDictionary(
-                            g => g.Key,
-                            g =>
-                            {
-                                var baseAmount = g.Sum(x => x.Price * x.Quantity);
-                                if (baseAmount <= 0)
-                                {
-                                    return 12d;
-                                }
 
-                                var totalAmount = g.Sum(x => x.Amount);
-                                var rate = ((totalAmount - baseAmount) / baseAmount) * 100d;
-                                if (double.IsNaN(rate) || double.IsInfinity(rate) || rate < 0)
-                                {
-                                    return 12d;
-                                }
-
-                                return Math.Round(rate, 2);
-                            });
+                    var vatByContract = PContractVatHelper.BuildContractVatRates(contractProducts);
 
                     var data = contracts.Select(c => new
                     {
                         c.ID,
                         c.ContractNo,
-                        VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 12d
+                        VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 0d
                     }).ToList();
 
                     return Json(new { success = true, data }, JsonRequestBehavior.AllowGet);

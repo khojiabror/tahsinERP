@@ -383,6 +383,23 @@
         <AssociationConnector Association="DBTHSNModel.FIN_BALANCE_CATEGORY_CATEGORIES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.USERROLES" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="DBTHSNModel.EXPENSE_PRODUCT_ALLOCATIONS" Width="1.5" PointX="27.25" PointY="162.625" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIFO_POLICY" Width="1.5" PointX="7.5" PointY="190.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIFO_VIOLATIONS" Width="1.5" PointX="9.375" PointY="11.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.INCOME_LOTS" Width="1.5" PointX="25" PointY="157.125" />
+        <EntityTypeShape EntityType="DBTHSNModel.LOT_LOCATIONS" Width="1.5" PointX="27.25" PointY="159.125" />
+        <EntityTypeShape EntityType="DBTHSNModel.WAREHOUSE_LOCATIONS" Width="1.5" PointX="25" PointY="171.25" />
+        <AssociationConnector Association="DBTHSNModel.FK_EPA_EP" />
+        <AssociationConnector Association="DBTHSNModel.FK_EPA_IL" />
+        <AssociationConnector Association="DBTHSNModel.FK_EPA_WHL" />
+        <AssociationConnector Association="DBTHSNModel.FK_EP_IL" />
+        <AssociationConnector Association="DBTHSNModel.FK_EP_WHL" />
+        <AssociationConnector Association="DBTHSNModel.FK_FP_WAREHOUSE" />
+        <AssociationConnector Association="DBTHSNModel.FK_IL_INCOME" />
+        <AssociationConnector Association="DBTHSNModel.FK_IL_INCOME_PRODUCTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_LL_IL" />
+        <AssociationConnector Association="DBTHSNModel.FK_LL_WHL" />
+        <AssociationConnector Association="DBTHSNModel.FK_WHL_WAREHOUSES" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

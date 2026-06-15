@@ -170,7 +170,12 @@
                     columnDefs.push({ "orderable": false, "targets": -1 });
                 }
             
-                $('#contractDataTable').DataTable({
+                var $table = $('#contractDataTable');
+                if ($table.length && $.fn.DataTable.isDataTable($table)) {
+                    $table.DataTable().destroy();
+                }
+
+                $table.DataTable({
                 "language": {
                     "search": "Qidirish:",
                     "lengthMenu": "_MENU_ ta ko'rsatish",

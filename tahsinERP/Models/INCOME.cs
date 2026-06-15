@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         {
             this.INCOME_PRODUCTS = new HashSet<INCOME_PRODUCTS>();
             this.WRHS_INCOME_DOCS = new HashSet<WRHS_INCOME_DOCS>();
+            this.INCOME_LOTS = new HashSet<INCOME_LOTS>();
         }
     
         public int ID { get; set; }
@@ -43,5 +44,7 @@ namespace tahsinERP.Models
         public virtual ICollection<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual Warehouse Warehouse { get; set; }
         public virtual Warehouse Warehouse1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<INCOME_LOTS> INCOME_LOTS { get; set; }
     }
 }

@@ -116,6 +116,7 @@
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
                                                                             <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].VatRate" value="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
                                                                             <input type="number" 
                                                                                    name="ProductQuantities[@index].OrderQuantity" 
                                                                                    class="form-control order-quantity" 
@@ -123,9 +124,14 @@
                                                                                    step="0.01" 
                                                                                    min="0.01" 
                                                                                    data-price="@product.PiecePrice"
+                                                                                   data-vat-rate="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
                                                                                    required />
                                                                         </td>
-                                                                        <td class="text-right total-price">@((product.OrderQuantity * product.PiecePrice).ToString("N2"))</td>
+                                                                        @{
+                                                                            var lineBase = product.OrderQuantity * product.PiecePrice;
+                                                                            var lineTotal = lineBase + (lineBase * product.VatRate / 100d);
+                                                                        }
+                                                                        <td class="text-right total-price">@lineTotal.ToString("N2")</td>
                                                                         <td class="text-center">
                                                                             <button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O'chirish">
                                                                                 <i class="bx bx-trash"></i>
@@ -253,7 +259,9 @@
                     var $row = $page(this).closest('tr');
                     var quantity = parseFloat($page(this).val()) || 0;
                     var price = parseFloat($page(this).data('price')) || 0;
-                    var total = quantity * price;
+                    var vatRate = parseFloat($page(this).data('vat-rate')) || 0;
+                    var lineBase = quantity * price;
+                    var total = lineBase + (lineBase * vatRate / 100);
                     $row.find('.total-price').text(total.toFixed(2));
                     calculateGrandTotal();
                 });
@@ -288,9 +296,10 @@
                                         '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + product.ProductID + '" />' +
                                         '<input type="hidden" name="ProductQuantities[' + index + '].PiecePrice" value="' + product.PiecePrice + '" />' +
                                         '<input type="hidden" name="ProductQuantities[' + index + '].UnitID" value="' + product.UnitID + '" />' +
-                                        '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="' + existingQty + '" step="0.01" min="0.01" data-price="' + product.PiecePrice + '" required />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].VatRate" value="' + (product.VatRate || 0) + '" />' +
+                                        '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="' + existingQty + '" step="0.01" min="0.01" data-price="' + product.PiecePrice + '" data-vat-rate="' + (product.VatRate || 0) + '" required />' +
                                         '</td>' +
-                                        '<td class="text-right total-price">' + (existingQty * product.PiecePrice).toFixed(2) + '</td>' +
+                                        '<td class="text-right total-price">0.00</td>' +
                                         '<td class="text-center">' +
                                         '<button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O\'chirish">' +
                                         '<i class="bx bx-trash"></i>' +

@@ -23,6 +23,8 @@ namespace tahsinERP.Models
             this.INCOMES1 = new HashSet<INCOME>();
             this.PRODUCT_STOCKS = new HashSet<PRODUCT_STOCKS>();
             this.WASTE_STOCKS = new HashSet<WASTE_STOCKS>();
+            this.FIFO_POLICY = new HashSet<FIFO_POLICY>();
+            this.WAREHOUSE_LOCATIONS = new HashSet<WAREHOUSE_LOCATIONS>();
         }
     
         public int ID { get; set; }
@@ -47,5 +49,9 @@ namespace tahsinERP.Models
         public virtual USER USER { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<WASTE_STOCKS> WASTE_STOCKS { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<FIFO_POLICY> FIFO_POLICY { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<WAREHOUSE_LOCATIONS> WAREHOUSE_LOCATIONS { get; set; }
     }
 }

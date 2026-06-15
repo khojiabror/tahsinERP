@@ -252,7 +252,7 @@ namespace tahsinERP.Controllers
                             purchaseType = 1;
                         }
 
-                        // Calculate total amount (including VAT agar provided)
+                        // Calculate total amount (including VAT)
                         double totalAmount = 0;
                         int totalIndex = 0;
                         while (Request.Form[$"ContractProducts[{totalIndex}].ProductID"] != null)
@@ -262,12 +262,12 @@ namespace tahsinERP.Controllers
                             {
                                 var price = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Price"] ?? "0");
                                 var quantity = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Quantity"] ?? "0");
-                                var vatPercent = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].VatPercent"] ?? "12");
+                                var vatPercent = PContractVatHelper.ParseVatPercentFromForm(Request.Form, totalIndex);
                                 if (price > 0 && quantity > 0)
                                 {
                                     var baseTotal = price * quantity;
-                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
-                                    totalAmount += totalWithVat;
+                                    var vatAmount = PContractVatHelper.CalculateVatAmount(baseTotal, vatPercent);
+                                    totalAmount += baseTotal + vatAmount;
                                 }
                             }
                             totalIndex++;
@@ -298,8 +298,13 @@ namespace tahsinERP.Controllers
                         {
                             var conversionService = new UnitConversionService(db);
                             
-                            foreach (var product in model.ContractProducts)
+                            for (int i = 0; i < model.ContractProducts.Count; i++)
                             {
+                                var product = model.ContractProducts[i];
+                                var vatPercent = PContractVatHelper.ParseVatPercentFromForm(Request.Form, i);
+                                var lineAmount = product.Price * product.Quantity;
+                                var vatAmount = PContractVatHelper.CalculateVatAmount(lineAmount, vatPercent);
+
                                 // Tekshirish agar product requires cutting
                                 bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
                                 
@@ -326,7 +331,8 @@ namespace tahsinERP.Controllers
                                     UnitID = unitId,
                                     MOQ = product.MOQ,
                                     HSCodeID = product.HSCodeID,
-                                    ActivePart = true
+                                    ActivePart = true,
+                                    VATAmount = vatAmount
                                 };
 
                                 db.P_CONTRACT_PRODUCTS.Add(contractProduct);
@@ -435,6 +441,60 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
+        private static async Task<List<PRODUCT>> GetPurchasableProductsAsync(
+            DBTHSNEntities db,
+            byte purchaseType,
+            IEnumerable<int> ensureProductIds = null)
+        {
+            var query = db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Where(p => p.IsDeleted != true);
+
+            if (purchaseType == 1)
+            {
+                query = query.Where(p => p.PRODUCT_CATEGORIES == null ||
+                    (p.PRODUCT_CATEGORIES.IsFinishedGood == false &&
+                     (p.PRODUCT_CATEGORIES.IsConsumable == true ||
+                      p.PRODUCT_CATEGORIES.AllowPurchase == true)));
+            }
+            else
+            {
+                query = query.Where(p => p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false);
+            }
+
+            var purchasableProducts = await query.OrderBy(p => p.PNo).ToListAsync();
+
+            if (ensureProductIds == null)
+            {
+                return purchasableProducts;
+            }
+
+            var existingIds = new HashSet<int>(purchasableProducts.Select(p => p.ID));
+            var missingIds = ensureProductIds.Where(id => id > 0 && !existingIds.Contains(id)).Distinct().ToList();
+            if (missingIds.Count == 0)
+            {
+                return purchasableProducts;
+            }
+
+            var missingProducts = await db.PRODUCTS
+                .Where(p => missingIds.Contains(p.ID) && p.IsDeleted != true)
+                .OrderBy(p => p.PNo)
+                .ToListAsync();
+
+            return purchasableProducts.Concat(missingProducts).OrderBy(p => p.PNo).ToList();
+        }
+
+        private static SelectList BuildProductSelectList(IEnumerable<PRODUCT> products)
+        {
+            var items = products.Select(p => new SelectListItem
+            {
+                Value = p.ID.ToString(),
+                Text = $"{p.PNo} - {p.Name ?? ""}"
+            }).ToList();
+
+            return new SelectList(items, "Value", "Text");
+        }
+
         // Yaratish ContractNo
         private async Task<string> GenerateContractNo(DBTHSNEntities db)
         {
@@ -475,7 +535,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var contract = await db.P_CONTRACTS
-                    .Include(c => c.P_CONTRACT_PRODUCTS)
+                    .Include(c => c.P_CONTRACT_PRODUCTS.Select(cp => cp.PRODUCT))
                     .FirstOrDefaultAsync(c => c.ID == id && c.IsDeleted != true);
 
                 if (contract == null)
@@ -507,7 +567,8 @@ namespace tahsinERP.Controllers
                         Amount = cp.Amount,
                         UnitID = cp.UnitID,
                         MOQ = cp.MOQ,
-                        HSCodeID = cp.HSCodeID
+                        HSCodeID = cp.HSCodeID,
+                        VatPercent = PContractVatHelper.GetVatPercentFromLine(cp.Amount, cp.VATAmount)
                     }).ToList()
                 };
 
@@ -525,36 +586,14 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Aniqlash purchase type dan query string yoki form
-                byte purchaseType = 0;
-                if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
-                {
-                    purchaseType = 1;
-                }
+                // Aniqlash purchase type shartnomadan
+                byte purchaseType = contract.PurchaseType;
 
                 ViewBag.PurchaseType = purchaseType;
 
-                // Olish purchasable products based on purchase type
-                var purchasableProducts = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true)
-                    .Where(p => purchaseType == 1 
-                        ? (p.PRODUCT_CATEGORIES == null || 
-                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
-                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
-                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
-                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .ToListAsync();
-
-                // Yaratish SelectList bilan "PNo - Name" format
-                var productSelectList = purchasableProducts.Select(p => new SelectListItem
-                {
-                    Value = p.ID.ToString(),
-                    Text = $"{p.PNo} - {p.Name ?? ""}"
-                }).ToList();
-
-                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
+                var contractProductIds = contract.P_CONTRACT_PRODUCTS.Select(cp => cp.ProductID);
+                var purchasableProducts = await GetPurchasableProductsAsync(db, purchaseType, contractProductIds);
+                ViewBag.PurchasableProducts = BuildProductSelectList(purchasableProducts);
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -651,8 +690,13 @@ namespace tahsinERP.Controllers
                         {
                             var conversionService = new UnitConversionService(db);
                             
-                            foreach (var product in model.ContractProducts)
+                            for (int i = 0; i < model.ContractProducts.Count; i++)
                             {
+                                var product = model.ContractProducts[i];
+                                var vatPercent = PContractVatHelper.ParseVatPercentFromForm(Request.Form, i);
+                                var lineAmount = product.Price * product.Quantity;
+                                var vatAmount = PContractVatHelper.CalculateVatAmount(lineAmount, vatPercent);
+
                                 // Tekshirish agar product requires cutting
                                 bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
                                 
@@ -679,14 +723,15 @@ namespace tahsinERP.Controllers
                                     UnitID = unitId,
                                     MOQ = product.MOQ,
                                     HSCodeID = product.HSCodeID,
-                                    ActivePart = true
+                                    ActivePart = true,
+                                    VATAmount = vatAmount
                                 };
 
                                 db.P_CONTRACT_PRODUCTS.Add(contractProduct);
                             }
                         }
 
-                        // Calculate total amount (including VAT agar provided)
+                        // Calculate total amount (including VAT)
                         double totalAmount = 0;
                         int totalIndex = 0;
                         while (Request.Form[$"ContractProducts[{totalIndex}].ProductID"] != null)
@@ -696,12 +741,12 @@ namespace tahsinERP.Controllers
                             {
                                 var price = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Price"] ?? "0");
                                 var quantity = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].Quantity"] ?? "0");
-                                var vatPercent = double.Parse(Request.Form[$"ContractProducts[{totalIndex}].VatPercent"] ?? "12");
+                                var vatPercent = PContractVatHelper.ParseVatPercentFromForm(Request.Form, totalIndex);
                                 if (price > 0 && quantity > 0)
                                 {
                                     var baseTotal = price * quantity;
-                                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
-                                    totalAmount += totalWithVat;
+                                    var vatAmount = PContractVatHelper.CalculateVatAmount(baseTotal, vatPercent);
+                                    totalAmount += baseTotal + vatAmount;
                                 }
                             }
                             totalIndex++;
@@ -774,36 +819,23 @@ namespace tahsinERP.Controllers
                     "ID", "Shortname", model.CurrencyID
                 );
 
-                // Aniqlash purchase type dan query string yoki form
+                // Aniqlash purchase type shartnomadan
                 byte purchaseType = 0;
-                if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
+                var contractForType = await db.P_CONTRACTS.FindAsync(model.ID);
+                if (contractForType != null)
+                {
+                    purchaseType = contractForType.PurchaseType;
+                }
+                else if (Request.QueryString["purchaseType"] == "Indirect" || Request.Form["PurchaseType"] == "Indirect")
                 {
                     purchaseType = 1;
                 }
 
                 ViewBag.PurchaseType = purchaseType;
 
-                // Olish purchasable products based on purchase type
-                var purchasableProducts = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true)
-                    .Where(p => purchaseType == 1 
-                        ? (p.PRODUCT_CATEGORIES == null || 
-                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
-                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
-                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
-                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .ToListAsync();
-
-                // Yaratish SelectList bilan "PNo - Name" format
-                var productSelectList = purchasableProducts.Select(p => new SelectListItem
-                {
-                    Value = p.ID.ToString(),
-                    Text = $"{p.PNo} - {p.Name ?? ""}"
-                }).ToList();
-
-                ViewBag.PurchasableProducts = new SelectList(productSelectList, "Value", "Text");
+                var ensureProductIds = model.ContractProducts?.Select(cp => cp.ProductID) ?? Enumerable.Empty<int>();
+                var purchasableProducts = await GetPurchasableProductsAsync(db, purchaseType, ensureProductIds);
+                ViewBag.PurchasableProducts = BuildProductSelectList(purchasableProducts);
 
                 ViewBag.Units = new SelectList(
                     await db.UNITS.ToListAsync(),
@@ -952,6 +984,7 @@ namespace tahsinERP.Controllers
         public int? UnitID { get; set; }
         public double? MOQ { get; set; }
         public int? HSCodeID { get; set; }
+        public double VatPercent { get; set; }
         
         // uchun display: indicates agar product requires cutting (uses CBM)
         public bool RequiresCutting { get; set; }

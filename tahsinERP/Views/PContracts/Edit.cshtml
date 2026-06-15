@@ -1,4 +1,6 @@
 @model tahsinERP.Controllers.PContractEditViewModel
+@using System.Linq
+@using System.Web.Mvc
 @{
     ViewBag.Title = "Shartnomani tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -149,7 +151,24 @@
                                                                 var product = Model.ContractProducts[i];
                                                                 <tr data-row-index="@i">
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.ContractProducts[i].ProductID, ViewBag.PurchasableProducts as SelectList, "---Tanlang---", new { @class = "form-control product-select", @required = "required" })
+                                                                        @{
+                                                                            var productIdStr = product.ProductID.ToString();
+                                                                            var productOptions = purchasableProductsList != null
+                                                                                ? purchasableProductsList.Cast<SelectListItem>().ToList()
+                                                                                : new List<SelectListItem>();
+                                                                            var productInList = productOptions.Any(o => o.Value == productIdStr);
+                                                                        }
+                                                                        <select name="ContractProducts[@i].ProductID" class="form-control product-select select2" required>
+                                                                            <option value="">---Tanlang---</option>
+                                                                            @foreach (var item in productOptions)
+                                                                            {
+                                                                                <option value="@item.Value" @(item.Value == productIdStr ? "selected" : null)>@item.Text</option>
+                                                                            }
+                                                                            @if (!productInList && product.ProductID > 0)
+                                                                            {
+                                                                                <option value="@productIdStr" selected>@(product.ProductPNo ?? productIdStr) - @(product.ProductName ?? "")</option>
+                                                                            }
+                                                                        </select>
                                                                         @Html.HiddenFor(m => m.ContractProducts[i].ID)
                                                                     </td>
                                                                     <td>
@@ -162,7 +181,7 @@
                                                                         @Html.TextBoxFor(m => m.ContractProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        <input type="number" name="ContractProducts[@i].VatPercent" class="form-control vat-input" value="12" step="0.01" min="0" max="100" />
+                                                                        <input type="number" name="ContractProducts[@i].VatPercent" class="form-control vat-input" value="@Model.ContractProducts[i].VatPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" step="0.01" min="0" max="100" />
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.ContractProducts[i].Amount, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
@@ -234,10 +253,13 @@
                 $(document).ready(function () {
                     if (typeof $.fn.select2 !== 'undefined') {
                         $('.select2').select2();
-                        // Initialize select2 for existing product selects
-                        $('.product-select.select2').select2();
-                        $('.unit-select.select2').select2();
-                        $('.hs-code-select.select2').select2();
+                        $('#contractProductsTable .product-select.select2').each(function () {
+                            var $select = $(this);
+                            if (!$select.hasClass('select2-hidden-accessible')) {
+                                $select.select2();
+                            }
+                            $select.trigger('change.select2');
+                        });
                     }
 
                     var productRowIndex = @(Model.ContractProducts?.Count ?? 0);

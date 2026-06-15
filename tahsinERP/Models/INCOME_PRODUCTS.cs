@@ -14,6 +14,12 @@ namespace tahsinERP.Models
     
     public partial class INCOME_PRODUCTS
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public INCOME_PRODUCTS()
+        {
+            this.INCOME_LOTS = new HashSet<INCOME_LOTS>();
+        }
+    
         public int ID { get; set; }
         public int IncomeID { get; set; }
         public int ProductID { get; set; }
@@ -26,5 +32,7 @@ namespace tahsinERP.Models
         public virtual INCOME INCOME { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual UNIT UNIT { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<INCOME_LOTS> INCOME_LOTS { get; set; }
     }
 }

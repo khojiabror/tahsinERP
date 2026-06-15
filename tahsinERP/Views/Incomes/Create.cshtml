@@ -258,7 +258,7 @@
                     });
 
                     $('#addRowBtn').click(function () {
-                        addProductRow(null, '', '', 0, null, 0, 0, '', 12);
+                        addProductRow(null, '', '', 0, null, 0, 0, '', 0);
                     });
 
                     function escapeHtml(text) {
@@ -392,7 +392,7 @@
                     }
 
                     function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment, vatRate, locationId) {
-                        var vr = typeof vatRate === 'number' && !isNaN(vatRate) ? vatRate : 12;
+                        var vr = typeof vatRate === 'number' && !isNaN(vatRate) ? vatRate : 0;
                         var userComment = stripQqsFromComment(comment || '');
                         var merged = mergeIncomeComment(userComment, vr);
                         var dlocCols = '';

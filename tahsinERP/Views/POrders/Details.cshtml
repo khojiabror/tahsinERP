@@ -5,7 +5,7 @@
 @{
     ViewBag.Title = "Buyurtma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var vatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 12d;
+    var vatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d;
     var totalBase = Model.Amount ?? 0d;
     var totalVat = totalBase * vatRate / 100d;
     var totalWithVat = totalBase + totalVat;

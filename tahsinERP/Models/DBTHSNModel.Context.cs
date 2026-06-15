@@ -156,6 +156,12 @@ namespace tahsinERP.Models
         public virtual DbSet<V_TANNARX_ACTUAL_LABOR_COSTS> V_TANNARX_ACTUAL_LABOR_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_COSTS> V_TANNARX_ACTUAL_MATERIAL_COSTS { get; set; }
         public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_TRANSPORT> V_TANNARX_ACTUAL_MATERIAL_TRANSPORT { get; set; }
+        public virtual DbSet<EXPENSE_PRODUCT_ALLOCATIONS> EXPENSE_PRODUCT_ALLOCATIONS { get; set; }
+        public virtual DbSet<FIFO_POLICY> FIFO_POLICY { get; set; }
+        public virtual DbSet<FIFO_VIOLATIONS> FIFO_VIOLATIONS { get; set; }
+        public virtual DbSet<INCOME_LOTS> INCOME_LOTS { get; set; }
+        public virtual DbSet<LOT_LOCATIONS> LOT_LOCATIONS { get; set; }
+        public virtual DbSet<WAREHOUSE_LOCATIONS> WAREHOUSE_LOCATIONS { get; set; }
     
         public virtual int sp_Fin_AddTransaction(Nullable<System.DateTime> txnDate, Nullable<int> accountID, Nullable<int> categoryID, Nullable<byte> direction, Nullable<decimal> amount, Nullable<int> currencyID, Nullable<decimal> qty, Nullable<decimal> pricePerUnit, Nullable<byte> counterpartyType, Nullable<int> counterpartyID, string counterpartyName, string purpose, string sourceDocType, Nullable<int> sourceDocID, string contractNo, string comment, Nullable<int> createdByUserID, ObjectParameter newID)
         {
@@ -303,6 +309,19 @@ namespace tahsinERP.Models
                 new ObjectParameter("Month", typeof(int));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<Nullable<int>>("SP_TANNARX_UPDATE_ACTUAL_COSTS", yearParameter, monthParameter);
+        }
+    
+        public virtual int sp_CheckDlocCapacity(Nullable<int> locationID, Nullable<decimal> incomingQty)
+        {
+            var locationIDParameter = locationID.HasValue ?
+                new ObjectParameter("LocationID", locationID) :
+                new ObjectParameter("LocationID", typeof(int));
+    
+            var incomingQtyParameter = incomingQty.HasValue ?
+                new ObjectParameter("IncomingQty", incomingQty) :
+                new ObjectParameter("IncomingQty", typeof(decimal));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_CheckDlocCapacity", locationIDParameter, incomingQtyParameter);
         }
     }
 }

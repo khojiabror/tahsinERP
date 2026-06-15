@@ -24,6 +24,8 @@ namespace tahsinERP.Models
         public Nullable<bool> ActivePart { get; set; }
         public Nullable<int> UnitID { get; set; }
         public Nullable<int> HSCodeID { get; set; }
+        public Nullable<double> VATAmount { get; set; }
+        public Nullable<double> TotalAmount { get; set; }
     
         public virtual HSCODE HSCODE { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }

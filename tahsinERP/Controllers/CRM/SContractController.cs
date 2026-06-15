@@ -17,7 +17,7 @@ namespace tahsinERP.Controllers
     public class SContractController : Controller
     {
         // Olish so'rovi: SContract | Index
-        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
+        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -75,23 +75,10 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                // Pagination
-                int currentPage = page ?? 1;
-                int itemsPerPage = pageSize ?? 25;
-                int totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
-
-                var contracts = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
+                var contracts = await query.ToListAsync();
 
                 // ViewBag uchun filters
                 ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.ContractNo = contractNo;
                 ViewBag.CustomerID = customerID;
@@ -183,26 +170,7 @@ namespace tahsinERP.Controllers
 
                 try
                 {
-                    // Calculate total amount dan products (including VAT agar provided)
-                    decimal totalAmount = 0;
-                    int totalIndex = 0;
-                    while (form[$"ProductList[{totalIndex}].ProductID"] != null)
-                    {
-                        var productIDStr = form[$"ProductList[{totalIndex}].ProductID"];
-                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
-                        {
-                            var piecePrice = double.Parse(form[$"ProductList[{totalIndex}].PiecePrice"] ?? "0");
-                            var amount = int.Parse(form[$"ProductList[{totalIndex}].Amount"] ?? "0");
-                            var vatPercent = double.Parse(form[$"ProductList[{totalIndex}].VatPercent"] ?? "12");
-                            if (piecePrice > 0 && amount > 0)
-                            {
-                                var baseTotal = piecePrice * amount;
-                                var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
-                                totalAmount += (decimal)totalWithVat;
-                            }
-                        }
-                        totalIndex++;
-                    }
+                    var totalAmount = SContractVatHelper.CalculateContractTotalWithVatFromForm(form);
 
                     // Yaratish contract
                     var newContract = new S_CONTRACTS
@@ -214,7 +182,7 @@ namespace tahsinERP.Controllers
                         Incoterms = model.Incoterms,
                         PaymentTerms = model.PaymentTerms,
                         CurrencyID = model.CurrencyID,
-                        Amount = (int)totalAmount,
+                        Amount = totalAmount,
                         CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
                         IsDeleted = false
                     };
@@ -223,15 +191,21 @@ namespace tahsinERP.Controllers
                     db.SaveChanges();
 
                     // Qo'shish products
-                    foreach (var product in model.ProductList)
+                    for (int i = 0; i < model.ProductList.Count; i++)
                     {
+                        var product = model.ProductList[i];
+                        var vatPercent = SContractVatHelper.ParseVatPercentFromForm(form, i);
+                        var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
+                        var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, vatPercent);
+
                         var contractProduct = new S_CONTRACT_PRODUCTS
                         {
                             ContractID = newContract.ID,
                             ProductID = product.ProductID,
                             PiecePrice = product.PiecePrice,
                             Amount = product.Amount,
-                            UnitID = product.UnitID
+                            UnitID = product.UnitID,
+                            vatamount = vatAmount
                         };
                         db.S_CONTRACT_PRODUCTS.Add(contractProduct);
                     }
@@ -274,8 +248,7 @@ namespace tahsinERP.Controllers
                 var contract = db.S_CONTRACTS
                                  .Include(c => c.CUSTOMER)
                                  .Include(c => c.CURRENCy)
-                                 .Include(c => c.S_ORDERS)
-                                 .FirstOrDefault(p => p.ID == id);
+                                 .FirstOrDefault(p => p.ID == id && p.IsDeleted == false);
 
                 if (contract == null)
                 {
@@ -285,28 +258,58 @@ namespace tahsinERP.Controllers
                 var productList = db.S_CONTRACT_PRODUCTS
                                     .Include(pl => pl.PRODUCT)
                                     .Include(pl => pl.UNIT)
-                                    .Where(pl => pl.ContractID == contract.ID)
+                                    .Where(pl => pl.ContractID == contract.ID
+                                        && (pl.PRODUCT == null || pl.PRODUCT.IsDeleted != true))
                                     .ToList();
 
                 ViewBag.ProductList = productList;
 
-                var linkedOrders = contract.S_ORDERS.Where(o => o.IsDeleted == false).ToList();
+                var linkedOrders = db.S_ORDERS
+                    .Where(o => o.ContractID == contract.ID && (o.IsDeleted == false || o.IsDeleted == null))
+                    .ToList();
                 ViewBag.LinkedOrders = linkedOrders;
                 ViewBag.OrdersCount = linkedOrders.Count;
 
-                var invoicesCount = db.SALES_INVOICES.Where(i => i.ContractID == id).Count();
-                ViewBag.InvoicesCount = invoicesCount;
+                var activeInvoicesQuery = db.SALES_INVOICES
+                    .Where(i => i.ContractID == id
+                        && (i.StatusCode == null || (i.StatusCode != "CANCELED" && i.StatusCode != "CANCELLED")));
 
-                // Use contract.Amount instead of sum dan products
-                var contractedTotal = contract.Amount ?? 0;
+                ViewBag.InvoicesCount = activeInvoicesQuery.Count();
+
+                // Use total (QQS bilan) from contract products stored in DB
+                var contractedTotal = SContractVatHelper.CalculateContractTotalWithVat(productList);
+                if (contractedTotal <= 0 && contract.Amount.HasValue)
+                {
+                    contractedTotal = contract.Amount.Value;
+                }
+                var contractedBase = productList.Sum(p => SContractVatHelper.GetLineBaseAmount(p));
+                var contractedVat = productList.Sum(p => p.vatamount ?? 0);
+                var contractedVatRate = SContractVatHelper.CalculateContractVatRate(productList);
+                var contractedQty = productList.Sum(p => p.Amount);
                 var orderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
-                var invoicedTotal = db.SALES_INVOICES
-                    .Where(i => i.ContractID == id)
+                var orderIds = linkedOrders.Select(o => o.ID).ToList();
+                var orderedQty = orderIds.Count == 0
+                    ? 0d
+                    : db.S_ORDER_PRODUCTS
+                        .Where(op => orderIds.Contains(op.OrderID))
+                        .Sum(op => (double?)op.Amount) ?? 0d;
+                var invoicedTotal = activeInvoicesQuery
                     .Sum(i => (decimal?)(i.TotalWithVAT ?? i.TotalAmount)) ?? 0;
+                var invoicedQty = db.SALES_INVOICE_LINES
+                    .Where(l => l.SALES_INVOICES.ContractID == id
+                        && (l.SALES_INVOICES.StatusCode == null
+                            || (l.SALES_INVOICES.StatusCode != "CANCELED" && l.SALES_INVOICES.StatusCode != "CANCELLED")))
+                    .Sum(l => (decimal?)l.Qty) ?? 0m;
 
                 ViewBag.ContractedTotal = contractedTotal;
+                ViewBag.ContractedBase = contractedBase;
+                ViewBag.ContractedVat = contractedVat;
+                ViewBag.ContractedVatRate = contractedVatRate;
+                ViewBag.ContractedQty = contractedQty;
                 ViewBag.OrderedTotal = orderedTotal;
+                ViewBag.OrderedQty = orderedQty;
                 ViewBag.InvoicedTotal = invoicedTotal;
+                ViewBag.InvoicedQty = invoicedQty;
 
                 return View(contract);
             }
@@ -337,7 +340,7 @@ namespace tahsinERP.Controllers
                     Incoterms = contract.Incoterms,
                     PaymentTerms = contract.PaymentTerms,
                     CurrencyID = (int)contract.CurrencyID,
-                    Amount = (int)contract.Amount,
+                    Amount = (decimal)SContractVatHelper.CalculateContractTotalWithVat(contract.S_CONTRACT_PRODUCTS),
                     ProductList = contract.S_CONTRACT_PRODUCTS.Select(p => new SContractProductViewModel
                     {
                         ID = p.ID,
@@ -347,6 +350,8 @@ namespace tahsinERP.Controllers
                         PiecePrice = p.PiecePrice,
                         UnitID = p.UnitID,
                         Amount = (int)p.Amount,
+                        VatPercent = SContractVatHelper.GetVatPercentFromLine(
+                            SContractVatHelper.GetLineBaseAmount(p), p.vatamount),
                         PRODUCT = new ProductViewModel
                         {
                             ID = p.PRODUCT.ID,
@@ -458,11 +463,15 @@ namespace tahsinERP.Controllers
                     }
 
                     // Yangilash/add products
-                    foreach (var product in model.ProductList)
+                    for (int i = 0; i < model.ProductList.Count; i++)
                     {
+                        var product = model.ProductList[i];
+                        var vatPercent = SContractVatHelper.ParseVatPercentFromForm(form, i);
+                        var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
+                        var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, vatPercent);
+
                         if (product.ID > 0)
                         {
-                            // Yangilash existing
                             var existing = db.S_CONTRACT_PRODUCTS.Find(product.ID);
                             if (existing != null)
                             {
@@ -470,47 +479,29 @@ namespace tahsinERP.Controllers
                                 existing.PiecePrice = product.PiecePrice;
                                 existing.UnitID = product.UnitID;
                                 existing.Amount = product.Amount;
+                                existing.vatamount = vatAmount;
                                 db.Entry(existing).State = EntityState.Modified;
                             }
                         }
                         else
                         {
-                            // Qo'shish new
                             var newProduct = new S_CONTRACT_PRODUCTS
                             {
                                 ContractID = contractToUpdate.ID,
                                 ProductID = product.ProductID,
                                 PiecePrice = product.PiecePrice,
                                 UnitID = product.UnitID,
-                                Amount = product.Amount
+                                Amount = product.Amount,
+                                vatamount = vatAmount
                             };
                             db.S_CONTRACT_PRODUCTS.Add(newProduct);
                         }
                     }
 
-                    // Calculate total amount (including VAT agar provided)
-                    decimal totalAmount = 0;
-                    int totalIndex = 0;
-                    while (form[$"ProductList[{totalIndex}].ProductID"] != null)
-                    {
-                        var productIDStr = form[$"ProductList[{totalIndex}].ProductID"];
-                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
-                        {
-                            var piecePrice = double.Parse(form[$"ProductList[{totalIndex}].PiecePrice"] ?? "0");
-                            var amount = int.Parse(form[$"ProductList[{totalIndex}].Amount"] ?? "0");
-                            var vatPercent = double.Parse(form[$"ProductList[{totalIndex}].VatPercent"] ?? "12");
-                            if (piecePrice > 0 && amount > 0)
-                            {
-                                var baseTotal = piecePrice * amount;
-                                var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
-                                totalAmount += (decimal)totalWithVat;
-                            }
-                        }
-                        totalIndex++;
-                    }
+                    var totalAmount = SContractVatHelper.CalculateContractTotalWithVatFromForm(form);
 
                     // Yangilash contract amount
-                    contractToUpdate.Amount = (int)totalAmount;
+                    contractToUpdate.Amount = totalAmount;
                     db.Entry(contractToUpdate).State = EntityState.Modified;
                     db.SaveChanges();
 
@@ -541,6 +532,11 @@ namespace tahsinERP.Controllers
         [HttpGet]
         public ActionResult Delete(int? id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "SContract", "Delete"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -551,7 +547,7 @@ namespace tahsinERP.Controllers
                 var contract = db.S_CONTRACTS
                     .Include(c => c.CUSTOMER)
                     .Include(c => c.CURRENCy)
-                    .FirstOrDefault(c => c.ID == id);
+                    .FirstOrDefault(c => c.ID == id && c.IsDeleted == false);
 
                 if (contract == null)
                 {
@@ -571,17 +567,22 @@ namespace tahsinERP.Controllers
         // POST so'rovi: o'chirish
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "SContract", "Delete"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contract = db.S_CONTRACTS.Find(id);
+                var contract = await db.S_CONTRACTS.FirstOrDefaultAsync(c => c.ID == id && c.IsDeleted == false);
                 if (contract != null)
                 {
                     contract.IsDeleted = true;
                     db.Entry(contract).State = EntityState.Modified;
-                    SoftDeleteReferenceService.AfterSContractSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
-                    db.SaveChanges();
+                    await SoftDeleteReferenceService.AfterSContractSoftDeletedAsync(db, id);
+                    await db.SaveChangesAsync();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{contract.ContractNo} - SContractni o'chirdi");
                 }
@@ -614,13 +615,13 @@ namespace tahsinERP.Controllers
                     decimal totalAmount = 0;
                     foreach (var product in remainingProducts)
                     {
-                        totalAmount += (decimal)(product.PiecePrice * product.Amount);
+                        totalAmount += (decimal)SContractVatHelper.GetLineTotalWithVat(product);
                     }
 
                     var contract = db.S_CONTRACTS.Find(contractID);
                     if (contract != null)
                     {
-                        contract.Amount = (int)totalAmount;
+                        contract.Amount = (double)Math.Round(totalAmount, MidpointRounding.AwayFromZero);
                         db.SaveChanges();
                     }
 

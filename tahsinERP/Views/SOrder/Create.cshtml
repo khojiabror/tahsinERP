@@ -111,6 +111,7 @@
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
                                                                             <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].VatRate" value="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
                                                                             <input type="number" 
                                                                                    name="ProductQuantities[@index].OrderQuantity" 
                                                                                    class="form-control order-quantity" 
@@ -118,6 +119,7 @@
                                                                                    step="0.01" 
                                                                                    min="0.01" 
                                                                                    data-price="@product.PiecePrice"
+                                                                                   data-vat-rate="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
                                                                                    required />
                                                                         </td>
                                                                         <td class="text-right total-price">0.00</td>
@@ -266,7 +268,8 @@ else
                                     '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + (product.ProductID || '') + '" />' +
                                     '<input type="hidden" name="ProductQuantities[' + index + '].PiecePrice" value="' + (product.PiecePrice || 0) + '" />' +
                                     '<input type="hidden" name="ProductQuantities[' + index + '].UnitID" value="' + (product.UnitID || '') + '" />' +
-                                    '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="0" step="0.01" min="0.01" data-price="' + (product.PiecePrice || 0) + '" required />' +
+                                    '<input type="hidden" name="ProductQuantities[' + index + '].VatRate" value="' + (product.VatRate || 0) + '" />' +
+                                    '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="0" step="0.01" min="0.01" data-price="' + (product.PiecePrice || 0) + '" data-vat-rate="' + (product.VatRate || 0) + '" required />' +
                                     '</td>' +
                                     '<td class="text-right total-price">0.00</td>' +
                                     '</tr>';
@@ -302,7 +305,10 @@ else
                 var $row = $(this).closest('tr');
                 var qty = parseFloat($(this).val()) || 0;
                 var price = parseFloat($(this).data('price')) || 0;
-                $row.find('.total-price').text((qty * price).toFixed(2));
+                var vatRate = parseFloat($(this).data('vat-rate')) || 0;
+                var lineBase = qty * price;
+                var lineTotal = lineBase + (lineBase * vatRate / 100);
+                $row.find('.total-price').text(lineTotal.toFixed(2));
                 calculateTotal();
             });
 

@@ -284,6 +284,29 @@ namespace tahsinERP.Controllers.SRM
         {
             using (var db = new DBTHSNEntities())
             {
+                var invoice = await db.P_INVOICES
+                    .Include(i => i.P_ORDERS)
+                    .FirstOrDefaultAsync(i => i.ID == invoiceId);
+
+                Dictionary<int, double> vatByProduct = new Dictionary<int, double>();
+                int? contractId = null;
+                if (invoice != null)
+                {
+                    if (invoice.ContractID > 0)
+                    {
+                        contractId = invoice.ContractID;
+                    }
+                    else if (invoice.P_ORDERS?.ContractID > 0)
+                    {
+                        contractId = invoice.P_ORDERS.ContractID;
+                    }
+                }
+
+                if (contractId.HasValue)
+                {
+                    vatByProduct = await PContractVatHelper.GetProductVatRatesByContractAsync(db, contractId.Value);
+                }
+
                 var invoiceProducts = await db.P_INVOICE_PRODUCTS
                     .Include(ip => ip.PRODUCT)
                     .Include(ip => ip.UNIT)
@@ -296,12 +319,23 @@ namespace tahsinERP.Controllers.SRM
                         Amount = ip.Quantity,
                         UnitID = ip.UnitID,
                         PiecePrice = ip.Price,
-                        TotalPrice = ip.TotalPrice,
-                        VATRate = 0d
+                        TotalPrice = ip.TotalPrice
                     })
                     .ToListAsync();
 
-                return Json(new { success = true, data = invoiceProducts });
+                var data = invoiceProducts.Select(ip => new
+                {
+                    ip.ProductID,
+                    ip.ProductPNo,
+                    ip.ProductName,
+                    ip.Amount,
+                    ip.UnitID,
+                    ip.PiecePrice,
+                    ip.TotalPrice,
+                    VATRate = vatByProduct.ContainsKey(ip.ProductID) ? vatByProduct[ip.ProductID] : 0d
+                }).ToList();
+
+                return Json(new { success = true, data });
             }
         }
 
@@ -1462,7 +1496,7 @@ namespace tahsinERP.Controllers.SRM
             var b = amount * (piecePrice ?? 0);
             if (b <= 0.0000001)
             {
-                return 12;
+                return 0;
             }
 
             if (!totalPrice.HasValue || Math.Abs(totalPrice.Value - b) < 0.02)

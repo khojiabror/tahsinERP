@@ -106,7 +106,7 @@
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="vatRateInput">QQS % (ko'rinish uchun)</label>
-                                                    <input type="number" id="vatRateInput" class="form-control" value="12" step="0.01" min="0" max="100" />
+                                                    <input type="number" id="vatRateInput" class="form-control" value="0" step="0.01" min="0" max="100" />
                                                 </div>
                                                 <div class="col-md-9 col-12 form-group">
                                                     <label for="invoiceFile">Invoys hujjati (PDF)</label>
@@ -233,7 +233,7 @@
                                             response.data.forEach(function (contract) {
                                                 var $option = $('<option>')
                                                     .attr('value', contract.ID)
-                                                    .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 12)
+                                                    .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 0)
                                                     .text(contract.ContractNo);
                                                 if (selectedId && String(contract.ID) === String(selectedId)) {
                                                     $option.attr('selected', 'selected');

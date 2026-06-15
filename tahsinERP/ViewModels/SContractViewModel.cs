@@ -26,6 +26,7 @@ namespace tahsinERP.ViewModels
         public double PiecePrice { get; set; }
         public int UnitID { get; set; }
         public int Amount { get; set; }
+        public double VatPercent { get; set; }
         public ProductViewModel PRODUCT { get; set; }
     }
 

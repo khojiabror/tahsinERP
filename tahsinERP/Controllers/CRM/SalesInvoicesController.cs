@@ -216,6 +216,20 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Order = order;
                 ViewBag.OrderProducts = order.S_ORDER_PRODUCTS.ToList();
+                if (order.ContractID > 0)
+                {
+                    ViewBag.ProductVatRates = db.S_CONTRACT_PRODUCTS
+                        .Where(p => p.ContractID == order.ContractID)
+                        .ToList()
+                        .ToDictionary(
+                            p => p.ProductID,
+                            p => SContractVatHelper.GetVatPercentFromLine(
+                                SContractVatHelper.GetLineBaseAmount(p), p.vatamount));
+                }
+                else
+                {
+                    ViewBag.ProductVatRates = new Dictionary<int, double>();
+                }
                 ViewBag.Currencies = new SelectList(db.CURRENCIES.ToList(), "Shortname", "Shortname", invoice.CurrencyCode);
 
                 return View(invoice);
@@ -559,9 +573,31 @@ namespace tahsinERP.Controllers
                 var contracts = db.S_CONTRACTS
                     .Where(c => c.CustomerID == customerId && (c.IsDeleted == false || c.IsDeleted == null))
                     .OrderBy(c => c.ContractNo)
-                    .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                    .Select(c => new { c.ID, c.ContractNo })
                     .ToList();
-                return Json(contracts, JsonRequestBehavior.AllowGet);
+
+                var contractIds = contracts.Select(c => c.ID).ToList();
+                var contractProducts = db.S_CONTRACT_PRODUCTS
+                    .Where(p => contractIds.Contains(p.ContractID))
+                    .ToList()
+                    .Select(p => new SContractVatHelper.ContractProductVatLine
+                    {
+                        ContractID = p.ContractID,
+                        LineBaseAmount = SContractVatHelper.GetLineBaseAmount(p),
+                        VATAmount = p.vatamount
+                    })
+                    .ToList();
+
+                var vatByContract = SContractVatHelper.BuildContractVatRates(contractProducts);
+
+                var result = contracts.Select(c => new
+                {
+                    c.ID,
+                    c.ContractNo,
+                    VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 0d
+                }).ToList();
+
+                return Json(result, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -586,17 +622,34 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
+                var order = db.S_ORDERS.FirstOrDefault(o => o.ID == orderId);
+                Dictionary<int, double> vatByProduct = null;
+                if (order != null && order.ContractID > 0)
+                {
+                    vatByProduct = db.S_CONTRACT_PRODUCTS
+                        .Where(p => p.ContractID == order.ContractID)
+                        .ToList()
+                        .ToDictionary(
+                            p => p.ProductID,
+                            p => SContractVatHelper.GetVatPercentFromLine(
+                                SContractVatHelper.GetLineBaseAmount(p), p.vatamount));
+                }
+
                 var lines = db.S_ORDER_PRODUCTS
                     .Include(op => op.PRODUCT)
                     .Include(op => op.UNIT)
                     .Where(op => op.OrderID == orderId)
+                    .ToList()
                     .Select(op => new
                     {
                         ProductID = op.ProductID,
                         ProductName = op.PRODUCT != null ? op.PRODUCT.Name : "",
                         PNo = op.PRODUCT != null ? op.PRODUCT.PNo : "",
                         Qty = op.Amount,
-                        UnitPrice = op.Price
+                        UnitPrice = op.Price,
+                        VATRate = vatByProduct != null && vatByProduct.ContainsKey(op.ProductID)
+                            ? vatByProduct[op.ProductID]
+                            : 0d
                     })
                     .ToList();
                 return Json(lines, JsonRequestBehavior.AllowGet);
@@ -612,8 +665,13 @@ namespace tahsinERP.Controllers
                 var cp = db.S_CONTRACT_PRODUCTS
                     .FirstOrDefault(c => c.ContractID == contractId && c.ProductID == productId);
                 if (cp == null)
-                    return Json(new { PiecePrice = (decimal?)null }, JsonRequestBehavior.AllowGet);
-                return Json(new { PiecePrice = (decimal)cp.PiecePrice }, JsonRequestBehavior.AllowGet);
+                    return Json(new { PiecePrice = (decimal?)null, VatRate = 0d }, JsonRequestBehavior.AllowGet);
+                return Json(new
+                {
+                    PiecePrice = (decimal)cp.PiecePrice,
+                    VatRate = SContractVatHelper.GetVatPercentFromLine(
+                        SContractVatHelper.GetLineBaseAmount(cp), cp.vatamount)
+                }, JsonRequestBehavior.AllowGet);
             }
         }
 
