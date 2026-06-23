@@ -114,8 +114,8 @@
                                                     <th>Min</th>
                                                     <th>Max</th>
                                                     <th>Sig'im %</th>
-                                                    <th>Lot</th>
-                                                    <th>Kirim sanasi</th>
+                                                    <th>Lotlar soni</th>
+                                                    <th>Eng erta kirim</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -141,7 +141,7 @@
                                                         <td>@r.MinCapacity.ToString("N2")</td>
                                                         <td>@r.MaxCapacity.ToString("N2")</td>
                                                         <td>@(r.MaxCapacity > 0 ? fillPct.ToString("N0") + "%" : "—")</td>
-                                                        <td>@(r.LotNo ?? "—")</td>
+                                                        <td>@r.LotCount</td>
                                                         <td>@(r.ReceivedDateTime.HasValue ? r.ReceivedDateTime.Value.ToString("dd.MM.yyyy HH:mm") : "—")</td>
                                                     </tr>
                                                 }

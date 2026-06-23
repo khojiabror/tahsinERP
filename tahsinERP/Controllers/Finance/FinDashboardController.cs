@@ -278,6 +278,16 @@ namespace tahsinERP.Controllers.Finance
                             IsOpening = true
                         });
 
+                // Subledger (AR/AP/oylik) kategoriyalari dinamik hisoblanadi — ular uchun eskirgan
+                // kategoriya-darajasidagi opening snapshotni e'tiborsiz qoldiramiz (eski sana/summa bermasin).
+                foreach (var detailedCatId in categories
+                    .Where(c => IsDetailedSubledgerCategoryName(c.Name))
+                    .Select(c => c.ID)
+                    .ToList())
+                {
+                    openingSnapshots.Remove(detailedCatId);
+                }
+
                 // Calculate dan transactions va accounts
                 // Map accounts ga balance categories by name matching
                 var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).ToList();
@@ -554,9 +564,15 @@ namespace tahsinERP.Controllers.Finance
                                          category.Name.ToLower().Contains("logistika") &&
                                          category.Name.ToLower().Contains("qarz"))
                                 {
+                                    // Logistika opening (FIN_OPENING_CONTRACT_BALANCES, BalanceType=4) + opening'dan keyingi harakatlar.
+                                    var logiOpening = GetLatestOpeningDateForBalanceType(db, asOfDate.Value, 4);
+                                    var logiOpeningNet = logiOpening.HasValue
+                                        ? GetOpeningContractBalances(db, logiOpening.Value, 4).Where(x => x.Amount > 0).Sum(x => x.Amount)
+                                        : 0m;
+
                                     var totalWaybillAmount = db.F_WAYBILLS
                                         .Where(w => w.IsDeleted == false && w.Amount.HasValue &&
-                                                    (!openingDate.HasValue || w.IssueDate > openingDate.Value) &&
+                                                    (!logiOpening.HasValue || w.IssueDate > logiOpening.Value) &&
                                                     w.IssueDate <= asOfDate.Value)
                                         .Sum(w => (double?)w.Amount) ?? 0;
 
@@ -572,13 +588,13 @@ namespace tahsinERP.Controllers.Finance
                                         paidAmount = ActiveFinTransactions(db)
                                             .Where(t => logisticsCategoryIds.Contains(t.CategoryID) &&
                                                         t.TxnDate <= asOfDate.Value &&
-                                                        (!openingDate.HasValue || t.TxnDate > openingDate.Value) &&
+                                                        (!logiOpening.HasValue || t.TxnDate > logiOpening.Value) &&
                                                         (t.IsDeleted == null || t.IsDeleted == false) &&
                                                         t.Direction == 2)
                                             .Sum(t => (decimal?)t.Amount) ?? 0m;
                                     }
 
-                                    amount += (decimal)totalWaybillAmount - paidAmount;
+                                    amount += logiOpeningNet + (decimal)totalWaybillAmount - paidAmount;
                                 }
                                 else if (category.Name == "Doimiy harajatlar qarzi")
                                 {
@@ -724,11 +740,24 @@ namespace tahsinERP.Controllers.Finance
                     }, JsonRequestBehavior.AllowGet);
                 }
 
-                var openingDate = db.FIN_BALANCE_SNAPSHOTS
-                    .Where(s => s.CategoryID == categoryId && s.SourceType == "OpeningBalance" && s.SnapshotDate <= asOfDate)
-                    .OrderByDescending(s => s.SnapshotDate)
-                    .Select(s => (DateTime?)s.SnapshotDate)
-                    .FirstOrDefault();
+                // Subledger (AR/AP/oylik) kategoriyalari uchun opening sanasini dinamik manbadan olamiz,
+                // aks holda eskirgan kategoriya-darajasidagi snapshot eski sanani beradi.
+                DateTime? openingDate;
+                if (IsDetailedSubledgerCategoryName(category.Name))
+                {
+                    int balanceType = category.Name == "Xaridorlardan haqlarimiz"
+                        ? 1
+                        : (IsSalaryLiabilityCategory(category.Name) ? 3 : 2);
+                    openingDate = GetLatestOpeningDateForBalanceType(db, asOfDate, balanceType);
+                }
+                else
+                {
+                    openingDate = db.FIN_BALANCE_SNAPSHOTS
+                        .Where(s => s.CategoryID == categoryId && s.SourceType == "OpeningBalance" && s.SnapshotDate <= asOfDate)
+                        .OrderByDescending(s => s.SnapshotDate)
+                        .Select(s => (DateTime?)s.SnapshotDate)
+                        .FirstOrDefault();
+                }
 
                 var fromExclusive = openingDate;
                 var top = 20;
@@ -1028,6 +1057,16 @@ namespace tahsinERP.Controllers.Finance
                         IsOpening = true
                     });
 
+            // Subledger (AR/AP/oylik) kategoriyalari dinamik hisoblanadi — eskirgan kategoriya-darajasidagi
+            // opening snapshotni e'tiborsiz qoldiramiz (aks holda batafsil sahifada eski opening sanasi yoziladi).
+            foreach (var detailedCatId in categories
+                .Where(c => IsDetailedSubledgerCategoryName(c.Name))
+                .Select(c => c.ID)
+                .ToList())
+            {
+                openingSnapshots.Remove(detailedCatId);
+            }
+
             var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).ToList();
             var accountBalances = new Dictionary<int, decimal>();
             foreach (var account in accounts)
@@ -1082,14 +1121,16 @@ namespace tahsinERP.Controllers.Finance
                 // Ta'minotchilardan qarzlar: P_Invoices − to'lovlar (FinTransactions Direction=2, CounterpartyType=2), FIFO
                 if (category.Name == "Ta'minotchilardan qarzlar")
                 {
-                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate, openingDate);
-                    detail.Amount += supplierSummary.Sum(s => s.Outstanding);
+                    // Opening sanasini dinamik manbadan (FIN_OPENING_CONTRACT_BALANCES) olamiz.
+                    var apOpening = GetLatestOpeningDateForBalanceType(db, asOfDate, 2);
+                    var supplierSummary = CalculateSupplierOutstanding(db, asOfDate, apOpening);
+                    detail.Amount = supplierSummary.Sum(s => s.Outstanding);
                     detail.TransactionCount = supplierSummary.Sum(s => s.InvoiceCount + s.PaymentCount);
                     detail.AddedAmount = supplierSummary.Sum(s => s.InvoiceTotal);
                     detail.SubtractedAmount = supplierSummary.Sum(s => s.PaymentTotal);
                     detail.CalculationTypeName = "Document-Based";
-                    detail.Explanation = openingDate.HasValue
-                        ? $"Opening balans ({openingDate.Value:dd.MM.yyyy}) + SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim."
+                    detail.Explanation = apOpening.HasValue
+                        ? $"Opening balans ({apOpening.Value:dd.MM.yyyy}) + SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim."
                         : "SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.";
                     details.Add(detail);
                     continue;
@@ -1097,13 +1138,16 @@ namespace tahsinERP.Controllers.Finance
 
                 if (category.Name == "Xaridorlardan haqlarimiz")
                 {
-                    var customerSummary = CalculateCustomerOutstanding(db, asOfDate, openingDate);
+                    var arOpening = GetLatestOpeningDateForBalanceType(db, asOfDate, 1);
+                    var customerSummary = CalculateCustomerOutstanding(db, asOfDate, arOpening);
                     detail.Amount = customerSummary.Sum(c => c.Outstanding);
                     detail.TransactionCount = customerSummary.Sum(c => c.InvoiceCount + c.ReceiptCount);
                     detail.AddedAmount = customerSummary.Sum(c => c.InvoiceTotal);
                     detail.SubtractedAmount = customerSummary.Sum(c => c.ReceiptTotal);
                     detail.CalculationTypeName = "Document-Based";
-                    detail.Explanation = "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
+                    detail.Explanation = arOpening.HasValue
+                        ? $"Opening balans ({arOpening.Value:dd.MM.yyyy}) + sotuv invoyslari − mijozdan tushumlar (FIFO) bo'yicha hisoblandi"
+                        : "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
                     details.Add(detail);
                     continue;
                 }
@@ -1241,12 +1285,15 @@ namespace tahsinERP.Controllers.Finance
                     case 3:
                         if (category.Name == "Ta'minotchilardan qarzlar")
                         {
-                            var supplierSummary = CalculateSupplierOutstanding(db, asOfDate);
+                            var apOpening = GetLatestOpeningDateForBalanceType(db, asOfDate, 2);
+                            var supplierSummary = CalculateSupplierOutstanding(db, asOfDate, apOpening);
                             detail.Amount = supplierSummary.Sum(s => s.Outstanding);
                             detail.TransactionCount = supplierSummary.Sum(s => s.InvoiceCount + s.PaymentCount);
                             detail.AddedAmount = supplierSummary.Sum(s => s.InvoiceTotal);
                             detail.SubtractedAmount = supplierSummary.Sum(s => s.PaymentTotal);
-                            detail.Explanation = "Xarid invoyslari va to'lovlar: SUM(invoys) − SUM(to'lov). To'lovlar faqat PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.";
+                            detail.Explanation = apOpening.HasValue
+                                ? $"Opening balans ({apOpening.Value:dd.MM.yyyy}) + xarid invoyslari − to'lovlar: SUM(invoys) − SUM(to'lov). To'lovlar faqat PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim."
+                                : "Xarid invoyslari va to'lovlar: SUM(invoys) − SUM(to'lov). To'lovlar faqat PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.";
                         }
                         else if (IsSalaryLiabilityCategory(category.Name))
                         {
@@ -1287,19 +1334,29 @@ namespace tahsinERP.Controllers.Finance
                         }
                         else if (category.Name == "Xaridorlardan haqlarimiz")
                         {
-                            var customerSummary = CalculateCustomerOutstanding(db, asOfDate, openingDate);
+                            var arOpening = GetLatestOpeningDateForBalanceType(db, asOfDate, 1);
+                            var customerSummary = CalculateCustomerOutstanding(db, asOfDate, arOpening);
                             detail.Amount = customerSummary.Sum(c => c.Outstanding);
                             detail.TransactionCount = customerSummary.Sum(c => c.InvoiceCount + c.ReceiptCount);
                             detail.AddedAmount = customerSummary.Sum(c => c.InvoiceTotal);
                             detail.SubtractedAmount = customerSummary.Sum(c => c.ReceiptTotal);
-                            detail.Explanation = "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
+                            detail.Explanation = arOpening.HasValue
+                                ? $"Opening balans ({arOpening.Value:dd.MM.yyyy}) + sotuv invoyslari − mijozdan tushumlar (FIFO) bo'yicha hisoblandi"
+                                : "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
                         }
                         else if (category.Name != null &&
                                  category.Name.ToLower().Contains("logistika") &&
                                  category.Name.ToLower().Contains("qarz"))
                         {
+                            // Logistika opening (FIN_OPENING_CONTRACT_BALANCES, BalanceType=4) + opening'dan keyingi harakatlar.
+                            var logiOpening = GetLatestOpeningDateForBalanceType(db, asOfDate, 4);
+                            var logiOpeningNet = logiOpening.HasValue
+                                ? GetOpeningContractBalances(db, logiOpening.Value, 4).Where(x => x.Amount > 0).Sum(x => x.Amount)
+                                : 0m;
+
                             var totalWaybillAmount = db.F_WAYBILLS
                                 .Where(w => w.IsDeleted == false && w.Amount.HasValue &&
+                                            (!logiOpening.HasValue || w.IssueDate > logiOpening.Value) &&
                                             w.IssueDate <= asOfDate)
                                 .Sum(w => (double?)w.Amount) ?? 0;
 
@@ -1315,6 +1372,7 @@ namespace tahsinERP.Controllers.Finance
                                 var logisticsTxnQuery = ActiveFinTransactions(db)
                                     .Where(t => logisticsCategoryIds.Contains(t.CategoryID) &&
                                                 t.TxnDate <= asOfDate &&
+                                                (!logiOpening.HasValue || t.TxnDate > logiOpening.Value) &&
                                                 (t.IsDeleted == null || t.IsDeleted == false));
                                 paidAmount = logisticsTxnQuery
                                     .Where(t => t.Direction == 2)
@@ -1322,8 +1380,10 @@ namespace tahsinERP.Controllers.Finance
                                 PopulateTransactionStats(logisticsTxnQuery, detail);
                             }
 
-                            detail.Amount = (decimal)totalWaybillAmount - paidAmount;
-                            detail.Explanation = $"Yo'l varaqalari bo'yicha: {totalWaybillAmount:N2}, to'lovlar {paidAmount:N2}";
+                            detail.Amount = logiOpeningNet + (decimal)totalWaybillAmount - paidAmount;
+                            detail.Explanation = logiOpening.HasValue
+                                ? $"Opening balans ({logiOpening.Value:dd.MM.yyyy}) + yo'l varaqalari {totalWaybillAmount:N2} − to'lovlar {paidAmount:N2}"
+                                : $"Yo'l varaqalari bo'yicha: {totalWaybillAmount:N2}, to'lovlar {paidAmount:N2}";
                         }
                         break;
                 }
@@ -1460,10 +1520,11 @@ namespace tahsinERP.Controllers.Finance
             }
 
             // Qarz formulasi: SUM(invoys) - SUM(ta'minotchi bo'yicha chiqim).
-            // Chiqim faqat:
+            // Chiqim:
             // 1) PurchaseInvoicePayment orqali invoysga bog'langan to'lov, yoki
-            // 2) FinTransactionsda ta'minotchi + ContractNo to'ldirilgan qo'lda chiqim.
-            // Boshqa yozuvlar qarzni kamaytirmaydi.
+            // 2) FinTransactionsda ta'minotchiga (CounterpartyType=2) qo'lda chiqim.
+            //    ContractNo majburiy emas — har qanday ta'minotchiga to'lov uning qarzini kamaytiradi
+            //    (jami ta'minotchi bo'yicha hisoblanadi).
             var paymentCandidates = ActiveFinTransactions(db)
                 .Where(t => t.TxnDate <= asOfDate &&
                             (!effectiveFrom.HasValue || t.TxnDate > effectiveFrom.Value) &&
@@ -1513,8 +1574,10 @@ namespace tahsinERP.Controllers.Finance
                         contractNo = meta.Item2;
                         valid = true;
                     }
-                    else if (!string.IsNullOrEmpty(contractNo))
+                    else
                     {
+                        // Ta'minotchiga qo'lda chiqim — ContractNo bo'lmasa ham qarzni kamaytiradi
+                        // (jami shu ta'minotchi bo'yicha ayriladi).
                         valid = true;
                     }
 
@@ -1790,6 +1853,20 @@ namespace tahsinERP.Controllers.Finance
                 .OrderByDescending(s => s.SnapshotDate)
                 .Select(s => (DateTime?)s.SnapshotDate)
                 .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// AR/AP/oylik kabi subledger kategoriyalari balans varaqasida dinamik (FIN_OPENING_CONTRACT_BALANCES
+        /// + harakatlar) hisoblanadi. Ular uchun kategoriya darajasidagi FIN_BALANCE_SNAPSHOTS "OpeningBalance"
+        /// yozuvini ishlatmaslik kerak — aks holda eski (eskirgan) opening sanasi/summasi olinib qoladi.
+        /// </summary>
+        private static bool IsDetailedSubledgerCategoryName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            var n = name.Trim().ToLowerInvariant();
+            return n.Contains("debitor") || n.Contains("kreditor") || n.Contains("mijoz")
+                || n.Contains("xaridor") || n.Contains("haqq") || n.Contains("haq")
+                || n.Contains("ta'minot") || n.Contains("qarz") || n.Contains("oylik");
         }
 
         private DateTime? GetLatestOpeningDateForBalanceType(DBTHSNEntities db, DateTime asOfDate, int balanceType)
@@ -2683,9 +2760,11 @@ namespace tahsinERP.Controllers.Finance
                 // Payables summary (invoice - payments, allocation/FIFO)
                 var totalPayables = supplierSummary.Sum(s => s.Outstanding);
 
-                // Receivables summary
-                var totalReceivables = receivablesTransactions
-                    .Sum(t => (decimal?)t.Amount) ?? 0m;
+                // Receivables summary — opening balans + sotuv invoyslari − tushumlar (FIFO).
+                // Avval faqat SalesInvoice FinTransactionlardan olinardi (ko'pincha bo'sh bo'lib qolardi
+                // va opening hisobga olinmасди). Endi payables kabi dinamik hisoblanadi.
+                var customerSummary = CalculateCustomerOutstanding(db, toDate.Value);
+                var totalReceivables = customerSummary.Sum(c => c.Outstanding);
 
                 // Payroll liability (approved payrolls minus salary expenses)
                 var salaryCategoryIds = db.FIN_CATEGORIES
@@ -2773,15 +2852,19 @@ namespace tahsinERP.Controllers.Finance
                     .OrderByDescending(x => x.Amount)
                     .ToList();
 
-                // Receivables by customer (counterparty)
-                var receivablesByCustomer = receivablesTransactions
-                    .Where(t => !string.IsNullOrEmpty(t.CounterpartyName))
-                    .GroupBy(t => t.CounterpartyName)
-                    .Select(g => new
+                // Receivables by customer — dinamik outstanding (opening + invoys − tushum) bo'yicha.
+                var customerIds = customerSummary.Select(c => c.CustomerID).ToList();
+                var customerNames = db.CUSTOMERS
+                    .Where(c => customerIds.Contains(c.ID))
+                    .ToDictionary(c => c.ID, c => c.Name);
+
+                var receivablesByCustomer = customerSummary
+                    .Where(c => c.Outstanding != 0m)
+                    .Select(c => new
                     {
-                        CustomerName = g.Key,
-                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m,
-                        TransactionCount = g.Count()
+                        CustomerName = customerNames.ContainsKey(c.CustomerID) ? customerNames[c.CustomerID] : $"Customer #{c.CustomerID}",
+                        Amount = c.Outstanding,
+                        TransactionCount = c.InvoiceCount + c.ReceiptCount
                     })
                     .OrderByDescending(x => x.Amount)
                     .ToList();
@@ -2808,16 +2891,27 @@ namespace tahsinERP.Controllers.Finance
                     payablesCursor = payablesCursor.AddMonths(1);
                 }
 
-                // Monthly receivables trend
-                var monthlyReceivables = receivablesTransactions
-                    .GroupBy(t => new { Year = t.TxnDate.Year, Month = t.TxnDate.Month })
-                    .Select(g => new MonthlyData
+                // Monthly receivables trend (oy oxiridagi outstanding) — payables kabi dinamik.
+                var monthlyReceivables = new List<MonthlyData>();
+                var receivablesCursor = new DateTime(fromDate.Value.Year, fromDate.Value.Month, 1);
+                var receivablesEndMonth = new DateTime(toDate.Value.Year, toDate.Value.Month, 1);
+                while (receivablesCursor <= receivablesEndMonth)
+                {
+                    var monthEndDate = receivablesCursor.AddMonths(1).AddDays(-1);
+                    if (monthEndDate > toDate.Value.Date)
                     {
-                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
-                        Amount = g.Sum(t => (decimal?)t.Amount) ?? 0m
-                    })
-                    .OrderBy(x => x.Period)
-                    .ToList();
+                        monthEndDate = toDate.Value.Date;
+                    }
+
+                    var monthSummary = CalculateCustomerOutstanding(db, monthEndDate);
+                    monthlyReceivables.Add(new MonthlyData
+                    {
+                        Period = $"{receivablesCursor.Year}-{receivablesCursor.Month:D2}",
+                        Amount = monthSummary.Sum(c => c.Outstanding)
+                    });
+
+                    receivablesCursor = receivablesCursor.AddMonths(1);
+                }
 
                 // Olish account balances uchun Payables va Receivables
                 var payablesAccounts = db.FIN_ACCOUNTS

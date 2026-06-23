@@ -611,8 +611,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.ScheduleSummary = scheduleSummary;
                 ViewBag.InvoicesCount = db.SALES_INVOICES.Where(i => i.OrderID == id).Count();
-                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRateAsync(db, order.ContractID > 0 ? (int?)order.ContractID : null)
-                    .GetAwaiter().GetResult();
+                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db,order.ContractID > 0 ? (int?)order.ContractID : null);
 
                 return View(order);
             }
@@ -652,8 +651,7 @@ namespace tahsinERP.Controllers
 
                 SetupViewBagForEdit(db, model);
                 LoadContractProducts(model, order.ContractID);
-                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRateAsync(db, order.ContractID > 0 ? (int?)order.ContractID : null)
-                    .GetAwaiter().GetResult();
+                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db, order.ContractID > 0 ? (int?)order.ContractID : null);
 
                 // Belgilash quantities dan existing order products
                 foreach (var orderProduct in order.S_ORDER_PRODUCTS)

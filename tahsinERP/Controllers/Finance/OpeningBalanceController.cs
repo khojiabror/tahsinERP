@@ -116,22 +116,29 @@ namespace tahsinERP.Controllers.Finance
 
             using (var db = new DBTHSNEntities())
             {
+              try
+              {
                 EnsureOpeningContractBalanceTable(db);
                 var date = model.SnapshotDate.Date;
                 var userId = UserHelper.GetUserId(User.Identity.Name);
 
-                var existing = db.FIN_BALANCE_SNAPSHOTS
-                    .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == date &&
-                                (s.SourceType == "OpeningBalance" || s.SourceType == null))
-                    .ToList();
-
-                if (existing.Any())
-                {
-                    db.FIN_BALANCE_SNAPSHOTS.RemoveRange(existing);
-                    db.SaveChanges();
-                }
+                // Shu sanadagi barcha eski opening yozuvlarini AVVAL tozalaymiz: kontragent balanslari
+                // (FIN_OPENING_CONTRACT_BALANCES) + FIN_BALANCE_SNAPSHOTS dagi OpeningBalance/OpeningBalanceDetailed.
+                // MUHIM: tozalash manual Items saqlanishidan OLDIN bo'lishi shart. Avval bu DeleteOpeningByDate
+                // Items saqlangandan KEYIN chaqirilardi va endigina yozilgan manual kategoriya yozuvlarini
+                // (Naqd pul, Xomashyo, Tayyor maxsulot, ...) o'chirib yuborardi — shu sabab saqlanmayotgandek edi.
+                DeleteOpeningByDate(db, date);
 
                 var currencies = db.CURRENCIES.ToDictionary(c => c.ID, c => c);
+
+                // Mavjud bo'lgan standart valyutani aniqlaymiz (avval ID=5, bo'lmasa birinchisi).
+                // model.DefaultCurrencyID formada hidden bo'lmagani uchun POST'da 0 bo'lib kelishi mumkin —
+                // shu sabab DB'dagi haqiqiy valyuta ID'siga tayanamiz. Aks holda CurrencyID FK buziladi (500).
+                int resolvedDefaultCurrencyId = currencies.ContainsKey(5)
+                    ? 5
+                    : (currencies.ContainsKey(model.DefaultCurrencyID) ? model.DefaultCurrencyID : currencies.Keys.FirstOrDefault());
+                Func<int, int> clampCurrency = cid =>
+                    (cid > 0 && currencies.ContainsKey(cid)) ? cid : resolvedDefaultCurrencyId;
 
                 if (model.Items != null)
                 {
@@ -148,12 +155,7 @@ namespace tahsinERP.Controllers.Finance
                             continue;
                         }
 
-                        var currencyId = item.CurrencyID;
-                        if (!currencies.ContainsKey(currencyId))
-                        {
-                            var firstCurrency = currencies.Values.FirstOrDefault();
-                            currencyId = firstCurrency != null ? firstCurrency.ID : 1;
-                        }
+                        var currencyId = clampCurrency(item.CurrencyID);
 
                         var snap = new FIN_BALANCE_SNAPSHOTS
                         {
@@ -172,8 +174,6 @@ namespace tahsinERP.Controllers.Finance
 
                     db.SaveChanges();
                 }
-
-                DeleteOpeningByDate(db, date);
 
                 var contractRows = new List<OpeningContractBalanceRow>();
                 if (!model.LeaveCustomerReceivableEmpty && model.CustomerReceivableLines != null)
@@ -201,7 +201,7 @@ namespace tahsinERP.Controllers.Finance
                             TotalAmount = total,
                             PaidAmount = paid,
                             Amount = total - paid,
-                            CurrencyID = x.CurrencyID > 0 ? x.CurrencyID : model.DefaultCurrencyID,
+                            CurrencyID = clampCurrency(x.CurrencyID),
                             CreatedByUserID = userId
                         });
                     }
@@ -231,7 +231,7 @@ namespace tahsinERP.Controllers.Finance
                             TotalAmount = total,
                             PaidAmount = paid,
                             Amount = total - paid,
-                            CurrencyID = x.CurrencyID > 0 ? x.CurrencyID : model.DefaultCurrencyID,
+                            CurrencyID = clampCurrency(x.CurrencyID),
                             CreatedByUserID = userId
                         });
                     }
@@ -256,7 +256,37 @@ namespace tahsinERP.Controllers.Finance
                             TotalAmount = total,
                             PaidAmount = paid,
                             Amount = total - paid,
-                            CurrencyID = x.CurrencyID > 0 ? x.CurrencyID : model.DefaultCurrencyID,
+                            CurrencyID = clampCurrency(x.CurrencyID),
+                            CreatedByUserID = userId
+                        });
+                    }
+                }
+                if (!model.LeaveForwarderPayableEmpty && model.ForwarderPayableLines != null)
+                {
+                    var fContractNoById = db.F_CONTRACTS
+                        .Where(c => c.IsDeleted != true)
+                        .ToDictionary(c => c.ID, c => c.ContractNo ?? "");
+                    for (int i = 0; i < model.ForwarderPayableLines.Count; i++)
+                    {
+                        var x = model.ForwarderPayableLines[i];
+                        if (x == null || x.CounterpartyID <= 0) continue;
+                        var total = ParseDecimalFlexible(Request.Form["ForwarderPayableLines[" + i + "].TotalAmount"], x.TotalAmount);
+                        var paid = ParseDecimalFlexible(Request.Form["ForwarderPayableLines[" + i + "].PaidAmount"], x.PaidAmount);
+                        if (total == 0 && paid == 0) continue;
+                        if (paid > total) paid = total;
+                        contractRows.Add(new OpeningContractBalanceRow
+                        {
+                            SnapshotDate = date,
+                            BalanceType = 4,
+                            CounterpartyID = x.CounterpartyID,
+                            ContractID = x.ContractID,
+                            ContractNo = x.ContractID.HasValue && fContractNoById.ContainsKey(x.ContractID.Value)
+                                ? fContractNoById[x.ContractID.Value]
+                                : (x.ContractNo ?? ""),
+                            TotalAmount = total,
+                            PaidAmount = paid,
+                            Amount = total - paid,
+                            CurrencyID = clampCurrency(x.CurrencyID),
                             CreatedByUserID = userId
                         });
                     }
@@ -280,7 +310,20 @@ namespace tahsinERP.Controllers.Finance
                         new SqlParameter("@p10", DateTime.Now));
                 }
 
-                UpsertDetailedOpeningSnapshots(db, date, userId, model.DefaultCurrencyID, contractRows);
+                UpsertDetailedOpeningSnapshots(db, date, userId, resolvedDefaultCurrencyId, contractRows);
+              }
+              catch (Exception ex)
+              {
+                  var msg = "Saqlashda xatolik: " + ex.Message;
+                  var inner = ex.InnerException;
+                  while (inner != null)
+                  {
+                      msg += " | " + inner.Message;
+                      inner = inner.InnerException;
+                  }
+                  TempData["Error"] = msg;
+                  return RedirectToAction("Edit", new { snapshotDate = model.SnapshotDate.ToString("yyyy-MM-dd") });
+              }
             }
 
             TempData["Success"] = "Opening balans muvaffaqiyatli saqlandi.";
@@ -537,6 +580,49 @@ namespace tahsinERP.Controllers.Finance
                     });
                 }
 
+                // 4) Logistikadan qarzimiz — ekspeditor shartnomasi kesimida (yo'l varaqalari − to'lovlar)
+                var fContractInfo = db.F_CONTRACTS
+                    .Where(c => c.IsDeleted != true)
+                    .Select(c => new { c.ID, c.ForwarderID, c.ContractNo })
+                    .ToList();
+                var waybillTotalsByContract = db.F_WAYBILLS
+                    .Where(w => w.ContractID.HasValue && w.IsDeleted != true &&
+                                w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
+                    .GroupBy(w => w.ContractID.Value)
+                    .Select(g => new { ContractID = g.Key, Total = g.Sum(x => (decimal?)x.Amount) ?? 0m })
+                    .ToList()
+                    .ToDictionary(x => x.ContractID, x => x.Total);
+                var waybillPaidByContract = db.F_WAYBILL_PAYMENTS
+                    .Where(p => !p.IsDeleted && p.F_WAYBILLS.ContractID.HasValue &&
+                                (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
+                    .GroupBy(p => p.F_WAYBILLS.ContractID.Value)
+                    .Select(g => new { ContractID = g.Key, Paid = g.Sum(x => (decimal?)x.Payment_Amount) ?? 0m })
+                    .ToList()
+                    .ToDictionary(x => x.ContractID, x => x.Paid);
+
+                foreach (var contractId in waybillTotalsByContract.Keys.Union(waybillPaidByContract.Keys).Distinct())
+                {
+                    var info = fContractInfo.FirstOrDefault(c => c.ID == contractId);
+                    if (info == null || info.ForwarderID <= 0) continue;
+                    var total = waybillTotalsByContract.ContainsKey(contractId) ? waybillTotalsByContract[contractId] : 0m;
+                    var paid = waybillPaidByContract.ContainsKey(contractId) ? waybillPaidByContract[contractId] : 0m;
+                    var net = total - paid;
+                    if (net <= 0) continue;
+                    rows.Add(new OpeningContractBalanceRow
+                    {
+                        SnapshotDate = date,
+                        BalanceType = 4,
+                        CounterpartyID = info.ForwarderID,
+                        ContractID = contractId,
+                        ContractNo = info.ContractNo,
+                        TotalAmount = total,
+                        PaidAmount = Math.Min(paid, total),
+                        Amount = net,
+                        CurrencyID = defaultCurrencyId,
+                        CreatedByUserID = userId
+                    });
+                }
+
                     foreach (var row in rows)
                     {
                         db.Database.ExecuteSqlCommand(
@@ -737,6 +823,77 @@ namespace tahsinERP.Controllers.Finance
                         totalAmount = total,
                         paidAmount = Math.Min(paid, total),
                         amount = total - Math.Min(paid, total)
+                    }
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetForwarderContracts(int forwarderId)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
+            {
+                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var data = db.F_CONTRACTS
+                    .Where(c => c.IsDeleted != true && c.ForwarderID == forwarderId)
+                    .OrderByDescending(c => c.IssueDate)
+                    .ThenByDescending(c => c.ID)
+                    .Select(c => new
+                    {
+                        id = c.ID,
+                        text = c.ContractNo ?? ("Shartnoma #" + c.ID)
+                    })
+                    .ToList();
+
+                return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetForwarderContractTotals(int forwarderId, int? contractId, DateTime? snapshotDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
+            {
+                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
+            }
+
+            if (forwarderId <= 0 || !contractId.HasValue || contractId.Value <= 0)
+            {
+                return Json(new { success = false, message = "Invalid parameters" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var date = (snapshotDate ?? DateTime.Today).Date;
+            using (var db = new DBTHSNEntities())
+            {
+                // Umumiy oldi-berdi: shu shartnoma bo'yicha yo'l varaqalari summasi (sana gacha).
+                var total = db.F_WAYBILLS
+                    .Where(w => w.ContractID == contractId.Value && w.IsDeleted != true &&
+                                w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
+                    .Select(w => (decimal?)w.Amount)
+                    .DefaultIfEmpty(0m).Sum() ?? 0m;
+
+                // To'langan: shu shartnoma yo'l varaqalariga qilingan ekspeditor to'lovlari (sana gacha).
+                var paid = db.F_WAYBILL_PAYMENTS
+                    .Where(p => !p.IsDeleted &&
+                                p.F_WAYBILLS.ContractID == contractId.Value &&
+                                (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
+                    .Select(p => (decimal?)p.Payment_Amount)
+                    .DefaultIfEmpty(0m).Sum() ?? 0m;
+
+                if (paid > total) paid = total;
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        totalAmount = total,
+                        paidAmount = paid,
+                        amount = total - paid
                     }
                 }, JsonRequestBehavior.AllowGet);
             }
@@ -1116,6 +1273,15 @@ namespace tahsinERP.Controllers.Finance
                         Value = e.ID.ToString(),
                         Text = (e.TabNo ?? "-") + " - " + (e.FullName ?? "")
                     })
+                    .ToList(),
+                ForwarderList = db.FORWARDERS
+                    .Where(f => f.IsDeleted != true)
+                    .OrderBy(f => f.ForwarderName)
+                    .Select(f => new SelectListItem
+                    {
+                        Value = f.ID.ToString(),
+                        Text = f.ForwarderName
+                    })
                     .ToList()
             };
 
@@ -1203,6 +1369,29 @@ namespace tahsinERP.Controllers.Finance
                 {
                     EmployeeID = x.CounterpartyID,
                     EmployeeName = employeeNameById.ContainsKey(x.CounterpartyID) ? employeeNameById[x.CounterpartyID] : $"Xodim #{x.CounterpartyID}",
+                    TotalAmount = x.TotalAmount,
+                    PaidAmount = x.PaidAmount,
+                    Amount = x.Amount,
+                    CurrencyID = x.CurrencyID > 0 ? x.CurrencyID : model.DefaultCurrencyID
+                })
+                .ToList();
+
+            var forwarderNameById = db.FORWARDERS
+                .Where(f => f.IsDeleted != true)
+                .ToDictionary(f => f.ID, f => f.ForwarderName ?? "Noma'lum");
+            var fContractNoById = db.F_CONTRACTS
+                .Where(c => c.IsDeleted != true)
+                .ToDictionary(c => c.ID, c => c.ContractNo ?? "");
+            model.ForwarderPayableLines = openingContractRows
+                .Where(x => x.BalanceType == 4)
+                .Select(x => new OpeningBalanceContractLineItem
+                {
+                    CounterpartyID = x.CounterpartyID,
+                    CounterpartyName = forwarderNameById.ContainsKey(x.CounterpartyID) ? forwarderNameById[x.CounterpartyID] : $"Ekspeditor #{x.CounterpartyID}",
+                    ContractID = x.ContractID,
+                    ContractNo = x.ContractID.HasValue && fContractNoById.ContainsKey(x.ContractID.Value)
+                        ? fContractNoById[x.ContractID.Value]
+                        : (x.ContractNo ?? ""),
                     TotalAmount = x.TotalAmount,
                     PaidAmount = x.PaidAmount,
                     Amount = x.Amount,

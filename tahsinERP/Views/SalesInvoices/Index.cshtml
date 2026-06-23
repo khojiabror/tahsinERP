@@ -85,6 +85,7 @@
                                                     <th>Invoys raqami</th>
                                                     <th>Sana</th>
                                                     <th>Mijoz</th>
+                                                    <th>Shartnoma</th>
                                                     <th>Buyurtma</th>
                                                     <th>Summa</th>
                                                     <th>Valyuta</th>
@@ -125,10 +126,18 @@
                                                                 }
                                                             </td>
                                                             <td>
-                                                                @if (item.OrderID.HasValue)
+                                                                @{
+                                                                    var contractNumbers = ViewBag.ContractNumbers as IDictionary<int, string>;
+                                                                    string contractNo = null;
+                                                                    if (item.ContractID.HasValue && contractNumbers != null && contractNumbers.ContainsKey(item.ContractID.Value))
+                                                                    {
+                                                                        contractNo = contractNumbers[item.ContractID.Value];
+                                                                    }
+                                                                }
+                                                                @if (item.ContractID.HasValue && !string.IsNullOrEmpty(contractNo))
                                                                 {
-                                                                    <a href="@Url.Action("Details", "SOrder", new { id = item.OrderID })" class="font-weight-bold">
-                                                                        Buyurtma #@item.OrderID
+                                                                    <a href="@Url.Action("Details", "SContract", new { id = item.ContractID })" class="font-weight-bold">
+                                                                        @contractNo
                                                                     </a>
                                                                 }
                                                                 else
@@ -136,7 +145,27 @@
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-                                                            <td>@item.TotalAmount.ToString("N2")</td>
+                                                            <td>
+                                                                @{
+                                                                    var orderNumbers = ViewBag.OrderNumbers as IDictionary<int, string>;
+                                                                    string orderNo = null;
+                                                                    if (item.OrderID.HasValue && orderNumbers != null && orderNumbers.ContainsKey(item.OrderID.Value))
+                                                                    {
+                                                                        orderNo = orderNumbers[item.OrderID.Value];
+                                                                    }
+                                                                }
+                                                                @if (item.OrderID.HasValue)
+                                                                {
+                                                                    <a href="@Url.Action("Details", "SOrder", new { id = item.OrderID })" class="font-weight-bold">
+                                                                        Buyurtma #@(string.IsNullOrEmpty(orderNo) ? item.OrderID.ToString() : orderNo)
+                                                                    </a>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                            <td>@((item.TotalWithVAT ?? item.TotalAmount).ToString("N2"))</td>
                                                             <td>
                                                                 @if (!string.IsNullOrEmpty(item.CurrencyCode))
                                                                 {

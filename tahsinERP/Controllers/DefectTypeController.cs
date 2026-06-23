@@ -146,7 +146,7 @@ namespace tahsinERP.Controllers
                         {
                             try
                             {
-                                SoftDeleteReferenceService.AfterDefectTypeSoftDeletedAsync(db, Defect_type_delete.ID).ConfigureAwait(false).GetAwaiter().GetResult();
+                                SoftDeleteReferenceService.AfterDefectTypeSoftDeleted(db, Defect_type_delete.ID);
                                 db.SaveChanges();
 
                                 var userEmail = User.Identity.Name;

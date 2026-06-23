@@ -329,5 +329,37 @@ namespace tahsinERP.Services
             foreach (var row in await db.QUALITY_INSPECTION.Where(x => x.ProductPlanDailyID != null && dailyIds.Contains(x.ProductPlanDailyID.Value)).ToListAsync())
                 row.ProductPlanDailyID = null;
         }
+
+        // --- Sinxron variantlar ---
+        // Sinxron (async bo'lmagan) action'lardan chaqirilganda async metodni .GetAwaiter().GetResult()
+        // bilan bloklab kutish ASP.NET sync-context deadlock'iga olib keladi. Shu sabab sinxron
+        // action'lar quyidagi sinxron metodlarni ishlatishi kerak.
+
+        public static void AfterShopSoftDeleted(DBTHSNEntities db, int shopId)
+        {
+            foreach (var row in db.WAREHOUSES.Where(x => x.ShopID == shopId).ToList())
+                row.ShopID = null;
+        }
+
+        public static void AfterDefectTypeSoftDeleted(DBTHSNEntities db, int defectTypeId)
+        {
+            foreach (var row in db.QUALITY_INSPECTION.Where(x => x.DefectTypeID == defectTypeId).ToList())
+                row.DefectTypeID = null;
+        }
+
+        public static void AfterProductCategorySoftDeleted(DBTHSNEntities db, int categoryId)
+        {
+            foreach (var row in db.PRODUCTS.Where(x => x.CategoryID == categoryId).ToList())
+                row.CategoryID = null;
+        }
+
+        public static void AfterProductPlanSoftDeleted(DBTHSNEntities db, int planId)
+        {
+            var dailyIds = db.PRODUCTPLANS_DAILY.Where(x => x.PlanID == planId).Select(x => x.ID).ToList();
+            if (dailyIds.Count == 0)
+                return;
+            foreach (var row in db.QUALITY_INSPECTION.Where(x => x.ProductPlanDailyID != null && dailyIds.Contains(x.ProductPlanDailyID.Value)).ToList())
+                row.ProductPlanDailyID = null;
+        }
     }
 }

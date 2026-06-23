@@ -84,7 +84,7 @@ namespace tahsinERP.Controllers
                         {
                             try
                             {
-                                SoftDeleteReferenceService.AfterShopSoftDeletedAsync(db, prod_shop_deleted.ID).ConfigureAwait(false).GetAwaiter().GetResult();
+                                SoftDeleteReferenceService.AfterShopSoftDeleted(db, prod_shop_deleted.ID);
                                 db.SaveChanges();
 
                                 LogHelper.LogToDatabase(User.Identity.Name, "ShopController", $"{prod_shop_deleted.ShopName} - Shopni o'chirdi");

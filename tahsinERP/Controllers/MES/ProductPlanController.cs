@@ -711,7 +711,7 @@ namespace tahsinERP.Controllers.MES
 
                 plan.IsDeleted = true;
                 db.Entry(plan).State = EntityState.Modified;
-                SoftDeleteReferenceService.AfterProductPlanSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
+                SoftDeleteReferenceService.AfterProductPlanSoftDeleted(db, id);
                 db.SaveChanges();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan o'chirildi: ID {id}");

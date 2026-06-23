@@ -720,7 +720,13 @@ namespace tahsinERP.Controllers.Finance
 
                     transaction.IsDeleted = true;
                     db.Entry(transaction).State = System.Data.Entity.EntityState.Modified;
-                    SoftDeleteReferenceService.AfterFinTransactionSoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // Bog'liq yozuvlardagi havolani uzamiz. Sinxron action ichida async helperni
+                    // .GetAwaiter().GetResult() bilan chaqirish ASP.NET sync-context deadlock'iga olib keladi
+                    // (so'rov "qotib" qoladi, saqlanmaydi). Shu sabab sinxron tarzda bajaramiz.
+                    foreach (var row in db.SHAREHOLDER_CONTRIBUTIONS.Where(x => x.FinTransactionID == id).ToList())
+                        row.FinTransactionID = null;
+
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "Delete",

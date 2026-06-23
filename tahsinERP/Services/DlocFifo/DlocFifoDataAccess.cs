@@ -76,10 +76,12 @@ WHERE WarehouseID = @p0 AND IsDeleted = 0 AND IsActive = 1";
             if (!DlocFifoSchema.IsEnabled(db))
                 return new List<InventoryDlocStockRow>();
 
+            // Har bir DLOC (joy) + mahsulot uchun qoldiqni lotlar bo'yicha yig'amiz —
+            // bitta DLOC da bir nechta kirim loti bo'lsa ham bitta jami qator ko'rsatiladi.
             var sql = @"
 SELECT loc.WarehouseID, w.WHName AS WarehouseName, ll.ProductID, p.PNo AS ProductPNo, p.Name AS ProductName,
-       ll.LocationID, loc.LocationCode, ll.QtyAvailable, loc.MinCapacity, loc.MaxCapacity,
-       ISNULL(u.ShortName, u.UnitName) AS UnitName, il.LotNo, il.ReceivedDateTime
+       ll.LocationID, loc.LocationCode, SUM(ll.QtyAvailable) AS QtyAvailable, loc.MinCapacity, loc.MaxCapacity,
+       ISNULL(u.ShortName, u.UnitName) AS UnitName, COUNT(DISTINCT ll.LotID) AS LotCount, MIN(il.ReceivedDateTime) AS ReceivedDateTime
 FROM dbo.LOT_LOCATIONS ll
 INNER JOIN dbo.WAREHOUSE_LOCATIONS loc ON loc.ID = ll.LocationID AND loc.IsDeleted = 0 AND loc.IsActive = 1
 INNER JOIN dbo.WAREHOUSES w ON w.ID = loc.WarehouseID AND (w.IsDeleted IS NULL OR w.IsDeleted = 0)
@@ -95,7 +97,11 @@ WHERE ll.QtyAvailable > 0";
                 parms.Add(warehouseId.Value);
             }
 
-            sql += " ORDER BY w.WHName, loc.LocationCode, p.PNo, il.ReceivedDateTime";
+            sql += @"
+GROUP BY loc.WarehouseID, w.WHName, ll.ProductID, p.PNo, p.Name, ll.LocationID, loc.LocationCode,
+         loc.MinCapacity, loc.MaxCapacity, ISNULL(u.ShortName, u.UnitName)
+HAVING SUM(ll.QtyAvailable) > 0
+ORDER BY w.WHName, loc.LocationCode, p.PNo";
 
             var rows = parms.Any()
                 ? db.Database.SqlQuery<InventoryDlocStockRow>(sql, parms.ToArray()).ToList()

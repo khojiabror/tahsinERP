@@ -89,6 +89,23 @@
                                 </table>
                             </div>
 
+                            <h5 class="mb-1">Logistikadan qarzimiz</h5>
+                            <div class="table-responsive mb-2">
+                                <table class="table table-bordered table-sm">
+                                    <thead><tr><th>Ekspeditor</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                    <tbody>
+                                        @if (Model.ForwarderPayableLines != null && Model.ForwarderPayableLines.Any())
+                                        {
+                                            foreach (var x in Model.ForwarderPayableLines)
+                                            {
+                                                <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
+                                            }
+                                        }
+                                        else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                    </tbody>
+                                </table>
+                            </div>
+
                             <h5 class="mb-1">Boshqa balans kategoriyalari</h5>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered">

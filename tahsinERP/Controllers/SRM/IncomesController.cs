@@ -1161,6 +1161,11 @@ namespace tahsinERP.Controllers.SRM
                         }
 
                         income.Description = (income.Description ?? string.Empty) + " | STOCK_REPAIRED";
+
+                        // Bog'langan chiqimni ham "yuborilgan" deb belgilaymiz — oldin qabul qilingan,
+                        // ammo chiqim tomonida "kutilmoqda" bo'lib qolgan transferlarni ham tuzatadi.
+                        await MarkLinkedExpenseSentAsync(db, income);
+
                         await db.SaveChangesAsync();
                         transaction.Commit();
 
@@ -1529,6 +1534,26 @@ namespace tahsinERP.Controllers.SRM
                 return;
             }
 
+            // Eng ishonchli yo'l: izohdagi EXPENSE_ID/EXPENS ID markeridan chiqimni to'g'ridan-to'g'ri
+            // topib belgilash. DocNo + ombor (WHID) bo'yicha qayta qidirish noto'g'ri edi: SenderWHID/
+            // ReceiverWhID null bo'lsa, EF "= NULL" generatsiya qiladi va hech qachon mos kelmaydi —
+            // shu sabab chiqimda status doim "kutilmoqda" bo'lib qolardi.
+            var expenseId = ExtractLinkedExpenseId(income.Description);
+            if (expenseId.HasValue)
+            {
+                var expById = await db.EXPENSES
+                    .FirstOrDefaultAsync(e => e.ID == expenseId.Value && e.IsDeleted != true);
+                if (expById != null)
+                {
+                    if (expById.SendStatus != true)
+                    {
+                        expById.SendStatus = true;
+                    }
+                    return;
+                }
+            }
+
+            // Zaxira: faqat eski matnli format uchun DocNo bo'yicha (ID markeri yo'q bo'lsa).
             var expenseDocNo = ExtractLinkedExpenseDocNo(income.Description);
             if (string.IsNullOrWhiteSpace(expenseDocNo))
             {
@@ -1538,7 +1563,6 @@ namespace tahsinERP.Controllers.SRM
             var linkedExpense = await db.EXPENSES
                 .FirstOrDefaultAsync(e =>
                     e.DocNo == expenseDocNo
-                    && e.ReceiverWhID == income.ReceivingWHID
                     && e.SenderWHID == income.SenderWHID
                     && e.IsDeleted != true);
 
@@ -1546,6 +1570,29 @@ namespace tahsinERP.Controllers.SRM
             {
                 linkedExpense.SendStatus = true;
             }
+        }
+
+        /// <summary>Izohdan bog'langan chiqim ID'sini ajratadi (EXPENSE_ID:123 yoki eski "EXPENS ID: 123").</summary>
+        private int? ExtractLinkedExpenseId(string description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                return null;
+            }
+
+            var m = Regex.Match(description, @"EXPENSE_ID\s*:\s*(\d+)", RegexOptions.IgnoreCase);
+            if (m.Success && int.TryParse(m.Groups[1].Value, out var id1))
+            {
+                return id1;
+            }
+
+            var m2 = Regex.Match(description, @"EXPENS\s*ID\s*:\s*(\d+)", RegexOptions.IgnoreCase);
+            if (m2.Success && int.TryParse(m2.Groups[1].Value, out var id2))
+            {
+                return id2;
+            }
+
+            return null;
         }
 
         private string ExtractLinkedExpenseDocNo(string description)

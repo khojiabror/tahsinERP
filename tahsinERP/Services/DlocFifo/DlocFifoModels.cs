@@ -87,7 +87,7 @@ namespace tahsinERP.Services.DlocFifo
         public decimal MinCapacity { get; set; }
         public decimal MaxCapacity { get; set; }
         public string UnitName { get; set; }
-        public string LotNo { get; set; }
+        public int LotCount { get; set; }
         public DateTime? ReceivedDateTime { get; set; }
     }
 }

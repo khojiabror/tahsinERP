@@ -96,16 +96,16 @@ namespace tahsinERP.Services
             return Math.Round(vatAmount / baseAmount * 100d, 2);
         }
 
-        public static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
+        public static double CalculateContractVatRate(DBTHSNEntities db, int? contractId)
         {
             if (!contractId.HasValue || contractId.Value <= 0)
             {
                 return 0;
             }
 
-            var products = await db.S_CONTRACT_PRODUCTS
+            var products = db.S_CONTRACT_PRODUCTS
                 .Where(p => p.ContractID == contractId.Value)
-                .ToListAsync();
+                .ToList();
 
             return CalculateContractVatRate(products);
         }

@@ -43,12 +43,15 @@ namespace tahsinERP.ViewModels.Finance
         public List<OpeningBalanceContractLineItem> CustomerReceivableLines { get; set; } = new List<OpeningBalanceContractLineItem>();
         public List<OpeningBalanceContractLineItem> SupplierPayableLines { get; set; } = new List<OpeningBalanceContractLineItem>();
         public List<OpeningBalancePayrollLineItem> EmployeePayrollLines { get; set; } = new List<OpeningBalancePayrollLineItem>();
+        public List<OpeningBalanceContractLineItem> ForwarderPayableLines { get; set; } = new List<OpeningBalanceContractLineItem>();
         public IEnumerable<SelectListItem> CustomerList { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> SupplierList { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> EmployeeList { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> ForwarderList { get; set; } = new List<SelectListItem>();
         public bool LeaveCustomerReceivableEmpty { get; set; }
         public bool LeaveSupplierPayableEmpty { get; set; }
         public bool LeavePayrollEmpty { get; set; }
+        public bool LeaveForwarderPayableEmpty { get; set; }
     }
 
     public class OpeningBalanceContractLineItem

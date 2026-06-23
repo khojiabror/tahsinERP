@@ -349,7 +349,14 @@ namespace tahsinERP.Controllers.Logistic
                     if (finTransaction != null)
                     {
                         finTransaction.IsDeleted = true;
-                        SoftDeleteReferenceService.AfterFinTransactionSoftDeletedAsync(db, finTransaction.ID).ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        // Bog'liq yozuvlardagi havolani uzamiz. Sinxron action ichida async helperni
+                        // .GetAwaiter().GetResult() bilan chaqirish ASP.NET sync-context deadlock'iga olib keladi
+                        // (so'rov "qotib" qoladi, saqlanmaydi). Shu sabab sinxron tarzda bajaramiz.
+                        var finTxnId = finTransaction.ID;
+                        foreach (var row in db.SHAREHOLDER_CONTRIBUTIONS.Where(x => x.FinTransactionID == finTxnId).ToList())
+                            row.FinTransactionID = null;
+
                         db.SaveChanges();
                     }
 

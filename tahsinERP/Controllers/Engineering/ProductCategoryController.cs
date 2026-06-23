@@ -258,7 +258,7 @@ namespace tahsinERP.Controllers
                     category.UpdatedDT = DateTime.Now;
 
                     db.Entry(category).State = EntityState.Modified;
-                    SoftDeleteReferenceService.AfterProductCategorySoftDeletedAsync(db, id).ConfigureAwait(false).GetAwaiter().GetResult();
+                    SoftDeleteReferenceService.AfterProductCategorySoftDeleted(db, id);
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "ProductCategoryController",

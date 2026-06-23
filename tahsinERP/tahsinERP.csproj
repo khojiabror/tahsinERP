@@ -3402,6 +3402,7 @@
     <Content Include="Views\Koreshok\Result.cshtml" />
     <Content Include="Views\HrPayroll\Details.cshtml" />
     <Content Include="Views\FinDashboard\FinanceReportsHub.cshtml" />
+    <Content Include="Views\OpeningBalance\Details.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

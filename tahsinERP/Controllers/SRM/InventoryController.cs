@@ -669,16 +669,24 @@ namespace tahsinERP.Controllers
                                 // Merge existing duplicates first, so every product has only one stock row in this warehouse.
                                 await NormalizeWarehouseStocksAsync(db, model.WarehouseId, parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
 
+                                // DLOC yoqilgan ombor uchun kirim/chiqim ledger orqali yoziladi (hisobotlar ham shundan o'qiydi).
+                                var requireDloc = DlocFifoSchema.IsEnabled(db)
+                                    && DlocFifoDataAccess.WarehouseHasLocations(db, model.WarehouseId);
+
                                 foreach (var parsedRow in parsedRows)
                                 {
                                     var key = parsedRow.ProductPNo.Trim().ToUpperInvariant();
                                     var product = productMap[key];
                                     var qty = parsedRow.Quantity;
+                                    var unitId = product.UnitID > 0 ? product.UnitID : 1;
 
                                     var stock = await db.PRODUCT_STOCKS
                                         .FirstOrDefaultAsync(s => s.WHID == model.WarehouseId && s.ProductID == product.ID);
 
-                                    var oldQty = stock?.Amount ?? 0;
+                                    // DLOC omborda joriy qoldiq ledgerdan, aks holda umumiy qoldiqdan olinadi.
+                                    var oldQty = requireDloc
+                                        ? (double)DlocFifoDataAccess.GetLedgerQty(db, model.WarehouseId, product.ID)
+                                        : (stock?.Amount ?? 0);
                                     var diff = qty - oldQty;
 
                                     if (Math.Abs(diff) < 0.000001)
@@ -686,25 +694,12 @@ namespace tahsinERP.Controllers
                                         continue;
                                     }
 
-                                    if (stock == null)
-                                    {
-                                        if (qty > 0)
-                                        {
-                                            stock = WarehouseFlowService.GetOrCreateStockRow(
-                                                db,
-                                                model.WarehouseId,
-                                                product.ID,
-                                                product.UnitID > 0 ? product.UnitID : 1);
-                                            stock.Amount = qty;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        stock.Amount = qty;
-                                    }
+                                    // Baholash: oxirgi kirim (xarid) narxi — balans hisoboti ham shu narxda baholaydi.
+                                    var piecePrice = await GetLatestIncomePriceAsync(db, product.ID);
 
                                     if (diff > 0)
                                     {
+                                        var lineTotal = diff * piecePrice;
                                         var income = new INCOME
                                         {
                                             DocNo = $"INV_{invMonthDay}_IN_{model.WarehouseId}_{invTimeToken}_{incomeSeq++}",
@@ -713,7 +708,7 @@ namespace tahsinERP.Controllers
                                             IssueDateTime = now,
                                             CurrencyID = currencyId,
                                             Amount = diff,
-                                            TotalPrice = 0,
+                                            TotalPrice = lineTotal,
                                             Description = $"Inventarizatsiya qo'shimcha kirim: {product.PNo}",
                                             RecieveStatus = true,
                                             IsDeleted = false
@@ -721,20 +716,45 @@ namespace tahsinERP.Controllers
                                         db.INCOMES.Add(income);
                                         await db.SaveChangesAsync();
 
-                                        db.INCOME_PRODUCTS.Add(new INCOME_PRODUCTS
+                                        var incomeProduct = new INCOME_PRODUCTS
                                         {
                                             IncomeID = income.ID,
                                             ProductID = product.ID,
                                             Amount = diff,
-                                            PiecePrice = 0,
-                                            TotalPrice = 0,
-                                            UnitID = product.UnitID > 0 ? product.UnitID : 1,
+                                            PiecePrice = piecePrice,
+                                            TotalPrice = lineTotal,
+                                            UnitID = unitId,
                                             Comment = "Inventarizatsiya"
-                                        });
+                                        };
+                                        db.INCOME_PRODUCTS.Add(incomeProduct);
+                                        await db.SaveChangesAsync();
+
+                                        if (requireDloc)
+                                        {
+                                            // Qo'shilgan miqdor DLOC ga avtomatik joylashtiriladi (ledger + umumiy qoldiq yangilanadi).
+                                            var locationId = ResolveAutoPutawayLocation(db, model.WarehouseId, product.ID, (decimal)diff);
+                                            if (locationId <= 0)
+                                            {
+                                                throw new Exception($"Mahsulot {product.PNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
+                                            }
+
+                                            LocationLotStockLedger.TryReceive(
+                                                db, model.WarehouseId, income.ID, incomeProduct.ID, product.ID,
+                                                (decimal)diff, locationId, now, unitId, "INV");
+                                        }
+                                        else
+                                        {
+                                            if (stock == null)
+                                            {
+                                                stock = WarehouseFlowService.GetOrCreateStockRow(db, model.WarehouseId, product.ID, unitId);
+                                            }
+                                            stock.Amount = qty;
+                                        }
                                     }
                                     else
                                     {
                                         var outQty = Math.Abs(diff);
+                                        var lineTotal = outQty * piecePrice;
                                         var expense = new EXPENS
                                         {
                                             DocNo = $"INV_{invMonthDay}_OUT_{model.WarehouseId}_{invTimeToken}_{expenseSeq++}",
@@ -743,7 +763,7 @@ namespace tahsinERP.Controllers
                                             IssueDateTime = now,
                                             CurrencyID = currencyId,
                                             Amount = outQty,
-                                            TotalPrice = 0,
+                                            TotalPrice = lineTotal,
                                             Description = $"Inventarizatsiya kamaytirish chiqimi: {product.PNo}",
                                             SendStatus = true,
                                             IsDeleted = false
@@ -751,16 +771,33 @@ namespace tahsinERP.Controllers
                                         db.EXPENSES.Add(expense);
                                         await db.SaveChangesAsync();
 
-                                        db.EXPENSE_PRODUCTS.Add(new EXPENSE_PRODUCTS
+                                        var expenseProduct = new EXPENSE_PRODUCTS
                                         {
                                             ExpenseID = expense.ID,
                                             ProductID = product.ID,
                                             Amount = outQty,
-                                            PiecePrice = 0,
-                                            TotalPrice = 0,
-                                            UnitID = product.UnitID > 0 ? product.UnitID : 1,
+                                            PiecePrice = piecePrice,
+                                            TotalPrice = lineTotal,
+                                            UnitID = unitId,
                                             Comment = "Inventarizatsiya"
-                                        });
+                                        };
+                                        db.EXPENSE_PRODUCTS.Add(expenseProduct);
+                                        await db.SaveChangesAsync();
+
+                                        if (requireDloc)
+                                        {
+                                            // Kamaygan miqdor DLOC dan FIFO bo'yicha chiqariladi (ledger + umumiy qoldiq yangilanadi).
+                                            await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
+                                                db, model.WarehouseId, product.ID, outQty, unitId, expenseProduct.ID);
+                                        }
+                                        else
+                                        {
+                                            if (stock == null)
+                                            {
+                                                stock = WarehouseFlowService.GetOrCreateStockRow(db, model.WarehouseId, product.ID, unitId);
+                                            }
+                                            stock.Amount = qty;
+                                        }
                                     }
                                 }
 
@@ -1193,6 +1230,80 @@ namespace tahsinERP.Controllers
             if (uzs != null) return uzs.ID;
             var first = await db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
             return first?.ID ?? 1;
+        }
+
+        /// <summary>
+        /// Mahsulot uchun oxirgi kirim (xarid) narxini qaytaradi. Balans hisoboti ham
+        /// inventarizatsiya zaxirasini shu narxda baholaydi, shuning uchun mos keladi.
+        /// </summary>
+        private async Task<double> GetLatestIncomePriceAsync(DBTHSNEntities db, int productId)
+        {
+            var ip = await db.INCOME_PRODUCTS
+                .Include(x => x.INCOME)
+                .Where(x => x.ProductID == productId
+                    && (x.INCOME.IsDeleted == null || x.INCOME.IsDeleted == false))
+                .OrderByDescending(x => x.INCOME.IssueDateTime)
+                .FirstOrDefaultAsync();
+
+            if (ip == null)
+            {
+                return 0;
+            }
+
+            if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
+            {
+                return ip.PiecePrice.Value;
+            }
+
+            if (ip.TotalPrice.HasValue && ip.Amount > 0)
+            {
+                return ip.TotalPrice.Value / ip.Amount;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// DLOC omborda qo'shimcha miqdorni joylashtirish uchun joy tanlaydi: avval mahsulot
+        /// allaqachon turgan, sig'imi yetadigan joy; bo'lmasa bo'sh yoki aralash mahsulotga
+        /// ruxsat etilgan, sig'imi yetadigan joy. Mos joy topilmasa 0 qaytaradi.
+        /// </summary>
+        private int ResolveAutoPutawayLocation(DBTHSNEntities db, int warehouseId, int productId, decimal qty)
+        {
+            var locations = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: true);
+            if (locations == null || !locations.Any())
+            {
+                return 0;
+            }
+
+            var productLocationIds = new HashSet<int>(
+                DlocFifoDataAccess.GetInventoryByDloc(db, warehouseId, productId)
+                    .Select(r => r.LocationID));
+
+            int fallbackLocationId = 0;
+            foreach (var loc in locations)
+            {
+                var currentQty = DlocFifoDataAccess.GetLocationCurrentQty(db, loc.ID);
+                var free = loc.MaxCapacity - currentQty;
+                if (free + 0.000001m < qty)
+                {
+                    continue; // sig'im yetmaydi
+                }
+
+                // Mahsulot allaqachon shu joyda bo'lsa — eng mos joy.
+                if (productLocationIds.Contains(loc.ID))
+                {
+                    return loc.ID;
+                }
+
+                // Aks holda: bo'sh joy yoki aralash mahsulotga ruxsat etilgan joy.
+                if (fallbackLocationId == 0 && (loc.AllowMixedProducts || currentQty <= 0.000001m))
+                {
+                    fallbackLocationId = loc.ID;
+                }
+            }
+
+            return fallbackLocationId;
         }
 
         private class InventoryExportRow

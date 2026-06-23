@@ -103,6 +103,17 @@ namespace tahsinERP.Controllers
                 ViewBag.CustomerNames = customersList.ToDictionary(c => c.ID, c => c.Name);
                 ViewBag.Orders = new SelectList(await db.S_ORDERS.Where(o => o.IsDeleted == false).ToListAsync(), "ID", "OrderNo", orderID);
                 ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "ContractNo", contractID);
+
+                // Buyurtma va shartnoma raqamlarini ko'rsatish uchun lug'atlar
+                var orderIds = invoices.Where(i => i.OrderID.HasValue).Select(i => i.OrderID.Value).Distinct().ToList();
+                ViewBag.OrderNumbers = await db.S_ORDERS
+                    .Where(o => orderIds.Contains(o.ID))
+                    .ToDictionaryAsync(o => o.ID, o => o.OrderNo);
+
+                var contractIds = invoices.Where(i => i.ContractID.HasValue).Select(i => i.ContractID.Value).Distinct().ToList();
+                ViewBag.ContractNumbers = await db.S_CONTRACTS
+                    .Where(c => contractIds.Contains(c.ID))
+                    .ToDictionaryAsync(c => c.ID, c => c.ContractNo);
                 ViewBag.CurrentPage = currentPage;
                 ViewBag.TotalPages = totalPages;
                 ViewBag.TotalItems = totalItems;
