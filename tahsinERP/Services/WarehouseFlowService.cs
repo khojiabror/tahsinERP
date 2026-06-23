@@ -144,6 +144,74 @@ namespace tahsinERP.Services
             return db.INCOMES.Any(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker));
         }
 
+        /// <summary>
+        /// Ishlab chiqarish tahrirlanganda eski kirim/DLOC lotini to'liq bekor qiladi:
+        /// LOT_LOCATIONS qatorlarini o'chiradi, lotni va kirim hujjatini "deleted" deb belgilaydi
+        /// va PRODUCT_STOCKS dan faqat hali ishlatilmagan (QtyConsumed == 0) qismini ayiradi.
+        /// Shu yo'l bilan DLOC ledger va PRODUCT_STOCKS doim mos keladi (aggregate'ni to'g'ridan-to'g'ri
+        /// tuzatib, DLOC'ni eskirgan holatda qoldirish o'rniga).
+        /// </summary>
+        public static void ReverseProductionIncome(DBTHSNEntities db, int productionId, int productId,
+            int warehouseId, string userEmail)
+        {
+            if (productionId <= 0)
+                return;
+
+            var marker = ProductionIncomeMarker + productionId;
+            var incomeIds = db.INCOMES
+                .Where(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker))
+                .Select(i => i.ID)
+                .ToList();
+
+            if (!incomeIds.Any())
+                return;
+
+            var lots = db.INCOME_LOTS
+                .Where(l => incomeIds.Contains(l.IncomeID) && l.ProductID == productId
+                    && l.WarehouseID == warehouseId && !l.IsDeleted)
+                .ToList();
+
+            foreach (var lot in lots)
+            {
+                if (lot.QtyConsumed > 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Lot {lot.LotNo} qisman ishlatilgan ({lot.QtyConsumed} dona chiqarilgan), shu sabab " +
+                        "bu ishlab chiqarish yozuvini tahrirlash mumkin emas.");
+                }
+
+                var locations = db.LOT_LOCATIONS.Where(ll => ll.LotID == lot.ID).ToList();
+                var totalAvailable = locations.Sum(ll => ll.QtyAvailable);
+
+                foreach (var loc in locations)
+                {
+                    db.LOT_LOCATIONS.Remove(loc);
+                }
+
+                lot.QtyConsumed = lot.QtyReceived;
+                lot.IsDeleted = true;
+
+                if (totalAvailable > 0)
+                {
+                    AdjustProductStock(db, warehouseId, productId, -(double)totalAvailable);
+                }
+            }
+
+            foreach (var incomeId in incomeIds)
+            {
+                var income = db.INCOMES.Find(incomeId);
+                if (income != null)
+                {
+                    income.IsDeleted = true;
+                }
+            }
+
+            db.SaveChanges();
+
+            LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "ReverseProductionIncome",
+                $"ProductionID {productionId} uchun eski kirim/DLOC lot(lar) bekor qilindi.");
+        }
+
         public static bool IsProductionWarehouse(Warehouse warehouse)
         {
             return IsWarehouseNameMatch(warehouse, PRODUCTION_WH_KEYWORDS);

@@ -371,38 +371,65 @@ namespace tahsinERP.Controllers.MES
                         return View(viewModel);
                     }
 
-                    var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
-                    if (productionWH != null)
+                    using (var transaction = db.Database.BeginTransaction())
                     {
-                        var oldStock = db.PRODUCT_STOCKS
-                            .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
-                        WarehouseFlowService.ApplyIncomeIssueFromStock(
-                            db, productionWH.ID, production.ProductID, production.Total,
-                            oldStock?.UnitID > 0 ? oldStock.UnitID : 1);
+                        try
+                        {
+                            var oldProductionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                            if (oldProductionWH == null)
+                            {
+                                throw new Exception("Ishlab chiqarish ombori topilmadi (eski qoldiqni bekor qilish uchun).");
+                            }
+
+                            // Eski kirim/DLOC lotini to'liq bekor qilamiz, shundan keyingina yangi miqdorni qo'shamiz.
+                            // Shunday qilib qo'shish bosqichi ayirish muvaffaqiyatsiz bo'lgan holatda ham ishlab
+                            // ketib qoldiqni ikki marta oshirib yubormaydi (transaction butunlay bekor qilinadi).
+                            WarehouseFlowService.ReverseProductionIncome(
+                                db, production.ID, production.ProductID, oldProductionWH.ID, User.Identity.Name);
+
+                            await RevertMaterialConsumption(production.ProductID, production.Total, production.ShopID, db);
+
+                            // Yangilash production
+                            production.ProductID = viewModel.ProductID;
+                            production.ShopID = viewModel.ShopID;
+                            production.Date = viewModel.Date;
+                            production.DayShift = viewModel.DayShift;
+                            production.NightShift = viewModel.NightShift;
+                            production.Total = viewModel.Total;
+                            production.Comment = viewModel.Comment;
+
+                            WarehouseFlowService.IncreaseProductionStock(
+                                viewModel.ProductID,
+                                viewModel.Total,
+                                viewModel.ShopID,
+                                db,
+                                User.Identity.Name,
+                                viewModel.ID);
+
+                            await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, viewModel.ShopID, db, viewModel.ID, viewModel.Date);
+
+                            db.Entry(production).State = EntityState.Modified;
+                            db.SaveChanges();
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            var errorMessage = ex is WarehouseDlocException dlocEx
+                                ? dlocEx.Message
+                                : $"Xatolik: {ex.Message}";
+                            var innerEx = ex.InnerException;
+                            while (innerEx != null)
+                            {
+                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
+                                innerEx = innerEx.InnerException;
+                            }
+                            ModelState.AddModelError("", errorMessage);
+                            ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
+                            ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                            return View(viewModel);
+                        }
                     }
-                    await RevertMaterialConsumption(production.ProductID, production.Total, production.ShopID, db);
-
-                    // Yangilash production
-                    production.ProductID = viewModel.ProductID;
-                    production.ShopID = viewModel.ShopID;
-                    production.Date = viewModel.Date;
-                    production.DayShift = viewModel.DayShift;
-                    production.NightShift = viewModel.NightShift;
-                    production.Total = viewModel.Total;
-                    production.Comment = viewModel.Comment;
-
-                    WarehouseFlowService.IncreaseProductionStock(
-                        viewModel.ProductID,
-                        viewModel.Total,
-                        viewModel.ShopID,
-                        db,
-                        User.Identity.Name,
-                        viewModel.ID);
-
-                    await ConsumeMaterialsForProduction(viewModel.ProductID, viewModel.Total, viewModel.ShopID, db, viewModel.ID, viewModel.Date);
-
-                    db.Entry(production).State = EntityState.Modified;
-                    db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish tahrirlandi: ID {viewModel.ID}");
 
