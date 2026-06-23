@@ -93,7 +93,7 @@
                                                     <th>Turi</th>
                                                     <th>Buyurtma raqami</th>
                                                     <th>Shartnoma raqami</th>
-                                                    <th>Invoys summasi</th>
+                                                    <th>Invoys summasi (QQS bilan)</th>
                                                     <th>Sana</th>
                                                     @if (changePermit)
                                                     {
@@ -104,8 +104,13 @@
                                             <tbody>
                                                 @if (Model != null && Model.Any())
                                                 {
+                                                    var vatRates = ViewBag.VatRatesByContract as Dictionary<int, double>;
                                                     foreach (var item in Model)
                                                     {
+                                                        var contractIdForVat = item.ContractID > 0 ? item.ContractID : (item.P_ORDERS != null && item.P_ORDERS.ContractID.HasValue ? item.P_ORDERS.ContractID.Value : 0);
+                                                        var vatRate = (vatRates != null && contractIdForVat > 0 && vatRates.ContainsKey(contractIdForVat)) ? vatRates[contractIdForVat] : 0d;
+                                                        var baseAmount = item.Amount ?? 0d;
+                                                        var amountWithVat = baseAmount + baseAmount * vatRate / 100d;
                                                         <tr>
                                                             <td>
                                                                 <a href="@Url.Action("Details", "PInvoices", new { id = item.ID })">@item.InvoiceNo</a>
@@ -147,8 +152,13 @@
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-                                                            <td class="text-right" data-export="@(item.Amount.HasValue ? item.Amount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")">
-                                                                @(item.Amount.HasValue ? item.Amount.Value.ToString("N2") : "-")
+                                                            <td class="text-right" data-export="@amountWithVat.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                                                @amountWithVat.ToString("N2")
+                                                                @if (vatRate > 0)
+                                                                {
+                                                                    <br />
+                                                                    <small class="text-muted">@baseAmount.ToString("N2") + QQS @vatRate.ToString("0.##")%</small>
+                                                                }
                                                             </td>
                                                             <td data-order="@item.InvoiceDate.ToString("yyyyMMdd")">@item.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)

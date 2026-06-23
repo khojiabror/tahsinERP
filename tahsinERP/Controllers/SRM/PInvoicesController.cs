@@ -86,6 +86,32 @@ namespace tahsinERP.Controllers
                     .OrderByDescending(i => i.InvoiceDate)
                     .ToListAsync();
 
+                // QQS (VAT) faqat P_CONTRACT da saqlanadi. Har bir invoysga bog'langan
+                // shartnomaning QQS stavkasini hisoblab, viewda invoice summasiga qo'shib ko'rsatamiz.
+                var contractIds = invoices
+                    .Select(i => i.ContractID > 0 ? (int?)i.ContractID : i.P_ORDERS?.ContractID)
+                    .Where(cid => cid.HasValue && cid.Value > 0)
+                    .Select(cid => cid.Value)
+                    .Distinct()
+                    .ToList();
+
+                var vatRatesByContract = new Dictionary<int, double>();
+                if (contractIds.Any())
+                {
+                    var contractVatLines = await db.P_CONTRACT_PRODUCTS
+                        .Where(p => contractIds.Contains(p.ContractID))
+                        .Select(p => new PContractVatHelper.ContractProductVatLine
+                        {
+                            ContractID = p.ContractID,
+                            Amount = p.Amount,
+                            VATAmount = p.VATAmount
+                        })
+                        .ToListAsync();
+
+                    vatRatesByContract = PContractVatHelper.BuildContractVatRates(contractVatLines);
+                }
+                ViewBag.VatRatesByContract = vatRatesByContract;
+
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.SupplierID = supplierID;
                 ViewBag.ContractID = contractID;
