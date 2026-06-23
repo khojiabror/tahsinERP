@@ -148,10 +148,22 @@ namespace tahsinERP.Controllers.MES
                                 (p.Date.Date == factDay ||
                                  ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment)?.Date == planDay));
 
-                            double? previousTotalForDelta = null;
+                            // Mavjud yozuvni to'liq bekor qilib, joriy to'liq miqdor bo'yicha qayta yozamiz
+                            // (delta o'rniga). Shunday qilib avtomatik kirim/chiqim doim
+                            // "ishlab chiqarilgan son × BOM" ga teng bo'ladi va eski/dublikat
+                            // hujjatlar qolmaydi.
                             if (existing != null)
                             {
-                                previousTotalForDelta = existing.Total;
+                                var oldProductionWH = WarehouseFlowService.GetProductionWarehouse(db, existing.ShopID);
+                                if (oldProductionWH == null)
+                                {
+                                    throw new Exception("Ishlab chiqarish ombori topilmadi (eski qoldiqni bekor qilish uchun).");
+                                }
+
+                                WarehouseFlowService.ReverseProductionIncome(
+                                    db, existing.ID, existing.ProductID, oldProductionWH.ID, User.Identity.Name);
+                                await ReverseProductionConsumption(existing.ID, db);
+
                                 // Yangilash existing
                                 existing.Date = viewModel.ProductionDate;
                                 existing.DayShift = item.DayShift;
@@ -159,6 +171,7 @@ namespace tahsinERP.Controllers.MES
                                 existing.Total = item.Total;
                                 existing.Comment = ProductProductionPlanDateMeta.MergeIntoComment(item.Comment, viewModel.Date);
                                 db.Entry(existing).State = EntityState.Modified;
+                                db.SaveChanges();
                             }
                             else
                             {
@@ -179,36 +192,9 @@ namespace tahsinERP.Controllers.MES
                                 existing = production;
                             }
 
-                            // Ishlab chiqarish → avtomatik kirim + ombor qoldig'i (sifat nazorati transferni bloklaydi, qoldiqni emas)
-                            if (previousTotalForDelta.HasValue)
-                            {
-                                var delta = item.Total - previousTotalForDelta.Value;
-                                var prodId = existing?.ID ?? 0;
-                                if (Math.Abs(delta) < 1e-9 && prodId > 0
-                                    && !WarehouseFlowService.HasProductionIncome(db, prodId)
-                                    && item.Total > 0)
-                                {
-                                    WarehouseFlowService.IncreaseProductionStock(
-                                        item.ProductID, item.Total, viewModel.ShopID, db,
-                                        User.Identity.Name, prodId);
-                                }
-                                else
-                                {
-                                    WarehouseFlowService.ApplyProductionWarehouseStockDelta(
-                                        item.ProductID, delta, viewModel.ShopID, db,
-                                        User.Identity.Name, existing?.ID);
-                                }
-
-                                if (delta > 0.0001)
-                                {
-                                    await ConsumeMaterialsForProduction(item.ProductID, delta, viewModel.ShopID, db, existing?.ID, existing?.Date);
-                                }
-                                else if (delta < -0.0001)
-                                {
-                                    await RevertMaterialConsumption(item.ProductID, -delta, viewModel.ShopID, db);
-                                }
-                            }
-                            else
+                            // Ishlab chiqarish → avtomatik kirim (tayyor mahsulot) + xomashyo chiqimi,
+                            // joriy to'liq miqdor bo'yicha.
+                            if (item.Total > 0)
                             {
                                 WarehouseFlowService.IncreaseProductionStock(
                                     item.ProductID,
@@ -216,9 +202,9 @@ namespace tahsinERP.Controllers.MES
                                     viewModel.ShopID,
                                     db,
                                     User.Identity.Name,
-                                    existing?.ID);
+                                    existing.ID);
 
-                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, viewModel.ShopID, db, existing?.ID, existing?.Date);
+                                await ConsumeMaterialsForProduction(item.ProductID, item.Total, viewModel.ShopID, db, existing.ID, existing.Date);
                             }
 
                             if (productForLog != null)
@@ -387,7 +373,7 @@ namespace tahsinERP.Controllers.MES
                             WarehouseFlowService.ReverseProductionIncome(
                                 db, production.ID, production.ProductID, oldProductionWH.ID, User.Identity.Name);
 
-                            await RevertMaterialConsumption(production.ProductID, production.Total, production.ShopID, db);
+                            await ReverseProductionConsumption(production.ID, db);
 
                             // Yangilash production
                             production.ProductID = viewModel.ProductID;
@@ -487,14 +473,16 @@ namespace tahsinERP.Controllers.MES
                 var searchEnd = production.Date.Date.AddDays(31);
 
                 // 0) Avval ProductionID marker bilan aniq topish (yangi yozuvlar uchun)
-                var prodMarker = "ProductionID:" + production.ID;
-                var expensesByProdId = await db.EXPENSES
+                var prodMarker = WarehouseFlowService.ProductionIncomeMarker + production.ID;
+                var expensesByProdId = (await db.EXPENSES
                     .Where(e => e.IsDeleted == false
                         && e.Description != null
                         && e.Description.Contains(prodMarker))
                     .Include(e => e.EXPENSE_PRODUCTS)
                     .OrderByDescending(e => e.IssueDateTime)
-                    .ToListAsync();
+                    .ToListAsync())
+                    .Where(e => WarehouseFlowService.DescriptionMatchesProductionId(e.Description, production.ID))
+                    .ToList();
 
                 // 1) Sana oralig'ida barcha chiqimlarni yuklash (fallback: eski yozuvlar uchun)
                 var expensesInRange = await db.EXPENSES
@@ -664,13 +652,11 @@ namespace tahsinERP.Controllers.MES
                 var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
                 if (productionWH != null)
                 {
-                    var stock = db.PRODUCT_STOCKS
-                        .FirstOrDefault(s => s.WHID == productionWH.ID && s.ProductID == production.ProductID);
-                    WarehouseFlowService.ApplyIncomeIssueFromStock(
-                        db, productionWH.ID, production.ProductID, production.Total,
-                        stock?.UnitID > 0 ? stock.UnitID : 1);
+                    // Tayyor mahsulot kirimini (kirim hujjati + DLOC lot + qoldiq) to'liq bekor qilamiz.
+                    WarehouseFlowService.ReverseProductionIncome(
+                        db, production.ID, production.ProductID, productionWH.ID, User.Identity.Name);
                 }
-                await RevertMaterialConsumption(production.ProductID, production.Total, production.ShopID, db);
+                await ReverseProductionConsumption(production.ID, db);
 
                 production.IsDeleted = true;
                 db.Entry(production).State = System.Data.Entity.EntityState.Modified;
@@ -774,32 +760,118 @@ namespace tahsinERP.Controllers.MES
         }
 
         /// <summary>
-        /// Reverts material consumption (uchun edit/o'chirish operations). Adds back ga production warehouse in same unit (kg uchun weight-based).
+        /// Ushbu ishlab chiqarish uchun avtomatik yaratilgan xomashyo chiqimini to'liq bekor qiladi:
+        /// DLOC lot + umumiy qoldiq qaytariladi va eski EXPENSE hujjatlari fizik o'chiriladi
+        /// (eski/dublikat hujjatlar qolib ketmasligi uchun).
         /// </summary>
-        private async Task RevertMaterialConsumption(int productId, double producedQty, int shopId, DBTHSNEntities db)
+        private async Task ReverseProductionConsumption(int productionId, DBTHSNEntities db)
         {
-            var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
-
-            if (productionWarehouse == null)
-            {
-                return; // Can't revert agar warehouse not found
-            }
-
             var consumptionService = new ProductionConsumptionService(db);
-            var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(productId, producedQty);
+            await consumptionService.ReverseProductionConsumptionAsync(productionId);
+        }
 
-            // Revert consumption (add back ga stock)
-            foreach (var req in requirements)
+        /// <summary>
+        /// Mavjud ma'lumotlarni tuzatish: har bir ishlab chiqarish uchun avtomatik xomashyo
+        /// chiqimini "ishlab chiqarilgan son × BOM" ga moslab qayta hisoblaydi (faqat chiqim,
+        /// tayyor mahsulot kirimi tegilmaydi). Har bir yozuv alohida tranzaksiyada, xatolar
+        /// yig'ib hisobot beriladi.
+        /// </summary>
+        public async Task<ActionResult> ReconcileProductionConsumption()
+        {
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
             {
-                var stock = await db.PRODUCT_STOCKS
-                    .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
-
-                WarehouseFlowService.ApplyIncomeReceiveToStock(
-                    db, productionWarehouse.ID, req.MaterialID, req.TotalConsumption,
-                    stock?.UnitID > 0 ? stock.UnitID : 1);
+                return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            await db.SaveChangesAsync();
+            int reconciled = 0, alreadyOk = 0, skipped = 0;
+            var errors = new List<string>();
+
+            List<int> productionIds;
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                productionIds = await db.PRODUCT_PRODUCTION
+                    .Where(p => (p.IsDeleted == false || p.IsDeleted == null) && p.Total > 0)
+                    .OrderBy(p => p.ID)
+                    .Select(p => p.ID)
+                    .ToListAsync();
+            }
+
+            foreach (var pid in productionIds)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                using (var transaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var production = await db.PRODUCT_PRODUCTION.FindAsync(pid);
+                        if (production == null || production.IsDeleted == true || production.Total <= 0)
+                        {
+                            skipped++;
+                            transaction.Rollback();
+                            continue;
+                        }
+
+                        var consumptionService = new ProductionConsumptionService(db);
+                        var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
+                            production.ProductID, production.Total);
+                        var expectedTotal = requirements?.Sum(r => r.TotalConsumption) ?? 0d;
+
+                        var marker = WarehouseFlowService.ProductionIncomeMarker + production.ID;
+                        var existingExpenses = (await db.EXPENSES
+                            .Where(e => e.IsDeleted != true
+                                && e.ReceiverWhID == null
+                                && e.Description != null
+                                && e.Description.Contains(marker))
+                            .ToListAsync())
+                            .Where(e => WarehouseFlowService.DescriptionMatchesProductionId(e.Description, production.ID))
+                            .ToList();
+                        var actualTotal = existingExpenses.Sum(e => e.Amount ?? 0d);
+
+                        // Allaqachon to'g'ri va bitta hujjat bo'lsa, tegmaymiz.
+                        if (existingExpenses.Count <= 1 && Math.Abs(actualTotal - expectedTotal) < 0.001)
+                        {
+                            alreadyOk++;
+                            transaction.Rollback();
+                            continue;
+                        }
+
+                        // Faqat chiqim qismini qayta hisoblash (tayyor mahsulot kirimi tegilmaydi).
+                        await consumptionService.ReverseProductionConsumptionAsync(production.ID);
+
+                        var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                        if (productionWarehouse == null)
+                        {
+                            throw new Exception("Ishlab chiqarish ombori topilmadi");
+                        }
+
+                        await consumptionService.ConsumeMaterialsForProductionAsync(
+                            production.ProductID, production.Total, productionWarehouse.ID, production.ID, production.Date);
+
+                        await db.SaveChangesAsync();
+                        transaction.Commit();
+                        reconciled++;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        var msg = ex.InnerException != null ? $"{ex.Message} | {ex.InnerException.Message}" : ex.Message;
+                        errors.Add($"#{pid}: {msg}");
+                    }
+                }
+            }
+
+            var summary = $"Tuzatildi: {reconciled}, allaqachon to'g'ri: {alreadyOk}, o'tkazib yuborildi: {skipped}, xatolar: {errors.Count}.";
+            if (errors.Any())
+            {
+                TempData["Error"] = summary + " " + string.Join(" | ", errors.Take(5));
+            }
+            else
+            {
+                TempData["Success"] = summary;
+            }
+
+            LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", "ReconcileProductionConsumption: " + summary);
+            return RedirectToAction("Index");
         }
 
         // AJAX so'rovi: Get planned products uchun date va shop

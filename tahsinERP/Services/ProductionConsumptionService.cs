@@ -326,6 +326,69 @@ namespace tahsinERP.Services
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
                 $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Mahsulot ID: {productId}, Miqdor: {producedQty}");
         }
+
+        /// <summary>
+        /// Ushbu ishlab chiqarish uchun avtomatik yaratilgan xomashyo chiqimini to'liq bekor qiladi:
+        /// har bir chiqim qatori bo'yicha DLOC lot + umumiy qoldiqni qaytaradi (ExpenseStockIssueHelper)
+        /// va EXPENSE/EXPENSE_PRODUCTS/WRHS_EXPENSE_DOCS yozuvlarini fizik o'chiradi.
+        /// Faqat ichki sarf chiqimlari (ReceiverWhID == null) tegiladi; ishlab chiqarish→sotuv
+        /// o'tkazmalari (ReceiverWhID mavjud) tegilmaydi.
+        /// </summary>
+        public async Task ReverseProductionConsumptionAsync(int productionId)
+        {
+            if (productionId <= 0)
+                return;
+
+            var marker = WarehouseFlowService.ProductionIncomeMarker + productionId;
+            var expenses = await _db.EXPENSES
+                .Include(e => e.EXPENSE_PRODUCTS)
+                .Where(e => e.IsDeleted != true
+                    && e.ReceiverWhID == null
+                    && e.Description != null
+                    && e.Description.Contains(marker))
+                .ToListAsync();
+
+            expenses = expenses
+                .Where(e => WarehouseFlowService.DescriptionMatchesProductionId(e.Description, productionId))
+                .ToList();
+
+            if (!expenses.Any())
+                return;
+
+            foreach (var expense in expenses)
+            {
+                var lines = expense.EXPENSE_PRODUCTS != null
+                    ? expense.EXPENSE_PRODUCTS.ToList()
+                    : new List<EXPENSE_PRODUCTS>();
+
+                foreach (var line in lines)
+                {
+                    var unitId = line.UnitID > 0 ? line.UnitID : 1;
+                    ExpenseStockIssueHelper.ReverseExpenseProductIssue(
+                        _db, expense.SenderWHID, line.ProductID, line.Amount, unitId, line.ID);
+                }
+
+                if (lines.Any())
+                {
+                    _db.EXPENSE_PRODUCTS.RemoveRange(lines);
+                }
+
+                var docs = await _db.WRHS_EXPENSE_DOCS
+                    .Where(d => d.ExpenseID == expense.ID)
+                    .ToListAsync();
+                if (docs.Any())
+                {
+                    _db.WRHS_EXPENSE_DOCS.RemoveRange(docs);
+                }
+
+                _db.EXPENSES.Remove(expense);
+            }
+
+            await _db.SaveChangesAsync();
+
+            LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ReverseProductionConsumptionAsync",
+                $"ProductionID {productionId} uchun {expenses.Count} ta xomashyo chiqimi bekor qilindi.");
+        }
     }
 
     /// <summary>

@@ -135,13 +135,38 @@ namespace tahsinERP.Services
         public const string AutoTransferIncomeMarker = "Chiqimdan avtomatik bog'langan:";
         public const string ProductionIncomeMarker = "ProductionID:";
 
+        /// <summary>
+        /// Izohda "ProductionID:{id}" markeri aniq mosligini tekshiradi (chegara bilan).
+        /// "ProductionID:5" "ProductionID:50" ga mos kelmasligi uchun marker'dan keyin
+        /// raqam kelmasligi (yoki satr tugashi) talab qilinadi.
+        /// </summary>
+        public static bool DescriptionMatchesProductionId(string description, int productionId)
+        {
+            if (string.IsNullOrEmpty(description) || productionId <= 0)
+                return false;
+
+            var marker = ProductionIncomeMarker + productionId;
+            int idx = 0;
+            while ((idx = description.IndexOf(marker, idx, StringComparison.Ordinal)) >= 0)
+            {
+                int after = idx + marker.Length;
+                if (after >= description.Length || !char.IsDigit(description[after]))
+                    return true;
+                idx = after;
+            }
+            return false;
+        }
+
         /// <summary>Ushbu ishlab chiqarish uchun avtomatik kirim yaratilganmi.</summary>
         public static bool HasProductionIncome(DBTHSNEntities db, int productionId)
         {
             if (productionId <= 0)
                 return false;
             var marker = ProductionIncomeMarker + productionId;
-            return db.INCOMES.Any(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker));
+            return db.INCOMES
+                .Where(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker))
+                .AsEnumerable()
+                .Any(i => DescriptionMatchesProductionId(i.Description, productionId));
         }
 
         /// <summary>
@@ -160,6 +185,9 @@ namespace tahsinERP.Services
             var marker = ProductionIncomeMarker + productionId;
             var incomeIds = db.INCOMES
                 .Where(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker))
+                .Select(i => new { i.ID, i.Description })
+                .AsEnumerable()
+                .Where(i => DescriptionMatchesProductionId(i.Description, productionId))
                 .Select(i => i.ID)
                 .ToList();
 

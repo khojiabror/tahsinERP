@@ -1084,6 +1084,76 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
+        /// Mavjud ma'lumotlarni tuzatish: qabul qilingan (RecieveStatus = true) ichki o'tkazma
+        /// kirimlariga bog'langan chiqimlarni "yuborilgan" (SendStatus = true) deb belgilaydi.
+        /// Shu sabab chiqim qilgan ombor ham qabul qilingan holatni ko'rsatadi.
+        /// </summary>
+        public async Task<ActionResult> RepairTransferExpenseStatuses()
+        {
+            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            int fixedCount = 0, alreadyOk = 0, skipped = 0;
+            var errors = new List<string>();
+
+            using (var db = new DBTHSNEntities())
+            {
+                var receivedTransferIncomes = await db.INCOMES
+                    .Where(i => i.IsDeleted != true
+                        && i.RecieveStatus == true
+                        && i.Description != null
+                        && i.Description.Contains(LinkedExpenseIdMarker))
+                    .ToListAsync();
+
+                foreach (var income in receivedTransferIncomes)
+                {
+                    try
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(
+                            income.Description, @"EXPENSE_ID\s*:\s*(\d+)",
+                            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var expenseId))
+                        {
+                            skipped++;
+                            continue;
+                        }
+
+                        var expense = await db.EXPENSES.FirstOrDefaultAsync(e => e.ID == expenseId && e.IsDeleted != true);
+                        if (expense == null)
+                        {
+                            skipped++;
+                            continue;
+                        }
+
+                        if (expense.SendStatus == true)
+                        {
+                            alreadyOk++;
+                            continue;
+                        }
+
+                        expense.SendStatus = true;
+                        fixedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"{income.DocNo}: {ex.Message}");
+                    }
+                }
+
+                await db.SaveChangesAsync();
+            }
+
+            var summary = $"Tuzatildi: {fixedCount}, allaqachon to'g'ri: {alreadyOk}, o'tkazib yuborildi: {skipped}, xatolar: {errors.Count}.";
+            if (errors.Any())
+                TempData["Error"] = summary + " " + string.Join(" | ", errors.Take(5));
+            else
+                TempData["Success"] = summary;
+
+            LogHelper.LogToDatabase(User.Identity.Name, "Expenses", "RepairTransferExpenseStatuses: " + summary);
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
         /// Ichki o'tkazma uchun avtomatik kirim hujjati yaratadi (Xomashyo → Ishlab chiqarish/Sotuv)
         /// Har bir chiqim uchun barcha mahsulotlar bilan BIRTA kirim hujjati yaratadi
         /// </summary>

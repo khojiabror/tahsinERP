@@ -485,6 +485,8 @@ else
                     });
                 }
 
+                var defaultCurrencyId = '@Model.DefaultCurrencyID';
+
                 function buildCurrencyOptions() {
                     var source = document.querySelector('select[name="Items[0].CurrencyID"]');
                     if (!source) {
@@ -492,7 +494,16 @@ else
                             || document.querySelector('select[name="SupplierPayableLines[0].CurrencyID"]')
                             || document.querySelector('select[name="EmployeePayrollLines[0].CurrencyID"]');
                     }
-                    return source ? source.innerHTML : '<option value="1">UZS</option>';
+                    return source ? source.innerHTML : '<option value="5">USD</option>';
+                }
+
+                // Yangi qator qo'shilganda valyutani ushbu sahifaning standart valyutasiga (ID=5) o'rnatadi.
+                function applyDefaultCurrency($row) {
+                    if (!$row || !$row.length) return;
+                    var $cur = $row.find('select[name$=".CurrencyID"]');
+                    if ($cur.length && defaultCurrencyId) {
+                        $cur.val(String(defaultCurrencyId));
+                    }
                 }
                 var customerOptionsData = @Html.Raw(System.Web.Helpers.Json.Encode(Model.CustomerList.Select(x => new { value = x.Value, text = x.Text }).ToList()));
                 var supplierOptionsData = @Html.Raw(System.Web.Helpers.Json.Encode(Model.SupplierList.Select(x => new { value = x.Value, text = x.Text }).ToList()));
@@ -705,7 +716,9 @@ else
                         var tbody = document.querySelector('#tblOpeningCustomerLines tbody');
                         var idx = nextIndex(tbody, 'CustomerReceivableLines');
                         tbody.insertAdjacentHTML('beforeend', createLineHtml('CustomerReceivableLines', idx, 'customer'));
-                        recalcRowBalance($(tbody).find('tr:last'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
                     });
                 }
 
@@ -715,7 +728,9 @@ else
                         var tbody = document.querySelector('#tblOpeningSupplierLines tbody');
                         var idx = nextIndex(tbody, 'SupplierPayableLines');
                         tbody.insertAdjacentHTML('beforeend', createLineHtml('SupplierPayableLines', idx, 'supplier'));
-                        recalcRowBalance($(tbody).find('tr:last'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
                     });
                 }
 
@@ -725,7 +740,9 @@ else
                         var tbody = document.querySelector('#tblOpeningPayrollLines tbody');
                         var idx = nextIndex(tbody, 'EmployeePayrollLines');
                         tbody.insertAdjacentHTML('beforeend', createLineHtml('EmployeePayrollLines', idx, 'payroll'));
-                        recalcRowBalance($(tbody).find('tr:last'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
                     });
                 }
 
@@ -811,9 +828,11 @@ else
                     recalcRowBalance($(this).closest('tr'));
                 });
 
+                // Boshlang'ich yuklashda serverdan kelgan "Umumiy oldi-berdi"/"To'langan" qiymatlarini
+                // saqlab qolamiz. recalcSystemTotalForRow bu yerda chaqirilmaydi, chunki shartnoma ro'yxati
+                // asinxron yuklanadi va o'sha paytda contract qiymati bo'sh bo'lib, qiymatlarni 0 ga tushiradi.
                 $('#tblOpeningCustomerLines tbody tr, #tblOpeningSupplierLines tbody tr').each(function () {
                     loadContractsForRow($(this));
-                    recalcSystemTotalForRow($(this));
                     recalcRowBalance($(this));
                 });
                 $('#tblOpeningPayrollLines tbody tr').each(function () {

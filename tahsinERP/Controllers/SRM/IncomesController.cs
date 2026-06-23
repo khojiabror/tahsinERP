@@ -1079,6 +1079,11 @@ namespace tahsinERP.Controllers.SRM
 
                         income.RecieveStatus = true;
                         db.Entry(income).Property(i => i.RecieveStatus).IsModified = true;
+
+                        // Bog'langan chiqimni ham "yuborilgan" deb belgilaymiz, shunda chiqim qilgan
+                        // ombor ham qabul qilingan holatni ko'rsatadi (status ikkala tomonda mos bo'ladi).
+                        await MarkLinkedExpenseSentAsync(db, income);
+
                         await db.SaveChangesAsync();
                         transaction.Commit();
 
@@ -1511,6 +1516,36 @@ namespace tahsinERP.Controllers.SRM
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// Kirim qabul qilinganda unga bog'langan chiqimni "yuborilgan" (SendStatus = true) deb
+        /// belgilaydi. Shunday qilib chiqim qilgan ombor ham qabul qilingan holatni ko'rsatadi.
+        /// </summary>
+        private async Task MarkLinkedExpenseSentAsync(DBTHSNEntities db, INCOME income)
+        {
+            if (income == null)
+            {
+                return;
+            }
+
+            var expenseDocNo = ExtractLinkedExpenseDocNo(income.Description);
+            if (string.IsNullOrWhiteSpace(expenseDocNo))
+            {
+                return;
+            }
+
+            var linkedExpense = await db.EXPENSES
+                .FirstOrDefaultAsync(e =>
+                    e.DocNo == expenseDocNo
+                    && e.ReceiverWhID == income.ReceivingWHID
+                    && e.SenderWHID == income.SenderWHID
+                    && e.IsDeleted != true);
+
+            if (linkedExpense != null && linkedExpense.SendStatus != true)
+            {
+                linkedExpense.SendStatus = true;
+            }
         }
 
         private string ExtractLinkedExpenseDocNo(string description)

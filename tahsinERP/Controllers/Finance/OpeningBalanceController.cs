@@ -11,6 +11,7 @@ using tahsinERP.Controllers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Helpers;
+using tahsinERP.Services;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -302,8 +303,11 @@ namespace tahsinERP.Controllers.Finance
                 {
                     EnsureOpeningContractBalanceTable(db);
                     var userId = UserHelper.GetUserId(User.Identity.Name);
-                    var defaultCurrencyId = db.CURRENCIES.Select(c => c.ID).FirstOrDefault();
-                    if (defaultCurrencyId <= 0) defaultCurrencyId = 1;
+                    // Bu sahifada standart valyuta ID = 5 (mavjud bo'lmasa, birinchi valyuta).
+                    var defaultCurrencyId = db.CURRENCIES.Any(c => c.ID == 5)
+                        ? 5
+                        : db.CURRENCIES.Select(c => c.ID).FirstOrDefault();
+                    if (defaultCurrencyId <= 0) defaultCurrencyId = 5;
 
                 DeleteOpeningByDate(db, date);
 
@@ -367,14 +371,34 @@ namespace tahsinERP.Controllers.Finance
                     .GroupBy(x => Tuple.Create(x.CustomerID, x.ContractNo))
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
-                // 2) Supplier payables by contract
-                var pInvoices = db.P_INVOICES
+                // 2) Supplier payables by contract.
+                // QQS faqat P_CONTRACT da saqlanadi: invoice summasini bog'langan shartnomaning
+                // QQS stavkasi bo'yicha QQS bilan hisoblaymiz (QQS bo'lmasa, stavka 0 va summa o'zgarmaydi).
+                var pInvoicesRaw = db.P_INVOICES
                     .Where(i => i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false))
                     .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.Amount })
-                    .ToList()
-                    .Select(i => new { i.ID, i.SupplierID, i.ContractID, Amount = Convert.ToDecimal(i.Amount) })
                     .ToList();
-                var pContractIds = pInvoices.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
+                var pContractIds = pInvoicesRaw.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
+                var pVatRateByContract = pContractIds.Count == 0
+                    ? new Dictionary<int, double>()
+                    : PContractVatHelper.BuildContractVatRates(
+                        db.P_CONTRACT_PRODUCTS
+                            .Where(p => pContractIds.Contains(p.ContractID))
+                            .Select(p => new PContractVatHelper.ContractProductVatLine
+                            {
+                                ContractID = p.ContractID,
+                                Amount = p.Amount,
+                                VATAmount = p.VATAmount
+                            })
+                            .ToList());
+                var pInvoices = pInvoicesRaw
+                    .Select(i =>
+                    {
+                        var baseAmt = Convert.ToDecimal(i.Amount);
+                        var rate = pVatRateByContract.ContainsKey(i.ContractID) ? pVatRateByContract[i.ContractID] : 0d;
+                        return new { i.ID, i.SupplierID, i.ContractID, Amount = baseAmt + baseAmt * (decimal)rate / 100m };
+                    })
+                    .ToList();
                 var pContractNoById = pContractIds.Count == 0
                     ? new Dictionary<int, string>()
                     : db.P_CONTRACTS.Where(c => pContractIds.Contains(c.ID))
@@ -671,11 +695,15 @@ namespace tahsinERP.Controllers.Finance
             {
                 Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
 
+                // QQS faqat P_CONTRACT da: invoice bazasini shartnoma QQS stavkasi bilan QQS bilan olamiz.
+                var vatRate = PContractVatHelper.CalculateContractVatRate(
+                    db.P_CONTRACT_PRODUCTS.Where(p => p.ContractID == contractId.Value).ToList());
+                var vatMultiplier = 1m + (decimal)vatRate / 100m;
                 var invoices = db.P_INVOICES
                     .Where(i => i.SupplierID == supplierId && i.ContractID == contractId.Value && i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false))
                     .Select(i => new { i.ID, i.Amount })
                     .ToList()
-                    .Select(i => new { i.ID, Amount = Convert.ToDecimal(i.Amount) })
+                    .Select(i => new { i.ID, Amount = Convert.ToDecimal(i.Amount) * vatMultiplier })
                     .ToList();
 
                 var contractNo = db.P_CONTRACTS
@@ -795,8 +823,11 @@ namespace tahsinERP.Controllers.Finance
 
             using (var db = new DBTHSNEntities())
             {
-                var defaultCurrencyId = db.CURRENCIES.Select(c => c.ID).FirstOrDefault();
-                if (defaultCurrencyId <= 0) defaultCurrencyId = 1;
+                // Bu sahifada standart valyuta ID = 5 (mavjud bo'lmasa, birinchi valyuta).
+                var defaultCurrencyId = db.CURRENCIES.Any(c => c.ID == 5)
+                    ? 5
+                    : db.CURRENCIES.Select(c => c.ID).FirstOrDefault();
+                if (defaultCurrencyId <= 0) defaultCurrencyId = 5;
                 var currencyByCode = db.CURRENCIES.ToDictionary(x => (x.Shortname ?? "").Trim().ToUpper(), x => x.ID);
 
                 var customers = db.CUSTOMERS.Where(x => x.IsDeleted != true).Select(x => new { x.ID, x.Name }).ToList();
@@ -824,10 +855,14 @@ namespace tahsinERP.Controllers.Finance
                 };
                 Func<int, int, decimal> calcSupplierTotal = (supplierId, contractId) =>
                 {
-                    return db.P_INVOICES
+                    var baseTotal = db.P_INVOICES
                         .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= snapshotDate && (i.IsDeleted == null || i.IsDeleted == false))
                         .Select(i => (decimal?)i.Amount)
                         .DefaultIfEmpty(0m).Sum() ?? 0m;
+                    // QQS faqat P_CONTRACT da: shartnoma QQS stavkasi bilan QQS bilan olamiz.
+                    var vatRate = PContractVatHelper.CalculateContractVatRate(
+                        db.P_CONTRACT_PRODUCTS.Where(p => p.ContractID == contractId).ToList());
+                    return baseTotal + baseTotal * (decimal)vatRate / 100m;
                 };
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -1042,13 +1077,14 @@ namespace tahsinERP.Controllers.Finance
                 .GroupBy(s => s.CategoryID)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreatedDT).FirstOrDefault());
 
-            var defaultCurrency = db.CURRENCIES.FirstOrDefault();
+            // Bu sahifada standart valyuta ID = 5 (mavjud bo'lmasa, birinchi valyuta).
+            var defaultCurrency = db.CURRENCIES.FirstOrDefault(c => c.ID == 5) ?? db.CURRENCIES.FirstOrDefault();
             var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
 
             var model = new OpeningBalanceViewModel
             {
                 SnapshotDate = date,
-                DefaultCurrencyID = defaultCurrency?.ID ?? 1,
+                DefaultCurrencyID = defaultCurrency?.ID ?? 5,
                 CurrencyList = currencies.Select(c => new SelectListItem
                 {
                     Value = c.ID.ToString(),
@@ -1095,7 +1131,7 @@ namespace tahsinERP.Controllers.Finance
                     Type = cat.Type,
                     TypeName = BalanceCategoryDisplayHelper.GetSideLabel(cat),
                     Amount = snap?.Amount ?? 0,
-                    CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 1),
+                    CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 5),
                     CurrencyShortname = snap != null
                         ? currencies.FirstOrDefault(c => c.ID == snap.CurrencyID)?.Shortname ?? defaultCurrency?.Shortname
                         : defaultCurrency?.Shortname,

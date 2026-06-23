@@ -38,6 +38,15 @@
                         </div>
                     }
 
+                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("ReconcileProductionConsumption", "ProductProduction")" class="btn btn-outline-secondary" role="button" onclick="return confirm('Har bir ishlab chiqarish uchun xomashyo chiqimini «ishlab chiqarilgan son × BOM» ga moslab qayta hisoblashni xohlaysizmi?');" title="Avtomatik xomashyo chiqimlarini BOM bo'yicha qayta hisoblash">
+                                <i class="bx bx-wrench"></i> Chiqimni tuzatish (BOM)
+                            </a>
+                        </div>
+                    }
+
                     @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
