@@ -117,8 +117,8 @@
                                                     @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="vatRateInput">QQS % (ko'rinish uchun)</label>
-                                                    <input type="number" id="vatRateInput" class="form-control" value="0" step="0.01" min="0" max="100" />
+                                                    <label for="vatRateInput">QQS %</label>
+                                                    <input type="number" id="vatRateInput" name="VatRate" class="form-control" value="@(Model != null ? Model.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "0")" step="0.01" min="0" max="100" />
                                                 </div>
                                                 <div class="col-md-12 col-12 form-group">
                                                     <label for="Description">Izoh</label>
@@ -427,8 +427,9 @@ else
                         $.ajax({
                             url: '@Url.Action("GenerateFromSalesOrders", "POrders")',
                             type: 'POST',
-                            data: { 
+                            data: {
                                 salesOrderIds: selectedIds,
+                                issuedDate: $('#IssuedDate').val(),
                                 __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                             },
                             success: function (response) {

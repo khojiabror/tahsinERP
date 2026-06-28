@@ -21,9 +21,9 @@ namespace tahsinERP.Services
             _db = db;
         }
 
-        public async Task<List<BomMaterialSummaryViewModel>> GetMaterialSummariesPerUnitAsync(int productId, int? bomHeaderId = null)
+        public async Task<List<BomMaterialSummaryViewModel>> GetMaterialSummariesPerUnitAsync(int productId, int? bomHeaderId = null, DateTime? asOfDate = null)
         {
-            var bomHeader = await SelectActiveBomHeaderAsync(productId, bomHeaderId);
+            var bomHeader = await SelectActiveBomHeaderAsync(productId, bomHeaderId, asOfDate);
             if (bomHeader == null)
             {
                 return new List<BomMaterialSummaryViewModel>();
@@ -48,7 +48,7 @@ namespace tahsinERP.Services
             return BuildMaterialSummaries(rootNode, productId, normVersion);
         }
 
-        public async Task<BOM_HEADERS> SelectActiveBomHeaderAsync(int productId, int? bomHeaderId = null)
+        public async Task<BOM_HEADERS> SelectActiveBomHeaderAsync(int productId, int? bomHeaderId = null, DateTime? asOfDate = null)
         {
             if (bomHeaderId.HasValue)
             {
@@ -62,6 +62,34 @@ namespace tahsinERP.Services
                 .Where(bh => bh.ProductID == productId && bh.IsActive == true)
                 .ToListAsync();
 
+            if (!bomHeaders.Any())
+            {
+                return null;
+            }
+
+            // Buyurtma sanasi berilgan bo'lsa — o'sha oyga (yoki undan oldingi) tegishli eng so'nggi BOM versiyasini olamiz,
+            // ya'ni eng yangi versiyani emas, balki buyurtma sanasida amal qilgan versiyani.
+            if (asOfDate.HasValue)
+            {
+                var asOfMonth = new DateTime(asOfDate.Value.Year, asOfDate.Value.Month, 1);
+                var effective = bomHeaders
+                    .Where(bh => GetBomEffectiveMonth(bh) <= asOfMonth)
+                    .OrderByDescending(bh => GetBomEffectiveMonth(bh))
+                    .ThenByDescending(bh => bh.CreatedAt)
+                    .FirstOrDefault();
+
+                if (effective != null)
+                {
+                    return effective;
+                }
+
+                // Buyurtma sanasidan oldin hech qanday versiya bo'lmasa — eng eski (birinchi) versiyaga qaytamiz.
+                return bomHeaders
+                    .OrderBy(bh => GetBomEffectiveMonth(bh))
+                    .ThenBy(bh => bh.CreatedAt)
+                    .FirstOrDefault();
+            }
+
             var bomHeaderWithVersion = bomHeaders
                 .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
                 .OrderByDescending(bh => ParseVersionNoDate(bh.VersionNo))
@@ -71,6 +99,26 @@ namespace tahsinERP.Services
             return bomHeaderWithVersion ?? bomHeaders
                 .OrderByDescending(bh => bh.CreatedAt)
                 .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// BOM versiyasining amal qilish oyi: VersionNo (yyyy-MM) dan, bo'lmasa CreatedAt dan (oyning 1-kuni).
+        /// </summary>
+        private static DateTime GetBomEffectiveMonth(BOM_HEADERS bh)
+        {
+            var fromVersion = ParseVersionNoDate(bh?.VersionNo);
+            if (fromVersion > DateTime.MinValue)
+            {
+                return new DateTime(fromVersion.Year, fromVersion.Month, 1);
+            }
+
+            if (bh?.CreatedAt != null)
+            {
+                var c = bh.CreatedAt.Value;
+                return new DateTime(c.Year, c.Month, 1);
+            }
+
+            return DateTime.MinValue;
         }
 
         public BomTreeNodeViewModel BuildBomTree(int parentProductId, List<BOM_LINES> bomLines, PRODUCT parentProduct, bool includeImages = true)
@@ -389,15 +437,74 @@ namespace tahsinERP.Services
                 .ToDictionary(
                     g => g.Key,
                     g => (
-                        Quantity: (decimal)g.Sum(x => x.PiecesPerProduct),
+                        Quantity: ComputeWoodBarQuantity(g),
                         TotalAmount: g.Sum(ComputeNormWoodLineAmount)));
+        }
+
+        /// <summary>
+        /// Yog'och (kesiladigan) material uchun BOM dona soni:
+        /// ceil( Σ((CutLengthMm + chiqindi_mm) × PiecesPerProduct) / standart uzunlik ).
+        /// Ya'ni har bir qatorda kesim uzunligi + normadagi chiqindi (offcut) ham hisobga olinadi,
+        /// shunda taxta soni real ishlatiladigan materialni aks ettiradi (chiqindini tashlab ketmaydi).
+        /// WasteAmount bazada qator bo'yicha JAMI chiqindi (mm) sifatida saqlanadi, shuning uchun to'g'ridan-to'g'ri qo'shiladi.
+        /// Masalan: 4000mm taxta, 1140×12 (chiqindi 2320) + 940×4 (240) + 880×3 (1360) + 720×4 (1120)
+        ///          = 28000mm → ceil(28000/4000) = 7 dona.
+        /// </summary>
+        private static decimal ComputeWoodBarQuantity(IEnumerable<NORM_INPUT_LINES> lines)
+        {
+            var list = lines?.ToList();
+            if (list == null || list.Count == 0)
+                return 0;
+
+            // Standart uzunlik (mm): StandardLengthMm > 0 bo'lsa, aks holda Length > 0 bo'lsa (null/0 emas).
+            var material = list[0].PRODUCT;
+            double standardLengthMm = 0;
+            if (material != null)
+            {
+                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
+                    standardLengthMm = material.StandardLengthMm.Value;
+                else if (material.Length.HasValue && material.Length.Value > 0)
+                    standardLengthMm = material.Length.Value;
+            }
+
+            // Jami uzunlik (mm) = Σ(kesim × dona) + Σ(chiqindi). Chiqindi WasteAmount (jami mm) dan,
+            // bo'lmasa (standart - kesim) × dona dan hisoblanadi.
+            decimal totalLengthMm = 0;
+            foreach (var x in list)
+            {
+                var cutPartMm = (decimal)x.CutLengthMm * x.PiecesPerProduct;
+
+                decimal wasteMm;
+                if (x.WasteAmount.HasValue)
+                    wasteMm = (decimal)x.WasteAmount.Value;
+                else if (standardLengthMm > 0 && x.CutLengthMm > 0)
+                    wasteMm = (decimal)Math.Max(0, standardLengthMm - x.CutLengthMm) * x.PiecesPerProduct;
+                else
+                    wasteMm = 0;
+
+                totalLengthMm += cutPartMm + wasteMm;
+            }
+
+            if (standardLengthMm > 0 && totalLengthMm > 0)
+                return Math.Ceiling(totalLengthMm / (decimal)standardLengthMm);
+
+            // Standart uzunlik yo'q bo'lsa — eski xatti-harakat (donalar yig'indisi).
+            return (decimal)list.Sum(x => x.PiecesPerProduct);
         }
 
         private static decimal ComputeNormWoodLineAmount(NORM_INPUT_LINES line)
         {
             var material = line.PRODUCT;
             var requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-            var standardLengthMm = material?.StandardLengthMm ?? material?.Length ?? 0;
+            // StandardLengthMm bazada 0 (null emas) bo'lishi mumkin — bunda Length ishlatiladi (> 0 tekshiruvi bilan).
+            double standardLengthMm = 0;
+            if (material != null)
+            {
+                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
+                    standardLengthMm = material.StandardLengthMm.Value;
+                else if (material.Length.HasValue && material.Length.Value > 0)
+                    standardLengthMm = material.Length.Value;
+            }
 
             decimal consumption;
             if (line.Consumption.HasValue && line.Consumption.Value > 0)

@@ -85,24 +85,14 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                // Pagination
-                int currentPage = page ?? 1;
-                int itemsPerPage = pageSize ?? 25;
-                int totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
-
-                var orders = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
+                // Barcha mos yozuvlarni yuklaymiz. Sahifalash (show entries) DataTable
+                // tomonidan klient tarafida bajariladi, shu sababli server tomonida
+                // Skip/Take bilan cheklamaymiz.
+                var orders = await query.ToListAsync();
 
                 // ViewBag uchun filters
                 ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToListAsync(), "ID", "Name", customerID);
                 ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.ContractNo).ToListAsync(), "ID", "ContractNo", contractID);
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.OrderNo = orderNo;
                 ViewBag.CustomerID = customerID;
@@ -612,6 +602,7 @@ namespace tahsinERP.Controllers
                 ViewBag.ScheduleSummary = scheduleSummary;
                 ViewBag.InvoicesCount = db.SALES_INVOICES.Where(i => i.OrderID == id).Count();
                 ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db,order.ContractID > 0 ? (int?)order.ContractID : null);
+                ViewBag.ProductVatRates = BuildProductVatRates(db, order.ContractID);
 
                 return View(order);
             }
@@ -843,6 +834,9 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db, order.ContractID > 0 ? (int?)order.ContractID : null);
+                ViewBag.ProductVatRates = BuildProductVatRates(db, order.ContractID);
+
                 return View(order);
             }
         }
@@ -877,6 +871,27 @@ namespace tahsinERP.Controllers
         }
 
         // yordamchi methods
+
+        // Shartnoma maxsulotlari bo'yicha QQS foizini (ProductID -> VAT %) qaytaradi.
+        // Agar shartnomada QQS 0 bo'lsa, foiz ham 0 bo'ladi (narxlar QQSsiz ko'rsatiladi).
+        private Dictionary<int, double> BuildProductVatRates(DBTHSNEntities db, int contractId)
+        {
+            if (contractId <= 0)
+            {
+                return new Dictionary<int, double>();
+            }
+
+            return db.S_CONTRACT_PRODUCTS
+                .Where(p => p.ContractID == contractId)
+                .ToList()
+                .GroupBy(p => p.ProductID)
+                .ToDictionary(
+                    g => g.Key,
+                    g => SContractVatHelper.GetVatPercentFromLine(
+                        g.Sum(p => SContractVatHelper.GetLineBaseAmount(p)),
+                        g.Sum(p => p.vatamount ?? 0)));
+        }
+
         private void LoadContractProducts(SOrderViewModel model, int contractId)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

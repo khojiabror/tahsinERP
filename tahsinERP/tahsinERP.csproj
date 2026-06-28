@@ -3403,6 +3403,7 @@
     <Content Include="Views\HrPayroll\Details.cshtml" />
     <Content Include="Views\FinDashboard\FinanceReportsHub.cshtml" />
     <Content Include="Views\OpeningBalance\Details.cshtml" />
+    <Content Include="Views\FinDashboard\EBITDA.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

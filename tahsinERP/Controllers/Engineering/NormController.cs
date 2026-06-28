@@ -231,7 +231,7 @@ namespace tahsinERP.Controllers.Engineering
 
                     // Use Consumption va WasteAmount dan NORM_INPUT_LINES agar available, otherwise calculate
                     bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                    var standardLengthMm = material.StandardLengthMm ?? material.Length ?? 0;
+                    var standardLengthMm = GetEffectiveStandardLengthMm(material);
                     
                     decimal consumption = 0;
                     decimal waste = 0;
@@ -290,6 +290,7 @@ namespace tahsinERP.Controllers.Engineering
                         Norma = consumption,
                         Chiqindi = waste,
                         IsSelected = true,
+                        CuttingMethod = inputLine.Comment,
                         UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
                     });
                 }
@@ -865,30 +866,24 @@ namespace tahsinERP.Controllers.Engineering
                     return Json(new { success = false, message = "Kesish variantlari topilmadi" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Recalculate barcha lines
-                RecalculateLineFields(viewModel.CuttingLines);
-
-                // Group by MaterialID
+                // Butun jadval bo'yicha (faqat tanlanganlar emas) — material (xomashyo) bo'yicha guruhlaymiz.
+                // Bir xil xomashyoning uzun kesimidan qolgan chiqindi, undan kalta kesimlarga ishlatiladi.
                 var materialGroups = viewModel.CuttingLines
-                    .Where(l => l.IsSelected && l.MaterialID > 0)
+                    .Where(l => l.MaterialID > 0)
                     .GroupBy(l => l.MaterialID)
                     .ToList();
 
                 if (materialGroups.Count == 0)
                 {
-                    return Json(new { success = false, message = "Tanlangan kesish variantlari topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Kesish variantlari topilmadi" }, JsonRequestBehavior.AllowGet);
                 }
-
-                var optimization = new OptimizationSuggestionViewModel
-                {
-                    SuggestedMaterials = new Dictionary<int, MaterialSummaryViewModel>()
-                };
 
                 decimal totalNorm = 0;
                 decimal totalWaste = 0;
                 decimal totalCost = 0;
+                int reusedLinesCount = 0;
 
-                // Saqlash barcha optimized lines uchun detailed display
+                // Barcha optimizatsiya qilingan qatorlar — jadvalda ko'rsatish uchun.
                 var allOptimizedLines = new List<object>();
 
                 foreach (var group in materialGroups)
@@ -899,79 +894,57 @@ namespace tahsinERP.Controllers.Engineering
                         .Include(p => p.PRODUCT_CATEGORIES)
                         .FirstOrDefaultAsync(p => p.ID == materialId);
 
-                    // Simple optimization: select lines bilan minimal waste
-                    var optimizationResult = OptimizeMaterialCutting(lines, material);
-                    var optimizedLines = optimizationResult.Item1;
-                    var optimizationNotes = optimizationResult.Item2;
+                    bool requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
 
-                    if (optimizedLines != null && optimizedLines.Count > 0)
+                    // Chiqindidan foydalanish algoritmi (faqat kesiladigan xomashyo uchun ish beradi).
+                    var optimizedLines = OptimizeMaterialCutting(lines, material);
+
+                    foreach (var line in optimizedLines)
                     {
-                        var summary = new MaterialSummaryViewModel
-                        {
-                            MaterialID = materialId,
-                            MaterialName = material?.Name ?? "",
-                            TotalConsumption = optimizedLines.Sum(l => l.ConsumptionPerProduct),
-                            TotalWaste = optimizedLines.Sum(l => l.WastePerProduct),
-                            TotalCost = optimizedLines.Sum(l => l.TotalCostPerProduct),
-                            SelectedLineIDs = optimizedLines.Select(l => l.ID).ToList()
-                        };
+                        if (line.UsesWaste)
+                            reusedLinesCount++;
 
-                        optimization.SuggestedMaterials[materialId] = summary;
-                        totalNorm += summary.TotalConsumption;
-                        totalWaste += summary.TotalWaste;
-                        totalCost += summary.TotalCost;
-
-                        // Qo'shish detailed lines uchun DataTable bilan notes
-                        foreach (var line in optimizedLines)
+                        // Norm/chiqindi kartalari faqat kesiladigan materiallar bo'yicha hisoblanadi.
+                        if (requiresCutting)
                         {
-                            var note = optimizationNotes.ContainsKey(line.ID) ? optimizationNotes[line.ID] : "";
-                            allOptimizedLines.Add(new
-                            {
-                                id = line.ID,
-                                materialId = materialId,
-                                materialCode = line.MaterialCode ?? "",
-                                materialName = line.MaterialName ?? material?.Name ?? "",
-                                calculatedLengthMm = line.CalculatedLengthMm ?? 0,
-                                quantity = line.Quantity,
-                                consumptionPerProduct = line.ConsumptionPerProduct,
-                                wastePerProduct = line.WastePerProduct,
-                                unitPrice = line.UnitPrice ?? 0,
-                                totalCostPerProduct = line.TotalCostPerProduct,
-                                standardLengthMm = line.StandardLengthMm ?? 0,
-                                usesWaste = line.WastePerProduct == 0 && line.Quantity > 0, // agar waste is 0, it might use waste dan previous
-                                note = note
-                            });
+                            totalNorm += line.ConsumptionPerProduct;
+                            totalWaste += line.WastePerProduct;
                         }
+                        totalCost += line.TotalCostPerProduct;
+
+                        allOptimizedLines.Add(new
+                        {
+                            id = line.ID,
+                            materialId = materialId,
+                            materialCode = line.MaterialCode ?? material?.PNo ?? "",
+                            materialName = line.MaterialName ?? material?.Name ?? "",
+                            calculatedLengthMm = line.CalculatedLengthMm ?? 0,
+                            quantity = line.Quantity,
+                            consumptionPerProduct = line.ConsumptionPerProduct,
+                            wastePerProduct = line.WastePerProduct,
+                            unitPrice = line.UnitPrice ?? 0,
+                            totalCostPerProduct = line.TotalCostPerProduct,
+                            standardLengthMm = line.StandardLengthMm ?? 0,
+                            usesWaste = line.UsesWaste,
+                            note = line.OptimizationNote ?? ""
+                        });
                     }
                 }
 
-                optimization.SuggestedTotalNorm = totalNorm;
-                optimization.SuggestedTotalWaste = totalWaste;
-                optimization.SuggestedTotalCost = totalCost;
-                optimization.Message = $"Optimizatsiya natijasi: Umumiy norma {totalNorm:F4} m, Umumiy chiqindi {totalWaste:F4} m, Umumiy narx {totalCost:F2}";
-
-                // Aylantirish Dictionary ga list uchun JSON serialization
-                var suggestedMaterialsList = optimization.SuggestedMaterials.Select(kvp => new
-                {
-                    materialId = kvp.Key,
-                    materialName = kvp.Value.MaterialName,
-                    totalConsumption = kvp.Value.TotalConsumption,
-                    totalWaste = kvp.Value.TotalWaste,
-                    totalCost = kvp.Value.TotalCost,
-                    selectedLineIDs = kvp.Value.SelectedLineIDs
-                }).ToList();
+                var message = reusedLinesCount > 0
+                    ? $"Optimizatsiya: {reusedLinesCount} ta kesim chiqindidan olindi (sarf 0). Umumiy norma {totalNorm:F4} m, umumiy chiqindi {totalWaste:F4} m, umumiy summa {totalCost:F2}."
+                    : $"Optimizatsiya: chiqindidan qayta ishlatish imkoni topilmadi. Umumiy norma {totalNorm:F4} m, umumiy chiqindi {totalWaste:F4} m, umumiy summa {totalCost:F2}.";
 
                 return Json(new
                 {
                     success = true,
                     optimization = new
                     {
-                        message = optimization.Message,
-                        suggestedTotalNorm = optimization.SuggestedTotalNorm,
-                        suggestedTotalWaste = optimization.SuggestedTotalWaste,
-                        suggestedTotalCost = optimization.SuggestedTotalCost,
-                        suggestedMaterials = suggestedMaterialsList,
-                        optimizedLines = allOptimizedLines // Detailed lines uchun DataTable
+                        message = message,
+                        suggestedTotalNorm = totalNorm,
+                        suggestedTotalWaste = totalWaste,
+                        suggestedTotalCost = totalCost,
+                        optimizedLines = allOptimizedLines
                     },
                     totalNorm = totalNorm,
                     totalWaste = totalWaste,
@@ -1088,6 +1061,7 @@ namespace tahsinERP.Controllers.Engineering
                                 UnitPrice = decimal.TryParse(Request.Form[$"CuttingLines[{index}].UnitPrice"] ?? "0", out decimal price) ? (decimal?)price : null,
                                 IsSelected = Request.Form[$"CuttingLines[{index}].IsSelected"] == "true",
                                 IsWasteManual = (Request.Form[$"CuttingLines[{index}].IsWasteManual"] ?? "").ToLower() == "true",
+                                CuttingMethod = Request.Form[$"CuttingLines[{index}].CuttingMethod"],
                                 UnitID = unitIdForm
                             };
                             
@@ -1262,7 +1236,8 @@ namespace tahsinERP.Controllers.Engineering
                             Price = price,
                             Consumption = consumption > 0 ? (double?)consumption : null,
                             WasteAmount = line.IsWasteManual ? (double?)wasteAmount : (wasteAmount > 0 ? (double?)wasteAmount : null),
-                            UnitID = NormalizeUnitFk(line.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
+                            UnitID = NormalizeUnitFk(line.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null),
+                            Comment = string.IsNullOrWhiteSpace(line.CuttingMethod) ? null : line.CuttingMethod.Trim()
                         };
                         
                         // Note: TotalAmount is a computed ustun in the database:
@@ -1419,13 +1394,34 @@ namespace tahsinERP.Controllers.Engineering
                             ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null);
 
                         var requiresCuttingBom = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                        var isWoodMaterial = IsWoodProductCategory(material.PRODUCT_CATEGORIES);
-                        // Jami metr (sarf + chiqindi):
-                        // faqat yog'och + kesish bo'lsa BOM dona ga o'tkaziladi; qolganlarda (masalan selofan) metr bo'lib qoladi.
-                        var totalMetersPerFg = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct);
-                        var bomQty = requiresCuttingBom && isWoodMaterial
-                            ? lines.Sum(l => l.Quantity)
-                            : BomQtyFromNormAggregatedMeters(material, requiresCuttingBom && isWoodMaterial, totalMetersPerFg);
+
+                        decimal bomQty;
+                        if (requiresCuttingBom)
+                        {
+                            // Kesiladigan material (yog'och, selofan, karton...): real ishlatiladigan dona =
+                            //   Σ(kesim uzunligi × dona) / standart uzunlik, yuqoriga yaxlitlangan.
+                            // Bir xil material bir nechta qatorda kelsa, hammasi sum qilinadi — shunda kesish
+                            // davomida qayta ishlatiladigan chiqindi (offcut) ham hisobga olinadi va miqdor oshib ketmaydi.
+                            // Jami uzunlik = Σ((kesim + chiqindi) × dona) → standart uzunlikka bo'lib, yuqoriga yaxlitlanadi.
+                            // Chiqindi (offcut) ham hisobga olinadi, shunda real ishlatiladigan taxta soni chiqadi.
+                            // Masalan: 4000mm taxta, kesim 1140×12 (chiqindi 2320) + ... = 28000mm → ceil(28000/4000) = 7 dona.
+                            // DIQQAT: StandardLengthMm bazada 0 (null emas) bo'lishi mumkin — bunda Length ishlatiladi.
+                            var standardLengthMm = (decimal)GetEffectiveStandardLengthMm(material);
+                            // WastePerProduct (VM) metrda, qator bo'yicha jami — mm ga o'tkazamiz (×1000).
+                            var totalLengthMm = lines.Sum(l =>
+                                (decimal)(l.CalculatedLengthMm ?? 0) * l.Quantity + l.WastePerProduct * 1000m);
+
+                            if (standardLengthMm > 0 && totalLengthMm > 0)
+                                bomQty = Math.Ceiling(totalLengthMm / standardLengthMm);
+                            else
+                                bomQty = lines.Sum(l => l.Quantity);
+                        }
+                        else
+                        {
+                            // Kesilmaydigan material: dona asosida (sarf + chiqindi metr/dona) as-is.
+                            var totalMetersPerFg = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct);
+                            bomQty = BomQtyFromNormAggregatedMeters(material, false, totalMetersPerFg);
+                        }
 
                         var bomLine = new BOM_LINES
                         {
@@ -1510,6 +1506,22 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         /// <summary>
+        /// Materialning amaldagi standart uzunligi (mm): StandardLengthMm (> 0 bo'lsa), aks holda Length (> 0 bo'lsa), aks holda 0.
+        /// DIQQAT: StandardLengthMm bazada null emas, 0 bo'lishi mumkin — shuning uchun "?? " emas, > 0 tekshiruvi ishlatiladi.
+        /// GetMaterialData (UI dagi "Standart uzunlik") bilan bir xil mantiq.
+        /// </summary>
+        private static double GetEffectiveStandardLengthMm(PRODUCT material)
+        {
+            if (material == null)
+                return 0;
+            if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
+                return material.StandardLengthMm.Value;
+            if (material.Length.HasValue && material.Length.Value > 0)
+                return material.Length.Value;
+            return 0;
+        }
+
+        /// <summary>
         /// BOM qatori: kesish bo'lgan yog'och/plastik uchun normadagi jami metr (sarf + chiqindi) → taxta uzunligi bo'yicha dona.
         /// UnitConversionService.ConvertMeterToPieceAsync bilan mos: piece = ceil(m / (LengthMm/1000)).
         /// </summary>
@@ -1518,7 +1530,7 @@ namespace tahsinERP.Controllers.Engineering
             if (!requiresCutting || totalMeters <= 0)
                 return totalMeters;
 
-            var lengthMm = material.StandardLengthMm ?? material.Length ?? 0;
+            var lengthMm = GetEffectiveStandardLengthMm(material);
             if (lengthMm <= 0)
                 return totalMeters;
 
@@ -1708,7 +1720,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 var unitPrice = inputLine.Price;
                 var requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                var standardLengthMm = material.StandardLengthMm ?? material.Length ?? 0;
+                var standardLengthMm = GetEffectiveStandardLengthMm(material);
 
                 decimal consumption;
                 if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
@@ -1758,6 +1770,7 @@ namespace tahsinERP.Controllers.Engineering
                     Norma = consumption,
                     Chiqindi = waste,
                     IsSelected = true,
+                    CuttingMethod = inputLine.Comment,
                     UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
                 });
             }
@@ -1825,327 +1838,184 @@ namespace tahsinERP.Controllers.Engineering
             ViewBag.UnitsJson = units.Select(u => new { id = u.ID, text = !string.IsNullOrEmpty(u.ShortName) ? u.ShortName : (u.UnitName ?? "") }).ToList();
         }
 
-        private void RecalculateLineFields(List<NormLineViewModel> lines)
+        /// <summary>
+        /// Bitta qator uchun bazaviy sarf (m) va chiqindini (m) hisoblaydi.
+        /// Kesiladigan material: sarf = (kesim/1000) * dona; chiqindi = ((standart - kesim)/1000) * dona.
+        /// Kesilmaydigan material: sarf = dona, chiqindi = 0.
+        /// </summary>
+        private static void ApplyBaseConsumptionWaste(NormLineViewModel line, bool requiresCutting, double standardLengthMm)
         {
-            foreach (var line in lines)
+            if (requiresCutting && line.CalculatedLengthMm.HasValue && line.CalculatedLengthMm.Value > 0)
             {
-                if (line.MaterialID > 0 && line.Quantity > 0)
+                line.ConsumptionPerProduct = (decimal)((line.CalculatedLengthMm.Value / 1000.0) * line.Quantity);
+
+                if (standardLengthMm > 0)
                 {
-                    // Olish material ga tekshirish agar it requires cutting
-                    var material = db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .FirstOrDefault(p => p.ID == line.MaterialID);
-                    
-                    bool requiresCutting = false;
-                    if (material?.PRODUCT_CATEGORIES != null)
-                    {
-                        requiresCutting = material.PRODUCT_CATEGORIES.RequiresCutting;
-                    }
-
-                    // agar StandardLengthMm is not set, try ga get it dan material
-                    if (!line.StandardLengthMm.HasValue || line.StandardLengthMm.Value == 0)
-                    {
-                        if (material != null)
-                        {
-                            if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                            {
-                                line.StandardLengthMm = material.StandardLengthMm.Value;
-                            }
-                            else if (material.Length.HasValue && material.Length.Value > 0)
-                            {
-                                line.StandardLengthMm = material.Length.Value;
-                            }
-                        }
-                    }
-
-                    // Calculate consumption per product
-                    // faqat divide by 1000 uchun materials that require cutting (wood, cellophane, cardboard)
-                    if (requiresCutting && line.CalculatedLengthMm.HasValue)
-                    {
-                        // uchun cutting materials: convert mm ga m
-                        line.ConsumptionPerProduct = (decimal)((line.CalculatedLengthMm.Value / 1000.0) * line.Quantity);
-                    }
-                    else
-                    {
-                        // uchun non-cutting materials: use quantity as-is (piece-based)
-                        line.ConsumptionPerProduct = line.Quantity;
-                    }
-                    
-                    // Calculate waste faqat agar it's not already set by user (user can manually edit waste uchun barcha materials)
-                    // agar waste is 0 yoki not set, va material requires cutting, calculate it automatically
-                    if (!line.IsWasteManual && line.WastePerProduct == 0 && requiresCutting && line.StandardLengthMm.HasValue && line.StandardLengthMm.Value > 0 && line.CalculatedLengthMm.HasValue && line.CalculatedLengthMm.Value > 0)
-                    {
-                        var length = line.CalculatedLengthMm.Value;
-                        var standardLength = line.StandardLengthMm.Value;
-                        var quantity = line.Quantity;
-                        var piecesPerBar = 1; // Always 1 (removed dan UI)
-                        
-                        // How many bars/varaqlar we need (1 piece per bar)
-                        var barsNeeded = quantity;
-                        // Waste per bar = standardLength - length (1 piece per bar)
-                        var wastePerBar = Math.Max(0, standardLength - length);
-                        // Total waste = waste per bar * number of bars needed (convert mm ga m)
-                        line.WastePerProduct = (decimal)(wastePerBar / 1000.0) * barsNeeded;
-                    }
-                    // agar waste is already set (by user), keep it as is
-                    // agar material doesn't require cutting, waste can still be set manually by user
-
-                    // Calculate total cost
-                    if (line.UnitPrice.HasValue)
-                    {
-                        line.TotalCostPerProduct = (line.ConsumptionPerProduct + line.WastePerProduct) * line.UnitPrice.Value;
-                    }
-
-                    // Norma va Chiqindi
-                    line.Norma = line.ConsumptionPerProduct;
-                    line.Chiqindi = line.WastePerProduct;
-                }
-            }
-        }
-
-        private (List<NormLineViewModel> optimizedLines, Dictionary<int, string> notes) OptimizeMaterialCutting(List<NormLineViewModel> lines, PRODUCT material)
-        {
-            // Tekshirish agar material requires cutting
-            bool requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-            
-            var notes = new Dictionary<int, string>();
-            
-            if (!requiresCutting || lines.Count <= 1)
-            {
-                // uchun non-cutting materials yoki single line, return barcha lines as-is
-                foreach (var line in lines)
-                {
-                    notes[line.ID] = "Optimizatsiya qo'llanilmadi";
-                }
-                return (lines, notes);
-            }
-
-            // Olish standard length
-            double standardLengthMm = 0;
-            if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-            {
-                standardLengthMm = material.StandardLengthMm.Value;
-            }
-            else if (material.Length.HasValue && material.Length.Value > 0)
-            {
-                standardLengthMm = material.Length.Value;
-            }
-
-            if (standardLengthMm <= 0)
-            {
-                // No standard length, return barcha lines as-is
-                foreach (var line in lines)
-                {
-                    notes[line.ID] = "Standart uzunlik yo'q";
-                }
-                return (lines, notes);
-            }
-
-            // Yaratish optimized lines bilan waste optimization
-            // Algorithm: Try ga use waste dan larger cuts uchun smaller cuts
-            var optimizedLines = new List<NormLineViewModel>();
-            var wastePool = new List<WasteSegment>(); // Track available waste dan har bir bar
-
-            // Yaratish a dictionary ga map line IDs ga their original position (1-based index)
-            var linePositionMap = new Dictionary<int, int>();
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (lines[i].ID > 0)
-                {
-                    linePositionMap[lines[i].ID] = i + 1; // 1-based position
-                }
-            }
-
-            // Sort lines by cut length (descending) ga process larger cuts birinchi
-            // This way, larger cuts yaratish waste that can be used uchun smaller cuts
-            var sortedLines = lines.Where(l => l.CalculatedLengthMm.HasValue && l.CalculatedLengthMm.Value > 0)
-                .OrderByDescending(l => l.CalculatedLengthMm.Value)
-                .ToList();
-
-            // Track which lines use waste dan which previous lines (uchun notes)
-            var lineNotes = new Dictionary<int, string>(); // line.ID -> note
-
-            foreach (var line in sortedLines)
-            {
-                var cutLength = (double)line.CalculatedLengthMm.Value;
-                var quantity = line.Quantity;
-                var remainingQuantity = quantity;
-
-                double totalWaste = 0;
-                int newBarsNeeded = 0;
-                string note = "";
-                int piecesFromWaste = 0;
-                double wasteUsedFrom = 0;
-
-                // Urinish ga use available waste dan waste pool
-                var wasteToRemove = new List<WasteSegment>();
-                var wasteUsedFromLines = new List<(int sourceLineId, double wasteLength, int piecesUsed)>(); // Track which lines' waste we're foydalanib
-                
-                foreach (var waste in wastePool.OrderByDescending(w => w.Length).ToList())
-                {
-                    if (waste.Length >= cutLength && waste.RemainingQuantity > 0 && remainingQuantity > 0)
-                    {
-                        // How many pieces can we cut dan this waste?
-                        var piecesFromThisWaste = Math.Min(
-                            Math.Min((int)(waste.Length / cutLength), waste.RemainingQuantity),
-                            remainingQuantity
-                        );
-
-                        if (piecesFromThisWaste > 0)
-                        {
-                            piecesFromWaste += piecesFromThisWaste;
-                            wasteUsedFrom = waste.OriginalLength; // Store original waste length
-                            wasteUsedFromLines.Add((waste.SourceLineID, waste.OriginalLength, piecesFromThisWaste));
-                            remainingQuantity -= piecesFromThisWaste;
-                            waste.RemainingQuantity -= piecesFromThisWaste;
-                            
-                            // Yangilash waste: when we cut dan waste, the waste length decreases
-                            // But we need ga track how much waste is left dan har bir bar
-                            // agar we used barcha pieces dan this waste segment, remove it
-                            // Otherwise, yangilash the length (waste becomes smaller)
-                            var usedLength = piecesFromThisWaste * cutLength;
-                            
-                            // Tekshirish agar we can still use this waste uchun more cuts
-                            var remainingWasteLength = waste.Length - usedLength;
-                            if (remainingWasteLength < cutLength || waste.RemainingQuantity <= 0)
-                            {
-                                wasteToRemove.Add(waste);
-                            }
-                            else
-                            {
-                                // Yangilash waste length uchun future use
-                                waste.Length = remainingWasteLength;
-                            }
-                        }
-                    }
-                }
-
-                // O'chirish used waste segments
-                foreach (var waste in wasteToRemove)
-                {
-                    wastePool.Remove(waste);
-                }
-
-                // Calculate how many new bars we need uchun remaining quantity
-                if (remainingQuantity > 0)
-                {
-                    var totalNeeded = cutLength * remainingQuantity;
-                    newBarsNeeded = (int)Math.Ceiling(totalNeeded / standardLengthMm);
-                    
-                    // Calculate waste dan new bars
-                    var totalLengthFromNewBars = newBarsNeeded * standardLengthMm;
-                    var wasteFromNewBars = totalLengthFromNewBars - totalNeeded;
-                    
-                    // Qo'shish waste ga pool uchun future use
-                    if (wasteFromNewBars > 0)
-                    {
-                        wastePool.Add(new WasteSegment
-                        {
-                            Length = wasteFromNewBars,
-                            RemainingQuantity = newBarsNeeded, // Number of bars that produced this waste
-                            OriginalLength = wasteFromNewBars,
-                            SourceLineID = line.ID // Track which line generated this waste
-                        });
-                    }
-                    
-                    totalWaste = wasteFromNewBars;
-                }
-
-                // Yaratish detailed note about waste usage bilan position numbers
-                if (piecesFromWaste > 0 && remainingQuantity == 0)
-                {
-                    // barcha pieces were cut dan waste
-                    if (wasteUsedFromLines.Count > 0)
-                    {
-                        var wasteInfo = string.Join(", ", wasteUsedFromLines.Select(w => 
-                        {
-                            var pos = linePositionMap.ContainsKey(w.sourceLineId) ? linePositionMap[w.sourceLineId] : 0;
-                            return pos > 0 
-                                ? $"{w.piecesUsed} dona {pos}-pozitsiyadan {w.wasteLength:F0}mm chiqindidan"
-                                : $"{w.piecesUsed} dona {w.wasteLength:F0}mm chiqindidan";
-                        }));
-                        note = $"Barcha {quantity} dona {cutLength}mm kesim ({wasteInfo}) ishlatilgan. Chiqindi yo'q.";
-                    }
-                    else
-                    {
-                        note = $"Barcha {quantity} dona {cutLength}mm uzunlikdagi kesim {wasteUsedFrom:F0}mm chiqindidan foydalanilgan. Chiqindi yo'q.";
-                    }
-                }
-                else if (piecesFromWaste > 0 && remainingQuantity > 0)
-                {
-                    // Some pieces dan waste, some dan new bars
-                    var wasteInfo = "";
-                    if (wasteUsedFromLines.Count > 0)
-                    {
-                        wasteInfo = string.Join(", ", wasteUsedFromLines.Select(w => 
-                        {
-                            var pos = linePositionMap.ContainsKey(w.sourceLineId) ? linePositionMap[w.sourceLineId] : 0;
-                            return pos > 0 
-                                ? $"{w.piecesUsed} dona {pos}-pozitsiyadan {w.wasteLength:F0}mm chiqindidan"
-                                : $"{w.piecesUsed} dona {w.wasteLength:F0}mm chiqindidan";
-                        }));
-                    }
-                    else
-                    {
-                        wasteInfo = $"{piecesFromWaste} dona {wasteUsedFrom:F0}mm chiqindidan";
-                    }
-                    note = $"{piecesFromWaste} dona ({wasteInfo}), {remainingQuantity} dona yangi {standardLengthMm:F0}mm bar/sheet dan kesilgan. {totalWaste:F0}mm chiqindi hosil bo'lgan.";
-                }
-                else if (totalWaste > 0)
-                {
-                    // barcha dan new bars
-                    note = $"Yangi {newBarsNeeded} ta {standardLengthMm:F0}mm bar/sheet ishlatilgan. {totalWaste:F0}mm chiqindi hosil bo'lgan (keyingi pozitsiyalar uchun ishlatilishi mumkin).";
+                    var perPieceWasteMm = Math.Max(0, standardLengthMm - line.CalculatedLengthMm.Value);
+                    line.WastePerProduct = (decimal)((perPieceWasteMm / 1000.0) * line.Quantity);
                 }
                 else
                 {
-                    note = $"Yangi {newBarsNeeded} ta {standardLengthMm:F0}mm bar/sheet ishlatilgan. Chiqindi yo'q.";
+                    line.WastePerProduct = 0;
                 }
-
-                // Yaratish optimized line
-                var optimizedLine = new NormLineViewModel
-                {
-                    ID = line.ID,
-                    MaterialID = line.MaterialID,
-                    MaterialCode = line.MaterialCode,
-                    MaterialName = line.MaterialName,
-                    CalculatedLengthMm = line.CalculatedLengthMm,
-                    Quantity = line.Quantity,
-                    PiecesPerBar = 1,
-                    StandardLengthMm = line.StandardLengthMm,
-                    UnitPrice = line.UnitPrice,
-                    IsSelected = line.IsSelected
-                };
-
-                // Recalculate consumption va waste
-                optimizedLine.ConsumptionPerProduct = (decimal)((cutLength / 1000.0) * quantity);
-                optimizedLine.WastePerProduct = (decimal)(totalWaste / 1000.0);
-                optimizedLine.TotalCostPerProduct = (optimizedLine.ConsumptionPerProduct + optimizedLine.WastePerProduct) * (optimizedLine.UnitPrice ?? 0);
-                optimizedLine.Norma = optimizedLine.ConsumptionPerProduct;
-                optimizedLine.Chiqindi = optimizedLine.WastePerProduct;
-
-                // Saqlash note uchun this line
-                lineNotes[line.ID] = note;
-
-                optimizedLines.Add(optimizedLine);
             }
-
-            // Qo'shish lines without CalculatedLengthMm as-is
-            foreach (var line in lines.Where(l => !l.CalculatedLengthMm.HasValue || l.CalculatedLengthMm.Value <= 0))
+            else
             {
-                optimizedLines.Add(line);
-                notes[line.ID] = "Uzunlik kiritilmagan";
+                line.ConsumptionPerProduct = line.Quantity;
+                line.WastePerProduct = 0;
             }
 
-            return (optimizedLines, notes);
+            var price = line.UnitPrice ?? 0;
+            line.TotalCostPerProduct = (line.ConsumptionPerProduct + line.WastePerProduct) * price;
+            line.Norma = line.ConsumptionPerProduct;
+            line.Chiqindi = line.WastePerProduct;
         }
 
-        // yordamchi class uchun tracking waste segments
-        private class WasteSegment
+        /// <summary>
+        /// Chiqindidan qayta foydalanish optimizatsiyasi (bitta xomashyo bo'yicha).
+        ///
+        /// Algoritm:
+        ///  1. Xomashyo kesiladigan bo'lmasa (RequiresCutting == false) yoki standart uzunlik bo'lmasa — qiymatlar o'zgarmaydi.
+        ///  2. Kesim qatorlari uzunligi bo'yicha kamayish tartibida saralanadi: uzun kesim — chiqindi MANBAI,
+        ///     kalta kesim — chiqindidan OLUVCHI.
+        ///  3. Har bir manba qatorning bitta donadan chiqadigan tilimi = (standart - kesim). Jami chiqindi = tilim * dona.
+        ///  4. Kalta kesim (target) chiqindidan to'liq olinadi, agar:
+        ///        - manba tilimi >= target kesim uzunligi (har bir tilimga sig'adi), VA
+        ///        - manbaning qolgan jami chiqindisi >= target ning jami kerakli uzunligi (kesim * dona).
+        ///     Bunday qatorda dona va sarf 0 ga tushiriladi, izohga qaysi qatordan olingani yoziladi.
+        /// </summary>
+        private static List<NormLineViewModel> OptimizeMaterialCutting(List<NormLineViewModel> lines, PRODUCT material)
         {
-            public double Length { get; set; }
-            public int RemainingQuantity { get; set; }
-            public double OriginalLength { get; set; } // Original waste length uchun tracking
-            public int SourceLineID { get; set; } // Which line generated this waste
+            bool requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+
+            double standardLengthMm = 0;
+            if (material != null)
+            {
+                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
+                    standardLengthMm = material.StandardLengthMm.Value;
+                else if (material.Length.HasValue && material.Length.Value > 0)
+                    standardLengthMm = material.Length.Value;
+            }
+
+            // Har bir qatorga material ma'lumotlarini va bazaviy sarf/chiqindini qo'yamiz.
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrEmpty(line.MaterialCode))
+                    line.MaterialCode = material?.PNo ?? "";
+                if (string.IsNullOrEmpty(line.MaterialName))
+                    line.MaterialName = material?.Name ?? "";
+                if (standardLengthMm > 0)
+                    line.StandardLengthMm = standardLengthMm;
+
+                line.UsesWaste = false;
+                line.OptimizationNote = "";
+                ApplyBaseConsumptionWaste(line, requiresCutting, standardLengthMm);
+            }
+
+            // Kesilmaydigan material yoki standart uzunlik yo'q — optimizatsiya qo'llanilmaydi.
+            if (!requiresCutting || standardLengthMm <= 0)
+            {
+                foreach (var line in lines)
+                {
+                    line.OptimizationNote = !requiresCutting
+                        ? "Kesilmaydigan material — optimizatsiya qo'llanilmadi."
+                        : "Standart uzunlik yo'q — optimizatsiya qo'llanilmadi.";
+                }
+                return lines;
+            }
+
+            // Uzunligi bo'lgan kesim qatorlari, kamayish tartibida (uzun — manba, kalta — oluvchi).
+            var cuttingLines = lines
+                .Where(l => l.CalculatedLengthMm.HasValue && l.CalculatedLengthMm.Value > 0 && l.Quantity > 0)
+                .OrderByDescending(l => l.CalculatedLengthMm.Value)
+                .ToList();
+
+            // 1-based pozitsiya (izohlarda "N-qator" deb ko'rsatish uchun).
+            var positionMap = new Dictionary<NormLineViewModel, int>();
+            for (int i = 0; i < cuttingLines.Count; i++)
+                positionMap[cuttingLines[i]] = i + 1;
+
+            // Manba qatorlarining hozircha mavjud (qolgan) chiqindisi, mm.
+            var availableWasteMm = new Dictionary<NormLineViewModel, double>();
+            foreach (var src in cuttingLines)
+            {
+                var perPieceWasteMm = Math.Max(0, standardLengthMm - src.CalculatedLengthMm.Value);
+                availableWasteMm[src] = perPieceWasteMm * src.Quantity;
+            }
+
+            // Greedy: uzun kesimdan boshlab, undan kalta kesimlarni chiqindiga joylashtiramiz.
+            for (int i = 0; i < cuttingLines.Count; i++)
+            {
+                var src = cuttingLines[i];
+
+                // O'zi chiqindidan olingan qator yangi chiqindi hosil qilmaydi — manba bo'la olmaydi.
+                if (src.UsesWaste)
+                    continue;
+
+                var srcPerPieceWasteMm = Math.Max(0, standardLengthMm - src.CalculatedLengthMm.Value);
+                if (srcPerPieceWasteMm <= 0)
+                    continue;
+
+                for (int j = i + 1; j < cuttingLines.Count; j++)
+                {
+                    var tgt = cuttingLines[j];
+                    if (tgt.UsesWaste)
+                        continue;
+                    if (!tgt.CalculatedLengthMm.HasValue || tgt.CalculatedLengthMm.Value <= 0 || tgt.Quantity <= 0)
+                        continue;
+
+                    var tgtCut = tgt.CalculatedLengthMm.Value;
+                    var tgtTotalNeedMm = tgtCut * tgt.Quantity;
+
+                    // Shart: har bir tilim kalta kesimni sig'dirsin VA jami chiqindi yetarli bo'lsin.
+                    if (srcPerPieceWasteMm >= tgtCut && availableWasteMm[src] >= tgtTotalNeedMm)
+                    {
+                        availableWasteMm[src] -= tgtTotalNeedMm;
+
+                        var pos = positionMap[src];
+                        var origQty = tgt.Quantity;
+
+                        tgt.UsesWaste = true;
+                        tgt.OptimizationNote =
+                            $"{tgtCut:F0}mm × {origQty} dona {pos}-qatordagi {src.CalculatedLengthMm.Value:F0}mm kesim chiqindisidan olinadi. Sarf 0 qilindi.";
+
+                        // Foydalanuvchi talabi: dona va sarf 0 qilinadi (xomashyo qo'shimcha sotib olinmaydi).
+                        tgt.Quantity = 0;
+                        tgt.ConsumptionPerProduct = 0;
+                        tgt.WastePerProduct = 0;
+                        tgt.IsWasteManual = true;
+                        tgt.TotalCostPerProduct = 0;
+                        tgt.Norma = 0;
+                        tgt.Chiqindi = 0;
+                    }
+                }
+            }
+
+            // Manba qatorlarining qolgan chiqindisini yangilaymiz va izoh qo'yamiz.
+            foreach (var src in cuttingLines)
+            {
+                if (src.UsesWaste)
+                    continue;
+
+                var remainingWasteMm = availableWasteMm[src];
+                src.WastePerProduct = (decimal)(remainingWasteMm / 1000.0);
+                src.Chiqindi = src.WastePerProduct;
+
+                var price = src.UnitPrice ?? 0;
+                src.TotalCostPerProduct = (src.ConsumptionPerProduct + src.WastePerProduct) * price;
+
+                if (string.IsNullOrEmpty(src.OptimizationNote))
+                {
+                    var perPieceWasteMm = Math.Max(0, standardLengthMm - src.CalculatedLengthMm.Value);
+                    var totalWasteMm = perPieceWasteMm * src.Quantity;
+                    var usedMm = totalWasteMm - remainingWasteMm;
+                    src.OptimizationNote = usedMm > 0
+                        ? $"Chiqindidan {usedMm:F0}mm boshqa kalta kesimlarga ishlatildi. Qolgan chiqindi {remainingWasteMm:F0}mm."
+                        : $"Chiqindi {remainingWasteMm:F0}mm (boshqa kesimga ishlatilmadi).";
+                }
+            }
+
+            return lines;
         }
 
         private DateTime? ParsePeriod(string period)

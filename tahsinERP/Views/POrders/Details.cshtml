@@ -6,9 +6,10 @@
     ViewBag.Title = "Buyurtma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var vatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d;
-    var totalBase = Model.Amount ?? 0d;
-    var totalVat = totalBase * vatRate / 100d;
-    var totalWithVat = totalBase + totalVat;
+    // Amount endi QQS bilan (net + QQS) saqlanadi — shuning uchun ustiga yana QQS qo'shilmaydi, balki ajratiladi.
+    var totalWithVat = Model.Amount ?? 0d;
+    var totalBase = vatRate > 0 ? totalWithVat / (1 + vatRate / 100d) : totalWithVat;
+    var totalVat = totalWithVat - totalBase;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "POrders", "Details"))

@@ -1053,6 +1053,7 @@
           <Property Name="Consumption" Type="float" />
           <Property Name="WasteAmount" Type="float" />
           <Property Name="UnitID" Type="int" />
+          <Property Name="Comment" Type="text" />
         </EntityType>
         <EntityType Name="NORMLINES">
           <Key>
@@ -7752,6 +7753,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_NORM_INPUT_LINES_MaterialID_PRODUCTS" FromRole="NORM_INPUT_LINES" ToRole="PRODUCTS" />
           <NavigationProperty Name="PRODUCT1" Relationship="Self.FK_NORM_INPUT_LINES_ProductID_PRODUCTS" FromRole="NORM_INPUT_LINES" ToRole="PRODUCTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_NORM_INPUT_LINES_UNITS" FromRole="NORM_INPUT_LINES" ToRole="UNITS" />
+          <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="NORMLINE">
           <Key>
@@ -14463,6 +14465,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="NORM_INPUT_LINES">
             <EntityTypeMapping TypeName="DBTHSNModel.NORM_INPUT_LINES">
               <MappingFragment StoreEntitySet="NORM_INPUT_LINES">
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
                 <ScalarProperty Name="MaterialID" ColumnName="MaterialID" />

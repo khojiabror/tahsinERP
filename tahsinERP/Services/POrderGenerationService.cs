@@ -30,7 +30,7 @@ namespace tahsinERP.Services
         /// <summary>
         /// Generates raw material requirements from Sales Orders (aggregated by material).
         /// </summary>
-        public async Task<List<RawMaterialRequirement>> GenerateRequirementsFromSalesOrdersAsync(int[] salesOrderIds)
+        public async Task<List<RawMaterialRequirement>> GenerateRequirementsFromSalesOrdersAsync(int[] salesOrderIds, DateTime? asOfDate = null)
         {
             var normalizedSalesOrderIds = (salesOrderIds ?? Array.Empty<int>())
                 .Where(id => id > 0)
@@ -49,9 +49,15 @@ namespace tahsinERP.Services
                 .OrderBy(o => o.ID)
                 .ToListAsync();
 
+            // Xomashyo ehtiyoji to'g'ridan-to'g'ri YANGILANGAN BOM dan olinadi (BomMaterialSummaryService),
+            // ya'ni Fakt ishlab chiqarish chiqimi (ProductionConsumptionService) bilan AYNAN bir manba va formula.
+            // Natijada: BOM Details = Ishlab chiqarish chiqimi = Xarid buyurtmasi ehtiyoji (bir xil miqdor).
+            // Eski mustaqil BOM-portlash + birlik konvertatsiyasi (ExplodeProductBomAsync/AddPurchasedLeafAsync)
+            // endi ishlatilmaydi.
+            var consumptionService = new ProductionConsumptionService(_db);
+
             var componentRequirements = new Dictionary<int, RawMaterialRequirement>();
-            var bomCache = new Dictionary<int, BOM_HEADERS>();
-            var productCache = new Dictionary<int, PRODUCT>();
+            var bomVersionCache = new Dictionary<int, string>();
 
             foreach (var sOrder in salesOrders)
             {
@@ -76,17 +82,65 @@ namespace tahsinERP.Services
                         ? ("Sotuv №" + sOrder.ID)
                         : sOrder.OrderNo.Trim();
 
-                    await ExplodeProductBomAsync(
-                        sOrderProduct.PRODUCT.ID,
-                        lineQty,
-                        componentRequirements,
-                        new HashSet<int>(),
-                        0,
-                        orderNo,
-                        sOrderProduct.PRODUCT.PNo ?? "",
-                        sOrderProduct.PRODUCT.Name ?? "",
-                        bomCache,
-                        productCache);
+                    var fgId = sOrderProduct.PRODUCT.ID;
+                    var fgPNo = sOrderProduct.PRODUCT.PNo ?? "";
+
+                    if (!bomVersionCache.TryGetValue(fgId, out var bomVersionText))
+                    {
+                        var bomHeader = await GetLatestActiveBOMAsync(fgId, asOfDate);
+                        bomVersionText = FormatBomVersionForUz(bomHeader);
+                        bomVersionCache[fgId] = bomVersionText;
+                    }
+
+                    // BOM bo'yicha 1 FG uchun xomashyo, sotuv soniga ko'paytirilgan, ombor (income) birligida.
+                    // asOfDate berilsa — o'sha oyga tegishli BOM versiyasi ishlatiladi (eng yangisi emas).
+                    var reqs = await consumptionService.CalculateRequiredRawMaterialsAsync(fgId, (double)lineQty, asOfDate);
+
+                    foreach (var r in reqs)
+                    {
+                        if (r.TotalConsumption <= 0)
+                        {
+                            continue;
+                        }
+
+                        var finalQuantity = (decimal)r.TotalConsumption;
+                        var finalUnitId = r.UnitID > 0 ? r.UnitID : 1;
+                        var perUnitQty = lineQty > 0 ? finalQuantity / lineQty : finalQuantity; // 1 FG uchun (norma)
+                        var finalUnitName = await GetUnitShortNameAsync(finalUnitId);
+
+                        var compactLine = BuildCompactPriorityLine50(
+                            orderNo,
+                            r.MaterialPNo,
+                            fgPNo,
+                            bomVersionText,
+                            perUnitQty,      // N — 1 FG uchun norma
+                            lineQty,         // S — soni
+                            finalQuantity,   // R = S*N — BOM bo'yicha jami
+                            finalQuantity,   // F — xarid birligidagi yakuniy
+                            finalUnitName);
+
+                        if (componentRequirements.TryGetValue(r.MaterialID, out var existing))
+                        {
+                            existing.RequiredQty += finalQuantity;
+                            existing.CalculationExplanation = CombineCompactPriority50(existing.CalculationExplanation, compactLine);
+                            existing.CalculationSummary = CombineCompactPriority50(existing.CalculationSummary, compactLine);
+                        }
+                        else
+                        {
+                            var estimatedPrice = await GetEstimatedPriceAsync(r.MaterialID, finalUnitId);
+                            componentRequirements[r.MaterialID] = new RawMaterialRequirement
+                            {
+                                ComponentID = r.MaterialID,
+                                ComponentPNo = r.MaterialPNo,
+                                ComponentName = r.MaterialName,
+                                UnitID = finalUnitId,
+                                RequiredQty = finalQuantity,
+                                EstimatedPrice = estimatedPrice,
+                                CalculationExplanation = compactLine,
+                                CalculationSummary = compactLine
+                            };
+                        }
+                    }
                 }
             }
 
@@ -850,7 +904,7 @@ namespace tahsinERP.Services
         /// Eng mos BOM: barcha faol yozuvlar ichidan VersionNo (oy/yil) va CreatedAt bo'yicha eng yangisi.
         /// VersionNo bo'sh bo'lsa ham CreatedAt bilan tanlanadi (oldingi logikada faqat VersionNo bo'lganlar tanlanib, yangi yozuv e'tiborsiz qolardi).
         /// </summary>
-        private async Task<BOM_HEADERS> GetLatestActiveBOMAsync(int productId)
+        private async Task<BOM_HEADERS> GetLatestActiveBOMAsync(int productId, DateTime? asOfDate = null)
         {
             var bomHeaders = await _db.BOM_HEADERS
                 .Include(b => b.BOM_LINES)
@@ -862,6 +916,30 @@ namespace tahsinERP.Services
             if (!bomHeaders.Any())
             {
                 return null;
+            }
+
+            // Buyurtma sanasi berilsa — o'sha oyga (yoki undan oldingi) tegishli eng so'nggi versiyani tanlaymiz.
+            if (asOfDate.HasValue)
+            {
+                var nextMonth = new DateTime(asOfDate.Value.Year, asOfDate.Value.Month, 1).AddMonths(1);
+                var effective = bomHeaders
+                    .Where(bh => GetBomSortKey(bh) < nextMonth)
+                    .OrderByDescending(bh => GetBomSortKey(bh))
+                    .ThenByDescending(bh => bh.CreatedAt ?? DateTime.MinValue)
+                    .ThenByDescending(bh => bh.ID)
+                    .FirstOrDefault();
+
+                if (effective != null)
+                {
+                    return effective;
+                }
+
+                // Sanadan oldin versiya bo'lmasa — eng eskisiga qaytamiz.
+                return bomHeaders
+                    .OrderBy(bh => GetBomSortKey(bh))
+                    .ThenBy(bh => bh.CreatedAt ?? DateTime.MinValue)
+                    .ThenBy(bh => bh.ID)
+                    .FirstOrDefault();
             }
 
             return bomHeaders

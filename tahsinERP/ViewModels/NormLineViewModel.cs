@@ -39,7 +39,7 @@ namespace tahsinERP.ViewModels
         public double? CalculatedLengthM { get; set; }
         
         [Display(Name = "Miqdori (dona)")]
-        [Range(1, int.MaxValue, ErrorMessage = "Miqdor 1 dan katta bo'lishi kerak")]
+        [Range(0, int.MaxValue, ErrorMessage = "Miqdor manfiy bo'lishi mumkin emas")]
         public int Quantity { get; set; } = 1;
         
         [Display(Name = "Bitta bar/sheet dan kesilgan dona")]
@@ -74,8 +74,19 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "Oy")]
         public string Month { get; set; }
-        
+
+        // Kesish usuli — foydalanuvchi kiritadigan erkin matn (qaysi yog'ochdan qaysi o'lchamda qanchadan kesish).
+        // NORM_INPUT_LINES.Comment ustuniga saqlanadi.
+        [Display(Name = "Kesish usuli")]
+        public string CuttingMethod { get; set; }
+
         public bool IsSelected { get; set; } = true;
+
+        // Optimizatsiya natijasi: bu qator boshqa (uzunroq) kesimning chiqindisidan olingan bo'lsa true.
+        public bool UsesWaste { get; set; }
+
+        // Optimizatsiya izohi (qaysi qator chiqindisidan, qancha olingani va h.k.).
+        public string OptimizationNote { get; set; }
     }
 }
 

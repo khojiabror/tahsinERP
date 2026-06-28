@@ -585,20 +585,22 @@ namespace tahsinERP.Controllers.Finance
                     .Where(c => c.IsDeleted != true)
                     .Select(c => new { c.ID, c.ForwarderID, c.ContractNo })
                     .ToList();
+                // double ustunlarni (Amount/Payment_Amount) EF ichida decimal'ga cast qilmaymiz — avval
+                // xotiraga olib, keyin decimal summalaymiz (GetForwarderContractTotals bilan bir xil yondashuv).
                 var waybillTotalsByContract = db.F_WAYBILLS
                     .Where(w => w.ContractID.HasValue && w.IsDeleted != true &&
                                 w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
-                    .GroupBy(w => w.ContractID.Value)
-                    .Select(g => new { ContractID = g.Key, Total = g.Sum(x => (decimal?)x.Amount) ?? 0m })
+                    .Select(w => new { ContractID = w.ContractID.Value, w.Amount })
                     .ToList()
-                    .ToDictionary(x => x.ContractID, x => x.Total);
+                    .GroupBy(w => w.ContractID)
+                    .ToDictionary(g => g.Key, g => g.Sum(x => (decimal)(x.Amount ?? 0d)));
                 var waybillPaidByContract = db.F_WAYBILL_PAYMENTS
                     .Where(p => !p.IsDeleted && p.F_WAYBILLS.ContractID.HasValue &&
                                 (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
-                    .GroupBy(p => p.F_WAYBILLS.ContractID.Value)
-                    .Select(g => new { ContractID = g.Key, Paid = g.Sum(x => (decimal?)x.Payment_Amount) ?? 0m })
+                    .Select(p => new { ContractID = p.F_WAYBILLS.ContractID.Value, p.Payment_Amount })
                     .ToList()
-                    .ToDictionary(x => x.ContractID, x => x.Paid);
+                    .GroupBy(p => p.ContractID)
+                    .ToDictionary(g => g.Key, g => g.Sum(x => (decimal)x.Payment_Amount));
 
                 foreach (var contractId in waybillTotalsByContract.Keys.Union(waybillPaidByContract.Keys).Distinct())
                 {
@@ -870,19 +872,24 @@ namespace tahsinERP.Controllers.Finance
             using (var db = new DBTHSNEntities())
             {
                 // Umumiy oldi-berdi: shu shartnoma bo'yicha yo'l varaqalari summasi (sana gacha).
+                // MUHIM: customer/supplier endpointlari kabi summani XOTIRADA hisoblaymiz. EF6 ichida
+                // double ustun (w.Amount) ni (decimal?) ga cast qilib .DefaultIfEmpty(0m).Sum() qilish
+                // SQL'ga tarjima qilinganda xato berib, fetch .catch() ichida jim qolardi — "Umumiy oldi-berdi" 0 bo'lib yuklanmasdi.
                 var total = db.F_WAYBILLS
                     .Where(w => w.ContractID == contractId.Value && w.IsDeleted != true &&
                                 w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
-                    .Select(w => (decimal?)w.Amount)
-                    .DefaultIfEmpty(0m).Sum() ?? 0m;
+                    .Select(w => w.Amount)
+                    .ToList()
+                    .Sum(a => (decimal)(a ?? 0d));
 
                 // To'langan: shu shartnoma yo'l varaqalariga qilingan ekspeditor to'lovlari (sana gacha).
                 var paid = db.F_WAYBILL_PAYMENTS
                     .Where(p => !p.IsDeleted &&
                                 p.F_WAYBILLS.ContractID == contractId.Value &&
                                 (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
-                    .Select(p => (decimal?)p.Payment_Amount)
-                    .DefaultIfEmpty(0m).Sum() ?? 0m;
+                    .Select(p => p.Payment_Amount)
+                    .ToList()
+                    .Sum(a => (decimal)a);
 
                 if (paid > total) paid = total;
 

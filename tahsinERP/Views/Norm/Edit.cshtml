@@ -98,13 +98,13 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>Samarali shu sanadan</label>
-                                                        @Html.TextBoxFor(m => m.EffectiveFrom, new { @class = "form-control", type = "date" })
+                                                        @Html.TextBoxFor(m => m.EffectiveFrom, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>Samarali shu sanagacha</label>
-                                                        @Html.TextBoxFor(m => m.EffectiveTo, new { @class = "form-control", type = "date" })
+                                                        @Html.TextBoxFor(m => m.EffectiveTo, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
                                                     </div>
                                                 </div>
                                             </div>
@@ -142,6 +142,7 @@
                                                             <th>Toza sarf summa</th>
                                                             <th>Chiqindi summa</th>
                                                             <th>Jami narx</th>
+                                                            <th style="min-width: 200px;">Kesish usuli</th>
                                                             <th style="width: 50px;">Amallar</th>
                                                         </tr>
                                                     </thead>
@@ -171,7 +172,7 @@
                                                                     <span class="standard-length">@(line.StandardLengthMm?.ToString("F2") ?? "-")</span>
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].Quantity, new { @class = "form-control quantity-input", type = "number", min = "1", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].Quantity, new { @class = "form-control quantity-input", type = "number", min = "0", @required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     @{
@@ -205,6 +206,9 @@
                                                             <td>
                                                                 <span class="total-cost">@totalCostValue.ToString("F2")</span>
                                                                 @Html.HiddenFor(m => m.CuttingLines[i].TotalCostPerProduct, new { @Value = totalCostValue.ToString("F2") })
+                                                                </td>
+                                                                <td>
+                                                                    @Html.TextBoxFor(m => m.CuttingLines[i].CuttingMethod, new { @class = "form-control cutting-method-input", placeholder = "Kesish usuli" })
                                                                 </td>
                                                                 <td>
                                                                     <button type="button" class="btn btn-sm btn-danger remove-line" title="O'chirish">
@@ -350,9 +354,9 @@
 
                                             <div class="row mt-3">
                                                 <div class="col-12">
-                                                    @*<button type="button" class="btn btn-warning" id="calculateBtn">
-                                                        <i class="bx bx-calculator"></i> Optimizatsiya qilish
-                                                    </button>*@
+                                                    <button type="button" class="btn btn-warning" id="calculateBtn">
+                                                        <i class="bx bx-calculator"></i> Sarf optimizatsiyasi (chiqindidan foydalanish)
+                                                    </button>
                                                     <button type="submit" class="btn btn-success" id="confirmBtn" formaction="@Url.Action("Confirm", "Norm")">
                                                         <i class="bx bx-check"></i> Saqlash va tasdiqlash
                                                     </button>
@@ -553,7 +557,7 @@ else
                     '<td><span class="material-code">-</span></td>' +
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].CalculatedLengthMm" class="form-control length-input" step="0.01" /></td>' +
                     '<td><span class="standard-length">-</span></td>' +
-                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].Quantity" class="form-control quantity-input" min="1" value="1" required /></td>' +
+                    '<td><input type="number" name="CuttingLines[' + lineIndex + '].Quantity" class="form-control quantity-input" min="0" value="1" required /></td>' +
                     '<td>' + getUnitDropdownHtml(lineIndex, '') + '</td>' +
                     '<td><span class="consumption">0.0000</span></td>' +
                     '<td><input type="number" name="CuttingLines[' + lineIndex + '].WastePerProduct" class="form-control waste-input" value="0.0000" step="0.0001" />' +
@@ -562,6 +566,7 @@ else
                     '<td><span class="clean-cost">0.00</span></td>' +
                     '<td><span class="waste-cost">0.00</span></td>' +
                     '<td><span class="total-cost">0.00</span></td>' +
+                    '<td><input type="text" name="CuttingLines[' + lineIndex + '].CuttingMethod" class="form-control cutting-method-input" placeholder="Kesish usuli" /></td>' +
                     '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
                     '<input type="hidden" name="CuttingLines[' + lineIndex + '].ID" value="0" />' +
                     '</tr>';
@@ -785,7 +790,7 @@ else
                     if (optimized && !processedKeys[key]) {
                         // Update all fields
                         mainRow.find('.length-input').val(optimized.length);
-                        mainRow.find('.quantity-input').val(optimized.quantity);
+                        mainRow.find('.quantity-input').attr('min', '0').val(optimized.quantity);
                         mainRow.find('.price-input').val(optimized.price);
                         mainRow.find('.consumption').text(optimized.consumption.toFixed(4));
                         var consumptionInput = mainRow.find('input[name*=".ConsumptionPerProduct"]');
@@ -893,7 +898,8 @@ else
         function recalculateRow(row, options) {
             options = options || {};
             var length = parseFloat(row.find('.length-input').val()) || 0;
-            var quantity = parseInt(row.find('.quantity-input').val()) || 1;
+            var quantity = parseInt(row.find('.quantity-input').val());
+            if (isNaN(quantity)) { quantity = 0; }
             var price = parseFloat(row.find('.price-input').val()) || 0;
             // Get standardLength from row data (set during material load) or from text
             var standardLength = row.data('standard-length-mm') || parseFloat(row.find('.standard-length').text()) || 0;
@@ -1120,7 +1126,7 @@ else
                     ID: parseInt(row.find('input[name*=".ID"]').val()) || 0,
                     MaterialID: parseInt(row.find('.material-select').val()) || 0,
                     CalculatedLengthMm: parseFloat(row.find('.length-input').val()) || 0,
-                    Quantity: parseInt(row.find('.quantity-input').val()) || 1,
+                    Quantity: isNaN(parseInt(row.find('.quantity-input').val())) ? 0 : parseInt(row.find('.quantity-input').val()),
                     PiecesPerBar: 1, // Always 1 (removed from UI)
                     UnitPrice: parseFloat(row.find('.price-input').val()) || 0,
                     UnitID: parseInt(row.find('.unit-select').val(), 10) || null,
@@ -1327,7 +1333,7 @@ else
                     
                     // Update input fields
                     mainRow.find('.length-input').val(optimized.length);
-                    mainRow.find('.quantity-input').val(optimized.quantity);
+                    mainRow.find('.quantity-input').attr('min', '0').val(optimized.quantity);
                     mainRow.find('.price-input').val(optimized.price);
                     
                     // Update display spans and hidden fields

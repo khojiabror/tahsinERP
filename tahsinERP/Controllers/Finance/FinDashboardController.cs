@@ -332,10 +332,14 @@ namespace tahsinERP.Controllers.Finance
                         openingDate = openingSnapshotInfo.SnapshotDate.Date;
                     }
 
-                    // Tayyor maxsulot / Xomashyo: ombor qoldig'i × Tannarx (FG) yoki oxirgi kirim narxi (xomashyo)
+                    // Tayyor maxsulot / Xomashyo: opening balans MAVJUD bo'lsa — o'rniga shu qiymat yoziladi (override);
+                    // opening yo'q bo'lsa — ombor qoldig'i × Tannarx (FG) yoki oxirgi kirim narxi (xomashyo) bo'yicha hisoblanadi.
                     if (string.Equals(category.Name, "Tayyor maxsulot", StringComparison.OrdinalIgnoreCase))
                     {
-                        amount = CalculateBalanceSheetTayyorMaxsulotFromWarehouse(db, asOfDate.Value);
+                        if (!openingDate.HasValue)
+                        {
+                            amount = CalculateBalanceSheetTayyorMaxsulotFromWarehouse(db, asOfDate.Value);
+                        }
                         balanceData.Add(new BalanceCategoryData
                         {
                             Category = category,
@@ -347,7 +351,10 @@ namespace tahsinERP.Controllers.Finance
 
                     if (string.Equals(category.Name, "Xomashyo", StringComparison.OrdinalIgnoreCase))
                     {
-                        amount = CalculateBalanceSheetXomashyoFromWarehouse(db, asOfDate.Value);
+                        if (!openingDate.HasValue)
+                        {
+                            amount = CalculateBalanceSheetXomashyoFromWarehouse(db, asOfDate.Value);
+                        }
                         balanceData.Add(new BalanceCategoryData
                         {
                             Category = category,
@@ -948,7 +955,8 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinDashboard/ShareholderValue
-        public ActionResult ShareholderValue(DateTime? asOfDate)
+        // method: "ebitda" (EBITDA * multiplikator) yoki "dcf" (Sof aktivlar - Passivlar + kelajak foydasi)
+        public ActionResult ShareholderValue(DateTime? asOfDate, string method, decimal? ebitdaMultiple, int? dcfYears)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
             {
@@ -956,11 +964,32 @@ namespace tahsinERP.Controllers.Finance
             }
 
             asOfDate = asOfDate ?? DateTime.Now;
+            method = (method ?? "ebitda").ToLower() == "dcf" ? "dcf" : "ebitda";
+
+            // EBITDA multiplikatori (Ishlab chiqarish: 3-6x), default 3
+            var multiple = ebitdaMultiple ?? 3m;
+            if (multiple < 1m) multiple = 1m;
+            if (multiple > 10m) multiple = 10m;
+
+            // DCF kelajak foydasi necha yilga loyihalanadi (2-5 yil), default 3
+            var years = dcfYears ?? 3;
+            if (years < 1) years = 1;
+            if (years > 10) years = 10;
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Calculate company value
-                var companyValue = CalculateCompanyValue(db, asOfDate.Value);
+                decimal companyValue;
+                CompanyValuationBreakdown breakdown;
+
+                if (method == "dcf")
+                {
+                    breakdown = CalculateDcfValuation(db, asOfDate.Value, years);
+                }
+                else
+                {
+                    breakdown = CalculateEbitdaValuation(db, asOfDate.Value, multiple);
+                }
+                companyValue = breakdown.CompanyValue;
 
                 // Olish shareholders bilan their current shares
                 var shareholders = db.SHAREHOLDERS
@@ -989,20 +1018,159 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 ViewBag.AsOfDate = asOfDate;
+                ViewBag.Method = method;
+                ViewBag.EbitdaMultiple = multiple;
+                ViewBag.DcfYears = years;
                 ViewBag.CompanyValue = companyValue;
+                ViewBag.Breakdown = breakdown;
                 ViewBag.ShareholderValues = shareholderValues;
 
                 return View();
             }
         }
 
-        private decimal CalculateCompanyValue(DBTHSNEntities db, DateTime asOfDate)
+        // 1-uslub: EBITDA * multiplikator (Ishlab chiqarish uchun odatda 3-6x)
+        private CompanyValuationBreakdown CalculateEbitdaValuation(DBTHSNEntities db, DateTime asOfDate, decimal multiple)
         {
-            // Eski soddalashtirilgan formula (cash + unpaid sales invoice - barcha purchase invoice)
-            // balansdan uzilib ketardi. Endi kompaniya qiymati balans modulidagi real hisob-kitoblar bilan olinadi.
-            // Balans sahifasidagi "Jami aktivlar" bilan bir xil bo'lishi uchun aktiv ustuni yig'indisini qaytaramiz.
-            var assetDetails = BuildBalanceCategoryDetails(db, asOfDate, new[] { 1 }, true);
-            return assetDetails.Sum(d => d.Amount);
+            var ebitda = CalculateEbitda(db, asOfDate.AddYears(-1).AddDays(1), asOfDate);
+            return new CompanyValuationBreakdown
+            {
+                Method = "ebitda",
+                Ebitda = ebitda,
+                EbitdaMultiple = multiple,
+                CompanyValue = ebitda.Ebitda * multiple
+            };
+        }
+
+        // 2-uslub: Biznes qiymati = Sof aktivlar - Passivlar + N yillik kelajak foydasi
+        // Kelajak foydasi = (yillik daromad * tannarx modulidagi o'rtacha margin %) * N yil
+        private CompanyValuationBreakdown CalculateDcfValuation(DBTHSNEntities db, DateTime asOfDate, int years)
+        {
+            // Balans modulidan aktivlar (Type 1) va passivlar (Type 2,3)
+            var totalAssets = BuildBalanceCategoryDetails(db, asOfDate, new[] { 1 }, true).Sum(d => d.Amount);
+            var totalLiabilities = BuildBalanceCategoryDetails(db, asOfDate, new[] { 2, 3 }, false).Sum(d => d.Amount);
+            var netAssets = totalAssets - totalLiabilities;
+
+            // Tannarx modulidagi o'rtacha margin (ProfitPercent) — odatda ~10%
+            var avgMarginPercent = GetAverageTannarxMarginPercent(db);
+
+            // Oxirgi 12 oylik real operatsion daromad (yillik daromad bazasi)
+            var yearStart = asOfDate.AddYears(-1).AddDays(1);
+            var annualRevenue = ActiveFinTransactions(db)
+                .Where(t => t.Direction == 1 &&
+                    t.TxnDate >= yearStart && t.TxnDate <= asOfDate)
+                .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")
+                    || t.SourceDocType == null || t.SourceDocType == "")
+                .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+            var annualProfit = annualRevenue * avgMarginPercent / 100m;
+            var futureProfit = annualProfit * years;
+
+            return new CompanyValuationBreakdown
+            {
+                Method = "dcf",
+                TotalAssets = totalAssets,
+                TotalLiabilities = totalLiabilities,
+                NetAssets = netAssets,
+                AvgMarginPercent = avgMarginPercent,
+                AnnualRevenue = annualRevenue,
+                AnnualProfit = annualProfit,
+                DcfYears = years,
+                FutureProfit = futureProfit,
+                CompanyValue = netAssets + futureProfit
+            };
+        }
+
+        // Tannarx modulidagi har bir mahsulot foyda foizining (ProfitPercent) o'rtachasi.
+        // Ma'lumot bo'lmasa default 10%.
+        private decimal GetAverageTannarxMarginPercent(DBTHSNEntities db)
+        {
+            var percents = db.TANNARXes
+                .Where(t => !t.IsDeleted && t.ProfitPercent != null)
+                .Select(t => t.ProfitPercent.Value)
+                .ToList();
+
+            if (percents.Count == 0)
+            {
+                return 10m;
+            }
+            return percents.Average();
+        }
+
+        // EBITDA = Operatsion daromad - Operatsion xarajatlar (foiz, soliq, amortizatsiya qaytarib qo'shiladi)
+        private EbitdaData CalculateEbitda(DBTHSNEntities db, DateTime fromDate, DateTime toDate)
+        {
+            // Operatsion daromad (invoys-majburiyat tranzaksiyalaridan tashqari real pul oqimi)
+            var operatingIncome = ActiveFinTransactions(db)
+                .Where(t => t.Direction == 1 && t.TxnDate >= fromDate && t.TxnDate <= toDate)
+                .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")
+                    || t.SourceDocType == null || t.SourceDocType == "")
+                .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+            // Operatsion xarajatlar kategoriya kesimida
+            var expensesByCategory = ActiveFinTransactions(db)
+                .Include(t => t.FIN_CATEGORIES)
+                .Where(t => t.Direction == 2 && t.TxnDate >= fromDate && t.TxnDate <= toDate)
+                .Where(t => (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")
+                    || t.SourceDocType == null || t.SourceDocType == "")
+                .GroupBy(t => t.FIN_CATEGORIES.Name)
+                .Select(g => new { Name = g.Key, Amount = g.Sum(x => (decimal?)x.Amount) ?? 0m })
+                .ToList();
+
+            decimal totalExpenses = 0m, taxExpense = 0m, interestExpense = 0m, depreciationExpense = 0m;
+            foreach (var e in expensesByCategory)
+            {
+                totalExpenses += e.Amount;
+                var name = (e.Name ?? string.Empty).ToLower();
+                if (name.Contains("soliq") || name.Contains("qqs") || name.Contains("nds"))
+                {
+                    taxExpense += e.Amount;
+                }
+                else if (name.Contains("foiz") || name.Contains("kredit") || name.Contains("ssuda"))
+                {
+                    interestExpense += e.Amount;
+                }
+                else if (name.Contains("amortizatsiya") || name.Contains("eskirish") || name.Contains("iznos"))
+                {
+                    depreciationExpense += e.Amount;
+                }
+            }
+
+            return new EbitdaData
+            {
+                FromDate = fromDate,
+                ToDate = toDate,
+                OperatingIncome = operatingIncome,
+                OperatingExpenses = totalExpenses,
+                TaxExpense = taxExpense,
+                InterestExpense = interestExpense,
+                DepreciationExpense = depreciationExpense
+            };
+        }
+
+        // Olish so'rovi: FinDashboard/EBITDA
+        // EBITDA (foiz, soliq, amortizatsiyagacha bo'lgan operatsion foyda) hisoboti
+        public ActionResult EBITDA(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            // Default oraliq — oxirgi 12 oy
+            toDate = toDate ?? DateTime.Now.Date;
+            fromDate = fromDate ?? toDate.Value.AddYears(-1).AddDays(1);
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var ebitda = CalculateEbitda(db, fromDate.Value, toDate.Value);
+
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.Ebitda = ebitda;
+
+                return View();
+            }
         }
 
         private static string GetCalculationTypeName(int? calculationType)
@@ -1154,20 +1322,40 @@ namespace tahsinERP.Controllers.Finance
 
                 if (string.Equals(category.Name, "Tayyor maxsulot", StringComparison.OrdinalIgnoreCase))
                 {
-                    detail.Amount = CalculateBalanceSheetTayyorMaxsulotFromWarehouse(db, asOfDate);
-                    detail.CalculationTypeName = "Ombor + Tannarx";
-                    detail.Explanation =
-                        "Ishlab chiqarish omboridagi tayyor maxsulot (IsFinishedGood) miqdori × shu mahsulot bo'yicha oxirgi Tannarx: SalesPriceCIPWithVAT (Sotuv narxi QQS bilan CIP).";
+                    // Opening balans mavjud bo'lsa — detail.Amount yuqorida shu qiymat bilan seed qilingan, o'rnida qoldiramiz (override).
+                    // Opening yo'q bo'lsa — ombor hisobini ishlatamiz.
+                    if (!openingDate.HasValue)
+                    {
+                        detail.Amount = CalculateBalanceSheetTayyorMaxsulotFromWarehouse(db, asOfDate);
+                        detail.CalculationTypeName = "Ombor + Tannarx";
+                        detail.Explanation =
+                            "Ishlab chiqarish omboridagi tayyor maxsulot (IsFinishedGood) miqdori × shu mahsulot bo'yicha oxirgi Tannarx: SalesPriceCIPWithVAT (Sotuv narxi QQS bilan CIP).";
+                    }
+                    else
+                    {
+                        detail.CalculationTypeName = "Opening balans";
+                        detail.Explanation = $"Opening balans ({openingDate.Value:dd.MM.yyyy}) qiymati (ombor hisobining o'rniga).";
+                    }
                     details.Add(detail);
                     continue;
                 }
 
                 if (string.Equals(category.Name, "Xomashyo", StringComparison.OrdinalIgnoreCase))
                 {
-                    detail.Amount = CalculateBalanceSheetXomashyoFromWarehouse(db, asOfDate);
-                    detail.CalculationTypeName = "Ombor + oxirgi kirim";
-                    detail.Explanation =
-                        "Xomashyo ombori qoldig'i (mahsulot kategoriyasi «Jihoz» bo'lmaganlar) × shu omborga qilingan oxirgi kirim birlik narxi (TotalPrice/Amount yoki PiecePrice).";
+                    // Opening balans mavjud bo'lsa — detail.Amount yuqorida shu qiymat bilan seed qilingan, o'rnida qoldiramiz (override).
+                    // Opening yo'q bo'lsa — ombor hisobini ishlatamiz.
+                    if (!openingDate.HasValue)
+                    {
+                        detail.Amount = CalculateBalanceSheetXomashyoFromWarehouse(db, asOfDate);
+                        detail.CalculationTypeName = "Ombor + oxirgi kirim";
+                        detail.Explanation =
+                            "Xomashyo ombori qoldig'i (mahsulot kategoriyasi «Jihoz» bo'lmaganlar) × shu omborga qilingan oxirgi kirim birlik narxi (TotalPrice/Amount yoki PiecePrice).";
+                    }
+                    else
+                    {
+                        detail.CalculationTypeName = "Opening balans";
+                        detail.Explanation = $"Opening balans ({openingDate.Value:dd.MM.yyyy}) qiymati (ombor hisobining o'rniga).";
+                    }
                     details.Add(detail);
                     continue;
                 }
@@ -3430,6 +3618,45 @@ namespace tahsinERP.Controllers.Finance
         public SHAREHOLDER Shareholder { get; set; }
         public decimal SharePercent { get; set; }
         public decimal Value { get; set; }
+    }
+
+    /// <summary>EBITDA hisoblash natijasi (foiz/soliq/amortizatsiya add-back bilan).</summary>
+    public class EbitdaData
+    {
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public decimal OperatingIncome { get; set; }
+        public decimal OperatingExpenses { get; set; }
+        public decimal TaxExpense { get; set; }
+        public decimal InterestExpense { get; set; }
+        public decimal DepreciationExpense { get; set; }
+
+        /// <summary>Operatsion foyda = daromad - barcha xarajatlar.</summary>
+        public decimal OperatingProfit { get { return OperatingIncome - OperatingExpenses; } }
+
+        /// <summary>EBITDA = operatsion foyda + foiz + soliq + amortizatsiya.</summary>
+        public decimal Ebitda { get { return OperatingProfit + TaxExpense + InterestExpense + DepreciationExpense; } }
+    }
+
+    /// <summary>Kompaniya qiymatini ikki uslubda hisoblash natijasi.</summary>
+    public class CompanyValuationBreakdown
+    {
+        public string Method { get; set; }
+        public decimal CompanyValue { get; set; }
+
+        // EBITDA uslubi
+        public EbitdaData Ebitda { get; set; }
+        public decimal EbitdaMultiple { get; set; }
+
+        // DCF uslubi
+        public decimal TotalAssets { get; set; }
+        public decimal TotalLiabilities { get; set; }
+        public decimal NetAssets { get; set; }
+        public decimal AvgMarginPercent { get; set; }
+        public decimal AnnualRevenue { get; set; }
+        public decimal AnnualProfit { get; set; }
+        public int DcfYears { get; set; }
+        public decimal FutureProfit { get; set; }
     }
 
     /// <summary>FIN_RECURRING_OBLIGATIONS jadvalidan SqlQuery uchun qator.</summary>

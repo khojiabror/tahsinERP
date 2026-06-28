@@ -27,7 +27,7 @@ namespace tahsinERP.Services
         /// <summary>
         /// BOM Details jadvalidagi 1 FG sarfini BomMaterialSummaryService orqali oladi va producedQty ga ko'paytiradi.
         /// </summary>
-        public async Task<List<ProductionRawMaterialRequirement>> CalculateRequiredRawMaterialsAsync(int productId, double producedQty)
+        public async Task<List<ProductionRawMaterialRequirement>> CalculateRequiredRawMaterialsAsync(int productId, double producedQty, DateTime? asOfDate = null)
         {
             var requirements = new List<ProductionRawMaterialRequirement>();
             if (producedQty <= 0)
@@ -36,7 +36,7 @@ namespace tahsinERP.Services
             }
 
             var summaryService = new BomMaterialSummaryService(_db);
-            var summaries = await summaryService.GetMaterialSummariesPerUnitAsync(productId);
+            var summaries = await summaryService.GetMaterialSummariesPerUnitAsync(productId, null, asOfDate);
             if (!summaries.Any())
             {
                 return requirements;

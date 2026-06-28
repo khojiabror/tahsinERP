@@ -92,9 +92,9 @@
                                                                 <th width="25%">Maxsulot nomi</th>
                                                                 <th width="10%">O'lchov birligi</th>
                                                                 <th width="12%">Shartnoma miqdori</th>
-                                                                <th width="12%">Birlik narxi</th>
+                                                                <th width="12%">Birlik narxi (QQS bilan)</th>
                                                                 <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
-                                                                <th width="10%">Jami</th>
+                                                                <th width="10%">Jami (QQS bilan)</th>
                                                                 <th width="8%">O'chirish</th>
                                                             </tr>
                                                         </thead>
@@ -110,7 +110,7 @@
                                                                         <td>@product.ProductName</td>
                                                                         <td>@product.UnitName</td>
                                                                         <td class="text-right">@product.ContractAmount.ToString("N2")</td>
-                                                                        <td class="text-right">@product.PiecePrice.ToString("N2")</td>
+                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100d)).ToString("N2"))</td>
                                                                         <td>
                                                                             <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
@@ -290,7 +290,7 @@
                                         '<td>' + product.ProductName + '</td>' +
                                         '<td>' + product.UnitName + '</td>' +
                                         '<td class="text-right">' + parseFloat(product.ContractAmount).toFixed(2) + '</td>' +
-                                        '<td class="text-right">' + parseFloat(product.PiecePrice).toFixed(2) + '</td>' +
+                                        '<td class="text-right">' + (parseFloat(product.PiecePrice || 0) * (1 + parseFloat(product.VatRate || 0) / 100)).toFixed(2) + '</td>' +
                                         '<td>' +
                                         '<input type="hidden" name="ProductQuantities[' + index + '].ContractProductID" value="' + product.ContractProductID + '" />' +
                                         '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + product.ProductID + '" />' +
@@ -344,9 +344,13 @@
                     });
                 }
 
-                // Initial calculation
+                // Initial calculation.
+                // MUHIM: Tahrirlash sahifasi yuklanganda shartnoma maxsulotlarini
+                // QAYTA yuklamaymiz — buyurtmaning mavjud maxsulotlari (miqdorlari bilan)
+                // server tomonidan allaqachon render qilingan. handleContractChange()
+                // ni bu yerda chaqirsak, jadval tozalanib, mavjud ma'lumotlar yo'qoladi.
+                // U faqat foydalanuvchi shartnomani o'zgartirganda (change event) ishlaydi.
                 calculateGrandTotal();
-                handleContractChange();
         });
     </script>
     }

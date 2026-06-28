@@ -112,20 +112,27 @@
                                                                         <thead>
                                                                             <tr>
                                                                                 <th>Mahsulot raqami</th>
-                                                                                <th>Narx</th>
+                                                                                <th>Narx (QQS bilan)</th>
                                                                                 <th>Miqdori</th>
                                                                                 <th>O'lchov birligi</th>
-                                                                                <th>Jami</th>
+                                                                                <th>Jami (QQS bilan)</th>
                                                                                 <th>MOQ</th>
                                                                                 <th>Yetkazib berish rejasi</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
+                                                                            @{
+                                                                                var productVatRates = ViewBag.ProductVatRates as Dictionary<int, double>;
+                                                                            }
                                                                             @foreach (var item in Model.S_ORDER_PRODUCTS)
                                                                             {
                                                                                 var scheduleSummary = ViewBag.ScheduleSummary as Dictionary<int, dynamic>;
                                                                                 // Ensure we check the correct key - SOrderProductID should match S_ORDER_PRODUCTS.ID
                                                                                 var summary = scheduleSummary != null && scheduleSummary.ContainsKey(item.ID) ? scheduleSummary[item.ID] : null;
+                                                                                // Shartnoma QQS foizi; 0 bo'lsa narxlar QQSsiz ko'rsatiladi
+                                                                                var vatRate = productVatRates != null && productVatRates.ContainsKey(item.ProductID) ? productVatRates[item.ProductID] : 0d;
+                                                                                var priceWithVat = item.Price * (1 + vatRate / 100d);
+                                                                                var lineTotalWithVat = item.TotalPrice * (1 + vatRate / 100d);
                                                                                 <tr>
                                                                                     <td>
                                                                                         @if (item.PRODUCT != null)
@@ -133,10 +140,10 @@
                                                                                             <a href="@Url.Action("Details", "Product", new { id = item.ProductID })">@item.PRODUCT.PNo</a>
                                                                                         }
                                                                                     </td>
-                                                                                    <td>@item.Price.ToString("N2")</td>
+                                                                                    <td>@priceWithVat.ToString("N2")</td>
                                                                                     <td>@item.Amount.ToString("N2")</td>
                                                                                     <td>@(item.UNIT?.ShortName ?? "")</td>
-                                                                                    <td>@item.TotalPrice.ToString("N2")</td>
+                                                                                    <td>@lineTotalWithVat.ToString("N2")</td>
                                                                                     <td>@(item.MOQ?.ToString("N2") ?? "-")</td>
                                                                                     <td>
                                                                                         @if (summary != null)

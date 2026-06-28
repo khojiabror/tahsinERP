@@ -309,7 +309,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: POrders/GenerateFromSalesOrders - S_ORDERS asosida BOM yechimini hisoblash
         [HttpPost]
-        public async Task<JsonResult> GenerateFromSalesOrders(int[] salesOrderIds)
+        public async Task<JsonResult> GenerateFromSalesOrders(int[] salesOrderIds, DateTime? issuedDate = null)
         {
             if (salesOrderIds == null || salesOrderIds.Length == 0)
             {
@@ -339,7 +339,8 @@ namespace tahsinERP.Controllers
                     }
 
                     var generationService = new POrderGenerationService(db);
-                    var requirements = await generationService.GenerateRequirementsFromSalesOrdersAsync(salesOrderIds);
+                    // Buyurtma sanasi berilsa — o'sha oyga tegishli BOM versiyasidan ehtiyojlar hisoblanadi.
+                    var requirements = await generationService.GenerateRequirementsFromSalesOrdersAsync(salesOrderIds, issuedDate);
 
                     if (requirements == null || !requirements.Any())
                     {
@@ -548,8 +549,8 @@ namespace tahsinERP.Controllers
                                     totalAmount += pOrderProduct.TotalPrice;
                                 }
 
-                                // Buyurtmaning umumiy summasini yangilash
-                                order.Amount = totalAmount;
+                                // Buyurtmaning umumiy summasi QQS bilan: Amount = net summa + QQS.
+                                order.Amount = ApplyVat(totalAmount, model.VatRate);
                                 await db.SaveChangesAsync();
                             }
 
@@ -900,7 +901,8 @@ namespace tahsinERP.Controllers
                             }
                         }
 
-                        order.Amount = totalAmount;
+                        // Umumiy summa QQS bilan: Amount = net summa + QQS.
+                        order.Amount = ApplyVat(totalAmount, model.VatRate);
                         await db.SaveChangesAsync();
 
                         // Amalni logga yozish
@@ -1019,6 +1021,9 @@ namespace tahsinERP.Controllers
                 if (order != null)
                 {
                     order.IsDeleted = true;
+                    // O'chirilgan buyurtmaning OrderNo siga _d suffix qo'shamiz — xuddi shu OrderNo bilan
+                    // darhol yangi buyurtma kiritilganda UNIQUE constraint xatosi chiqmasligi uchun.
+                    order.OrderNo = BuildDeletedOrderNo(order.OrderNo, order.ID);
                     await SoftDeleteReferenceService.AfterPOrderSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
@@ -1072,9 +1077,56 @@ namespace tahsinERP.Controllers
             }
         }
 
+        /// <summary>
+        /// Net summaga QQS qo'shadi: total = base + base*rate/100. Rate manfiy bo'lsa 0 deb olinadi.
+        /// </summary>
+        private static double ApplyVat(double baseAmount, double vatRate)
+        {
+            if (vatRate <= 0)
+            {
+                return Math.Round(baseAmount, 2, MidpointRounding.AwayFromZero);
+            }
+
+            return Math.Round(baseAmount * (1 + vatRate / 100d), 2, MidpointRounding.AwayFromZero);
+        }
+
         private const int POrderNoMaxLength = 50;
         private const string ArchivedOrderNoSuffixDeleted = "_deleted";
         private const string ArchivedOrderNoSuffixDl = "_dl";
+
+        /// <summary>
+        /// O'chirish vaqtida OrderNo ni arxivlaydi: "_d{ID}" suffiksi (ID unikal — takror to'qnashuv bo'lmaydi).
+        /// Shu sababli o'chirilgan buyurtma OrderNo si darhol bo'shaydi va yangi yozuvga to'sqinlik qilmaydi.
+        /// </summary>
+        private static string BuildDeletedOrderNo(string orderNo, int id)
+        {
+            var suffix = "_d" + id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (string.IsNullOrWhiteSpace(orderNo))
+            {
+                return suffix;
+            }
+
+            var trimmed = orderNo.Trim();
+            // Allaqachon arxivlangan bo'lsa (har qanday _d<raqam>), qayta suffix qo'shilmaydi.
+            if (Regex.IsMatch(trimmed, @"_d\d+$", RegexOptions.IgnoreCase))
+            {
+                return trimmed;
+            }
+
+            var combined = trimmed + suffix;
+            if (combined.Length <= POrderNoMaxLength)
+            {
+                return combined;
+            }
+
+            var keepBase = POrderNoMaxLength - suffix.Length;
+            if (keepBase < 0)
+            {
+                keepBase = 0;
+            }
+
+            return trimmed.Substring(0, keepBase) + suffix;
+        }
 
         private static string BuildArchivedOrderNo(string orderNo)
         {

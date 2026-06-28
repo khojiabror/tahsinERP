@@ -88,9 +88,10 @@
                                                                 <th width="25%">Maxsulot nomi</th>
                                                                 <th width="10%">O'lchov birligi</th>
                                                                 <th width="12%">Shartnoma miqdori</th>
-                                                                <th width="12%">Birlik narxi</th>
+                                                                <th width="12%">Birlik narxi (QQS bilan)</th>
                                                                 <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
-                                                                <th width="10%">Jami</th>
+                                                                <th width="10%">Jami (QQS bilan)</th>
+                                                                <th width="8%">O'chirish</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="productsTableBody">
@@ -105,7 +106,7 @@
                                                                         <td>@product.ProductName</td>
                                                                         <td>@product.UnitName</td>
                                                                         <td class="text-right">@product.ContractAmount.ToString("N2")</td>
-                                                                        <td class="text-right">@product.PiecePrice.ToString("N2")</td>
+                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100d)).ToString("N2"))</td>
                                                                         <td>
                                                                             <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
@@ -123,6 +124,11 @@
                                                                                    required />
                                                                         </td>
                                                                         <td class="text-right total-price">0.00</td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O'chirish">
+                                                                                <i class="bx bx-trash"></i>
+                                                                            </button>
+                                                                        </td>
                                                                     </tr>
                                                                     index++;
                                                                 }
@@ -132,6 +138,7 @@
                                                             <tr class="font-weight-bold">
                                                                 <td colspan="7" class="text-right">Jami summa:</td>
                                                                 <td class="text-right" id="grandTotal">0.00</td>
+                                                                <td></td>
                                                             </tr>
                                                         </tfoot>
                                                     </table>
@@ -262,7 +269,7 @@ else
                                     '<td>' + (product.ProductName || '') + '</td>' +
                                     '<td>' + (product.UnitName || '') + '</td>' +
                                     '<td class="text-right">' + parseFloat(product.ContractAmount || 0).toFixed(2) + '</td>' +
-                                    '<td class="text-right">' + parseFloat(product.PiecePrice || 0).toFixed(2) + '</td>' +
+                                    '<td class="text-right">' + (parseFloat(product.PiecePrice || 0) * (1 + parseFloat(product.VatRate || 0) / 100)).toFixed(2) + '</td>' +
                                     '<td>' +
                                     '<input type="hidden" name="ProductQuantities[' + index + '].ContractProductID" value="' + (product.ContractProductID || '') + '" />' +
                                     '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + (product.ProductID || '') + '" />' +
@@ -272,6 +279,11 @@ else
                                     '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="0" step="0.01" min="0.01" data-price="' + (product.PiecePrice || 0) + '" data-vat-rate="' + (product.VatRate || 0) + '" required />' +
                                     '</td>' +
                                     '<td class="text-right total-price">0.00</td>' +
+                                    '<td class="text-center">' +
+                                    '<button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O\'chirish">' +
+                                    '<i class="bx bx-trash"></i>' +
+                                    '</button>' +
+                                    '</td>' +
                                     '</tr>';
                                 tbody.append(row);
                             });
@@ -311,6 +323,29 @@ else
                 $row.find('.total-price').text(lineTotal.toFixed(2));
                 calculateTotal();
             });
+
+            // Qatorni o'chirish: tanlangan maxsulot qatorini jadvaldan olib tashlaydi.
+            // Qolgan qatorlar qayta indekslanadi, shunda faqat qoldirilgan maxsulotlar saqlanadi.
+            $(document).on('click', '.remove-product', function() {
+                $(this).closest('tr').remove();
+                reindexProductRows();
+                calculateTotal();
+            });
+
+            // Qatorlarni qayta indekslash (ProductQuantities[i] nomlarini va tartib raqamini yangilash)
+            function reindexProductRows() {
+                $('#productsTableBody tr').each(function(rowIndex) {
+                    $(this).find('td:first').text(rowIndex + 1);
+                    $(this).find('input[name^="ProductQuantities["]').each(function() {
+                        var name = $(this).attr('name');
+                        if (!name) {
+                            return;
+                        }
+                        var updated = name.replace(/ProductQuantities\[\d+\]\./, 'ProductQuantities[' + rowIndex + '].');
+                        $(this).attr('name', updated);
+                    });
+                });
+            }
 
             // Form yuborishdan oldin tekshirish
             $('#orderForm').on('submit', function(e) {

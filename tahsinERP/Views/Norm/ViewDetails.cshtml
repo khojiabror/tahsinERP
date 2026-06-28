@@ -103,6 +103,7 @@
                                                         <th>Toza sarf summa</th>
                                                         <th>Chiqindi summa</th>
                                                         <th>Jami narx</th>
+                                                        <th>Kesish usuli</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -129,13 +130,14 @@
                                                                 <td>@cleanCostValue.ToString("F2")</td>
                                                                 <td>@wasteCostValue.ToString("F2")</td>
                                                                 <td>@totalCostValue.ToString("F2")</td>
+                                                                <td>@(string.IsNullOrWhiteSpace(line.CuttingMethod) ? "-" : line.CuttingMethod)</td>
                                                             </tr>
                                                         }
                                                     }
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="12" class="text-center text-muted">Kesish variantlari topilmadi.</td>
+                                                            <td colspan="13" class="text-center text-muted">Kesish variantlari topilmadi.</td>
                                                         </tr>
                                                     }
                                                 </tbody>
