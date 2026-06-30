@@ -152,49 +152,110 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            $('#companyOrdersTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json",
-                    "lengthMenu": "Har sahifada _MENU_ ta yozuv ko'rsatish",
-                    "zeroRecords": "Hech qanday yozuv topilmadi",
-                    "info": "_START_ dan _END_ gacha, jami _TOTAL_ ta yozuv",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(_MAX_ ta yozuvdan filtrlangan)",
-                    "search": "Qidirish:",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    }
-                },
-                "order": [[1, "desc"]],
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "paging": true,
-                "pagingType": "full_numbers",
-                "info": true,
-                "searching": true,
-                "responsive": true,
-                "processing": true,
-                "dom": '<"top"lBf>rt<"bottom"ip><"clear">',
-                "buttons": [
-                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
-                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
-                ],
-                "drawCallback": function(settings) {
-                    // Pagination styling
-                    var api = this.api();
-                    var pageInfo = api.page.info();
-                    if (pageInfo.pages <= 1) {
-                        $(api.table().container()).find('.dataTables_paginate').hide();
-                    } else {
-                        $(api.table().container()).find('.dataTables_paginate').show();
-                    }
+        (function () {
+            function initSOrderTable() {
+                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initSOrderTable, 100);
+                    return;
                 }
-            });
-        });
+                var $ = window.jQuery;
+                if (!$('#companyOrdersTable').length) return;
+
+                var columnDefs = [];
+                {
+                    columnDefs.push({ "orderable": false, "targets": -1 });
+                }
+
+                $('#companyOrdersTable').DataTable({
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": {
+                            "first": "Birinchi",
+                            "last": "Oxirgi",
+                            "next": "Keyingi",
+                            "previous": "Oldingi"
+                        },
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "paging": true,
+                    "info": true,
+                    "lengthChange": true,
+                    "pageLength": 25,
+                    "lengthMenu": [10, 25, 50, 100],
+                    "order": [[3, "desc"]],
+                    "columnDefs": columnDefs,
+                    dom: 'lBfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: '<i class="bx bxs-file-excel"></i> Excel',
+                            titleAttr: 'Excelga yuklash',
+                            className: 'btn btn-success mr-1',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() +
+                                    String(now.getMonth() + 1).padStart(2, '0') +
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') +
+                                    String(now.getMinutes()).padStart(2, '0') +
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'Buyruqlar_' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: true ? ':not(:last-child)' : ':visible',
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        return data.replace(/<[^>]*>/g, '').trim();
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="bx bxs-file-pdf"></i> PDF',
+                            titleAttr: 'PDFga yuklash',
+                            className: 'btn btn-danger',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() +
+                                    String(now.getMonth() + 1).padStart(2, '0') +
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') +
+                                    String(now.getMinutes()).padStart(2, '0') +
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'Buyruqlar_' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: true ? ':not(:last-child)' : ':visible',
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        return data.replace(/<[^>]*>/g, '').trim();
+                                    }
+                                }
+                            },
+                            title: 'Buyruqlar ro\'yxati',
+                            customize: function (doc) {
+                                doc.defaultStyle.fontSize = 9;
+                                doc.styles.tableHeader.fontSize = 10;
+                            }
+                        }
+                    ],
+                    "scrollX": true
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSOrderTable);
+            } else {
+                initSOrderTable();
+            }
+        })();
     </script>
 }
 else

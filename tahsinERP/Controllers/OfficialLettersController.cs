@@ -36,7 +36,7 @@ namespace tahsinERP.Controllers
                 var query = from doc in db.DOC_DOCUMENTS
                             join letter in db.COM_OFFICIAL_LETTERS on doc.ID equals letter.DocumentID
                             join docType in db.DOC_DOCUMENT_TYPES on doc.DocTypeID equals docType.ID
-                            where docType.Code == "OFFICIAL_LETTER"
+                            where docType.Code == "OFFICIAL_LETTER" && doc.IsDeleted != true && letter.IsDeleted != true
                             select new { doc, letter, docType };
 
                 if (year.HasValue)
