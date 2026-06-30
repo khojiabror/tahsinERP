@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
@@ -12,6 +13,7 @@ namespace tahsinERP.ViewModels
         public string DirectionCode { get; set; }
 
         [Display(Name = "Maktub raqami")]
+        [Required(ErrorMessage = "Maktub raqami kiritilishi shart")]
         public string LetterNo { get; set; }
 
         [Display(Name = "Maktub sanasi")]
@@ -47,20 +49,10 @@ namespace tahsinERP.ViewModels
         [AllowHtml]
         public string BodyText { get; set; }
 
-        [Display(Name = "Mahsulot nomi")]
-        public string ItemName { get; set; }
-
-        [Display(Name = "O'lchami")]
-        public string ItemSize { get; set; }
-
-        [Display(Name = "Narxi")]
-        public decimal? ItemPrice { get; set; }
-
-        [Display(Name = "Narxi (QQS bilan)")]
-        public decimal? ItemPriceWithVAT { get; set; }
+        // Mahsulot va narx satrlari (bir nechta bo'lishi mumkin)
+        public List<OfficialLetterItemVm> Items { get; set; } = new List<OfficialLetterItemVm>();
 
         public SelectList Directions { get; set; }
         public SelectList Channels { get; set; }
     }
 }
-

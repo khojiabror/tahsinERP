@@ -5,11 +5,18 @@
 @{
     ViewBag.Title = "Buyurtma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var vatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d;
-    // Amount endi QQS bilan (net + QQS) saqlanadi — shuning uchun ustiga yana QQS qo'shilmaydi, balki ajratiladi.
+    // Amount QQS bilan (net + QQS) saqlanadi. QQS stavkasini shartnomadan emas, balki
+    // saqlangan ma'lumotdan ajratamiz: net = mahsulot satrlari yig'indisi (TotalPrice),
+    // jami (QQS bilan) = Model.Amount. Shunda to'g'ridan-to'g'ri (shartnomasiz) buyurtmalarda ham
+    // QQS to'g'ri ko'rsatiladi.
     var totalWithVat = Model.Amount ?? 0d;
-    var totalBase = vatRate > 0 ? totalWithVat / (1 + vatRate / 100d) : totalWithVat;
+    var hasLines = Model.P_ORDER_PRODUCTS != null && Model.P_ORDER_PRODUCTS.Any();
+    var totalBase = hasLines ? Model.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice) : totalWithVat;
     var totalVat = totalWithVat - totalBase;
+    var vatRate = totalBase > 0
+        ? (totalWithVat / totalBase - 1d) * 100d
+        : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
+    if (vatRate < 0) { vatRate = 0; }
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "POrders", "Details"))

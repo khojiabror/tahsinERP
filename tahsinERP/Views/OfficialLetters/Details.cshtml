@@ -151,10 +151,57 @@
                                         <div class="col-md-6">
                                             <h5>Matn</h5>
                                             <div class="border p-3" style="min-height: 200px;">
-                                                @Html.Raw(Model.Title?.Replace("\n", "<br/>"))
+                                                @{
+                                                    var bodyHtml = ViewBag.BodyHtml as string;
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(bodyHtml))
+                                                {
+                                                    @Html.Raw(bodyHtml)
+                                                }
+                                                else
+                                                {
+                                                    @Html.Raw(Model.Title?.Replace("\n", "<br/>"))
+                                                }
                                             </div>
                                         </div>
                                     </div>
+
+                                    @{
+                                        var letterItems = ViewBag.LetterItems as System.Collections.Generic.List<tahsinERP.Services.OfficialLetterItemData>;
+                                    }
+                                    @if (letterItems != null && letterItems.Count > 0)
+                                    {
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <h5>Mahsulot va narxlar</h5>
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot nomi</th>
+                                                            <th>O'lchami</th>
+                                                            <th>Narx EXW</th>
+                                                            <th>Narx QQS bilan EXW</th>
+                                                            <th>Narx CIP</th>
+                                                            <th>Narx QQS bilan CIP</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in letterItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ItemName</td>
+                                                                <td>@item.ItemSize</td>
+                                                                <td>@(item.PriceExw.HasValue ? item.PriceExw.Value.ToString("#,0.##") : "-")</td>
+                                                                <td>@(item.PriceVatExw.HasValue ? item.PriceVatExw.Value.ToString("#,0.##") : "-")</td>
+                                                                <td>@(item.PriceCip.HasValue ? item.PriceCip.Value.ToString("#,0.##") : "-")</td>
+                                                                <td>@(item.PriceVatCip.HasValue ? item.PriceVatCip.Value.ToString("#,0.##") : "-")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
 
                                     <div class="row mt-3">
                                         <div class="col-12">

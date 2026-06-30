@@ -5,7 +5,10 @@
     ViewBag.Title = "Buyurtmani tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var isDirectOrder = ViewBag.IsDirectOrder as bool? ?? false;
-    var initialVatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d;
+    // Buyurtmaga haqiqatda qo'llangan QQS stavkasini ko'rsatamiz (shartnoma stavkasi emas).
+    var initialVatRate = ViewBag.AppliedVatRate != null
+        ? (double)ViewBag.AppliedVatRate
+        : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
 
     var purchasableProductsData = new List<object>();
     var unitsData = new List<object>();

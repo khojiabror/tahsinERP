@@ -791,6 +791,17 @@ namespace tahsinERP.Controllers
                 ViewBag.Units = new SelectList(units, "ID", "ShortName");
                 ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, model.ContractID);
 
+                // Buyurtmaga avval qo'llangan QQS stavkasini saqlangan ma'lumotdan ajratamiz
+                // (Amount = net + QQS). Tahrirlashda input shartnoma stavkasi bilan emas, haqiqiy
+                // qo'llangan stavka bilan to'ldiriladi — aks holda qayta saqlashda QQS yo'qoladi.
+                double editNetTotal = order.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice);
+                double editGrossTotal = order.Amount ?? editNetTotal;
+                model.VatRate = editNetTotal > 0
+                    ? Math.Round((editGrossTotal / editNetTotal - 1d) * 100d, 2, MidpointRounding.AwayFromZero)
+                    : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
+                if (model.VatRate < 0) { model.VatRate = 0; }
+                ViewBag.AppliedVatRate = model.VatRate;
+
                 return View(model);
             }
         }

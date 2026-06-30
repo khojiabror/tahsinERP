@@ -129,42 +129,90 @@
 
                                         <div class="form-group">
                                             <label class="control-label">Asosiy matn</label>
-                                            <div class="input-group">
-                                                @Html.TextAreaFor(m => m.BodyText, new { @class = "form-control", @rows = "10", @id = "BodyTextArea" })
-                                                <div class="input-group-append">
-                                                    <button type="button" class="btn btn-info" id="btnSuggestText">
-                                                        <i class="bx bx-bulb"></i> Matn taklif qilish
-                                                    </button>
-                                                </div>
+                                            <div class="text-right mb-1">
+                                                <button type="button" class="btn btn-sm btn-info" id="btnSuggestText">
+                                                    <i class="bx bx-bulb"></i> Matn taklif qilish
+                                                </button>
                                             </div>
+                                            <div id="letter-body-toolbar">
+                                                <span class="ql-formats">
+                                                    <select class="ql-font"></select>
+                                                    <select class="ql-size"></select>
+                                                </span>
+                                                <span class="ql-formats">
+                                                    <button class="ql-bold"></button>
+                                                    <button class="ql-italic"></button>
+                                                    <button class="ql-underline"></button>
+                                                    <button class="ql-strike"></button>
+                                                </span>
+                                                <span class="ql-formats">
+                                                    <select class="ql-color"></select>
+                                                    <select class="ql-background"></select>
+                                                </span>
+                                                <span class="ql-formats">
+                                                    <button class="ql-header" value="1"></button>
+                                                    <button class="ql-header" value="2"></button>
+                                                </span>
+                                                <span class="ql-formats">
+                                                    <button class="ql-list" value="ordered"></button>
+                                                    <button class="ql-list" value="bullet"></button>
+                                                    <button class="ql-indent" value="-1"></button>
+                                                    <button class="ql-indent" value="+1"></button>
+                                                </span>
+                                                <span class="ql-formats">
+                                                    <select class="ql-align"></select>
+                                                </span>
+                                                <span class="ql-formats">
+                                                    <button class="ql-link"></button>
+                                                    <button class="ql-clean"></button>
+                                                </span>
+                                            </div>
+                                            <div id="letter-body-editor" style="height: 300px; background: white;"></div>
+                                            @Html.HiddenFor(m => m.BodyText, new { @id = "BodyTextHidden" })
                                             @Html.ValidationMessageFor(m => m.BodyText, "", new { @class = "text-danger" })
                                         </div>
 
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    @Html.LabelFor(m => m.ItemName, new { @class = "control-label" })
-                                                    @Html.TextBoxFor(m => m.ItemName, new { @class = "form-control" })
-                                                </div>
+                                        <div class="form-group">
+                                            <label class="control-label">Mahsulot va narx</label>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered" id="itemsTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="min-width:160px;">Mahsulot nomi</th>
+                                                            <th style="min-width:110px;">O'lchami</th>
+                                                            <th style="min-width:110px;">Narx EXW</th>
+                                                            <th style="min-width:130px;">Narx QQS bilan EXW</th>
+                                                            <th style="min-width:110px;">Narx CIP</th>
+                                                            <th style="min-width:130px;">Narx QQS bilan CIP</th>
+                                                            <th style="width:48px;"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="itemsBody">
+                                                        @{ var __ic = 0; }
+                                                        @foreach (var item in (Model.Items ?? new System.Collections.Generic.List<tahsinERP.ViewModels.OfficialLetterItemVm>()))
+                                                        {
+                                                            var key = "i" + __ic;
+                                                            var inv = System.Globalization.CultureInfo.InvariantCulture;
+                                                            <tr class="item-row">
+                                                                <td>
+                                                                    <input type="hidden" name="Items.Index" value="@key" />
+                                                                    <input class="form-control" name="Items[@key].ItemName" value="@item.ItemName" />
+                                                                </td>
+                                                                <td><input class="form-control" name="Items[@key].ItemSize" value="@item.ItemSize" /></td>
+                                                                <td><input type="number" step="0.01" class="form-control" name="Items[@key].PriceExw" value="@(item.PriceExw?.ToString(inv))" /></td>
+                                                                <td><input type="number" step="0.01" class="form-control" name="Items[@key].PriceVatExw" value="@(item.PriceVatExw?.ToString(inv))" /></td>
+                                                                <td><input type="number" step="0.01" class="form-control" name="Items[@key].PriceCip" value="@(item.PriceCip?.ToString(inv))" /></td>
+                                                                <td><input type="number" step="0.01" class="form-control" name="Items[@key].PriceVatCip" value="@(item.PriceVatCip?.ToString(inv))" /></td>
+                                                                <td class="text-center"><button type="button" class="btn btn-sm btn-danger btn-remove-item"><i class="bx bx-trash"></i></button></td>
+                                                            </tr>
+                                                            __ic++;
+                                                        }
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    @Html.LabelFor(m => m.ItemSize, new { @class = "control-label" })
-                                                    @Html.TextBoxFor(m => m.ItemSize, new { @class = "form-control" })
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    @Html.LabelFor(m => m.ItemPrice, new { @class = "control-label" })
-                                                    @Html.TextBoxFor(m => m.ItemPrice, new { @class = "form-control", @type = "number", @step = "0.01" })
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    @Html.LabelFor(m => m.ItemPriceWithVAT, new { @class = "control-label" })
-                                                    @Html.TextBoxFor(m => m.ItemPriceWithVAT, new { @class = "form-control", @type = "number", @step = "0.01" })
-                                                </div>
-                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddItem">
+                                                <i class="bx bx-plus"></i> Mahsulot qo'shish
+                                            </button>
                                         </div>
 
                                         <div class="form-group">
@@ -185,75 +233,107 @@
         </div>
     </div>
 
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        #letter-body-toolbar { border: 1px solid #ddd; border-bottom: none; background: #f8f9fa; }
+        #letter-body-editor { border: 1px solid #ddd; }
+        .ql-editor { min-height: 250px; }
+    </style>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        (function() {
-            // Wait for jQuery to be loaded
-            function initSuggestText() {
-                if (typeof jQuery === 'undefined' && typeof $ === 'undefined') {
-                    setTimeout(initSuggestText, 100);
-                    return;
-                }
-                
-                var $ = jQuery || window.$;
-                
-                $(document).ready(function() {
-                    $('#btnSuggestText').click(function() {
+        (function () {
+            function waitForJQuery(cb) {
+                if (typeof jQuery !== 'undefined' && typeof window.Quill !== 'undefined') { cb(jQuery); }
+                else { setTimeout(function () { waitForJQuery(cb); }, 100); }
+            }
+
+            waitForJQuery(function ($) {
+                $(document).ready(function () {
+                    // ---- Quill mini Word muharriri ----
+                    var quill = new Quill('#letter-body-editor', {
+                        modules: { toolbar: '#letter-body-toolbar' },
+                        theme: 'snow',
+                        placeholder: 'Maktub matnini kiriting...'
+                    });
+
+                    var initialBody = $('#BodyTextHidden').val();
+                    if (initialBody && initialBody.trim() !== '') {
+                        quill.clipboard.dangerouslyPasteHTML(initialBody);
+                    }
+
+                    // Forma yuborilishidan oldin HTML ni yashirin maydonga ko'chirish
+                    $('form.form').on('submit', function () {
+                        var html = quill.root.innerHTML;
+                        if (quill.getText().trim() === '') { html = ''; }
+                        $('#BodyTextHidden').val(html);
+                    });
+
+                    // ---- Mahsulot satrlari (dinamik) ----
+                    var itemIndex = 0;
+                    function itemRowHtml(key) {
+                        return '<tr class="item-row">' +
+                            '<td><input type="hidden" name="Items.Index" value="' + key + '" />' +
+                            '<input class="form-control" name="Items[' + key + '].ItemName" /></td>' +
+                            '<td><input class="form-control" name="Items[' + key + '].ItemSize" /></td>' +
+                            '<td><input type="number" step="0.01" class="form-control" name="Items[' + key + '].PriceExw" /></td>' +
+                            '<td><input type="number" step="0.01" class="form-control" name="Items[' + key + '].PriceVatExw" /></td>' +
+                            '<td><input type="number" step="0.01" class="form-control" name="Items[' + key + '].PriceCip" /></td>' +
+                            '<td><input type="number" step="0.01" class="form-control" name="Items[' + key + '].PriceVatCip" /></td>' +
+                            '<td class="text-center"><button type="button" class="btn btn-sm btn-danger btn-remove-item"><i class="bx bx-trash"></i></button></td>' +
+                            '</tr>';
+                    }
+                    function addItemRow() {
+                        $('#itemsBody').append(itemRowHtml('n' + (itemIndex++)));
+                    }
+                    $('#btnAddItem').on('click', addItemRow);
+                    $('#itemsBody').on('click', '.btn-remove-item', function () {
+                        $(this).closest('tr').remove();
+                    });
+                    // Mavjud satr bo'lmasa, bitta bo'sh satr qo'shamiz
+                    if ($('#itemsBody .item-row').length === 0) { addItemRow(); }
+
+                    // ---- Matn taklif qilish ----
+                    $('#btnSuggestText').click(function () {
                         var $btn = $(this);
                         var originalText = $btn.html();
                         $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
 
-                        var directionCode = $('#DirectionCode').val() || 'OUT';
-                        var externalCompanyName = $('#ExternalCompanyName').val() || '';
-                        var externalContactName = $('#ExternalContactName').val() || '';
-                        var topic = $('#TopicInput').val() || '';
-                        var letterDate = $('#LetterDate').val() || null;
-                        var ourRefNo = $('#OurRefNo').val() || '';
-                        var theirRefNo = $('#TheirRefNo').val() || '';
-
                         $.ajax({
                             url: '@Url.Action("SuggestText", "OfficialLetters")',
                             type: 'POST',
-                            headers: {
-                                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                            },
+                            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
                             data: {
-                                directionCode: directionCode,
-                                externalCompanyName: externalCompanyName,
-                                externalContactName: externalContactName,
-                                topic: topic,
-                                letterDate: letterDate,
-                                ourRefNo: ourRefNo,
-                                theirRefNo: theirRefNo
+                                directionCode: $('#DirectionCode').val() || 'OUT',
+                                externalCompanyName: $('#ExternalCompanyName').val() || '',
+                                externalContactName: $('#ExternalContactName').val() || '',
+                                topic: $('#TopicInput').val() || '',
+                                letterDate: $('#LetterDate').val() || null,
+                                ourRefNo: $('#OurRefNo').val() || '',
+                                theirRefNo: $('#TheirRefNo').val() || ''
                             },
-                            success: function(response) {
+                            success: function (response) {
                                 if (response && response.success) {
-                                    $('#BodyTextArea').val(response.text);
-                                    if (externalContactName) {
-                                        $('#GreetingInput').val('Hurmatli ' + externalContactName + '!');
-                                    }
+                                    quill.setText(response.text || '');
+                                    var contactName = $('#ExternalContactName').val();
+                                    if (contactName) { $('#GreetingInput').val('Hurmatli ' + contactName + '!'); }
                                 } else {
                                     alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
                                 }
                             },
-                            error: function(xhr, status, error) {
+                            error: function (xhr, status, error) {
                                 console.error('AJAX Error:', error, xhr.responseText);
                                 var errorMsg = 'Xatolik yuz berdi';
-                                if (xhr.responseJSON && xhr.responseJSON.error) {
-                                    errorMsg = xhr.responseJSON.error;
-                                } else if (xhr.responseText) {
-                                    errorMsg = xhr.responseText;
-                                }
+                                if (xhr.responseJSON && xhr.responseJSON.error) { errorMsg = xhr.responseJSON.error; }
+                                else if (xhr.responseText) { errorMsg = xhr.responseText; }
                                 alert(errorMsg);
                             },
-                            complete: function() {
+                            complete: function () {
                                 $btn.prop('disabled', false).html(originalText);
                             }
                         });
                     });
                 });
-            }
-            
-            initSuggestText();
+            });
         })();
     </script>
 }

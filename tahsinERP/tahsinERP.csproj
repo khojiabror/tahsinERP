@@ -1040,6 +1040,7 @@
     <Compile Include="Services\IUserActionLogger.cs" />
     <Compile Include="Services\LogisticsTerms.cs" />
     <Compile Include="Services\MaterialConsumptionService.cs" />
+    <Compile Include="Services\OfficialLetterDataService.cs" />
     <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
@@ -1114,6 +1115,7 @@
     <Compile Include="ViewModels\NormLineViewModel.cs" />
     <Compile Include="ViewModels\OfficialLetterCreateVm.cs" />
     <Compile Include="ViewModels\OfficialLetterEditVm.cs" />
+    <Compile Include="ViewModels\OfficialLetterItemVm.cs" />
     <Compile Include="ViewModels\OfficialLetterIndexVm.cs" />
     <Compile Include="ViewModels\PContractSViewModel.cs" />
     <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />

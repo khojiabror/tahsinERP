@@ -176,7 +176,9 @@ namespace tahsinERP.Controllers
                 foreach (var invoiceProduct in invoice.P_INVOICE_PRODUCTS)
                 {
                     bool requiresCutting = await conversionService.RequiresCuttingAsync(invoiceProduct.ProductID);
-                    if (requiresCutting)
+                    // CBM ni faqat miqdor donada (UnitID=1) saqlangan bo'lsa hisoblaymiz.
+                    // Agar foydalanuvchi to'g'ridan-to'g'ri m3 kiritgan bo'lsa, qayta aylantirish shart emas.
+                    if (requiresCutting && invoiceProduct.UnitID == 1)
                     {
                         try
                         {
@@ -401,37 +403,24 @@ namespace tahsinERP.Controllers
                         db.P_INVOICES.Add(invoice);
                         await db.SaveChangesAsync();
 
-                        // Qo'shish invoice products bilan conversion logic
-                        var conversionService = new UnitConversionService(db);
-                        var contractBalanceService = new ContractBalanceService(db);
+                        // Qo'shish invoice products
                         double totalAmount = 0;
                         
                         if (model.InvoiceProducts != null && model.InvoiceProducts.Any())
                         {
                             foreach (var product in model.InvoiceProducts)
                             {
-                                // Tekshirish agar product requires cutting
-                                bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
-                                
-                                // uchun requires_cutting products, quantity is in PIECES, UnitID = 1
-                                // uchun other products, use user-selected unit
-                                int unitId;
-                                if (requiresCutting)
-                                {
-                                    unitId = 1; // Piece
-                                }
-                                else
-                                {
-                                    // Use user-selected unit yoki product's standart unit
-                                    var prod = await db.PRODUCTS.FindAsync(product.ProductID);
-                                    unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
-                                }
+                                // Foydalanuvchi tanlagan birlikni saqlaymiz (masalan, m3/CBM).
+                                // Avval kesiladigan mahsulotlar majburan donaga (UnitID=1) o'tkazilardi —
+                                // shu sababli m3 kiritilgan miqdor saqlangach donaga aylanib qolardi.
+                                var prod = await db.PRODUCTS.FindAsync(product.ProductID);
+                                int unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
 
                                 var invoiceProduct = new P_INVOICE_PRODUCTS
                                 {
                                     InvoiceID = invoice.ID,
                                     ProductID = product.ProductID,
-                                    Quantity = product.Quantity, // In PIECES uchun cutting products, yoki user-selected unit uchun others
+                                    Quantity = product.Quantity,
                                     Price = product.Price,
                                     TotalPrice = product.Price * product.Quantity,
                                     UnitID = unitId
@@ -840,35 +829,22 @@ namespace tahsinERP.Controllers
                             db.P_INVOICE_PRODUCTS.Remove(existing);
                         }
 
-                        // Qo'shish updated invoice products bilan conversion logic
-                        var conversionService = new UnitConversionService(db);
-                        
+                        // Qo'shish updated invoice products
                         if (model.InvoiceProducts != null && model.InvoiceProducts.Any())
                         {
                             foreach (var product in model.InvoiceProducts)
                             {
-                                // Tekshirish agar product requires cutting
-                                bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
-                                
-                                // uchun requires_cutting products, quantity is in PIECES, UnitID = 1
-                                // uchun other products, use user-selected unit
-                                int unitId;
-                                if (requiresCutting)
-                                {
-                                    unitId = 1; // Piece
-                                }
-                                else
-                                {
-                                    // Use user-selected unit yoki product's standart unit
-                                    var prod = await db.PRODUCTS.FindAsync(product.ProductID);
-                                    unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
-                                }
+                                // Foydalanuvchi tanlagan birlikni saqlaymiz (masalan, m3/CBM).
+                                // Avval kesiladigan mahsulotlar majburan donaga (UnitID=1) o'tkazilardi —
+                                // shu sababli m3 kiritilgan miqdor saqlangach donaga aylanib qolardi.
+                                var prod = await db.PRODUCTS.FindAsync(product.ProductID);
+                                int unitId = product.UnitID > 0 ? product.UnitID : (prod?.UnitID ?? 1);
 
                                 var invoiceProduct = new P_INVOICE_PRODUCTS
                                 {
                                     InvoiceID = invoice.ID,
                                     ProductID = product.ProductID,
-                                    Quantity = product.Quantity, // In PIECES uchun cutting products, yoki user-selected unit uchun others
+                                    Quantity = product.Quantity,
                                     Price = product.Price,
                                     TotalPrice = product.Price * product.Quantity,
                                     UnitID = unitId

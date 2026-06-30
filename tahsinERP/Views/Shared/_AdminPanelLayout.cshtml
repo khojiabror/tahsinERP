@@ -56,10 +56,18 @@
                                     <div class="user-nav d-sm-flex d-none">
                                         <span class="user-name">@RoleHelper.GetUserFullName(User.Identity.Name)</span>
                                         @{
-                                            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-                                            if (userRoles != null && userRoles.Length > 0)
+                                            var userPosition = RoleHelper.GetUserPosition(User.Identity.Name);
+                                            if (!string.IsNullOrEmpty(userPosition))
                                             {
-                                                <span class="user-status text-muted">@userRoles[0]</span>
+                                                <span class="user-status text-muted">@userPosition</span>
+                                            }
+                                            else
+                                            {
+                                                var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
+                                                if (userRoles != null && userRoles.Length > 0)
+                                                {
+                                                    <span class="user-status text-muted">@userRoles[0]</span>
+                                                }
                                             }
                                         }
                                     </div>

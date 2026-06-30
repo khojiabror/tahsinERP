@@ -19,6 +19,7 @@ namespace tahsinERP.Models
         #region Cache Keys
         private static string GetUserRolesCacheKey(string username) => $"UserRoles_{username}";
         private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{username}";
+        private static string GetUserPositionCacheKey(string username) => $"UserPosition_{username}";
         private static string GetPermissionCacheKey(string username, string module) => $"Permission_{username}_{module}";
         private static string GetPermissionCacheKey(string username, string controller, string action) => $"Permission_{username}_{controller}_{action}";
         #endregion
@@ -81,6 +82,51 @@ namespace tahsinERP.Models
                 SetCache(cacheKey, fullName);
                 return fullName;
             }
+        }
+
+        /// <summary>
+        /// Foydalanuvchining xodim sifatidagi lavozimini olish (cache bilan).
+        /// Tizimdagi roli emas, HR_EMPLOYEES dagi lavozimi (HR_POSITIONS.Name) qaytariladi.
+        /// Bog'lanish USERS.FullName == HR_EMPLOYEES.FullName bo'yicha amalga oshiriladi.
+        /// </summary>
+        public static string GetUserPosition(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+                return string.Empty;
+
+            var cacheKey = GetUserPositionCacheKey(username);
+            var cached = GetCache(cacheKey) as string;
+            if (cached != null)
+                return cached;
+
+            try
+            {
+                using (var db = new DBTHSNEntities())
+                {
+                    var user = db.USERS.FirstOrDefault(u => u.Uname == username && u.IsDeleted != true);
+                    if (user != null && !string.IsNullOrEmpty(user.FullName))
+                    {
+                        var position = db.HR_EMPLOYEES
+                            .Where(e => e.FullName == user.FullName
+                                        && e.IsDeleted != true
+                                        && e.IsActive
+                                        && e.PositionID != null)
+                            .Select(e => e.HR_POSITIONS.Name)
+                            .FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(position))
+                        {
+                            SetCache(cacheKey, position);
+                            return position;
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // Lavozim topilmasa, bo'sh qiymatni keshlaymiz (DB ga qayta-qayta bormaslik uchun)
+            SetCache(cacheKey, string.Empty);
+            return string.Empty;
         }
 
         /// <summary>

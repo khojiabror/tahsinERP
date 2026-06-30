@@ -407,6 +407,9 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Details", new { id });
                 }
 
+                // Notes endi mini Word muharriridan HTML bo'lishi mumkin - oddiy matnga aylantiramiz
+                var notesText = OfficialLetterDataService.HtmlToPlainText(order.Notes);
+
                 // Tayyorlash placeholders - matching template structure
                 var placeholders = new Dictionary<string, string>
                 {
@@ -415,16 +418,16 @@ namespace tahsinERP.Controllers
                     { "ORDER_DATE", order.OrderDate.ToString("dd.MM.yyyy") },
                     { "Order_date", order.OrderDate.ToString("dd.MM.yyyy") }, // Support lowercase variant
                     { "ORDER_TOPIC", doc.Title ?? "" }, // Template uses ORDER_TOPIC, not ORDER_TITLE
-                    { "ORDER_BODY", order.Notes ?? "" }, // Full body text without splitting
+                    { "ORDER_BODY", notesText }, // Full body text without splitting
                     { "ORG_UNIT_NAME", doc.HR_ORG_UNITS?.Name ?? "" },
                     { "DIRECTOR_NAME", "X.M. Maxmudov" } // TODO: Get dan settings yoki user jadval
                 };
 
                 // Tahlil qilish Notes into individual content items (ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.)
                 // Split by newlines va filtrlash out empty lines
-                if (!string.IsNullOrEmpty(order.Notes))
+                if (!string.IsNullOrEmpty(notesText))
                 {
-                    var lines = order.Notes.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
+                    var lines = notesText.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
                         .Where(line => !string.IsNullOrWhiteSpace(line))
                         .Select(line => line.Trim())
                         .ToList();
