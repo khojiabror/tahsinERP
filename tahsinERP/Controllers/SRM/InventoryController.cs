@@ -6,7 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
@@ -339,32 +340,31 @@ namespace tahsinERP.Controllers
             {
                 var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
+                using (var workbook = new XLWorkbook())
                 {
-                    var ws = package.Workbook.Worksheets.Add("Inventory");
-                    ws.Cells[1, 1].Value = "Ombor";
-                    ws.Cells[1, 2].Value = "Mahsulot kodi";
-                    ws.Cells[1, 3].Value = "Mahsulot nomi";
-                    ws.Cells[1, 4].Value = "Kategoriya";
-                    ws.Cells[1, 5].Value = "Miqdor";
-                    ws.Cells[1, 6].Value = "Birlik";
-                    ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
+                    var ws = workbook.Worksheets.Add("Inventory");
+                    ws.Cell(1, 1).Value = "Ombor";
+                    ws.Cell(1, 2).Value = "Mahsulot kodi";
+                    ws.Cell(1, 3).Value = "Mahsulot nomi";
+                    ws.Cell(1, 4).Value = "Kategoriya";
+                    ws.Cell(1, 5).Value = "Miqdor";
+                    ws.Cell(1, 6).Value = "Birlik";
+                    ws.Range(1, 1, 1, 6).Style.Font.Bold = true;
 
                     int row = 2;
                     foreach (var item in rows)
                     {
-                        ws.Cells[row, 1].Value = item.WarehouseName;
-                        ws.Cells[row, 2].Value = item.ProductPNo;
-                        ws.Cells[row, 3].Value = item.ProductName;
-                        ws.Cells[row, 4].Value = item.CategoryName;
-                        ws.Cells[row, 5].Value = item.Amount;
-                        ws.Cells[row, 6].Value = item.UnitName;
+                        ws.Cell(row, 1).Value = item.WarehouseName;
+                        ws.Cell(row, 2).Value = item.ProductPNo;
+                        ws.Cell(row, 3).Value = item.ProductName;
+                        ws.Cell(row, 4).Value = item.CategoryName;
+                        ws.Cell(row, 5).Value = item.Amount;
+                        ws.Cell(row, 6).Value = item.UnitName;
                         row++;
                     }
 
-                    ws.Cells.AutoFitColumns();
-                    var bytes = package.GetAsByteArray();
+                    ws.Columns().AdjustToContents();
+                    var bytes = workbook.ToByteArray();
                     var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                     return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                 }
@@ -493,17 +493,16 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var ws = package.Workbook.Worksheets.Add("Template");
-                ws.Cells[1, 1].Value = "ProductPNo";
-                ws.Cells[1, 2].Value = "Quantity";
-                ws.Cells[2, 1].Value = "00000001";
-                ws.Cells[2, 2].Value = 10;
-                ws.Cells[1, 1, 1, 2].Style.Font.Bold = true;
+                var ws = workbook.Worksheets.Add("Template");
+                ws.Cell(1, 1).Value = "ProductPNo";
+                ws.Cell(1, 2).Value = "Quantity";
+                ws.Cell(2, 1).Value = "00000001";
+                ws.Cell(2, 2).Value = 10;
+                ws.Range(1, 1, 1, 2).Style.Font.Bold = true;
 
-                var bytes = package.GetAsByteArray();
+                var bytes = workbook.ToByteArray();
                 return File(bytes,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     "Inventory_Adjustment_Template.xlsx");
@@ -565,11 +564,10 @@ namespace tahsinERP.Controllers
                         return View(model);
                     }
 
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                    using (var package = new ExcelPackage(model.ExcelFile.InputStream))
+                    using (var workbook = new XLWorkbook(model.ExcelFile.InputStream))
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null || worksheet.Dimension == null)
+                        var worksheet = workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null || worksheet.LastRowNumber() == 0)
                         {
                             ModelState.AddModelError("", "Excel fayl bo'sh.");
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
@@ -597,8 +595,9 @@ namespace tahsinERP.Controllers
                         var parsedRows = new List<InventoryAdjustmentRow>();
                         var errorDetails = new List<string>();
                         var seenProducts = new HashSet<int>();
+                        var lastRow = worksheet.LastRowNumber();
 
-                        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                        for (int row = 2; row <= lastRow; row++)
                         {
                             var pno = GetCellString(worksheet, row, pnoCol);
                             var qtyValue = GetCellString(worksheet, row, qtyCol);
@@ -914,14 +913,14 @@ namespace tahsinERP.Controllers
             );
         }
 
-        private static Dictionary<string, int> BuildHeaderMap(ExcelWorksheet worksheet)
+        private static Dictionary<string, int> BuildHeaderMap(IXLWorksheet worksheet)
         {
             var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            int endColumn = worksheet.Dimension.End.Column;
+            int endColumn = worksheet.LastColumnNumber();
 
             for (int col = 1; col <= endColumn; col++)
             {
-                var header = (worksheet.Cells[1, col].Text ?? string.Empty).Trim().ToLowerInvariant();
+                var header = (worksheet.Cell(1, col).GetFormattedString() ?? string.Empty).Trim().ToLowerInvariant();
                 if (string.IsNullOrEmpty(header))
                 {
                     continue;
@@ -947,9 +946,9 @@ namespace tahsinERP.Controllers
             return map;
         }
 
-        private static string GetCellString(ExcelWorksheet worksheet, int row, int col)
+        private static string GetCellString(IXLWorksheet worksheet, int row, int col)
         {
-            return (worksheet.Cells[row, col].Text ?? string.Empty).Trim();
+            return (worksheet.Cell(row, col).GetFormattedString() ?? string.Empty).Trim();
         }
 
         private async Task<List<InventoryExportRow>> GetInventoryExportRowsAsync(
@@ -1044,33 +1043,32 @@ namespace tahsinERP.Controllers
 
             Directory.CreateDirectory(Path.GetDirectoryName(excelPath));
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var ws = package.Workbook.Worksheets.Add("Log");
-                ws.Cells[1, 1].Value = "ProductPNo";
-                ws.Cells[1, 2].Value = "ProductName";
-                ws.Cells[1, 3].Value = "OldQty";
-                ws.Cells[1, 4].Value = "NewQty";
-                ws.Cells[1, 5].Value = "Diff";
-                ws.Cells[1, 6].Value = "Unit";
+                var ws = workbook.Worksheets.Add("Log");
+                ws.Cell(1, 1).Value = "ProductPNo";
+                ws.Cell(1, 2).Value = "ProductName";
+                ws.Cell(1, 3).Value = "OldQty";
+                ws.Cell(1, 4).Value = "NewQty";
+                ws.Cell(1, 5).Value = "Diff";
+                ws.Cell(1, 6).Value = "Unit";
 
                 int row = 2;
                 foreach (var item in logRows)
                 {
-                    ws.Cells[row, 1].Value = item.ProductPNo;
-                    ws.Cells[row, 2].Value = item.ProductName;
-                    ws.Cells[row, 3].Value = item.OldQuantity;
-                    ws.Cells[row, 4].Value = item.NewQuantity;
-                    ws.Cells[row, 5].Value = item.NewQuantity - item.OldQuantity;
-                    ws.Cells[row, 6].Value = item.UnitName;
+                    ws.Cell(row, 1).Value = item.ProductPNo;
+                    ws.Cell(row, 2).Value = item.ProductName;
+                    ws.Cell(row, 3).Value = item.OldQuantity;
+                    ws.Cell(row, 4).Value = item.NewQuantity;
+                    ws.Cell(row, 5).Value = item.NewQuantity - item.OldQuantity;
+                    ws.Cell(row, 6).Value = item.UnitName;
                     row++;
                 }
 
-                ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
-                ws.Cells.AutoFitColumns();
+                ws.Range(1, 1, 1, 6).Style.Font.Bold = true;
+                ws.Columns().AdjustToContents();
 
-                var bytes = package.GetAsByteArray();
+                var bytes = workbook.ToByteArray();
                 await Task.Run(() => System.IO.File.WriteAllBytes(excelPath, bytes));
             }
 

@@ -4,10 +4,11 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System.IO;
 
 namespace tahsinERP.Controllers.HR
@@ -933,55 +934,54 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var worksheet = package.Workbook.Worksheets.Add($"Hisob {payroll.Year}-{payroll.Month:D2}");
+                var worksheet = workbook.Worksheets.Add($"Hisob {payroll.Year}-{payroll.Month:D2}");
 
-                worksheet.Cells[1, 1].Value = "№";
-                worksheet.Cells[1, 2].Value = "Tab.№";
-                worksheet.Cells[1, 3].Value = "F.I.O.";
-                worksheet.Cells[1, 4].Value = "Lavozim";
-                worksheet.Cells[1, 5].Value = "Asosiy maosh";
-                worksheet.Cells[1, 6].Value = "Ishlangan soatlar";
-                worksheet.Cells[1, 7].Value = "Hisoblangan";
-                worksheet.Cells[1, 8].Value = "Mukofotlar";
-                worksheet.Cells[1, 9].Value = "Jarimalar";
-                worksheet.Cells[1, 10].Value = "To'lovga";
-                worksheet.Cells[1, 11].Value = "Valyuta";
+                worksheet.Cell(1, 1).Value = "№";
+                worksheet.Cell(1, 2).Value = "Tab.№";
+                worksheet.Cell(1, 3).Value = "F.I.O.";
+                worksheet.Cell(1, 4).Value = "Lavozim";
+                worksheet.Cell(1, 5).Value = "Asosiy maosh";
+                worksheet.Cell(1, 6).Value = "Ishlangan soatlar";
+                worksheet.Cell(1, 7).Value = "Hisoblangan";
+                worksheet.Cell(1, 8).Value = "Mukofotlar";
+                worksheet.Cell(1, 9).Value = "Jarimalar";
+                worksheet.Cell(1, 10).Value = "To'lovga";
+                worksheet.Cell(1, 11).Value = "Valyuta";
 
                 // ma'lumot
                 int row = 2;
                 int lineNum = 1;
                 foreach (var line in payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).OrderBy(l => l.HR_EMPLOYEES.TabNo))
                 {
-                    worksheet.Cells[row, 1].Value = lineNum++;
-                    worksheet.Cells[row, 2].Value = line.HR_EMPLOYEES.TabNo;
-                    worksheet.Cells[row, 3].Value = line.HR_EMPLOYEES.FullName;
-                    worksheet.Cells[row, 4].Value = line.HR_EMPLOYEES.HR_POSITIONS?.Name;
-                    worksheet.Cells[row, 5].Value = line.BaseSalary ?? 0;
-                    worksheet.Cells[row, 6].Value = line.HoursWorked ?? 0;
-                    worksheet.Cells[row, 7].Value = line.GrossSalary ?? 0;
-                    worksheet.Cells[row, 8].Value = line.Bonuses ?? 0;
-                    worksheet.Cells[row, 9].Value = line.Penalties ?? 0;
-                    worksheet.Cells[row, 10].Value = line.NetSalary ?? 0;
-                    worksheet.Cells[row, 11].Value = line.CURRENCy?.Shortname;
+                    worksheet.Cell(row, 1).Value = lineNum++;
+                    worksheet.Cell(row, 2).Value = line.HR_EMPLOYEES.TabNo;
+                    worksheet.Cell(row, 3).Value = line.HR_EMPLOYEES.FullName;
+                    worksheet.Cell(row, 4).Value = line.HR_EMPLOYEES.HR_POSITIONS?.Name;
+                    worksheet.Cell(row, 5).Value = line.BaseSalary ?? 0;
+                    worksheet.Cell(row, 6).Value = line.HoursWorked ?? 0;
+                    worksheet.Cell(row, 7).Value = line.GrossSalary ?? 0;
+                    worksheet.Cell(row, 8).Value = line.Bonuses ?? 0;
+                    worksheet.Cell(row, 9).Value = line.Penalties ?? 0;
+                    worksheet.Cell(row, 10).Value = line.NetSalary ?? 0;
+                    worksheet.Cell(row, 11).Value = line.CURRENCy?.Shortname;
 
                     row++;
                 }
 
                 // Totals
-                worksheet.Cells[row, 7].Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.GrossSalary ?? 0);
-                worksheet.Cells[row, 8].Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.Bonuses ?? 0);
-                worksheet.Cells[row, 9].Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.Penalties ?? 0);
-                worksheet.Cells[row, 10].Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.NetSalary ?? 0);
-                worksheet.Cells[row, 5].Value = "JAMI:";
+                worksheet.Cell(row, 7).Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.GrossSalary ?? 0);
+                worksheet.Cell(row, 8).Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.Bonuses ?? 0);
+                worksheet.Cell(row, 9).Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.Penalties ?? 0);
+                worksheet.Cell(row, 10).Value = payroll.HR_PAYROLL_LINES.Where(l => IsPayrollLineActive(l)).Sum(l => l.NetSalary ?? 0);
+                worksheet.Cell(row, 5).Value = "JAMI:";
 
                 // Auto-fit ustunlar
-                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                worksheet.Columns().AdjustToContents();
 
                 var stream = new MemoryStream();
-                package.SaveAs(stream);
+                workbook.SaveAs(stream);
                 stream.Position = 0;
 
                 var fileName = $"Hisob_{payroll.Year}_{payroll.Month:D2}.xlsx";

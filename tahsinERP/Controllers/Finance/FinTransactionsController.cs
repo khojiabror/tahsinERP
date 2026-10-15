@@ -3,10 +3,11 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System.IO;
 using System.Collections.Generic;
 using System.Web;
@@ -772,39 +773,38 @@ namespace tahsinERP.Controllers.Finance
 
                 var transactions = query.OrderByDescending(t => t.TxnDate).ToList();
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
+                using (var workbook = new XLWorkbook())
                 {
-                    var worksheet = package.Workbook.Worksheets.Add("Tranzaksiyalar");
-                    worksheet.Cells[1, 1].Value = "Sana";
-                    worksheet.Cells[1, 2].Value = "Hisob";
-                    worksheet.Cells[1, 3].Value = "Kategoriya";
-                    worksheet.Cells[1, 4].Value = "Yo'nalish";
-                    worksheet.Cells[1, 5].Value = "Summa";
-                    worksheet.Cells[1, 6].Value = "Valyuta";
-                    worksheet.Cells[1, 7].Value = "Kontragent";
-                    worksheet.Cells[1, 8].Value = "Maqsad";
-                    worksheet.Cells[1, 9].Value = "Manba hujjat";
+                    var worksheet = workbook.Worksheets.Add("Tranzaksiyalar");
+                    worksheet.Cell(1, 1).Value = "Sana";
+                    worksheet.Cell(1, 2).Value = "Hisob";
+                    worksheet.Cell(1, 3).Value = "Kategoriya";
+                    worksheet.Cell(1, 4).Value = "Yo'nalish";
+                    worksheet.Cell(1, 5).Value = "Summa";
+                    worksheet.Cell(1, 6).Value = "Valyuta";
+                    worksheet.Cell(1, 7).Value = "Kontragent";
+                    worksheet.Cell(1, 8).Value = "Maqsad";
+                    worksheet.Cell(1, 9).Value = "Manba hujjat";
 
                     int row = 2;
                     foreach (var txn in transactions)
                     {
-                        worksheet.Cells[row, 1].Value = txn.TxnDate.ToString("yyyy-MM-dd");
-                        worksheet.Cells[row, 2].Value = txn.FIN_ACCOUNTS?.Name;
-                        worksheet.Cells[row, 3].Value = txn.FIN_CATEGORIES?.Name;
-                        worksheet.Cells[row, 4].Value = txn.Direction == 1 ? "Kirim" : "Chiqim";
-                        worksheet.Cells[row, 5].Value = txn.Amount;
-                        worksheet.Cells[row, 6].Value = txn.CURRENCy?.Shortname;
-                        worksheet.Cells[row, 7].Value = txn.CounterpartyName;
-                        worksheet.Cells[row, 8].Value = txn.Purpose;
-                        worksheet.Cells[row, 9].Value = txn.SourceDocType;
+                        worksheet.Cell(row, 1).Value = txn.TxnDate.ToString("yyyy-MM-dd");
+                        worksheet.Cell(row, 2).Value = txn.FIN_ACCOUNTS?.Name;
+                        worksheet.Cell(row, 3).Value = txn.FIN_CATEGORIES?.Name;
+                        worksheet.Cell(row, 4).Value = txn.Direction == 1 ? "Kirim" : "Chiqim";
+                        worksheet.Cell(row, 5).Value = txn.Amount;
+                        worksheet.Cell(row, 6).Value = txn.CURRENCy?.Shortname;
+                        worksheet.Cell(row, 7).Value = txn.CounterpartyName;
+                        worksheet.Cell(row, 8).Value = txn.Purpose;
+                        worksheet.Cell(row, 9).Value = txn.SourceDocType;
                         row++;
                     }
 
-                    worksheet.Cells.AutoFitColumns();
+                    worksheet.Columns().AdjustToContents();
 
                     var stream = new MemoryStream();
-                    package.SaveAs(stream);
+                    workbook.SaveAs(stream);
                     stream.Position = 0;
 
                     return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -843,52 +843,49 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
+                using (var workbook = new XLWorkbook())
                 {
-                    var worksheet = package.Workbook.Worksheets.Add("Tranzaksiyalar");
+                    var worksheet = workbook.Worksheets.Add("Tranzaksiyalar");
 
                     // Header qator
-                    worksheet.Cells[1, 1].Value = "Sana (DD.MM.YYYY)";
-                    worksheet.Cells[1, 2].Value = "Vaqt (HH:mm)";
-                    worksheet.Cells[1, 3].Value = "Hisob kodi";
-                    worksheet.Cells[1, 4].Value = "Kategoriya nomi";
-                    worksheet.Cells[1, 5].Value = "Yo'nalish (1=Kirim, 2=Chiqim)";
-                    worksheet.Cells[1, 6].Value = "Summa";
+                    worksheet.Cell(1, 1).Value = "Sana (DD.MM.YYYY)";
+                    worksheet.Cell(1, 2).Value = "Vaqt (HH:mm)";
+                    worksheet.Cell(1, 3).Value = "Hisob kodi";
+                    worksheet.Cell(1, 4).Value = "Kategoriya nomi";
+                    worksheet.Cell(1, 5).Value = "Yo'nalish (1=Kirim, 2=Chiqim)";
+                    worksheet.Cell(1, 6).Value = "Summa";
                     var defaultCurrency = db.CURRENCIES
                         .Where(c => c.IsDeleted != true)
                         .OrderBy(c => c.ID)
                         .FirstOrDefault();
                     var currencyShortname = defaultCurrency?.Shortname ?? "UZS";
 
-                    worksheet.Cells[1, 7].Value = $"Valyuta qisqa nomi (masalan: {currencyShortname})";
-                    worksheet.Cells[1, 8].Value = "Kontragent nomi (ixtiyoriy)";
-                    worksheet.Cells[1, 9].Value = "Maqsad (ixtiyoriy)";
-                    worksheet.Cells[1, 10].Value = "Shartnoma raqami (ixtiyoriy)";
-                    worksheet.Cells[1, 11].Value = "Izoh (ixtiyoriy)";
-                    worksheet.Cells[1, 12].Value = "Miqdor (ixtiyoriy)";
-                    worksheet.Cells[1, 13].Value = "Narx birligi (ixtiyoriy)";
+                    worksheet.Cell(1, 7).Value = $"Valyuta qisqa nomi (masalan: {currencyShortname})";
+                    worksheet.Cell(1, 8).Value = "Kontragent nomi (ixtiyoriy)";
+                    worksheet.Cell(1, 9).Value = "Maqsad (ixtiyoriy)";
+                    worksheet.Cell(1, 10).Value = "Shartnoma raqami (ixtiyoriy)";
+                    worksheet.Cell(1, 11).Value = "Izoh (ixtiyoriy)";
+                    worksheet.Cell(1, 12).Value = "Miqdor (ixtiyoriy)";
+                    worksheet.Cell(1, 13).Value = "Narx birligi (ixtiyoriy)";
 
                     // Style header
-                    using (var range = worksheet.Cells[1, 1, 1, 13])
-                    {
-                        range.Style.Font.Bold = true;
-                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    }
+                    var range = worksheet.Range(1, 1, 1, 13);
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = XLFillPatternValues.Solid;
+                    range.Style.Fill.BackgroundColor = XLColor.FromColor(System.Drawing.Color.LightGray);
 
                     // Qo'shish example qator
-                    worksheet.Cells[2, 1].Value = "01.11.2025";
-                    worksheet.Cells[2, 2].Value = "10:30";
-                    worksheet.Cells[2, 3].Value = "9000";
-                    worksheet.Cells[2, 4].Value = "Sotuv";
-                    worksheet.Cells[2, 5].Value = "1";
-                    worksheet.Cells[2, 6].Value = "1000000.00";
-                    worksheet.Cells[2, 7].Value = "UZS";
-                    worksheet.Cells[2, 8].Value = "Mijoz nomi";
-                    worksheet.Cells[2, 9].Value = "Mahsulot sotuvi";
-                    worksheet.Cells[2, 10].Value = "K-001";
-                    worksheet.Cells[2, 11].Value = "Qo'shimcha izoh";
+                    worksheet.Cell(2, 1).Value = "01.11.2025";
+                    worksheet.Cell(2, 2).Value = "10:30";
+                    worksheet.Cell(2, 3).Value = "9000";
+                    worksheet.Cell(2, 4).Value = "Sotuv";
+                    worksheet.Cell(2, 5).Value = "1";
+                    worksheet.Cell(2, 6).Value = "1000000.00";
+                    worksheet.Cell(2, 7).Value = "UZS";
+                    worksheet.Cell(2, 8).Value = "Mijoz nomi";
+                    worksheet.Cell(2, 9).Value = "Mahsulot sotuvi";
+                    worksheet.Cell(2, 10).Value = "K-001";
+                    worksheet.Cell(2, 11).Value = "Qo'shimcha izoh";
 
                     // Olish available accounts va categories uchun reference
                     var accounts = db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Code).ToList();
@@ -896,44 +893,44 @@ namespace tahsinERP.Controllers.Finance
                     var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
 
                     // Qo'shish reference varaqlar
-                    var accountsSheet = package.Workbook.Worksheets.Add("Hisoblar");
-                    accountsSheet.Cells[1, 1].Value = "Kod";
-                    accountsSheet.Cells[1, 2].Value = "Nomi";
+                    var accountsSheet = workbook.Worksheets.Add("Hisoblar");
+                    accountsSheet.Cell(1, 1).Value = "Kod";
+                    accountsSheet.Cell(1, 2).Value = "Nomi";
                     int accRow = 2;
                     foreach (var acc in accounts)
                     {
-                        accountsSheet.Cells[accRow, 1].Value = acc.Code;
-                        accountsSheet.Cells[accRow, 2].Value = acc.Name;
+                        accountsSheet.Cell(accRow, 1).Value = acc.Code;
+                        accountsSheet.Cell(accRow, 2).Value = acc.Name;
                         accRow++;
                     }
 
-                    var categoriesSheet = package.Workbook.Worksheets.Add("Kategoriyalar");
-                    categoriesSheet.Cells[1, 1].Value = "Nomi";
+                    var categoriesSheet = workbook.Worksheets.Add("Kategoriyalar");
+                    categoriesSheet.Cell(1, 1).Value = "Nomi";
                     int catRow = 2;
                     foreach (var cat in categories)
                     {
-                        categoriesSheet.Cells[catRow, 1].Value = cat.Name;
+                        categoriesSheet.Cell(catRow, 1).Value = cat.Name;
                         catRow++;
                     }
 
-                    var currenciesSheet = package.Workbook.Worksheets.Add("Valyutalar");
-                    currenciesSheet.Cells[1, 1].Value = "Qisqa nomi";
-                    currenciesSheet.Cells[1, 2].Value = "To'liq nomi";
+                    var currenciesSheet = workbook.Worksheets.Add("Valyutalar");
+                    currenciesSheet.Cell(1, 1).Value = "Qisqa nomi";
+                    currenciesSheet.Cell(1, 2).Value = "To'liq nomi";
                     int currRow = 2;
                     foreach (var curr in currencies)
                     {
-                        currenciesSheet.Cells[currRow, 1].Value = curr.Shortname;
-                        currenciesSheet.Cells[currRow, 2].Value = curr.Shortname;
+                        currenciesSheet.Cell(currRow, 1).Value = curr.Shortname;
+                        currenciesSheet.Cell(currRow, 2).Value = curr.Shortname;
                         currRow++;
                     }
 
-                    worksheet.Cells.AutoFitColumns();
-                    accountsSheet.Cells.AutoFitColumns();
-                    categoriesSheet.Cells.AutoFitColumns();
-                    currenciesSheet.Cells.AutoFitColumns();
+                    worksheet.Columns().AdjustToContents();
+                    accountsSheet.Columns().AdjustToContents();
+                    categoriesSheet.Columns().AdjustToContents();
+                    currenciesSheet.Columns().AdjustToContents();
 
                     var stream = new MemoryStream();
-                    package.SaveAs(stream);
+                    workbook.SaveAs(stream);
                     stream.Position = 0;
 
                     return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -966,14 +963,13 @@ namespace tahsinERP.Controllers.Finance
 
             try
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 var transactions = new List<FIN_TRANSACTIONS>();
                 var errors = new List<string>();
 
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    var rowCount = worksheet.Dimension?.Rows ?? 0;
+                    var worksheet = workbook.Worksheet(1);
+                    var rowCount = worksheet.LastRowNumber();
 
                     if (rowCount < 2)
                     {
@@ -1006,16 +1002,17 @@ namespace tahsinERP.Controllers.Finance
                             {
                                 // O'qish date - try ga get as DateTime value birinchi (Excel stores dates as numbers)
                                 DateTime txnDate;
-                                var dateCell = worksheet.Cells[row, 1];
+                                var dateCell = worksheet.Cell(row, 1);
+                                var dateValue = dateCell.GetRawValue();
                                 
                                 // Avval try ga get as DateTime value (agar Excel stored it as date)
-                                if (dateCell.Value != null)
+                                if (dateValue != null)
                                 {
-                                    if (dateCell.Value is DateTime dateTimeValue)
+                                    if (dateValue is DateTime dateTimeValue)
                                     {
                                         txnDate = dateTimeValue;
                                     }
-                                    else if (dateCell.Value is double dateDouble)
+                                    else if (dateValue is double dateDouble)
                                     {
                                         // Excel stores dates as serial numbers (days since 1900-01-01)
                                         txnDate = DateTime.FromOADate(dateDouble);
@@ -1023,7 +1020,7 @@ namespace tahsinERP.Controllers.Finance
                                     else
                                     {
                                         // Urinish ga tahlil as string
-                                        var dateStr = dateCell.Value.ToString()?.Trim();
+                                        var dateStr = dateValue.ToString()?.Trim();
                                         if (string.IsNullOrEmpty(dateStr))
                                         {
                                             continue; // Skip empty qatorlar
@@ -1055,7 +1052,7 @@ namespace tahsinERP.Controllers.Finance
                                 else
                                 {
                                     // Cell is empty yoki null
-                                    var dateStr = dateCell.Text?.Trim();
+                                    var dateStr = dateCell.GetFormattedString().Trim();
                                     if (string.IsNullOrEmpty(dateStr))
                                     {
                                         continue; // Skip empty qatorlar
@@ -1085,14 +1082,15 @@ namespace tahsinERP.Controllers.Finance
                                 }
 
                                 // O'qish time - try ga get as DateTime value birinchi
-                                var timeCell = worksheet.Cells[row, 2];
-                                if (timeCell.Value != null)
+                                var timeCell = worksheet.Cell(row, 2);
+                                var timeValue = timeCell.GetRawValue();
+                                if (timeValue != null)
                                 {
-                                    if (timeCell.Value is DateTime timeDateTime)
+                                    if (timeValue is DateTime timeDateTime)
                                     {
                                         txnDate = txnDate.Date.Add(timeDateTime.TimeOfDay);
                                     }
-                                    else if (timeCell.Value is double timeDouble && timeDouble < 1.0)
+                                    else if (timeValue is double timeDouble && timeDouble < 1.0)
                                     {
                                         // Excel stores time as fraction of day (0.0 ga 0.999...)
                                         var timeSpan = TimeSpan.FromDays(timeDouble);
@@ -1100,7 +1098,7 @@ namespace tahsinERP.Controllers.Finance
                                     }
                                     else
                                     {
-                                        var timeStr = timeCell.Value.ToString()?.Trim();
+                                        var timeStr = timeValue.ToString()?.Trim();
                                         if (!string.IsNullOrEmpty(timeStr))
                                         {
                                             TimeSpan time;
@@ -1113,7 +1111,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
                                 else
                                 {
-                                    var timeStr = timeCell.Text?.Trim();
+                                    var timeStr = timeCell.GetFormattedString().Trim();
                                     if (!string.IsNullOrEmpty(timeStr))
                                     {
                                         TimeSpan time;
@@ -1125,7 +1123,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
 
                                 // O'qish account code
-                                var accountCode = worksheet.Cells[row, 3].Text?.Trim();
+                                var accountCode = worksheet.Cell(row, 3).GetFormattedString()?.Trim();
                                 if (string.IsNullOrEmpty(accountCode) || !accounts.ContainsKey(accountCode))
                                 {
                                     errors.Add($"Qator {row}: Hisob kodi topilmadi - {accountCode}");
@@ -1134,7 +1132,7 @@ namespace tahsinERP.Controllers.Finance
                                 int accountId = accounts[accountCode];
 
                                 // O'qish category name
-                                var categoryName = worksheet.Cells[row, 4].Text?.Trim();
+                                var categoryName = worksheet.Cell(row, 4).GetFormattedString()?.Trim();
                                 if (string.IsNullOrEmpty(categoryName) || !categories.ContainsKey(categoryName))
                                 {
                                     errors.Add($"Qator {row}: Kategoriya topilmadi - {categoryName}");
@@ -1143,7 +1141,7 @@ namespace tahsinERP.Controllers.Finance
                                 int categoryId = categories[categoryName];
 
                                 // O'qish direction
-                                var directionStr = worksheet.Cells[row, 5].Text?.Trim();
+                                var directionStr = worksheet.Cell(row, 5).GetFormattedString()?.Trim();
                                 byte direction;
                                 if (!byte.TryParse(directionStr, out direction) || (direction != 1 && direction != 2))
                                 {
@@ -1152,7 +1150,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
 
                                 // O'qish amount
-                                var amountStr = worksheet.Cells[row, 6].Text?.Trim();
+                                var amountStr = worksheet.Cell(row, 6).GetFormattedString()?.Trim();
                                 if (string.IsNullOrEmpty(amountStr) || !decimal.TryParse(amountStr.Replace(" ", "").Replace(",", "."), 
                                     System.Globalization.NumberStyles.Any, 
                                     System.Globalization.CultureInfo.InvariantCulture, out decimal amount))
@@ -1162,7 +1160,7 @@ namespace tahsinERP.Controllers.Finance
                                 }
 
                                 // O'qish currency
-                                var currencyShortname = worksheet.Cells[row, 7].Text?.Trim();
+                                var currencyShortname = worksheet.Cell(row, 7).GetFormattedString()?.Trim();
                                 if (string.IsNullOrEmpty(currencyShortname) || !currencies.ContainsKey(currencyShortname))
                                 {
                                     errors.Add($"Qator {row}: Valyuta topilmadi - {currencyShortname}");
@@ -1171,12 +1169,12 @@ namespace tahsinERP.Controllers.Finance
                                 int currencyId = currencies[currencyShortname];
 
                                 // O'qish optional fields
-                                var counterpartyName = worksheet.Cells[row, 8].Text?.Trim();
-                                var purpose = worksheet.Cells[row, 9].Text?.Trim();
-                                var contractNo = worksheet.Cells[row, 10].Text?.Trim();
-                                var comment = worksheet.Cells[row, 11].Text?.Trim();
-                                var qtyStr = worksheet.Cells[row, 12].Text?.Trim();
-                                var pricePerUnitStr = worksheet.Cells[row, 13].Text?.Trim();
+                                var counterpartyName = worksheet.Cell(row, 8).GetFormattedString()?.Trim();
+                                var purpose = worksheet.Cell(row, 9).GetFormattedString()?.Trim();
+                                var contractNo = worksheet.Cell(row, 10).GetFormattedString()?.Trim();
+                                var comment = worksheet.Cell(row, 11).GetFormattedString()?.Trim();
+                                var qtyStr = worksheet.Cell(row, 12).GetFormattedString()?.Trim();
+                                var pricePerUnitStr = worksheet.Cell(row, 13).GetFormattedString()?.Trim();
 
                                 decimal? qty = null;
                                 if (!string.IsNullOrEmpty(qtyStr) && decimal.TryParse(qtyStr.Replace(",", "."), 

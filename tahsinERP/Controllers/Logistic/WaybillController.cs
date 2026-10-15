@@ -7,7 +7,8 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
@@ -598,10 +599,9 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var worksheet = package.Workbook.Worksheets.Add("Waybills");
+                var worksheet = workbook.Worksheets.Add("Waybills");
                 var headers = new[]
                 {
                     "WaybillNo","IssueDate","Direction","ForwarderID","ForwarderName","ContractID","ContractNo",
@@ -614,27 +614,27 @@ namespace tahsinERP.Controllers
 
                 for (int i = 0; i < headers.Length; i++)
                 {
-                    worksheet.Cells[1, i + 1].Value = headers[i];
-                    worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                    worksheet.Cell(1, i + 1).Value = headers[i];
+                    worksheet.Cell(1, i + 1).Style.Font.Bold = true;
                 }
 
-                worksheet.Cells[2, 1].Value = "WB-0001";
-                worksheet.Cells[2, 2].Value = DateTime.Today;
-                worksheet.Cells[2, 3].Value = "Kiruvchi";
-                worksheet.Cells[2, 10].Value = "Supplier A";
-                worksheet.Cells[2, 11].Value = "Warehouse B";
-                worksheet.Cells[2, 12].Value = 25;
-                worksheet.Cells[2, 13].Value = 12.5;
-                worksheet.Cells[2, 18].Value = 150000;
-                worksheet.Cells[2, 19].Value = 1875000;
-                worksheet.Cells[2, 21].Value = "UZS";
+                worksheet.Cell(2, 1).Value = "WB-0001";
+                worksheet.Cell(2, 2).Value = DateTime.Today;
+                worksheet.Cell(2, 3).Value = "Kiruvchi";
+                worksheet.Cell(2, 10).Value = "Supplier A";
+                worksheet.Cell(2, 11).Value = "Warehouse B";
+                worksheet.Cell(2, 12).Value = 25;
+                worksheet.Cell(2, 13).Value = 12.5;
+                worksheet.Cell(2, 18).Value = 150000;
+                worksheet.Cell(2, 19).Value = 1875000;
+                worksheet.Cell(2, 21).Value = "UZS";
 
-                worksheet.Column(2).Style.Numberformat.Format = "yyyy-mm-dd";
-                worksheet.Column(36).Style.Numberformat.Format = "yyyy-mm-dd";
-                worksheet.Column(37).Style.Numberformat.Format = "yyyy-mm-dd";
-                worksheet.Cells.AutoFitColumns();
+                worksheet.Column(2).Style.NumberFormat.Format = "yyyy-mm-dd";
+                worksheet.Column(36).Style.NumberFormat.Format = "yyyy-mm-dd";
+                worksheet.Column(37).Style.NumberFormat.Format = "yyyy-mm-dd";
+                worksheet.Columns().AdjustToContents();
 
-                var bytes = package.GetAsByteArray();
+                var bytes = workbook.ToByteArray();
                 return File(bytes,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     "Waybill_Import_Template.xlsx");
@@ -671,11 +671,10 @@ namespace tahsinERP.Controllers
                     StringComparer.OrdinalIgnoreCase);
                 var fileWaybillNos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null || worksheet.Dimension == null)
+                    var worksheet = workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null || worksheet.LastRowNumber() == 0)
                     {
                         ViewBag.Error = "Excel fayl bo'sh.";
                         return View();
@@ -688,7 +687,7 @@ namespace tahsinERP.Controllers
                         return View();
                     }
 
-                    var lastRow = worksheet.Dimension.End.Row;
+                    var lastRow = worksheet.LastRowNumber();
                     for (int row = 2; row <= lastRow; row++)
                     {
                         var waybillNo = GetCellString(worksheet, row, headerMap, "WaybillNo");
@@ -1207,13 +1206,13 @@ namespace tahsinERP.Controllers
             return $"TB_{number:D4}";
         }
 
-        private static Dictionary<string, int> BuildHeaderMap(ExcelWorksheet worksheet)
+        private static Dictionary<string, int> BuildHeaderMap(IXLWorksheet worksheet)
         {
             var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var lastCol = worksheet.Dimension.End.Column;
+            var lastCol = worksheet.LastColumnNumber();
             for (int col = 1; col <= lastCol; col++)
             {
-                var header = worksheet.Cells[1, col].Text?.Trim();
+                var header = worksheet.Cell(1, col).GetFormattedString()?.Trim();
                 if (!string.IsNullOrWhiteSpace(header) && !map.ContainsKey(header))
                 {
                     map[header] = col;
@@ -1222,10 +1221,10 @@ namespace tahsinERP.Controllers
             return map;
         }
 
-        private static string GetCellString(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        private static string GetCellString(IXLWorksheet worksheet, int row, Dictionary<string, int> map, string key)
         {
             if (!map.ContainsKey(key)) return null;
-            return worksheet.Cells[row, map[key]].Text?.Trim();
+            return worksheet.Cell(row, map[key]).GetFormattedString().Trim();
         }
 
         private Dictionary<int, double> BuildWaybillPaidLookup(DBTHSNEntities db, List<int> waybillIds)
@@ -1275,7 +1274,7 @@ namespace tahsinERP.Controllers
             return BuildWaybillPaidLookup(db, new List<int> { waybillId })[waybillId];
         }
 
-        private static double? GetCellDouble(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        private static double? GetCellDouble(IXLWorksheet worksheet, int row, Dictionary<string, int> map, string key)
         {
             var text = GetCellString(worksheet, row, map, key);
             if (string.IsNullOrWhiteSpace(text)) return null;
@@ -1283,7 +1282,7 @@ namespace tahsinERP.Controllers
             return null;
         }
 
-        private static int? GetCellInt(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        private static int? GetCellInt(IXLWorksheet worksheet, int row, Dictionary<string, int> map, string key)
         {
             var text = GetCellString(worksheet, row, map, key);
             if (string.IsNullOrWhiteSpace(text)) return null;
@@ -1291,7 +1290,7 @@ namespace tahsinERP.Controllers
             return null;
         }
 
-        private static long? GetCellLong(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        private static long? GetCellLong(IXLWorksheet worksheet, int row, Dictionary<string, int> map, string key)
         {
             var text = GetCellString(worksheet, row, map, key);
             if (string.IsNullOrWhiteSpace(text)) return null;
@@ -1299,7 +1298,7 @@ namespace tahsinERP.Controllers
             return null;
         }
 
-        private static byte? GetCellByte(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key, Func<string, byte?> parser = null)
+        private static byte? GetCellByte(IXLWorksheet worksheet, int row, Dictionary<string, int> map, string key, Func<string, byte?> parser = null)
         {
             var text = GetCellString(worksheet, row, map, key);
             if (string.IsNullOrWhiteSpace(text)) return null;
@@ -1307,17 +1306,18 @@ namespace tahsinERP.Controllers
             return parser != null ? parser(text) : (byte?)null;
         }
 
-        private static DateTime? GetCellDate(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
+        private static DateTime? GetCellDate(IXLWorksheet worksheet, int row, Dictionary<string, int> map, string key)
         {
             if (!map.ContainsKey(key)) return null;
-            var cell = worksheet.Cells[row, map[key]];
-            if (cell.Value == null) return null;
-            if (cell.Value is DateTime dt) return dt;
-            if (double.TryParse(cell.Value.ToString(), out var oaDate))
+            var cell = worksheet.Cell(row, map[key]);
+            var value = cell.GetRawValue();
+            if (value == null) return null;
+            if (value is DateTime dt) return dt;
+            if (double.TryParse(value.ToString(), out var oaDate))
             {
                 return DateTime.FromOADate(oaDate);
             }
-            if (DateTime.TryParse(cell.Text, out var parsed)) return parsed;
+            if (DateTime.TryParse(cell.GetFormattedString(), out var parsed)) return parsed;
             return null;
         }
 

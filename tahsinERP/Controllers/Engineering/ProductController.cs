@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using System.Data.Entity;
@@ -435,25 +436,24 @@ namespace tahsinERP.Controllers
 
             try
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 var dataTable = new DataTable();
 
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    if (worksheet.Dimension == null)
+                    var worksheet = workbook.Worksheet(1);
+                    if (worksheet.LastRowNumber() == 0)
                     {
                         ViewBag.Message = "Excel fayl bo'sh!";
                         return View();
                     }
 
-                    int rowCount = worksheet.Dimension.Rows;
-                    int colCount = worksheet.Dimension.Columns;
+                    int rowCount = worksheet.LastRowNumber();
+                    int colCount = worksheet.LastColumnNumber();
 
                     // Qo'shish ustunlar dan header qator
                     for (int col = 1; col <= colCount; col++)
                     {
-                        dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                        dataTable.Columns.Add(worksheet.Cell(1, col).GetFormattedString());
                     }
 
                     // Qo'shish ma'lumot qatorlar
@@ -462,7 +462,7 @@ namespace tahsinERP.Controllers
                         var dataRow = dataTable.NewRow();
                         for (int col = 1; col <= colCount; col++)
                         {
-                            dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                            dataRow[col - 1] = worksheet.Cell(row, col).GetFormattedString();
                         }
                         dataTable.Rows.Add(dataRow);
                     }

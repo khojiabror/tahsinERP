@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 
 namespace tahsinERP.Controllers
@@ -282,17 +283,16 @@ namespace tahsinERP.Controllers
                     try
                     {
                         var dataTable = new DataTable();
-                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-                        using (var package = new ExcelPackage(file.InputStream))
+                        using (var workbook = new XLWorkbook(file.InputStream))
                         {
-                            var worksheet = package.Workbook.Worksheets[0];
-                            var rowCount = worksheet.Dimension.Rows;
-                            var colCount = worksheet.Dimension.Columns;
+                            var worksheet = workbook.Worksheet(1);
+                            var rowCount = worksheet.LastRowNumber();
+                            var colCount = worksheet.LastColumnNumber();
 
                             for (int col = 1; col <= colCount; col++)
                             {
-                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                                dataTable.Columns.Add(worksheet.Cell(1, col).GetFormattedString());
                             }
 
                             for (int row = 2; row <= rowCount; row++)
@@ -300,7 +300,7 @@ namespace tahsinERP.Controllers
                                 var dataRow = dataTable.NewRow();
                                 for (int col = 1; col <= colCount; col++)
                                 {
-                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                                    dataRow[col - 1] = worksheet.Cell(row, col).GetFormattedString();
                                 }
                                 dataTable.Rows.Add(dataRow);
                             }
