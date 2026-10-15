@@ -141,6 +141,7 @@
             </div>
         </div>
 
+        <div hidden>@Html.AntiForgeryToken()</div>
         <div>@RenderBody()</div>
 
         <div class="sidenav-overlay"></div>
@@ -154,6 +155,7 @@
         </footer>
 
         @Scripts.Render("~/bundles/jquery")
+        <script src="~/Scripts/csrf.js"></script>
         @RenderSection("Scripts", required: false)
 
         <!-- Vendor JS -->

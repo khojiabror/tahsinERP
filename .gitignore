@@ -362,3 +362,13 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /tahsinERP.Tests/tahsinERP.Tests.csproj
+
+# --- tahsinERP: katta arxivlar va maxfiy fayllar ---
+# Loyiha arxivlari (100 MB lik tahsinERP.rar repoda bo'lmasligi kerak)
+*.rar
+*.7z
+# Litsenziya generatori — maxfiy kalit (.pfx, license_private.dat) bor; alohida saqlanadi
+tahsinERP.LicenseGen/
+license_private.dat
+# Serverdagi connection string fayli (DbConfig: %ProgramData%\tahsinERP\db.connection)
+db.connection

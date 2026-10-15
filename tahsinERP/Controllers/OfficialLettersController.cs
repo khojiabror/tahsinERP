@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -584,6 +585,7 @@ namespace tahsinERP.Controllers
 
         // AJAX so'rovi: Suggest text
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public JsonResult SuggestText(string directionCode, string externalCompanyName, string externalContactName, string topic, string letterDate, string ourRefNo, string theirRefNo)
         {
             try

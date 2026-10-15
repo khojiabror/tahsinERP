@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -306,6 +307,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: PModule/GetActions
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public JsonResult GetActions(string controller)
         {
             try

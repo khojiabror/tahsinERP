@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.POrder;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -270,6 +271,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: POrders/LoadRequisitionProducts - talabnomadagi mahsulotlarni yuklash
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> LoadRequisitionProducts(int requisitionId)
         {
             using (var db = new DBTHSNEntities())
@@ -309,6 +311,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: POrders/GenerateFromSalesOrders - S_ORDERS asosida BOM yechimini hisoblash
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GenerateFromSalesOrders(int[] salesOrderIds, DateTime? issuedDate = null)
         {
             if (salesOrderIds == null || salesOrderIds.Length == 0)
@@ -1047,6 +1050,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetContractsBySupplier(int supplierId)
         {
             try

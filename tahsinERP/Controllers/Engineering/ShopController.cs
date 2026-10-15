@@ -6,6 +6,7 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -27,6 +28,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Create([Bind(Include = "ShopName,CompanyID,Description,Isdeleted")] SHOP prod_shop)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -70,6 +72,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Delete(SHOP prod_shop)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -121,6 +124,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Edit(SHOP prod_shop)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

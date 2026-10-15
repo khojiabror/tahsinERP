@@ -55,8 +55,11 @@ using System.Linq;
 
 <#=Accessibility.ForType(container)#> partial class <#=code.Escape(container)#> : DbContext
 {
+    // Connection string web.config'dan EMAS, DbConfig helper orqali (parol kod
+    // ichida AES bilan shifrlangan). Bu qator shablonda o'zgartirilgan — EDMX
+    // qayta generatsiya qilinsa ham DbConfig ishlatilaveradi.
     public <#=code.Escape(container)#>()
-        : base("name=<#=container.Name#>")
+        : base(tahsinERP.Configuration.DbConfig.GetEntityConnectionString())
     {
 <#
 if (!loader.IsLazyLoadingEnabled(container))

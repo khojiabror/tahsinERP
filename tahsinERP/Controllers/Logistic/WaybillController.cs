@@ -12,6 +12,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -882,6 +883,7 @@ namespace tahsinERP.Controllers
         /// AJAX so'rovi: Get suggested rate dan contract tariffs
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetSuggestedRate(int? contractId, int? transportTypeId, string fromLocation, string toLocation)
         {
             if (!contractId.HasValue || !transportTypeId.HasValue)
@@ -932,6 +934,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetTariffsByContract(int? contractId)
         {
             if (!contractId.HasValue)
@@ -966,6 +969,7 @@ namespace tahsinERP.Controllers
         /// AJAX so'rovi: Auto-fill waybill ma'lumot dan invoice/order
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetDataFromInvoice(int? invoiceId, string invoiceType)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

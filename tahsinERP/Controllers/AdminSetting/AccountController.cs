@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -23,7 +25,8 @@ namespace tahsinERP.Controllers
         private static extern int inet_addr(string ip);
 
         // Session timeout constants (in minutes)
-        private const int DEFAULT_SESSION_TIMEOUT = 15;
+        // web.config <forms timeout> dan olinadi (sliding)
+        private static readonly int DEFAULT_SESSION_TIMEOUT = (int)FormsAuthentication.Timeout.TotalMinutes;
         private const int KEEP_LOGGED_IN_TIMEOUT = 60; // 1 hour
 
         public ActionResult Index()
@@ -57,6 +60,14 @@ namespace tahsinERP.Controllers
                 return View();
             }
 
+            string clientIp = Request.UserHostAddress;
+            TimeSpan lockRemaining;
+            if (LoginThrottle.Default.IsLockedOut(user.UName, clientIp, out lockRemaining))
+            {
+                ModelState.AddModelError("", $"Juda ko'p noto'g'ri urinish. {Math.Ceiling(lockRemaining.TotalMinutes)} daqiqadan keyin qayta urinib ko'ring.");
+                return View();
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Find user by username (case-insensitive)
@@ -66,6 +77,7 @@ namespace tahsinERP.Controllers
 
                 if (getUser == null)
                 {
+                    LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
                     ModelState.AddModelError("", "Bunday foydalanuvchi mavjud emas!");
                     return View();
                 }
@@ -77,14 +89,26 @@ namespace tahsinERP.Controllers
                 }
 
                 // Tekshirish password
-                var hashCode = getUser.HashCode;
-                var encodingPasswordString = Helper.EncodePassword(user.Password, hashCode);
-
-                if (getUser.Password != encodingPasswordString)
+                bool needsRehash;
+                if (!PasswordHasher.Verify(user.Password, getUser.Password, getUser.HashCode, out needsRehash))
                 {
-                    ModelState.AddModelError("", "Kalit so'zi noto'g'ri!");
+                    bool nowLocked = LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
+                    ModelState.AddModelError("", nowLocked
+                        ? $"Kalit so'zi noto'g'ri! {LoginThrottle.Default.MaxFailures} marta xato — {LoginThrottle.Default.LockoutDuration.TotalMinutes:0} daqiqaga bloklandi."
+                        : "Kalit so'zi noto'g'ri!");
                     return View();
                 }
+                LoginThrottle.Default.Reset(user.UName, clientIp);
+
+                // Eski (SHA1+MD5) hash — yangi PBKDF2 formatiga o'tkazamiz
+                if (needsRehash)
+                {
+                    string newSalt;
+                    getUser.Password = PasswordHasher.Hash(user.Password, out newSalt);
+                    getUser.HashCode = newSalt;
+                    db.SaveChanges();
+                }
+
 
                 // Aniqlash session timeout based on "Keep me logged in"
                 int sessionTimeout = user.KeepMeSigned ? KEEP_LOGGED_IN_TIMEOUT : DEFAULT_SESSION_TIMEOUT;
@@ -283,10 +307,9 @@ namespace tahsinERP.Controllers
                 // Yangilash password agar provided
                 if (!string.IsNullOrEmpty(uvm.Password))
                 {
-                    var keyNew = Helper.GeneratePassword(10);
-                    var password = Helper.EncodePassword(uvm.Password, keyNew);
+                    string keyNew;
+                    userToUpdate.Password = PasswordHasher.Hash(uvm.Password, out keyNew);
                     userToUpdate.HashCode = keyNew;
-                    userToUpdate.Password = password;
                 }
 
                 // Yangilash other fields
@@ -351,6 +374,7 @@ namespace tahsinERP.Controllers
         /// Receives device identifier dan client-side JavaScript va stores it in session va cookie
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         [AllowAnonymous]
         public JsonResult SetDeviceId(string deviceId)
         {

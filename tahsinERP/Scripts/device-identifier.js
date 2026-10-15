@@ -110,6 +110,8 @@
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', '/Account/SetDeviceId', true);
                     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    var csrf = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (csrf) xhr.setRequestHeader('RequestVerificationToken', csrf.value);
                     xhr.timeout = 10000;
                     xhr.onreadystatechange = function() {
                         if (xhr.readyState === 4) {
@@ -197,6 +199,8 @@
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', '/Account/SetDeviceId', false); // synchronous
                     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    var csrf = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (csrf) xhr.setRequestHeader('RequestVerificationToken', csrf.value);
                     xhr.send('deviceId=' + encodeURIComponent(deviceId));
                 }
             } catch (e) {

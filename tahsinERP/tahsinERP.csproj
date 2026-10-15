@@ -252,6 +252,7 @@
     <Reference Include="System.Web.Routing" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Net.Http.WebRequest">
@@ -975,6 +976,8 @@
     </Compile>
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
+    <Compile Include="Helpers\PasswordHasher.cs" />
+    <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\QualityInspectionBalanceHelper.cs" />
     <Compile Include="Models\RoleHelper.cs" />
     <Compile Include="Models\USER_ENTRIES.cs">
@@ -1024,7 +1027,9 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
+    <Compile Include="Configuration\DbConfig.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
+    <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
@@ -2948,6 +2953,7 @@
     <Content Include="Scripts\jquery-3.7.1.min.js" />
     <Content Include="Scripts\jquery-3.7.1.slim.js" />
     <Content Include="Scripts\jquery-3.7.1.slim.min.js" />
+    <Content Include="Scripts\csrf.js" />
     <Content Include="Scripts\jquery-3.7.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.1.min.map" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />

@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -369,6 +370,7 @@ namespace tahsinERP.Controllers.HR
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> UpdateLine(int lineId, int day, decimal? hours)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
@@ -385,6 +387,7 @@ namespace tahsinERP.Controllers.HR
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> UpdateQuantity(int lineId, int day, decimal? quantity, int? productId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
@@ -402,6 +405,7 @@ namespace tahsinERP.Controllers.HR
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> BulkUpdate(int timesheetId, List<int> employeeIds, int day, decimal? hours)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
@@ -424,6 +428,7 @@ namespace tahsinERP.Controllers.HR
             }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> ImportFromProduction(int timesheetId, int employeeId, int year, int month)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))

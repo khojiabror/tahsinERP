@@ -14,6 +14,7 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -98,6 +99,7 @@ namespace tahsinERP.Controllers
             return View();
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult UploadWithExcel(HttpPostedFileBase file)
         {
             if (file != null && file.ContentLength > 0)
@@ -213,6 +215,7 @@ namespace tahsinERP.Controllers
             return View("UploadWithExcel");
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Save(string dataTableModel, int? WarehouseID)
         {
             if (WarehouseID > 0)

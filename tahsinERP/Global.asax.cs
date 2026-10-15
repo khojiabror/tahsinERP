@@ -11,6 +11,8 @@ namespace tahsinERP
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
+            // X-Frame-Options web.config'dagi customHeaders orqali beriladi (dublikat bo'lmasin)
+            System.Web.Helpers.AntiForgeryConfig.SuppressXFrameOptionsHeader = true;
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters); // Global filtrlarga LogActionFilter ni qo'shish
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);

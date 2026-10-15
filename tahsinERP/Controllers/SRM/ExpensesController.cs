@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -150,6 +151,7 @@ namespace tahsinERP.Controllers.SRM
 
         // FIFO: Berilgan ombor+mahsulot uchun mavjud Income lotlar (FIFO tartibida)
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetAvailableIncomeLots(int warehouseId, int productId)
         {
             try
@@ -202,6 +204,7 @@ namespace tahsinERP.Controllers.SRM
 
         // POST so'rovi: Expenses/GetAvailableProducts
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetAvailableProducts(int warehouseId, int? receiverWarehouseId)
         {
             using (var db = new DBTHSNEntities())

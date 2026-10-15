@@ -1719,6 +1719,7 @@
         </div>
         <!-- END: Main Menu -->
 
+        <div hidden>@Html.AntiForgeryToken()</div>
         <div>@RenderBody()</div>
 
         <div class="sidenav-overlay"></div>
@@ -1774,6 +1775,8 @@
 
         <!-- Repeater -->
         <script src="~/assets/js/jquery.repeater.min.js"></script>
+        <!-- CSRF token: barcha AJAX POST va formalarga -->
+        <script src="~/Scripts/csrf.js"></script>
         <script>
             (function () {
                 function getOrientationByElementSize(element) {

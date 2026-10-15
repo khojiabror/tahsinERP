@@ -11,6 +11,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
 using System.Web.Security;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -670,6 +671,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: Link Order ga Contract
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult LinkOrder(int contractID, int orderID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -687,6 +689,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: Unlink Order dan Contract
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult UnlinkOrder(int contractID, int orderID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

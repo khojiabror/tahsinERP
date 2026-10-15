@@ -10,6 +10,7 @@ using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using tahsinERP.Helpers;
 using tahsinERP.Services;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -827,6 +828,7 @@ namespace tahsinERP.Controllers.MES
 
         // POST so'rovi: ProductPlan/CalculateRequiredRawMaterials
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<ActionResult> CalculateRequiredRawMaterials(int planId)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

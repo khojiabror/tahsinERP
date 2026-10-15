@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -374,6 +375,7 @@ namespace tahsinERP.Controllers.HR
 
         // AJAX so'rovi: yangilash parent (drag & drop)
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> UpdateParent(int id, int? newParentId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))

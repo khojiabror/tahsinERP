@@ -6,6 +6,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
@@ -94,10 +95,9 @@ namespace tahsinERP.Controllers
 
                 USER user = new USER();
                 user.Uname = userVM.UName;
-                var keyNew = Helper.GeneratePassword(10);
-                var password = Helper.EncodePassword(userVM.Password, keyNew);
+                string keyNew;
+                user.Password = PasswordHasher.Hash(userVM.Password, out keyNew);
                 user.HashCode = keyNew;
-                user.Password = password;
                 user.FullName = userVM.FullName;
                 user.Email = userVM.Email;
                 user.IsActive = userVM.IsActive;
@@ -248,10 +248,9 @@ namespace tahsinERP.Controllers
                 // Yangilash password faqat agar provided
                 if (!string.IsNullOrWhiteSpace(uvm.Password))
                 {
-                    var keyNew = Helper.GeneratePassword(10);
-                    var password = Helper.EncodePassword(uvm.Password, keyNew);
+                    string keyNew;
+                    userToUpdate.Password = PasswordHasher.Hash(uvm.Password, out keyNew);
                     userToUpdate.HashCode = keyNew;
-                    userToUpdate.Password = password;
                 }
 
                 userToUpdate.Uname = uvm.UName;

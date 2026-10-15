@@ -12,6 +12,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -280,6 +281,7 @@ namespace tahsinERP.Controllers.SRM
 
         // POST so'rovi: Incomes/LoadInvoiceProducts
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> LoadInvoiceProducts(int invoiceId)
         {
             using (var db = new DBTHSNEntities())

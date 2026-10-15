@@ -5,6 +5,7 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -52,6 +53,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Edit(DEFECT_TYPES model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -89,6 +91,7 @@ namespace tahsinERP.Controllers
             return View();
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Create(DEFECT_TYPES model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -131,6 +134,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Delete(DEFECT_TYPES model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

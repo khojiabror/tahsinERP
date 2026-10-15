@@ -51,6 +51,7 @@
                                             <div class="col-lg-6 col-md-12">
                                                 @using (Html.BeginForm("UploadWithExcel", "Supplier", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                                 {
+                                                    @Html.AntiForgeryToken()
                                                     <fieldset class="form-group">
                                                         <label for="basicInputFile">To'ldirilgan faylni yuklash uchun quyidagi tugmani bosing</label>
                                                         <div class="custom-file">
@@ -62,6 +63,7 @@
                                                 }
                                                 @using (Html.BeginForm("ClearDataTable", "Supplier", FormMethod.Post))
                                                 {
+                                                    @Html.AntiForgeryToken()
                                                     <fieldset class="form-group">
                                                         <div>
                                                             <label for="basicInputFile">Jadval ma'lumotlarini tozalash uchun esa quyidagi tugmani bosing:</label>
@@ -99,6 +101,7 @@
                                     </div>
                                     @using (Html.BeginForm("Save", "Supplier", FormMethod.Post))
                                     {
+                                        @Html.AntiForgeryToken()
                                         <div class="card-content">
                                             <div class="card-body">
                                                 <!-- datatable start -->

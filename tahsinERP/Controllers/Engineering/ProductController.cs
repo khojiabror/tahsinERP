@@ -14,6 +14,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using System.Data.Entity;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -419,6 +420,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<ActionResult> UploadWithExcel(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -489,6 +491,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<ActionResult> Save(string dataTableModel)
         {
             if (string.IsNullOrWhiteSpace(dataTableModel))

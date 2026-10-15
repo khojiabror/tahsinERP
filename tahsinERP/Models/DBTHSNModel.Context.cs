@@ -17,8 +17,11 @@ namespace tahsinERP.Models
     
     public partial class DBTHSNEntities : DbContext
     {
+        // Connection string web.config'dan EMAS, DbConfig helper orqali (parol kod
+        // ichida AES bilan shifrlangan). Shablon (.tt) ham o'zgartirilgan, shuning
+        // uchun EDMX qayta generatsiya qilinsa ham bu qator DbConfig'ni ishlatadi.
         public DBTHSNEntities()
-            : base("name=DBTHSNEntities")
+            : base(tahsinERP.Configuration.DbConfig.GetEntityConnectionString())
         {
         }
     

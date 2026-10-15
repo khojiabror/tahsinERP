@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using Newtonsoft.Json;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.Engineering
 {
@@ -426,13 +427,8 @@ namespace tahsinERP.Controllers.Engineering
                     db.NORMVERSIONS.Remove(normVersion);
                     await db.SaveChangesAsync();
 
-                    // Reseed identity values (tag-tugi bilan o'chirishdan so'ng)
-                    var maxInputId = await db.NORM_INPUT_LINES.Select(x => (int?)x.ID).MaxAsync() ?? 0;
-                    var maxNormLineId = await db.NORMLINES.Select(x => (int?)x.ID).MaxAsync() ?? 0;
-                    var maxNormVersionId = await db.NORMVERSIONS.Select(x => (int?)x.ID).MaxAsync() ?? 0;
-                    await db.Database.ExecuteSqlCommandAsync($"DBCC CHECKIDENT ('NORM_INPUT_LINES', RESEED, {maxInputId})");
-                    await db.Database.ExecuteSqlCommandAsync($"DBCC CHECKIDENT ('NORMLINES', RESEED, {maxNormLineId})");
-                    await db.Database.ExecuteSqlCommandAsync($"DBCC CHECKIDENT ('NORMVERSIONS', RESEED, {maxNormVersionId})");
+                    // Identity RESEED (DBCC CHECKIDENT) olib tashlandi: ID'lardagi "teshik" xato emas,
+                    // reseed esa db_owner huquqini talab qiladi va parallel INSERT bilan PK to'qnashuviga olib keladi.
                     
                     // Note: BOM_HEADERS va BOM_LINES product ga bog'liq, norm versiyasiga emas
                     // Shuning uchun ularni o'chirmaymiz, chunki keyingi norm versiyasi yaratilganda yangilanadi
@@ -822,6 +818,7 @@ namespace tahsinERP.Controllers.Engineering
 
         // POST so'rovi: Norm/Calculate (Optimization)
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> Calculate(ProductNormViewModel viewModel)
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))

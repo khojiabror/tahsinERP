@@ -12,6 +12,7 @@ using tahsinERP.Controllers;
 using OfficeOpenXml;
 using System.IO;
 using System.Globalization;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -401,6 +402,7 @@ namespace tahsinERP.Controllers.HR
 
         // POST so'rovi: HR/PieceRateTimesheets/UpdateQuantity
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> UpdateQuantity(int lineId, int day, decimal? quantity, int? productId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))
@@ -449,6 +451,7 @@ namespace tahsinERP.Controllers.HR
 
         // POST so'rovi: HR/PieceRateTimesheets/ImportFromProduction
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> ImportFromProduction(int timesheetId, int employeeId, int year, int month)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets"))

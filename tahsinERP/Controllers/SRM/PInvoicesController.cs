@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -278,6 +279,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: PInvoices/LoadOrderProducts - yuklash products dan P_ORDER
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> LoadOrderProducts(int orderId)
         {
             using (var db = new DBTHSNEntities())
@@ -1084,6 +1086,7 @@ namespace tahsinERP.Controllers
 
         // AJAX so'rovi: Get contracts by supplier
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> GetContractsBySupplier(int supplierId)
         {
             try

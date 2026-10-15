@@ -8,6 +8,7 @@
 {
     using (Html.BeginForm("Edit", "Shop", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
+        @Html.AntiForgeryToken()
         <div class="app-content content">
             <div class="content-overlay"></div>
             <div class="content-wrapper">

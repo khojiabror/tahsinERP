@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -37,6 +38,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Create(DAMAGED_PRODUCTS model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -87,6 +89,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Edit(DAMAGED_PRODUCTS damagedPart)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -137,6 +140,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryHeader]
         public ActionResult Delete(int id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

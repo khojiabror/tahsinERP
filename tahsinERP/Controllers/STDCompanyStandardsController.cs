@@ -12,6 +12,7 @@ using System.Web;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -83,6 +84,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: STDCompanyStandards/SaveDocument (OnlyOffice callback)
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult SaveDocument(string key, string url, int status)
         {
             // OnlyOffice hujjat Server callback
@@ -107,6 +109,7 @@ namespace tahsinERP.Controllers
 
         // POST so'rovi: STDCompanyStandards/UploadImage (OnlyOffice image upload)
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult UploadImage()
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
@@ -25,6 +26,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Create(PRODUCTIONPROCESS productionProcess)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -67,6 +69,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Delete(PRODUCTIONPROCESS pRODUCTIONPROCESS)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -117,6 +120,7 @@ namespace tahsinERP.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public ActionResult Edit(PRODUCTIONPROCESS pRODUCTIONPROCESS)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())

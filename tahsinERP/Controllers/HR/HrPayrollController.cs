@@ -9,6 +9,7 @@ using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
 using OfficeOpenXml;
 using System.IO;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -660,6 +661,7 @@ namespace tahsinERP.Controllers.HR
 
         // POST so'rovi: HR/Payroll/UpdateLine
         [HttpPost]
+        [ValidateAntiForgeryHeader]
         public async Task<JsonResult> UpdateLine(int lineId, decimal? bonuses, decimal? penalties, decimal? incomeTaxPercent, string notes, int? currencyId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
